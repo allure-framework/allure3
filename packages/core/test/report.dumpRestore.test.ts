@@ -25,6 +25,7 @@ const minimalDumpJsonFiles = (
   [AllureStoreDumpFiles.TestCases]: "{}",
   [AllureStoreDumpFiles.Fixtures]: "{}",
   [AllureStoreDumpFiles.Attachments]: "{}",
+  [AllureStoreDumpFiles.CheckResults]: "[]",
   [AllureStoreDumpFiles.Environments]: "[]",
   [AllureStoreDumpFiles.ReportVariables]: "{}",
   [AllureStoreDumpFiles.GlobalAttachments]: "[]",
@@ -43,7 +44,7 @@ const minimalDumpJsonFiles = (
 const writeDumpZip = async (
   filePath: string,
   attachmentEntries: { name: string; data: Buffer }[],
-  jsonFiles?: Partial<Record<AllureStoreDumpFiles, string>>,
+  jsonFiles: Partial<Record<AllureStoreDumpFiles, string>> = {},
 ): Promise<void> => {
   const archive = new ZipWriteStream({
     zlib: { level: 5 },
@@ -91,7 +92,9 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
   it("restores a dump when attachment entry names are safe", async () => {
     const zipPath = tempZipPath();
-    await writeDumpZip(zipPath, [{ name: "safe-attachment-id-1", data: Buffer.from("hello") }]);
+    await step("write dump archive with a safe attachment entry", async () => {
+      await writeDumpZip(zipPath, [{ name: "safe-attachment-id-1", data: Buffer.from("hello") }]);
+    });
 
     const config = await resolveConfig({ name: "Allure Report" });
     const report = new AllureReport(config);
@@ -113,6 +116,34 @@ describe("AllureReport.restoreState (dump zip)", () => {
       await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
 
       expect(closeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("restores check results from a dump", async () => {
+    const zipPath = tempZipPath();
+    const checkResults = [
+      {
+        name: "Lint",
+        status: "passed",
+        tags: ["ci"],
+        details: {
+          command: "npm run lint",
+          message: "lint ok",
+        },
+      },
+    ];
+
+    await writeDumpZip(zipPath, [], {
+      [AllureStoreDumpFiles.CheckResults]: JSON.stringify(checkResults),
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore check results from a dump archive", async () => {
+      await report.restoreState([zipPath]);
+
+      await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
     });
   });
 
@@ -360,6 +391,45 @@ describe("AllureReport.restoreState (dump zip)", () => {
       );
       expect(existsSync(`${dumpPath}.zip`)).toBe(false);
     });
+  });
+
+  it("writes check results to a dump", async () => {
+    const dumpPath = join(tmpdir(), `allure-check-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const checkResult = {
+      name: "Lint",
+      status: "passed" as const,
+      tags: ["ci"],
+      details: {
+        command: "npm run lint",
+        message: "lint ok",
+      },
+    };
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await report.start();
+    await report.store.addCheckResult(checkResult);
+    await report.done();
+
+    const archive = new ZipReadStream.async({
+      file: zipPath,
+    });
+
+    try {
+      const checkResultsEntry = await archive.entryData(AllureStoreDumpFiles.CheckResults);
+
+      expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual([checkResult]);
+    } finally {
+      await archive.close();
+    }
   });
 });
 

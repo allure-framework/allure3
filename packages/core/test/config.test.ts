@@ -430,6 +430,25 @@ describe("resolveConfig", () => {
     });
   });
 
+  it("should allow plugins to be disabled by override", async () => {
+    vi.clearAllMocks();
+
+    const resolved = await resolveConfig(
+      {
+        plugins: {
+          custom: {
+            import: "custom-plugin",
+            options: {},
+          },
+        },
+      },
+      { plugins: {} },
+    );
+
+    expect(resolved.plugins).toEqual([]);
+    expect(importWrapper).not.toHaveBeenCalled();
+  });
+
   it("should append agent after configured plugins when agent is not specified", async () => {
     const resolved = await resolveConfig({
       plugins: {

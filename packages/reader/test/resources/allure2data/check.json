@@ -1,0 +1,9 @@
+{
+  "name": "Lint",
+  "status": "passed",
+  "tags": ["ci", "linux"],
+  "details": {
+    "command": "npm run lint",
+    "message": "lint ok"
+  }
+}

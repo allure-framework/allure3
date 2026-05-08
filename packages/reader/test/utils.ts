@@ -29,6 +29,7 @@ export const readResourceAsResultFile = async (path: string, filename?: string) 
 
 export const mockVisitor: () => Mocked<ResultsVisitor> = () => ({
   visitTestResult: vi.fn<ResultsVisitor["visitTestResult"]>(),
+  visitCheckResult: vi.fn<ResultsVisitor["visitCheckResult"]>(),
   visitAttachmentFile: vi.fn<ResultsVisitor["visitAttachmentFile"]>(),
   visitMetadata: vi.fn<ResultsVisitor["visitMetadata"]>(),
   visitTestFixtureResult: vi.fn<ResultsVisitor["visitTestFixtureResult"]>(),
@@ -78,6 +79,7 @@ export const readResults = async (
         JSON.stringify(
           {
             testResults: visitor.visitTestResult.mock.calls.length,
+            checkResults: visitor.visitCheckResult.mock.calls.length,
             attachmentFiles: visitor.visitAttachmentFile.mock.calls.length,
             metadata: visitor.visitMetadata.mock.calls.length,
             fixtures: visitor.visitTestFixtureResult.mock.calls.length,

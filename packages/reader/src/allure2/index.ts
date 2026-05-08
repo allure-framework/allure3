@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -61,6 +61,21 @@ export const allure2: ResultsReader = {
     if (originalFileName.match(/-attachment(?:\..+)?/)) {
       await visitor.visitAttachmentFile(data, { readerId });
       return true;
+    }
+
+    if (originalFileName.endsWith("-check.json")) {
+      try {
+        const parsed = await data.asJson<unknown>();
+
+        if (parsed && isStringAnyRecord(parsed)) {
+          await processCheckResult(visitor, parsed, originalFileName);
+        }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
     }
 
     if (originalFileName.endsWith("-result.json")) {
@@ -201,6 +216,31 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
   await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
 };
 
+const processCheckResult = async (
+  visitor: ResultsVisitor,
+  result: Partial<AllureCheckResult>,
+  originalFileName: string,
+) => {
+  const tags = Array.isArray(result.tags) ? result.tags.map((tag) => ensureString(tag)).filter(notNull) : [];
+  const details: Record<string, any> = isStringAnyRecord(result.details) ? result.details : {};
+  const message = ensureString(details.message);
+  const error = ensureString(details.error);
+
+  await visitor.visitCheckResult(
+    {
+      name: ensureString(result.name, originalFileName.replace(/-check\.json$/, "")),
+      status: convertCheckStatus(result.status),
+      ...(tags.length ? { tags } : {}),
+      details: {
+        command: ensureString(details.command, ""),
+        ...(message ? { message } : {}),
+        ...(error ? { error } : {}),
+      },
+    },
+    { readerId, metadata: { originalFileName } },
+  );
+};
+
 const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
   await visitor.visitMetadata(
     {
@@ -322,6 +362,10 @@ const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
     },
     { readerId },
   );
+};
+
+const convertCheckStatus = (status: unknown): AllureCheckResult["status"] => {
+  return status === "passed" ? "passed" : "failed";
 };
 
 const convertStatus = (status: Status | string | null | undefined): RawTestStatus => {

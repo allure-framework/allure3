@@ -298,24 +298,30 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
-  const configuredPlugins = override.plugins ?? config.plugins;
-  const basePlugins =
-    Object.keys(configuredPlugins ?? {}).length === 0
-      ? {
-          awesome: {
+  let pluginInstances: PluginInstance[] = [];
+  const hasPluginsOverride = override.plugins !== undefined;
+
+  if (!hasPluginsOverride || Object.keys(override.plugins ?? {}).length > 0) {
+    const configuredPlugins = hasPluginsOverride ? override.plugins : config.plugins;
+    const basePlugins =
+      !hasPluginsOverride && Object.keys(configuredPlugins ?? {}).length === 0
+        ? {
+            awesome: {
+              options: {},
+            },
+          }
+        : configuredPlugins!;
+    const plugins = hasConfiguredAgent(basePlugins)
+      ? basePlugins
+      : {
+          ...basePlugins,
+          agent: {
             options: {},
           },
-        }
-      : configuredPlugins!;
-  const plugins = hasConfiguredAgent(basePlugins)
-    ? basePlugins
-    : {
-        ...basePlugins,
-        agent: {
-          options: {},
-        },
-      };
-  const pluginInstances = await resolvePlugins(plugins);
+        };
+
+    pluginInstances = await resolvePlugins(plugins);
+  }
 
   return {
     name,
