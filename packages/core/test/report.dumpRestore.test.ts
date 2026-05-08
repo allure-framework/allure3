@@ -10,6 +10,7 @@ import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
 import { PathResultFile } from "@allurereport/reader-api";
 import { attachment, step } from "allure-js-commons";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import ZipReadStream from "node-stream-zip";
 import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
@@ -97,6 +98,21 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     await step("restore a dump with a safe attachment entry", async () => {
       await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
+    });
+  });
+
+  it("closes the dump archive after restore", async () => {
+    const zipPath = tempZipPath();
+    const closeSpy = vi.spyOn(ZipReadStream.async.prototype, "close");
+    await writeDumpZip(zipPath, [{ name: "safe-attachment-id-1", data: Buffer.from("hello") }]);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore a dump and release the archive handle", async () => {
+      await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
+
+      expect(closeSpy).toHaveBeenCalledTimes(1);
     });
   });
 
