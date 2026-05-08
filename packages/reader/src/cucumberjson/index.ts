@@ -90,7 +90,7 @@ export const cucumberjson: ResultsReader = {
     if (originalFileName.endsWith(".json")) {
       try {
         const parsed = await data.asJson<CucumberFeature[]>();
-        if (parsed) {
+        if (isArray(parsed)) {
           let oneOrMoreFeaturesParsed = false;
           for (const feature of parsed) {
             oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
