@@ -9,8 +9,8 @@ import { promisify } from "node:util";
 import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
 import { PathResultFile } from "@allurereport/reader-api";
 import { attachment, step } from "allure-js-commons";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import ZipReadStream from "node-stream-zip";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
