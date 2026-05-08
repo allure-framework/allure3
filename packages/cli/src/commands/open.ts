@@ -24,7 +24,7 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.String({
-    name: "A report to open or a pattern to match test results directories in the current working directory (default: ./allure-results)",
+    name: "A report to open or a pattern to match test results directories in the current working directory (default: configured output)",
     required: false,
   });
 
@@ -47,7 +47,10 @@ export class OpenCommand extends Command {
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
-    const targetFullPath = join(cwd, this.resultsDir ?? "allure-report");
+    const config = await readConfig(cwd, this.config, {
+      port: this.port,
+    });
+    const targetFullPath = this.resultsDir ? join(cwd, this.resultsDir) : config.output;
     const summaryFiles = existsSync(targetFullPath)
       ? await glob(join(targetFullPath, "**", "summary.json"), {
           mark: true,
@@ -60,10 +63,6 @@ export class OpenCommand extends Command {
       : [];
 
     if (summaryFiles.length > 0) {
-      const config = await readConfig(cwd, this.config, {
-        port: this.port,
-      });
-
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
         servePath: targetFullPath,
