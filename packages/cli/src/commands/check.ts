@@ -28,12 +28,6 @@ type CheckCommandOutput = {
   stderr: string;
 };
 
-const normalizeOutput = (value: string | undefined) => {
-  const trimmed = value?.trimEnd();
-
-  return trimmed ? trimmed : undefined;
-};
-
 const quoteCommandArg = (arg: string) => {
   if (/^[A-Za-z0-9_/:=.,@%+-]+$/.test(arg)) {
     return arg;
@@ -133,6 +127,7 @@ export class CheckCommand extends Command {
 
   name = Option.String("--name", {
     description: "The check name",
+    required: true,
   });
 
   status = Option.String("--status", {
@@ -169,10 +164,6 @@ export class CheckCommand extends Command {
     const args = this.commandToRun.filter((arg) => arg !== "--");
     const manualStatus = parseCheckStatus(this.status);
 
-    if (this.name === undefined) {
-      throw new UsageError("--name is required");
-    }
-
     if (manualStatus && args.length > 0) {
       throw new UsageError("Use either --status for a manual check or a command after --, not both");
     }
@@ -204,8 +195,8 @@ export class CheckCommand extends Command {
       status = originalExitCode === 0 ? "passed" : "failed";
     }
 
-    const message = normalizeOutput(commandOutput ? commandOutput.stdout : this.message);
-    const error = normalizeOutput(commandOutput?.stderr);
+    const message = (commandOutput ? commandOutput.stdout : this.message)?.trim() ?? "";
+    const error = commandOutput?.stderr?.trim() ?? "";
     const result = buildCheckResult(this.name, status, this.tag, checkCommand?.commandLine ?? "", message, error);
     const config = await readConfig(cwd, this.config, {
       output: this.output,
