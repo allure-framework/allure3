@@ -94,7 +94,7 @@ To view a previously generated report locally, the `open` command serves it in y
 npx allure open <reportDir>
 ```
 
-If you’ve defined the output directory in your configuration file, specifying `<reportDir>` is optional. By default, Allure 3 looks for a directory named `allure-report`. To open the Awesome report directly, point to the nested directory:
+When `<reportDir>` is omitted, Allure 3 uses the configured output directory, falling back to `allure-report` when no output is configured. To open the Awesome report directly, point to the nested directory:
 
 ```bash
 npx allure open allure-report/awesome
