@@ -85,6 +85,7 @@ type PreProcessedStep = {
 type PostProcessedStep = { preProcessedStep: PreProcessedStep; allureStep: RawTestStepResult };
 
 export const cucumberjson: ResultsReader = {
+  matches: (data) => data.getOriginalFileName().endsWith(".json"),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
     if (originalFileName.endsWith(".json")) {

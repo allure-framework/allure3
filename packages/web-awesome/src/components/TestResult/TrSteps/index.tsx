@@ -9,6 +9,8 @@ import {
   getNextSubtreeToggleState,
   getSubtreeToggleIcon,
   getStepTreeExpansionPolicy,
+  hasFailedStepContext,
+  isOpenByDefaultForPolicy,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeNode,
   type SubtreeToggleState,
@@ -34,7 +36,7 @@ export type TrStepsProps = {
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) => {
   const stepsId = typeof id === "string" ? `${id}-steps` : null;
   const policy = getStepTreeExpansionPolicy();
-  const isRootOpenedByDefault = policy !== "collapsed";
+  const isRootOpenedByDefault = isOpenByDefaultForPolicy(policy, hasFailedStepContext(bodyItems));
   const isOpened = stepsId !== null ? isTreeOpened(stepsId, isRootOpenedByDefault) : isRootOpenedByDefault;
   const expandableTreeNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasChildren = stepsId !== null && bodyItems.length > 0;

@@ -1,7 +1,8 @@
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { createWriteStream, existsSync, readFileSync } from "node:fs";
-import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { once } from "node:events";
+import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
+import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
@@ -55,6 +56,18 @@ import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDump
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
+const defaultReadConcurrency = 64;
+const maxReadConcurrency = 256;
+
+const readConcurrency = () => {
+  const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
+
+  if (!Number.isFinite(parsed)) {
+    return defaultReadConcurrency;
+  }
+
+  return Math.min(maxReadConcurrency, Math.max(1, parsed));
+};
 
 const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
   const repo = ci?.repoName;
@@ -70,6 +83,20 @@ const REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED = 5;
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
 const isAbortError = (err: unknown): boolean =>
   typeof err === "object" && err !== null && "name" in err && err?.name === "AbortError";
+
+const closeReadStream = async (stream: ReadStream): Promise<void> => {
+  if (stream.closed) {
+    return;
+  }
+
+  const closed = once(stream, "close").then(() => undefined);
+
+  if (!stream.destroyed) {
+    stream.destroy();
+  }
+
+  await closed.catch(() => undefined);
+};
 
 export class AllureReport {
   readonly #reportName: string;
@@ -206,16 +233,25 @@ export class AllureReport {
       return;
     }
 
-    const dir = await opendir(resultsDirPath);
-
     try {
-      for await (const dirent of dir) {
-        if (dirent.isFile()) {
-          const path = await realpath(join(dirent.parentPath ?? dirent.path, dirent.name));
+      const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
+        .filter((dirent) => dirent.isFile())
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const limit = pLimit(readConcurrency());
 
-          await this.readResult(new PathResultFile(path, dirent.name));
-        }
-      }
+      await Promise.all(
+        entries.map((dirent) =>
+          limit(async () => {
+            try {
+              const path = await realpath(join(resultsDirPath, dirent.name));
+
+              await this.readResult(new PathResultFile(path, dirent.name));
+            } catch (e) {
+              console.error(`can't read result file ${dirent.name}`, e);
+            }
+          }),
+        ),
+      );
     } catch (e) {
       console.error("can't read directory", e);
     }
@@ -235,6 +271,10 @@ export class AllureReport {
 
     for (const reader of this.#readers) {
       try {
+        if (reader.matches && !(await reader.matches(data))) {
+          continue;
+        }
+
         const processed = await reader.read(this.#store, data);
 
         if (processed) {
@@ -374,7 +414,7 @@ export class AllureReport {
       dumpArchiveWriteStream.on("error", (err) => finishDumpArchive(err));
     });
     const errMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
-    const addDumpEntry = async (data: Buffer, entryName: string): Promise<unknown | undefined> => {
+    const addDumpEntry = async (data: Buffer | ReadStream, entryName: string): Promise<unknown | undefined> => {
       try {
         await addEntry(data, { name: entryName });
         return undefined;
@@ -449,6 +489,18 @@ export class AllureReport {
 
           if (!content) {
             skipAttachment("attachment content is missing");
+            continue;
+          }
+
+          if (content instanceof PathResultFile) {
+            const stream = createReadStream(content.path);
+            const err = await addDumpEntry(stream, attachment.id);
+
+            if (err) {
+              await closeReadStream(stream);
+              skipAttachment(`failed to add attachment entry: ${errMessage(err)}`);
+            }
+
             continue;
           }
 

@@ -64,6 +64,7 @@ const xmlParser = new XMLParser({
 const readerId = "allure1";
 
 export const allure1: ResultsReader = {
+  matches: (data) => data.getOriginalFileName().endsWith("-testsuite.xml"),
   read: async (visitor, data) => {
     if (data.getOriginalFileName().endsWith("-testsuite.xml")) {
       try {

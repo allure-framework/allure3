@@ -52,7 +52,25 @@ const xmlParser = new XMLParser({
 
 const readerId = "allure2";
 
+const matchesAllure2File = (fileName: string): boolean => {
+  if (fileName.endsWith("-result.json")) return true;
+  if (fileName.endsWith("-check.json")) return true;
+  if (fileName.endsWith("-container.json")) return true;
+  if (fileName.endsWith("-globals.json")) return true;
+  const attachmentIdx = fileName.lastIndexOf("-attachment");
+  if (attachmentIdx !== -1) {
+    const suffix = fileName.slice(attachmentIdx + "-attachment".length);
+    if (suffix === "" || suffix.startsWith(".")) return true;
+  }
+  if (fileName === "executor.json") return true;
+  if (fileName === "categories.json") return true;
+  if (fileName === "environment.properties") return true;
+  if (fileName === "environment.xml") return true;
+  return false;
+};
+
 export const allure2: ResultsReader = {
+  matches: (data) => matchesAllure2File(data.getOriginalFileName()),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
 

@@ -41,6 +41,7 @@ const xmlParser = new XMLParser({
 const readerId = "junit";
 
 export const junitXml: ResultsReader = {
+  matches: (data) => data.getOriginalFileName().endsWith(".xml"),
   read: async (visitor, data) => {
     if (data.getOriginalFileName().endsWith(".xml")) {
       try {

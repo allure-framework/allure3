@@ -6,6 +6,7 @@ import {
   type PluginSummary,
   createPluginSummary,
   preciseTreeLabels,
+  relatedByTestResultIds,
 } from "@allurereport/plugin-api";
 
 import { convertTestResult } from "./converters.js";
@@ -40,12 +41,16 @@ export class Allure2Plugin implements Plugin {
     const categories = (await store.metadataByKey<Allure2Category[]>("allure2_categories")) ?? [];
     const environmentItems = (await store.metadataByKey<EnvironmentItem[]>("allure_environment")) ?? [];
     const tests = await store.allTestResults({ includeRetries: true });
+    const related = await relatedByTestResultIds(
+      store,
+      tests.map(({ id }) => id),
+    );
     const allTr: Allure2TestResult[] = [];
 
     for (const value of tests) {
-      const fixtures = await store.fixturesByTrId(value.id);
-      const retries = await store.retriesByTrId(value.id);
-      const history = (await store.historyByTrId(value.id)) ?? [];
+      const fixtures = related.fixturesByTrId.get(value.id) ?? [];
+      const retries = related.retriesByTrId.get(value.id) ?? [];
+      const history = related.historyByTrId.get(value.id) ?? [];
       const allure2TestResult = convertTestResult(
         {
           attachmentMap,

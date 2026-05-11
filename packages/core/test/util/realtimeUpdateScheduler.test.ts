@@ -79,6 +79,36 @@ describe("RealtimeUpdateScheduler", () => {
     expect(worker).toBeCalledTimes(2);
   });
 
+  it("should delay a dirty follow-up by at least the previous update duration after completion", async () => {
+    const firstUpdateStarted = createSignal();
+    const updateStarts: number[] = [];
+    const updateCompletions: number[] = [];
+    let scheduler!: RealtimeUpdateScheduler;
+    let calls = 0;
+    const cooldownMs = 20;
+    const longUpdateMs = 80;
+    const worker = vi.fn(async () => {
+      calls += 1;
+      updateStarts.push(Date.now());
+
+      if (calls === 1) {
+        firstUpdateStarted.resolve();
+        scheduler.request();
+        await setTimeout(longUpdateMs);
+        updateCompletions.push(Date.now());
+      }
+    });
+    scheduler = new RealtimeUpdateScheduler(worker, { cooldownMs });
+
+    scheduler.request();
+    await firstUpdateStarted.promise;
+    await scheduler.flush();
+
+    expect(worker).toBeCalledTimes(2);
+    expect(updateCompletions).toHaveLength(1);
+    expect(updateStarts[1] - updateCompletions[0]).toBeGreaterThanOrEqual(longUpdateMs);
+  });
+
   it("should not schedule a follow-up for requests before update starts", async () => {
     const worker = vi.fn().mockResolvedValue(undefined);
     const scheduler = new RealtimeUpdateScheduler(worker, { cooldownMs: 10 });
