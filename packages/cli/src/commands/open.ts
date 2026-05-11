@@ -2,11 +2,12 @@ import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cwd as processCwd } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
+import { red } from "yoctocolors";
 
 import { findFilesByGlobs } from "./../utils/fileSystem.js";
 import { generate } from "./commons/generate.js";
@@ -58,15 +59,15 @@ export class OpenCommand extends Command {
     const config = await readConfig(cwd, this.config, {
       port: this.port,
     });
-    const servePath = await this.resolveReportPath(cwd, this.resultsDir, config.output);
+    const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
 
-    if (servePath) {
+    if (await this.reportExists(servePath)) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
         servePath,
         open: true,
       });
-    } else {
+    } else if (this.resultsDir.length) {
       const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
@@ -95,19 +96,25 @@ export class OpenCommand extends Command {
         servePath: config.output,
         open: true,
       });
+    } else {
+      console.error(red(`A report doesn't exist in ${servePath} and no input was provided to generate.`));
+      exit(1);
+      return;
     }
   }
 
-  private async resolveReportPath(cwd: string, inputs: readonly string[], fallback: string = "allure-report") {
+  private resolveReportPath(cwd: string, inputs: readonly string[], fallback: string = "allure-report") {
     if (inputs.length <= 1) {
       const [maybeRelativeReportPath = fallback] = inputs;
-      const maybeAbsoluteReportPath = join(cwd, maybeRelativeReportPath);
-      if (existsSync(maybeAbsoluteReportPath)) {
-        const summaryFiles = await findFilesByGlobs(cwd, [join(maybeAbsoluteReportPath, "**", "summary.json")]);
-        if (summaryFiles.length > 0) {
-          return maybeAbsoluteReportPath;
-        }
-      }
+      return join(cwd, maybeRelativeReportPath);
     }
+  }
+
+  private async reportExists(reportPath: string | undefined) {
+    if (reportPath && existsSync(reportPath)) {
+      const summaryFiles = await findFilesByGlobs(reportPath, [join("**", "summary.json")]);
+      return summaryFiles.length > 0;
+    }
+    return false;
   }
 }

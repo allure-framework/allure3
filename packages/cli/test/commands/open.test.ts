@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
@@ -28,6 +29,10 @@ vi.mock("node:os", async (importOriginal) => {
     tmpdir: vi.fn(),
   };
 });
+vi.mock("node:process", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exit: vi.fn(),
+}));
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
@@ -59,12 +64,12 @@ describe("open command", () => {
 
     await run(OpenCommand, ["open", "--cwd", "bar"]);
 
-    expect(glob).toHaveBeenCalledWith(join("bar", "allure-report", "**", "summary.json"), {
+    expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "bar",
+      cwd: "bar/allure-report",
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -88,12 +93,12 @@ describe("open command", () => {
 
     await run(OpenCommand, ["open", "--cwd", "baz"]);
 
-    expect(glob).toHaveBeenCalledWith(join("baz", "bar", "**", "summary.json"), {
+    expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "baz",
+      cwd: "baz/bar",
     });
     expect(readConfig).toHaveBeenCalledWith("baz", undefined, {
       port: undefined,
@@ -141,36 +146,62 @@ describe("open command", () => {
     );
   });
 
-  it("should generate and serve the default pattern when no input provided and output not exists", async () => {
+  it("should fail when no input provided and configured output not exists", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (existsSync as Mock).mockReturnValue(false);
     (readConfig as Mock).mockResolvedValueOnce({ output: "foo" });
-    (readConfig as Mock).mockResolvedValueOnce({ output: "bar" });
-    (tmpdir as Mock).mockReturnValueOnce("baz");
-    (mkdtemp as Mock).mockResolvedValueOnce("qux");
     (serve as Mock).mockResolvedValue(undefined);
 
-    await run(OpenCommand, ["open", "--cwd", "qut"]);
+    await run(OpenCommand, ["open", "--cwd", "bar"]);
 
-    expect(readConfig).toHaveBeenNthCalledWith(1, "qut", undefined, {
-      port: undefined,
-    });
-    expect(readConfig).toHaveBeenNthCalledWith(2, "qut", undefined, expect.objectContaining({ output: "qux" }));
-    expect(generate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resultsDir: [],
-        cwd: "qut",
-        config: expect.objectContaining({
-          output: "bar",
-        }),
-      }),
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("A report doesn't exist in bar/foo and no input was provided to generate."),
     );
-    expect(serve).toHaveBeenCalledWith(
-      expect.objectContaining({
-        port: undefined,
-        servePath: "bar",
-        open: true,
-      }),
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("should fail when no input provided and default output not exists", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (existsSync as Mock).mockReturnValue(false);
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "foo"]);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("A report doesn't exist in foo/allure-report and no input was provided to generate."),
     );
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("should fail when no input provided and no report in configured output", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (existsSync as Mock).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValueOnce({ output: "foo" });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "bar"]);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("A report doesn't exist in bar/foo and no input was provided to generate."),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("should fail when no input provided and no report in default output", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (existsSync as Mock).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "foo"]);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("A report doesn't exist in foo/allure-report and no input was provided to generate."),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should serve existing report when summary.json files are found", async () => {
@@ -181,12 +212,12 @@ describe("open command", () => {
 
     await run(OpenCommand, ["open", "--cwd", "bar", "baz"]);
 
-    expect(glob).toHaveBeenCalledWith(join("bar", "baz", "**", "summary.json"), {
+    expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "bar",
+      cwd: "bar/baz",
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -281,9 +312,9 @@ describe("open command", () => {
 
     expect(readConfig).toHaveBeenCalledWith(process.cwd(), undefined, expect.any(Object));
     expect(glob).toHaveBeenCalledWith(
-      join(process.cwd(), "qux", "**", "summary.json"),
+      join("**", "summary.json"),
       expect.objectContaining({
-        cwd: process.cwd(),
+        cwd: join(process.cwd(), "qux"),
       }),
     );
     expect(generate).toHaveBeenCalledWith(
@@ -305,49 +336,13 @@ describe("open command", () => {
 
     await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
-    expect(glob).toHaveBeenCalledWith(join("qux", "qut", "**", "summary.json"), {
+    expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "qux",
+      cwd: "qux/qut",
     });
-  });
-
-  it("should pass empty resultsDir to generate when not provided and no summary in output", async () => {
-    (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("foo");
-    (mkdtemp as Mock).mockResolvedValue("bar");
-    (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: "bar" });
-    (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
-
-    await run(OpenCommand, ["open", "--cwd", "qux"]);
-
-    expect(generate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resultsDir: [],
-      }),
-    );
-  });
-
-  it("should pass empty resultsDir to generate when not provided and output not exists", async () => {
-    (existsSync as Mock).mockReturnValue(false);
-    (tmpdir as Mock).mockReturnValue("foo");
-    (mkdtemp as Mock).mockResolvedValue("bar");
-    (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: "bar" });
-    (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
-
-    await run(OpenCommand, ["open", "--cwd", "qux"]);
-
-    expect(generate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resultsDir: [],
-      }),
-    );
   });
 
   it("should create temp directory with mkdtemp pattern", async () => {
