@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
+import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -14,6 +15,9 @@ import {
   newFilesInDirectoryWatcher,
 } from "../src/watcher.js";
 
+beforeEach(async () => {
+  await story("watcher");
+});
 let fixturesDir: string;
 
 const randomFile = async (parent: string, name: string = `${randomUUID()}.txt`): Promise<string> => {

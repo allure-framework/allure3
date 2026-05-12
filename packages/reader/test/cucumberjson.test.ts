@@ -1,10 +1,18 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { cucumberjson } from "../src/index.js";
 import { readResourceAsResultFile, readResults } from "./utils.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("cucumberjson");
+  await label("coverage", "reading");
+});
 
 describe("cucumberjson reader", () => {
   it("should ignore a file with no .json extension", async () => {

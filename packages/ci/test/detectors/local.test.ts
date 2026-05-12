@@ -1,10 +1,14 @@
 import type { SpawnSyncReturns } from "node:child_process";
 import * as childProcess from "node:child_process";
 
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { local } from "../../src/detectors/local.js";
 
+beforeEach(async () => {
+  await story("local");
+});
 vi.mock("node:child_process", () => ({
   spawnSync: vi.fn(),
 }));

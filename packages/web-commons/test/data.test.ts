@@ -1,6 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportFetchError, fetchReportJsonData, loadReportData } from "../src/data.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("data");
+  await label("coverage", "report-data-model");
+});
 
 describe("loadReportData", () => {
   afterEach(() => {

@@ -4,7 +4,8 @@ import type { AttachmentLink, EnvironmentIdentity, TestResult } from "@allurerep
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { ResultFile } from "@allurereport/plugin-api";
 import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   generateAllCharts,
@@ -12,6 +13,13 @@ import {
   generateGlobals,
   generateSearchIndex,
 } from "../src/generators.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("generators");
+  await label("coverage", "report-output");
+});
 import type { AwesomeDataWriter } from "../src/writer.js";
 
 const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {

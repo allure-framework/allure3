@@ -4,6 +4,7 @@ import { exit } from "node:process";
 import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
 import { run } from "clipanion";
 import { glob } from "glob";
+import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { KnownIssueCommand } from "../../src/commands/knownIssue.js";
@@ -38,7 +39,11 @@ vi.mock("glob", async () => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("knownIssue");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 

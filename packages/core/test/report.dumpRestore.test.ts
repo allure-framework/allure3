@@ -9,9 +9,9 @@ import { promisify } from "node:util";
 
 import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
 import { PathResultFile } from "@allurereport/reader-api";
-import { attachment, step } from "allure-js-commons";
+import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import ZipReadStream from "node-stream-zip";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
@@ -88,6 +88,13 @@ const writeDumpZip = async (
     ...attachmentEntries,
   ]);
 };
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("report.dumpRestore");
+  await label("coverage", "report-engine");
+});
 
 describe("AllureReport.restoreState (dump zip)", () => {
   const zipPaths: string[] = [];

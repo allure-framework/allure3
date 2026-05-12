@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { label } from "allure-js-commons";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { buildFieldFilters, buildFilterPredicate } from "../../src/filters/builders.js";
@@ -9,6 +9,10 @@ describe("filters > builders", () => {
   beforeEach(async () => {
     await label("layer", "unit");
     await label("component", "web-commons");
+    await epic("coverage");
+    await feature("filters");
+    await story("builders");
+    await label("coverage", "filters");
   });
 
   afterEach(() => {

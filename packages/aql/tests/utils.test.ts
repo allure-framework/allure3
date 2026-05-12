@@ -1,7 +1,12 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { parseAql } from "../src/parser/index.js";
 import { expressionToString, includesAll } from "../src/utils/index.js";
 
+beforeEach(async () => {
+  await story("utils");
+});
 describe("includesAll", () => {
   test("should return true for empty string", () => {
     expect(includesAll("")).toBe(true);

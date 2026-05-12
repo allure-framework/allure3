@@ -1,5 +1,6 @@
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,7 +22,11 @@ vi.mock("../../src/commands/commons/generate.js", () => ({
   generate: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("generate");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 

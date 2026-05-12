@@ -1,6 +1,14 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getPrefersColorSchemeMQ } from "../../src/stores/theme/utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-state");
+  await story("utils");
+  await label("coverage", "ui-state");
+});
 
 const mockMediaQueryDark = {
   matches: true,

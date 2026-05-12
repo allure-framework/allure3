@@ -1,5 +1,13 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("EnvironmentPicker");
+  await label("coverage", "ui-components");
+});
 
 import { currentEnvironment, environmentsStore } from "@/stores/env";
 

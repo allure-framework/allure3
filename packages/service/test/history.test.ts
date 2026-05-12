@@ -1,7 +1,15 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AllureRemoteHistory } from "../src/history.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 import { type AllureServiceClient } from "../src/service.js";
 import { KnownError } from "../src/utils/http.js";
 import { HttpClientMock } from "./utils.js";

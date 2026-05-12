@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { parseAql } from "../src/index.js";
 
+beforeEach(async () => {
+  await story("snapshot");
+});
 /**
  * Snapshot tests - verify that AST structure doesn't change unexpectedly
  * These tests help catch accidental changes in AST structure during refactoring

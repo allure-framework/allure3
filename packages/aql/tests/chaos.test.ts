@@ -1,7 +1,12 @@
-import { describe, expect, test } from "vitest";
-import { filterByAql, isAqlError, parseAql } from "../src/index.js";
-import { AqlErrorCode } from "../src/errors/index.js";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
 
+import { AqlErrorCode } from "../src/errors/index.js";
+import { filterByAql, isAqlError, parseAql } from "../src/index.js";
+
+beforeEach(async () => {
+  await story("chaos");
+});
 /**
  * Chaos Monkey / Fuzzing tests for AQL parser
  * Tests resilience to malformed, unexpected, and edge case inputs
@@ -10,7 +15,10 @@ import { AqlErrorCode } from "../src/errors/index.js";
 /**
  * Generate random string of given length
  */
-function randomString(length: number, charset: string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"): string {
+function randomString(
+  length: number,
+  charset: string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+): string {
   let result = "";
   for (let i = 0; i < length; i++) {
     result += charset.charAt(Math.floor(Math.random() * charset.length));
@@ -57,29 +65,29 @@ function generateMaliciousStrings(): string[] {
     "\t\t\t",
 
     // Special characters
-    "status @ \"passed\"",
-    "status # \"passed\"",
-    "status $ \"passed\"",
-    "status % \"passed\"",
-    "status ^ \"passed\"",
-    "status & \"passed\"",
-    "status * \"passed\"",
-    "status | \"passed\"",
-    "status \\ \"passed\"",
-    "status / \"passed\"",
-    "status ? \"passed\"",
-    "status : \"passed\"",
-    "status ; \"passed\"",
-    "status ' \"passed\"",
+    'status @ "passed"',
+    'status # "passed"',
+    'status $ "passed"',
+    'status % "passed"',
+    'status ^ "passed"',
+    'status & "passed"',
+    'status * "passed"',
+    'status | "passed"',
+    'status \\ "passed"',
+    'status / "passed"',
+    'status ? "passed"',
+    'status : "passed"',
+    'status ; "passed"',
+    'status \' "passed"',
 
     // Unicode and special characters
-    "status = \"привет\"",
-    "status = \"你好\"",
-    "status = \"こんにちは\"",
-    "status = \"مرحبا\"",
-    "status = \"🎉\"",
-    "status = \"\u0000\"",
-    "status = \"\uFFFF\"",
+    'status = "привет"',
+    'status = "你好"',
+    'status = "こんにちは"',
+    'status = "مرحبا"',
+    'status = "🎉"',
+    'status = "\u0000"',
+    'status = "\uFFFF"',
 
     // Unterminated strings
     'status = "passed',
@@ -88,24 +96,24 @@ function generateMaliciousStrings(): string[] {
     'status = "passed\t',
 
     // Invalid operators
-    "status === \"passed\"",
-    "status !== \"passed\"",
-    "status == \"passed\"",
-    "status <> \"passed\"",
-    "status => \"passed\"",
-    "status <=> \"passed\"",
+    'status === "passed"',
+    'status !== "passed"',
+    'status == "passed"',
+    'status <> "passed"',
+    'status => "passed"',
+    'status <=> "passed"',
 
     // Missing parts
     "status",
     "status =",
-    "= \"passed\"",
-    "status = \"passed\" AND",
-    "status = \"passed\" OR",
-    "status = \"passed\" NOT",
-    "(status = \"passed\"",
-    "status = \"passed\")",
-    "[status = \"passed\"]",
-    "status = \"passed\"]",
+    '= "passed"',
+    'status = "passed" AND',
+    'status = "passed" OR',
+    'status = "passed" NOT',
+    '(status = "passed"',
+    'status = "passed")',
+    '[status = "passed"]',
+    'status = "passed"]',
 
     // Invalid numbers
     "age = 123.456.789",
@@ -117,27 +125,27 @@ function generateMaliciousStrings(): string[] {
     "age = 0x123",
 
     // Invalid identifiers
-    "123field = \"value\"",
-    "field-name = \"value\"",
-    "field.name = \"value\"",
-    "field name = \"value\"",
-    "field@name = \"value\"",
-    "中文字段 = \"value\"",
+    '123field = "value"',
+    'field-name = "value"',
+    'field.name = "value"',
+    'field name = "value"',
+    'field@name = "value"',
+    '中文字段 = "value"',
 
     // Invalid arrays
     "status IN [",
     "status IN ]",
-    "status IN [\"passed\"",
-    "status IN \"passed\"]",
-    "status IN [\"passed\",]",
-    "status IN [, \"passed\"]",
+    'status IN ["passed"',
+    'status IN "passed"]',
+    'status IN ["passed",]',
+    'status IN [, "passed"]',
 
     // Invalid functions
     "now",
     "now(",
     "now)",
     "now(123)",
-    "now(\"arg\")",
+    'now("arg")',
 
     // Deep nesting (potential stack overflow)
     "(".repeat(1000) + 'status = "passed"' + ")".repeat(1000),
@@ -148,15 +156,15 @@ function generateMaliciousStrings(): string[] {
     `name = "${randomString(50000)}"`,
 
     // Control characters
-    "status = \"\x00\"",
-    "status = \"\x01\"",
-    "status = \"\x1F\"",
-    "status = \"\x7F\"",
+    'status = "\x00"',
+    'status = "\x01"',
+    'status = "\x1F"',
+    'status = "\x7F"',
 
     // SQL injection attempts
-    "status = \"'; DROP TABLE tests; --\"",
+    'status = "\'; DROP TABLE tests; --"',
     "status = \"' OR '1'='1\"",
-    "status = \"' UNION SELECT * FROM users --\"",
+    'status = "\' UNION SELECT * FROM users --"',
 
     // XSS attempts
     "status = \"<script>alert('xss')</script>\"",
@@ -164,13 +172,13 @@ function generateMaliciousStrings(): string[] {
     "status = \"<img src=x onerror=alert('xss')>\"",
 
     // Path traversal
-    "status = \"../../../etc/passwd\"",
-    "status = \"..\\\\..\\\\..\\\\windows\\\\system32\"",
+    'status = "../../../etc/passwd"',
+    'status = "..\\\\..\\\\..\\\\windows\\\\system32"',
 
     // Null bytes
-    "status = \"\0\"",
-    "status\0= \"passed\"",
-    "\0status = \"passed\"",
+    'status = "\0"',
+    'status\0= "passed"',
+    '\0status = "passed"',
   ];
 }
 
@@ -211,12 +219,12 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
 
     test("should handle random unicode characters", () => {
       const unicodeInputs = [
-        "status = \"\u{1F600}\"", // emoji
-        "status = \"\u{10FFFF}\"", // max unicode
-        "status = \"\u{0000}\"", // null
-        "name = \"测试\"",
-        "name = \"тест\"",
-        "name = \"テスト\"",
+        'status = "\u{1F600}"', // emoji
+        'status = "\u{10FFFF}"', // max unicode
+        'status = "\u{0000}"', // null
+        'name = "测试"',
+        'name = "тест"',
+        'name = "テスト"',
       ];
 
       unicodeInputs.forEach((input) => {
@@ -249,9 +257,9 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
 
     test("should handle SQL injection attempts safely", () => {
       const sqlInjectionAttempts = [
-        "status = \"'; DROP TABLE tests; --\"",
+        'status = "\'; DROP TABLE tests; --"',
         "status = \"' OR '1'='1\"",
-        "status = \"' UNION SELECT * FROM users --\"",
+        'status = "\' UNION SELECT * FROM users --"',
         "status = \"1' OR '1'='1\"",
       ];
 
@@ -351,12 +359,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
 
   describe("Error Recovery and Resilience", () => {
     test("should always return proper error types", () => {
-      const invalidInputs = [
-        "status @ \"passed\"",
-        "status =",
-        "= \"passed\"",
-        'status = "unterminated',
-      ];
+      const invalidInputs = ['status @ "passed"', "status =", '= "passed"', 'status = "unterminated'];
 
       invalidInputs.forEach((input) => {
         try {
@@ -398,11 +401,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
   describe("Filter Resilience", () => {
     test("should handle filtering with invalid expressions gracefully", () => {
       const items = [{ status: "passed" }, { status: "failed" }];
-      const invalidExpressions = [
-        "status @ \"passed\"",
-        "status =",
-        "= \"passed\"",
-      ];
+      const invalidExpressions = ['status @ "passed"', "status =", '= "passed"'];
 
       invalidExpressions.forEach((aql) => {
         try {

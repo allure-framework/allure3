@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { feature, parameter } from "allure-js-commons";
+import { epic, feature, label, parameter, story } from "allure-js-commons";
 
 import { GlobalsPage, TestResultPage } from "../../pageObjects";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -16,6 +16,10 @@ test.describe("globals", () => {
 
     await feature("Global data");
     await parameter("browser", browserName);
+    await epic("coverage");
+    await feature("report-data-model");
+    await story("globals");
+    await label("coverage", "report-data-model");
   });
 
   test.afterEach(async () => {

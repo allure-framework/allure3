@@ -3,6 +3,7 @@ import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import DashboardPlugin from "@allurereport/plugin-dashboard";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -42,7 +43,11 @@ vi.mock("glob", async () => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("dashboard");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 

@@ -1,8 +1,16 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { extension } from "mime-types";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { BufferResultFile, PathResultFile } from "../src/index.js";
 import { buildResourcePath, readResource, resources } from "./utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("resultFile");
+  await label("coverage", "reading");
+});
 
 describe("BufferResultFile", () => {
   it.each(resources)("should detect type %s as %s by magic header", async (resource, expectedType) => {

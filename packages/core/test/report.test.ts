@@ -8,7 +8,7 @@ import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
-import { attachment, step } from "allure-js-commons";
+import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -87,7 +87,11 @@ const waitForAbort = (signal?: AbortSignal, onAbort?: () => void) =>
 
 let previousCwd: string;
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("report");
+  await label("coverage", "report-engine");
   previousCwd = process.cwd();
   vi.clearAllMocks();
   (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(

@@ -1,8 +1,16 @@
 import type { CategoryDefinition, Matcher } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { TestResultWithCategories } from "../src/model.js";
 import { toUploadCategory } from "../src/uploadCategory.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("uploadCategory");
+  await label("coverage", "testops-integration");
+});
 
 type CategoryOverrides = Partial<CategoryDefinition>;
 type UploadCategoryTr = TestResultWithCategories & {

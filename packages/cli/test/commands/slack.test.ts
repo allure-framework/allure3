@@ -5,6 +5,7 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin from "@allurereport/plugin-slack";
 import { run } from "clipanion";
 import { glob } from "glob";
+import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SlackCommand } from "../../src/commands/slack.js";
@@ -39,7 +40,11 @@ vi.mock("glob", async (importOriginal) => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("slack");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 

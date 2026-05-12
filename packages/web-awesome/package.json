@@ -62,6 +62,7 @@
     "@types/prismjs": "^1.26.5",
     "@vitest/runner": "^3.2.4",
     "@vitest/snapshot": "^3.2.4",
+    "allure-js-commons": "^3.3.3",
     "allure-vitest": "^3.3.2",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",

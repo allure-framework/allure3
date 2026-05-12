@@ -1,6 +1,14 @@
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("Timeline");
+  await label("coverage", "ui-components");
+});
 
 type TimelineTestResult = {
   id: string;

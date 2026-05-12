@@ -13,10 +13,14 @@ import type {
   ResultFile,
 } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
+import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AgentPlugin } from "../src/plugin.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 const AGENT_ENV_VARS = [
   "ALLURE_AGENT_OUTPUT",
   "ALLURE_AGENT_EXPECTATIONS",

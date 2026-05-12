@@ -1,7 +1,15 @@
 import { type TestResult, fallbackTestCaseIdLabelName } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { convertTestResult } from "../src/converters.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("converters");
+  await label("coverage", "report-output");
+});
 
 const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
   return {

@@ -1,5 +1,6 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { UsageError } from "clipanion";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { resolveCommandEnvironment } from "../../src/utils/environment.js";
 
@@ -18,6 +19,13 @@ const config = {
 };
 
 describe("resolveCommandEnvironment", () => {
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("environments");
+    await story("environment");
+    await label("coverage", "environments");
+  });
+
   it.each([
     ["environment id selector", { environment: "prod_env" }, { id: "prod_env", name: "Production" }],
     ["environment name selector", { environmentName: " Production " }, { id: "prod_env", name: "Production" }],

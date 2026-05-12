@@ -5,6 +5,7 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin from "@allurereport/plugin-log";
 import { run } from "clipanion";
 import { glob } from "glob";
+import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogCommand } from "../../src/commands/log.js";
@@ -39,7 +40,11 @@ vi.mock("glob", async () => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("log");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 

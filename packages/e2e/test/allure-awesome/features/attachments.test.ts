@@ -3,7 +3,7 @@ import { dirname as pathDirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -17,7 +17,10 @@ let testResultPage: TestResultPage;
 test.describe("attachments", () => {
   test.beforeEach(async ({ browserName, page }) => {
     await label("env", browserName);
-
+    await epic("coverage");
+    await feature("attachments");
+    await story("attachments");
+    await label("coverage", "attachments");
     treePage = new TreePage(page);
     testResultPage = new TestResultPage(page);
   });

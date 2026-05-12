@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 
 import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -94,6 +95,10 @@ vi.mock("../../src/commands/agent.js", () => ({
 }));
 
 beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-run");
+  await story("run");
+  await label("coverage", "cli-run");
   vi.clearAllMocks();
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
   delete process.env.ALLURE_AGENT_OUTPUT;
@@ -232,6 +237,10 @@ describe("run command", () => {
   });
 
   it("should delegate legacy env-based agent mode to the agent command", async () => {
+    await epic("coverage");
+    await feature("agent-mode");
+    await story("run");
+    await label("coverage", "agent-mode");
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");
     const consoleModule = await import("node:console");

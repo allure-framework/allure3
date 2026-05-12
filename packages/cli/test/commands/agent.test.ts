@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 
 import { readConfig } from "@allurereport/core";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -73,6 +74,10 @@ vi.mock("../../src/utils/agent-select.js", () => ({
 }));
 
 beforeEach(async () => {
+  await epic("coverage");
+  await feature("agent-mode");
+  await story("agent");
+  await label("coverage", "agent-mode");
   vi.clearAllMocks();
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 

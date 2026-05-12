@@ -1,6 +1,7 @@
 import type { CiDescriptor } from "@allurereport/core-api";
 import { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginState, QualityGateValidationResult } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { TestOpsPlugin } from "../../src/plugin.js";
@@ -10,7 +11,11 @@ vi.mock("@allurereport/ci", () => ({
   detect: vi.fn(() => ({ type: "github" }) as CiDescriptor),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("quality-gates");
+  await story("quality-gate");
+  await label("coverage", "quality-gates");
   handleBeforeEach();
 });
 

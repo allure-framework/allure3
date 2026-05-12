@@ -1,5 +1,12 @@
-import { attachment, historyId, label, link, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { attachment, epic, feature, historyId, label, link, step, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("bulk");
+  await label("coverage", "report-output");
+});
 
 const suites = ["auth", "payments", "orders", "infra", "ui", "reporting"];
 const envs = ["foo", "bar", "default"];

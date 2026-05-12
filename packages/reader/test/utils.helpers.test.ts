@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { ensureArray, ensureBoolean, ensureInt, ensureObject, ensureString } from "../src/utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("utils.helpers");
+  await label("coverage", "reading");
+});
 
 describe("reader utility helpers", () => {
   describe("ensureBoolean", () => {

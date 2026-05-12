@@ -1,5 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("PwTraceButton");
+  await label("coverage", "ui-components");
+});
 
 type SetupOptions = {
   canOpenInNewTab: boolean;

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 
 import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   byLabels,
@@ -13,6 +14,13 @@ import {
   sortTree,
   transformTree,
 } from "../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("tree");
+  await label("coverage", "report-data-model");
+});
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),

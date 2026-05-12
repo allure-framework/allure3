@@ -1,3 +1,4 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -15,7 +16,11 @@ vi.mock("@allurereport/plugin-agent", () => ({
   planAgentEnrichmentReview: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("agent-state");
+  await story("agent-select");
+  await label("coverage", "agent-state");
   vi.clearAllMocks();
 });
 

@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
@@ -11,7 +12,15 @@ export default defineConfig({
       "default",
       [
         "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "plugin-log" }] },
+        {
+          resultsDir: "./out/allure-results",
+          globalLabels: [
+            { name: "module", value: "plugin-log" },
+            { name: "coverage", value: "plugin-log" },
+            { name: "epic", value: "coverage" },
+            { name: "feature", value: "plugin-log" },
+          ],
+        },
       ],
     ],
   },

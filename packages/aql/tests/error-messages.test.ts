@@ -1,7 +1,12 @@
-import { describe, expect, test } from "vitest";
-import { isAqlError, parseAql } from "../src/index.js";
-import { AqlErrorCode } from "../src/errors/index.js";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
 
+import { AqlErrorCode } from "../src/errors/index.js";
+import { isAqlError, parseAql } from "../src/index.js";
+
+beforeEach(async () => {
+  await story("error-messages");
+});
 /**
  * Error message quality tests - verify that error messages are helpful and informative
  * Tests check that errors include position, context, and clear descriptions
@@ -168,7 +173,7 @@ describe("Error Message Quality Tests", () => {
 
     test("invalid identifier error should mention the identifier", () => {
       try {
-        parseAql("123field = \"value\"");
+        parseAql('123field = "value"');
       } catch (error: any) {
         expect(isAqlError(error)).toBe(true);
         // May be caught at tokenizer or parser level
@@ -181,11 +186,7 @@ describe("Error Message Quality Tests", () => {
 
   describe("Error message consistency", () => {
     test("same error type should have consistent structure", () => {
-      const invalidInputs = [
-        'status @ "passed"',
-        'name # "test"',
-        "age $ 25",
-      ];
+      const invalidInputs = ['status @ "passed"', 'name # "test"', "age $ 25"];
 
       invalidInputs.forEach((input) => {
         try {
