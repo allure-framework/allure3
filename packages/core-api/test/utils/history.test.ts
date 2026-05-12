@@ -2,11 +2,17 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
 
-import { fallbackTestCaseIdLabelName, type TestParameter, type TestResult } from "../../src/index.js";
+import {
+  fallbackTestCaseIdLabelName,
+  type HistoryDataPoint,
+  type TestParameter,
+  type TestResult,
+} from "../../src/index.js";
 import {
   filterUnknownByKnownIssues,
   getFallbackHistoryId,
   getHistoryIdCandidates,
+  normalizeHistoryDataPoint,
   normalizeHistoryDataPointUrls,
   selectHistoryTestResults,
   stringifyHistoryParams,
@@ -140,6 +146,21 @@ describe("history utils", () => {
     ]);
   });
 
+  it("should ignore missing history test results while selecting candidates", () => {
+    const historyDataPoints = [
+      {
+        uuid: "first",
+        name: "Entry 1",
+        timestamp: 1,
+        knownTestCaseIds: [],
+        metrics: {},
+        url: "",
+      } as unknown as HistoryDataPoint,
+    ];
+
+    expect(selectHistoryTestResults(historyDataPoints, ["primary"])).toEqual([]);
+  });
+
   it("should not mutate selected history entries", () => {
     const historyTestResult = { id: "primary", name: "primary", status: "passed", url: "https://history" };
     const historyDataPoints = [
@@ -184,6 +205,22 @@ describe("history utils", () => {
           url: "https://history",
         },
       },
+    });
+  });
+
+  it("should normalize missing history fields", () => {
+    const historyDataPoint = {
+      uuid: "first",
+      name: "Entry 1",
+      timestamp: 1,
+    } as unknown as HistoryDataPoint;
+
+    expect(normalizeHistoryDataPoint(historyDataPoint)).toEqual({
+      ...historyDataPoint,
+      knownTestCaseIds: [],
+      metrics: {},
+      testResults: {},
+      url: "",
     });
   });
 });
