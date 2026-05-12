@@ -3,7 +3,8 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
-const { parse: parseYaml, stringify: stringifyYaml } = require("yaml") as typeof import("yaml");
+const yamlModule: { parse: (source: string) => unknown; stringify: (value: unknown) => string } = require("yaml");
+const { parse: parseYaml, stringify: stringifyYaml } = yamlModule;
 
 export type ConfigFormat = "json" | "yaml" | "mjs";
 

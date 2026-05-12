@@ -1,47 +1,55 @@
 import * as console from "node:console";
-import { existsSync, mkdirSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { cwd as processCwd } from "node:process";
 
-import { Command, Option } from "clipanion";
+import { Command, Option, UsageError } from "clipanion";
 import prompts from "prompts";
 
 import { buildAllureConfig } from "./templates/allurerc.js";
-import { getDemoTestPath, getDemoTestTemplate } from "./templates/demo-tests.js";
 import type { ConfigFormat } from "./utils/config-io.js";
 import { findExistingConfig, writeAllureConfig } from "./utils/config-io.js";
-import type { DetectedFramework } from "./utils/detect-frameworks.js";
 import { detectFrameworks } from "./utils/detect-frameworks.js";
 import { detectPackageManager, getInstallCommand } from "./utils/detect-package-manager.js";
 import { executeCommand } from "./utils/exec.js";
 import { FRAMEWORK_REGISTRY, REPORT_PLUGIN_REGISTRY } from "./utils/registry.js";
-import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "./utils/ui.js";
+import { logError, logInfo, logSuccess, logWarning } from "./utils/ui.js";
 
-const sourceLabel = (source: DetectedFramework["source"]): string => {
-  switch (source) {
-    case "dependencies":
-    case "devDependencies":
-      return `package.json ${source}`;
-    case "config-file":
-      return "config file found";
-    case "test-files":
-      return "test files found";
-  }
+const SUPPORTED_LANGUAGES = ["js", "ts"] as const;
+
+type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
+const isSupportedLanguage = (value: string): value is SupportedLanguage => {
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
 };
 
+const findFrameworkByIdOrPackage = (value: string) => {
+  const lowered = value.toLowerCase();
+
+  return FRAMEWORK_REGISTRY.find((framework) => {
+    if (framework.id === lowered) {
+      return true;
+    }
+
+    if (framework.packageName === lowered) {
+      return true;
+    }
+
+    return framework.detectPackageNames?.some((name) => name.toLowerCase() === lowered) ?? false;
+  });
+};
+
+const cwdDefault = (): string => process.cwd();
+
 export class KitInitCommand extends Command {
-  static paths = [["kit", "init"]];
+  static paths = [["kit", "init"], ["init"]];
 
   static usage = Command.Usage({
     description: "Initialize Allure 3 in your project",
     details:
-      "Detects test frameworks (by dependencies, config files, and existing tests), installs adapters, creates an allurerc config, and optionally generates demo tests showcasing all Allure features.",
+      "Detects test frameworks (by dependencies, config files, and existing tests), installs adapters, and creates an allurerc config. Exits early if Allure is already configured.",
     examples: [
-      ["kit init", "Interactive setup with auto-detection"],
-      ["kit init --format json", "Use JSON config format"],
-      ["kit init --yes", "Accept all defaults without prompts"],
-      ["kit init --demo", "Also generate demo tests"],
+      ["init", "Interactive setup with auto-detection"],
+      ["init --lang=js --framework=playwright", "Non-interactive setup for a single framework"],
+      ["init --format json", "Use JSON config format"],
+      ["init --yes", "Accept all defaults without prompts"],
     ],
   });
 
@@ -53,8 +61,12 @@ export class KitInitCommand extends Command {
     description: "Accept all defaults without prompts",
   });
 
-  demo = Option.Boolean("--demo", false, {
-    description: "Generate demo tests showcasing all Allure features",
+  lang = Option.String("--lang", {
+    description: "Project language: js or ts (treated the same in this version)",
+  });
+
+  framework = Option.String("--framework", {
+    description: "Force-select a single framework (e.g. playwright, vitest, wdio)",
   });
 
   cwd = Option.String("--cwd", {
@@ -62,63 +74,66 @@ export class KitInitCommand extends Command {
   });
 
   async execute() {
-    const workingDir = this.cwd ?? processCwd();
+    const workingDir = typeof this.cwd === "string" ? this.cwd : cwdDefault();
 
     console.log("\n  Allure 3 Setup\n");
+
+    if (typeof this.lang === "string" && !isSupportedLanguage(this.lang)) {
+      throw new UsageError(
+        `Unsupported --lang value ${JSON.stringify(this.lang)}. Only "js" and "ts" are supported in this version.`,
+      );
+    }
+
+    let forcedFramework;
+
+    if (typeof this.framework === "string") {
+      forcedFramework = findFrameworkByIdOrPackage(this.framework);
+
+      if (!forcedFramework) {
+        const available = FRAMEWORK_REGISTRY.map((f) => f.id).join(", ");
+
+        throw new UsageError(`Unknown --framework value ${JSON.stringify(this.framework)}. Available: ${available}.`);
+      }
+    }
 
     const existingConfig = await findExistingConfig(workingDir);
 
     if (existingConfig) {
-      logWarning(`Config file already exists: ${existingConfig.path}`);
-
-      if (!this.yes) {
-        const { shouldOverwrite } = await prompts({
-          type: "confirm",
-          name: "shouldOverwrite",
-          message: "Overwrite existing config?",
-          initial: false,
-        });
-
-        if (!shouldOverwrite) {
-          logInfo("Setup cancelled.");
-          return;
-        }
-      }
+      logSuccess(`Allure is already configured (${existingConfig.path}).`);
+      logInfo('Run "allure kit doctor" to verify or "allure kit update" to upgrade.');
+      return;
     }
 
-    logStep("Detecting project configuration...");
-
     const packageManager = await detectPackageManager(workingDir);
-
-    logSuccess(`Package manager: ${packageManager}`);
 
     const detectedFrameworks = await detectFrameworks(workingDir);
 
     if (detectedFrameworks.length > 0) {
-      logSuccess("Detected test frameworks:");
+      for (const { framework, version } of detectedFrameworks) {
+        const versionStr = version !== "unknown" ? ` ${version}` : "";
+        const configPath = framework.configFilePatterns[0] ?? "";
 
-      for (const { framework, source, version } of detectedFrameworks) {
-        const versionStr = version !== "unknown" ? ` (${version})` : "";
-
-        logHint(`${framework.displayName}${versionStr} — ${sourceLabel(source)}`);
+        logInfo(`${framework.id}${versionStr}${configPath ? ` ${configPath}` : ""}`);
       }
-    } else {
+    } else if (!forcedFramework) {
       logWarning("No test frameworks detected");
-      logHint("Checked: package.json dependencies, config files, and test file patterns");
     }
 
+    const nonInteractive = this.yes === true || forcedFramework !== undefined;
     let selectedFrameworkIds: string[];
     let selectedPluginIds: string[];
-    let configFormat: ConfigFormat = (this.format as ConfigFormat) ?? "json";
+    let configFormat: ConfigFormat = typeof this.format === "string" ? (this.format as ConfigFormat) : "json";
     let reportName = "Allure Report";
-    let shouldGenerateDemo = this.demo;
 
-    if (this.yes) {
+    if (forcedFramework) {
+      selectedFrameworkIds = [forcedFramework.id];
+      selectedPluginIds = REPORT_PLUGIN_REGISTRY.filter((plugin) => plugin.isDefault).map((plugin) => plugin.id);
+    } else if (nonInteractive) {
       selectedFrameworkIds = detectedFrameworks.map(({ framework }) => framework.id);
       selectedPluginIds = REPORT_PLUGIN_REGISTRY.filter((plugin) => plugin.isDefault).map((plugin) => plugin.id);
     } else {
-      let frameworkChoices = detectedFrameworks.map(({ framework, source, version }) => ({
-        title: `${framework.displayName} → ${framework.adapterPackage}${version !== "unknown" ? ` (${version})` : ""} [${sourceLabel(source)}]`,
+      let frameworkChoices = detectedFrameworks.map(({ framework, version }) => ({
+        title: `${framework.displayName} → ${framework.adapterPackage}${version !== "unknown" ? ` (${version})` : ""}`,
         value: framework.id,
         selected: true,
       }));
@@ -163,7 +178,7 @@ export class KitInitCommand extends Command {
 
       selectedPluginIds = pluginResponse.plugins ?? ["awesome"];
 
-      if (!this.format) {
+      if (typeof this.format !== "string") {
         const formatResponse = await prompts({
           type: "select",
           name: "format",
@@ -187,45 +202,21 @@ export class KitInitCommand extends Command {
       });
 
       reportName = nameResponse.reportName ?? "Allure Report";
-
-      if (!this.demo && selectedFrameworkIds.length > 0) {
-        const demoResponse = await prompts({
-          type: "confirm",
-          name: "generateDemo",
-          message: "Generate demo tests showcasing all Allure features?",
-          initial: true,
-        });
-
-        shouldGenerateDemo = demoResponse.generateDemo ?? false;
-      }
     }
 
-    const packagesToInstall: string[] = ["allure"];
+    if (selectedFrameworkIds.length === 0 && !forcedFramework) {
+      logWarning("No frameworks selected — only the Allure CLI will be installed.");
+    }
 
     const selectedAdapters = selectedFrameworkIds
       .map((id) => FRAMEWORK_REGISTRY.find((f) => f.id === id))
       .filter(Boolean)
       .map((f) => f!.adapterPackage);
 
-    packagesToInstall.push(...selectedAdapters);
-
-    if (shouldGenerateDemo) {
-      const needsAllureCommons = selectedFrameworkIds.some(
-        (id) => id !== "cypress" && id !== "cucumberjs" && id !== "codeceptjs",
-      );
-
-      if (needsAllureCommons && !packagesToInstall.includes("allure-js-commons")) {
-        packagesToInstall.push("allure-js-commons");
-      }
-    }
+    const packagesToInstall = ["allure", ...selectedAdapters];
 
     if (packagesToInstall.length > 0) {
-      logStep("Installing packages...");
-
       const installCommand = getInstallCommand(packageManager, packagesToInstall, true);
-
-      logInfo(installCommand);
-
       const result = await executeCommand(installCommand, workingDir);
 
       if (result.exitCode !== 0) {
@@ -234,65 +225,21 @@ export class KitInitCommand extends Command {
         return;
       }
 
-      logSuccess("Packages installed successfully");
+      for (const adapter of selectedAdapters) {
+        logSuccess(`added ${adapter}`);
+      }
     }
-
-    logStep("Creating config file...");
 
     const config = buildAllureConfig(reportName, selectedPluginIds);
     const createdFilename = await writeAllureConfig(workingDir, config, configFormat);
 
-    logSuccess(`Created ${createdFilename}`);
+    const verifyConfig = await findExistingConfig(workingDir);
 
-    if (shouldGenerateDemo && selectedFrameworkIds.length > 0) {
-      logStep("Generating demo tests...");
-
-      for (const frameworkId of selectedFrameworkIds) {
-        const template = getDemoTestTemplate(frameworkId);
-
-        if (!template) {
-          continue;
-        }
-
-        const testDir = getDemoTestPath(frameworkId);
-        const fullDir = join(workingDir, testDir);
-
-        if (!existsSync(fullDir)) {
-          mkdirSync(fullDir, { recursive: true });
-        }
-
-        const filePath = join(fullDir, template.filename);
-
-        if (existsSync(filePath)) {
-          logWarning(`Skipped ${join(testDir, template.filename)} (already exists)`);
-          continue;
-        }
-
-        await writeFile(filePath, template.content, "utf-8");
-        logSuccess(`Created ${join(testDir, template.filename)}`);
-      }
-
-      logHint("Demo tests showcase: labels, steps, attachments, parameters, links");
+    if (!verifyConfig) {
+      logError(`Failed to write ${createdFilename}`);
+      return;
     }
 
-    const selectedFrameworks = selectedFrameworkIds
-      .map((id) => FRAMEWORK_REGISTRY.find((f) => f.id === id))
-      .filter(Boolean);
-
-    if (selectedFrameworks.length > 0) {
-      logStep("Next steps — configure your test framework:");
-      logNewLine();
-
-      for (const framework of selectedFrameworks) {
-        logInfo(`${framework!.displayName}:`);
-        logHint(framework!.setupHint);
-        logNewLine();
-      }
-    }
-
-    logStep("You're all set! Run your tests and generate a report:");
-    logHint("npx allure generate");
-    logHint("npx allure run -- <your-test-command>");
-    logNewLine();
+    logSuccess(`created ${createdFilename}`);
   }
 }

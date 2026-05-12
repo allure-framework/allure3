@@ -6,7 +6,7 @@ import colors from "yoctocolors";
 const COMMANDS = [
   {
     name: "init",
-    description: "Initialize Allure 3 in your project (auto-detects frameworks, --demo for sample tests)",
+    description: "Initialize Allure 3 in your project (auto-detects frameworks, also available as 'allure init')",
   },
   { name: "gh-pages init", description: "Create GitHub Pages workflow for publishing Allure report" },
   { name: "plugin add <name>", description: "Add a report plugin with interactive options" },

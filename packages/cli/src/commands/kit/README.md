@@ -24,11 +24,17 @@ Run a specific command:
 npx allure kit init
 ```
 
+`kit init` is also exposed as a top-level `allure init` alias:
+
+```bash
+npx allure init
+```
+
 ## Quick Start
 
 ```bash
 # 1) Initialize Allure in your project
-npx allure kit init
+npx allure init
 
 # 2) Run tests so they produce allure-results
 npm test
@@ -37,10 +43,18 @@ npm test
 npx allure generate
 ```
 
+If Allure is already configured (an `allurerc` file exists in the working directory), `init` exits early without changing anything and points you at `allure kit doctor` / `allure kit update`.
+
 If you want a fully non-interactive setup:
 
 ```bash
-npx allure kit init --yes
+npx allure init --yes
+```
+
+For a one-shot install of a specific framework:
+
+```bash
+npx allure init --lang=js --framework=playwright
 ```
 
 ## Commands
@@ -48,8 +62,18 @@ npx allure kit init --yes
 ### `init`
 
 ```bash
-allure kit init [--format json|yaml|mjs] [--yes] [--demo] [--cwd <path>]
+allure init [--lang js|ts] [--framework <id>] [--format json|yaml|mjs] [--yes] [--cwd <path>]
+# equivalent to:
+allure kit init ...
 ```
+
+Flags:
+
+- `--lang` — project language. Currently `js` and `ts` are supported (treated the same).
+- `--framework` — force-pick a single framework by id or package name (`playwright`, `vitest`, `wdio`, ...). Implies non-interactive mode.
+- `--format` — `json` (default), `yaml`, or `mjs` config format.
+- `--yes` — accept defaults without prompts.
+- `--cwd` — working directory.
 
 ### `update`
 

@@ -9,6 +9,7 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
+import { buildAllureOpenNextStepCommands } from "../utils/after-command.js";
 import {
   environmentNameOption,
   environmentOption,
@@ -16,6 +17,7 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { emitTerminalHookEvent, runWithTerminalHooks } from "../utils/terminal-hooks.js";
 import { executeAgentMode } from "./agent.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
@@ -114,22 +116,22 @@ export class RunCommand extends Command {
 
         const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
 
-    if (legacyAgentOutput) {
-      await executeAgentMode({
-        configPath: this.config,
-        cwd: this.cwd,
-        output: resolve(process.cwd(), legacyAgentOutput),
-        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
-          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
-          : undefined,
+        if (legacyAgentOutput) {
+          await executeAgentMode({
+            configPath: this.config,
+            cwd: this.cwd,
+            output: resolve(process.cwd(), legacyAgentOutput),
+            expectations: process.env.ALLURE_AGENT_EXPECTATIONS
+              ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
+              : undefined,
 
-        environment: this.environment,
-          environmentName: this.environmentName,
-    silent: this.silent,
-        args,
+            environment: this.environment,
+            environmentName: this.environmentName,
+            silent: this.silent,
+            args,
           });
-      return;
-    }
+          return;
+        }
 
         const before = new Date().getTime();
 
@@ -147,23 +149,24 @@ export class RunCommand extends Command {
         console.log(`${command} ${commandArgs.join(" ")}`);
 
         if (getActiveAllureCliCommand()) {
-      const exitCode = await executeNestedAllureCommand({
-        command,
-        commandArgs,
-        cwd,
-        silent: this.silent,
-      });
+          const exitCode = await executeNestedAllureCommand({
+            command,
+            commandArgs,
+            cwd,
+            silent: this.silent,
+          });
 
-      exit(exitCode ?? -1);
-      return;
-    }
+          exit(exitCode ?? -1);
+          return;
+        }
 
-    const environmentOptions = {
-      environment: this.environment,
-      environmentName: this.environmentName,
-    };
+        const environmentOptions = {
+          environment: this.environment,
+          environmentName: this.environmentName,
+        };
 
-    normalizeCommandEnvironmentOptions(environmentOptions);const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
+        normalizeCommandEnvironmentOptions(environmentOptions);
+        const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
         const config = await readConfig(cwd, this.config, {
           output: this.output,
           name: this.reportName,
@@ -211,23 +214,21 @@ export class RunCommand extends Command {
         });
         const knownIssues = await allureReport.store.allKnownIssues();
 
-
-
         const { globalExitCode } = await executeAllureRun({
-            allureReport,
-            knownIssues,
-            cwd,
-            command,
-            commandArgs,environmentVariables: createChildAllureCliEnvironment("run"),
-            environment: resolvedEnvironment?.id,
+          allureReport,
+          knownIssues,
+          cwd,
+          command,
+          commandArgs,
+          environmentVariables: createChildAllureCliEnvironment("run"),
+          environment: resolvedEnvironment?.id,
 
-            withQualityGate,
+          withQualityGate,
           logs: this.logs,
-              silent: this.silent,
-              ignoreLogs: this.ignoreLogs,
+          silent: this.silent,
+          ignoreLogs: this.ignoreLogs,
           maxRerun,
-
-          });
+        });
 
         if (config.open) {
           await serve({
