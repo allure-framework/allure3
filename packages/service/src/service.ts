@@ -94,7 +94,7 @@ export class AllureServiceClient implements AllureServiceApiClient {
   async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
     const { reportUuid, pluginId = "" } = payload;
 
-    return this.#client.post(`/api/reports/${reportUuid}/delete`, {
+    return this.#client.post(`/api/report/${reportUuid}/delete`, {
       body: {
         pluginId,
       },

@@ -251,7 +251,7 @@ describe("AllureServiceClient", () => {
         reportUuid: fixtures.report,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/delete`, {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/report/${fixtures.report}/delete`, {
         body: {
           pluginId: "",
         },
@@ -267,7 +267,7 @@ describe("AllureServiceClient", () => {
         pluginId: fixtures.pluginId,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/delete`, {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/report/${fixtures.report}/delete`, {
         body: {
           pluginId: fixtures.pluginId,
         },
