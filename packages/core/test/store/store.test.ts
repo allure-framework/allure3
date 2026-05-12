@@ -502,6 +502,27 @@ describe("allNewTestResults", () => {
     expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
   });
 
+  it("should handle provided history data points without test results", async () => {
+    const store = new DefaultAllureStore({ history: new AllureTestHistory([]) });
+    const history = [
+      {
+        uuid: "malformed-dp",
+        name: "history point",
+        timestamp: 1,
+        knownTestCaseIds: [],
+        metrics: {},
+        url: "",
+      } as unknown as HistoryDataPoint,
+    ];
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults(undefined, history);
+
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+
   it("should return all test results when no filter is given", async () => {
     const store = new DefaultAllureStore({ history: new AllureTestHistory([]) });
 
@@ -1577,6 +1598,33 @@ describe("history", () => {
     const historyDataPoints = await store.allHistoryDataPoints();
 
     expect(historyDataPoints).toHaveLength(0);
+  });
+
+  it("should normalize history data points without test results", async () => {
+    const history = [
+      {
+        uuid: "hp1",
+        name: "Allure Report",
+        timestamp: 123,
+      },
+    ] as unknown as HistoryDataPoint[];
+    const testHistory = new AllureTestHistory(history);
+    const store = new DefaultAllureStore({
+      history: testHistory,
+    });
+
+    await store.readHistory();
+
+    const historyDataPoints = await store.allHistoryDataPoints();
+
+    expect(historyDataPoints).toEqual([
+      expect.objectContaining({
+        testResults: {},
+        knownTestCaseIds: [],
+        metrics: {},
+        url: "",
+      }),
+    ]);
   });
 
   it("should return empty history for test result if no history data is found", async () => {

@@ -1,6 +1,7 @@
+import nodeConsole from "node:console";
 import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync } from "node:fs";
-import { mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,33 +20,41 @@ import { AllureReport } from "../src/report.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const minimalDumpJsonFiles = (
-  overrides: Partial<Record<AllureStoreDumpFiles, string>> = {},
-): Record<string, string> => ({
-  [AllureStoreDumpFiles.TestResults]: "{}",
-  [AllureStoreDumpFiles.TestCases]: "{}",
-  [AllureStoreDumpFiles.Fixtures]: "{}",
-  [AllureStoreDumpFiles.Attachments]: "{}",
-  [AllureStoreDumpFiles.CheckResults]: "[]",
-  [AllureStoreDumpFiles.Environments]: "[]",
-  [AllureStoreDumpFiles.ReportVariables]: "{}",
-  [AllureStoreDumpFiles.GlobalAttachments]: "[]",
-  [AllureStoreDumpFiles.GlobalErrors]: "[]",
-  [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",
-  [AllureStoreDumpFiles.IndexTestResultsByHistoryId]: "{}",
-  [AllureStoreDumpFiles.IndexTestResultsByTestCase]: "{}",
-  [AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId]: "{}",
-  [AllureStoreDumpFiles.IndexAttachmentsByFixture]: "{}",
-  [AllureStoreDumpFiles.IndexFixturesByTestResult]: "{}",
-  [AllureStoreDumpFiles.IndexKnownByHistoryId]: "{}",
-  [AllureStoreDumpFiles.QualityGateResults]: "[]",
-  ...overrides,
-});
+  overrides: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
+): Record<string, string> => {
+  const files: Record<string, string> = {
+    [AllureStoreDumpFiles.TestResults]: "{}",
+    [AllureStoreDumpFiles.TestCases]: "{}",
+    [AllureStoreDumpFiles.Fixtures]: "{}",
+    [AllureStoreDumpFiles.Attachments]: "{}",
+    [AllureStoreDumpFiles.CheckResults]: "[]",
+    [AllureStoreDumpFiles.Environments]: "[]",
+    [AllureStoreDumpFiles.ReportVariables]: "{}",
+    [AllureStoreDumpFiles.GlobalAttachments]: "[]",
+    [AllureStoreDumpFiles.GlobalErrors]: "[]",
+    [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",
+    [AllureStoreDumpFiles.IndexTestResultsByHistoryId]: "{}",
+    [AllureStoreDumpFiles.IndexTestResultsByTestCase]: "{}",
+    [AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId]: "{}",
+    [AllureStoreDumpFiles.IndexAttachmentsByFixture]: "{}",
+    [AllureStoreDumpFiles.IndexFixturesByTestResult]: "{}",
+    [AllureStoreDumpFiles.IndexKnownByHistoryId]: "{}",
+    [AllureStoreDumpFiles.QualityGateResults]: "[]",
+  };
 
-const writeDumpZip = async (
-  filePath: string,
-  attachmentEntries: { name: string; data: Buffer }[],
-  jsonFiles: Partial<Record<AllureStoreDumpFiles, string>> = {},
-): Promise<void> => {
+  Object.entries(overrides).forEach(([name, value]) => {
+    if (value === undefined) {
+      delete files[name];
+      return;
+    }
+
+    files[name] = value;
+  });
+
+  return files;
+};
+
+const writeZip = async (filePath: string, entries: { name: string; data: Buffer }[]): Promise<void> => {
   const archive = new ZipWriteStream({
     zlib: { level: 5 },
   });
@@ -58,14 +67,26 @@ const writeDumpZip = async (
   archive.pipe(stream);
   const addEntry = promisify(archive.entry.bind(archive));
 
-  for (const [name, body] of Object.entries(minimalDumpJsonFiles(jsonFiles))) {
-    await addEntry(Buffer.from(body, "utf8"), { name });
-  }
-  for (const { name, data } of attachmentEntries) {
+  for (const { name, data } of entries) {
     await addEntry(data, { name });
   }
+
   archive.finalize();
   await finished;
+};
+
+const writeDumpZip = async (
+  filePath: string,
+  attachmentEntries: { name: string; data: Buffer }[],
+  jsonFiles: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
+): Promise<void> => {
+  await writeZip(filePath, [
+    ...Object.entries(minimalDumpJsonFiles(jsonFiles)).map(([name, body]) => ({
+      name,
+      data: Buffer.from(body, "utf8"),
+    })),
+    ...attachmentEntries,
+  ]);
 };
 
 describe("AllureReport.restoreState (dump zip)", () => {
@@ -119,6 +140,48 @@ describe("AllureReport.restoreState (dump zip)", () => {
     });
   });
 
+  it("continues restoring remaining dumps when one dump is broken", async () => {
+    const brokenZipPath = tempZipPath();
+    const validZipPath = tempZipPath();
+    const consoleErrorSpy = vi.spyOn(nodeConsole, "error").mockImplementation(() => {});
+    const consoleInfoSpy = vi.spyOn(nodeConsole, "info").mockImplementation(() => {});
+    const checkResults = [
+      {
+        name: "Lint",
+        status: "passed",
+        details: {
+          command: "npm run lint",
+        },
+      },
+    ];
+
+    await writeZip(brokenZipPath, [
+      {
+        name: AllureStoreDumpFiles.TestResults,
+        data: Buffer.from("{}", "utf8"),
+      },
+    ]);
+    await writeDumpZip(validZipPath, [], {
+      [AllureStoreDumpFiles.CheckResults]: JSON.stringify(checkResults),
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore valid dumps after a broken dump", async () => {
+      await expect(report.restoreState([brokenZipPath, validZipPath])).resolves.toBeUndefined();
+
+      await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Failed to restore state from "${brokenZipPath}", continuing without it`),
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Missing required dump entry "${AllureStoreDumpFiles.TestCases}"`),
+      );
+      expect(consoleInfoSpy).toHaveBeenCalledWith(`Successfully restored state from "${validZipPath}"`);
+    });
+  });
+
   it("restores check results from a dump", async () => {
     const zipPath = tempZipPath();
     const checkResults = [
@@ -144,6 +207,83 @@ describe("AllureReport.restoreState (dump zip)", () => {
       await report.restoreState([zipPath]);
 
       await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
+    });
+  });
+
+  it("restores legacy dumps without check results metadata", async () => {
+    const zipPath = tempZipPath();
+
+    await writeDumpZip(zipPath, [], {
+      [AllureStoreDumpFiles.CheckResults]: undefined,
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore a dump archive without check-results.json", async () => {
+      await report.restoreState([zipPath]);
+
+      await expect(report.store.allCheckResults()).resolves.toEqual([]);
+    });
+  });
+
+  it("restores a dump nested inside a downloaded artifact archive", async () => {
+    const nestedZipPath = tempZipPath();
+    const outerZipPath = tempZipPath();
+
+    await writeDumpZip(nestedZipPath, [], {
+      [AllureStoreDumpFiles.CheckResults]: undefined,
+    });
+    await writeZip(outerZipPath, [
+      {
+        name: "allure-results-macos-latest.zip",
+        data: await readFile(nestedZipPath),
+      },
+    ]);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore a dump from a nested artifact zip", async () => {
+      await report.restoreState([outerZipPath]);
+
+      await expect(report.store.allCheckResults()).resolves.toEqual([]);
+    });
+  });
+
+  it("ignores archive entries that are not declared as attachments", async () => {
+    const zipPath = tempZipPath();
+    const attachmentId = "safe-attachment-id-1";
+
+    await writeDumpZip(
+      zipPath,
+      [
+        { name: `__MACOSX/._${attachmentId}`, data: Buffer.from("resource fork") },
+        { name: attachmentId, data: Buffer.from("hello") },
+      ],
+      {
+        [AllureStoreDumpFiles.Attachments]: JSON.stringify({
+          [attachmentId]: {
+            id: attachmentId,
+            originalFileName: "attachment.txt",
+            contentType: "text/plain",
+            ext: ".txt",
+            used: true,
+          },
+        }),
+      },
+    );
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore only declared attachment entries", async () => {
+      await report.restoreState([zipPath]);
+
+      const restoredAttachmentContent = await report.store.attachmentContentById(attachmentId);
+
+      expect(restoredAttachmentContent).toBeDefined();
+      await expect(restoredAttachmentContent!.asBuffer()).resolves.toEqual(Buffer.from("hello"));
     });
   });
 
@@ -434,11 +574,18 @@ describe("AllureReport.restoreState (dump zip)", () => {
 });
 
 describe("AllureReport.restoreState (zip path validation layers)", () => {
-  it("refuses archives that contain path-traversal entry names (node-stream-zip)", async () => {
+  it("logs and skips archives that contain path-traversal entry names (node-stream-zip)", async () => {
     const zipPath = join(__dirname, "fixtures", "dump-with-zip-slip-entry.zip");
+    const consoleErrorSpy = vi.spyOn(nodeConsole, "error").mockImplementation(() => {});
     const config = await resolveConfig({ name: "Allure Report" });
     const report = new AllureReport(config);
 
-    await expect(report.restoreState([zipPath])).rejects.toThrow(/Malicious entry/);
+    await step("restore a malicious dump archive", async () => {
+      await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Failed to restore state from "${zipPath}", continuing without it`),
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Malicious entry"));
+    });
   });
 });
