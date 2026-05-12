@@ -574,11 +574,18 @@ describe("AllureReport.restoreState (dump zip)", () => {
 });
 
 describe("AllureReport.restoreState (zip path validation layers)", () => {
-  it("refuses archives that contain path-traversal entry names (node-stream-zip)", async () => {
+  it("logs and skips archives that contain path-traversal entry names (node-stream-zip)", async () => {
     const zipPath = join(__dirname, "fixtures", "dump-with-zip-slip-entry.zip");
+    const consoleErrorSpy = vi.spyOn(nodeConsole, "error").mockImplementation(() => {});
     const config = await resolveConfig({ name: "Allure Report" });
     const report = new AllureReport(config);
 
-    await expect(report.restoreState([zipPath])).rejects.toThrow(/Malicious entry/);
+    await step("restore a malicious dump archive", async () => {
+      await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Failed to restore state from "${zipPath}", continuing without it`),
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Malicious entry"));
+    });
   });
 });

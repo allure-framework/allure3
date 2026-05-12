@@ -507,6 +507,7 @@ export class AllureReport {
         const dumpArchive = new ZipReadStream.async({
           file: dump,
         });
+        let restoreError: unknown;
 
         try {
           const dumpEntries = await dumpArchive.entries();
@@ -656,12 +657,17 @@ export class AllureReport {
           await this.#store.restoreState(dumpState, resultsAttachments);
 
           console.info(`Successfully restored state from "${dump}"`);
+        } catch (err) {
+          restoreError = err;
+          throw err;
         } finally {
           try {
             await dumpArchive.close();
           } catch (err) {
-            console.error(`Failed to close dump archive "${dump}"`);
-            console.error(errorDetails(err));
+            if (!restoreError) {
+              console.error(`Failed to close dump archive "${dump}"`);
+              console.error(errorDetails(err));
+            }
           }
         }
       } catch (err) {
