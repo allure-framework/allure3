@@ -328,8 +328,9 @@ describe("open command", () => {
     });
   });
 
-  it("should use default resultsDir when not provided", async () => {
+  it("should use configured output when target is not provided", async () => {
     const fixtures = {
+      configuredOutput: "/custom/allure-report",
       tmpDir: "/tmp/allure-report-abc123",
     };
 
@@ -337,7 +338,9 @@ describe("open command", () => {
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (readConfig as Mock)
+      .mockResolvedValueOnce({ output: fixtures.configuredOutput })
+      .mockResolvedValueOnce({ output: fixtures.tmpDir });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
@@ -348,9 +351,45 @@ describe("open command", () => {
 
     await command.execute();
 
+    expect(existsSync).toHaveBeenCalledWith(fixtures.configuredOutput);
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        resultsDir: join(".", "allure-report"),
+        resultsDir: fixtures.configuredOutput,
+      }),
+    );
+  });
+
+  it("should serve configured output when no target is provided", async () => {
+    const fixtures = {
+      configuredOutput: "/custom/allure-report",
+      port: "8080",
+    };
+
+    (existsSync as Mock).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue([join(fixtures.configuredOutput, "summary.json")]);
+    (readConfig as Mock).mockResolvedValue({ output: fixtures.configuredOutput, port: fixtures.port });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["serve", "--port", fixtures.port]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      port: fixtures.port,
+    });
+    expect(glob).toHaveBeenCalledWith(join(fixtures.configuredOutput, "**", "summary.json"), {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: expect.any(String),
+    });
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(generate).not.toHaveBeenCalled();
+    expect(serve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        port: 8080,
+        servePath: fixtures.configuredOutput,
+        open: true,
       }),
     );
   });

@@ -27,6 +27,7 @@ import {
   getHistoryIdCandidates,
   getWorstStatus,
   nullsLast,
+  normalizeHistoryDataPoint,
   ordinal,
   reverse,
   selectHistoryTestResults,
@@ -548,7 +549,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    this.#historyPoints = (await this.#history.readHistory()) ?? [];
+    this.#historyPoints = ((await this.#history.readHistory()) ?? [])
+      .filter(
+        (historyPoint): historyPoint is HistoryDataPoint => typeof historyPoint === "object" && historyPoint !== null,
+      )
+      .map(normalizeHistoryDataPoint);
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;
@@ -966,7 +971,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#historyPoints.reduce((result, dp) => {
       const filteredTestResults: HistoryTestResult[] = [];
 
-      for (const tr of Object.values(dp.testResults)) {
+      for (const tr of Object.values(dp.testResults ?? {})) {
         const storedEnvironmentKey = typeof tr.environment === "string" ? tr.environment : undefined;
         const trEnvId =
           (storedEnvironmentKey ? this.#environmentIdByName(storedEnvironmentKey) : undefined) ??
@@ -1022,7 +1027,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return Array.from(this.#testResults.values());
     }
 
-    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults)));
+    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults ?? {})));
     const newTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
