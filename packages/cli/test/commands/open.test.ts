@@ -69,7 +69,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "bar/allure-report",
+      cwd: join("bar", "allure-report"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -98,7 +98,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "baz/bar",
+      cwd: join("baz", "bar"),
     });
     expect(readConfig).toHaveBeenCalledWith("baz", undefined, {
       port: undefined,
@@ -155,7 +155,7 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "bar"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("A report doesn't exist in bar/foo and no input was provided to generate."),
+      expect.stringContaining(`A report doesn't exist in ${join("bar", "foo")} and no input was provided to generate.`),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -169,7 +169,9 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "foo"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("A report doesn't exist in foo/allure-report and no input was provided to generate."),
+      expect.stringContaining(
+        `A report doesn't exist in ${join("foo", "allure-report")} and no input was provided to generate.`,
+      ),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -184,7 +186,7 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "bar"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("A report doesn't exist in bar/foo and no input was provided to generate."),
+      expect.stringContaining(`A report doesn't exist in ${join("bar", "foo")} and no input was provided to generate.`),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -199,7 +201,9 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "foo"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("A report doesn't exist in foo/allure-report and no input was provided to generate."),
+      expect.stringContaining(
+        `A report doesn't exist in ${join("foo", "allure-report")} and no input was provided to generate.`,
+      ),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -217,7 +221,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "bar/baz",
+      cwd: join("bar", "baz"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -341,7 +345,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: "qux/qut",
+      cwd: join("qux", "qut"),
     });
   });
 
