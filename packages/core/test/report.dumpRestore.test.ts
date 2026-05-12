@@ -1,3 +1,4 @@
+import nodeConsole from "node:console";
 import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
@@ -136,6 +137,48 @@ describe("AllureReport.restoreState (dump zip)", () => {
       await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
 
       expect(closeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("continues restoring remaining dumps when one dump is broken", async () => {
+    const brokenZipPath = tempZipPath();
+    const validZipPath = tempZipPath();
+    const consoleErrorSpy = vi.spyOn(nodeConsole, "error").mockImplementation(() => {});
+    const consoleInfoSpy = vi.spyOn(nodeConsole, "info").mockImplementation(() => {});
+    const checkResults = [
+      {
+        name: "Lint",
+        status: "passed",
+        details: {
+          command: "npm run lint",
+        },
+      },
+    ];
+
+    await writeZip(brokenZipPath, [
+      {
+        name: AllureStoreDumpFiles.TestResults,
+        data: Buffer.from("{}", "utf8"),
+      },
+    ]);
+    await writeDumpZip(validZipPath, [], {
+      [AllureStoreDumpFiles.CheckResults]: JSON.stringify(checkResults),
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore valid dumps after a broken dump", async () => {
+      await expect(report.restoreState([brokenZipPath, validZipPath])).resolves.toBeUndefined();
+
+      await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Failed to restore state from "${brokenZipPath}", continuing without it`),
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Missing required dump entry "${AllureStoreDumpFiles.TestCases}"`),
+      );
+      expect(consoleInfoSpy).toHaveBeenCalledWith(`Successfully restored state from "${validZipPath}"`);
     });
   });
 
