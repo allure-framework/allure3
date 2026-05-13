@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
