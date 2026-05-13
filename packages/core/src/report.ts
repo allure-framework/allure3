@@ -496,6 +496,24 @@ export class AllureReport {
   };
 
   restoreState = async (dumps: string[]): Promise<void> => {
+    const nestedDumpExtractLimit = pLimit(16);
+    // node-stream-zip entryData() buffers full entry contents in memory, so keep this intentionally conservative.
+    const attachmentsExtractLimit = pLimit(4);
+    const settleAllOrThrow = async <const T extends readonly Promise<unknown>[]>(
+      tasks: T,
+    ): Promise<{ [K in keyof T]: Awaited<T[K]> }> => {
+      const settled = await Promise.allSettled(tasks);
+      const firstRejected = settled.find((result): result is PromiseRejectedResult => result.status === "rejected");
+
+      if (firstRejected) {
+        throw firstRejected.reason;
+      }
+
+      return settled.map((result) => (result as PromiseFulfilledResult<unknown>).value) as {
+        [K in keyof T]: Awaited<T[K]>;
+      };
+    };
+
     for (const dump of dumps) {
       if (!existsSync(dump)) {
         console.error(`Failed to restore state from "${dump}", continuing without it`);
@@ -533,47 +551,62 @@ export class AllureReport {
 
             if (nestedDumpEntries.length > 0) {
               const nestedDumpsTempDir = await mkdtemp(join(tmpdir(), `${basename(dump, ".zip")}-nested-`));
-              const nestedDumpPaths: string[] = [];
+              const nestedDumpPaths = nestedDumpEntries.map(([entryName], index) =>
+                join(nestedDumpsTempDir, `${index}-${basename(entryName)}`),
+              );
 
               this.#dumpTempDirs.push(nestedDumpsTempDir);
 
-              for (const [entryName] of nestedDumpEntries) {
-                const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumpPaths.length}-${basename(entryName)}`);
-
-                await writeFile(nestedDumpPath, await dumpArchive.entryData(entryName));
-                nestedDumpPaths.push(nestedDumpPath);
-              }
+              await settleAllOrThrow(
+                nestedDumpEntries.map(([entryName], index) =>
+                  nestedDumpExtractLimit(async () => {
+                    await writeFile(nestedDumpPaths[index], await dumpArchive.entryData(entryName));
+                  }),
+                ),
+              );
 
               await this.restoreState(nestedDumpPaths);
               continue;
             }
           }
 
-          const testResultsEntry = await requiredEntryData(AllureStoreDumpFiles.TestResults);
-          const testCasesEntry = await requiredEntryData(AllureStoreDumpFiles.TestCases);
-          const fixturesEntry = await requiredEntryData(AllureStoreDumpFiles.Fixtures);
-          const attachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Attachments);
-          const checkResultsEntry = await optionalEntryData(AllureStoreDumpFiles.CheckResults);
-          const environmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Environments);
-          const reportVariablesEntry = await requiredEntryData(AllureStoreDumpFiles.ReportVariables);
-          const globalAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalAttachments);
-          const globalErrorsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalErrors);
-          const indexAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
-          const indexTestResultsByHistoryId = await requiredEntryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
-          const indexTestResultsByTestCaseEntry = await requiredEntryData(
-            AllureStoreDumpFiles.IndexTestResultsByTestCase,
-          );
-          const indexLatestEnvTestResultsByHistoryIdEntry = await requiredEntryData(
-            AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-          );
-          const indexAttachmentsByFixtureEntry = await requiredEntryData(
-            AllureStoreDumpFiles.IndexAttachmentsByFixture,
-          );
-          const indexFixturesByTestResultEntry = await requiredEntryData(
-            AllureStoreDumpFiles.IndexFixturesByTestResult,
-          );
-          const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-          const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
+          const [
+            testResultsEntry,
+            testCasesEntry,
+            fixturesEntry,
+            attachmentsEntry,
+            checkResultsEntry,
+            environmentsEntry,
+            reportVariablesEntry,
+            globalAttachmentsEntry,
+            globalErrorsEntry,
+            indexAttachmentsEntry,
+            indexTestResultsByHistoryId,
+            indexTestResultsByTestCaseEntry,
+            indexLatestEnvTestResultsByHistoryIdEntry,
+            indexAttachmentsByFixtureEntry,
+            indexFixturesByTestResultEntry,
+            indexKnownByHistoryIdEntry,
+            qualityGateResultsEntry,
+          ] = await settleAllOrThrow([
+            requiredEntryData(AllureStoreDumpFiles.TestResults),
+            requiredEntryData(AllureStoreDumpFiles.TestCases),
+            requiredEntryData(AllureStoreDumpFiles.Fixtures),
+            requiredEntryData(AllureStoreDumpFiles.Attachments),
+            optionalEntryData(AllureStoreDumpFiles.CheckResults),
+            requiredEntryData(AllureStoreDumpFiles.Environments),
+            requiredEntryData(AllureStoreDumpFiles.ReportVariables),
+            requiredEntryData(AllureStoreDumpFiles.GlobalAttachments),
+            requiredEntryData(AllureStoreDumpFiles.GlobalErrors),
+            requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults),
+            requiredEntryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId),
+            requiredEntryData(AllureStoreDumpFiles.IndexTestResultsByTestCase),
+            requiredEntryData(AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId),
+            requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByFixture),
+            requiredEntryData(AllureStoreDumpFiles.IndexFixturesByTestResult),
+            requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId),
+            requiredEntryData(AllureStoreDumpFiles.QualityGateResults),
+          ]);
           const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
           const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
@@ -631,14 +664,18 @@ export class AllureReport {
           this.#dumpTempDirs.push(dumpTempDir);
 
           try {
-            for (const [attachmentId] of Object.entries(attachmentsEntries)) {
-              const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
-              const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
+            await settleAllOrThrow(
+              Object.keys(attachmentsEntries).map((attachmentId) =>
+                attachmentsExtractLimit(async () => {
+                  const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
+                  const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
 
-              await writeFile(attachmentFilePath, attachmentContentEntry);
+                  await writeFile(attachmentFilePath, attachmentContentEntry);
 
-              resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
-            }
+                  resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
+                }),
+              ),
+            );
           } catch (err) {
             if (err instanceof UnsafeDumpPathError) {
               console.error(
