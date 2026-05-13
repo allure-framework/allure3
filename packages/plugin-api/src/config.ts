@@ -62,7 +62,6 @@ export interface Config {
   qualityGate?: QualityGateConfig;
   allureService?: {
     accessToken?: string;
-    legacy?: boolean;
   };
   categories?: CategoriesConfig;
   /**

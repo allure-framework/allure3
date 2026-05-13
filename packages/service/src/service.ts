@@ -8,7 +8,6 @@ import type { AllureServiceApiClient } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 import { parseServiceToken } from "./utils/token.js";
 
-const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
 
 const createUploadBlob = (content: Buffer) => new Blob([content], { type: UPLOAD_CONTENT_TYPE });
@@ -118,10 +117,6 @@ export class AllureServiceClient implements AllureServiceApiClient {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
     }
 
-    if (content.length > ASSET_MAX_FILE_SIZE) {
-      throw new Error(`Asset size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
-    }
-
     const form = new FormData();
 
     form.set("filename", filename);
@@ -160,10 +155,6 @@ export class AllureServiceClient implements AllureServiceApiClient {
 
     if (!content) {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
-
-    if (content.length > ASSET_MAX_FILE_SIZE) {
-      throw new Error(`Report file size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
     const form = new FormData();
