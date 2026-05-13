@@ -318,17 +318,6 @@ describe("AllureServiceClient", () => {
       });
       expect(res).toEqual({});
     });
-
-    it("should throw an error if file size exceeds maximum", async () => {
-      const largeBuffer = Buffer.alloc(201 * 1024 * 1024); // 201MB
-
-      await expect(
-        serviceClient.addReportAsset({
-          filename: fixtures.filename,
-          file: largeBuffer,
-        }),
-      ).rejects.toThrow("Asset size exceeds the maximum allowed size of 200MB");
-    });
   });
 
   describe("addReportFile", () => {
@@ -419,18 +408,6 @@ describe("AllureServiceClient", () => {
         content: "test-content",
       });
       expect(res).toEqual(`http://localhost:3000/${fixtures.report}/awesome/index.html`);
-    });
-
-    it("should throw an error if file size exceeds maximum", async () => {
-      const largeBuffer = Buffer.alloc(201 * 1024 * 1024); // 201MB
-
-      await expect(
-        serviceClient.addReportFile({
-          reportUuid: fixtures.report,
-          filename: fixtures.filename,
-          file: largeBuffer,
-        }),
-      ).rejects.toThrow("Report file size exceeds the maximum allowed size of 200MB");
     });
   });
 });

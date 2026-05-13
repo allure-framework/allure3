@@ -29,7 +29,6 @@ import {
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
-  AllureLegacyServiceClient,
   AllureRemoteHistory,
   AllureServiceClient,
   type AllureServiceApiClient,
@@ -64,7 +63,13 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
   return repo && branch ? { repo, branch } : {};
 };
 
+const REMOTE_UPLOAD_CONCURRENCY = 50;
+const REMOTE_UPLOAD_MAX_ATTEMPTS = 5;
+const REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED = 5;
+
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
+const isAbortError = (err: unknown): boolean =>
+  typeof err === "object" && err !== null && "name" in err && err?.name === "AbortError";
 
 export class AllureReport {
   readonly #reportName: string;
@@ -118,11 +123,7 @@ export class AllureReport {
     } = opts;
 
     if (allureServiceConfig?.accessToken) {
-      if (allureServiceConfig?.legacy) {
-        this.#allureServiceClient = new AllureLegacyServiceClient(allureServiceConfig);
-      } else {
-        this.#allureServiceClient = new AllureServiceClient(allureServiceConfig);
-      }
+      this.#allureServiceClient = new AllureServiceClient(allureServiceConfig);
     }
 
     this.reportUuid = randomUUID();
@@ -683,6 +684,9 @@ export class AllureReport {
     const remoteHrefsByPluginId: Record<string, string> = {};
     // track plugins that failed to upload to prevent wrong remote links generation
     const cancelledPluginsIds: Set<string> = new Set();
+    let remoteCleanupFailed = false;
+    const getSuccessfulPublishedPlugins = () =>
+      this.#plugins.filter(({ enabled, id, options }) => enabled && !!options?.publish && !cancelledPluginsIds.has(id));
 
     if (this.#executionStage !== "running") {
       throw new Error(initRequired);
@@ -723,53 +727,18 @@ export class AllureReport {
                 width: 20,
               })
             : undefined;
-        const limitFn = pLimit(50);
+        const limitFn = pLimit(REMOTE_UPLOAD_CONCURRENCY);
         const uploadAbortController = new AbortController();
-        const fns = pluginFilesEntries.map(([filename, filepath]) =>
-          limitFn(async () => {
-            // skip next plugin files upload if the plugin upload has already failed
-            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-              return;
-            }
+        const failedUploads = new Set<string>();
+        let terminalUploadError: unknown;
+        let remoteReportDeleted = false;
+        let fns: Promise<void>[] = [];
+        const cleanupFailedPluginUpload = async (err: unknown) => {
+          if (remoteReportDeleted) {
+            return;
+          }
 
-            if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-              const uploadedFileUrl = await this.#allureServiceClient!.addReportFile({
-                reportUuid: this.reportUuid,
-                pluginId: context.id,
-                filename,
-                filepath,
-                signal: uploadAbortController.signal,
-              });
-
-              if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-                return;
-              }
-
-              if (filename === "index.html") {
-                remoteHrefsByPluginId[context.id] = uploadedFileUrl;
-                remoteHrefs.add(uploadedFileUrl);
-              }
-            } else {
-              await this.#allureServiceClient!.addReportAsset({
-                filename,
-                filepath,
-                signal: uploadAbortController.signal,
-              });
-            }
-
-            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-              return;
-            }
-
-            progressBar?.tick?.();
-          }),
-        );
-
-        progressBar?.render?.();
-
-        try {
-          await Promise.all(fns);
-        } catch (err) {
+          remoteReportDeleted = true;
           cancelledPluginsIds.add(context.id);
           uploadAbortController.abort();
 
@@ -784,13 +753,92 @@ export class AllureReport {
 
           // cleanup the report on failure to prevent incomplete reports on the server
           // even lack of one file can make the report unusable
-          await this.#allureServiceClient.deleteReport({
-            reportUuid: this.reportUuid,
-            pluginId: context.id,
-          });
+          try {
+            await this.#allureServiceClient!.deleteReport({
+              reportUuid: this.reportUuid,
+              pluginId: context.id,
+            });
+          } catch (cleanupErr) {
+            remoteCleanupFailed = true;
+            console.error(`Plugin "${context.id}" upload cleanup has failed, the remote report won't be completed`);
+            console.error(cleanupErr);
+          }
 
           console.error(`Plugin "${context.id}" upload has failed, the plugin won't be published`);
           console.error(err);
+        };
+        fns = pluginFilesEntries.map(([filename, filepath]) =>
+          limitFn(async () => {
+            // skip next plugin files upload if the plugin upload has already failed
+            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+              return;
+            }
+
+            for (let attempt = 1; attempt <= REMOTE_UPLOAD_MAX_ATTEMPTS; attempt++) {
+              if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+                return;
+              }
+
+              try {
+                if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
+                  const uploadedFileUrl = await this.#allureServiceClient!.addReportFile({
+                    reportUuid: this.reportUuid,
+                    pluginId: context.id,
+                    filename,
+                    filepath,
+                    signal: uploadAbortController.signal,
+                  });
+
+                  if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+                    return;
+                  }
+
+                  if (filename === "index.html") {
+                    remoteHrefsByPluginId[context.id] = uploadedFileUrl;
+                    remoteHrefs.add(uploadedFileUrl);
+                  }
+                } else {
+                  await this.#allureServiceClient!.addReportAsset({
+                    filename,
+                    filepath,
+                    signal: uploadAbortController.signal,
+                  });
+                }
+
+                failedUploads.delete(filename);
+                progressBar?.tick?.();
+
+                return;
+              } catch (err) {
+                if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+                  return;
+                }
+
+                if (isAbortError(err)) {
+                  throw err;
+                }
+
+                failedUploads.add(filename);
+
+                if (
+                  failedUploads.size > REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED ||
+                  attempt >= REMOTE_UPLOAD_MAX_ATTEMPTS
+                ) {
+                  terminalUploadError ??= err;
+
+                  throw terminalUploadError;
+                }
+              }
+            }
+          }),
+        );
+
+        progressBar?.render?.();
+
+        try {
+          await Promise.all(fns);
+        } catch (err) {
+          await cleanupFailedPluginUpload(terminalUploadError ?? err);
         }
       }
 
@@ -824,9 +872,7 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       const summaryPath = await generateSummary(this.#output, summaries);
-      const publishedReports = this.#plugins
-        .map((plugin) => !!plugin?.options?.publish && !cancelledPluginsIds.has(plugin.id))
-        .filter(Boolean);
+      const publishedReports = getSuccessfulPublishedPlugins();
 
       // publish summary when there are multiple published plugins
       if (this.#publish && summaryPath && publishedReports.length > 1) {
@@ -838,7 +884,9 @@ export class AllureReport {
       }
     }
 
-    if (this.#publish) {
+    const publishedReports = getSuccessfulPublishedPlugins();
+
+    if (this.#publish && !remoteCleanupFailed && publishedReports.length > 0) {
       await this.#allureServiceClient?.completeReport({
         reportUuid: this.reportUuid,
         historyPoint: historyDataPoint,
@@ -898,7 +946,7 @@ export class AllureReport {
       }
     }
 
-    if (remoteHrefs.size > 0) {
+    if (!remoteCleanupFailed && remoteHrefs.size > 0) {
       console.info("Next reports have been published:");
 
       remoteHrefs.forEach((href) => {
