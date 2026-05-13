@@ -479,7 +479,7 @@ test.describe("attachments", () => {
       const popup = await popupPromise;
 
       if (popup) {
-        await popup.waitForURL(/https:\/\/trace\.playwright\.dev\/next\//, { timeout: 5_000 });
+        await popup.waitForURL("https://trace.playwright.dev/", { timeout: 5_000 });
         return;
       }
 
