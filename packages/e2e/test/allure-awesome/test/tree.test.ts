@@ -39,10 +39,14 @@ test.describe("commons", () => {
             status: Status.PASSED,
             stage: Stage.FINISHED,
             start: 1000,
+            labels: [
+              { name: "owner", value: "Igor Martynov" },
+              { name: "feature", value: "Forms" },
+            ],
           },
           {
             name: "1 sample failed test",
-            fullName: "sample.js#1 sample failed test",
+            fullName: "sample.js#1 UniqueFailedFullName",
             status: Status.FAILED,
             stage: Stage.FINISHED,
             start: 5000,
@@ -156,9 +160,39 @@ test.describe("commons", () => {
 
   test("search filters tests on typing", async () => {
     await expect(treePage.leafLocator).toHaveCount(5);
-    await treePage.searchTree("0 sample");
+    await treePage.searchTree("sample passed");
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+  });
+
+  test("search filters tests by full name, owner, and error message", async () => {
+    await treePage.searchTree("UniqueFailedFullName");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("1 sample failed test");
+
+    await treePage.searchTree("Igor Martynov");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+
+    await treePage.searchTree("feature:Forms");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+
+    await treePage.searchTree("An unexpected");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("2 sample broken test");
+  });
+
+  test("search works together with status filters", async () => {
+    await treePage.clickTreeTab("failed");
+    await expect(treePage.leafLocator).toHaveCount(1);
+
+    await treePage.searchTree("An unexpected");
+    await expect(treePage.leafLocator).toHaveCount(0);
+
+    await treePage.searchTree("Assertion error");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("1 sample failed test");
   });
 });
 

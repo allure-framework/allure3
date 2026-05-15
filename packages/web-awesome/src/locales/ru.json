@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Поиск",
-    "search-placeholder": "Название или ID"
+    "search-placeholder": "Поиск по тестам"
   },
   "filters": {
     "flaky": "Нестабильные",

@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Որոնում",
-    "search-placeholder": "Անվանում կամ ID"
+    "search-placeholder": "Որոնել թեստեր"
   },
   "filters": {
     "flaky": "Անհուսալի",

@@ -19,6 +19,7 @@ import {
   generateHistoryDataPoints,
   generateNav,
   generateQualityGateResults,
+  generateSearchIndex,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -134,6 +135,7 @@ export class AwesomePlugin implements Plugin {
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
+    await generateSearchIndex(this.#writer!, convertedTrs, "search-index.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
@@ -148,6 +150,11 @@ export class AwesomePlugin implements Plugin {
         appendTitlePath,
       });
       await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
+      await generateSearchIndex(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "search-index.json"),
+      );
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,

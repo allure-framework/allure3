@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "搜尋",
-    "search-placeholder": "名稱或 ID"
+    "search-placeholder": "搜尋測試"
   },
   "filters": {
     "flaky": "不穩定",

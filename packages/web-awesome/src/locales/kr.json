@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "검색",
-    "search-placeholder": "이름 또는 ID"
+    "search-placeholder": "테스트 검색"
   },
   "filters": {
     "flaky": "불안정함",

@@ -7,7 +7,9 @@ import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
-import { treeFilters } from "./treeFilters/store";
+import { currentEnvironment } from "./env";
+import { fetchEnvSearchIndexes, searchIndexesStore, searchNodeIds } from "./search";
+import { treeNonQueryFilters, treeQueryFilterValue } from "./treeFilters/store";
 import { sortBy } from "./treeSort";
 
 export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
@@ -117,12 +119,47 @@ const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeSt
 const alwaysTruePredicate = () => true;
 
 const filterPredicate = computed(() => {
-  if (treeFilters.value.length === 0) {
+  if (treeNonQueryFilters.value.length === 0) {
     return alwaysTruePredicate;
   }
 
-  return buildFilterPredicate(treeFilters.value);
+  return buildFilterPredicate(treeNonQueryFilters.value);
 });
+
+effect(() => {
+  if (!treeQueryFilterValue.value?.trim()) {
+    return;
+  }
+
+  const treeEnvIds = Object.keys(treeStore.value.data ?? {});
+  const envsToFetch = currentEnvironment.value ? [currentEnvironment.value] : treeEnvIds;
+
+  if (envsToFetch.length === 0) {
+    return;
+  }
+
+  fetchEnvSearchIndexes(envsToFetch);
+});
+
+const searchFilterPredicate = (env: string) => {
+  const query = treeQueryFilterValue.value?.trim();
+
+  if (!query) {
+    return alwaysTruePredicate;
+  }
+
+  const searchIndex = searchIndexesStore.value.data?.[env];
+
+  if (!searchIndex) {
+    fetchEnvSearchIndexes([env]);
+
+    return alwaysTruePredicate;
+  }
+
+  const matchingNodeIds = searchNodeIds(searchIndex, query);
+
+  return (leaf: { nodeId: string }) => matchingNodeIds.has(leaf.nodeId);
+};
 
 export const filteredTree = computed(() => {
   return treeEntries.value.reduce(
@@ -132,12 +169,13 @@ export const filteredTree = computed(() => {
       }
 
       const { root, leavesById, groupsById } = value;
+      const envSearchFilterPredicate = searchFilterPredicate(key);
 
       const tree = createRecursiveTree({
         group: root as AwesomeTreeGroup,
         leavesById,
         groupsById,
-        filterPredicate: filterPredicate.value,
+        filterPredicate: (leaf) => filterPredicate.value(leaf) && envSearchFilterPredicate(leaf),
         sortBy: sortBy.value,
       });
 

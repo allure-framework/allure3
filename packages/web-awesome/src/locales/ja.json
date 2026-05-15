@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "検索",
-    "search-placeholder": "名前またはID"
+    "search-placeholder": "テストを検索"
   },
   "filters": {
     "flaky": "不安定",

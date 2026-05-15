@@ -423,6 +423,14 @@ describe("plugin", () => {
       });
       expect(JSON.parse(addedFiles.get("widgets/staging/nav.json")!.toString("utf-8"))).toEqual(["tr-staging"]);
       expect(JSON.parse(addedFiles.get("widgets/default/nav.json")!.toString("utf-8"))).toEqual([]);
+      expect(JSON.parse(addedFiles.get("widgets/staging/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({
+          id: "tr-staging",
+          nodeId: "tr-staging",
+          name: "staging test",
+        }),
+      ]);
+      expect(JSON.parse(addedFiles.get("widgets/default/search-index.json")!.toString("utf-8"))).toEqual([]);
     });
 
     it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
@@ -521,6 +529,12 @@ describe("plugin", () => {
 
       expect(JSON.parse(addedFiles.get("widgets/qa_a/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-a"]);
       expect(JSON.parse(addedFiles.get("widgets/qa_b/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-b"]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({ id: "tr-qa-a", nodeId: "tr-qa-a", name: "qa a test" }),
+      ]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({ id: "tr-qa-b", nodeId: "tr-qa-b", name: "qa b test" }),
+      ]);
       expect(JSON.parse(addedFiles.get("widgets/qa_a/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
         passed: 1,
@@ -757,8 +771,10 @@ describe("plugin", () => {
       // Required widget files must be present
       const requiredKeys = [
         "widgets/nav.json",
+        "widgets/search-index.json",
         "widgets/default/tree.json",
         "widgets/default/nav.json",
+        "widgets/default/search-index.json",
         "widgets/environments.json",
         "widgets/allure_environment.json",
         "widgets/statistic.json",

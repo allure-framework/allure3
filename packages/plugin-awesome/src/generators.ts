@@ -49,6 +49,7 @@ import type {
   AwesomeCategory,
   AwesomeFixtureResult,
   AwesomeReportOptions,
+  AwesomeSearchDocument,
   AwesomeTestResult,
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
@@ -203,6 +204,62 @@ export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestRes
     filename,
     trs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
   );
+};
+
+const SEARCHABLE_LABELS = new Set([
+  "owner",
+  "suite",
+  "package",
+  "testClass",
+  "testMethod",
+  "epic",
+  "feature",
+  "story",
+  "tag",
+  "host",
+  "thread",
+]);
+
+const joinSearchValues = (values: (string | undefined)[]) => {
+  const uniqueValues = new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)));
+
+  return uniqueValues.size > 0 ? [...uniqueValues].join(" ") : undefined;
+};
+
+const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument => {
+  const labels = (test.labels ?? []).flatMap(({ name, value }) => {
+    if (!value || !SEARCHABLE_LABELS.has(name)) {
+      return [];
+    }
+
+    return [`${name}:${value}`, value];
+  });
+
+  const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
+  const categories = test.categories?.map((category: AwesomeCategory) => category.name);
+
+  return {
+    id: test.id,
+    nodeId: test.id,
+    name: test.name,
+    fullName: test.fullName,
+    historyId: test.historyId,
+    labels: joinSearchValues(labels),
+    owner: joinSearchValues(test.groupedLabels.owner ?? []),
+    categories: joinSearchValues(categories ?? []),
+    statusMessage: test.error?.message,
+    links: joinSearchValues(links),
+  };
+};
+
+export const generateSearchIndex = async (
+  writer: AwesomeDataWriter,
+  trs: AwesomeTestResult[],
+  filename = "search-index.json",
+) => {
+  const searchDocuments = trs.filter(({ hidden }) => !hidden).map(searchDocumentFactory);
+
+  await writer.writeWidget(filename, searchDocuments);
 };
 
 export const generateTree = async (

@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Zoeken",
-    "search-placeholder": "Naam of ID"
+    "search-placeholder": "Tests zoeken"
   },
   "filters": {
     "flaky": "Onstabiel",

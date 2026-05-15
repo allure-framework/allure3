@@ -12,7 +12,7 @@ const handleQuerySearch = (value: string) => {
   setTreeQueryFilter(value);
 };
 
-const QuerySearch = () => {
+export const ReportSearch = () => {
   const { t } = useI18n("search");
 
   return (
@@ -23,8 +23,4 @@ const QuerySearch = () => {
       changeDebounce={150}
     />
   );
-};
-
-export const ReportSearch = () => {
-  return <QuerySearch />;
 };
