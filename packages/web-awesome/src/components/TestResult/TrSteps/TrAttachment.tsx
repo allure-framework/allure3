@@ -53,6 +53,7 @@ const iconMap: Record<string, string> = {
   "video/mp4": lineImagesImage,
   "application/vnd.allure.image.diff": lineImagesImage,
   "application/vnd.allure.playwright-trace": playwrightLogo,
+  "application/vnd.allure.http+json": lineFilesFileAttachment2,
 };
 
 const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
@@ -74,6 +75,7 @@ export const TrAttachment: FunctionComponent<{
   const componentType = componentTypeForPreview;
   const isValidComponentType = !["archive", null].includes(componentType);
   const isPreviewable = HAS_PREVIEW_COMPONENT.has(componentType ?? "");
+  const isImageAttachment = componentType === "image";
   const isSyntaxHighlightable = isSyntaxHighlightSupported({
     contentType: link.contentType,
     ext: link.ext,
@@ -91,16 +93,29 @@ export const TrAttachment: FunctionComponent<{
     setHighlightCode((highlight) => !highlight);
   };
 
+  const toggleAttachment = (event: Event) => {
+    event.stopPropagation();
+    if (attachmentTreeId !== null) {
+      toggleTree(attachmentTreeId, false);
+    }
+  };
+
   const expandAttachment = (event: Event) => {
     event.stopPropagation();
-    if (componentType !== "image") {
-      return;
-    }
     openModal({
       data: item,
       component: <Attachment item={item} previewable={true} />,
     });
   };
+
+  const content = (
+    <Attachment
+      item={item}
+      previewable={showPreview}
+      highlightCode={highlightCode}
+      i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+    />
+  );
 
   return (
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
@@ -110,31 +125,36 @@ export const TrAttachment: FunctionComponent<{
           [styles.empty]: !isValidComponentType,
         })}
         {...trOverviewFocusAttrs(item.link.id)}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (attachmentTreeId !== null) {
-            toggleTree(attachmentTreeId, false);
-          }
-        }}
       >
-        {isValidComponentType ? <ArrowButton isOpened={isOpened} /> : <div className={styles["test-result-strut"]} />}
-        <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
-        </div>
+        <button
+          className={styles["test-result-attachment-toggle"]}
+          disabled={!isValidComponentType || attachmentTreeId === null}
+          onClick={toggleAttachment}
+          type="button"
+        >
+          {isValidComponentType ? (
+            <ArrowButton isOpened={isOpened} tag="span" />
+          ) : (
+            <span className={styles["test-result-strut"]} />
+          )}
+          <span className={styles["test-result-attachment-icon"]}>
+            <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
+          </span>
 
-        <Code size="s" className={styles["test-result-step-number"]}>
-          {stepIndex}
-        </Code>
-        <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
-        {missed && (
-          <Text
-            size={"s"}
-            className={styles["test-result-attachment-missed"]}
-            data-testid={"test-result-attachment-missed"}
-          >
-            missed
-          </Text>
-        )}
+          <Code size="s" className={styles["test-result-step-number"]}>
+            {stepIndex}
+          </Code>
+          <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
+          {missed && (
+            <Text
+              size={"s"}
+              className={styles["test-result-attachment-missed"]}
+              data-testid={"test-result-attachment-missed"}
+            >
+              missed
+            </Text>
+          )}
+        </button>
         <div>
           <TrAttachmentInfo
             item={item}
@@ -149,14 +169,13 @@ export const TrAttachment: FunctionComponent<{
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
-          <div className={styles["test-result-attachment-content"]} role={"button"} onClick={expandAttachment}>
-            <Attachment
-              item={item}
-              previewable={showPreview}
-              highlightCode={highlightCode}
-              i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
-            />
-          </div>
+          {isImageAttachment ? (
+            <button className={styles["test-result-attachment-content"]} onClick={expandAttachment} type="button">
+              {content}
+            </button>
+          ) : (
+            <div className={styles["test-result-attachment-content"]}>{content}</div>
+          )}
         </div>
       )}
     </div>

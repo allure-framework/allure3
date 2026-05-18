@@ -6,3 +6,4 @@ export { AttachmentImage } from "./AttachmentImage";
 export { AttachmentVideo } from "./AttachmentVideo";
 export { AttachmentEmpty } from "./AttachmentEmpty";
 export { CodeViewer } from "./CodeViewer";
+export { HttpAttachment } from "./HttpAttachment";
