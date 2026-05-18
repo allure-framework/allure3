@@ -7,14 +7,14 @@ import type { StoreSignalState } from "@/stores/types";
 
 const SEARCH_FIELDS: (keyof AwesomeSearchDocument)[] = [
   "id",
-  "historyId",
   "name",
   "fullName",
-  "labels",
   "owner",
+  "labels",
+  "links",
   "categories",
   "statusMessage",
-  "links",
+  "historyId",
 ];
 
 const STORE_FIELDS: (keyof AwesomeSearchDocument)[] = ["nodeId", "name"];

@@ -297,7 +297,7 @@ describe("generateGlobals", () => {
 });
 
 describe("generateSearchIndex", () => {
-  it("should write searchable fields and skip hidden tests", async () => {
+  it("should write searchable fields and skip retries", async () => {
     const writtenWidgets = new Map<string, unknown>();
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
@@ -313,7 +313,7 @@ describe("generateSearchIndex", () => {
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       status: "failed",
-      hidden: false,
+      isRetry: false,
       flaky: false,
       muted: false,
       known: false,
@@ -332,14 +332,14 @@ describe("generateSearchIndex", () => {
       },
       categories: [{ name: "Product defects" }],
     } as AwesomeTestResult;
-    const hiddenTest = {
+    const retryTest = {
       ...visibleTest,
-      id: "tr-hidden",
-      hidden: true,
-      name: "hidden test",
+      id: "tr-retry",
+      isRetry: true,
+      name: "retry test",
     } as AwesomeTestResult;
 
-    await generateSearchIndex(writer, [visibleTest, hiddenTest], "qa/search-index.json");
+    await generateSearchIndex(writer, [visibleTest, retryTest], "qa/search-index.json");
 
     expect(writer.writeWidget).toHaveBeenCalledWith("qa/search-index.json", expect.any(Array));
     const documents = writtenWidgets.get("qa/search-index.json") as AwesomeSearchDocument[];

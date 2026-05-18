@@ -257,7 +257,7 @@ export const generateSearchIndex = async (
   trs: AwesomeTestResult[],
   filename = "search-index.json",
 ) => {
-  const searchDocuments = trs.filter(({ hidden }) => !hidden).map(searchDocumentFactory);
+  const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
 
   await writer.writeWidget(filename, searchDocuments);
 };
