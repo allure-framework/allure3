@@ -158,6 +158,7 @@ export const generateTestResults = async (
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
+    convertedTr.isRetry = tr.isRetry;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
@@ -200,7 +201,7 @@ export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: T
 export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
   await writer.writeWidget(
     filename,
-    trs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+    trs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
   );
 };
 
@@ -213,7 +214,7 @@ export const generateTree = async (
     appendTitlePath?: boolean;
   },
 ) => {
-  const visibleTests = tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.isRetry);
   const { appendTitlePath } = options || {};
   let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
@@ -226,7 +227,7 @@ export const generateTree = async (
   }
 
   // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.hidden);
+  filterTree(tree, (leaf) => !leaf.isRetry);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
   transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 

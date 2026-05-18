@@ -2,7 +2,7 @@ import type { TestResult } from "@allurereport/core-api";
 
 export type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "flaky" | "hidden" | "environment" | "start" | "duration" | "historyId"
+  "id" | "name" | "status" | "flaky" | "isRetry" | "environment" | "start" | "duration" | "historyId"
 > & {
   host: string;
   thread: string;
@@ -12,7 +12,7 @@ export type TimelineSegment = {
   timeRange: [Date, Date];
   val: number;
   status: "failed" | "broken" | "passed" | "skipped" | "unknown";
-  hidden?: boolean;
+  isRetry?: boolean;
   label: string;
   labelGroup: string[]; // used to group segments by labels
   id: string;
@@ -33,7 +33,7 @@ export type FlatDataItem = {
   labelGroup: string[]; // used to group segments by labels
   id: string;
   timeRange: [Date, Date];
-  hidden?: boolean;
+  isRetry?: boolean;
   val: number;
   labelVal: number;
   segment: TimelineSegment;

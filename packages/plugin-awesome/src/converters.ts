@@ -44,7 +44,7 @@ export const convertTestResult = (
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
-    hidden: tr.hidden,
+    isRetry: tr.isRetry,
     labels,
     groupedLabels: mapLabelsByName(labels),
     parameters: tr.parameters,

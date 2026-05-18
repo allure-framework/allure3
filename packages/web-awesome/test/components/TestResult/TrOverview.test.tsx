@@ -1,8 +1,9 @@
 import { cleanup, render, screen } from "@testing-library/preact";
-import type { AwesomeTestResult } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TrOverview } from "@/components/TestResult/TrOverview";
+
+import type { AwesomeTestResult } from "../../../types";
 
 vi.mock("@/components/TestResult/TestStepsEmpty", () => ({
   default: () => <div data-testid="test-steps-empty" />,
@@ -13,31 +14,31 @@ vi.mock("@/components/TestResult/TrSteps", () => ({
 }));
 
 vi.mock("@/components/TestResult/TrDescription", () => ({
-  TrDescription: () => null,
+  TrDescription: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrLinks", () => ({
-  TrLinks: () => null,
+  TrLinks: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrMetadata", () => ({
-  TrMetadata: () => null,
+  TrMetadata: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrParameters", () => ({
-  TrParameters: () => null,
+  TrParameters: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrPwTraces", () => ({
-  TrPwTraces: () => null,
+  TrPwTraces: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrSetup", () => ({
-  TrSetup: () => null,
+  TrSetup: () => null as any,
 }));
 
 vi.mock("@/components/TestResult/TrTeardown", () => ({
-  TrTeardown: () => null,
+  TrTeardown: () => null as any,
 }));
 
 vi.mock("@/stores/locale", () => ({
@@ -59,7 +60,7 @@ const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTest
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels: [],
     groupedLabels: {},
     parameters: [],

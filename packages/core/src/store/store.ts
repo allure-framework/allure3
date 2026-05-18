@@ -26,7 +26,6 @@ import {
   createDictionary,
   getHistoryIdCandidates,
   getWorstStatus,
-  nullsLast,
   normalizeHistoryDataPoint,
   ordinal,
   reverse,
@@ -66,6 +65,7 @@ import {
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
+import { calculateParametersHash, calculateRetryHash, RetrySubstore } from "./retrySubstore.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -76,39 +76,6 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
     const current = indexMap.get(key)!;
 
     current.push(...items);
-  }
-};
-
-const wasStartedEarlier = (first: TestResult, second: TestResult) =>
-  first.start === undefined || second.start === undefined || first.start < second.start;
-
-const hidePreviousAttemptByEnvironment = (
-  state: Map<string, Map<string, TestResult>>,
-  testResult: TestResult,
-  environmentId: string | undefined,
-) => {
-  const { historyId } = testResult;
-
-  if (environmentId) {
-    if (!state.has(environmentId)) {
-      state.set(environmentId, new Map());
-    }
-
-    if (historyId) {
-      const historyIdToLastAttemptResult = state.get(environmentId)!;
-      const currentLastAttemptResult = historyIdToLastAttemptResult.get(historyId);
-
-      if (currentLastAttemptResult) {
-        if (wasStartedEarlier(currentLastAttemptResult, testResult)) {
-          historyIdToLastAttemptResult.set(historyId, testResult);
-          currentLastAttemptResult.hidden = true;
-        } else {
-          testResult.hidden = true;
-        }
-      } else {
-        historyIdToLastAttemptResult.set(historyId, testResult);
-      }
-    }
   }
 };
 
@@ -168,10 +135,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly #allowedEnvironmentIds: Set<string>;
+  readonly #retrySubstore: RetrySubstore;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexTestResultByEnvironmentId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>> = new Map();
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -255,6 +222,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
     this.#allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
+    this.#retrySubstore = new RetrySubstore();
 
     this.#addEnvironments(environments);
 
@@ -383,12 +351,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     envs.forEach(({ id, name }) => {
       this.#environmentDisplayNames.set(name, id);
     });
-
-    envs.forEach(({ id }) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
-        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
-      }
-    });
   }
 
   #environmentIdByName(environmentName: string): string | undefined {
@@ -467,6 +429,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         },
       )?.id
     );
+  }
+
+  #assignRetryHash(testResult: TestResult, options?: { parametersHash?: string; environmentId?: string }) {
+    const environmentId = options?.environmentId ?? this.#environmentIdByTestResult(testResult);
+    const parametersHash = options?.parametersHash ?? calculateParametersHash(testResult.parameters);
+    testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentId);
+  }
+
+  #rebuildRetrySubstore() {
+    this.#retrySubstore.reset();
+
+    for (const [, testResult] of this.#testResults) {
+      if (!testResult.retryHash) {
+        this.#assignRetryHash(testResult);
+      }
+
+      this.#retrySubstore.upsert(testResult);
+    }
   }
 
   #resolveGlobalEnvironmentIdentity(environment?: string): EnvironmentIdentity | undefined {
@@ -750,6 +730,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = environmentIdentity.name;
     this.#addEnvironments([environmentIdentity]);
+    const parametersHash =
+      typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
+        ? raw.parametersHash
+        : calculateParametersHash(testResult.parameters);
+    testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
     const trHistory = await this.historyByTr(testResult);
 
@@ -760,8 +745,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
-
-    hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, testResult, environmentIdentity.id);
+    this.#retrySubstore.recordIngestOrder(testResult.id);
+    this.#retrySubstore.upsert(testResult);
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
@@ -882,15 +867,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async allTestResults(
     options: {
-      includeHidden?: boolean;
+      includeRetries?: boolean;
       filter?: TestResultFilter;
-    } = { includeHidden: false },
+    } = { includeRetries: false },
   ): Promise<TestResult[]> {
-    const { includeHidden = false, filter } = options;
+    const { includeRetries = false, filter } = options;
     const result: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (!includeHidden && tr.hidden) {
+      if (!includeRetries && tr.isRetry) {
         continue;
       }
 
@@ -1031,7 +1016,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const newTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1128,29 +1113,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async retriesByTr(tr?: TestResult): Promise<TestResult[]> {
-    const retries: TestResult[] = [];
-
-    if (!tr || tr.hidden || !tr.historyId) {
-      return retries;
+    if (!tr) {
+      return [];
     }
 
-    const trByHistoryId = this.indexTestResultByHistoryId.get(tr.historyId);
-
-    if (!trByHistoryId) {
-      return retries;
-    }
-
-    for (const r of trByHistoryId) {
-      // hidden should be true for a retry
-      // the environment should be the same as the original test result
-      if (!r.hidden || tr.environment !== r.environment) {
-        continue;
-      }
-
-      retries.push(r);
-    }
-
-    return retries.sort(nullsLast(compareBy("start", reverse(ordinal()))));
+    return this.#retrySubstore.retriesByTr(tr);
   }
 
   async retriesByTrId(trId: string): Promise<TestResult[]> {
@@ -1193,7 +1160,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const failedTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1228,7 +1195,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     results._ = [];
 
     for (const [, test] of this.#testResults) {
-      if (test.hidden) {
+      if (test.isRetry) {
         continue;
       }
 
@@ -1255,7 +1222,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const statistic: Statistic = { total: 0 };
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1303,8 +1270,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testResultsByEnvironment(
     env: string,
     options: {
-      includeHidden?: boolean;
-    } = { includeHidden: false },
+      includeRetries?: boolean;
+    } = { includeRetries: false },
   ) {
     const environmentNameValidation = validateEnvironmentName(env);
 
@@ -1324,8 +1291,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testResultsByEnvironmentId(
     envId: string,
     options: {
-      includeHidden?: boolean;
-    } = { includeHidden: false },
+      includeRetries?: boolean;
+    } = { includeRetries: false },
   ) {
     const normalizedEnvId = this.#environmentIdForLookup(envId);
 
@@ -1337,7 +1304,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
     const trs = this.indexTestResultByEnvironmentId.get(normalizedEnvId) ?? [];
 
-    return options.includeHidden ? [...trs] : trs.filter((tr) => !tr.hidden);
+    return options.includeRetries ? [...trs] : trs.filter((tr) => !tr.isRetry);
   }
 
   async allTestEnvGroups() {
@@ -1442,7 +1409,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         ...result,
         ...(result.tags ? { tags: [...result.tags] } : {}),
       })),
-      indexLatestEnvTestResultByHistoryId: {},
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -1450,17 +1416,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
       qualityGateResults: this.#qualityGateResults,
+      testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
 
-    this.indexLatestEnvTestResultByHistoryId.forEach((envMap, environmentId) => {
-      if (!storeDump.indexLatestEnvTestResultByHistoryId[environmentId]) {
-        storeDump.indexLatestEnvTestResultByHistoryId[environmentId] = {};
-      }
-
-      envMap.forEach((tr, historyId) => {
-        (storeDump.indexLatestEnvTestResultByHistoryId[environmentId] as Record<string, string>)[historyId] = tr.id;
-      });
-    });
     this.indexAttachmentByFixture.forEach((link, fxId) => {
       storeDump.indexAttachmentByFixture[fxId] = link.map((l) => l.id);
     });
@@ -1497,11 +1455,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
-      indexLatestEnvTestResultByHistoryId = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
+      testResultIdsIngestOrder = [],
     } = stateDump;
     const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
       if (typeof environmentValue === "string") {
@@ -1576,7 +1534,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#assertAllowedEnvironmentId(envId, `restored testResults[${JSON.stringify(testResult.id)}]`);
       this.#setTestResultEnvironmentId(testResult, envId);
+      this.#assignRetryHash(testResult, { environmentId: envId });
     });
+
+    this.#retrySubstore.restoreIngestOrder(testResultIdsIngestOrder, (id) => this.#testResults.has(id));
 
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
@@ -1722,81 +1683,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-    this.#environments.forEach(({ id }) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
-        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
-      }
-    });
-
-    const latestAttemptsEntries = Object.entries(indexLatestEnvTestResultByHistoryId);
-    const hasNestedLatestAttempts = latestAttemptsEntries.some(
-      ([, value]) => typeof value === "object" && value !== null,
-    );
-
-    if (hasNestedLatestAttempts) {
-      latestAttemptsEntries.forEach(([environmentId, historyIds]) => {
-        const environmentIdValidation = validateEnvironmentId(environmentId);
-
-        if (!environmentIdValidation.valid || typeof historyIds !== "object" || historyIds === null) {
-          return;
-        }
-
-        const normalizedEnvironmentId = environmentIdValidation.normalized;
-
-        this.#assertAllowedEnvironmentId(
-          normalizedEnvironmentId,
-          `restored indexLatestEnvTestResultByHistoryId[${JSON.stringify(environmentId)}]`,
-        );
-
-        Object.values(historyIds as Record<string, string>).forEach((trId) => {
-          const tr = this.#testResults.get(trId);
-
-          if (!tr) {
-            return;
-          }
-
-          hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironmentId);
-        });
-      });
-    } else {
-      Object.entries(indexLatestEnvTestResultByHistoryId as Record<string, string>).forEach(
-        ([historyId, latestTrId]) => {
-          const trIdsForHistory = indexTestResultByHistoryId[historyId] ?? [];
-          const storedLatestTr = this.#testResults.get(latestTrId);
-          const storedLatestEnvironmentId = storedLatestTr
-            ? (this.#environmentIdByTestResult(storedLatestTr) ?? DEFAULT_ENVIRONMENT)
-            : undefined;
-
-          if (storedLatestTr && storedLatestEnvironmentId) {
-            hidePreviousAttemptByEnvironment(
-              this.indexLatestEnvTestResultByHistoryId,
-              storedLatestTr,
-              storedLatestEnvironmentId,
-            );
-          }
-
-          for (const trId of trIdsForHistory) {
-            if (trId === latestTrId) {
-              continue;
-            }
-
-            const tr = this.#testResults.get(trId);
-
-            if (!tr) {
-              continue;
-            }
-
-            const environmentId = this.#environmentIdByTestResult(tr) ?? DEFAULT_ENVIRONMENT;
-
-            if (storedLatestEnvironmentId && environmentId === storedLatestEnvironmentId) {
-              continue;
-            }
-
-            hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, environmentId);
-          }
-        },
-      );
-    }
+    this.#rebuildRetrySubstore();
 
     qualityGateResults.forEach((result, index) => {
       this.#assertAllowedStoredEnvironment(

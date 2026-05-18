@@ -18,7 +18,7 @@ const baseTestResult: Pick<
   | "flaky"
   | "muted"
   | "known"
-  | "hidden"
+  | "isRetry"
   | "labels"
   | "parameters"
   | "links"
@@ -30,7 +30,7 @@ const baseTestResult: Pick<
   flaky: false,
   muted: false,
   known: false,
-  hidden: false,
+  isRetry: false,
   labels: [],
   parameters: [],
   links: [],

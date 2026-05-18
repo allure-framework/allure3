@@ -49,7 +49,7 @@ const fixtures: any = {
     reportUuid: "report-uuid",
   } as PluginContext,
   store: {
-    allTestResults: async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+    allTestResults: async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
       const all = [
         fixtures.testResults.passed,
         fixtures.testResults.failed,
@@ -176,7 +176,7 @@ describe("plugin", () => {
         allEnvironments: vi.fn().mockResolvedValue([]),
         allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResultsWithTags.filter(options.filter) : testResultsWithTags;
           return trs;
         }),
@@ -266,7 +266,7 @@ describe("plugin", () => {
           .fn()
           .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
@@ -338,7 +338,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
       } as TestResult;
       const testResults = [stagingTestResult];
@@ -358,7 +358,7 @@ describe("plugin", () => {
           { id: "staging", name: "staging" },
         ] satisfies EnvironmentIdentity[]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
@@ -435,7 +435,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
       } as TestResult;
       const qaBTestResult = {
@@ -447,7 +447,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
       } as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
@@ -467,7 +467,7 @@ describe("plugin", () => {
           { id: "qa_b", name: "QA" },
         ] satisfies EnvironmentIdentity[]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
@@ -546,7 +546,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         start: 1,
         stop: 11,
         sourceMetadata: { readerId: "system", metadata: {} },
@@ -563,7 +563,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         start: 2,
         stop: 22,
         sourceMetadata: { readerId: "system", metadata: {} },
@@ -585,7 +585,7 @@ describe("plugin", () => {
           { id: "qa_b", name: "QA" },
         ] satisfies EnvironmentIdentity[]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
@@ -663,7 +663,7 @@ describe("plugin", () => {
           .fn()
           .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),

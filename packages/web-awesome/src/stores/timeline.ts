@@ -6,7 +6,7 @@ import type { StoreSignalState } from "@/stores/types";
 
 export type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "flaky" | "hidden" | "environment" | "start" | "duration"
+  "id" | "name" | "status" | "flaky" | "isRetry" | "environment" | "start" | "duration"
 > & {
   environmentName?: string;
   host: string;

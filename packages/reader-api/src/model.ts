@@ -61,6 +61,7 @@ export interface RawTestResult extends RawError {
 
   hostId?: string;
   threadId?: string;
+  parametersHash?: string;
 
   parameters?: RawTestParameter[];
 

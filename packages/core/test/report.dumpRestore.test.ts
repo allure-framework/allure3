@@ -35,11 +35,11 @@ const minimalDumpJsonFiles = (
     [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",
     [AllureStoreDumpFiles.IndexTestResultsByHistoryId]: "{}",
     [AllureStoreDumpFiles.IndexTestResultsByTestCase]: "{}",
-    [AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId]: "{}",
     [AllureStoreDumpFiles.IndexAttachmentsByFixture]: "{}",
     [AllureStoreDumpFiles.IndexFixturesByTestResult]: "{}",
     [AllureStoreDumpFiles.IndexKnownByHistoryId]: "{}",
     [AllureStoreDumpFiles.QualityGateResults]: "[]",
+    [AllureStoreDumpFiles.TestResultIngestOrder]: "[]",
   };
 
   Object.entries(overrides).forEach(([name, value]) => {

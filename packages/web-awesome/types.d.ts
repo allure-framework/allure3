@@ -67,6 +67,7 @@ export type AwesomeTestResult = Omit<
   | "steps"
   | "environment"
 > & {
+  isRetry: boolean;
   setup: AwesomeFixtureResult[];
   teardown: AwesomeFixtureResult[];
   steps: AwesomeTestStepResult[];

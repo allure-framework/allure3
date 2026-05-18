@@ -38,7 +38,7 @@ const statisticByTestResults = async (
   const statistic: Statistic = { total: 0 };
 
   for (const testResult of testResults) {
-    if (testResult.hidden) {
+    if (testResult.isRetry) {
       continue;
     }
 
@@ -71,7 +71,7 @@ export class AwesomePlugin implements Plugin {
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const attachments = await store.allAttachments();
-    const allTrs = await store.allTestResults({ includeHidden: true, filter });
+    const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
@@ -98,7 +98,7 @@ export class AwesomePlugin implements Plugin {
 
     await Promise.all(
       environments.map(async ({ id }) => {
-        const envTrs = await store.testResultsByEnvironmentId(id, { includeHidden: true });
+        const envTrs = await store.testResultsByEnvironmentId(id, { includeRetries: true });
 
         envStatistics.set(id, await statisticByTestResults(store, envTrs));
       }),
@@ -139,7 +139,7 @@ export class AwesomePlugin implements Plugin {
     const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
 
     for (const reportEnvironment of environments) {
-      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeHidden: true });
+      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
       const envConvertedTrs = envTrs
         .map((tr) => convertedTrsById.get(tr.id))
         .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));

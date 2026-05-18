@@ -35,7 +35,7 @@ const createTestResult = (
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels,
     parameters,
     links: [],

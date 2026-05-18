@@ -32,7 +32,7 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     sourceMetadata: { readerId: "system", metadata: {} },
     parameters: [],
     links: [],

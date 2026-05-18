@@ -2577,7 +2577,7 @@ const buildRunAndTestFindings = (params: {
 
 const listVisibleTestLayouts = async (params: { outputDir: string; store: AllureStore }) => {
   const { outputDir, store } = params;
-  const tests = (await store.allTestResults({ includeHidden: false })).sort(compareTestResultsByStatusThenName);
+  const tests = (await store.allTestResults({ includeRetries: false })).sort(compareTestResultsByStatusThenName);
   const layouts: TestEntryLayout[] = [];
   const slugsByEnvironment = new Map<string, Set<string>>();
 
@@ -2715,7 +2715,7 @@ const buildSnapshot = async (params: {
   createFinding: ReturnType<typeof createFindingFactory>;
 }) => {
   const { outputDir, store, expectations, expectationLoadFindings, createFinding } = params;
-  const stats = await store.testsStatistic((testResult) => !testResult.hidden);
+  const stats = await store.testsStatistic((testResult) => !testResult.isRetry);
   const entries = await buildEntries({
     outputDir,
     store,

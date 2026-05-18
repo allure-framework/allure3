@@ -330,7 +330,7 @@ export const executeAllureRun = async (params: {
       logTests(await allureReport.store.allTestResults());
     }
 
-    const trs = await allureReport.store.allTestResults({ includeHidden: false });
+    const trs = await allureReport.store.allTestResults({ includeRetries: false });
     qualityGateResults = testProcessResult?.qualityGateResults ?? [];
 
     if (withQualityGate && !qualityGateResults.length) {

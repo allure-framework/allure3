@@ -176,7 +176,7 @@ const mkTest = (partial: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
     status: "failed",
     labels: [],
     flaky: false,
-    hidden: false,
+    isRetry: false,
     duration: 10,
     retriesCount: 0,
     transition: undefined,
@@ -236,7 +236,7 @@ describe("generateCategories", () => {
       mkTest({ id: "a", name: "A", status: "failed" as any }),
       mkTest({ id: "b", name: "B", status: "broken" as any }),
       mkTest({ id: "c", name: "C", status: "passed" as any }),
-      mkTest({ id: "h", name: "Hidden", hidden: true, status: "failed" as any }),
+      mkTest({ id: "h", name: "Hidden", isRetry: true, status: "failed" as any }),
     ];
 
     await generateCategories(writer, {

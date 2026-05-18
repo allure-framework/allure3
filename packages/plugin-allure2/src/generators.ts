@@ -292,7 +292,7 @@ export const generateSummaryJson = async (
   const time: GroupTime = {};
 
   tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .forEach((test) => {
       updateStatistic(statistic, test);
       updateTime(time, test);
@@ -327,7 +327,7 @@ export const generateDefaultWidgetData = async (
   ...fileNames: string[]
 ) => {
   const statusChartData = tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .map(({ uid, name, status, time, extra: { severity = "normal" } }) => {
       return {
         uid,
@@ -363,7 +363,7 @@ export const generateTrendData = async (
 ) => {
   const statistic: Statistic = { total: 0 };
   tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .forEach((test) => {
       updateStatistic(statistic, test);
     });
