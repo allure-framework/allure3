@@ -320,7 +320,13 @@ describe("generateSearchIndex", () => {
       labels: [
         { name: "owner", value: "Igor Martynov" },
         { name: "feature", value: "Checkout" },
+        { name: "tag", value: "smoke" },
         { name: "ignored", value: "not searchable" },
+      ],
+      parameters: [
+        { name: "browser", value: "chromium", hidden: false, masked: false, excluded: false },
+        { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false },
+        { name: "internal", value: "hidden-value", hidden: true, masked: false, excluded: false },
       ],
       groupedLabels: {
         owner: ["Igor Martynov"],
@@ -351,13 +357,17 @@ describe("generateSearchIndex", () => {
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       historyId: "history-visible",
-      labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout",
+      labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
       owner: "Igor Martynov",
+      tags: "smoke",
+      parameters: "browser:chromium browser chromium token",
       categories: "Product defects",
       statusMessage: "Assertion error: Expected 1 to be 2",
       links: "Issue 42 https://example.com/ISSUE-42 issue",
     });
     expect(documents[0]?.labels).not.toContain("ignored");
+    expect(documents[0]?.parameters).not.toContain("secret-token");
+    expect(documents[0]?.parameters).not.toContain("hidden-value");
   });
 });
 

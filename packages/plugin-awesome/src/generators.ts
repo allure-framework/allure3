@@ -234,6 +234,14 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
 
     return [`${name}:${value}`, value];
   });
+  const tags = (test.labels ?? []).flatMap(({ name, value }) => (name === "tag" && value ? [value] : []));
+  const parameters = (test.parameters ?? []).flatMap(({ name, value, hidden, masked }) => {
+    if (hidden) {
+      return [];
+    }
+
+    return masked ? [name] : [`${name}:${value}`, name, value];
+  });
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
   const categories = test.categories?.map((category: AwesomeCategory) => category.name);
@@ -246,6 +254,8 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
     historyId: test.historyId,
     labels: joinSearchValues(labels),
     owner: joinSearchValues(test.groupedLabels.owner ?? []),
+    tags: joinSearchValues(tags),
+    parameters: joinSearchValues(parameters),
     categories: joinSearchValues(categories ?? []),
     statusMessage: test.error?.message,
     links: joinSearchValues(links),

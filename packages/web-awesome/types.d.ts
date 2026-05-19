@@ -108,6 +108,8 @@ export type AwesomeSearchDocument = {
   historyId?: string;
   labels?: string;
   owner?: string;
+  tags?: string;
+  parameters?: string;
   categories?: string;
   statusMessage?: string;
   links?: string;

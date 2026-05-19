@@ -42,7 +42,9 @@ test.describe("commons", () => {
             labels: [
               { name: "owner", value: "Igor Martynov" },
               { name: "feature", value: "Forms" },
+              { name: "tag", value: "smoke" },
             ],
+            parameters: [{ name: "browser", value: "chromium", hidden: false, masked: false, excluded: false }],
           },
           {
             name: "1 sample failed test",
@@ -165,7 +167,7 @@ test.describe("commons", () => {
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
   });
 
-  test("search filters tests by full name, owner, and error message", async () => {
+  test("search filters tests by full name, owner, tag, parameter, and error message", async () => {
     await treePage.searchTree("UniqueFailedFullName");
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("1 sample failed test");
@@ -175,6 +177,14 @@ test.describe("commons", () => {
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
 
     await treePage.searchTree("feature:Forms");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+
+    await treePage.searchTree("smoke");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+
+    await treePage.searchTree("browser:chromium");
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
 
