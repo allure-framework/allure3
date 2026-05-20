@@ -155,6 +155,7 @@
     "openPwTrace": "Բացել Playwright Trace",
     "pwTracePopupBlocked": "Բրաուզերը արգելափակեց Playwright Trace Viewer-ի բացումը։",
     "pwTracePopupBlockedHint": "Թույլատրեք բացվող պատուհանները և կրկին փորձեք։",
+    "pwTraceUnsupported": "Մեկ ֆայլով հաշվետվություններում Playwright trace-ները հնարավոր չէ ավտոմատ բացել։ Ներբեռնեք trace-ը և բացեք այն ձեռքով։",
     "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})"
   },

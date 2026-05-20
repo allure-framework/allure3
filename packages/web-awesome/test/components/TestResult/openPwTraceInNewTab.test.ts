@@ -3,63 +3,35 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
   beforeEach(() => {
     vi.resetModules();
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
   });
 
   it("returns false when popup is blocked", async () => {
     const { openPlaywrightTraceInNewTab } = await import("@/components/TestResult/TrPwTraces/openPwTraceInNewTab");
     vi.spyOn(window, "open").mockReturnValue(null);
 
-    const result = openPlaywrightTraceInNewTab(new Blob(["trace"]));
+    const result = openPlaywrightTraceInNewTab("http://localhost:1234/data/attachments/trace.zip?attachment");
 
     expect(result).toBe(false);
   });
 
-  it("sends trace message immediately and retries once", async () => {
+  it("opens Playwright Trace Viewer with trace URL parameter", async () => {
     const { openPlaywrightTraceInNewTab } = await import("@/components/TestResult/TrPwTraces/openPwTraceInNewTab");
-    const postMessage = vi.fn();
     const popup = {
-      postMessage,
-      location: { href: "" },
       focus: vi.fn(),
-      closed: false,
     } as unknown as Window;
-    vi.spyOn(window, "open").mockReturnValue(popup);
+    const open = vi.spyOn(window, "open").mockReturnValue(popup);
 
-    const result = openPlaywrightTraceInNewTab(new Blob(["trace"]));
+    const result = openPlaywrightTraceInNewTab("http://localhost:1234/data/attachments/trace.zip?attachment");
 
     expect(result).toBe(true);
-    expect(postMessage).toHaveBeenCalledTimes(1);
-
-    vi.advanceTimersByTime(300);
-    expect(postMessage).toHaveBeenCalledTimes(2);
-
-    vi.advanceTimersByTime(30_000);
-    expect(postMessage).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not send delayed retry when popup is already closed", async () => {
-    const { openPlaywrightTraceInNewTab } = await import("@/components/TestResult/TrPwTraces/openPwTraceInNewTab");
-    const postMessage = vi.fn();
-    const popup = {
-      postMessage,
-      location: { href: "" },
-      focus: vi.fn(),
-      closed: false,
-    } as unknown as Window & { closed: boolean };
-    vi.spyOn(window, "open").mockReturnValue(popup);
-
-    openPlaywrightTraceInNewTab(new Blob(["trace"]));
-    expect(postMessage).toHaveBeenCalledTimes(1);
-
-    popup.closed = true;
-    vi.advanceTimersByTime(300);
-    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenCalledWith(
+      "https://trace.playwright.dev/?trace=http%3A%2F%2Flocalhost%3A1234%2Fdata%2Fattachments%2Ftrace.zip%3Fattachment",
+      "_blank",
+    );
+    expect(popup.focus).toHaveBeenCalledTimes(1);
   });
 });

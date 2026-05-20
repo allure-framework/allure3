@@ -155,6 +155,7 @@
     "openPwTrace": "Playwright Trace-i aç",
     "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
+    "pwTraceUnsupported": "Playwright izləmələri tək fayllı hesabatlarda avtomatik açıla bilmir. İzləməni endirin və əl ilə açın.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
   },

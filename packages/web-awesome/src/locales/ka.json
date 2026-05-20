@@ -155,6 +155,7 @@
     "openPwTrace": "გახსენი Playwright Trace",
     "pwTracePopupBlocked": "ბრაუზერმა დაბლოკა Playwright Trace Viewer-ის გახსნა.",
     "pwTracePopupBlockedHint": "დაუშვით ამომხტარი ფანჯრები და ხელახლა სცადეთ.",
+    "pwTraceUnsupported": "ერთფაილიან რეპორტებში Playwright trace-ების ავტომატურად გახსნა შეუძლებელია. ჩამოტვირთეთ trace და ხელით გახსენით.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})"
   },

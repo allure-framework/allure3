@@ -1,29 +1,16 @@
 const PLAYWRIGHT_TRACE_ORIGIN = "https://trace.playwright.dev";
 const PLAYWRIGHT_TRACE_VIEWER_URL = `${PLAYWRIGHT_TRACE_ORIGIN}/`;
-const RETRY_DELAY_MS = 300;
 
-export const openPlaywrightTraceInNewTab = (blob: Blob) => {
-  const newWindow = window.open("", "_blank");
+export const openPlaywrightTraceInNewTab = (traceUrl: string) => {
+  const viewerUrl = new URL(PLAYWRIGHT_TRACE_VIEWER_URL);
+  viewerUrl.searchParams.set("trace", traceUrl);
+
+  const newWindow = window.open(viewerUrl.toString(), "_blank");
   if (!newWindow) {
     return false;
   }
 
-  const payload = { method: "load", params: { trace: blob } };
-  const sendTraceMessage = () => {
-    if (newWindow.closed) {
-      return;
-    }
-
-    newWindow.postMessage(payload, PLAYWRIGHT_TRACE_ORIGIN);
-  };
-
-  newWindow.location.href = PLAYWRIGHT_TRACE_VIEWER_URL;
   newWindow.focus();
-
-  sendTraceMessage();
-  globalThis.setTimeout(() => {
-    sendTraceMessage();
-  }, RETRY_DELAY_MS);
 
   return true;
 };

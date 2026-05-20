@@ -61,6 +61,24 @@ it("serves files with query parameters", async () => {
   expect(res.data).not.toBeUndefined();
 });
 
+it("allows attachment files to be fetched from external viewers", async () => {
+  server = await serve({ port, servePath });
+  const res = await axios.get(`http://localhost:${port}/sample?attachment`, {
+    timeout: 500,
+  });
+
+  expect(res.headers["access-control-allow-origin"]).toBe("*");
+});
+
+it("doesn't add CORS headers to regular static files", async () => {
+  server = await serve({ port, servePath });
+  const res = await axios.get(`http://localhost:${port}/sample`, {
+    timeout: 500,
+  });
+
+  expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+});
+
 it("returns 404 for path traversal outside the serve root", async () => {
   server = await serve({ port, servePath });
   const res = await axios.get(`http://localhost:${port}/../../static.test.ts`, {

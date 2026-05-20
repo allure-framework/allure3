@@ -155,6 +155,7 @@
     "openPwTrace": "Playwright Trace 열기",
     "pwTracePopupBlocked": "브라우저가 Playwright Trace Viewer 열기를 차단했습니다.",
     "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
+    "pwTraceUnsupported": "단일 파일 보고서에서는 Playwright Trace를 자동으로 열 수 없습니다. Trace를 다운로드한 뒤 수동으로 여세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})"
   },

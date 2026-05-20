@@ -10,6 +10,12 @@ import openUrl from "open";
 
 import { TYPES_BY_EXTENSION, identity, injectLiveReloadScript, resolveUrlPathnameUnderServeRoot } from "./utils.js";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+};
+
+const attachmentCorsHeaders = (query: URLSearchParams) => (query.has("attachment") ? CORS_HEADERS : {});
+
 export type AllureStaticServer = {
   url: string;
   port: number;
@@ -156,6 +162,7 @@ export const serve = async (options?: {
         const byteLength = Buffer.byteLength(htmlContent);
 
         res.writeHead(200, {
+          ...attachmentCorsHeaders(query),
           "Content-Type": "text/html",
           "Content-Length": byteLength,
         });
@@ -175,6 +182,7 @@ export const serve = async (options?: {
       const byteLength = Buffer.byteLength(htmlContent);
 
       res.writeHead(200, {
+        ...attachmentCorsHeaders(query),
         "Content-Type": contentType,
         "Content-Length": byteLength,
       });
@@ -184,6 +192,7 @@ export const serve = async (options?: {
     }
 
     res.writeHead(200, {
+      ...attachmentCorsHeaders(query),
       "Content-Type": contentType,
       "Content-Length": stats.size,
     });

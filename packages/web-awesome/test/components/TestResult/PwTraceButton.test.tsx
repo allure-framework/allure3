@@ -4,28 +4,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 type SetupOptions = {
   canOpenInNewTab: boolean;
   failFetch?: boolean;
+  traceUrl?: string;
 };
 
-const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
+const setup = async ({ canOpenInNewTab, failFetch, traceUrl }: SetupOptions) => {
   vi.resetModules();
 
-  const fetchFromUrl = failFetch
+  const reportDataUrl = failFetch
     ? vi.fn().mockRejectedValue(new Error("fetch failed"))
-    : vi.fn().mockResolvedValue({
-        blob: vi.fn().mockResolvedValue(new Blob(["trace"])),
-      });
+    : vi.fn().mockResolvedValue(traceUrl ?? "http://localhost:1234/data/attachments/trace-id.zip?attachment");
   const openModal = vi.fn();
   const closeModal = vi.fn();
   const openPlaywrightTraceInNewTab = vi.fn().mockReturnValue(canOpenInNewTab);
 
   vi.doMock("@allurereport/web-commons", () => ({
-    fetchFromUrl,
+    reportDataUrl,
   }));
   vi.doMock("@allurereport/web-components", () => ({
     Button: ({ onClick, text }: { onClick?: () => void; text?: string }) => <button onClick={onClick}>{text}</button>,
     Text: ({ children }: { children: unknown }) => <div>{children}</div>,
     TooltipWrapper: ({ children }: { children: unknown }) => <div>{children}</div>,
-    IconButton: ({ onClick }: { onClick?: () => void }) => <button onClick={onClick}>open trace</button>,
+    IconButton: ({ "aria-label": ariaLabel, onClick }: { "aria-label"?: string; "onClick"?: () => void }) => (
+      <button aria-label={ariaLabel} onClick={onClick}>
+        open trace
+      </button>
+    ),
     allureIcons: { lineArrowsExpand3: "lineArrowsExpand3" },
   }));
   vi.doMock("@/stores", () => ({
@@ -50,9 +53,9 @@ const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
     />,
   );
 
-  fireEvent.click(screen.getByRole("button", { name: "open trace" }));
+  fireEvent.click(screen.getByRole("button", { name: "openPwTrace" }));
 
-  return { fetchFromUrl, openModal, closeModal, openPlaywrightTraceInNewTab };
+  return { reportDataUrl, openModal, closeModal, openPlaywrightTraceInNewTab };
 };
 
 describe("components > TestResult > PwTraceButton", () => {
@@ -69,6 +72,9 @@ describe("components > TestResult > PwTraceButton", () => {
       expect(openPlaywrightTraceInNewTab).toHaveBeenCalledTimes(1);
     });
 
+    expect(openPlaywrightTraceInNewTab).toHaveBeenCalledWith(
+      "http://localhost:1234/data/attachments/trace-id.zip?attachment",
+    );
     expect(openModal).not.toHaveBeenCalled();
   });
 
@@ -100,5 +106,23 @@ describe("components > TestResult > PwTraceButton", () => {
     });
 
     expect(openPlaywrightTraceInNewTab).not.toHaveBeenCalled();
+  });
+
+  it("shows unsupported modal for single-file trace data URLs", async () => {
+    const { openModal, openPlaywrightTraceInNewTab } = await setup({
+      canOpenInNewTab: true,
+      traceUrl: "data:application/vnd.allure.playwright-trace;base64,dHJhY2U=",
+    });
+
+    await waitFor(() => {
+      expect(openModal).toHaveBeenCalledTimes(1);
+    });
+
+    expect(openPlaywrightTraceInNewTab).not.toHaveBeenCalled();
+    expect(openModal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Playwright Trace Viewer | trace.zip",
+      }),
+    );
   });
 });

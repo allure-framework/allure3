@@ -153,6 +153,9 @@
     "at": "في",
     "variables": "المتغيرات",
     "openPwTrace": "فتح تتبع Playwright",
+    "pwTracePopupBlocked": "حظر المتصفح فتح عارض Playwright Trace.",
+    "pwTracePopupBlockedHint": "اسمح بالنوافذ المنبثقة ثم أعد المحاولة.",
+    "pwTraceUnsupported": "لا يمكن فتح تتبعات Playwright تلقائيًا في التقارير ذات الملف الواحد. نزّل التتبع وافتحه يدويًا.",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})"
   },

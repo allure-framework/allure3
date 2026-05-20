@@ -155,6 +155,7 @@
     "openPwTrace": "Playwright Trace Aç",
     "pwTracePopupBlocked": "Tarayıcı Playwright Trace Viewer’ın açılmasını engelledi.",
     "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
+    "pwTraceUnsupported": "Tek dosyalı raporlardaki Playwright trace'leri otomatik olarak açılamaz. Trace'i indirin ve elle açın.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"
   },

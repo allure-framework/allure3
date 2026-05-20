@@ -155,6 +155,7 @@
     "openPwTrace": "開啟 Playwright Trace",
     "pwTracePopupBlocked": "瀏覽器封鎖了開啟 Playwright Trace Viewer。",
     "pwTracePopupBlockedHint": "請允許彈出視窗後重試。",
+    "pwTraceUnsupported": "單一檔案報告中的 Playwright trace 無法自動開啟。請下載 trace 並手動開啟。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，結束代碼 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，結束代號 {{actual}}（原始 {{original}}）"
   },

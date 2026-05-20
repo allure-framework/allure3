@@ -472,14 +472,15 @@ test.describe("attachments", () => {
 
       await testResultPage.testResultAttachmentLocator
         .filter({ has: page.getByText("trace", { exact: true }) })
-        .getByRole("button")
-        .nth(0)
+        .first()
+        .getByLabel("Open Playwright Trace")
         .click();
 
       const popup = await popupPromise;
 
       if (popup) {
-        await popup.waitForURL("https://trace.playwright.dev/", { timeout: 5_000 });
+        await popup.waitForURL(/https:\/\/trace\.playwright\.dev\/\?trace=/, { timeout: 5_000 });
+        await expect(popup.getByText("Actions", { exact: true }).first()).toBeVisible();
         return;
       }
 

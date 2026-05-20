@@ -155,6 +155,7 @@
     "openPwTrace": "Відкрити Playwright Trace",
     "pwTracePopupBlocked": "Браузер заблокував відкриття Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
+    "pwTraceUnsupported": "Трейси Playwright в однофайлових звітах не можна відкрити автоматично. Завантажте трейс і відкрийте його вручну.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})"
   },

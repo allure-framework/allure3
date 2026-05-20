@@ -155,6 +155,7 @@
     "openPwTrace": "Playwright Trace öffnen",
     "pwTracePopupBlocked": "Der Browser hat das Öffnen des Playwright Trace Viewer blockiert.",
     "pwTracePopupBlockedHint": "Erlaube Pop-ups und versuche es erneut.",
+    "pwTraceUnsupported": "Playwright-Traces können in Ein-Datei-Berichten nicht automatisch geöffnet werden. Lade den Trace herunter und öffne ihn manuell.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, mit Exit-Code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, mit Exit-Code {{actual}} (ursprünglich {{original}})"
   },
