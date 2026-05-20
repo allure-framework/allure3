@@ -95,6 +95,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/plugin-slack"\
     },\
     {\
+      "name": "@allurereport/plugin-storage",\
+      "reference": "workspace:packages/plugin-storage"\
+    },\
+    {\
       "name": "@allurereport/plugin-testops",\
       "reference": "workspace:packages/plugin-testops"\
     },\
@@ -174,6 +178,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-progress", ["workspace:packages/plugin-progress"]],\
     ["@allurereport/plugin-server-reload", ["workspace:packages/plugin-server-reload"]],\
     ["@allurereport/plugin-slack", ["workspace:packages/plugin-slack"]],\
+    ["@allurereport/plugin-storage", ["workspace:packages/plugin-storage"]],\
     ["@allurereport/plugin-testops", ["workspace:packages/plugin-testops"]],\
     ["@allurereport/plugin-testplan", ["workspace:packages/plugin-testplan"]],\
     ["@allurereport/reader", ["workspace:packages/reader"]],\
@@ -296,6 +301,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
+          ["@allurereport/plugin-storage", "workspace:packages/plugin-storage"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
@@ -303,7 +309,6 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/summary", "workspace:packages/summary"],\
           ["@types/node", "npm:20.17.9"],\
-          ["@types/progress", "npm:2.0.7"],\
           ["@types/zip-stream", "npm:7.0.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
@@ -312,8 +317,6 @@ const RAW_RUNTIME_STATE =
           ["glob", "npm:13.0.6"],\
           ["handlebars", "npm:4.7.9"],\
           ["node-stream-zip", "npm:1.15.0"],\
-          ["p-limit", "npm:7.2.0"],\
-          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
@@ -654,6 +657,29 @@ const RAW_RUNTIME_STATE =
         "linkType": "SOFT"\
       }]\
     ]],\
+    ["@allurereport/plugin-storage", [\
+      ["workspace:packages/plugin-storage", {\
+        "packageLocation": "./packages/plugin-storage/",\
+        "packageDependencies": [\
+          ["@allurereport/plugin-storage", "workspace:packages/plugin-storage"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
+          ["@allurereport/summary", "workspace:packages/summary"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@types/progress", "npm:2.0.7"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["@vitest/snapshot", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
+          ["p-limit", "npm:7.2.0"],\
+          ["progress", "npm:2.0.3"],\
+          ["rimraf", "npm:6.0.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
     ["@allurereport/plugin-testops", [\
       ["workspace:packages/plugin-testops", {\
         "packageLocation": "./packages/plugin-testops/",\
@@ -663,6 +689,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/node", "npm:20.17.9"],\

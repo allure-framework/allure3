@@ -1,5 +1,5 @@
 import console from "node:console";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { setTimeout } from "node:timers/promises";
@@ -7,8 +7,8 @@ import { setTimeout } from "node:timers/promises";
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { generateSummary } from "@allurereport/summary";
-import { attachment, epic, feature, label, step, story } from "allure-js-commons";
+import { epic, feature, label, step, story } from "allure-js-commons";
+import { KnownError } from "@allurereport/service";
 import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,9 +28,6 @@ vi.mock("@allurereport/service", async (importOriginal) => {
     AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
-vi.mock("@allurereport/summary", () => ({
-  generateSummary: vi.fn(),
-}));
 vi.mock("@allurereport/ci", () => ({
   detect: vi.fn().mockReturnValue({
     repoName: "allure3",
@@ -44,6 +41,7 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     update: vi.fn<Required<Plugin>["update"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
     info: vi.fn<Required<Plugin>["info"]>(),
+    publish: vi.fn<Required<Plugin>["publish"]>(),
   };
 
   return {
@@ -62,28 +60,6 @@ const createSignal = () => {
 
   return { promise, resolve };
 };
-
-const createAbortError = () => {
-  const abortError = new Error("upload aborted");
-
-  abortError.name = "AbortError";
-
-  return abortError;
-};
-
-const waitForAbort = (signal?: AbortSignal, onAbort?: () => void) =>
-  new Promise<never>((_, reject) => {
-    const rejectWithAbort = () => {
-      onAbort?.();
-      reject(createAbortError());
-    };
-
-    if (signal?.aborted) {
-      rejectWithAbort();
-    } else {
-      signal?.addEventListener("abort", rejectWithAbort, { once: true });
-    }
-  });
 
 let previousCwd: string;
 
@@ -257,6 +233,31 @@ describe("report", () => {
     expect(p2.plugin.start.mock.invocationCallOrder[0]).toBeLessThan(p3.plugin.start.mock.invocationCallOrder[0]);
   });
 
+  it("allows plugin.start to update reportUrl", async () => {
+    const p1 = createPlugin("p1", true, { publish: true });
+    const p2 = createPlugin("p2");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    (p1.plugin.start as Mock).mockImplementation(async (context) => {
+      context.reportUrl = "https://remote/report";
+    });
+    (p2.plugin.info as Mock).mockResolvedValue({
+      name: "P2",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed",
+      duration: 0,
+    });
+    config.plugins = [p1, p2];
+
+    const allureReport = new AllureReport(config);
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(allureReport.reportUrl).toEqual("https://remote/report");
+  });
+
   it("should not call disabled plugins on start()", async () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2", false);
@@ -317,125 +318,37 @@ describe("report", () => {
     expect(p1.plugin.done.mock.invocationCallOrder[0]).toBeLessThan(p3.plugin.done.mock.invocationCallOrder[0]);
   });
 
-  it("should publish reports which have publish option and marks report as complited", async () => {
-    const fixtures = {
-      reportUrl: "https://allurereport.com/reports",
-      summaries: [
-        {
-          foo: "bar",
-        },
-        {
-          bar: "baz",
-        },
-        {
-          baz: "qux",
-        },
-      ],
-    };
+  it("should call plugin publish hook only for plugins with options.publish", async () => {
     const p1 = createPlugin("p1", true, { publish: true });
     const p2 = createPlugin("p2", true, { publish: false });
-    const p3 = createPlugin("p3", true, { publish: true });
+    const p3 = createPlugin("p3", true);
     const config = await resolveConfig({
       name: "Allure Report",
     });
-    let allureReport!: AllureReport;
 
-    await step("prepare published plugins and mocked service report", async () => {
-      (p1.plugin.info as Mock).mockResolvedValue(fixtures.summaries[0]);
-      (p2.plugin.info as Mock).mockResolvedValue(fixtures.summaries[1]);
-      (p3.plugin.info as Mock).mockResolvedValue(undefined);
-      (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(new URL(fixtures.reportUrl));
+    config.plugins = [p1, p2, p3];
 
-      config.plugins = [p1, p2, p3];
+    const allureReport = new AllureReport(config);
 
-      await attachment(
-        "remote context",
-        JSON.stringify({ repo: "allure3", branch: "main", publishedPlugins: [p1.id, p3.id] }, null, 2),
-        "application/json",
-      );
+    await allureReport.start();
+    await allureReport.done();
 
-      allureReport = new AllureReport({
-        ...config,
-        allureService: {
-          accessToken: validAccessToken,
-        },
-      });
-    });
-
-    await step("generate and publish the report", async () => {
-      await allureReport.start();
-      await allureReport.done();
-    });
-
-    await step("verify service report metadata and summaries", async () => {
-      expect(AllureServiceClientMock.prototype.createReport).toBeCalledWith({
-        reportUuid: allureReport.reportUuid,
-        reportName: "Allure Report",
-        repo: "allure3",
-        branch: "main",
-      });
-      expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
-      expect(AllureServiceClientMock.prototype.completeReport).toBeCalledWith({
-        reportUuid: allureReport.reportUuid,
-        historyPoint: expect.any(Object),
-      });
-      expect(generateSummary).toBeCalledTimes(1);
-      expect(generateSummary).toBeCalledWith(expect.any(String), [
-        {
-          ...fixtures.summaries[0],
-          href: `${p1.id}/`,
-          remoteHref: `${fixtures.reportUrl}/${p1.id}/`,
-          pullRequestHref: undefined,
-          jobHref: undefined,
-        },
-        {
-          ...fixtures.summaries[1],
-          href: `${p2.id}/`,
-          pullRequestHref: undefined,
-          jobHref: undefined,
-        },
-      ]);
-    });
+    expect(p1.plugin.publish).toBeCalledTimes(1);
+    expect(p2.plugin.publish).toBeCalledTimes(0);
+    expect(p3.plugin.publish).toBeCalledTimes(0);
   });
 
-  it("should retry transient upload failures and publish without deleting remote report", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-upload-retry-success-"));
+  it("should skip publish in realtime mode", async () => {
     const p1 = createPlugin("p1", true, { publish: true });
     const config = await resolveConfig({
       name: "Allure Report",
-      output,
     });
-    const addReportFileMock = AllureServiceClientMock.prototype.addReportFile as Mock;
-    const addReportAssetMock = AllureServiceClientMock.prototype.addReportAsset as Mock;
-    const deleteReportMock = AllureServiceClientMock.prototype.deleteReport as Mock;
-    const attemptsByFilename: Record<string, number> = {};
 
-    addReportFileMock.mockReset();
-    addReportAssetMock.mockReset();
-    deleteReportMock.mockReset();
-    addReportAssetMock.mockResolvedValue({});
-    deleteReportMock.mockResolvedValue({});
-
-    await step("prepare a published plugin with a transiently failing file", async () => {
-      (p1.plugin.done as Mock).mockImplementation(async (context) => {
-        await context.reportFiles.addFile("index.html", Buffer.from("index"));
-        await context.reportFiles.addFile("data/retry.json", Buffer.from("{}"));
-      });
-      (p1.plugin.info as Mock).mockResolvedValue(undefined);
-      addReportFileMock.mockImplementation((payload: { filename: string }) => {
-        attemptsByFilename[payload.filename] = (attemptsByFilename[payload.filename] ?? 0) + 1;
-
-        if (payload.filename === "data/retry.json" && attemptsByFilename[payload.filename] < 3) {
-          return Promise.reject(new Error("transient upload failure"));
-        }
-
-        return Promise.resolve(`https://allurereport.com/reports/${p1.id}/${payload.filename}`);
-      });
-      config.plugins = [p1];
-    });
+    config.plugins = [p1];
 
     const allureReport = new AllureReport({
       ...config,
+      realTime: true,
       allureService: {
         accessToken: validAccessToken,
       },
@@ -444,322 +357,198 @@ describe("report", () => {
     await allureReport.start();
     await allureReport.done();
 
-    await step("verify transient failure was retried without remote cleanup", async () => {
-      await attachment("upload attempts", JSON.stringify(attemptsByFilename, null, 2), "application/json");
-
-      expect(attemptsByFilename["data/retry.json"]).toBe(3);
-      expect(attemptsByFilename["index.html"]).toBe(1);
-      expect(deleteReportMock).not.toBeCalled();
-      expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
-    });
+    expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(0);
+    expect(AllureServiceClientMock.prototype.createReport).toBeCalledTimes(0);
+    expect(AllureServiceClientMock.prototype.addReportFile).toBeCalledTimes(0);
+    expect(p1.plugin.publish).toBeCalledTimes(0);
+    await expect(allureReport.publish()).resolves.toBeUndefined();
   });
 
-  it("should delete remote plugin report after 5 failed upload attempts for a single file", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-upload-retry-fail-"));
-    const p1 = createPlugin("p1", true, { publish: true });
-    const config = await resolveConfig({
-      name: "Allure Report",
-      output,
-    });
-    const addReportFileMock = AllureServiceClientMock.prototype.addReportFile as Mock;
-    const addReportAssetMock = AllureServiceClientMock.prototype.addReportAsset as Mock;
-    const deleteReportMock = AllureServiceClientMock.prototype.deleteReport as Mock;
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
-
-    addReportFileMock.mockReset();
-    addReportAssetMock.mockReset();
-    deleteReportMock.mockReset();
-    addReportFileMock.mockRejectedValue(new Error("upload failed"));
-    addReportAssetMock.mockResolvedValue({});
-    deleteReportMock.mockResolvedValue({});
-
-    try {
-      (p1.plugin.done as Mock).mockImplementation(async (context) => {
-        await context.reportFiles.addFile("data/failing.json", Buffer.from("{}"));
-      });
-      (p1.plugin.info as Mock).mockResolvedValue(undefined);
-      config.plugins = [p1];
-
-      const allureReport = new AllureReport({
-        ...config,
-        allureService: {
-          accessToken: validAccessToken,
-        },
-      });
-
-      await allureReport.start();
-      await allureReport.done();
-
-      expect(addReportFileMock).toBeCalledTimes(5);
-      expect(deleteReportMock).toBeCalledTimes(1);
-      expect(deleteReportMock).toBeCalledWith({
-        reportUuid: allureReport.reportUuid,
-        pluginId: p1.id,
-      });
-      expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
-      expect(consoleInfo).not.toBeCalledWith("Next reports have been published:");
-    } finally {
-      consoleError.mockRestore();
-      consoleInfo.mockRestore();
-    }
-  });
-
-  it("should not complete remote report when failed plugin cleanup fails", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-upload-cleanup-fail-"));
+  it("should still write summary files in realtime mode", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-realtime-summary-"));
     const p1 = createPlugin("p1", true, { publish: true });
     const p2 = createPlugin("p2", true, { publish: true });
     const config = await resolveConfig({
       name: "Allure Report",
       output,
     });
-    const addReportFileMock = AllureServiceClientMock.prototype.addReportFile as Mock;
-    const addReportAssetMock = AllureServiceClientMock.prototype.addReportAsset as Mock;
-    const deleteReportMock = AllureServiceClientMock.prototype.deleteReport as Mock;
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const summary = {
+      name: "Plugin summary",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed" as const,
+      duration: 0,
+    };
 
-    addReportFileMock.mockReset();
-    addReportAssetMock.mockReset();
-    deleteReportMock.mockReset();
-    addReportAssetMock.mockResolvedValue({});
-    deleteReportMock.mockRejectedValue(new Error("cleanup failed"));
+    config.plugins = [p1, p2];
+    (p1.plugin.info as Mock).mockResolvedValue(summary);
+    (p2.plugin.info as Mock).mockResolvedValue(summary);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const p1Summary = JSON.parse(await readFile(join(output, "p1", "summary.json"), "utf8"));
+
+    expect(p1.plugin.publish).not.toBeCalled();
+    expect(p1Summary.name).toEqual("Plugin summary");
+  });
+
+  it("should keep publish idempotent", async () => {
+    const pluginPublishResult = {
+      linksByPluginId: {
+        p1: "https://example.org/p1",
+      },
+      remoteHref: "https://example.org/p1",
+    };
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    (p1.plugin.publish as Mock).mockResolvedValue(pluginPublishResult);
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const firstPublishResult = await allureReport.publish();
+    const secondPublishResult = await allureReport.publish();
+
+    expect(p1.plugin.publish).toBeCalledTimes(1);
+    expect(firstPublishResult).toEqual(pluginPublishResult);
+    expect(secondPublishResult).toEqual(pluginPublishResult);
+  });
+
+  it("should expose publish links in summary context for subsequent publish hooks", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-publish-summary-"));
+    const p1 = createPlugin("p1", true, { publish: true });
+    const p2 = createPlugin("p2", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report", output });
+    const summary = {
+      name: "Plugin summary",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed" as const,
+      duration: 0,
+      meta: {
+        marker: "original",
+      },
+    };
+    let observedP1RemoteHref: string | undefined;
+
+    config.plugins = [p1, p2];
+    (p1.plugin.start as Mock).mockImplementation(async (context) => {
+      context.reportUrl = "https://storage.example.org/report";
+    });
+    (p1.plugin.info as Mock).mockResolvedValue(summary);
+    (p2.plugin.info as Mock).mockResolvedValue(summary);
+    (p1.plugin.publish as Mock).mockResolvedValue({
+      linksByPluginId: {
+        p1: "https://example.org/p1",
+      },
+    });
+    (p2.plugin.publish as Mock).mockImplementation(async (context) => {
+      const p1Summary = context.summary?.summaries.find(({ pluginId }) => pluginId === "p1");
+
+      observedP1RemoteHref = p1Summary?.remoteHref;
+
+      return undefined;
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(p1.plugin.publish).toBeCalledTimes(1);
+    expect(p2.plugin.publish).toBeCalledTimes(1);
+    expect(observedP1RemoteHref).toEqual("https://example.org/p1");
+
+    const p1Summary = JSON.parse(await readFile(join(output, "p1", "summary.json"), "utf8"));
+
+    expect(p1Summary.remoteHref).toEqual("https://example.org/p1");
+  });
+
+  it("should not expose summary mutations from publish hooks without publish result links", async () => {
+    const p1 = createPlugin("p1", true, { publish: true });
+    const p2 = createPlugin("p2", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+    const summary = {
+      name: "Plugin summary",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed" as const,
+      duration: 0,
+      meta: {
+        marker: "original",
+      },
+    };
+    let observedRemoteHref: string | undefined;
+    let observedTotal: number | undefined;
+    let observedMarker: string | undefined;
+
+    config.plugins = [p1, p2];
+    (p1.plugin.info as Mock).mockResolvedValue(summary);
+    (p2.plugin.info as Mock).mockResolvedValue(summary);
+    (p1.plugin.publish as Mock).mockImplementation(async (context) => {
+      const p1Summary = context.summary?.summaries.find(({ pluginId }) => pluginId === "p1");
+
+      if (p1Summary) {
+        p1Summary.remoteHref = "https://stale.example.org/p1";
+        p1Summary.stats.total = 99;
+        p1Summary.meta!.marker = "mutated";
+      }
+
+      return undefined;
+    });
+    (p2.plugin.publish as Mock).mockImplementation(async (context) => {
+      const p1Summary = context.summary?.summaries.find(({ pluginId }) => pluginId === "p1");
+
+      observedRemoteHref = p1Summary?.remoteHref;
+      observedTotal = p1Summary?.stats.total;
+      observedMarker = p1Summary?.meta?.marker;
+
+      return undefined;
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(p1.plugin.publish).toBeCalledTimes(1);
+    expect(p2.plugin.publish).toBeCalledTimes(1);
+    expect(observedRemoteHref).toBeUndefined();
+    expect(observedTotal).toBe(0);
+    expect(observedMarker).toBe("original");
+  });
+
+  it("should log known publish errors as readable messages", async () => {
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const publishError = new KnownError(
+      "Allure service request failed: POST /api/test-report/report-uuid/upload responded with 401 Unauthorized: API token is expired",
+      401,
+    );
+
+    config.plugins = [p1];
+    (p1.plugin.publish as Mock).mockRejectedValue(publishError);
+
+    const allureReport = new AllureReport(config);
 
     try {
-      (p1.plugin.done as Mock).mockImplementation(async (context) => {
-        await context.reportFiles.addFile("data/failing.json", Buffer.from("{}"));
-      });
-      (p1.plugin.info as Mock).mockResolvedValue(undefined);
-      (p2.plugin.done as Mock).mockImplementation(async (context) => {
-        await context.reportFiles.addFile("index.html", Buffer.from("index"));
-      });
-      (p2.plugin.info as Mock).mockResolvedValue(undefined);
-      addReportFileMock.mockImplementation((payload: { pluginId?: string; filename: string }) => {
-        if (payload.pluginId === p1.id) {
-          return Promise.reject(new Error("upload failed"));
-        }
-
-        return Promise.resolve(`https://allurereport.com/reports/${payload.pluginId}/${payload.filename}`);
-      });
-      config.plugins = [p1, p2];
-
-      const allureReport = new AllureReport({
-        ...config,
-        allureService: {
-          accessToken: validAccessToken,
-        },
-      });
-
       await allureReport.start();
       await allureReport.done();
-
-      expect(addReportFileMock.mock.calls.filter(([payload]) => payload.pluginId === p1.id)).toHaveLength(5);
-      expect(addReportFileMock.mock.calls.filter(([payload]) => payload.pluginId === p2.id)).toHaveLength(1);
-      expect(deleteReportMock).toBeCalledTimes(1);
-      expect(deleteReportMock).toBeCalledWith({
-        reportUuid: allureReport.reportUuid,
-        pluginId: p1.id,
-      });
-      expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
+      expect(consoleError).toHaveBeenCalledWith('Plugin "p1" publish has failed');
+      expect(consoleError).toHaveBeenCalledWith(publishError.message);
+      expect(consoleError).not.toHaveBeenCalledWith(publishError);
     } finally {
       consoleError.mockRestore();
-    }
-  });
-
-  it("should delete remote plugin report when more than 5 distinct uploads fail concurrently", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-upload-retry-concurrent-fail-"));
-    const p1 = createPlugin("p1", true, { publish: true });
-    const config = await resolveConfig({
-      name: "Allure Report",
-      output,
-    });
-    const addReportFileMock = AllureServiceClientMock.prototype.addReportFile as Mock;
-    const addReportAssetMock = AllureServiceClientMock.prototype.addReportAsset as Mock;
-    const deleteReportMock = AllureServiceClientMock.prototype.deleteReport as Mock;
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    const firstAttemptRejectors: Record<string, (reason: unknown) => void> = {};
-    const attemptsByFilename: Record<string, number> = {};
-    const failingFiles = Array.from({ length: 6 }, (_, index) => `data/failing-${index}.json`);
-
-    addReportFileMock.mockReset();
-    addReportAssetMock.mockReset();
-    deleteReportMock.mockReset();
-    addReportAssetMock.mockResolvedValue({});
-    deleteReportMock.mockResolvedValue({});
-
-    try {
-      await step("prepare six concurrently failing report files", async () => {
-        await attachment("failing files", JSON.stringify(failingFiles, null, 2), "application/json");
-        (p1.plugin.done as Mock).mockImplementation(async (context) => {
-          for (const filename of failingFiles) {
-            await context.reportFiles.addFile(filename, Buffer.from("{}"));
-          }
-        });
-        (p1.plugin.info as Mock).mockResolvedValue(undefined);
-        addReportFileMock.mockImplementation((payload: { filename: string; signal?: AbortSignal }) => {
-          attemptsByFilename[payload.filename] = (attemptsByFilename[payload.filename] ?? 0) + 1;
-
-          if (attemptsByFilename[payload.filename] === 1) {
-            return new Promise<never>((_, reject) => {
-              firstAttemptRejectors[payload.filename] = reject;
-            });
-          }
-
-          return waitForAbort(payload.signal);
-        });
-        config.plugins = [p1];
-      });
-
-      const allureReport = new AllureReport({
-        ...config,
-        allureService: {
-          accessToken: validAccessToken,
-        },
-      });
-
-      await allureReport.start();
-
-      const donePromise = allureReport.done();
-
-      await vi.waitFor(() => {
-        expect(Object.keys(firstAttemptRejectors)).toHaveLength(6);
-      });
-      Object.values(firstAttemptRejectors).forEach((reject) => reject(new Error("upload failed")));
-
-      await donePromise;
-
-      await attachment("upload attempts", JSON.stringify(attemptsByFilename, null, 2), "application/json");
-      expect(deleteReportMock).toBeCalledTimes(1);
-      expect(deleteReportMock).toBeCalledWith({
-        reportUuid: allureReport.reportUuid,
-        pluginId: p1.id,
-      });
-      expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
-    } finally {
-      consoleError.mockRestore();
-    }
-  });
-
-  it("should abort pending plugin uploads before deleting a failed remote report after retry exhaustion", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-upload-cancel-"));
-    const p1 = createPlugin("p1", true, { publish: true });
-    const config = await resolveConfig({
-      name: "Allure Report",
-      output,
-    });
-    const addReportFileMock = AllureServiceClientMock.prototype.addReportFile as Mock;
-    const addReportAssetMock = AllureServiceClientMock.prototype.addReportAsset as Mock;
-    const deleteReportMock = AllureServiceClientMock.prototype.deleteReport as Mock;
-    const events: string[] = [];
-    const uploadSignals: (AbortSignal | undefined)[] = [];
-    const attemptsByFilename: Record<string, number> = {};
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
-
-    addReportFileMock.mockReset();
-    addReportAssetMock.mockReset();
-    deleteReportMock.mockReset();
-
-    try {
-      let allureReport!: AllureReport;
-
-      await step("prepare a published plugin with one permanently failing upload and pending uploads", async () => {
-        const pluginFiles = ["index.html", "data/failing.json", "widgets/pending.json", "assets/app.css"];
-
-        await attachment("plugin files", JSON.stringify(pluginFiles, null, 2), "application/json");
-        (p1.plugin.done as Mock).mockImplementation(async (context) => {
-          await context.reportFiles.addFile("index.html", Buffer.from("index"));
-          await context.reportFiles.addFile("data/failing.json", Buffer.from("{}"));
-          await context.reportFiles.addFile("widgets/pending.json", Buffer.from("{}"));
-          await context.reportFiles.addFile("assets/app.css", Buffer.from("body {}"));
-        });
-        (p1.plugin.info as Mock).mockResolvedValue(undefined);
-        addReportFileMock.mockImplementation((payload: { filename: string; signal?: AbortSignal }) => {
-          events.push(`upload:${payload.filename}`);
-          uploadSignals.push(payload.signal);
-
-          if (payload.filename === "data/failing.json") {
-            attemptsByFilename[payload.filename] = (attemptsByFilename[payload.filename] ?? 0) + 1;
-
-            return Promise.reject(new Error("upload failed"));
-          }
-
-          return waitForAbort(payload.signal, () => events.push(`abort:${payload.filename}`));
-        });
-        addReportAssetMock.mockImplementation((payload: { filename: string; signal?: AbortSignal }) => {
-          events.push(`upload:${payload.filename}`);
-          uploadSignals.push(payload.signal);
-
-          return waitForAbort(payload.signal, () => events.push(`abort:${payload.filename}`));
-        });
-        deleteReportMock.mockImplementation(async () => {
-          events.push("delete");
-
-          return {};
-        });
-
-        config.plugins = [p1];
-
-        allureReport = new AllureReport({
-          ...config,
-          allureService: {
-            accessToken: validAccessToken,
-          },
-        });
-
-        await allureReport.start();
-      });
-
-      await step("exhaust retries while other upload requests are still pending", async () => {
-        const donePromise = allureReport.done();
-
-        await vi.waitFor(() => {
-          expect(attemptsByFilename["data/failing.json"]).toBe(5);
-          expect(addReportAssetMock).toBeCalledTimes(1);
-        });
-        await attachment("started uploads", JSON.stringify(events, null, 2), "application/json");
-
-        await donePromise;
-      });
-
-      await step("verify pending uploads were aborted before remote cleanup", async () => {
-        const deleteIndex = events.indexOf("delete");
-
-        await attachment(
-          "upload cancellation events",
-          JSON.stringify(
-            {
-              events,
-              signalCount: uploadSignals.length,
-              uniqueSignalCount: new Set(uploadSignals).size,
-              signalStates: uploadSignals.map((signal) => ({ aborted: signal?.aborted })),
-            },
-            null,
-            2,
-          ),
-          "application/json",
-        );
-
-        expect(deleteIndex).toBeGreaterThan(-1);
-        expect(new Set(uploadSignals).size).toBe(1);
-        expect(uploadSignals.every((signal) => signal?.aborted)).toBe(true);
-
-        for (const filename of ["index.html", "widgets/pending.json", "assets/app.css"]) {
-          const abortIndex = events.indexOf(`abort:${filename}`);
-
-          expect(abortIndex).toBeGreaterThan(-1);
-          expect(abortIndex).toBeLessThan(deleteIndex);
-        }
-        expect(deleteReportMock).toBeCalledTimes(1);
-        expect(deleteReportMock).toBeCalledWith({
-          reportUuid: allureReport.reportUuid,
-          pluginId: p1.id,
-        });
-        expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
-        expect(consoleInfo).not.toBeCalledWith("Next reports have been published:");
-      });
-    } finally {
-      consoleError.mockRestore();
-      consoleInfo.mockRestore();
     }
   });
 

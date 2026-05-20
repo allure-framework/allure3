@@ -7,7 +7,6 @@ export const TestOpsClientMock = vi.fn(function () {});
 
 TestOpsClientMock.prototype = {
   uploadTestResult: vi.fn(),
-  issueOauthToken: vi.fn(),
   createLaunch: vi.fn(),
   createSession: vi.fn(),
   createNamedEnvs: vi.fn(),

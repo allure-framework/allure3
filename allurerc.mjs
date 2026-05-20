@@ -1,5 +1,6 @@
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
+import { endianness } from "node:os";
 import { env } from "node:process";
 
 const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
@@ -23,44 +24,30 @@ const config = {
         publish: true,
       },
     },
-    log: {
-      options: {
-        groupBy: "none",
-        filter: ({ status }) => status === "failed" || status === "broken",
-      },
-    },
-    dashboard: {
-      options: {
-        singleFile: false,
-        reportName: "My Dashboard",
-        reportLanguage: "en",
-        publish: true,
-      },
-    },
     testops: {
       options: {
+        endpoint: "http://localhost:3000",
         launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+        createLaunch: false,
+        publish: true,
+        accessToken: "2f7cb719-3b48-4998-9983-5fa1fe1bbc10",
+        projectId: "770",
       },
     },
-  },
-  variables: {
-    env_variable: "unknown",
-  },
-  environments: {
-    foo: {
-      variables: {
-        env_variable: "foo",
-        env_specific_variable: "foo",
-      },
-      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
-    },
-    bar: {
-      variables: {
-        env_variable: "bar",
-        env_specific_variable: "bar",
-      },
-      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
-    },
+    // log: {
+    //   options: {
+    //     groupBy: "none",
+    //     filter: ({ status }) => status === "failed" || status === "broken",
+    //   },
+    // },
+    // dashboard: {
+    //   options: {
+    //     singleFile: false,
+    //     reportName: "My Dashboard",
+    //     reportLanguage: "en",
+    //     publish: true,
+    //   },
+    // },
   },
   qualityGate: {
     rules: [

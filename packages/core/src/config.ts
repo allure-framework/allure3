@@ -53,6 +53,20 @@ const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
   );
 };
 
+const isStorageDescriptor = (value: string | undefined) => {
+  return value === "storage" || value === "@allurereport/plugin-storage";
+};
+
+const hasConfiguredStorage = (plugins: Record<string, PluginDescriptor>) => {
+  return Object.entries(plugins).some(
+    ([key, descriptor]) => isStorageDescriptor(key) || isStorageDescriptor(descriptor.import),
+  );
+};
+
+const hasEnabledPublishablePlugin = (plugins: Record<string, PluginDescriptor>) => {
+  return Object.values(plugins).some((descriptor) => (descriptor.enabled ?? true) && !!descriptor.options?.publish);
+};
+
 /**
  * Ensures a plugin id is safe as a single path segment
  */
@@ -311,7 +325,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
             },
           }
         : configuredPlugins!;
-    const plugins = hasConfiguredAgent(basePlugins)
+    const pluginsWithAgent = hasConfiguredAgent(basePlugins)
       ? basePlugins
       : {
           ...basePlugins,
@@ -319,6 +333,23 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
             options: {},
           },
         };
+
+    const shouldInjectStorage =
+      !!config.allureService?.accessToken &&
+      hasEnabledPublishablePlugin(pluginsWithAgent) &&
+      !hasConfiguredStorage(pluginsWithAgent);
+    const plugins = shouldInjectStorage
+      ? {
+          storage: {
+            import: "@allurereport/plugin-storage",
+            options: {
+              accessToken: config.allureService!.accessToken,
+              publish: true,
+            },
+          },
+          ...pluginsWithAgent,
+        }
+      : pluginsWithAgent;
 
     pluginInstances = await resolvePlugins(plugins);
   }

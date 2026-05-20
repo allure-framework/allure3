@@ -7,18 +7,25 @@ import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-beforeEach(async () => {
-  await epic("coverage");
-  await feature("testops-integration");
-  await story("plugin");
-  await label("coverage", "testops-integration");
-});
-
+import { Logger } from "../src/logger.js";
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
+
+const { AllureTestOpsClientMock } = vi.hoisted(() => {
+  const mock = vi.fn(function () {});
+
+  mock.prototype = {
+    createReport: vi.fn(),
+    addReportFile: vi.fn(),
+    addReportAsset: vi.fn(),
+    deleteReport: vi.fn(),
+    completeReport: vi.fn(),
+  };
+
+  return { AllureTestOpsClientMock: mock };
+});
 
 vi.mock("@allurereport/ci", () => ({
   detect: vi.fn(),
@@ -31,6 +38,10 @@ vi.mock("../src/client.js", async () => {
     TestOpsClient: utils.TestOpsClientMock,
   };
 });
+
+vi.mock("@allurereport/service", () => ({
+  AllureTestOpsClient: AllureTestOpsClientMock,
+}));
 
 vi.mock("../src/utils.js", async (importOriginal) => {
   return {
@@ -94,7 +105,23 @@ const fixtures = {
   },
 };
 
-beforeEach(() => {
+const createDeferred = <T = void>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, resolve, reject };
+};
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("plugin");
+  await label("coverage", "testops-integration");
+
   vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
   vi.stubEnv("ALLURE_TESTOPS_ENABLED", "true");
   vi.clearAllMocks();
@@ -117,6 +144,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       const options = {
@@ -137,6 +165,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -152,6 +181,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -167,6 +197,7 @@ describe("testops plugin", () => {
         projectId: "",
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -182,6 +213,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -192,6 +224,7 @@ describe("testops plugin", () => {
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
       });
+      expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
     });
   });
 
@@ -205,6 +238,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -220,6 +254,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -247,6 +282,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -262,6 +298,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -286,13 +323,14 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue oauth token, create launch and session", async () => {
+    it("should create launch and session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -300,7 +338,6 @@ describe("testops plugin", () => {
 
       await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", []);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
@@ -313,6 +350,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Custom Launch",
         launchTags: fixtures.launchTags,
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -327,7 +365,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Custom Launch", fixtures.launchTags);
     });
 
-    it("should not issue oauth token again in upload when called from start", async () => {
+    it("should create direct-token upload session when called from start", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -335,7 +373,7 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
 
     it("should upload all test results from the store", async () => {
@@ -395,7 +433,6 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(0);
@@ -444,6 +481,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
         filter,
       });
 
@@ -881,6 +919,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -895,7 +934,6 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.createSession).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
@@ -908,6 +946,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -919,7 +958,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
     });
 
@@ -930,6 +968,7 @@ describe("testops plugin", () => {
         projectId: "",
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -941,7 +980,6 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
     });
   });
@@ -954,13 +992,14 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue new oauth token and create new session", async () => {
+    it("should create new session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -968,7 +1007,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
@@ -1006,7 +1044,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(0);
     });
@@ -1061,6 +1098,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
         filter,
       });
 
@@ -1104,6 +1142,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -1125,6 +1164,7 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
+          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -1143,13 +1183,14 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue new oauth token and create new session", async () => {
+    it("should create new session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1157,7 +1198,6 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
@@ -1214,6 +1254,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
         filter,
       });
 
@@ -1248,6 +1289,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1261,6 +1303,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1302,6 +1345,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        createLaunch: true,
         filter,
       });
 
@@ -1319,6 +1363,499 @@ describe("testops plugin", () => {
       await plugin.info({} as PluginContext, store);
 
       expect(AllureStoreMock.prototype.testsStatistic).toHaveBeenCalledWith(filter);
+    });
+  });
+
+  describe("publish", () => {
+    beforeEach(() => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        createLaunch: true,
+        publish: true,
+      });
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+      AllureTestOpsClientMock.prototype.createReport.mockResolvedValue(undefined);
+      AllureTestOpsClientMock.prototype.addReportFile.mockResolvedValue("http://example.com/report/index.html");
+      AllureTestOpsClientMock.prototype.addReportAsset.mockResolvedValue(undefined);
+      AllureTestOpsClientMock.prototype.deleteReport.mockResolvedValue(undefined);
+      AllureTestOpsClientMock.prototype.completeReport.mockResolvedValue(undefined);
+    });
+
+    it("should return undefined when plugin is disabled", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: "",
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        createLaunch: true,
+        publish: true,
+      });
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: true,
+            files: {
+              "index.html": "/tmp/index.html",
+            },
+          },
+        ],
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should skip launch creation/upload by default and still publish report", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        publish: true,
+      });
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+      store = new AllureStoreMock() as unknown as AllureStore;
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+
+      await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.createSession).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: true,
+            files: {
+              "index.html": "/tmp/index.html",
+            },
+          },
+        ],
+      });
+
+      expect(AllureTestOpsClientMock.prototype.createReport).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        linksByPluginId: {
+          awesome: "http://example.com/report/index.html",
+        },
+        remoteHref: "http://example.com/report/index.html",
+      });
+    });
+
+    it("should return undefined when no published report files are available", async () => {
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: false,
+            files: {
+              "index.html": "/tmp/index.html",
+            },
+          },
+        ],
+      });
+
+      expect(result).toBeUndefined();
+      expect(AllureTestOpsClientMock).not.toHaveBeenCalled();
+      expect(AllureTestOpsClientMock.prototype.createReport).not.toHaveBeenCalled();
+    });
+
+    it("should create, upload and complete report", async () => {
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: true,
+            files: {
+              "index.html": "/tmp/index.html",
+              "widgets/summary.json": "/tmp/widgets-summary.json",
+              "app.js": "/tmp/app.js",
+            },
+          },
+        ],
+      });
+
+      expect(AllureTestOpsClientMock.prototype.createReport).toHaveBeenCalledWith({
+        reportUuid: "r-1",
+        reportName: "Report",
+      });
+      expect(AllureTestOpsClientMock).toHaveBeenCalledWith({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+      });
+      expect(AllureTestOpsClientMock.prototype.addReportFile).toHaveBeenCalledTimes(2);
+      expect(AllureTestOpsClientMock.prototype.addReportAsset).toHaveBeenCalledWith({
+        filename: "app.js",
+        filepath: "/tmp/app.js",
+        signal: expect.any(AbortSignal),
+      });
+      expect(AllureTestOpsClientMock.prototype.completeReport).toHaveBeenCalled();
+      expect(result).toEqual({
+        linksByPluginId: {
+          awesome: "http://example.com/report/index.html",
+        },
+        remoteHref: "http://example.com/report/index.html",
+      });
+    });
+
+    it("should show report upload progress for every uploaded report file", async () => {
+      const progressBar = {
+        tick: vi.fn(),
+        update: vi.fn(),
+        terminate: vi.fn(),
+      };
+      const progressBarCounter = vi.spyOn(Logger.prototype, "progressBarCounter").mockReturnValue(progressBar);
+
+      try {
+        await plugin.publish({
+          reportUuid: "r-1",
+          reportName: "Report",
+          reports: [
+            {
+              pluginId: "awesome",
+              publish: true,
+              files: {
+                "index.html": "/tmp/index.html",
+                "widgets/summary.json": "/tmp/widgets-summary.json",
+                "app.js": "/tmp/app.js",
+              },
+            },
+          ],
+          summary: {
+            filepath: "/tmp/summary-index.html",
+          },
+        });
+
+        expect(progressBarCounter).toHaveBeenCalledWith('Publishing "awesome" report', 3);
+        expect(progressBar.tick).toHaveBeenCalledTimes(3);
+        expect(progressBar.terminate).toHaveBeenCalledTimes(1);
+      } finally {
+        progressBarCounter.mockRestore();
+      }
+    });
+
+    it("should upload report files in parallel with a concurrency limit", async () => {
+      const progressBar = {
+        tick: vi.fn(),
+        update: vi.fn(),
+        terminate: vi.fn(),
+      };
+      const progressBarCounter = vi.spyOn(Logger.prototype, "progressBarCounter").mockReturnValue(progressBar);
+      const firstBatchStarted = createDeferred();
+      const fileCount = 55;
+      const fileResolvers: (() => void)[] = [];
+      let activeUploads = 0;
+      let maxActiveUploads = 0;
+      let startedUploads = 0;
+
+      AllureTestOpsClientMock.prototype.addReportFile.mockImplementation(({ filename }: { filename: string }) => {
+        activeUploads++;
+        startedUploads++;
+        maxActiveUploads = Math.max(maxActiveUploads, activeUploads);
+
+        if (startedUploads === 50) {
+          firstBatchStarted.resolve();
+        }
+
+        return new Promise((resolve) => {
+          fileResolvers.push(() => {
+            activeUploads--;
+            resolve(`http://example.com/report/${filename}`);
+          });
+        });
+      });
+
+      const files = Object.fromEntries([
+        ["index.html", "/tmp/index.html"],
+        ...Array.from({ length: fileCount - 1 }, (_, index) => [
+          `data/file-${index}.json`,
+          `/tmp/data-file-${index}.json`,
+        ]),
+      ]);
+
+      try {
+        const publishPromise = plugin.publish({
+          reportUuid: "r-1",
+          reportName: "Report",
+          reports: [
+            {
+              pluginId: "awesome",
+              publish: true,
+              files,
+            },
+          ],
+        });
+
+        await firstBatchStarted.promise;
+
+        expect(startedUploads).toBe(50);
+        expect(maxActiveUploads).toBe(50);
+
+        while (startedUploads < fileCount || activeUploads > 0) {
+          const batch = fileResolvers.splice(0);
+
+          batch.forEach((resolve) => resolve());
+          await Promise.resolve();
+          await Promise.resolve();
+        }
+
+        await publishPromise;
+
+        expect(startedUploads).toBe(fileCount);
+        expect(maxActiveUploads).toBe(50);
+        expect(progressBarCounter).toHaveBeenCalledWith('Publishing "awesome" report', fileCount);
+        expect(progressBar.tick).toHaveBeenCalledTimes(fileCount);
+        expect(progressBar.terminate).toHaveBeenCalledTimes(1);
+      } finally {
+        progressBarCounter.mockRestore();
+      }
+    });
+
+    it("should retry transient report upload failure and tick progress once", async () => {
+      const progressBar = {
+        tick: vi.fn(),
+        update: vi.fn(),
+        terminate: vi.fn(),
+      };
+      const progressBarCounter = vi.spyOn(Logger.prototype, "progressBarCounter").mockReturnValue(progressBar);
+
+      AllureTestOpsClientMock.prototype.addReportFile
+        .mockRejectedValueOnce(new Error("transient"))
+        .mockResolvedValueOnce("http://example.com/report/index.html");
+
+      try {
+        const result = await plugin.publish({
+          reportUuid: "r-1",
+          reportName: "Report",
+          reports: [
+            {
+              pluginId: "awesome",
+              publish: true,
+              files: {
+                "index.html": "/tmp/index.html",
+              },
+            },
+          ],
+        });
+
+        expect(result?.remoteHref).toBe("http://example.com/report/index.html");
+        expect(AllureTestOpsClientMock.prototype.addReportFile).toHaveBeenCalledTimes(2);
+        expect(AllureTestOpsClientMock.prototype.deleteReport).not.toHaveBeenCalled();
+        expect(AllureTestOpsClientMock.prototype.completeReport).toHaveBeenCalledTimes(1);
+        expect(progressBar.tick).toHaveBeenCalledTimes(1);
+        expect(progressBar.terminate).toHaveBeenCalledTimes(1);
+      } finally {
+        progressBarCounter.mockRestore();
+      }
+    });
+
+    it("should retry permanent report upload failure, abort pending uploads, delete report and not complete", async () => {
+      const progressBar = {
+        tick: vi.fn(),
+        update: vi.fn(),
+        terminate: vi.fn(),
+      };
+      const progressBarCounter = vi.spyOn(Logger.prototype, "progressBarCounter").mockReturnValue(progressBar);
+      const events: string[] = [];
+      const uploadSignals: (AbortSignal | undefined)[] = [];
+      const addReportFileMock = AllureTestOpsClientMock.prototype.addReportFile as Mock;
+      const addReportAssetMock = AllureTestOpsClientMock.prototype.addReportAsset as Mock;
+      const deleteReportMock = AllureTestOpsClientMock.prototype.deleteReport as Mock;
+      let rejectFailedUpload!: (reason: unknown) => void;
+      const failedUpload = new Promise<never>((_, reject) => {
+        rejectFailedUpload = reject;
+      });
+      const waitForAbort = (filename: string, signal?: AbortSignal) =>
+        new Promise<never>((_, reject) => {
+          const abortError = new Error("upload aborted");
+
+          abortError.name = "AbortError";
+
+          if (signal?.aborted) {
+            events.push(`abort:${filename}`);
+            reject(abortError);
+          } else if (signal) {
+            signal.addEventListener(
+              "abort",
+              () => {
+                events.push(`abort:${filename}`);
+                reject(abortError);
+              },
+              { once: true },
+            );
+          }
+        });
+      addReportFileMock.mockImplementation(({ filename, signal }: { filename: string; signal?: AbortSignal }) => {
+        events.push(`upload:${filename}`);
+        uploadSignals.push(signal);
+
+        if (filename === "data/failing.json") {
+          return failedUpload;
+        }
+
+        return waitForAbort(filename, signal);
+      });
+      addReportAssetMock.mockImplementation(({ filename, signal }: { filename: string; signal?: AbortSignal }) => {
+        events.push(`upload:${filename}`);
+        uploadSignals.push(signal);
+
+        return waitForAbort(filename, signal);
+      });
+      deleteReportMock.mockImplementation(async () => {
+        events.push("delete");
+
+        return undefined;
+      });
+
+      try {
+        const publishPromise = plugin.publish({
+          reportUuid: "r-1",
+          reportName: "Report",
+          reports: [
+            {
+              pluginId: "awesome",
+              publish: true,
+              files: {
+                "index.html": "/tmp/index.html",
+                "data/failing.json": "/tmp/failing.json",
+                "widgets/pending.json": "/tmp/pending.json",
+                "assets/app.css": "/tmp/app.css",
+              },
+            },
+          ],
+        });
+
+        await vi.waitFor(() => {
+          expect(addReportFileMock).toBeCalledTimes(3);
+          expect(addReportAssetMock).toBeCalledTimes(1);
+        });
+
+        rejectFailedUpload(new Error("upload failed"));
+        const result = await publishPromise;
+
+        const deleteIndex = events.indexOf("delete");
+
+        expect(progressBarCounter).toHaveBeenCalledWith('Publishing "awesome" report', 4);
+        expect(result).toBeUndefined();
+        expect(deleteIndex).toBeGreaterThan(-1);
+        expect(new Set(uploadSignals).size).toBe(1);
+        expect(uploadSignals.every((signal) => signal?.aborted)).toBe(true);
+        for (const filename of ["index.html", "widgets/pending.json", "assets/app.css"]) {
+          const abortIndex = events.indexOf(`abort:${filename}`);
+
+          expect(abortIndex).toBeGreaterThan(-1);
+          expect(abortIndex).toBeLessThan(deleteIndex);
+        }
+        expect(
+          addReportFileMock.mock.calls.filter(([payload]) => payload.filename === "data/failing.json"),
+        ).toHaveLength(5);
+        expect(deleteReportMock).toBeCalledWith({ reportUuid: "r-1" });
+        expect(progressBar.tick).not.toHaveBeenCalled();
+        expect(progressBar.terminate).toHaveBeenCalledTimes(1);
+        expect(AllureTestOpsClientMock.prototype.completeReport).not.toHaveBeenCalled();
+      } finally {
+        progressBarCounter.mockRestore();
+      }
+    });
+
+    it("should delete whole report and not complete when a later plugin fails", async () => {
+      (AllureTestOpsClientMock.prototype.addReportFile as Mock).mockImplementation(
+        ({ pluginId, filename }: { pluginId?: string; filename: string }) => {
+          if (pluginId === "failed") {
+            throw new Error("boom");
+          }
+
+          return pluginId
+            ? `http://example.com/report/${pluginId}/${filename}`
+            : "http://example.com/report/index.html";
+        },
+      );
+
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: true,
+            files: {
+              "index.html": "/tmp/awesome-index.html",
+            },
+          },
+          {
+            pluginId: "failed",
+            publish: true,
+            files: {
+              "index.html": "/tmp/failed-index.html",
+            },
+          },
+        ],
+      });
+
+      expect(AllureTestOpsClientMock.prototype.deleteReport).toHaveBeenCalledWith({
+        reportUuid: "r-1",
+      });
+      expect(
+        AllureTestOpsClientMock.prototype.addReportFile.mock.calls.filter(([payload]) => payload.pluginId === "failed"),
+      ).toHaveLength(5);
+      expect(AllureTestOpsClientMock.prototype.completeReport).not.toHaveBeenCalled();
+      expect(result).toBeUndefined();
+    });
+
+    it("should upload root summary when provided", async () => {
+      AllureTestOpsClientMock.prototype.addReportFile.mockImplementation(
+        ({ filename, pluginId }: { filename: string; pluginId?: string }) =>
+          pluginId ? `http://example.com/report/${pluginId}/${filename}` : `http://example.com/report/${filename}`,
+      );
+
+      const result = await plugin.publish({
+        reportUuid: "r-1",
+        reportName: "Report",
+        reports: [
+          {
+            pluginId: "awesome",
+            publish: true,
+            files: {
+              "index.html": "/tmp/awesome-index.html",
+            },
+          },
+        ],
+        summary: {
+          filepath: "/tmp/summary-index.html",
+        },
+      });
+
+      expect(AllureTestOpsClientMock.prototype.addReportFile).toHaveBeenCalledWith({
+        reportUuid: "r-1",
+        filename: "index.html",
+        filepath: "/tmp/summary-index.html",
+      });
+      expect(result).toEqual({
+        linksByPluginId: {
+          awesome: "http://example.com/report/awesome/index.html",
+        },
+        remoteHref: "http://example.com/report/index.html",
+      });
     });
   });
 });

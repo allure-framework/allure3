@@ -325,6 +325,53 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("injects storage plugin when allureService token and publishable plugins exist", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.[0]?.id).toEqual("storage");
+    expect(resolved.plugins?.[0]?.options).toEqual({ accessToken: "token", publish: true });
+  });
+
+  it("does not pass allureService.legacy into injected storage options", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token", legacy: true },
+      plugins: {
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.[0]?.id).toEqual("storage");
+    expect(resolved.plugins?.[0]?.options).toEqual({ accessToken: "token", publish: true });
+  });
+
+  it("does not inject storage plugin when no plugin is publishable", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        awesome: { options: {} },
+      },
+    });
+
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+  });
+
+  it("does not inject storage when already configured", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        storage: { options: { publish: true } },
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.filter((x) => x.id === "storage")).toHaveLength(1);
+  });
+
   it("should allow to override top-level hideLabels", async () => {
     const resolved = await resolveConfig(
       {

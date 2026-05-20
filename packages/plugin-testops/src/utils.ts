@@ -40,7 +40,9 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     projectId = ALLURE_PROJECT_ID,
     launchTags = ALLURE_LAUNCH_TAGS,
     launchName = ALLURE_LAUNCH_NAME,
+    createLaunch,
     autocloseLaunch,
+    publish,
   } = options;
   const tags = !launchTags
     ? []
@@ -54,7 +56,9 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     accessToken: accessToken || "",
     endpoint: endpoint || "",
     projectId: projectId || "",
+    ...(createLaunch ? { createLaunch } : {}),
     ...(autocloseLaunch !== undefined ? { autocloseLaunch } : {}),
+    ...(publish ? { publish } : {}),
   };
 };
 

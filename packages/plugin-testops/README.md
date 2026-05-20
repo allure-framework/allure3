@@ -12,7 +12,7 @@
 
 ## Overview
 
-The plugin creates a new launch in Allure TestOps with all the tests data from the current report.
+The plugin can create a new launch in Allure TestOps with all the tests data from the current report.
 
 ## CI and local runs
 
@@ -55,6 +55,7 @@ export default defineConfig({
   plugins: {
 +    testops: {
 +      options: {
++        createLaunch: true,
 +        launchName: "Hello, TestOps!",
 +        launchTags: ["tag1", "tag2"],
 +        accessToken: "your_testops_access_token",
@@ -77,6 +78,7 @@ The plugin accepts the following options:
 | `accessToken`      | Access token for TestOps API                                               | `string`  | `undefined`     |
 | `endpoint`         | TestOps API endpoint                                                       | `string`  | `undefined`     |
 | `projectId`        | TestOps project ID                                                         | `string`  | `undefined`     |
+| `createLaunch`     | When `true`, creates a TestOps launch and uploads test results             | `boolean` | `false`         |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
 
 ### Using options from environment variables

@@ -23,7 +23,6 @@ import { AxiosMock, BASE_URL } from "./utils.js";
 
 const fixtures = {
   accessToken: "test",
-  oauthToken: "tset",
   endpoint: "http://example.com",
   projectId: "12345",
   launch: {
@@ -141,6 +140,22 @@ describe("testops http client", () => {
           }),
       ).not.toThrow();
     });
+
+    it("should set authorization header from access token in request interceptor", async () => {
+      new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      expect(AxiosMock.interceptors.request.use).toHaveBeenCalledTimes(1);
+      const interceptor = AxiosMock.interceptors.request.use.mock.calls[0][0];
+      const headers = { set: vi.fn() };
+
+      await interceptor({ headers });
+
+      expect(headers.set).toHaveBeenCalledWith("Authorization", `Bearer ${fixtures.accessToken}`);
+    });
   });
 
   describe("launchUrl", () => {
@@ -157,7 +172,7 @@ describe("testops http client", () => {
     it("should return launch url when launch is created", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -173,7 +188,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
       expect(client.launchUrl).toBe(`${BASE_URL}/launch/${fixtures.launch.id}`);
@@ -184,7 +198,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         return Promise.resolve({ data: {} });
@@ -196,17 +210,14 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
-
       await expect(async () => await client.startUpload(fixtures.ci)).rejects.toThrow();
-      expect(AxiosMock.post).toHaveBeenCalledTimes(1);
-      expect(AxiosMock.post).toHaveBeenLastCalledWith("/api/uaa/oauth/token", expect.anything());
+      expect(AxiosMock.post).not.toHaveBeenCalled();
     });
 
     it("should call /api/upload/start with ci metadata", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -226,7 +237,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
 
@@ -244,7 +254,7 @@ describe("testops http client", () => {
     it("should throw an error when upload hasn't been started before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
         return Promise.resolve({ data: {} });
       });
@@ -255,15 +265,13 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
-
       await expect(async () => await client.stopUpload(fixtures.ci, fixtures.uploadStatus)).rejects.toThrow();
     });
 
     it("should call /api/upload/stop after startUpload", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -287,7 +295,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
       await client.stopUpload(fixtures.ci, fixtures.uploadStatus);
@@ -302,10 +309,10 @@ describe("testops http client", () => {
   });
 
   describe("createLaunch", () => {
-    it("should create launch with issues oauth token", async () => {
+    it("should create launch using direct access token auth", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -321,12 +328,10 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
-      expect(AxiosMock.post).toHaveBeenCalledTimes(2);
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", {
+      expect(AxiosMock.post).toHaveBeenCalledTimes(1);
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/launch", {
         name: fixtures.launchName,
         projectId: fixtures.projectId,
         autoclose: true,
@@ -351,7 +356,7 @@ describe("testops http client", () => {
     it("should create a session for a current launch with empty environment by default", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -367,15 +372,13 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
 
-      expect(AxiosMock.post).toHaveBeenCalledTimes(3);
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", expect.anything());
+      expect(AxiosMock.post).toHaveBeenCalledTimes(2);
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/launch", expect.anything());
       expect(AxiosMock.post).toHaveBeenNthCalledWith(
-        3,
+        2,
         "/api/upload/session",
         {
           launchId: fixtures.launch.id,
@@ -392,7 +395,7 @@ describe("testops http client", () => {
     it("should pass environment variables as key-value pairs to the session", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -409,12 +412,11 @@ describe("testops http client", () => {
       });
       const environment = { NODE_ENV: "test", CI: "true", BUILD_NUMBER: 42 };
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession(environment);
 
       expect(AxiosMock.post).toHaveBeenNthCalledWith(
-        3,
+        2,
         "/api/upload/session",
         {
           launchId: fixtures.launch.id,
@@ -449,7 +451,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         return Promise.resolve({ data: {} });
@@ -478,7 +480,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -502,7 +504,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.createNamedEnvs([
@@ -547,7 +548,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         return Promise.resolve({ data: {} });
@@ -571,7 +572,7 @@ describe("testops http client", () => {
     it("should upload attachments to /api/launch/attachment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -597,7 +598,6 @@ describe("testops http client", () => {
         content: Buffer.from("test content"),
       }));
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
@@ -617,7 +617,7 @@ describe("testops http client", () => {
     it("should skip attachments when resolver returns null", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -639,7 +639,6 @@ describe("testops http client", () => {
       const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
       const attachmentsResolver = vi.fn().mockResolvedValue(null);
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
@@ -672,7 +671,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         return Promise.resolve({ data: {} });
@@ -690,7 +689,7 @@ describe("testops http client", () => {
     it("should post errors to /api/launch/error/bulk", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -711,7 +710,6 @@ describe("testops http client", () => {
       });
       const errors = [{ message: "Something went wrong" } as TestError, { message: "Another error" } as TestError];
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadGlobalErrors(errors);
@@ -752,7 +750,7 @@ describe("testops http client", () => {
     it("should resolve attachments and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -783,7 +781,6 @@ describe("testops http client", () => {
         return [];
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -807,7 +804,7 @@ describe("testops http client", () => {
     it("should post test results using uploader DTO shape (with environment, normalized category externalId)", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -835,7 +832,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
 
@@ -906,7 +902,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation(async (url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return { data: { access_token: fixtures.oauthToken } };
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -937,7 +933,6 @@ describe("testops http client", () => {
         limit,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -971,7 +966,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -1004,7 +999,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -1064,7 +1058,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -1092,7 +1086,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -1143,7 +1136,7 @@ describe("testops http client", () => {
     it("should not create named environments when test results have no environment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -1167,7 +1160,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -1189,7 +1181,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -1217,7 +1209,6 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
@@ -1252,7 +1243,7 @@ describe("testops http client", () => {
     it("should resolve fixtures and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+          throw new Error("Unexpected OAuth token exchange request");
         }
 
         if (url === "/api/launch") {
@@ -1283,7 +1274,6 @@ describe("testops http client", () => {
         return [];
       });
 
-      await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
