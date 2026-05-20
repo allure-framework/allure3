@@ -261,3 +261,23 @@
 .tree-item-marked {
   background: var(--color-bg-secondary);
 }
+
+.tree-item-focused {
+  outline: none;
+  background: var(--bg-control-flat-medium);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--bg-support-aldebaran);
+    pointer-events: none;
+  }
+}
+
+.tree-section-focused {
+  outline: none;
+  background: var(--bg-control-flat-medium);
+  box-shadow: inset 3px 0 0 var(--bg-support-aldebaran);
+}

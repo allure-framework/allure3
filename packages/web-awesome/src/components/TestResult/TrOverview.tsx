@@ -1,9 +1,10 @@
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 
-import { getBodyItems } from "@/components/TestResult/bodyItems";
+import { getBodyItems, isDisplayableTestError } from "@/components/TestResult/bodyItems";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrDescription } from "@/components/TestResult/TrDescription";
+import { TrError } from "@/components/TestResult/TrError";
 import { TrLinks } from "@/components/TestResult/TrLinks";
 import { TrMetadata } from "@/components/TestResult/TrMetadata";
 import { TrParameters } from "@/components/TestResult/TrParameters";
@@ -11,6 +12,7 @@ import { TrPwTraces } from "@/components/TestResult/TrPwTraces";
 import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
+import { useTestResultOverviewFocusScroll } from "@/hooks/useTestResultOverviewFocusScroll";
 import { useI18n } from "@/stores/locale";
 import { currentTrId } from "@/stores/testResult";
 
@@ -21,10 +23,15 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
+  useTestResultOverviewFocusScroll();
   const { parameters, groupedLabels, links, descriptionHtml, setup, teardown, id } = testResult || {};
   const testResultId = id ?? currentTrId.value;
   const { t } = useI18n("ui");
   const bodyItems = getBodyItems(testResult, t("error"));
+  const showTopError =
+    Boolean(testResult?.error) &&
+    (testResult?.status === "failed" || testResult?.status === "broken") &&
+    isDisplayableTestError(testResult?.error);
   const isNoSteps = !setup?.length && !bodyItems.length && !teardown?.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
@@ -32,6 +39,11 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
 
   return (
     <>
+      {showTopError && testResult?.error && (
+        <div className={styles["test-result-errors"]}>
+          <TrError {...testResult.error} status={testResult.status} />
+        </div>
+      )}
       {Boolean(pwTraces?.length) && <TrPwTraces pwTraces={pwTraces} />}
       {Boolean(parameters?.length) && <TrParameters id={testResultId} parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (

@@ -1,4 +1,7 @@
+@use "../../styles/pane-active" as paneActive;
+
 .content {
+  position: relative;
   box-shadow: var(--shadow-small);
   background: var(--color-bg-primary);
   border-radius: 12px;
@@ -10,4 +13,10 @@
   height: 100%;
   border-radius: 0;
   scrollbar-width: thin;
+  @include paneActive.split-pane-indicator;
+
+  &.pane-active {
+    @include paneActive.split-pane-indicator-active;
+  }
 }
+

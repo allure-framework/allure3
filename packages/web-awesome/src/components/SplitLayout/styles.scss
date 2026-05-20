@@ -1,3 +1,5 @@
+@use "../../styles/pane-active" as paneActive;
+
 .layout {
   margin: auto;
   padding: 12px 32px;
@@ -7,11 +9,13 @@
 }
 
 .wrapper {
+  display: flex;
   width: 100%;
   flex-direction: column;
   margin: auto;
   position: relative;
   height: 100%;
+  min-height: 0;
 }
 
 .content {
@@ -77,6 +81,18 @@
   align-items: center;
   justify-content: center;
   height: 100%;
+}
+
+.empty-split-pane {
+  position: relative;
+  background: var(--bg-base-primary);
+  border-radius: 12px;
+  overflow: auto;
+  @include paneActive.split-pane-indicator;
+
+  &.pane-active {
+    @include paneActive.split-pane-indicator-active;
+  }
 }
 
 .header {

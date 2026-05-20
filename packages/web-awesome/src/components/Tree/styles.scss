@@ -189,6 +189,20 @@
   background: var(--color-row-bg-selected);
 }
 
+.tree-env-focused {
+  outline: none;
+  background: var(--bg-control-flat-medium);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--bg-support-aldebaran);
+    pointer-events: none;
+  }
+}
+
 .tree-section {
   &:not(:last-child) {
     padding-bottom: 8px;
@@ -198,6 +212,7 @@
 }
 
 .tree-env-button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;

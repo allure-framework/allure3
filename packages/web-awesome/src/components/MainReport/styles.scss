@@ -1,4 +1,7 @@
+@use "../../styles/pane-active" as paneActive;
+
 .content {
+  position: relative;
   box-shadow: var(--shadow-small);
   background: var(--color-bg-primary);
   border-radius: 12px;
@@ -6,16 +9,49 @@
 }
 
 .scroll-inside {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   height: 100%;
+  min-height: 0;
   border-radius: 0;
-  scrollbar-width: thin;
+  @include paneActive.split-pane-indicator;
+
+  &.pane-active {
+    @include paneActive.split-pane-indicator-active;
+  }
+}
+
+.main-report-header {
+  flex-shrink: 0;
 }
 
 .main-report-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   padding: 0 24px;
+  overflow: hidden;
+}
+
+.main-report-tabs-layout {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main-report-tabs-nav {
+  flex-shrink: 0;
 }
 
 .main-report-tabs-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   border-top: 1px solid var(--color-border-default);
 }

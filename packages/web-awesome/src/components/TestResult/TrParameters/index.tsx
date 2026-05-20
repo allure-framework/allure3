@@ -18,7 +18,7 @@ export type TrParametersProps = {
 
 export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, parameters }) => {
   const { t } = useI18n("ui");
-  const parametersId = id !== null ? `${id}-parameters` : null;
+  const parametersId = id ? `${id}-parameters` : null;
   const parametersShowAllId = id !== null ? `${id}-parameters-showAll` : null;
   const isOpened = !collapsedTrees.value.has(parametersId);
   const list = parameters ?? [];

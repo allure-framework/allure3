@@ -15,3 +15,6 @@ export * from "./utils.js";
 export * from "./prose.js";
 export * from "./linkify.js";
 export * from "./treeSubtreeToggle.js";
+export * from "./subtreeExpansion.js";
+export * from "./hotkeys/index.js";
+export * from "./treeNavigation/index.js";

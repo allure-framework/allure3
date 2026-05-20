@@ -25,6 +25,7 @@ const namespaces = [
   "ui",
   "welcome",
   "controls",
+  "shortcuts",
   "errors",
   "split",
   "modal",
