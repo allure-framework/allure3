@@ -14,7 +14,7 @@ export const ALLURE_ACCESS_TOKEN_PATH = join(ALLURE_FILES_DIRNAME, "access_token
 export interface AllureServiceApiClient {
   downloadHistory(payload: { repo?: string; branch?: string; limit?: number }): Promise<HistoryDataPoint[]>;
   createReport(payload: { reportName: string; reportUuid?: string; repo?: string; branch?: string }): Promise<URL>;
-  completeReport(payload: { reportUuid: string; historyPoint: HistoryDataPoint }): Promise<unknown>;
+  completeReport(payload: { reportUuid: string; historyPoint?: HistoryDataPoint }): Promise<unknown>;
   deleteReport(payload: { reportUuid: string; pluginId?: string }): Promise<unknown>;
   addReportAsset(payload: {
     filename: string;

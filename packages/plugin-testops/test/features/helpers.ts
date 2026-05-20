@@ -28,9 +28,6 @@ export const mockRequests = () => {
   const createLaunchCategoriesBulkRequest = vi
     .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<LaunchCategoryBulkResult[]>>>()
     .mockResolvedValue({} as AxiosResponse);
-  const issueOauthTokenRequest = vi
-    .fn()
-    .mockResolvedValue({ data: { access_token: "test" } } as AxiosResponse<{ access_token: string }>);
   const startUploadRequest = vi
     .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<void>>>()
     .mockResolvedValue({} as AxiosResponse);
@@ -86,7 +83,7 @@ export const mockRequests = () => {
     }
 
     if (url === "/api/uaa/oauth/token") {
-      return issueOauthTokenRequest(url, data, config);
+      throw new Error("Unexpected OAuth token request: direct access token auth should be used");
     }
 
     if (url === "/api/upload/start") {
@@ -144,7 +141,6 @@ export const mockRequests = () => {
   return {
     closeLaunchRequest,
     createLaunchCategoriesBulkRequest,
-    issueOauthTokenRequest,
     startUploadRequest,
     stopUploadRequest,
     createLaunchRequest,

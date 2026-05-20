@@ -42,10 +42,14 @@ export class Logger {
     return logLevelsPriority[this.#level] <= logLevelsPriority[level];
   }
 
+  #isSilent() {
+    return this.#level === "silent";
+  }
+
   #prefix = cyan(bold(`[${this.name}]:`));
 
   progressBarCounter(message: string, total: number) {
-    if (this.#isLogLevel("silent")) {
+    if (this.#isSilent()) {
       return {
         tick: () => {},
         update: () => {},
@@ -61,7 +65,7 @@ export class Logger {
     return progressBar;
   }
   progressBar(message: string) {
-    if (this.#isLogLevel("silent")) {
+    if (this.#isSilent()) {
       return {
         update: () => {},
         terminate: () => {},

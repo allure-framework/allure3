@@ -57,7 +57,6 @@ export class TestOpsClient {
   #logger = new Logger("TestOpsClient");
   #accessToken: string;
   #projectId: string;
-  #oauthToken: string = "";
   #client: AxiosInstance;
   #launch?: TestOpsLaunch;
   #session?: TestOpsSession;
@@ -91,9 +90,7 @@ export class TestOpsClient {
     });
 
     this.#client.interceptors.request.use((config) => {
-      if (this.#oauthToken) {
-        config.headers.set("Authorization", `Bearer ${this.#oauthToken}`);
-      }
+      config.headers.set("Authorization", `api-token ${this.#accessToken}`);
 
       return config;
     });
@@ -176,22 +173,6 @@ export class TestOpsClient {
     }
 
     return results;
-  }
-
-  async issueOauthToken() {
-    const base = this.#client.defaults.baseURL;
-    this.#logger.debug(`Endpoint: ${base}`);
-    this.#logger.verbose("Issuing OAuth token…");
-    const formData = new FormData();
-
-    formData.append("grant_type", "apitoken");
-    formData.append("scope", "openid");
-    formData.append("token", this.#accessToken);
-
-    const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
-
-    this.#oauthToken = data.access_token as string;
-    this.#logger.verbose("OAuth token received");
   }
 
   async startUpload(ci: CiDescriptor) {

@@ -1,15 +1,13 @@
 {
-  "name": "@allurereport/plugin-testops",
-  "version": "3.8.2",
-  "description": "Allure Plugin TestOps",
+  "name": "@allurereport/plugin-storage",
+  "version": "3.8.0",
+  "description": "Allure Storage Plugin",
   "keywords": [
     "allure",
-    "html",
     "plugin",
     "report",
-    "testing",
-    "testops",
-    "uploader"
+    "storage",
+    "testing"
   ],
   "license": "Apache-2.0",
   "author": "Qameta Software",
@@ -32,21 +30,14 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "@allurereport/ci": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
-    "axios": "^1.15.2",
-    "form-data": "^4.0.5",
-    "lodash-es": "^4.18.1",
-    "p-limit": "^7.3.0",
-    "progress": "^2.0.3",
-    "yoctocolors": "^2"
+    "@allurereport/summary": "workspace:*",
+    "p-limit": "^7.2.0",
+    "progress": "^2.0.3"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
-    "@types/lodash-es": "^4",
     "@types/node": "^20.17.9",
     "@types/progress": "^2",
     "@vitest/runner": "^2.1.9",
