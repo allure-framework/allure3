@@ -34,6 +34,10 @@ Import styles right in your JavaScript or TypeScript file:
 import "@allurereport/web-components/index.css";
 ```
 
+Theme token guidance lives in [docs/theme.md](docs/theme.md). Component styles should use semantic
+tokens such as `--color-status-failed-bg` and `--color-intent-danger-text`, not raw palette or legacy
+support tokens.
+
 ### Icon pack
 
 Use `allureIcons` object to get available SVG icons (see entire list of the icons [here](src/assets/svg/)):

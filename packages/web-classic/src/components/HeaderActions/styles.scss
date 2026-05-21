@@ -46,7 +46,7 @@
 /* This is a hack because button do not have this state */
 .filtersBtnWithFilters > button::after {
   content: "";
-  background-color: var(--bg-support-aldebaran);
+  background-color: var(--color-intent-primary-bg);
   width: 6px;
   height: 6px;
   border-radius: 100px;

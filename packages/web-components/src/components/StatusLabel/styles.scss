@@ -1,36 +1,45 @@
 .status-label {
-  padding: 2px;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px 2px 4px;
   display: inline-flex;
   border-radius: 100px;
-  color: var(--constant-on-text-primary);
   height: max-content;
 }
 
 .status-label-text {
-  padding: 0 4px;
-}
-
-.status-label-icon {
-  color: var(--constant-on-text-primary);
   padding: 0;
 }
 
+.status-label-icon {
+  --tree-item-icon-padding: 0;
+}
+
+.status-label .status-label-icon {
+  color: currentColor;
+}
+
 .status-passed {
-  background-color: var(--bg-support-castor);
+  background-color: var(--color-status-passed-bg);
+  color: var(--color-status-passed-on-bg);
 }
 
 .status-failed {
-  background-color: var(--bg-support-capella);
+  background-color: var(--color-status-failed-bg);
+  color: var(--color-status-failed-on-bg);
 }
 
 .status-broken {
-  background-color: var(--bg-support-atlas);
+  background-color: var(--color-status-broken-bg);
+  color: var(--color-status-broken-on-bg);
 }
 
 .status-skipped {
-  background-color: var(--bg-support-rau);
+  background-color: var(--color-status-skipped-bg);
+  color: var(--color-status-skipped-on-bg);
 }
 
 .status-unknown {
-  background-color: var(--bg-support-skat);
+  background-color: var(--color-status-unknown-bg);
+  color: var(--color-status-unknown-on-bg);
 }

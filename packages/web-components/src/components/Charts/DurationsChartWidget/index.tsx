@@ -12,20 +12,20 @@ import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import type { Props } from "./types.js";
 
 const COLORS = [
-  "var(--bg-support-aldebaran)",
-  "var(--bg-support-betelgeuse)",
-  "var(--bg-support-sirius)",
-  "var(--bg-support-mirach)",
-  "var(--bg-support-rigel)",
-  "var(--bg-support-gliese)",
-  "var(--bg-support-rau)",
-  "var(--bg-support-aldebaran-heavy)",
-  "var(--bg-support-betelgeuse-heavy)",
-  "var(--bg-support-sirius-heavy)",
-  "var(--bg-support-mirach-heavy)",
-  "var(--bg-support-gliese-heavy)",
-  "var(--bg-support-rigel-heavy)",
-  "var(--bg-support-rau-heavy)",
+  "var(--color-chart-categorical-1)",
+  "var(--color-chart-categorical-2)",
+  "var(--color-chart-categorical-3)",
+  "var(--color-chart-categorical-4)",
+  "var(--color-chart-categorical-5)",
+  "var(--color-chart-categorical-6)",
+  "var(--color-chart-categorical-7)",
+  "var(--color-chart-categorical-8)",
+  "var(--color-chart-categorical-9)",
+  "var(--color-chart-categorical-10)",
+  "var(--color-chart-categorical-11)",
+  "var(--color-chart-categorical-12)",
+  "var(--color-chart-categorical-13)",
+  "var(--color-chart-categorical-14)",
 ];
 
 const getColorsForKeys = (keys: string[]): Record<string, string> => {

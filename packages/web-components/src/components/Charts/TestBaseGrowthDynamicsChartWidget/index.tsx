@@ -69,14 +69,14 @@ export const TestBaseGrowthDynamicsChartWidget: FunctionalComponent<Props> = (pr
         return {
           id: status,
           label: i18n(`status.${statusForI18n}` as any),
-          color: getColorFromStatus(statusWithoutPrefix as TestStatus),
+          color: getColorFromStatus(statusWithoutPrefix as TestStatus, "chartFill"),
           value: isNewStatus(status) ? 1 : -1,
         };
       }),
       {
         id: "trend",
         label: i18n("legend.trend"),
-        color: "var(--bg-support-betelgeuse-medium)",
+        color: "var(--color-chart-categorical-9)",
         type: "point",
       },
     ],

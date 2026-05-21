@@ -109,15 +109,15 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
 
   if (isAnsi(rawText) && rawText.length > 0 && highlight) {
     const sanitizedText = ansiToHTML(rawText, {
-      fg: "var(--on-text-primary)",
+      fg: "var(--color-text-primary)",
       bg: "none",
       colors: {
         0: "none",
         1: "none",
-        2: "var(--on-support-sirius)",
-        3: "var(--on-support-atlas)",
-        4: "var(--bg-support-skat)",
-        5: "var(--on-support-betelgeuse)",
+        2: "var(--color-syntax-keyword)",
+        3: "var(--color-syntax-property)",
+        4: "var(--color-syntax-muted-accent)",
+        5: "var(--color-syntax-type)",
       },
     });
 

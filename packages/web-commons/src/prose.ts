@@ -4,11 +4,11 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   overflow-y: hidden;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
 }
 
 body {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   font-family: var(--font-family);
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
@@ -62,7 +62,7 @@ h6 {
 }
 
 h6 {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 strong,
@@ -81,19 +81,19 @@ s {
 }
 
 a {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   text-decoration: underline;
 }
 
 a:hover {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 code {
   font-family: var(--font-family-mono) !important;
   font-size: var(--font-size-m-code) !important;
   padding: 0.2em 0.4em;
-  background: var(--bg-control-secondary);
+  background: var(--color-control-bg);
   border-radius: 4px;
 }
 
@@ -103,7 +103,7 @@ pre {
   line-height: 1.45 !important;
   padding: 16px;
   overflow: auto;
-  background: var(--bg-control-secondary);
+  background: var(--color-control-bg);
   border-radius: 6px;
   margin-bottom: 16px;
 }
@@ -117,8 +117,8 @@ pre code {
 
 blockquote {
   padding: 0 1em;
-  border-left: 0.25em solid var(--on-border-primary);
-  color: var(--on-text-secondary);
+  border-left: 0.25em solid var(--color-border-default);
+  color: var(--color-text-secondary);
   margin-bottom: 16px;
 }
 
@@ -144,7 +144,7 @@ hr {
   height: 0.25em;
   padding: 0;
   margin: 24px 0;
-  background-color: var(--on-border-primary);
+  background-color: var(--color-border-default);
   border: 0 !important;
 }
 
@@ -164,7 +164,7 @@ table {
 th,
 td {
   padding: 6px 13px;
-  border: 1px solid var(--on-border-primary) !important;
+  border: 1px solid var(--color-border-default) !important;
   white-space: nowrap;
 }
 
@@ -173,11 +173,11 @@ th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
 }
 
 tr:nth-child(2n) {
-  background: var(--bg-control-secondary);
+  background: var(--color-control-bg);
 }
 
 img {
@@ -200,13 +200,13 @@ kbd {
   font-family: var(--font-family-mono) !important;
   font-size: 11px;
   line-height: 10px;
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   vertical-align: middle;
-  background-color: var(--bg-control-secondary);
-  border: solid 1px var(--on-border-medium);
-  border-bottom-color: var(--on-border-medium);
+  background-color: var(--color-control-bg);
+  border: solid 1px var(--color-border-medium);
+  border-bottom-color: var(--color-border-medium);
   border-radius: 6px;
-  box-shadow: inset 0 -1px 0 var(--on-border-medium);
+  box-shadow: inset 0 -1px 0 var(--color-border-medium);
 }
 
 samp {
@@ -221,8 +221,8 @@ var {
 }
 
 mark {
-  background-color: var(--bg-support-aldebaran);
-  color: var(--on-text-primary);
+  background-color: var(--color-intent-primary-bg);
+  color: var(--color-intent-primary-on-bg);
   padding: 0.1em 0.2em;
   border-radius: 2px;
 }
@@ -249,9 +249,9 @@ sup {
 
 ins {
   text-decoration: underline;
-  background-color: var(--bg-support-gliese);
-  color: var(--on-text-primary);
-  text-decoration-color: var(--on-support-gliese);
+  background-color: var(--color-intent-success-bg-subtle);
+  color: var(--color-text-primary);
+  text-decoration-color: var(--color-intent-success-text);
 }
 
 dfn {
@@ -310,7 +310,7 @@ figure {
 figcaption {
   margin-top: 8px;
   font-size: var(--font-size-s) !important;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   font-style: italic;
   text-align: center;
 }
@@ -328,11 +328,11 @@ summary {
 }
 
 summary:hover {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 summary::marker {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 details[open] summary {

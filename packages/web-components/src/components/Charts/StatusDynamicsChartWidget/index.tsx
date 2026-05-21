@@ -20,7 +20,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
   const legend: LegendItemValue<BarDatum>[] = statuses.map((status) => ({
     id: status,
     label: i18n(`status.${status}`),
-    color: getColorFromStatus(status),
+    color: getColorFromStatus(status, "chartFill"),
   }));
 
   const chartData: ({

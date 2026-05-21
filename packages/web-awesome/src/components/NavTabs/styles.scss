@@ -11,13 +11,13 @@
 }
 
 .tab {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
   transform: scale(1);
   outline: none;
-  background-color: var(--bg-base-primary);
+  background-color: var(--color-bg-primary);
   padding: 8px;
   border: none;
   border-radius: 4px;
@@ -38,11 +38,11 @@
   }
 
   &[aria-current] {
-    background-color: var(--bg-base-primary);
+    background-color: var(--color-bg-primary);
     cursor: default;
 
     &:after {
-      border-bottom: 2px solid var(--on-support-aldebaran);
+      border-bottom: 2px solid var(--color-intent-primary-text);
     }
 
     span {
@@ -51,11 +51,11 @@
   }
 
   &:hover:not([aria-current]) {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-ghost-hover);
   }
 
   &:active:not([aria-current]) {
-    background-color: var(--bg-control-flat-heavy);
+    background-color: var(--color-control-bg-ghost-active);
     transform: scale(0.94);
   }
 
@@ -64,10 +64,10 @@
   }
 
   &:focus-visible {
-    outline: 0 solid var(--ad-other-focus);
+    outline: 0 solid var(--color-focus-ring);
 
     &:not([aria-current]) {
-      background-color: var(--bg-control-flat-medium);
+      background-color: var(--color-control-bg-ghost-hover);
     }
   }
 }

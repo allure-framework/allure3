@@ -13,18 +13,18 @@ type Props = {
   description?: ComponentChildren;
   icon?: string;
   iconColor?:
-    | "skat"
-    | "aldebaran"
-    | "castor"
-    | "atlas"
-    | "betelgeuse"
-    | "sirius"
-    | "antares"
-    | "gliese"
-    | "capella"
-    | "rigel"
-    | "mirach"
-    | "rau";
+    | "purple"
+    | "blue"
+    | "green"
+    | "orange"
+    | "violet"
+    | "sky"
+    | "magenta"
+    | "rose"
+    | "red"
+    | "amber"
+    | "teal"
+    | "slate";
   fullHeight?: boolean;
   size?: Size;
   className?: string;

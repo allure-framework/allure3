@@ -4,7 +4,7 @@
   justify-content: space-between;
   padding: 24px 24px 0;
   align-items: flex-start;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   border-radius: 8px;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .report-date {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   display: block;
 }
 

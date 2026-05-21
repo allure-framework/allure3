@@ -30,7 +30,7 @@ export const TreeMapChartWidget: FunctionalComponent<
         labelColor={
           chartType === ChartType.CoverageDiff
             ? (n: any) => coverageDiffTextColors(n.data.colorValue ?? 0)
-            : () => "var(--constant-on-text-primary)"
+            : () => "var(--color-text-inverse)"
         }
       />
     </Widget>

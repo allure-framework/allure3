@@ -15,15 +15,15 @@ import * as styles from "./styles.scss";
 
 const TrErrorTrace = ({ trace }: { trace: string }) => {
   const sanitizedTrace = ansiToHTML(trace, {
-    fg: "var(--on-text-primary)",
+    fg: "var(--color-text-primary)",
     bg: "none",
     colors: {
       0: "none",
       1: "none",
-      2: "var(--on-support-sirius)",
-      3: "var(--on-support-atlas)",
-      4: "var(--bg-support-skat)",
-      5: "var(--on-support-betelgeuse)",
+      2: "var(--color-intent-info-text)",
+      3: "var(--color-intent-warning-text)",
+      4: "var(--color-status-unknown-chart)",
+      5: "var(--color-syntax-type)",
     },
   });
 
@@ -55,7 +55,7 @@ export const TrError: FunctionalComponent<
   const sanitizedMessage =
     showMessage && message
       ? ansiToHTML(message, {
-          fg: "var(--on-text-primary)",
+          fg: "var(--color-text-primary)",
           colors: {},
         })
       : "";

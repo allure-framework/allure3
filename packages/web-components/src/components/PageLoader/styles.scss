@@ -13,8 +13,8 @@
   animation: spin 0.5s linear infinite;
   border-style: solid;
   border-width: 2px;
-  border-color: var(--gray-200);
-  border-bottom-color: var(--atlas-night-darken-6);
+  border-color: var(--color-border-subtle);
+  border-bottom-color: var(--color-intent-primary-bg);
 }
 
 @keyframes spin {

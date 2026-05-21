@@ -25,7 +25,11 @@ export const SuccessRatePieChart = ({ slices, percentage, className }: SuccessRa
                 <path
                   key={slice.status}
                   d={slice.d}
-                  fill={slice.status === "__empty__" ? "var(--bg-control-secondary)" : getColorFromStatus(slice.status)}
+                  fill={
+                    slice.status === "__empty__"
+                      ? "var(--color-control-bg)"
+                      : getColorFromStatus(slice.status, "chartFill")
+                  }
                 />
               ),
           )}

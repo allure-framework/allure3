@@ -49,7 +49,7 @@ export const StatusAgePyramidChartWidget: FunctionalComponent<Props> = (props) =
         return {
           id: status,
           label: i18n(`status.${status}`),
-          color: getColorFromStatus(status),
+          color: getColorFromStatus(status, "chartFill"),
           value: isPositiveStatus(status) ? 1 : -1,
         };
       }),

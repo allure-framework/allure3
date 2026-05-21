@@ -1,7 +1,7 @@
 .item-info {
   display: flex;
   gap: 8px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   align-items: center;
   flex: 0 0 auto;
 }
@@ -10,5 +10,5 @@
   flex: none;
   min-width: 72px;
   text-align: right;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
 }
