@@ -155,9 +155,12 @@
     "openPwTrace": "Playwright Trace Aç",
     "pwTracePopupBlocked": "Tarayıcı Playwright Trace Viewer’ın açılmasını engelledi.",
     "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
-    "pwTraceUnsupported": "Tek dosyalı raporlardaki Playwright trace'leri otomatik olarak açılamaz. Trace'i indirin ve elle açın.",
+    "pwTraceUnsupported": "Tek dosyalı raporlardaki Playwright trace'leri otomatik olarak açılamaz.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})",
+    "pwTraceUnsupportedHint": "Trace'i indirin, Trace Viewer'ı açın ve indirilen dosyayı viewer'a bırakın.",
+    "downloadPwTrace": "Trace'i indir",
+    "openPwTraceViewer": "Trace Viewer'ı aç"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",

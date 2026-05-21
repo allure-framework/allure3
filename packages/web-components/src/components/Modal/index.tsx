@@ -30,6 +30,7 @@ export interface ModalDataProps<T = any> {
   closeModal?: () => void;
   attachments?: AttachmentTestStepResult[];
   title?: string;
+  size?: "attachment" | "content";
 }
 
 export interface ModalTranslations {
@@ -52,6 +53,7 @@ export const Modal = ({
   closeModal,
   translations,
   title,
+  size = "attachment",
 }: ModalDataProps & ModalTranslationsProps) => {
   const { tooltipPreview, tooltipSyntaxHighlight, tooltipDownload, openInNewTabButton } = translations;
   const { link } = data || {};
@@ -72,6 +74,7 @@ export const Modal = ({
   const isAttachment = link?.id && link?.ext && link?.contentType;
   const attachmentName = link?.name || (link?.id && link?.ext && `${link.id}${link.ext}`) || "";
   const modalName = title || attachmentName;
+  const canToggleFullScreen = size !== "content";
 
   useEffect(() => {
     if (isModalOpen) {
@@ -124,7 +127,13 @@ export const Modal = ({
   return (
     <div className={styles["modal-overlay"]} onClick={closeModal}>
       <div className={clsx(styles["modal-content"])} onClick={(e) => e.stopPropagation()}>
-        <div className={clsx(styles["modal-wrapper"], { [styles["modal-wrapper-fullscreen"]]: isFullScreen })}>
+        <div
+          className={clsx(
+            styles["modal-wrapper"],
+            size === "content" && styles["modal-wrapper-content"],
+            isFullScreen && styles["modal-wrapper-fullscreen"],
+          )}
+        >
           <div className={styles["modal-header"]}>
             <Heading size={"s"}>{modalName}</Heading>
             <div className={styles["modal-buttons"]}>
@@ -170,12 +179,14 @@ export const Modal = ({
                   />
                 </TooltipWrapper>
               )}
-              <IconButton
-                iconSize={"m"}
-                style={"ghost"}
-                onClick={() => setIsFullScreen(!isFullScreen)}
-                icon={isFullScreen ? allureIcons.lineLayoutsMinimize2 : allureIcons.lineLayoutsMaximize2}
-              />
+              {canToggleFullScreen && (
+                <IconButton
+                  iconSize={"m"}
+                  style={"ghost"}
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  icon={isFullScreen ? allureIcons.lineLayoutsMinimize2 : allureIcons.lineLayoutsMaximize2}
+                />
+              )}
               <IconButton iconSize={"m"} style={"ghost"} onClick={closeModal} icon={allureIcons.lineGeneralXClose} />
             </div>
           </div>

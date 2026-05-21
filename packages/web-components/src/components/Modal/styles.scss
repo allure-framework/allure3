@@ -45,6 +45,31 @@
   width: calc(100vw - 16px);
 }
 
+.modal-wrapper-content {
+  width: min(560px, calc(100vw - 48px));
+  height: auto;
+  min-height: 0;
+  max-height: calc(100vh - 48px);
+  align-items: stretch;
+  justify-content: flex-start;
+
+  .modal-header {
+    padding: 24px 24px 16px;
+  }
+
+  .modal-data {
+    flex: 0 1 auto;
+    height: auto;
+    align-items: stretch;
+    padding: 0 24px 24px;
+  }
+
+  .modal-data-component {
+    height: auto;
+    overflow: visible;
+  }
+}
+
 .modal-data-component {
   flex: 1 1 auto;
   overflow: hidden;

@@ -155,9 +155,12 @@
     "openPwTrace": "Playwright Trace-i aç",
     "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
-    "pwTraceUnsupported": "Playwright izləmələri tək fayllı hesabatlarda avtomatik açıla bilmir. İzləməni endirin və əl ilə açın.",
+    "pwTraceUnsupported": "Playwright izləmələri tək fayllı hesabatlarda avtomatik açıla bilmir.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
+    "pwTraceUnsupportedHint": "İzləməni endirin, Trace Viewer-i açın və endirilmiş faylı viewer-ə sürükləyin.",
+    "downloadPwTrace": "İzləməni endir",
+    "openPwTraceViewer": "Trace Viewer-i aç"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",

@@ -16,12 +16,19 @@ const setup = async ({ canOpenInNewTab, failFetch, traceUrl }: SetupOptions) => 
   const openModal = vi.fn();
   const closeModal = vi.fn();
   const openPlaywrightTraceInNewTab = vi.fn().mockReturnValue(canOpenInNewTab);
+  const downloadAttachment = vi.fn();
 
   vi.doMock("@allurereport/web-commons", () => ({
+    downloadAttachment,
     reportDataUrl,
   }));
   vi.doMock("@allurereport/web-components", () => ({
     Button: ({ onClick, text }: { onClick?: () => void; text?: string }) => <button onClick={onClick}>{text}</button>,
+    ButtonLink: ({ href, target, text }: { href?: string; target?: string; text?: string }) => (
+      <a href={href} target={target}>
+        {text}
+      </a>
+    ),
     Text: ({ children }: { children: unknown }) => <div>{children}</div>,
     TooltipWrapper: ({ children }: { children: unknown }) => <div>{children}</div>,
     IconButton: ({ "aria-label": ariaLabel, onClick }: { "aria-label"?: string; "onClick"?: () => void }) => (
@@ -29,7 +36,10 @@ const setup = async ({ canOpenInNewTab, failFetch, traceUrl }: SetupOptions) => 
         open trace
       </button>
     ),
-    allureIcons: { lineArrowsExpand3: "lineArrowsExpand3" },
+    allureIcons: {
+      lineArrowsExpand3: "lineArrowsExpand3",
+      lineGeneralDownloadCloud: "lineGeneralDownloadCloud",
+    },
   }));
   vi.doMock("@/stores", () => ({
     useI18n: () => ({ t: (key: string) => key }),
@@ -55,7 +65,7 @@ const setup = async ({ canOpenInNewTab, failFetch, traceUrl }: SetupOptions) => 
 
   fireEvent.click(screen.getByRole("button", { name: "openPwTrace" }));
 
-  return { reportDataUrl, openModal, closeModal, openPlaywrightTraceInNewTab };
+  return { reportDataUrl, openModal, closeModal, openPlaywrightTraceInNewTab, downloadAttachment };
 };
 
 describe("components > TestResult > PwTraceButton", () => {
@@ -109,7 +119,7 @@ describe("components > TestResult > PwTraceButton", () => {
   });
 
   it("shows unsupported modal for single-file trace data URLs", async () => {
-    const { openModal, openPlaywrightTraceInNewTab } = await setup({
+    const { openModal, openPlaywrightTraceInNewTab, downloadAttachment } = await setup({
       canOpenInNewTab: true,
       traceUrl: "data:application/vnd.allure.playwright-trace;base64,dHJhY2U=",
     });
@@ -121,8 +131,22 @@ describe("components > TestResult > PwTraceButton", () => {
     expect(openPlaywrightTraceInNewTab).not.toHaveBeenCalled();
     expect(openModal).toHaveBeenCalledWith(
       expect.objectContaining({
+        size: "content",
         title: "Playwright Trace Viewer | trace.zip",
       }),
     );
+
+    render(openModal.mock.calls[0][0].component);
+
+    expect(screen.getByText("pwTraceUnsupported")).toBeInTheDocument();
+    expect(screen.getByText("pwTraceUnsupportedHint")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "openPwTraceViewer" })).toHaveAttribute(
+      "href",
+      "https://trace.playwright.dev/",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "downloadPwTrace" }));
+
+    expect(downloadAttachment).toHaveBeenCalledWith("trace-id", ".zip", "application/vnd.allure.playwright-trace");
   });
 });

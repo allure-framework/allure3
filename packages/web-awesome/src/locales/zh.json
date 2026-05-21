@@ -155,9 +155,12 @@
     "openPwTrace": "打开 Playwright Trace",
     "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
-    "pwTraceUnsupported": "单文件报告中的 Playwright trace 无法自动打开。请下载 trace 并手动打开。",
+    "pwTraceUnsupported": "单文件报告中的 Playwright trace 无法自动打开。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
+    "pwTraceUnsupportedHint": "请下载 trace，打开 Trace Viewer，然后将下载的文件拖放到 viewer 中。",
+    "downloadPwTrace": "下载 trace",
+    "openPwTraceViewer": "打开 Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",

@@ -155,9 +155,12 @@
     "openPwTrace": "Open Playwright Trace",
     "pwTracePopupBlocked": "De browser heeft het openen van Playwright Trace Viewer geblokkeerd.",
     "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
-    "pwTraceUnsupported": "Playwright-traces in single-file rapporten kunnen niet automatisch worden geopend. Download de trace en open deze handmatig.",
+    "pwTraceUnsupported": "Playwright-traces in single-file rapporten kunnen niet automatisch worden geopend.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})",
+    "pwTraceUnsupportedHint": "Download de trace, open Trace Viewer en sleep het gedownloade bestand naar de viewer.",
+    "downloadPwTrace": "Trace downloaden",
+    "openPwTraceViewer": "Trace Viewer openen"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

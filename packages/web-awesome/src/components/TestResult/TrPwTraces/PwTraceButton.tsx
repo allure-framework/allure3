@@ -1,10 +1,14 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { reportDataUrl } from "@allurereport/web-commons";
-import { Button, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { downloadAttachment, reportDataUrl } from "@allurereport/web-commons";
+import { Button, ButtonLink, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 
 import { openPlaywrightTraceInNewTab } from "@/components/TestResult/TrPwTraces/openPwTraceInNewTab";
 import { useI18n } from "@/stores";
 import { closeModal, openModal } from "@/stores/modal";
+
+import * as styles from "./styles.scss";
+
+const PLAYWRIGHT_TRACE_VIEWER_URL = "https://trace.playwright.dev/";
 
 const PwTracePopupBlocked = ({ onRetry, t }: { onRetry: () => void; t: (key: string) => string }) => (
   <div data-testid={"pw-trace-popup-blocked"}>
@@ -25,7 +29,28 @@ const PwTracePopupBlocked = ({ onRetry, t }: { onRetry: () => void; t: (key: str
   </div>
 );
 
-const PwTraceUnsupported = ({ t }: { t: (key: string) => string }) => <Text>{t("pwTraceUnsupported")}</Text>;
+const PwTraceUnsupported = ({ link, t }: { link: AttachmentTestStepResult["link"]; t: (key: string) => string }) => (
+  <div className={styles["pw-trace-unsupported"]} data-testid={"pw-trace-unsupported"}>
+    <Text>{t("pwTraceUnsupported")}</Text>
+    <Text>{t("pwTraceUnsupportedHint")}</Text>
+    <div className={styles["pw-trace-unsupported-actions"]}>
+      <Button
+        style={"flat"}
+        size={"s"}
+        text={t("downloadPwTrace")}
+        icon={allureIcons.lineGeneralDownloadCloud}
+        onClick={() => downloadAttachment(link.id, link.ext, link.contentType)}
+      />
+      <ButtonLink
+        style={"flat"}
+        size={"s"}
+        text={t("openPwTraceViewer")}
+        href={PLAYWRIGHT_TRACE_VIEWER_URL}
+        target={"_blank"}
+      />
+    </div>
+  </div>
+);
 
 export const PwTraceButton = ({ link }: Pick<AttachmentTestStepResult, "link">) => {
   const { t } = useI18n("ui");
@@ -44,7 +69,8 @@ export const PwTraceButton = ({ link }: Pick<AttachmentTestStepResult, "link">) 
       if (traceUrl.startsWith("data:")) {
         openModal({
           title: traceTitle,
-          component: <PwTraceUnsupported t={t} />,
+          size: "content",
+          component: <PwTraceUnsupported link={link} t={t} />,
         });
         return;
       }

@@ -155,9 +155,12 @@
     "openPwTrace": "Открыть Playwright Trace",
     "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
-    "pwTraceUnsupported": "Трейсы Playwright в однофайловых отчётах нельзя открыть автоматически. Скачайте трейс и откройте его вручную.",
+    "pwTraceUnsupported": "Трейсы Playwright в однофайловых отчётах нельзя открыть автоматически.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
+    "pwTraceUnsupportedHint": "Скачайте трейс, откройте Trace Viewer и перетащите скачанный файл в окно viewer.",
+    "downloadPwTrace": "Скачать трейс",
+    "openPwTraceViewer": "Открыть Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

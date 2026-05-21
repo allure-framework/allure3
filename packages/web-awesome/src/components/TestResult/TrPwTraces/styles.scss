@@ -18,3 +18,17 @@
   --modal-fs-paddings: 75px;
   height: calc(100vh - var(--modal-fs-paddings));
 }
+
+.pw-trace-unsupported {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.pw-trace-unsupported-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}

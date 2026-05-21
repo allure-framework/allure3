@@ -155,9 +155,12 @@
     "openPwTrace": "Öppna Playwright Trace",
     "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
-    "pwTraceUnsupported": "Playwright-traces i rapporter med en enda fil kan inte öppnas automatiskt. Ladda ner trace-filen och öppna den manuellt.",
+    "pwTraceUnsupported": "Playwright-traces i rapporter med en enda fil kan inte öppnas automatiskt.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
+    "pwTraceUnsupportedHint": "Ladda ner trace-filen, öppna Trace Viewer och släpp den nedladdade filen i viewern.",
+    "downloadPwTrace": "Ladda ner trace",
+    "openPwTraceViewer": "Öppna Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

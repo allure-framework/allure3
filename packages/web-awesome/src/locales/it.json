@@ -155,9 +155,12 @@
     "openPwTrace": "Apri Playwright Trace",
     "pwTracePopupBlocked": "Il browser ha bloccato l'apertura di Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Consenti i popup e riprova.",
-    "pwTraceUnsupported": "Le trace Playwright nei report a file singolo non possono essere aperte automaticamente. Scarica la trace e aprila manualmente.",
+    "pwTraceUnsupported": "Le trace Playwright nei report a file singolo non possono essere aperte automaticamente.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})",
+    "pwTraceUnsupportedHint": "Scarica la trace, apri Trace Viewer e trascina il file scaricato nel viewer.",
+    "downloadPwTrace": "Scarica trace",
+    "openPwTraceViewer": "Apri Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "Apri in una nuova scheda",

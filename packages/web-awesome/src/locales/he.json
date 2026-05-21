@@ -155,9 +155,12 @@
     "openPwTrace": "פתח Playwright Trace",
     "pwTracePopupBlocked": "הדפדפן חסם את פתיחת Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
-    "pwTraceUnsupported": "לא ניתן לפתוח אוטומטית עקבות Playwright בדוחות בקובץ יחיד. הורד את ה-trace ופתח אותו ידנית.",
+    "pwTraceUnsupported": "לא ניתן לפתוח אוטומטית עקבות Playwright בדוחות בקובץ יחיד.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})",
+    "pwTraceUnsupportedHint": "הורד את ה-trace, פתח את Trace Viewer וגרור את הקובץ שהורד אל ה-viewer.",
+    "downloadPwTrace": "הורד trace",
+    "openPwTraceViewer": "פתח את Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

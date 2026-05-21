@@ -155,9 +155,12 @@
     "openPwTrace": "فتح تتبع Playwright",
     "pwTracePopupBlocked": "حظر المتصفح فتح عارض Playwright Trace.",
     "pwTracePopupBlockedHint": "اسمح بالنوافذ المنبثقة ثم أعد المحاولة.",
-    "pwTraceUnsupported": "لا يمكن فتح تتبعات Playwright تلقائيًا في التقارير ذات الملف الواحد. نزّل التتبع وافتحه يدويًا.",
+    "pwTraceUnsupported": "لا يمكن فتح تتبعات Playwright تلقائيًا في التقارير ذات الملف الواحد.",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})",
+    "pwTraceUnsupportedHint": "نزّل التتبع، وافتح Trace Viewer، ثم اسحب الملف الذي تم تنزيله إلى العارض.",
+    "downloadPwTrace": "تنزيل التتبع",
+    "openPwTraceViewer": "فتح Trace Viewer"
   },
   "controls": {
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",

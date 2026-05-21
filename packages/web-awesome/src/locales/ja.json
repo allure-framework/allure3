@@ -155,9 +155,12 @@
     "openPwTrace": "Playwright Traceを開く",
     "pwTracePopupBlocked": "ブラウザーが Playwright Trace Viewer の表示をブロックしました。",
     "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
-    "pwTraceUnsupported": "単一ファイルのレポートでは Playwright trace を自動的に開けません。trace をダウンロードして手動で開いてください。",
+    "pwTraceUnsupported": "単一ファイルのレポートでは Playwright trace を自動的に開けません。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）",
+    "pwTraceUnsupportedHint": "trace をダウンロードし、Trace Viewer を開いて、ダウンロードしたファイルを viewer にドロップしてください。",
+    "downloadPwTrace": "trace をダウンロード",
+    "openPwTraceViewer": "Trace Viewer を開く"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",
