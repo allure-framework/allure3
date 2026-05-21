@@ -91,10 +91,15 @@ export const formatServiceHttpErrorMessage = (payload: {
   return `Allure service request failed: ${request}${statusMessage}${details ? `: ${details}` : ""}`;
 };
 
-export const createServiceHttpClient = (serviceUrl: string, accessToken: string) => {
+export const createServiceHttpClient = (
+  serviceUrl: string,
+  params?: {
+    accessToken?: string;
+    apiToken?: string;
+  },
+) => {
   const client = axios.create({
     baseURL: serviceUrl,
-    withCredentials: true,
     validateStatus: (status) => status < 400,
   });
   const sendRequest =
@@ -102,19 +107,26 @@ export const createServiceHttpClient = (serviceUrl: string, accessToken: string)
     async <T>(endpoint: string, payload?: AxiosRequestConfig & { params?: Record<string, any>; body?: any }) => {
       const headers = {
         ...(payload?.headers ?? {}),
-        Authorization: `api-token ${accessToken}`,
       };
+
+      if (params?.accessToken) {
+        headers.Authorization = `Bearer ${params.accessToken}`;
+      }
+
+      if (params?.apiToken) {
+        headers.Authorization = `api-token ${params.apiToken}`;
+      }
 
       try {
         let res: AxiosResponse<T>;
 
-        if (payload?.body) {
-          res = await client[method](endpoint, payload.body, {
+        if (method === "get" || method === "delete") {
+          res = await client[method](endpoint, {
             ...payload,
             headers,
           });
         } else {
-          res = await client[method](endpoint, {
+          res = await client[method](endpoint, payload?.body, {
             ...payload,
             headers,
           });
