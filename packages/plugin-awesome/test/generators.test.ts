@@ -3,9 +3,15 @@ import { ChartType } from "@allurereport/charts-api";
 import type { AttachmentLink, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { ResultFile } from "@allurereport/plugin-api";
+import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
 import { describe, expect, it, vi } from "vitest";
 
-import { generateAllCharts, generateAttachmentsFiles, generateGlobals } from "../src/generators.js";
+import {
+  generateAllCharts,
+  generateAttachmentsFiles,
+  generateGlobals,
+  generateSearchIndex,
+} from "../src/generators.js";
 import type { AwesomeDataWriter } from "../src/writer.js";
 
 const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -287,6 +293,81 @@ describe("generateGlobals", () => {
         qa_env: [{ message: "QA error", environment: "QA" }],
       },
     });
+  });
+});
+
+describe("generateSearchIndex", () => {
+  it("should write searchable fields and skip retries", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const visibleTest = {
+      id: "tr-visible",
+      historyId: "history-visible",
+      name: "visible test",
+      fullName: "com.acme.VisibleTest.visible",
+      status: "failed",
+      isRetry: false,
+      flaky: false,
+      muted: false,
+      known: false,
+      labels: [
+        { name: "owner", value: "Igor Martynov" },
+        { name: "feature", value: "Checkout" },
+        { name: "tag", value: "smoke" },
+        { name: "ignored", value: "not searchable" },
+      ],
+      parameters: [
+        { name: "browser", value: "chromium", hidden: false, masked: false, excluded: false },
+        { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false },
+        { name: "internal", value: "hidden-value", hidden: true, masked: false, excluded: false },
+      ],
+      groupedLabels: {
+        owner: ["Igor Martynov"],
+        feature: ["Checkout"],
+      },
+      links: [{ name: "Issue 42", url: "https://example.com/ISSUE-42", type: "issue" }],
+      error: {
+        message: "Assertion error: Expected 1 to be 2",
+      },
+      categories: [{ name: "Product defects" }],
+    } as AwesomeTestResult;
+    const retryTest = {
+      ...visibleTest,
+      id: "tr-retry",
+      isRetry: true,
+      name: "retry test",
+    } as AwesomeTestResult;
+
+    await generateSearchIndex(writer, [visibleTest, retryTest], "qa/search-index.json");
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("qa/search-index.json", expect.any(Array));
+    const documents = writtenWidgets.get("qa/search-index.json") as AwesomeSearchDocument[];
+
+    expect(documents).toHaveLength(1);
+    expect(documents[0]).toMatchObject({
+      id: "tr-visible",
+      nodeId: "tr-visible",
+      name: "visible test",
+      fullName: "com.acme.VisibleTest.visible",
+      historyId: "history-visible",
+      labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
+      owner: "Igor Martynov",
+      tags: "smoke",
+      parameters: "browser:chromium browser chromium token",
+      categories: "Product defects",
+      statusMessage: "Assertion error: Expected 1 to be 2",
+      links: "Issue 42 https://example.com/ISSUE-42 issue",
+    });
+    expect(documents[0]?.labels).not.toContain("ignored");
+    expect(documents[0]?.parameters).not.toContain("secret-token");
+    expect(documents[0]?.parameters).not.toContain("hidden-value");
   });
 });
 

@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Sök",
-    "search-placeholder": "Namn eller ID"
+    "search-placeholder": "Sök tester"
   },
   "filters": {
     "flaky": "Ostadig",

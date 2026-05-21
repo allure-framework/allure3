@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Poszukiwanie",
-    "search-placeholder": "Nazwa albo ID"
+    "search-placeholder": "Szukaj testów"
   },
   "filters": {
     "flaky": "Niestabilne",

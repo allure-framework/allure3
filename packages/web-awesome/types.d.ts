@@ -99,6 +99,22 @@ export type AwesomeTreeLeaf = Pick<
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
 export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+
+export type AwesomeSearchDocument = {
+  id: string;
+  nodeId: string;
+  name: string;
+  fullName?: string;
+  historyId?: string;
+  labels?: string;
+  owner?: string;
+  tags?: string;
+  parameters?: string;
+  categories?: string;
+  statusMessage?: string;
+  links?: string;
+};
+
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */

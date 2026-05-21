@@ -114,38 +114,9 @@ const treeStatusFilter = computed<AwesomeStringFieldFilter>(() => ({
   },
 }));
 
-export const treeQueryFilter = computed<AwesomeFilterGroupSimple>(() => {
-  return {
-    type: "group",
-    logicalOperator: "AND",
-    value: [
-      {
-        type: "field",
-        logicalOperator: "OR",
-        value: {
-          key: "name",
-          value: urlQueryFilter.value,
-          type: "string",
-          strict: false,
-        },
-      },
-      {
-        type: "field",
-        logicalOperator: "OR",
-        value: {
-          key: "id",
-          value: urlQueryFilter.value,
-          type: "string",
-          strict: false,
-        },
-      },
-    ],
-  };
-});
+export const treeQueryFilterValue = computed(() => urlQueryFilter.value);
 
-export const treeQueryFilterValue = computed(() => treeQueryFilter.value.value[0].value.value as string);
-
-export const setTreeQueryFilter = (query: string) => {
+export const setTreeQueryFilter = (query?: string) => {
   setQueryFilter(query);
 };
 
@@ -217,12 +188,8 @@ export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
   treeCategoriesFilter.value,
 ]);
 
-export const treeFilters = computed(() => {
+export const treeNonQueryFilters = computed(() => {
   const filters: AwesomeFilter[] = [];
-
-  if (treeQueryFilterValue.value) {
-    filters.push(treeQueryFilter.value);
-  }
 
   const hasBothRetryAndFlaky = urlRetryFilter.value && urlFlakyFilter.value;
 

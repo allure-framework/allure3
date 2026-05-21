@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "بحث",
-    "search-placeholder": "الاسم أو المُعرِّف"
+    "search-placeholder": "البحث في الاختبارات"
   },
   "filters": {
     "flaky": "غير مستقر",

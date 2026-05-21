@@ -834,6 +834,7 @@ const RAW_RUNTIME_STATE =
           ["jsdom", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:26.1.0"],\
           ["md5", "npm:2.3.0"],\
           ["mini-css-extract-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.9.1"],\
+          ["minisearch", "npm:7.2.0"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
           ["preact", "npm:10.28.2"],\
@@ -19806,6 +19807,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["minipass-sized", "npm:1.0.3"],\
           ["minipass", "npm:3.3.6"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["minisearch", [\
+      ["npm:7.2.0", {\
+        "packageLocation": "./.yarn/cache/minisearch-npm-7.2.0-6dca5d0e50-784eef4476.zip/node_modules/minisearch/",\
+        "packageDependencies": [\
+          ["minisearch", "npm:7.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
