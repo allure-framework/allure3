@@ -73,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     permissions:
+      actions: read
       contents: write
       pull-requests: write
       checks: write
@@ -111,9 +112,61 @@ jobs:
       - name: Build project
         run: yarn build
       - name: Generate report
+        env:
+          ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
+      - name: Write perf metrics summary
+        if: always()
+        run: |
+          node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md
+          cat ./allure-report/allure-perf-metrics.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload perf metrics
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: allure-perf-metrics
+          path: |
+            ./allure-report/allure-perf-metrics.json
+            ./allure-report/allure-perf-metrics.md
+          if-no-files-found: ignore
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:
           report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  perf-metrics-comment:
+    needs: report
+    name: Comment perf metrics
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Download perf metrics
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-perf-metrics
+          path: ./allure-perf-metrics
+      - name: Comment perf metrics on pull request
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require("node:fs");
+            const marker = "<!-- allure-perf-metrics -->";
+            const summaryPath = "./allure-perf-metrics/allure-perf-metrics.md";
+            const { owner, repo } = context.repo;
+            const artifactsUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const summary = fs.existsSync(summaryPath) ? fs.readFileSync(summaryPath, "utf8") : "### Allure perf metrics\n\nMetrics file was not generated.\n";
+            const body = `${marker}\n${summary}\nArtifacts: [allure-perf-metrics](${artifactsUrl})`;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const previous = comments.data.find((comment) => comment.user.type === "Bot" && comment.body?.includes(marker));
+
+            if (previous) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
