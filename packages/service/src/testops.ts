@@ -74,7 +74,9 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
       return this.#client;
     }
 
-    this.#client = createServiceHttpClient(this.#url, this.#accessToken);
+    this.#client = createServiceHttpClient(this.#url, {
+      apiToken: this.#accessToken,
+    });
 
     return this.#client;
   }
