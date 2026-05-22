@@ -1,7 +1,7 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
+import { realpath } from "node:fs/promises";
 import { rm } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
@@ -13,6 +13,8 @@ import { PathResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
+
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class WatchCommand extends Command {
   static paths = [["watch"]];
@@ -26,10 +28,17 @@ export class WatchCommand extends Command {
         "watch ./allure-results --port 8080",
         "Watch for changes in the ./allure-results directory and serve the report on port 8080",
       ],
+      ["watch ./packages/*/allure-results", "Watch for changes in all Allure result directories matching the pattern"],
+      [
+        "watch ./packages/foo/allure-results ./packages/bar/allure-results",
+        "Watch for changes in two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -56,8 +65,11 @@ export class WatchCommand extends Command {
   });
 
   async execute() {
-    if (!existsSync(this.resultsDir)) {
-      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+    const cwd = await realpath(this.cwd ?? process.cwd());
+
+    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
@@ -70,7 +82,7 @@ export class WatchCommand extends Command {
       console.log(`exit code ${code} (${after - before}ms)`);
     });
 
-    const config = await readConfig(this.cwd, this.config, {
+    const config = await readConfig(cwd, this.config, {
       output: this.output,
       name: this.reportName,
       open: this.open,
@@ -129,10 +141,14 @@ export class WatchCommand extends Command {
 
     await allureReport.start();
 
-    const input = resolve(this.resultsDir);
-    const { abort } = newFilesInDirectoryWatcher(input, async (path) => {
-      await allureReport.readResult(new PathResultFile(path));
-    });
+    const abortFunctions: (() => Promise<void>)[] = [];
+    for (const directory of resultDirectories) {
+      const { abort } = newFilesInDirectoryWatcher(directory, async (path) => {
+        await allureReport.readResult(new PathResultFile(path));
+      });
+      abortFunctions.push(abort);
+    }
+
     const pluginIdToOpen = config.plugins?.find((plugin) => !!plugin.options.open)?.id;
 
     if (pluginIdToOpen) {
@@ -144,7 +160,11 @@ export class WatchCommand extends Command {
     process.on("SIGINT", async () => {
       // new line for ctrl+C character
       console.log("");
-      await abort();
+
+      for (const abort of abortFunctions) {
+        await abort();
+      }
+
       await server.stop();
       await allureReport.done();
       process.exit(0);
