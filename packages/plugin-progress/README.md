@@ -12,7 +12,10 @@
 
 ## Overview
 
-This plugin indicates the report generation progress in the terminal.
+This plugin owns Allure's realtime terminal output.
+
+- In report or watch flows, the plugin prints progress updates while results are being processed.
+- In `allure run`, the CLI reuses the same package for the built-in console reporter modes like `rich`, `progress`, and `errors`.
 
 ## Install
 
