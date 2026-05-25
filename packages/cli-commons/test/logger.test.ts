@@ -1,3 +1,5 @@
+import console from "node:console";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { ProgressBarMock } = vi.hoisted(() => {
@@ -16,7 +18,7 @@ vi.mock("progress", () => ({
   default: ProgressBarMock,
 }));
 
-const { Logger } = await import("../src/logger.js");
+const { Logger } = await import("../src/index.js");
 
 describe("Logger", () => {
   beforeEach(() => {
@@ -58,5 +60,18 @@ describe("Logger", () => {
     progressBar.terminate();
 
     expect(ProgressBarMock).not.toHaveBeenCalled();
+  });
+
+  it("should print inspected values at the debug level", () => {
+    vi.stubEnv("ALLURE_LOG_LEVEL", "debug");
+    const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      new Logger("TestOpsPlugin").inspect({ message: "debug details" });
+
+      expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining("debug details"));
+    } finally {
+      consoleLog.mockRestore();
+    }
   });
 });

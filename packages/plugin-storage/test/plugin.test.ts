@@ -1,5 +1,4 @@
-import console from "node:console";
-
+import { Logger } from "@allurereport/cli-commons";
 import type { PluginContext, PluginPublishContext } from "@allurereport/plugin-api";
 import { type Mock, type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -34,17 +33,23 @@ const createPublishContext = (): PluginPublishContext => ({
 });
 
 describe("storage plugin", () => {
-  let consoleError: MockInstance;
+  let progressBarCounter: MockInstance;
+  let loggerError: MockInstance;
+  let loggerDebug: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    progressBarCounter = vi.spyOn(Logger.prototype, "progressBarCounter");
+    loggerError = vi.spyOn(Logger.prototype, "error").mockImplementation(() => {});
+    loggerDebug = vi.spyOn(Logger.prototype, "debug").mockImplementation(() => {});
     (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(new URL("https://remote/report"));
     (AllureServiceClientMock.prototype.addReportFile as Mock).mockResolvedValue("https://remote/report/p/index.html");
   });
 
   afterEach(() => {
-    consoleError.mockRestore();
+    progressBarCounter.mockRestore();
+    loggerError.mockRestore();
+    loggerDebug.mockRestore();
   });
 
   it("creates report on start and sets reportUrl", async () => {
@@ -105,6 +110,7 @@ describe("storage plugin", () => {
     );
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
     expect(result?.linksByPluginId.a).toBeTruthy();
+    expect(progressBarCounter).toBeCalledWith('Publishing "a" report', 2);
   });
 
   it("reuses report created on start when publishing", async () => {
@@ -135,6 +141,69 @@ describe("storage plugin", () => {
 
     expect(result).toBeUndefined();
     expect(AllureServiceClientMock.prototype.deleteReport).toBeCalledWith({ reportUuid: "uuid-1", pluginId: "a" });
+    expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
+  });
+
+  it("shows progress and terminates bar on successful upload", async () => {
+    const progressBar = {
+      tick: vi.fn(),
+      update: vi.fn(),
+      terminate: vi.fn(),
+    };
+    progressBarCounter.mockReturnValue(progressBar);
+    const plugin = new StoragePlugin({ accessToken: validAccessToken, publish: true });
+    const context = createPublishContext();
+
+    context.reports = [
+      {
+        pluginId: "a",
+        publish: true,
+        files: { "index.html": "/tmp/index.html", "app.js": "/tmp/app.js" },
+      },
+    ];
+
+    await plugin.publish(context);
+
+    expect(progressBarCounter).toBeCalledWith('Publishing "a" report', 2);
+    expect(progressBar.tick).toBeCalledTimes(2);
+    expect(progressBar.terminate).toBeCalledTimes(1);
+  });
+
+  it("terminates progress bar when upload fails", async () => {
+    const progressBar = {
+      tick: vi.fn(),
+      update: vi.fn(),
+      terminate: vi.fn(),
+    };
+    progressBarCounter.mockReturnValue(progressBar);
+    const plugin = new StoragePlugin({ accessToken: validAccessToken, publish: true });
+    const context = createPublishContext();
+
+    context.reports = [{ pluginId: "a", publish: true, files: { "index.html": "/tmp/index.html" } }];
+    (AllureServiceClientMock.prototype.addReportFile as Mock).mockRejectedValue(new Error("boom"));
+
+    await plugin.publish(context);
+
+    expect(progressBarCounter).toBeCalledWith('Publishing "a" report', 1);
+    expect(progressBar.tick).not.toBeCalled();
+    expect(progressBar.terminate).toBeCalledTimes(1);
+  });
+
+  it("logs cleanup errors without masking the upload failure", async () => {
+    const plugin = new StoragePlugin({ accessToken: validAccessToken, publish: true });
+    const context = createPublishContext();
+
+    context.reports = [{ pluginId: "a", publish: true, files: { "index.html": "/tmp/index.html" } }];
+    (AllureServiceClientMock.prototype.addReportFile as Mock).mockRejectedValue(new Error("boom"));
+    (AllureServiceClientMock.prototype.deleteReport as Mock).mockRejectedValue(new Error("cleanup failed"));
+
+    const result = await plugin.publish(context);
+
+    expect(result).toBeUndefined();
+    expect(loggerError).toBeCalledWith("Failed to clean up failed Storage report upload");
+    expect(loggerError).toBeCalledWith('Plugin "a" upload has failed, the plugin won\'t be published');
+    expect(loggerDebug).toBeCalledWith(expect.stringContaining("cleanup failed"));
+    expect(loggerDebug).toBeCalledWith(expect.stringContaining("boom"));
     expect(AllureServiceClientMock.prototype.completeReport).not.toBeCalled();
   });
 

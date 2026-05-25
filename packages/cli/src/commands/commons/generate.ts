@@ -61,6 +61,7 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
     }
 
     await allureReport.done();
+    await allureReport.publish();
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console

@@ -31,6 +31,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/cli"\
     },\
     {\
+      "name": "@allurereport/cli-commons",\
+      "reference": "workspace:packages/cli-commons"\
+    },\
+    {\
       "name": "@allurereport/core",\
       "reference": "workspace:packages/core"\
     },\
@@ -161,6 +165,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/aql", ["workspace:packages/aql"]],\
     ["@allurereport/charts-api", ["workspace:packages/charts-api"]],\
     ["@allurereport/ci", ["workspace:packages/ci"]],\
+    ["@allurereport/cli-commons", ["workspace:packages/cli-commons"]],\
     ["@allurereport/core", ["workspace:packages/core"]],\
     ["@allurereport/core-api", ["workspace:packages/core-api"]],\
     ["@allurereport/directory-watcher", ["workspace:packages/directory-watcher"]],\
@@ -277,6 +282,24 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/cli-commons", [\
+      ["workspace:packages/cli-commons", {\
+        "packageLocation": "./packages/cli-commons/",\
+        "packageDependencies": [\
+          ["@allurereport/cli-commons", "workspace:packages/cli-commons"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@types/progress", "npm:2.0.7"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
+          ["progress", "npm:2.0.3"],\
+          ["rimraf", "npm:6.0.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"],\
+          ["yoctocolors", "npm:2.1.2"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -646,17 +669,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-storage/",\
         "packageDependencies": [\
           ["@allurereport/plugin-storage", "workspace:packages/plugin-storage"],\
+          ["@allurereport/cli-commons", "workspace:packages/cli-commons"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/summary", "workspace:packages/summary"],\
           ["@types/node", "npm:20.17.9"],\
-          ["@types/progress", "npm:2.0.7"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
           ["p-limit", "npm:7.2.0"],\
-          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
@@ -670,6 +692,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/ci", "workspace:packages/ci"],\
+          ["@allurereport/cli-commons", "workspace:packages/cli-commons"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
@@ -677,7 +700,6 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/node", "npm:20.17.9"],\
-          ["@types/progress", "npm:2.0.7"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
@@ -685,7 +707,6 @@ const RAW_RUNTIME_STATE =
           ["form-data", "npm:4.0.5"],\
           ["lodash-es", "npm:4.18.1"],\
           ["p-limit", "npm:7.3.0"],\
-          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"],\

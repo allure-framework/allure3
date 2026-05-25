@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig, isAxiosError } from "axios";
 
 /**
  * The error that was explicitly thrown by the service. We can print the error's message as is to the user
@@ -118,21 +118,17 @@ export const createServiceHttpClient = (
       }
 
       try {
-        let res: AxiosResponse<T>;
-
-        if (method === "get" || method === "delete") {
-          res = await client[method](endpoint, {
+        const res = method === "get" || method === "delete"
+          ? await client[method](endpoint, {
+              ...payload,
+              headers,
+            })
+          : await client[method](endpoint, payload?.body, {
             ...payload,
             headers,
           });
-        } else {
-          res = await client[method](endpoint, payload?.body, {
-            ...payload,
-            headers,
-          });
-        }
 
-        return res.data;
+        return res.data as T;
       } catch (err) {
         const axiosError = isAxiosError(err);
 

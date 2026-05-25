@@ -66,6 +66,8 @@ export const createHistory = (
   testCases: TestCase[],
   testResults: TestResult[],
   remoteUrl: string = "",
+  // TODO:
+  links: HistoryDataPoint["links"] = [],
 ): HistoryDataPoint => {
   const knownTestCaseIds = testCases.map((tc) => tc.id);
 
@@ -77,6 +79,7 @@ export const createHistory = (
     testResults: createHistoryItems(testResults, remoteUrl),
     metrics: {},
     url: remoteUrl,
+    links,
   };
 };
 

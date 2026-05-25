@@ -1,12 +1,10 @@
 {
-  "name": "@allurereport/plugin-storage",
-  "version": "3.8.0",
-  "description": "Allure Storage Plugin",
+  "name": "@allurereport/cli-commons",
+  "version": "3.8.2",
+  "description": "Shared CLI utilities for Allure packages",
   "keywords": [
     "allure",
-    "plugin",
-    "report",
-    "storage",
+    "cli",
     "testing"
   ],
   "license": "Apache-2.0",
@@ -30,17 +28,13 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "@allurereport/cli-commons": "workspace:*",
-    "@allurereport/core-api": "workspace:*",
-    "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/service": "workspace:*",
-    "@allurereport/summary": "workspace:*",
-    "p-limit": "^7.2.0"
+    "progress": "^2.0.3",
+    "yoctocolors": "^2"
   },
   "devDependencies": {
     "@types/node": "^20.17.9",
+    "@types/progress": "^2",
     "@vitest/runner": "^2.1.9",
-    "@vitest/snapshot": "^2.1.9",
     "allure-vitest": "^3.3.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",

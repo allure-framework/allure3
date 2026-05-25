@@ -37,6 +37,8 @@ export interface HistoryDataPoint {
   testResults: Record<string, HistoryTestResult>;
   metrics: Record<string, number>;
   url: string;
+  // TODO
+  links: { url: string; id: string }[]
 }
 
 /**

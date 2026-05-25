@@ -9,6 +9,19 @@ type LogLevel = "silent" | "verbose" | "debug" | "info" | "warn" | "error";
 
 type JSONMessage = Record<string, unknown> | Array<unknown>;
 
+type ProgressBarTokens = Record<string, unknown>;
+
+type CounterProgressBar = {
+  tick(len?: number | ProgressBarTokens, tokens?: ProgressBarTokens): void;
+  update(ratio: number, tokens?: ProgressBarTokens): void;
+  terminate(): void;
+};
+
+type PercentProgressBar = {
+  update(ratio: number, tokens?: ProgressBarTokens): void;
+  terminate(): void;
+};
+
 const logLevelsPriority = {
   silent: Number.MAX_SAFE_INTEGER,
   verbose: 0,
@@ -48,7 +61,7 @@ export class Logger {
 
   #prefix = cyan(bold(`[${this.name}]:`));
 
-  progressBarCounter(message: string, total: number) {
+  progressBarCounter(message: string, total: number): CounterProgressBar {
     if (this.#isSilent()) {
       return {
         tick: () => {},
@@ -64,7 +77,7 @@ export class Logger {
 
     return progressBar;
   }
-  progressBar(message: string) {
+  progressBar(message: string): PercentProgressBar {
     if (this.#isSilent()) {
       return {
         update: () => {},
@@ -153,7 +166,6 @@ export class Logger {
       return;
     }
 
-    console.log(`${this.#prefix} inspect`);
-    inspect(value);
+    console.log(`${this.#prefix} ${inspect(value)}`);
   }
 }

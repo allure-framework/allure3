@@ -406,6 +406,7 @@ export const executeAllureRun = async (params: {
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
   await allureReport.done();
+  await allureReport.publish();
 
   return {
     globalExitCode,

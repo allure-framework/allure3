@@ -82,23 +82,6 @@ export interface PluginReportFile {
   files: Record<string, string>;
 }
 
-export interface PluginPublishContext {
-  reportUuid: string;
-  reportName: string;
-  ci?: CiDescriptor;
-  historyPoint?: HistoryDataPoint;
-  reports: PluginReportFile[];
-  summary?: {
-    filepath: string;
-    summaries?: PluginSummary[];
-  };
-}
-
-export interface PluginPublishResult {
-  linksByPluginId: Record<string, string>;
-  remoteHref?: string;
-}
-
 export interface ExitCode {
   /**
    * Actual exit code the allure command exited with
@@ -166,6 +149,11 @@ export interface RealtimeEventsDispatcher {
   sendAttachmentFile(afId: string): void;
 }
 
+export interface PluginPublishResult {
+  url: string;
+  historyDataPoint?: HistoryDataPoint;
+}
+
 export interface Plugin {
   start?(context: PluginContext, store: AllureStore, realtime: RealtimeSubscriber): Promise<void>;
 
@@ -173,7 +161,12 @@ export interface Plugin {
 
   done?(context: PluginContext, store: AllureStore): Promise<void>;
 
-  publish?(context: PluginPublishContext, store: AllureStore): Promise<PluginPublishResult | undefined>;
+  publish?(params: {
+    publisherContext: PluginContext;
+    context: PluginContext;
+    store: AllureStore;
+    historyDataPoint?: HistoryDataPoint;
+  }): Promise<PluginPublishResult | undefined>;
 
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined>;
 }

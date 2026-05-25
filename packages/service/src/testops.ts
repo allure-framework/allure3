@@ -30,7 +30,6 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export interface AllureTestOpsClientConfig {
   accessToken?: string;
-  endpoint?: string;
   baseUrl?: string;
   projectId: number | string;
   isPublic?: boolean;
@@ -41,11 +40,11 @@ const createUploadBlob = (content: Buffer, filename: string) =>
   new Blob([content], { type: contentTypeByFilename(filename) });
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/api/test-report/view/${joinPosix(reportUuid, reportFilename)}`;
+
 export class AllureTestOpsClient implements AllureServiceApiClient {
   readonly #url: string;
-  readonly #accessToken: string;
   readonly #projectId: number;
-  #client?: HttpClient;
+  #client: HttpClient;
 
   constructor(readonly config: AllureTestOpsClientConfig) {
     if (!config?.accessToken) {
@@ -58,27 +57,15 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
       throw new Error("Allure TestOps project ID is required");
     }
 
-    const endpoint = config.baseUrl ?? config.endpoint;
-
-    if (!endpoint) {
+    if (!config.baseUrl) {
       throw new Error("Allure TestOps endpoint is required");
     }
 
-    this.#accessToken = config.accessToken;
     this.#projectId = projectId;
-    this.#url = endpoint.replace(/\/$/, "");
-  }
-
-  async #authorizedClient() {
-    if (this.#client) {
-      return this.#client;
-    }
-
+    this.#url = config.baseUrl.replace(/\/$/, "");
     this.#client = createServiceHttpClient(this.#url, {
-      apiToken: this.#accessToken,
+      apiToken: config.accessToken,
     });
-
-    return this.#client;
   }
 
   async downloadHistory(): Promise<HistoryDataPoint[]> {
@@ -86,10 +73,9 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
   }
 
   async createReport(payload: { reportName: string; reportUuid?: string; repo?: string; branch?: string }) {
-    const client = await this.#authorizedClient();
     const { reportName, reportUuid } = payload;
     const { isPublic } = this.config;
-    const { url } = await client.post<{ url: string }>("/api/test-report", {
+    const { url } = await this.#client.post<{ url: string }>("/api/test-report", {
       body: {
         projectId: this.#projectId,
         reportName,
@@ -102,17 +88,15 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
   }
 
   async completeReport(payload: { reportUuid: string; historyPoint?: HistoryDataPoint }) {
-    const client = await this.#authorizedClient();
     const { reportUuid } = payload;
 
-    return client.post(`/api/test-report/${reportUuid}/complete`);
+    return this.#client.post(`/api/test-report/${reportUuid}/complete`);
   }
 
   async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
-    const client = await this.#authorizedClient();
     const { reportUuid } = payload;
 
-    return client.delete(`/api/test-report/${reportUuid}`);
+    return this.#client.delete(`/api/test-report/${reportUuid}`);
   }
 
   async addReportAsset(payload: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }) {
@@ -137,9 +121,7 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     form.set("filename", filename);
     form.set("file", createUploadBlob(content, filename), filename);
 
-    const client = await this.#authorizedClient();
-
-    return client.post("/api/test-report/upload", {
+    return this.#client.post("/api/test-report/upload", {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -178,9 +160,7 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     form.set("filename", reportFilename);
     form.set("file", createUploadBlob(content, reportFilename), reportFilename);
 
-    const client = await this.#authorizedClient();
-
-    await client.post(`/api/test-report/${reportUuid}/upload`, {
+    await this.#client.post(`/api/test-report/${reportUuid}/upload`, {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",

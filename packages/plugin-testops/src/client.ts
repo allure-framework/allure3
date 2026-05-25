@@ -8,6 +8,7 @@ import type {
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
+import { Logger } from "@allurereport/cli-commons";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { createServiceHttpClient } from "@allurereport/service";
 import { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
@@ -16,7 +17,6 @@ import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
-import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
   AttachmentsResolver,

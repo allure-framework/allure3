@@ -1,22 +1,21 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
+import { Logger } from "@allurereport/cli-commons";
+import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, HistoryDataPoint, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
   type PluginContext,
-  type PluginPublishContext,
   createPluginSummary,
 } from "@allurereport/plugin-api";
-import { AllureTestOpsClient, type AllureTestOpsClientConfig } from "@allurereport/service";
+import { AllureTestOpsClient } from "@allurereport/service";
 import { uniqBy, stubTrue } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
 import { toUploadCategory } from "./uploadCategory.js";
 import { uploadFilenameForLink } from "./uploaderDto.js";
@@ -36,18 +35,11 @@ const REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED = 5;
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
   #ci?: CiDescriptor;
-  // @ts-expect-error - if client is not initialized it will not be used
-  #client: TestOpsClient;
-  /**
-   * If the plugin is enabled
-   */
-  #enabled: boolean = false;
+  #testopsClient?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean;
-  #createLaunch: boolean;
-  #reportClientConfig?: AllureTestOpsClientConfig;
   #reportClient?: AllureTestOpsClient;
 
   constructor(readonly options: TestOpsPluginOptions) {
@@ -57,35 +49,39 @@ export class TestOpsPlugin implements Plugin {
       projectId,
       launchName,
       launchTags,
-      createLaunch = false,
+      createLaunch = true,
       autocloseLaunch = true,
       publish = false,
     } = resolvePluginOptions(options);
 
     this.#ci = detect();
+    this.#launchName = launchName;
+    this.#launchTags = launchTags;
+    this.#autocloseLaunch = autocloseLaunch;
 
-    // don't initialize the client when some options are missing
-    // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
-      this.#enabled = true;
-      this.#client = new TestOpsClient({
-        baseUrl: endpoint,
-        accessToken,
-        projectId,
-      });
-      this.#launchName = launchName;
-      this.#launchTags = launchTags;
-      this.#reportClientConfig = publish
-        ? {
-            accessToken,
-            endpoint,
-            projectId,
-          }
-        : undefined;
+      // intialize the testops client when we need to create launch
+      if (createLaunch) {
+        this.#testopsClient = new TestOpsClient({
+          baseUrl: endpoint,
+          accessToken,
+          projectId,
+        });
+      }
+
+      // initialize report client when we need to publish the report using testops service api
+      if (publish) {
+        this.#reportClient = new AllureTestOpsClient({
+          baseUrl: endpoint,
+          accessToken,
+          projectId,
+        });
+      }
     }
 
-    this.#autocloseLaunch = autocloseLaunch;
-    this.#createLaunch = createLaunch;
+    if (!createLaunch && !publish) {
+      this.#logger.warn("Both createLaunch and publish are disabled. The plugin will not upload any data.");
+    }
 
     if (!accessToken) {
       this.#logger.warn(
@@ -110,21 +106,11 @@ export class TestOpsPlugin implements Plugin {
     return this.#ci && this.#ci.type !== "local";
   }
 
-  #getReportClient() {
-    if (this.#reportClient) {
-      return this.#reportClient;
-    }
-
-    if (!this.#reportClientConfig) {
-      return undefined;
-    }
-
-    this.#reportClient = new AllureTestOpsClient(this.#reportClientConfig);
-
-    return this.#reportClient;
-  }
-
   async #uploadQualityGateResults(store: AllureStore) {
+    if (!this.#testopsClient) {
+      return;
+    }
+
     const results = await store.qualityGateResults();
     const uniqueResults = uniqBy(
       // Leave only failed ones
@@ -142,7 +128,7 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressBar.update(0);
-      await this.#client.uploadQualityGateResults(uniqueResults, (percent, total) => {
+      await this.#testopsClient.uploadQualityGateResults(uniqueResults, (percent, total) => {
         progressBar.update(percent / total);
       });
       progressBar.update(1);
@@ -150,7 +136,7 @@ export class TestOpsPlugin implements Plugin {
     } catch (error) {
       progressBar.terminate();
 
-      if (this.#client.isTestOpsClientError(error)) {
+      if (this.#testopsClient.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
       } else if (error instanceof Error) {
@@ -162,6 +148,10 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalErrors(store: AllureStore) {
+    if (!this.#testopsClient) {
+      return;
+    }
+
     const results = await store.allGlobalErrors();
 
     if (results.length === 0) {
@@ -173,15 +163,17 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressBar.update(0);
-      await this.#client.uploadGlobalErrors(results, (percent, total) => {
+
+      await this.#testopsClient.uploadGlobalErrors(results, (percent, total) => {
         progressBar.update(percent / total);
       });
+
       progressBar.update(1);
       progressBar.terminate();
     } catch (error) {
       progressBar.terminate();
 
-      if (this.#client.isTestOpsClientError(error)) {
+      if (this.#testopsClient.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
       } else if (error instanceof Error) {
@@ -193,6 +185,10 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalAttachments(store: AllureStore) {
+    if (!this.#testopsClient) {
+      return;
+    }
+
     const attachments = await store.allGlobalAttachments();
 
     if (attachments.length === 0) {
@@ -204,7 +200,8 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressBar.update(0);
-      await this.#client.uploadGlobalAttachments({
+
+      await this.#testopsClient.uploadGlobalAttachments({
         attachments,
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
@@ -225,12 +222,13 @@ export class TestOpsPlugin implements Plugin {
           progressBar.update(percent / total);
         },
       });
+
       progressBar.update(1);
       progressBar.terminate();
     } catch (error) {
       progressBar.terminate();
 
-      if (this.#client.isTestOpsClientError(error)) {
+      if (this.#testopsClient.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
       } else if (error instanceof Error) {
@@ -246,6 +244,10 @@ export class TestOpsPlugin implements Plugin {
     trsToUpload: TestOpsPluginTestResult[],
     environments: EnvironmentIdentity[],
   ) {
+    if (!this.#testopsClient) {
+      return;
+    }
+
     const totalCount = trsToUpload.length;
 
     this.#logger.info(
@@ -253,8 +255,7 @@ export class TestOpsPlugin implements Plugin {
     );
 
     const trsProgressBar = this.#logger.progressBarCounter("Uploading test results", totalCount);
-
-    const uploadedTrs = await this.#client.uploadTestResults({
+    const uploadedTrs = await this.#testopsClient.uploadTestResults({
       attachmentsResolver: attachmentsResolverFactory(store),
       fixturesResolver: fixturesResolverFactory(store),
       environments,
@@ -286,8 +287,11 @@ export class TestOpsPlugin implements Plugin {
       stage: "start" | "update" | "done";
     },
   ) {
-    const { context, stage } = options;
+    if (!this.#testopsClient) {
+      return;
+    }
 
+    const { context, stage } = options;
     const trsToUpload = await this.#trsToUpload(store);
 
     if (trsToUpload.length === 0) {
@@ -302,8 +306,7 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    await this.#client.createSession(env);
-
+    await this.#testopsClient.createSession(env);
     await this.#uploadGlobalAttachments(store);
     await this.#uploadGlobalErrors(store);
     await this.#uploadQualityGateResults(store);
@@ -311,14 +314,13 @@ export class TestOpsPlugin implements Plugin {
     const environments = await store.allEnvironmentIdentities();
     const contextCategories = context?.categories ?? [];
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
 
   async #trsToUpload(store: AllureStore) {
     const filter = this.options.filter ?? stubTrue;
-
     const filteredTrs = await store.allTestResults({
       filter: (tr) => {
         const uploaded = this.#uploadedTestResultsIds.has(tr.id);
@@ -360,6 +362,10 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #syncLaunchCategories(trs: TestOpsPluginTestResult[], contextCategories: CategoryDefinition[]): Promise<void> {
+    if (!this.#testopsClient) {
+      return;
+    }
+
     const categoryNamesByExternalId = this.#collectCategoryNamesByExternalId(trs);
 
     if (categoryNamesByExternalId.size === 0) {
@@ -384,6 +390,7 @@ export class TestOpsPlugin implements Plugin {
     }
 
     const rankByExternalId = new Map<string, number>();
+
     for (const c of contextCategories) {
       // Prefer canonical ids, but allow ordering by name for categories originating from `tr.categories`
       if (!rankByExternalId.has(c.id)) {
@@ -408,11 +415,10 @@ export class TestOpsPlugin implements Plugin {
     });
 
     const orderedBulkItems = ranked.map((r) => r.item);
-
-    const launchId = this.#client.launchId;
+    const launchId = this.#testopsClient.launchId;
 
     try {
-      const created = await this.#client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
+      const created = await this.#testopsClient.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
       const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
 
       this.#assignCreatedCategoryIds(trs, categoryIdByExternalId);
@@ -452,93 +458,103 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #startUpload() {
-    await this.#client.createLaunch(this.#launchName, this.#launchTags);
+    if (!this.#testopsClient) {
+      return;
+    }
+
+    await this.#testopsClient.createLaunch(this.#launchName, this.#launchTags);
 
     if (!this.ciMode) {
       return;
     }
 
-    await this.#client.startUpload(this.#ci!);
+    await this.#testopsClient.startUpload(this.#ci!);
   }
 
   async #stopUpload(status: TestStatus) {
-    if (!this.ciMode) {
+    if (!this.#testopsClient || !this.ciMode) {
       return;
     }
 
-    await this.#client.stopUpload(this.#ci!, status);
+    await this.#testopsClient.stopUpload(this.#ci!, status);
   }
 
   async start(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled || !this.#createLaunch) {
+    if (!this.#testopsClient) {
       return;
     }
 
-    this.#logger.verbose("Starting upload…");
+    // TODO:
 
-    await this.#startUpload();
-    await this.#upload(store, { context, stage: "start" });
+    // this.#logger.verbose("Starting upload…");
 
-    this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
+    // await this.#startUpload();
+    // await this.#upload(store, { context, stage: "start" });
+
+    // this.#logger.info(`Allure TestOps Launch: ${this.#testopsClient.launchUrl}`);
   }
 
   async update(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled || !this.#createLaunch) {
+    if (!this.#testopsClient) {
       return;
     }
 
-    this.#logger.verbose("Updating (uploading new results)…");
+    // TODO:
 
-    await this.#upload(store, { context, stage: "update" });
+    // this.#logger.verbose("Updating (uploading new results)…");
+
+    // await this.#upload(store, { context, stage: "update" });
   }
 
   async done(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled || !this.#createLaunch) {
+    if (!this.#testopsClient) {
       return;
     }
 
-    const allTrs = await store.allTestResults({
-      filter: this.options.filter,
-      includeRetries: false,
-    });
+    // TODO:
 
-    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    // const allTrs = await store.allTestResults({
+    //   filter: this.options.filter,
+    //   includeRetries: false,
+    // });
 
-    this.#logger.verbose("Finalizing upload…");
+    // const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
-    await this.#upload(store, { context, stage: "done" });
-    await this.#stopUpload(worstStatus || "unknown");
+    // this.#logger.verbose("Finalizing upload…");
 
-    const launchId = this.#client.launchId;
+    // await this.#upload(store, { context, stage: "done" });
+    // await this.#stopUpload(worstStatus || "unknown");
 
-    if (typeof launchId !== "number") {
-      return;
-    }
+    // const launchId = this.#testopsClient.launchId;
 
-    if (!this.#autocloseLaunch) {
-      this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#client.launchUrl}`);
-      return;
-    }
+    // if (typeof launchId !== "number") {
+    //   return;
+    // }
 
-    try {
-      await this.#client.closeLaunch(launchId);
-    } catch (err) {
-      if (err instanceof Error) {
-        this.#logger.debug(`Failed to close launch: ${err.message}`);
-      } else {
-        this.#logger.debug("Failed to close launch");
-      }
-    }
+    // if (!this.#autocloseLaunch) {
+    //   this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#testopsClient.launchUrl}`);
+    //   return;
+    // }
 
-    this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#client.launchUrl}`);
+    // try {
+    //   await this.#testopsClient.closeLaunch(launchId);
+    // } catch (err) {
+    //   if (err instanceof Error) {
+    //     this.#logger.debug(`Failed to close launch: ${err.message}`);
+    //   } else {
+    //     this.#logger.debug("Failed to close launch");
+    //   }
+    // }
+
+    // this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#testopsClient.launchUrl}`);
   }
 
   async info(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.#testopsClient) {
       return undefined;
     }
 
-    if (!this.#client.launchUrl) {
+    if (!this.#testopsClient.launchUrl) {
       return undefined;
     }
 
@@ -554,31 +570,43 @@ export class TestOpsPlugin implements Plugin {
       store,
     });
 
-    summary.remoteHref = this.#client.launchUrl;
+    summary.remoteHref = this.#testopsClient.launchUrl;
 
     return summary;
   }
 
-  async publish(context: PluginPublishContext) {
-    const reportsToPublish = context.reports.filter((report) => report.publish && Object.keys(report.files).length > 0);
+  // TODO:
+  async publish(params: {
+    publisherContext: PluginContext;
+    context: PluginContext;
+    store: AllureStore;
+    historyDataPoint?: HistoryDataPoint;
+  }) {
+    const { publisherContext, context, store, historyDataPoint } = params;
 
-    if (reportsToPublish.length === 0) {
+    if (!this.#reportClient) {
       return undefined;
     }
 
-    const reportClient = this.#getReportClient();
+    const files = (await context.state.get("files")) ?? {};
 
-    if (!this.#enabled || !reportClient) {
-      return undefined;
-    }
+    console.log("testops files to publish", files)
 
-    await reportClient.createReport({
-      reportUuid: context.reportUuid,
-      reportName: context.reportName,
-    });
 
-    const linksByPluginId: Record<string, string> = {};
-    const successfulPluginIds = new Set<string>();
+    // const reportsToPublish = context.reports.filter((report) => report.publish && Object.keys(report.files).length > 0);
+
+    // if (reportsToPublish.length === 0) {
+    //   return undefined;
+    // }
+
+    // await this.#reportClient.createReport({
+    //   reportUuid: context.reportUuid,
+    //   reportName: context.reportName,
+    // });
+
+    // const linksByPluginId: Record<string, string> = {};
+    // const successfulPluginIds = new Set<string>();
+    //
     const isReportFile = (filename: string) =>
       filename === "index.html" ||
       filename === "summary.json" ||
@@ -586,131 +614,131 @@ export class TestOpsPlugin implements Plugin {
       filename.startsWith("widgets/") ||
       filename.startsWith("history/");
 
-    for (const report of reportsToPublish) {
-      const pluginFilesEntries = Object.entries(report.files);
-      const progressBar = this.#logger.progressBarCounter(
-        `Publishing "${report.pluginId}" report`,
-        pluginFilesEntries.length,
-      );
-      const uploadAbortController = new AbortController();
-      const failedUploads = new Set<string>();
-      const limit = pLimit(REPORT_UPLOAD_CONCURRENCY);
-      const uploadWithRetry = async (filename: string, uploadFn: () => Promise<void>) => {
-        for (let attempt = 1; attempt <= REMOTE_UPLOAD_MAX_ATTEMPTS; attempt++) {
-          if (uploadAbortController.signal.aborted) {
-            return false;
-          }
+    // for (const report of reportsToPublish) {
+    //   const pluginFilesEntries = Object.entries(report.files);
+    //   const progressBar = this.#logger.progressBarCounter(
+    //     `Publishing "${report.pluginId}" report`,
+    //     pluginFilesEntries.length,
+    //   );
+    //   const uploadAbortController = new AbortController();
+    //   const failedUploads = new Set<string>();
+    //   const limit = pLimit(REPORT_UPLOAD_CONCURRENCY);
+    //   const uploadWithRetry = async (filename: string, uploadFn: () => Promise<void>) => {
+    //     for (let attempt = 1; attempt <= REMOTE_UPLOAD_MAX_ATTEMPTS; attempt++) {
+    //       if (uploadAbortController.signal.aborted) {
+    //         return false;
+    //       }
 
-          try {
-            await uploadFn();
-            failedUploads.delete(filename);
+    //       try {
+    //         await uploadFn();
+    //         failedUploads.delete(filename);
 
-            return true;
-          } catch (error) {
-            if (uploadAbortController.signal.aborted) {
-              return false;
-            }
+    //         return true;
+    //       } catch (error) {
+    //         if (uploadAbortController.signal.aborted) {
+    //           return false;
+    //         }
 
-            failedUploads.add(filename);
+    //         failedUploads.add(filename);
 
-            if (failedUploads.size > REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED || attempt >= REMOTE_UPLOAD_MAX_ATTEMPTS) {
-              throw error;
-            }
-          }
-        }
+    //         if (failedUploads.size > REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED || attempt >= REMOTE_UPLOAD_MAX_ATTEMPTS) {
+    //           throw error;
+    //         }
+    //       }
+    //     }
 
-        return false;
-      };
-      const uploadTasks = pluginFilesEntries.map(([filename, filepath]) =>
-        limit(async () => {
-          if (uploadAbortController.signal.aborted) {
-            return;
-          }
+    //     return false;
+    //   };
+    //   const uploadTasks = pluginFilesEntries.map(([filename, filepath]) =>
+    //     limit(async () => {
+    //       if (uploadAbortController.signal.aborted) {
+    //         return;
+    //       }
 
-          let fileUrl: string | undefined;
-          const uploaded = await uploadWithRetry(filename, async () => {
-            if (isReportFile(filename)) {
-              fileUrl = await reportClient.addReportFile({
-                reportUuid: context.reportUuid,
-                pluginId: report.pluginId,
-                filename,
-                filepath,
-                signal: uploadAbortController.signal,
-              });
-            } else {
-              await reportClient.addReportAsset({ filename, filepath, signal: uploadAbortController.signal });
-            }
-          });
+    //       let fileUrl: string | undefined;
+    //       const uploaded = await uploadWithRetry(filename, async () => {
+    //         if (isReportFile(filename)) {
+    //           fileUrl = await this.#reportClient!.addReportFile({
+    //             reportUuid: context.reportUuid,
+    //             pluginId: report.pluginId,
+    //             filename,
+    //             filepath,
+    //             signal: uploadAbortController.signal,
+    //           });
+    //         } else {
+    //           await this.#reportClient!.addReportAsset({ filename, filepath, signal: uploadAbortController.signal });
+    //         }
+    //       });
 
-          if (!uploaded || uploadAbortController.signal.aborted) {
-            return;
-          }
+    //       if (!uploaded || uploadAbortController.signal.aborted) {
+    //         return;
+    //       }
 
-          if (isReportFile(filename)) {
-            if (filename === "index.html" && fileUrl) {
-              linksByPluginId[report.pluginId] = fileUrl;
-            }
-          }
+    //       if (isReportFile(filename) && filename === "index.html" && fileUrl) {
+    //         linksByPluginId[report.pluginId] = fileUrl;
+    //       }
 
-          progressBar.tick();
-        }),
-      );
+    //       progressBar.tick();
+    //     }),
+    //   );
 
-      try {
-        await Promise.all(uploadTasks);
+    //   try {
+    //     await Promise.all(uploadTasks);
 
-        if (linksByPluginId[report.pluginId]) {
-          successfulPluginIds.add(report.pluginId);
-        }
-      } catch (error) {
-        uploadAbortController.abort();
-        await Promise.allSettled(uploadTasks);
+    //     if (linksByPluginId[report.pluginId]) {
+    //       successfulPluginIds.add(report.pluginId);
+    //     }
+    //   } catch (error) {
+    //     uploadAbortController.abort();
+    //     await Promise.allSettled(uploadTasks);
 
-        delete linksByPluginId[report.pluginId];
+    //     delete linksByPluginId[report.pluginId];
 
-        try {
-          await reportClient.deleteReport({
-            reportUuid: context.reportUuid,
-          });
-        } catch (cleanupError) {
-          this.#logger.error("Failed to clean up failed TestOps report upload");
-          this.#logger.debug(
-            cleanupError instanceof Error ? (cleanupError.stack ?? cleanupError.message) : String(cleanupError),
-          );
-        }
+    //     try {
+    //       await this.#reportClient.deleteReport({
+    //         reportUuid: context.reportUuid,
+    //       });
+    //     } catch (cleanupError) {
+    //       this.#logger.error("Failed to clean up failed TestOps report upload");
+    //       this.#logger.debug(
+    //         cleanupError instanceof Error ? (cleanupError.stack ?? cleanupError.message) : String(cleanupError),
+    //       );
+    //     }
 
-        this.#logger.error(`Plugin "${report.pluginId}" upload has failed, the plugin won't be published`);
-        this.#logger.debug(error instanceof Error ? (error.stack ?? error.message) : String(error));
+    //     this.#logger.error(`Plugin "${report.pluginId}" upload has failed, the plugin won't be published`);
+    //     this.#logger.debug(error instanceof Error ? (error.stack ?? error.message) : String(error));
 
-        return undefined;
-      } finally {
-        progressBar.terminate();
-      }
-    }
+    //     return undefined;
+    //   } finally {
+    //     progressBar.terminate();
+    //   }
+    // }
 
-    if (successfulPluginIds.size === 0) {
-      return undefined;
-    }
+    // if (successfulPluginIds.size === 0) {
+    //   return undefined;
+    // }
 
-    const summaryHref = context.summary
-      ? await reportClient.addReportFile({
-          reportUuid: context.reportUuid,
-          filename: "index.html",
-          filepath: context.summary.filepath,
-        })
-      : undefined;
+    // const summaryHref = context.summary
+    //   ? await this.#reportClient.addReportFile({
+    //       reportUuid: context.reportUuid,
+    //       filename: "index.html",
+    //       filepath: context.summary.filepath,
+    //     })
+    //   : undefined;
 
-    await reportClient.completeReport({
-      reportUuid: context.reportUuid,
-      historyPoint: context.historyPoint,
-    });
+    // await this.#reportClient.completeReport({
+    //   reportUuid: context.reportUuid,
+    //   historyPoint: context.historyPoint,
+    // });
 
-    const [firstPluginHref] = Object.values(linksByPluginId);
-    const remoteHref = summaryHref ?? firstPluginHref;
+    // const [firstPluginHref] = Object.values(linksByPluginId);
+    // const remoteHref = summaryHref ?? firstPluginHref;
 
-    return {
-      linksByPluginId,
-      ...(remoteHref ? { remoteHref } : {}),
-    };
+    // return {
+    //   linksByPluginId,
+    //   ...(remoteHref ? { remoteHref } : {}),
+    // };
+
+    return undefined;
   }
 }

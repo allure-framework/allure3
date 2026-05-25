@@ -88,12 +88,13 @@ export class AllureReport {
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
-  #executionStage: "init" | "running" | "done" = "init";
+  #executionStage: "init" | "running" | "done" | "published" = "init";
+
   #historyDataPoint?: HistoryDataPoint;
-  #summaryPath?: string;
-  #summariesByPluginId: Map<string, PluginSummary> = new Map();
-  #publishResult?: PluginPublishResult;
-  #published = false;
+  // #summaryPath?: string;
+  // #summariesByPluginId: Map<string, PluginSummary> = new Map();
+  // #publishResult?: PluginPublishResult;
+  // #published = false;
 
   readonly reportUuid: string;
   reportUrl?: string;
@@ -665,95 +666,95 @@ export class AllureReport {
     }
   };
 
-  #collectPublishReports = async (): Promise<PluginReportFile[]> => {
-    const reports: PluginReportFile[] = [];
+  // #collectPublishReports = async (): Promise<PluginReportFile[]> => {
+  //   const reports: PluginReportFile[] = [];
 
-    for (const { enabled, id, options } of this.#plugins) {
-      if (!enabled) {
-        continue;
-      }
+  //   for (const { enabled, id, options } of this.#plugins) {
+  //     if (!enabled) {
+  //       continue;
+  //     }
 
-      const files = (await this.#state?.[id]?.get<Record<string, string>>("files")) ?? {};
+  //     const files = (await this.#state?.[id]?.get<Record<string, string>>("files")) ?? {};
 
-      reports.push({
-        pluginId: id,
-        publish: !!options?.publish,
-        files,
-      });
-    }
+  //     reports.push({
+  //       pluginId: id,
+  //       publish: !!options?.publish,
+  //       files,
+  //     });
+  //   }
 
-    return reports;
-  };
+  //   return reports;
+  // };
 
-  #mergePublishResult = (target: PluginPublishResult, source: PluginPublishResult | undefined) => {
-    if (!source) {
-      return;
-    }
+  // #mergePublishResult = (target: PluginPublishResult, source: PluginPublishResult | undefined) => {
+  //   if (!source) {
+  //     return;
+  //   }
 
-    for (const [pluginId, href] of Object.entries(source.linksByPluginId)) {
-      target.linksByPluginId[pluginId] ??= href;
-    }
+  //   for (const [pluginId, href] of Object.entries(source.linksByPluginId)) {
+  //     target.linksByPluginId[pluginId] ??= href;
+  //   }
 
-    target.remoteHref ??= source.remoteHref;
-  };
+  //   target.remoteHref ??= source.remoteHref;
+  // };
 
-  #applyPublishLinksToSummaries = (result: PluginPublishResult | undefined): Set<string> => {
-    const changedPluginIds = new Set<string>();
+  // #applyPublishLinksToSummaries = (result: PluginPublishResult | undefined): Set<string> => {
+  //   const changedPluginIds = new Set<string>();
 
-    if (!result || this.#summariesByPluginId.size === 0) {
-      return changedPluginIds;
-    }
+  //   if (!result || this.#summariesByPluginId.size === 0) {
+  //     return changedPluginIds;
+  //   }
 
-    for (const [pluginId, remoteHref] of Object.entries(result.linksByPluginId)) {
-      const summary = this.#summariesByPluginId.get(pluginId);
+  //   for (const [pluginId, remoteHref] of Object.entries(result.linksByPluginId)) {
+  //     const summary = this.#summariesByPluginId.get(pluginId);
 
-      if (summary && remoteHref) {
-        summary.remoteHref = remoteHref;
-        changedPluginIds.add(pluginId);
-      }
-    }
+  //     if (summary && remoteHref) {
+  //       summary.remoteHref = remoteHref;
+  //       changedPluginIds.add(pluginId);
+  //     }
+  //   }
 
-    return changedPluginIds;
-  };
+  //   return changedPluginIds;
+  // };
 
-  #getSummaries = (): PluginSummary[] => [...this.#summariesByPluginId.values()].map(clonePluginSummary);
+  // #getSummaries = (): PluginSummary[] => [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
-  #writeSummaryFiles = async (pluginIds?: Iterable<string>): Promise<void> => {
-    if (this.#summariesByPluginId.size === 0) {
-      return;
-    }
+  // #writeSummaryFiles = async (pluginIds?: Iterable<string>): Promise<void> => {
+  //   if (this.#summariesByPluginId.size === 0) {
+  //     return;
+  //   }
 
-    const pluginIdsSet = pluginIds ? new Set(pluginIds) : undefined;
+  //   const pluginIdsSet = pluginIds ? new Set(pluginIds) : undefined;
 
-    await this.#eachPlugin(false, async (_plugin, context) => {
-      if (pluginIdsSet && !pluginIdsSet.has(context.id)) {
-        return;
-      }
+  //   await this.#eachPlugin(false, async (_plugin, context) => {
+  //     if (pluginIdsSet && !pluginIdsSet.has(context.id)) {
+  //       return;
+  //     }
 
-      const summary = this.#summariesByPluginId.get(context.id);
+  //     const summary = this.#summariesByPluginId.get(context.id);
 
-      if (!summary) {
-        return;
-      }
+  //     if (!summary) {
+  //       return;
+  //     }
 
-      // expose summary.json file to the FS to make possible to use it in the integrations
-      await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
-    });
-  };
+  //     // expose summary.json file to the FS to make possible to use it in the integrations
+  //     await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
+  //   });
+  // };
 
-  #generateRootSummary = async (): Promise<void> => {
-    const summaries = this.#getSummaries();
+  // #generateRootSummary = async (): Promise<void> => {
+  //   const summaries = this.#getSummaries();
 
-    if (summaries.length > 1) {
-      this.#summaryPath = await generateSummary(this.#output, summaries);
-    } else {
-      this.#summaryPath = undefined;
-    }
-  };
+  //   if (summaries.length > 1) {
+  //     this.#summaryPath = await generateSummary(this.#output, summaries);
+  //   } else {
+  //     this.#summaryPath = undefined;
+  //   }
+  // };
 
   done = async (): Promise<void> => {
-    const summaries: PluginSummary[] = [];
-    const remoteHrefs: Set<string> = new Set();
+    // const summaries: PluginSummary[] = [];
+    // // const remoteHrefs: Set<string> = new Set();
 
     if (this.#executionStage !== "running") {
       throw new Error(initRequired);
@@ -764,13 +765,14 @@ export class AllureReport {
     const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
 
     this.#historyDataPoint = historyDataPoint;
-
     this.#realtimeChannel.close();
+
     try {
       await this.#realtimeUpdateScheduler.close();
     } catch (e) {
       console.error("realtime update failed during shutdown", e);
     }
+
     // closing it after realtime update settles, to prevent future reads
     this.#executionStage = "done";
 
@@ -783,41 +785,49 @@ export class AllureReport {
     // isolate logs of different reports dumps: done and summary
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
-    });
-    await this.#eachPlugin(false, async (plugin, context) => {
-      const summary = await plugin?.info?.(context, this.#store);
 
-      if (!summary) {
-        return;
-      }
+      // console.log(context.id, context.output)
 
-      summary.pluginId = context.id;
-      summary.pullRequestHref = this.#ci?.pullRequestUrl;
-      summary.jobHref = this.#ci?.jobRunUrl;
-
-      summaries.push({
-        ...summary,
-        href: `${context.id}/`,
-      });
+      // console.log("done context", context.reportFiles)
+      // console.log("done plugin", plugin)
     });
 
-    this.#summariesByPluginId = new Map(
-      summaries
-        .filter((summary): summary is PluginSummary & { pluginId: string } => !!summary.pluginId)
-        .map((summary) => [summary.pluginId, summary]),
-    );
+    // TODO:
 
-    const publishResult = await this.publish();
+    // await this.#eachPlugin(false, async (plugin, context) => {
+    //   const summary = await plugin?.info?.(context, this.#store);
 
-    if (publishResult?.remoteHref) {
-      remoteHrefs.add(publishResult.remoteHref);
-    }
+    //   if (!summary) {
+    //     return;
+    //   }
 
-    Object.values(publishResult?.linksByPluginId ?? {})
-      .filter(Boolean)
-      .forEach((href) => {
-        remoteHrefs.add(href);
-      });
+    //   summary.pluginId = context.id;
+    //   summary.pullRequestHref = this.#ci?.pullRequestUrl;
+    //   summary.jobHref = this.#ci?.jobRunUrl;
+
+    //   summaries.push({
+    //     ...summary,
+    //     href: `${context.id}/`,
+    //   });
+    // });
+
+    // this.#summariesByPluginId = new Map(
+    //   summaries
+    //     .filter((summary): summary is PluginSummary & { pluginId: string } => !!summary.pluginId)
+    //     .map((summary) => [summary.pluginId, summary]),
+    // );
+
+    // const publishResult = await this.publish();
+
+    // if (publishResult?.remoteHref) {
+    //   remoteHrefs.add(publishResult.remoteHref);
+    // }
+
+    // Object.values(publishResult?.linksByPluginId ?? {})
+    //   .filter(Boolean)
+    //   .forEach((href) => {
+    //     remoteHrefs.add(href);
+    //   });
 
     let outputDirFiles: string[] = [];
 
@@ -857,28 +867,29 @@ export class AllureReport {
       } catch {}
     }
 
-    if (this.#history) {
-      try {
-        await this.#store.appendHistory(historyDataPoint);
-      } catch (err) {
-        if (err instanceof KnownError) {
-          console.error("Failed to append history", err.message);
-        } else if (err instanceof UnknownError) {
-          // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
-          console.error("Failed to append history due to unexpected error", err.message);
-        } else {
-          throw err;
-        }
-      }
-    }
+    // TODO: move to publish step?
+    // if (this.#history) {
+    //   try {
+    //     await this.#store.appendHistory(historyDataPoint);
+    //   } catch (err) {
+    //     if (err instanceof KnownError) {
+    //       console.error("Failed to append history", err.message);
+    //     } else if (err instanceof UnknownError) {
+    //       // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
+    //       console.error("Failed to append history due to unexpected error", err.message);
+    //     } else {
+    //       throw err;
+    //     }
+    //   }
+    // }
 
-    if (remoteHrefs.size > 0) {
-      console.info("Next reports have been published:");
+    // if (remoteHrefs.size > 0) {
+    //   console.info("Next reports have been published:");
 
-      remoteHrefs.forEach((href) => {
-        console.info(`- ${href}`);
-      });
-    }
+    //   remoteHrefs.forEach((href) => {
+    //     console.info(`- ${href}`);
+    //   });
+    // }
 
     if (!this.#qualityGate) {
       return;
@@ -889,87 +900,125 @@ export class AllureReport {
     await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
   };
 
-  publish = async (): Promise<PluginPublishResult | undefined> => {
+  publish = async () => {
+    if (this.#executionStage === "published") {
+      return;
+    }
+
     if (this.#executionStage !== "done") {
       throw new Error("report is not completed. Call the done() method first.");
     }
 
-    if (this.#published) {
-      return this.#publishResult;
-    }
+    this.#executionStage = "published";
 
-    let historyPoint = this.#historyDataPoint;
+    const summariesById: Map<string, PluginSummary> = new Map();
+    const allTcs = await this.#store.allTestCases();
+    const allTrs = await this.#store.allTestResults();
+    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, allTcs, allTrs);
 
-    if (!historyPoint) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
+    await this.#eachPlugin(false, async (plugin, context) => {
+      const summary = await plugin?.info?.(context, this.#store);
 
-      historyPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
-      this.#historyDataPoint = historyPoint;
-    }
-
-    await this.#writeSummaryFiles();
-    await this.#generateRootSummary();
-
-    if (this.#realTime || !this.#publish) {
-      this.#published = true;
-
-      return undefined;
-    }
-
-    const reports = await this.#collectPublishReports();
-    const result: PluginPublishResult = {
-      linksByPluginId: {},
-    };
-
-    for (const { enabled, id, options, plugin } of this.#plugins) {
-      if (!enabled || !options?.publish || !plugin.publish) {
-        continue;
+      if (!summary) {
+        return;
       }
 
-      try {
-        const publishResult = await plugin.publish(
-          {
-            reportUuid: this.reportUuid,
-            reportName: this.#reportName,
-            ci: this.#ci,
-            historyPoint,
-            reports,
-            ...(this.#summaryPath
-              ? {
-                  summary: {
-                    filepath: this.#summaryPath,
-                    summaries: this.#getSummaries(),
-                  },
-                }
-              : {}),
-          },
-          this.#store,
-        );
+      summariesById.set(context.id, summary);
+    });
 
-        const changedPluginIds = this.#applyPublishLinksToSummaries(publishResult);
-
-        if (changedPluginIds.size > 0) {
-          await this.#writeSummaryFiles(changedPluginIds);
-          await this.#generateRootSummary();
-        }
-
-        this.#mergePublishResult(result, publishResult);
-      } catch (err) {
-        console.error(`Plugin "${id}" publish has failed`);
-
-        if (err instanceof KnownError) {
-          console.error(err.message);
-        } else {
-          console.error(err);
-        }
+    await this.#eachPlugin(false, async (publisher, publisherContext) => {
+      if (!publisher?.publish) {
+        return;
       }
-    }
 
-    this.#publishResult = Object.keys(result.linksByPluginId).length > 0 || result.remoteHref ? result : undefined;
-    this.#published = true;
+      await this.#eachPlugin(false, async (_plugin, context) => {
+        if (!summariesById.has(context.id) || !context.publish) {
+          return;
+        }
 
-    return this.#publishResult;
+        const publishResult = await publisher.publish!({
+          publisherContext,
+          context: context,
+          store: this.#store,
+          historyDataPoint,
+        });
+
+        console.log({ publishResult })
+      })
+    });
+
+    // let historyPoint = this.#historyDataPoint;
+
+    // if (!historyPoint) {
+    //   const testResults = await this.#store.allTestResults();
+    //   const testCases = await this.#store.allTestCases();
+
+    //   historyPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+    //   this.#historyDataPoint = historyPoint;
+    // }
+
+    // await this.#writeSummaryFiles();
+    // await this.#generateRootSummary();
+
+    // if (this.#realTime || !this.#publish) {
+    //   this.#published = true;
+
+    //   return undefined;
+    // }
+
+    // const reports = await this.#collectPublishReports();
+    // const result: PluginPublishResult = {
+    //   linksByPluginId: {},
+    // };
+
+    // for (const { enabled, id, options, plugin } of this.#plugins) {
+    //   if (!enabled || !options?.publish || !plugin.publish) {
+    //     continue;
+    //   }
+
+    //   try {
+    //     const publishResult = await plugin.publish(
+    //       {
+    //         reportUuid: this.reportUuid,
+    //         reportName: this.#reportName,
+    //         ci: this.#ci,
+    //         historyPoint,
+    //         reports,
+    //         ...(this.#summaryPath
+    //           ? {
+    //               summary: {
+    //                 filepath: this.#summaryPath,
+    //                 summaries: this.#getSummaries(),
+    //               },
+    //             }
+    //           : {}),
+    //       },
+    //       this.#store,
+    //     );
+
+    //     const changedPluginIds = this.#applyPublishLinksToSummaries(publishResult);
+
+    //     if (changedPluginIds.size > 0) {
+    //       await this.#writeSummaryFiles(changedPluginIds);
+    //       await this.#generateRootSummary();
+    //     }
+
+    //     this.#mergePublishResult(result, publishResult);
+    //   } catch (err) {
+    //     console.error(`Plugin "${id}" publish has failed`);
+
+    //     if (err instanceof KnownError) {
+    //       console.error(err.message);
+    //     } else {
+    //       console.error(err);
+    //     }
+    //   }
+    // }
+
+    // this.#publishResult = Object.keys(result.linksByPluginId).length > 0 || result.remoteHref ? result : undefined;
+    // this.#published = true;
+
+    // return this.#publishResult;
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {

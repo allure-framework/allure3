@@ -2,7 +2,6 @@ import type { CiDescriptor } from "@allurereport/core-api";
 
 export interface StoragePluginOptions {
   accessToken?: string;
-  publish?: boolean;
 }
 
 export const isServiceReportFile = (filename: string) => /^(data|widgets|index\.html$|summary\.json$)/.test(filename);
