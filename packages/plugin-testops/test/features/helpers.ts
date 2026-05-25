@@ -160,5 +160,6 @@ export const mockRequests = () => {
 
 export const handleBeforeEach = () => {
   vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
+  vi.stubEnv("ALLURE_TESTOPS_ENABLED", "true");
   vi.clearAllMocks();
 };

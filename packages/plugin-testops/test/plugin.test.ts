@@ -88,8 +88,9 @@ const fixtures = {
 
 beforeEach(() => {
   vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
+  vi.stubEnv("ALLURE_TESTOPS_ENABLED", "true");
   vi.clearAllMocks();
-  (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
+  (detect as unknown as Mock).mockReturnValue({ type: "github" } as CiDescriptor);
   AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
   AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue(undefined);
   AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
@@ -188,7 +189,7 @@ describe("testops plugin", () => {
 
   describe("start", () => {
     describe("ci mode", () => {
-      it("should return true from ciMode getter when ci is detected and not local", () => {
+      it("should return true from enabled getter when ci is detected and not local", () => {
         (detect as unknown as Mock).mockReturnValue({ type: "github" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({
           accessToken: fixtures.accessToken,
@@ -200,7 +201,7 @@ describe("testops plugin", () => {
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-        expect(plugin.ciMode).toBe(true);
+        expect(plugin.enabled).toBe(true);
       });
 
       it("should start upload when ci is detected (non-local)", async () => {
@@ -230,7 +231,7 @@ describe("testops plugin", () => {
     });
 
     describe("outside ci mode", () => {
-      it("should return false from ciMode getter when ci is local", () => {
+      it("should return false from enabled getter when ci is local", () => {
         (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({
           accessToken: fixtures.accessToken,
@@ -242,7 +243,7 @@ describe("testops plugin", () => {
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-        expect(plugin.ciMode).toBe(false);
+        expect(plugin.enabled).toBe(false);
       });
 
       it("should not start upload when ci is local", async () => {
