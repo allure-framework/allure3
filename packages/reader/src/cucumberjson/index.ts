@@ -29,6 +29,8 @@ const NS_IN_MS = 1_000_000;
 
 const readerId = "cucumberjson";
 
+const matchesCucumberJsonFile = (fileName: string): boolean => fileName.endsWith(".json");
+
 const allureStepStatusPriorityOrder = {
   failed: 0,
   broken: 1,
@@ -85,23 +87,28 @@ type PreProcessedStep = {
 type PostProcessedStep = { preProcessedStep: PreProcessedStep; allureStep: RawTestStepResult };
 
 export const cucumberjson: ResultsReader = {
-  matches: (data) => data.getOriginalFileName().endsWith(".json"),
+  matches: (data) => matchesCucumberJsonFile(data.getOriginalFileName()),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
-    if (originalFileName.endsWith(".json")) {
-      try {
-        const parsed = await data.asJson<CucumberFeature[]>();
-        if (isArray(parsed)) {
-          let oneOrMoreFeaturesParsed = false;
-          for (const feature of parsed) {
-            oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
+    try {
+      const parsed = await data.asJson<CucumberFeature[]>();
+
+      if (isArray(parsed)) {
+        let oneOrMoreFeaturesParsed = false;
+
+        for (const feature of parsed) {
+          oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
+
+          if (oneOrMoreFeaturesParsed) {
+            break;
           }
-          return oneOrMoreFeaturesParsed;
         }
-      } catch (e) {
-        console.error("error parsing", originalFileName, e);
-        return false;
+
+        return oneOrMoreFeaturesParsed;
       }
+    } catch (e) {
+      console.error("error parsing", originalFileName, e);
+      return false;
     }
     return false;
   },

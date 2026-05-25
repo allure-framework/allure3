@@ -63,28 +63,30 @@ const xmlParser = new XMLParser({
 
 const readerId = "allure1";
 
-export const allure1: ResultsReader = {
-  matches: (data) => data.getOriginalFileName().endsWith("-testsuite.xml"),
-  read: async (visitor, data) => {
-    if (data.getOriginalFileName().endsWith("-testsuite.xml")) {
-      try {
-        const asBuffer = await data.asBuffer();
-        if (!asBuffer) {
-          return false;
-        }
-        const content = cleanBadXmlCharacters(asBuffer).toString("utf-8");
-        const parsed = xmlParser.parse(content);
-        if (!isStringAnyRecord(parsed)) {
-          return false;
-        }
+const matchesAllure1File = (fileName: string): boolean => fileName.endsWith("-testsuite.xml");
 
-        return await parseRootElement(visitor, parsed);
-      } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+export const allure1: ResultsReader = {
+  matches: (data) => matchesAllure1File(data.getOriginalFileName()),
+  read: async (visitor, data) => {
+    try {
+      const asBuffer = await data.asBuffer();
+
+      if (!asBuffer) {
         return false;
       }
+
+      const content = cleanBadXmlCharacters(asBuffer).toString("utf-8");
+      const parsed = xmlParser.parse(content);
+
+      if (!isStringAnyRecord(parsed)) {
+        return false;
+      }
+
+      return await parseRootElement(visitor, parsed);
+    } catch (e) {
+      console.error("error parsing", data.getOriginalFileName(), e);
+      return false;
     }
-    return false;
   },
 
   readerId: () => readerId,

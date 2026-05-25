@@ -52,16 +52,24 @@ const xmlParser = new XMLParser({
 
 const readerId = "allure2";
 
+const isAllure2AttachmentFileName = (fileName: string): boolean => {
+  const attachmentIdx = fileName.lastIndexOf("-attachment");
+
+  if (attachmentIdx === -1) {
+    return false;
+  }
+
+  const suffix = fileName.slice(attachmentIdx + "-attachment".length);
+
+  return suffix === "" || suffix.startsWith(".");
+};
+
 const matchesAllure2File = (fileName: string): boolean => {
   if (fileName.endsWith("-result.json")) return true;
   if (fileName.endsWith("-check.json")) return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
-  const attachmentIdx = fileName.lastIndexOf("-attachment");
-  if (attachmentIdx !== -1) {
-    const suffix = fileName.slice(attachmentIdx + "-attachment".length);
-    if (suffix === "" || suffix.startsWith(".")) return true;
-  }
+  if (isAllure2AttachmentFileName(fileName)) return true;
   if (fileName === "executor.json") return true;
   if (fileName === "categories.json") return true;
   if (fileName === "environment.properties") return true;
@@ -73,13 +81,6 @@ export const allure2: ResultsReader = {
   matches: (data) => matchesAllure2File(data.getOriginalFileName()),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
-
-    // this is essential in case we need to attach valid result files
-    // e.g. like in allure2.test.ts
-    if (originalFileName.match(/-attachment(?:\..+)?/)) {
-      await visitor.visitAttachmentFile(data, { readerId });
-      return true;
-    }
 
     if (originalFileName.endsWith("-check.json")) {
       try {
@@ -191,6 +192,10 @@ export const allure2: ResultsReader = {
       }
     }
 
+    // This is essential in case we need to attach valid result files
+    // e.g. like in allure2.test.ts. Under core dispatch, only files matched
+    // by matchesAllure2File reach this fallback, so the remaining case is an
+    // Allure 2 attachment.
     await visitor.visitAttachmentFile(data, { readerId });
     return true;
   },

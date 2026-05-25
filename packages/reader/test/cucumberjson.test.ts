@@ -2,20 +2,15 @@
 import { describe, expect, it } from "vitest";
 
 import { cucumberjson } from "../src/index.js";
-import { readResults } from "./utils.js";
+import { readResourceAsResultFile, readResults } from "./utils.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 describe("cucumberjson reader", () => {
   it("should ignore a file with no .json extension", async () => {
-    const visitor = await readResults(
-      cucumberjson,
-      {
-        "cucumberjsondata/reference/names/wellDefined.json": "cucumber",
-      },
-      false,
-    );
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(0);
+    const resultFile = await readResourceAsResultFile("cucumberjsondata/reference/names/wellDefined.json", "cucumber");
+
+    expect(cucumberjson.matches(resultFile)).toBe(false);
   });
 
   // As implemented in https://github.com/cucumber/cucumber-ruby or https://github.com/cucumber/json-formatter (which
