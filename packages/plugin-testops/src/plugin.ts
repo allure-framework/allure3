@@ -28,15 +28,24 @@ export class TestOpsPlugin implements Plugin {
   // @ts-expect-error - if client is not initialized it will not be used
   #client: TestOpsClient;
   /**
-   * If the plugin is enabled
+   * If the client is configured
    */
-  #enabled: boolean = false;
+  #clientConfigured: boolean = false;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
-  #autocloseLaunch: boolean;
+  #autocloseLaunch: boolean = false;
 
   constructor(readonly options: TestOpsPluginOptions) {
+    this.#ci = detect();
+
+    if (!this.#ci || this.#ci.type === "local") {
+      this.#logger.info(
+        `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
+      );
+      return;
+    }
+
     const {
       accessToken,
       endpoint,
@@ -46,12 +55,10 @@ export class TestOpsPlugin implements Plugin {
       autocloseLaunch = true,
     } = resolvePluginOptions(options);
 
-    this.#ci = detect();
-
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
-      this.#enabled = true;
+      this.#clientConfigured = true;
       this.#client = new TestOpsClient({
         baseUrl: endpoint,
         accessToken,
@@ -82,8 +89,32 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  get ciMode() {
-    return this.#ci && this.#ci.type !== "local";
+  get isOverridenByEnv(): boolean {
+    const isEnabled = (value: string | undefined) => {
+      if (!value) {
+        return false;
+      }
+
+      return ["true", "1"].includes(value);
+    };
+
+    return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
+  }
+
+  get enabled(): boolean {
+    if (!this.#clientConfigured) {
+      return false;
+    }
+
+    if (this.isOverridenByEnv) {
+      return true;
+    }
+
+    if (!this.#ci || this.#ci.type === "local") {
+      return false;
+    }
+
+    return true;
   }
 
   async #uploadQualityGateResults(store: AllureStore) {
@@ -423,23 +454,15 @@ export class TestOpsPlugin implements Plugin {
     await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
 
-    if (!this.ciMode) {
-      return;
-    }
-
     await this.#client.startUpload(this.#ci!);
   }
 
   async #stopUpload(status: TestStatus) {
-    if (!this.ciMode) {
-      return;
-    }
-
     await this.#client.stopUpload(this.#ci!, status);
   }
 
   async start(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
@@ -452,7 +475,7 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async update(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
@@ -462,7 +485,7 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async done(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
@@ -503,7 +526,7 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async info(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return undefined;
     }
 

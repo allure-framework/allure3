@@ -14,6 +14,25 @@
 
 The plugin creates a new launch in Allure TestOps with all the tests data from the current report.
 
+## CI and local runs
+
+The plugin is intended to run in a **CI environment**. When a supported CI is detected, upload to TestOps starts automatically (as long as `accessToken`, `endpoint`, and `projectId` are configured).
+
+On a **local machine** (no CI detected), upload is disabled by default.
+
+To upload from your machine anyway, opt in with one of these environment variables set to a truthy value (`true` or `1`):
+
+| Environment variable       | Purpose |
+|----------------------------|---------|
+| `ALLURE_TESTOPS_ENABLED`   | Explicitly enable TestOps upload outside CI |
+| `CI`                       | Same effect; useful if your tooling already sets `CI` in non-CI workflows |
+
+Example:
+
+```shell
+ALLURE_TESTOPS_ENABLED=true allure run ...
+```
+
 ## Install
 
 Use your favorite package manager to install the package:
@@ -71,3 +90,5 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_ENDPOINT` | `endpoint` |
 | `ALLURE_LAUNCH_NAME` | `launchName` |
 | `ALLURE_LAUNCH_TAGS` | `launchTags` |
+
+`ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).
