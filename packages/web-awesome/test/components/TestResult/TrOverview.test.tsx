@@ -60,6 +60,7 @@ vi.mock("@/stores/locale", () => ({
 
 vi.mock("@/stores/testResult", () => ({
   currentTrId: { value: "current-test-result-id" },
+  trCurrentTab: { value: "overview" },
 }));
 
 const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
