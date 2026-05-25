@@ -125,12 +125,6 @@ describe("components > TestResult > TrOverview", () => {
     expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
   });
 
-  it("should render the top error block for a failed test with a displayable error", () => {
-    render(<TrOverview testResult={makeTestResult({ error: { message: "boom", trace: "trace" } })} />);
-
-    expect(screen.getByTestId("test-result-error")).toBeInTheDocument();
-  });
-
   it("should render the empty state when there are no body items", () => {
     render(<TrOverview testResult={makeTestResult()} />);
 

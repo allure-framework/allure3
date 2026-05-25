@@ -110,13 +110,12 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
 };
 
 export const ReportMetadata = () => {
-  const stats = currentEnvironment.value
-    ? statsByEnvStore.value.data[currentEnvironment.value]
-    : reportStatsStore.value.data;
+  const envId = currentEnvironment.value;
+  const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
 
   useEffect(() => {
-    fetchVariables(currentEnvironment.value);
-  }, []);
+    fetchVariables(envId);
+  }, [envId]);
 
   return (
     <div className={styles["report-metadata-wrapper"]}>
