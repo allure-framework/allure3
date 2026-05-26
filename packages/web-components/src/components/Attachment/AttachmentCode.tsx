@@ -1,14 +1,10 @@
 import { ansiToHTML, isAnsi } from "@allurereport/web-commons";
-import Prism from "prismjs";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-typescript";
-import "./code.scss";
+import { useMemo } from "preact/hooks";
+
 import type { AttachmentProps } from "./model";
+
+import "./code.scss";
+import { Prism } from "./prism-setup.js";
 
 const extToPrismLanguage: Record<string, string> = {
   js: "javascript",
@@ -76,6 +72,13 @@ const languageFromName = (name?: string): string | undefined => {
   return extToPrismLanguage[nameExt] ?? nameExt;
 };
 
+const shouldShowLineNumbers = (prismLang: string, rawText: string): boolean => {
+  if (prismLang === "markdown") {
+    return false;
+  }
+  return rawText.split("\n").length >= 5;
+};
+
 export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean }) => {
   const { attachment, item, highlight = true } = props;
 
@@ -92,6 +95,17 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
     (contentType && contentTypeToPrismLanguage[contentType]) ||
     "plaintext";
   const rawText = attachment.text ?? "";
+  const showLineNumbers = shouldShowLineNumbers(prismLang, rawText);
+  const preClass = useMemo(() => {
+    const languageClass = highlight ? `language-${prismLang}` : "";
+    const lineNumbersClass = highlight && showLineNumbers ? "line-numbers" : "";
+    return ["attachment-code-block", languageClass, lineNumbersClass].filter(Boolean).join(" ");
+  }, [highlight, prismLang, showLineNumbers]);
+
+  const highlightedHtml = useMemo(
+    () => (highlight ? highlightCode(rawText, prismLang) : null),
+    [highlight, rawText, prismLang],
+  );
 
   if (isAnsi(rawText) && rawText.length > 0 && highlight) {
     const sanitizedText = ansiToHTML(rawText, {
@@ -110,32 +124,24 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
     return (
       <pre
         data-testid="code-attachment-content"
-        key={item?.link?.id}
-        className={highlight ? `language-${prismLang} line-numbers` : "attachment-code-plain"}
+        className={preClass}
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: sanitizedText }}
       />
     );
   }
 
-  if (!highlight) {
-    return (
-      <pre data-testid="code-attachment-content" key={item?.link?.id} className="attachment-code-plain">
-        <code>{rawText}</code>
-      </pre>
-    );
-  }
-
-  const highlightedHtml = highlightCode(rawText, prismLang);
-  const preClass = `language-${prismLang} line-numbers`;
-
   return (
-    <pre data-testid={"code-attachment-content"} key={item?.link?.id} className={preClass}>
-      <code
-        className={`language-${prismLang}`}
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-      />
+    <pre data-testid="code-attachment-content" className={preClass}>
+      {highlight && highlightedHtml !== null ? (
+        <code
+          className={`language-${prismLang}`}
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+        />
+      ) : (
+        <code>{rawText}</code>
+      )}
     </pre>
   );
 };

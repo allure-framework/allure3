@@ -983,6 +983,7 @@ const RAW_RUNTIME_STATE =
           ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1"],\
           ["@rollup/plugin-babel", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.4"],\
           ["@rollup/plugin-commonjs", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:28.0.2"],\
+          ["@rollup/plugin-inject", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.0.5"],\
           ["@rollup/plugin-json", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.1.0"],\
           ["@rollup/plugin-node-resolve", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.0.0"],\
           ["@rollup/plugin-terser", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.4.4"],\
@@ -1014,6 +1015,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-tip", "npm:0.0.1"],\
           ["@types/d3-transition", "npm:3.0.9"],\
           ["@types/lodash", "npm:4.17.20"],\
+          ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.17.9"],\
           ["@types/prismjs", "npm:1.26.5"],\
@@ -1042,6 +1044,7 @@ const RAW_RUNTIME_STATE =
           ["html-webpack-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.6.3"],\
           ["jsdom", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:26.0.0"],\
           ["lodash", "npm:4.18.1"],\
+          ["markdown-it", "npm:14.1.1"],\
           ["mini-css-extract-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
@@ -8123,6 +8126,31 @@ const RAW_RUNTIME_STATE =
           ["is-reference", "npm:1.2.1"],\
           ["magic-string", "npm:0.30.17"],\
           ["picomatch", "npm:4.0.4"],\
+          ["rollup", "npm:4.59.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/rollup",\
+          "rollup"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@rollup/plugin-inject", [\
+      ["npm:5.0.5", {\
+        "packageLocation": "./.yarn/cache/@rollup-plugin-inject-npm-5.0.5-06525e4573-1d0e68dff0.zip/node_modules/@rollup/plugin-inject/",\
+        "packageDependencies": [\
+          ["@rollup/plugin-inject", "npm:5.0.5"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.0.5", {\
+        "packageLocation": "./.yarn/__virtual__/@rollup-plugin-inject-virtual-c1b52c05c9/0/cache/@rollup-plugin-inject-npm-5.0.5-06525e4573-1d0e68dff0.zip/node_modules/@rollup/plugin-inject/",\
+        "packageDependencies": [\
+          ["@rollup/plugin-inject", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.0.5"],\
+          ["@rollup/pluginutils", "virtual:5700ea211719937a4f320eb965d8ddddc690f26d0ad5b7acb7ac9deca86d856e38df63956a7a2ee71ad27072158987cdf959eb943825510c2d19f565efb4b4e5#npm:5.1.4"],\
+          ["@types/rollup", null],\
+          ["estree-walker", "npm:2.0.2"],\
+          ["magic-string", "npm:0.30.17"],\
           ["rollup", "npm:4.59.0"]\
         ],\
         "packagePeers": [\

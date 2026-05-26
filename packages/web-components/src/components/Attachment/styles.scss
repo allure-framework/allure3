@@ -214,6 +214,14 @@
   width: 24px;
 }
 
+.attachmentViewStack {
+  width: 100%;
+}
+
+.attachmentViewPane[hidden] {
+  display: none !important;
+}
+
 .html-attachment-preview {
   padding: 0 16px;
   height: 100%;

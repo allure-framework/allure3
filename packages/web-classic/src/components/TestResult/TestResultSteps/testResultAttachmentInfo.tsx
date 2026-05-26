@@ -35,6 +35,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
     openModal({
       data: item,
       component: <Attachment item={item} previewable={true} />,
+      preview: contentType === "text/markdown" || contentType === "text/html",
     });
   };
 

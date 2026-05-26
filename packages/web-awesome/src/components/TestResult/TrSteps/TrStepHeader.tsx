@@ -1,5 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Code, LinkifiedText, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
@@ -44,9 +44,7 @@ export const TrStepHeader: FunctionComponent<TrStepHeaderProps> = ({
     <Code size="s" className={styles["test-result-step-number"]}>
       {stepIndex}
     </Code>
-    <Text data-testid="test-result-step-title" className={styles["test-result-header-text"]}>
-      {title}
-    </Text>
+    <LinkifiedText data-testid="test-result-step-title" className={styles["test-result-header-text"]} text={title} />
     {subtreeToggle}
     {extra}
   </div>
