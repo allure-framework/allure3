@@ -6,11 +6,7 @@ export const useCoverageDiffColors = (theme: string = "light") => {
   const scale = useMemo(() => {
     return getColorScale(
       [0, 1],
-      [
-        "var(--color-status-failed-chart-fill)",
-        "var(--color-intent-info-bg)",
-        "var(--color-status-passed-chart-fill)",
-      ],
+      ["var(--color-status-failed-chart-fill)", "var(--color-intent-info-bg)", "var(--color-status-passed-chart-fill)"],
     );
   }, [theme]);
 
