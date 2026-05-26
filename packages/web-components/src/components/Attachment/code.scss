@@ -1,10 +1,12 @@
+:global(pre.attachment-code-block),
+:global(pre.attachment-code-block code),
 :global(pre[class*="language-"]),
 :global(code[class*="language-"]),
 :global(pre.attachment-code-plain),
 :global(pre.attachment-code-plain code) {
   background: var(--bg-base-secondary);
   font-size: 12px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-mono), "JetBrains Mono", monospace;
   color: var(--on-text-primary);
   text-shadow: none !important;
   margin: 0;
@@ -13,6 +15,10 @@
   padding: 8px;
   white-space: pre-wrap;
   line-height: 1.5;
+}
+
+:global(pre.attachment-code-block.line-numbers) {
+  padding-left: 8px;
 }
 
 :global(.token.comment),

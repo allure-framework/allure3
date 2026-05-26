@@ -15,6 +15,7 @@ import { AttachmentImage } from "./AttachmentImage";
 import { AttachmentImageDiff } from "./AttachmentImageDiff";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
+import { MarkdownPreview } from "./MarkdownPreview";
 import type { AttachmentProps, I18nProp } from "./model";
 
 import styles from "./styles.scss";
@@ -28,6 +29,7 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "css": AttachmentCode,
   "table": AttachmentCode,
   "html": AttachmentCode,
+  "markdown": AttachmentCode,
   "text": AttachmentCode,
   "video": AttachmentVideo,
   "image-diff": AttachmentImageDiff,
@@ -36,7 +38,10 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
 
 const previewComponentsByAttachmentType: Record<string, any> = {
   html: HtmlPreview,
+  markdown: MarkdownPreview,
 };
+
+const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown"]);
 
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
@@ -101,16 +106,36 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   }
 
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
+  const CurrentComponent = componentsByAttachmentType[componentType];
 
   // @ts-expect-error TODO: add all translations for attachment types
   const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+
+  if (DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) && CurrentPreviewComponent && CurrentComponent) {
+    const isCodeComponent = CurrentComponent === AttachmentCode;
+    const showPreview = !!previewable;
+
+    return (
+      <div className={styles.attachmentViewStack}>
+        <div className={styles.attachmentViewPane} hidden={showPreview}>
+          <CurrentComponent
+            attachment={attachment.value}
+            item={item}
+            i18n={i18nProp}
+            {...(isCodeComponent ? { highlight: highlightCode } : {})}
+          />
+        </div>
+        <div className={styles.attachmentViewPane} hidden={!showPreview}>
+          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />
+        </div>
+      </div>
+    );
+  }
 
   // temp solution before modal component refactoring
   if (previewable && CurrentPreviewComponent) {
     return <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
   }
-
-  const CurrentComponent = componentsByAttachmentType[componentType];
 
   if (!CurrentComponent) {
     return null;
