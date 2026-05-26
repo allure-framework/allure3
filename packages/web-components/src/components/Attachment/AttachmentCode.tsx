@@ -60,6 +60,25 @@ const highlightCode = (text: string, language: string): string => {
   }
 };
 
+const ansiColors = {
+  0: "var(--color-text-primary)",
+  1: "var(--color-intent-danger-text)",
+  2: "var(--color-intent-success-text)",
+  3: "var(--color-intent-warning-text)",
+  4: "var(--color-intent-info-text)",
+  5: "var(--color-status-unknown-text)",
+  6: "var(--color-decorative-5-text)",
+  7: "var(--color-text-primary)",
+  8: "var(--color-text-muted)",
+  9: "var(--color-intent-danger-text)",
+  10: "var(--color-intent-success-text)",
+  11: "var(--color-intent-warning-text)",
+  12: "var(--color-intent-info-text)",
+  13: "var(--color-status-unknown-text)",
+  14: "var(--color-decorative-5-text)",
+  15: "var(--color-text-primary)",
+};
+
 const languageFromName = (name?: string): string | undefined => {
   if (!name) {
     return undefined;
@@ -111,14 +130,7 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
     const sanitizedText = ansiToHTML(rawText, {
       fg: "var(--color-text-primary)",
       bg: "none",
-      colors: {
-        0: "none",
-        1: "none",
-        2: "var(--color-syntax-keyword)",
-        3: "var(--color-syntax-property)",
-        4: "var(--color-syntax-muted-accent)",
-        5: "var(--color-syntax-type)",
-      },
+      colors: ansiColors,
     });
 
     return (
