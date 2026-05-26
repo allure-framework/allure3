@@ -60,7 +60,7 @@ const highlightCode = (text: string, language: string): string => {
   }
 };
 
-const ansiColors = {
+const ansiColors: Record<number, string> = {
   0: "var(--color-text-primary)",
   1: "var(--color-intent-danger-text)",
   2: "var(--color-intent-success-text)",
@@ -78,6 +78,52 @@ const ansiColors = {
   14: "var(--color-decorative-5-text)",
   15: "var(--color-text-primary)",
 };
+
+const xtermColorLevels = [0, 95, 135, 175, 215, 255];
+
+const getReadableXtermColor = (red: number, green: number, blue: number) => {
+  const brightness = red * 0.299 + green * 0.587 + blue * 0.114;
+
+  if (red >= 175 && green >= 135 && blue <= 135) {
+    return "var(--color-intent-warning-text)";
+  }
+
+  if (green >= 175 && red <= 175 && blue <= 175) {
+    return "var(--color-intent-success-text)";
+  }
+
+  if (red >= 175 && green <= 135 && blue <= 135) {
+    return "var(--color-intent-danger-text)";
+  }
+
+  if (blue >= 175 && red <= 175) {
+    return "var(--color-intent-info-text)";
+  }
+
+  if (red >= 135 && blue >= 135 && green <= 135) {
+    return "var(--color-status-unknown-text)";
+  }
+
+  if (brightness >= 175) {
+    return "var(--color-text-primary)";
+  }
+};
+
+for (let colorIndex = 16; colorIndex <= 231; colorIndex++) {
+  const cubeIndex = colorIndex - 16;
+  const red = xtermColorLevels[Math.floor(cubeIndex / 36)];
+  const green = xtermColorLevels[Math.floor((cubeIndex % 36) / 6)];
+  const blue = xtermColorLevels[cubeIndex % 6];
+  const color = getReadableXtermColor(red, green, blue);
+
+  if (color) {
+    ansiColors[colorIndex] = color;
+  }
+}
+
+for (let colorIndex = 250; colorIndex <= 255; colorIndex++) {
+  ansiColors[colorIndex] = "var(--color-text-primary)";
+}
 
 const languageFromName = (name?: string): string | undefined => {
   if (!name) {
