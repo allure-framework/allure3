@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
+    "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@floating-ui/dom": "^1.7.4",
     "@nivo/bar": "^0.99.0",
@@ -92,6 +93,7 @@
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",

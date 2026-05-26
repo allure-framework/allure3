@@ -1,16 +1,10 @@
 import { ansiToHTML, isAnsi } from "@allurereport/web-commons";
 import { useMemo } from "preact/hooks";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-typescript";
-import Prism from "prismjs";
+
+import type { AttachmentProps } from "./model";
 
 import "./code.scss";
-import type { AttachmentProps } from "./model";
+import { Prism } from "./prism-setup.js";
 
 const extToPrismLanguage: Record<string, string> = {
   js: "javascript",

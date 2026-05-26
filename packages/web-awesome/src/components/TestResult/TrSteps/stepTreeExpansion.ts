@@ -1,12 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { getReportOptions } from "@allurereport/web-commons";
-import {
-  getNextSubtreeToggleState,
-  getSubtreeToggleIcon,
-  isSubtreeFirstLevelOnlyOpened,
-  type SubtreeNodeState,
-  type SubtreeToggleState,
-} from "@allurereport/web-commons";
+import { getReportOptions, type SubtreeNodeState } from "@allurereport/web-commons";
 
 import { hasTestLevelErrorContent, type TrBodyItem, type TrStepItem } from "@/components/TestResult/bodyItems";
 
@@ -83,7 +76,12 @@ export const collectExpandableStepNodes = (
   return nodes;
 };
 
-export { getNextSubtreeToggleState, getSubtreeToggleIcon, isSubtreeFirstLevelOnlyOpened, type SubtreeToggleState };
+export {
+  getNextSubtreeToggleState,
+  getSubtreeToggleIcon,
+  isSubtreeFirstLevelOnlyOpened,
+  type SubtreeToggleState,
+} from "@allurereport/web-commons";
 
 export const getStepTreeExpansionPolicy = (): StepTreeExpansion =>
   getReportOptions<AwesomeReportOptions>()?.stepTreeExpansion ?? DEFAULT_STEP_TREE_EXPANSION_POLICY;
