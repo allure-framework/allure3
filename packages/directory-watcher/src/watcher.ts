@@ -73,34 +73,45 @@ const findFiles = async (
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   recursive: boolean,
 ) => {
-  try {
-    const dir = await opendir(watchDirectory, { recursive });
-    for await (const dirent of dir) {
-      if (dirent.isDirectory()) {
-        continue;
-      }
+  const scanDirectory = async (directory: string, isRoot: boolean): Promise<void> => {
+    try {
+      const dir = await opendir(directory);
 
-      const path = join(dirent.parentPath ?? dirent.path, dirent.name);
-      if (existingResults.has(path)) {
-        continue;
-      }
+      for await (const dirent of dir) {
+        const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
-      try {
-        await onNewFile(path, dirent);
-        existingResults.add(path);
-      } catch (e) {
-        if (!isFileNotFoundError(e)) {
-          console.error("can't process file", path, e);
+        if (dirent.isDirectory()) {
+          if (recursive) {
+            await scanDirectory(path, false);
+          }
+          continue;
+        }
+
+        if (existingResults.has(path)) {
+          continue;
+        }
+
+        try {
+          await onNewFile(path, dirent);
+          existingResults.add(path);
+        } catch (e) {
+          if (!isFileNotFoundError(e)) {
+            console.error("can't process file", path, e);
+          }
         }
       }
+    } catch (e) {
+      if (isFileNotFoundError(e)) {
+        if (isRoot) {
+          existingResults.clear();
+        }
+        return;
+      }
+      console.error("can't read directory", e);
     }
-  } catch (e) {
-    if (isFileNotFoundError(e)) {
-      existingResults.clear();
-      return;
-    }
-    console.error("can't read directory", e);
-  }
+  };
+
+  await scanDirectory(watchDirectory, true);
 };
 
 const singleIteration = async (callback: () => Promise<void>, ...ac: AbortController[]): Promise<void> => {
@@ -273,7 +284,12 @@ const waitUntilFileStopChanging = async (
     }
     const sinceChange = now - prev.timestamp;
     if (sinceChange < minWait) {
-      await setTimeout(Math.min(0, maxWait, minWait - sinceChange + 1));
+      const maxDelay = maxWait - (now - start);
+      if (maxDelay <= 0) {
+        return false;
+      }
+      await setTimeout(Math.min(maxDelay, minWait - sinceChange + 1));
+      continue;
     }
     const current = await calculateInfo(file);
     if (!current) {
