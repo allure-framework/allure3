@@ -12,8 +12,6 @@ beforeEach(async () => {
 
 import { TrOverview } from "@/components/TestResult/TrOverview";
 
-import type { AwesomeTestResult } from "../../../types";
-
 vi.mock("@/components/TestResult/TestStepsEmpty", () => ({
   default: () => <div data-testid="test-steps-empty" />,
 }));
