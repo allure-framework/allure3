@@ -103,7 +103,7 @@
 
   /* Test-result status colors */
   --color-status-failed-bg: var(--palette-red-day-darken-2);
-  --color-status-failed-bg-subtle: var(--palette-red-day-darken-1-16);
+  --color-status-failed-bg-subtle: var(--palette-red-day-darken-1-8);
   --color-status-failed-text: var(--palette-red-day-darken-4);
   --color-status-failed-border: var(--palette-red-day-darken-1);
   --color-status-failed-on-bg: var(--palette-gray-neutral-0);
@@ -111,7 +111,7 @@
   --color-status-failed-chart-fill: var(--palette-red-day-darken-2);
 
   --color-status-broken-bg: var(--palette-amber-day-darken-2);
-  --color-status-broken-bg-subtle: var(--palette-amber-day-darken-2-16);
+  --color-status-broken-bg-subtle: var(--palette-amber-day-darken-1-8);
   --color-status-broken-text: var(--palette-orange-day-darken-5);
   --color-status-broken-border: var(--palette-amber-day-darken-2);
   --color-status-broken-on-bg: var(--palette-gray-950);
@@ -302,7 +302,7 @@
   --color-status-failed-chart-fill: var(--palette-red-night-darken-3);
 
   --color-status-broken-bg: var(--palette-amber-night-darken-2);
-  --color-status-broken-bg-subtle: var(--palette-amber-night-darken-4-28);
+  --color-status-broken-bg-subtle: var(--palette-amber-night-darken-4-12);
   --color-status-broken-text: var(--palette-amber-night-base);
   --color-status-broken-border: var(--palette-amber-night-darken-3);
   --color-status-broken-on-bg: var(--palette-gray-950);
