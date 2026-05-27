@@ -1,8 +1,8 @@
 .layout {
   margin: auto;
   padding: 12px 32px;
-  background: var(--bg-base-secondary);
-  color: var(--on-text-primary);
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
   font-size: 14px;
 }
 
@@ -16,7 +16,7 @@
 
 .content {
   box-shadow: var(--shadow-small);
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   border-radius: 12px;
   width: 100%;
   overflow: hidden;
@@ -39,7 +39,7 @@
 .title {
   font-size: 14px;
   line-height: 1.25;
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   margin-bottom: 8px;
 }
 

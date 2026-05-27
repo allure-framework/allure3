@@ -43,32 +43,22 @@ d3Select.prototype.transition = d3Transition as any;
 
 const getColorFromStatus = (status: "failed" | "broken" | "passed" | "skipped" | "unknown"): string => {
   const colorMap: Record<typeof status, string> = {
-    // corresponds to --bg-support-capella
-    failed: "var(--timeline-status-failed, #E8452CFF)",
-    // corresponds to --bg-support-atlas
-    broken: "var(--timeline-status-broken, #E88D2CFF)",
-    // corresponds to --bg-support-castor
-    passed: "var(--timeline-status-passed, #099337FF)",
-    // corresponds to --bg-support-rau
-    skipped: "var(--timeline-status-skipped, #7281A1FF)",
-    // corresponds to --bg-support-skat
-    unknown: "var(--timeline-status-unknown, #B92CE8FF)",
+    failed: "var(--timeline-status-failed, var(--color-status-failed-chart))",
+    broken: "var(--timeline-status-broken, var(--color-status-broken-chart))",
+    passed: "var(--timeline-status-passed, var(--color-status-passed-chart))",
+    skipped: "var(--timeline-status-skipped, var(--color-status-skipped-chart))",
+    unknown: "var(--timeline-status-unknown, var(--color-status-unknown-chart))",
   };
   return colorMap[status] || colorMap.unknown;
 };
 
 const getPatternBgFromStatus = (status: "failed" | "broken" | "passed" | "skipped" | "unknown"): string => {
   const colorMap: Record<typeof status, string> = {
-    // corresponds to --bg-support-capella-heavy
-    failed: "var(--on-support-capella, #E8452CFF)",
-    // corresponds to --bg-support-atlas
-    broken: "var(--on-support-atlas, #E88D2CFF)",
-    // corresponds to --bg-support-castor
-    passed: "var(--on-support-castor, #099337FF)",
-    // corresponds to --bg-support-rau
-    skipped: "var(--on-support-rau, #7281A1FF)",
-    // corresponds to --bg-support-skat
-    unknown: "var(--on-support-skat, #B92CE8FF)",
+    failed: "var(--color-status-failed-text)",
+    broken: "var(--color-status-broken-text)",
+    passed: "var(--color-status-passed-text)",
+    skipped: "var(--color-status-skipped-text)",
+    unknown: "var(--color-status-unknown-text)",
   };
   return colorMap[status] || colorMap.unknown;
 };

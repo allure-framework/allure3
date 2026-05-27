@@ -2,7 +2,7 @@
   padding-right: 24px;
 
   &:not(:first-child) {
-    border-top: 1px solid var(--on-border-muted);
+    border-top: 1px solid var(--color-border-subtle);
   }
 }
 
@@ -12,18 +12,18 @@
 
 .test-result-step {
   &:not(:first-child) {
-    border-top: 1px solid var(--on-border-muted);
+    border-top: 1px solid var(--color-border-subtle);
   }
 }
 
 .test-result-step-content {
   padding-left: 24px;
   margin-bottom: 12px;
-  border-top: 1px solid var(--on-border-muted);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .test-result-attachment-content {
-  border-top: 1px solid var(--on-border-muted);
+  border-top: 1px solid var(--color-border-subtle);
   cursor: pointer;
 }
 
@@ -46,7 +46,7 @@
   min-height: 32px;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-ghost-hover);
   }
 }
 
@@ -63,7 +63,7 @@
 }
 
 .test-result-step-number {
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
   min-width: 16px;
   text-align: center;
   box-sizing: content-box;
@@ -72,7 +72,7 @@
 .item-time {
   flex: none;
   margin-left: auto;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
   line-height: 20px;
   min-width: 56px;
   text-align: right;
@@ -82,7 +82,7 @@
   margin-left: auto;
   display: flex;
   gap: 8px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   align-items: center;
   flex: 0 0 auto;
 }
@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
   min-width: 52px;
   justify-content: flex-end;
 }
@@ -103,7 +103,7 @@
 }
 
 .item-info-step-icon {
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }
 
 .test-result-step-chevron {
@@ -126,7 +126,7 @@
   padding: 4px 8px 4px 6px;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-ghost-hover);
   }
 }
 
@@ -140,7 +140,7 @@
 }
 
 .test-result-attachment-icon {
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
   padding: 2px 4px;
   height: max-content;
 }
@@ -186,7 +186,7 @@
 }
 
 .item-button {
-  color: var(--bg-control-flat);
+  color: var(--color-control-bg-ghost);
 }
 
 .wrong-attachment-sign {
@@ -196,7 +196,7 @@
 }
 
 .test-result-attachment-missed {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   line-height: 20px;
   margin-right: auto;
   padding-top: 2px;

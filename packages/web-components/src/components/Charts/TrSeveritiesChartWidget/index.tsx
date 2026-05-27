@@ -21,7 +21,7 @@ export const TrSeveritiesChartWidget: FunctionalComponent<Props> = (props) => {
         return {
           id: status,
           label: i18n(`status.${status}`),
-          color: getColorFromStatus(status),
+          color: getColorFromStatus(status, "chartFill"),
         };
       }),
     [statuses, i18n],

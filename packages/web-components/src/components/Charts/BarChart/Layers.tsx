@@ -182,7 +182,7 @@ const BarChartItemHoverArea = <T extends BarDatum>({
 
   const { fill: animatedFill } = useSpring({
     from: { fill: "#ffffff00" },
-    to: { fill: "var(--bg-control-flat-medium)" },
+    to: { fill: "var(--color-control-bg-ghost-hover)" },
     config: { ...motionConfig, duration: 150 },
     reverse: !isHovered,
     immediate: !animate,

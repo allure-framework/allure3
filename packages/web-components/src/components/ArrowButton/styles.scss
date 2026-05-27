@@ -4,11 +4,11 @@
   padding: 8px 4px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 
   &:hover {
-    background: var(--bg-control-flat-medium);
-    color: var(--on-icon-primary);
+    background: var(--color-control-bg-ghost-hover);
+    color: var(--color-icon-primary);
   }
 }
 

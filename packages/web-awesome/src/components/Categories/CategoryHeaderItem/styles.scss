@@ -2,7 +2,7 @@
   font-size: 24px;
   margin-bottom: 16px;
   &:not(:first-child) {
-    border-top: 1px solid var(--on-border-muted);
+    border-top: 1px solid var(--color-border-subtle);
   }
 }
 
@@ -22,7 +22,7 @@
 }
 
 .tree-item-category-name {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;

@@ -1,6 +1,6 @@
 .test-result-error {
   padding: 8px 8px 12px 16px;
-  background-color: var(--bg-alpha-capella);
+  background-color: var(--color-status-failed-bg-subtle);
   border-radius: 8px;
   position: relative;
   overflow: hidden;
@@ -14,7 +14,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    background: var(--on-support-capella);
+    background: var(--color-status-failed-border);
   }
 }
 
@@ -27,7 +27,7 @@
 .test-result-error-text {
   margin-bottom: 8px;
   padding-left: 8px;
-  color: var(--on-support-capella);
+  color: var(--color-status-failed-text);
 }
 
 .test-result-error-trace {
@@ -50,6 +50,6 @@
   transition: background-color 300ms;
 
   &:hover {
-    background: var(--bg-alpha-capella);
+    background: var(--color-status-failed-bg-subtle);
   }
 }

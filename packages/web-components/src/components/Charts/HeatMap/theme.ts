@@ -1,36 +1,36 @@
 // Define the Nivo theme object using CSS variables
 export const nivoTheme = {
-  background: "var(--bg-base-primary)", // Chart background
+  background: "var(--color-bg-primary)", // Chart background
   axis: {
     ticks: {
       // axis ticks (values on the axis)
       text: {
-        fill: "var(--on-text-secondary)",
+        fill: "var(--color-text-secondary)",
       },
     },
     legend: {
       // legend text (axis title)
       text: {
-        fill: "var(--on-text-primary)",
+        fill: "var(--color-text-primary)",
       },
     },
     grid: {
       // grid lines
       line: {
-        stroke: "var(--on-border-muted)",
+        stroke: "var(--color-border-default)",
       },
     },
   },
   legends: {
     // Symbol legends text (e.g., below the chart)
     text: {
-      fill: "var(--on-text-secondary)",
+      fill: "var(--color-text-secondary)",
     },
   },
   tooltip: {
     container: {
-      background: "var(--bg-base-modal)",
-      color: "var(--on-text-primary)",
+      background: "var(--color-bg-raised)",
+      color: "var(--color-text-primary)",
     },
   },
 };

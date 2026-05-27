@@ -9,14 +9,14 @@
     bottom: 0;
     left: 12px;
     width: 1px;
-    background: var(--on-border-muted);
+    background: var(--color-border-subtle);
     opacity: 0;
     transition: opacity 200ms;
   }
 }
 
 .tree-item {
-  border-top: 1px solid var(--on-border-muted);
+  border-top: 1px solid var(--color-border-subtle);
   // padding-left: 24px;
 
 }
