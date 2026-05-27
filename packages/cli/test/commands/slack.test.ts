@@ -3,9 +3,9 @@ import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin from "@allurereport/plugin-slack";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SlackCommand } from "../../src/commands/slack.js";

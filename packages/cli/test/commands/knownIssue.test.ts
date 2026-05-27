@@ -2,9 +2,9 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { KnownIssueCommand } from "../../src/commands/knownIssue.js";

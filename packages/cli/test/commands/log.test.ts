@@ -3,9 +3,9 @@ import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin from "@allurereport/plugin-log";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogCommand } from "../../src/commands/log.js";
