@@ -8,14 +8,14 @@
 }
 
 .tab {
-  --allure-tab-underline-color: var(--bg-control-flat);
+  --allure-tab-underline-color: var(--color-control-bg-ghost);
 
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   cursor: pointer;
   flex-shrink: 0;
   transform: scale(1);
   outline: none;
-  background-color: var(--bg-control-flat);
+  background-color: var(--color-control-bg-ghost);
   padding: 8px;
   border: none;
   border-radius: 4px;
@@ -41,16 +41,16 @@
     cursor: default;
 
     &:after {
-      --allure-tab-underline-color: var(--on-support-aldebaran);
+      --allure-tab-underline-color: var(--color-intent-primary-text);
     }
   }
 
   &:hover:not([aria-current]) {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-ghost-hover);
   }
 
   &:active:not([aria-current]) {
-    background-color: var(--bg-control-flat-heavy);
+    background-color: var(--color-control-bg-ghost-active);
     transform: scale(0.94);
   }
 
@@ -59,6 +59,6 @@
   }
 
   &:focus-visible:not([aria-current]) {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-ghost-hover);
   }
 }

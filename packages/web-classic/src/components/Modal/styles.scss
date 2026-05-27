@@ -97,7 +97,7 @@
   width: 100%;
   position: absolute;
   bottom: 0;
-  color: var(--gray-neutral-0);
+  color: var(--color-text-inverse);
 }
 
 .modal-thumb {
@@ -106,7 +106,7 @@
   width: 64px;
   height: 64px;
   border-radius: 12px;
-  background: var(--constant-bg-base-primary-night);
+  background: var(--color-bg-inverse-primary);
   overflow: hidden;
   border: 1px solid transparent;
   cursor: pointer;

@@ -58,6 +58,7 @@ export const fetchAttachment = async (
     case "uri":
     case "code":
     case "html":
+    case "markdown":
     case "table":
     case "text": {
       const text = await response.text();
@@ -113,6 +114,7 @@ export type AttachmentType =
   | "svg"
   | "code"
   | "text"
+  | "markdown"
   | "html"
   | "table"
   | "video"
@@ -290,9 +292,10 @@ export const attachmentType = (type?: string): AttachmentType | null => {
     case "application/json":
       return "code";
     case "text/plain":
-    case "text/markdown":
     case "text/*":
       return "text";
+    case "text/markdown":
+      return "markdown";
     case "text/html":
       return "html";
     case "text/csv":

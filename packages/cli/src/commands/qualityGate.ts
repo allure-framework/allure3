@@ -5,7 +5,6 @@ import { exit, cwd as processCwd } from "node:process";
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { type TestResult } from "@allurereport/core-api";
 import { Command, Option } from "clipanion";
-import { glob } from "glob";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
 
@@ -15,6 +14,7 @@ import {
   normalizeCommandEnvironmentOptions,
   resolveCommandEnvironment,
 } from "../utils/environment.js";
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -28,12 +28,19 @@ export class QualityGateCommand extends Command {
         "quality-gate ./allure-results --config custom-config.js",
         "Validate the test results using a custom configuration file",
       ],
+      [
+        "quality-gate ./packages/*/allure-results",
+        "Validate the test results in all Allure result directories matching the pattern",
+      ],
+      [
+        "quality-gate ./packages/foo/allure-results ./packages/bar/allure-results",
+        "Validate the test results in two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({
-    required: false,
-    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {
@@ -80,7 +87,6 @@ export class QualityGateCommand extends Command {
     normalizeCommandEnvironmentOptions(environmentOptions);
 
     const cwd = await realpath(this.cwd ?? processCwd());
-    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath,
@@ -130,20 +136,9 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    const resultsDirectories = (
-      await glob(resultsDir, {
-        mark: true,
-        nodir: false,
-        absolute: true,
-        dot: true,
-        windowsPathsNoEscape: true,
-        cwd,
-      })
-    ).filter((p) => /(\/|\\)$/.test(p));
-
-    if (resultsDirectories.length === 0) {
-      // eslint-disable-next-line no-console
-      console.error(red(`No test results directories found matching pattern: ${resultsDir}`));
+    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
@@ -173,8 +168,8 @@ export class QualityGateCommand extends Command {
 
     await allureReport.start();
 
-    for (const dir of resultsDirectories) {
-      await allureReport.readDirectory(dir);
+    for (const directory of resultDirectories) {
+      await allureReport.readDirectory(directory);
     }
 
     await allureReport.done();

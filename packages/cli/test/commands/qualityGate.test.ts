@@ -116,28 +116,29 @@ describe("quality-gate command", () => {
     };
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.config = fixtures.config;
-
-    await command.execute();
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
 
     expect(exit).toHaveBeenCalledWith(0);
   });
 
   it("should exit with code 1 on fast-fail during realtime validation", async () => {
-    let onTestResultsCb: (ids: string[]) => void;
-
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true;
-    AllureReportMock.prototype.realtimeSubscriber = {
-      onTestResults: (cb: (ids: string[]) => void) => {
-        onTestResultsCb = cb;
-      },
-    };
+    const onTestResultPromise = new Promise<(ids: string[]) => void>((r) => {
+      AllureReportMock.prototype.realtimeSubscriber = {
+        onTestResults: (cb: (ids: string[]) => void) => {
+          r(cb);
+        },
+      };
+    });
     AllureReportMock.prototype.store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn().mockResolvedValue({}),
@@ -150,20 +151,17 @@ describe("quality-gate command", () => {
     validateMock.mockResolvedValueOnce({ results: [{ success: false }], fastFailed: true });
     validateMock.mockResolvedValueOnce({ results: [{ success: false }] });
 
-    const command = new QualityGateCommand();
+    const commandPromise = run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
 
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.config = fixtures.config;
-
-    const commandPromise = command.execute();
-
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    onTestResultsCb!(["id-1"]);
+    const onTestResultCb = await onTestResultPromise;
+    onTestResultCb(["id-1"]);
 
     await commandPromise;
 
@@ -184,12 +182,7 @@ describe("quality-gate command", () => {
     };
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = undefined;
-
-    await command.execute();
+    await run(QualityGateCommand, ["quality-gate", "--cwd", fixtures.cwd]);
 
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir1/allure-results/");
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir2/allure-results/");
@@ -202,12 +195,7 @@ describe("quality-gate command", () => {
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
     AllureReportMock.prototype.hasQualityGate = true;
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = undefined;
-
-    await command.execute();
+    await run(QualityGateCommand, ["quality-gate", "--cwd", fixtures.cwd]);
 
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining("No test results directories found matching pattern:"),
@@ -222,35 +210,37 @@ describe("quality-gate command", () => {
     };
     AllureReportMock.prototype.hasQualityGate = false;
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.config = fixtures.config;
-    command.maxFailures = undefined;
-    command.minTestsCount = undefined;
-    command.successRate = undefined;
-
-    await command.execute();
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
 
     expect(exit).toHaveBeenCalledWith(-1);
   });
 
   it("should exit with code 1 when there is no test results found", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({ plugins: [], qualityGate: fixtures.qualityGateConfig });
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+      qualityGate: fixtures.qualityGateConfig,
+    });
     AllureReportMock.prototype.store = {
       allKnownIssues: vi.fn().mockResolvedValue([]),
     };
     (glob as unknown as Mock).mockResolvedValueOnce([]);
     AllureReportMock.prototype.hasQualityGate = true;
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.config = fixtures.config;
-
-    await command.execute();
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
 
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining("No test results directories found matching pattern:"),
@@ -260,7 +250,6 @@ describe("quality-gate command", () => {
 
   it("should prefer CLI arguments over config and defaults", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
-    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
     await run(QualityGateCommand, ["quality-gate", "--known-issues", "foo"]);
 
@@ -272,7 +261,6 @@ describe("quality-gate command", () => {
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
-    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
     await run(QualityGateCommand, ["quality-gate"]);
 
@@ -303,18 +291,40 @@ describe("quality-gate command", () => {
     (glob as unknown as Mock).mockResolvedValueOnce([]);
     AllureReportMock.prototype.hasQualityGate = true;
 
-    const command = new QualityGateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = undefined;
-    command.environmentName = "Production";
-
-    await command.execute();
+    await run(QualityGateCommand, ["quality-gate", "--cwd", fixtures.cwd, "--environment-name", "Production"]);
 
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
         environment: "prod_env",
       }),
     );
+  });
+
+  it("should support multiple resultsDir", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+      allKnownIssues: vi.fn().mockResolvedValue([]),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
+
+    await run(QualityGateCommand, ["quality-gate", "foo", "bar"]);
+
+    expect(exit).toHaveBeenCalledWith(0);
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", expect.any(Object));
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", expect.any(Object));
+
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledTimes(2);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./foo/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./bar/");
   });
 });

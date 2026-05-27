@@ -1,14 +1,21 @@
 @use "../../assets/scss/mixins";
 
 .counter {
-  background-color: var(--bg-control-secondary);
-  color: var(--on-text-primary);
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--space-2);
+  min-height: var(--space-2);
+  background-color: var(--color-control-bg);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-pill);
+  line-height: var(--line-height-s);
   @include mixins.status-bg-and-text();
 
   &.size-s {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: var(--space-0-75);
+    padding-right: var(--space-0-75);
   }
 
   &.size-m {

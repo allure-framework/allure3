@@ -1,9 +1,14 @@
+import type { CiDescriptor } from "@allurereport/core-api";
 import { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginState, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { TestOpsPlugin } from "../../src/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
+
+vi.mock("@allurereport/ci", () => ({
+  detect: vi.fn(() => ({ type: "github" }) as CiDescriptor),
+}));
 
 beforeEach(() => {
   handleBeforeEach();

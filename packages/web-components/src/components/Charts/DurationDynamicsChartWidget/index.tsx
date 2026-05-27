@@ -23,19 +23,19 @@ export const DurationDynamicsChartWidget: FunctionalComponent<Props> = (props) =
       {
         id: "sequentialDuration",
         label: i18n("durations.sequential"),
-        color: "var(--bg-support-rigel)",
+        color: "var(--color-chart-categorical-5)",
         type: "default",
       },
       {
         id: "duration",
         label: i18n("durations.duration"),
-        color: "var(--bg-support-betelgeuse)",
+        color: "var(--color-chart-categorical-2)",
         type: "default",
       },
       {
         id: "speedup",
         label: i18n("durations.speedup"),
-        color: "var(--bg-support-betelgeuse-medium)",
+        color: "var(--color-chart-categorical-9)",
         type: "point",
       },
     ];

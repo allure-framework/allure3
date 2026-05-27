@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType, isPreviewableContentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
+import { attachmentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
@@ -54,30 +54,41 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.playwright-trace": playwrightLogo,
 };
 
-const HAS_PREVIEW_COMPONENT = new Set(["html"]);
+const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
+const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
+  const { link } = item;
   const attachmentTreeId = item.link?.id !== null ? `attachment-${item.link.id}` : null;
   const isOpened = attachmentTreeId !== null ? isTreeOpened(attachmentTreeId, false) : false;
-  const [showPreview, setShowPreview] = useState(false);
+  const componentTypeForPreview = attachmentType(link.contentType);
+  const [showPreview, setShowPreview] = useState(() => DEFAULT_PREVIEW_TYPES.has(componentTypeForPreview ?? ""));
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
-  const { link } = item;
   const { missed } = link;
-  const componentType = attachmentType(link.contentType);
+  const componentType = componentTypeForPreview;
   const isValidComponentType = !["archive", null].includes(componentType);
   const isPreviewable = HAS_PREVIEW_COMPONENT.has(componentType ?? "");
-  const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
   const isSyntaxHighlightable = isSyntaxHighlightSupported({
     contentType: link.contentType,
     ext: link.ext,
     name: link.name,
     originalFileName: link.originalFileName,
   });
+  const supportsSyntaxHighlightToggle =
+    isSyntaxHighlightable &&
+    (componentType === "code" || componentType === "text" || componentType === "markdown" || componentType === "html");
+
+  const handleHighlightToggle = () => {
+    if (isPreviewable && showPreview) {
+      setShowPreview(false);
+    }
+    setHighlightCode((highlight) => !highlight);
+  };
 
   const expandAttachment = (event: Event) => {
     event.stopPropagation();
@@ -129,9 +140,8 @@ export const TrAttachment: FunctionComponent<{
             isPreviewable={isPreviewable}
             showPreview={showPreview}
             onPreviewToggle={isPreviewable ? () => setShowPreview((p) => !p) : undefined}
-            isCodeView={isCodeView && isSyntaxHighlightable}
             highlightCode={highlightCode}
-            onHighlightToggle={isCodeView && isSyntaxHighlightable ? () => setHighlightCode((h) => !h) : undefined}
+            onHighlightToggle={supportsSyntaxHighlightToggle ? handleHighlightToggle : undefined}
           />
         </div>
       </div>

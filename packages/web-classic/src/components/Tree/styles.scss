@@ -2,7 +2,7 @@
   position: relative;
 
   &:not(:first-child) {
-    border-top: 1px solid var(--on-border-muted);
+    border-top: 1px solid var(--color-border-subtle);
   }
 }
 
@@ -19,7 +19,7 @@
   padding: 4px 8px 4px 6px;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-ghost-hover);
   }
 }
 
@@ -53,15 +53,15 @@
   position: relative;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-ghost-hover);
   }
 
   &:not(:first-child) {
-    border-top: 1px solid var(--on-border-muted);
+    border-top: 1px solid var(--color-border-subtle);
   }
 }
 .tree-item-marked {
-  background: var(--bg-base-secondary);
+  background: var(--color-bg-secondary);
 }
 
 .item-title {
@@ -71,7 +71,7 @@
 .item-time {
   flex: none;
   margin-left: auto;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
 }
 
 .test-count {
@@ -83,7 +83,7 @@
   display: block;
   padding-left: 24px;
   margin-bottom: 12px;
-  border-top: 1px solid var(--on-border-muted);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .tree-item-icon {
@@ -92,71 +92,76 @@
 }
 
 .status-passed {
-  color: var(--bg-support-castor);
+  color: var(--color-status-passed-bg);
 }
 
 .status-failed {
-  color: var(--bg-support-capella);
+  color: var(--color-status-failed-bg);
 }
 
 .status-broken {
-  color: var(--bg-support-atlas);
+  color: var(--color-status-broken-bg);
 }
 
 .status-skipped {
-  color: var(--bg-support-rau);
+  color: var(--color-status-skipped-bg);
 }
 
 .status-unknown {
-  color: var(--bg-support-skat);
+  color: var(--color-status-unknown-bg);
 }
 
 .tree-header-bar {
   display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-25);
   font-family: var(--font-family);
   max-width: 140px;
   min-width: 46px;
-  border-radius: 4px;
-  height: 12px;
-  background: var(--on-text-hint);
+  height: var(--space-2);
+  background: transparent;
   margin-left: auto;
-  font-size: 10px;
-  font-weight: var(--font-weight-extra-bold);
-  line-height: 12px;
-  overflow: hidden;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-s);
+  overflow: visible;
 }
 
 .tree-header-bar-item {
   display: flex;
-  min-width: 16px;
+  align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
   text-align: center;
-  padding: 0 6px;
+  padding: 0 var(--space-0-75);
   flex-grow: 1;
 
   &.passed {
-    background-color: var(--bg-support-castor);
-    color: var(--constant-on-text-primary);
+    background-color: var(--color-status-passed-bg);
+    color: var(--color-status-passed-on-bg);
   }
 
   &.failed {
-    background-color: var(--bg-support-capella);
-    color: var(--constant-on-text-primary);
+    background-color: var(--color-status-failed-bg);
+    color: var(--color-status-failed-on-bg);
   }
 
   &.broken {
-    background-color: var(--bg-support-atlas);
-    color: var(--constant-on-text-primary);
+    background-color: var(--color-status-broken-bg);
+    color: var(--color-status-broken-on-bg);
   }
 
   &.skipped {
-    background-color: var(--bg-support-rau);
-    color: var(--constant-on-text-primary);
+    background-color: var(--color-status-skipped-bg);
+    color: var(--color-status-skipped-on-bg);
   }
 
   &.unknown {
-    background-color: var(--bg-support-skat);
-    color: var(--constant-on-text-primary);
+    background-color: var(--color-status-unknown-bg);
+    color: var(--color-status-unknown-on-bg);
   }
 }
 
@@ -166,7 +171,7 @@
 }
 
 .tree-empty-results-title {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .tree-empty-results-clear-button {
@@ -175,7 +180,7 @@
 
 .order {
   user-select: none;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
   min-width: 16px;
   text-align: center;
   box-sizing: content-box;

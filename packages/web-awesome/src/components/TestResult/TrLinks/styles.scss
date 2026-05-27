@@ -7,7 +7,7 @@
 
 .test-result-links-wrapper {
   width: 100%;
-  border-bottom: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--color-border-default);
   padding-bottom: 12px;
 }
 
@@ -19,7 +19,7 @@
 }
 
 .test-result-link-text {
-  color: var(--on-support-aldebaran);
+  color: var(--color-link-text);
 }
 
 .test-result-links-list {

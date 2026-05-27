@@ -1,11 +1,11 @@
 import type { TestStatus } from "@allurereport/core-api";
 
 export const statusColors: Record<TestStatus, string> = {
-  failed: "var(--bg-support-capella)",
-  broken: "var(--bg-support-atlas)",
-  passed: "var(--bg-support-castor)",
-  skipped: "var(--bg-support-rau)",
-  unknown: "var(--bg-support-skat)",
+  failed: "var(--color-status-failed-chart-fill)",
+  broken: "var(--color-status-broken-chart-fill)",
+  passed: "var(--color-status-passed-chart-fill)",
+  skipped: "var(--color-status-skipped-chart-fill)",
+  unknown: "var(--color-status-unknown-chart-fill)",
 };
 
 /**

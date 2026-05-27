@@ -2,13 +2,14 @@ import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cwd as processCwd } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
-import { glob } from "glob";
+import { red } from "yoctocolors";
 
+import { findFilesByGlobs } from "./../utils/fileSystem.js";
 import { generate } from "./commons/generate.js";
 
 export class OpenCommand extends Command {
@@ -20,12 +21,19 @@ export class OpenCommand extends Command {
     examples: [
       ["open ./allure-results", "Generate and serve the report based on given test results directory"],
       ["open --port 8080 ./allure-report", "Serve the report on port 8080"],
+      [
+        "open ./packages/*/allure-results",
+        "Generate and serve the report from all Allure result directories matching the pattern",
+      ],
+      [
+        "open ./packages/foo/allure-results /packages/bar/allure-results",
+        "Generate and serve the report from two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({
+  resultsDir = Option.Rest({
     name: "A report to open or a pattern to match test results directories in the current working directory (default: configured output)",
-    required: false,
   });
 
   config = Option.String("--config,-c", {
@@ -47,28 +55,19 @@ export class OpenCommand extends Command {
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
+
     const config = await readConfig(cwd, this.config, {
       port: this.port,
     });
-    const targetFullPath = this.resultsDir ? join(cwd, this.resultsDir) : config.output;
-    const summaryFiles = existsSync(targetFullPath)
-      ? await glob(join(targetFullPath, "**", "summary.json"), {
-          mark: true,
-          nodir: false,
-          absolute: true,
-          dot: true,
-          windowsPathsNoEscape: true,
-          cwd,
-        })
-      : [];
+    const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
 
-    if (summaryFiles.length > 0) {
+    if (await this.reportExists(servePath)) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: targetFullPath,
+        servePath,
         open: true,
       });
-    } else {
+    } else if (this.resultsDir.length) {
       const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
@@ -76,8 +75,9 @@ export class OpenCommand extends Command {
         hideLabels,
       });
 
+      // At this point, resultsDir contains at least one pattern
       await generate({
-        resultsDir: targetFullPath,
+        resultsDir: this.resultsDir,
         cwd,
         config,
       });
@@ -96,6 +96,25 @@ export class OpenCommand extends Command {
         servePath: config.output,
         open: true,
       });
+    } else {
+      console.error(red(`A report doesn't exist in ${servePath} and no input was provided to generate.`));
+      exit(1);
+      return;
     }
+  }
+
+  private resolveReportPath(cwd: string, inputs: readonly string[], fallback: string = "allure-report") {
+    if (inputs.length <= 1) {
+      const [maybeRelativeReportPath = fallback] = inputs;
+      return join(cwd, maybeRelativeReportPath);
+    }
+  }
+
+  private async reportExists(reportPath: string | undefined) {
+    if (reportPath && existsSync(reportPath)) {
+      const summaryFiles = await findFilesByGlobs(reportPath, [join("**", "summary.json")]);
+      return summaryFiles.length > 0;
+    }
+    return false;
   }
 }

@@ -10,8 +10,8 @@ export class GenerateCommand extends Command {
   static paths = [["generate"]];
 
   static usage = Command.Usage({
-    description: "Generates the report to specified directory",
-    details: "This command generates a report from the provided Allure Results directory.",
+    description: "Generates the report in the specified directory.",
+    details: "This command generates a report from the provided Allure Results directories.",
     examples: [
       ["generate ./allure-results", "Generate a report from the ./allure-results directory"],
       [
@@ -26,12 +26,15 @@ export class GenerateCommand extends Command {
         "generate --dump=allure-*.zip",
         "Generate a report using data from any dump archive that matches the given pattern and results directory if it exists",
       ],
+      [
+        "generate ./packages/foo/out/allure-results ./packages/bar/out/allure-results",
+        "Generate a report from two Allure results directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({
-    required: false,
-    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {
@@ -51,7 +54,10 @@ export class GenerateCommand extends Command {
   });
 
   dump = Option.Array("--dump", {
-    description: "Dump archives to restore state from (default: empty string)",
+    description:
+      "Path or pattern that matches one or more archives created by `allure run --dump ...`. " +
+      "Allure loads the matched archives before generating the report. " +
+      "This option can be specified multiple times.",
   });
 
   open = Option.Boolean("--open", {
@@ -84,7 +90,7 @@ export class GenerateCommand extends Command {
 
     await generate({
       dump: this.dump,
-      resultsDir: this.resultsDir ?? "./**/allure-results",
+      resultsDir: this.resultsDir,
       cwd,
       config,
     });

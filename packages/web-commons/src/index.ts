@@ -13,4 +13,5 @@ export * from "./stores/loadableStore/index.js";
 export * from "./stores/persister/index.js";
 export * from "./utils.js";
 export * from "./prose.js";
+export * from "./linkify.js";
 export * from "./treeSubtreeToggle.js";

@@ -4,54 +4,55 @@
   justify-content: center;
   padding: 2px 4px;
   border-radius: 3px;
-  color: var(--on-text-universal-primary);
-  background-color: var(--bg-control-secondary);
+  color: var(--color-tag-default-text);
+  background-color: var(--color-tag-default-bg);
 
   &.neutral {
-    background-color: var(--bg-support-sirius);
+    color: var(--color-intent-info-on-bg);
+    background-color: var(--color-intent-info-bg);
   }
 
   &.secondary {
-    background-color: var(--bg-base-secondary);
-    color: var(--on-text-primary);
+    background-color: var(--color-tag-secondary-bg);
+    color: var(--color-tag-secondary-text);
   }
 
   &.successful {
-    color: var(--on-text-universal-primary);
-    background-color: var(--bg-support-castor);
+    color: var(--color-intent-success-on-bg);
+    background-color: var(--color-intent-success-bg);
   }
 
   &.failed {
-    color: var(--on-text-universal-primary);
-    background-color: var(--bg-support-capella);
+    color: var(--color-intent-danger-on-bg);
+    background-color: var(--color-intent-danger-bg);
   }
 
   &.warning {
-    color: var(--on-text-universal-primary);
-    background-color: var(--bg-support-atlas);
+    color: var(--color-intent-warning-on-bg);
+    background-color: var(--color-intent-warning-bg);
   }
 
   &.neutral-light {
-    color: var(--on-support-sirius);
+    color: var(--color-intent-info-text);
     background-color: transparent;
-    border: 1px dashed var(--sirius-day-base);
+    border: 1px dashed var(--color-intent-info-border);
   }
 
   &.successful-light {
-    color: var(--on-support-castor);
+    color: var(--color-intent-success-text);
     background-color: transparent;
-    border: 1px dashed var(--castor-day-base);
+    border: 1px dashed var(--color-intent-success-border);
   }
 
   &.failed-light {
-    color: var(--on-support-capella);
+    color: var(--color-intent-danger-text);
     background-color: transparent;
-    border: 1px dashed var(--capella-day-base);
+    border: 1px dashed var(--color-intent-danger-border);
   }
 
   &.warning-light {
-    color: var(--on-support-atlas);
+    color: var(--color-intent-warning-text);
     background-color: transparent;
-    border: 1px dashed var(--atlas-day-base);
+    border: 1px dashed var(--color-intent-warning-border);
   }
 }
