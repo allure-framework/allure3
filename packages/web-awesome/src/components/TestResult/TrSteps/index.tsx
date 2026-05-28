@@ -1,9 +1,4 @@
-import {
-  getNextSubtreeToggleState,
-  getSubtreeToggleIcon,
-  isSubtreeFirstLevelOnlyOpened,
-  type SubtreeToggleState,
-} from "@allurereport/web-commons";
+import { getNextSubtreeToggleState, getSubtreeToggleIcon, type SubtreeToggleState } from "@allurereport/web-commons";
 import { IconButton, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
