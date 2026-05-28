@@ -72,8 +72,9 @@ const findFiles = async (
   existingResults: Set<string>,
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   recursive: boolean,
+  maximumDepth: number = 10,
 ) => {
-  const scanDirectory = async (directory: string, isRoot: boolean): Promise<void> => {
+  const scanDirectory = async (directory: string, isRoot: boolean, remainingDepth: number): Promise<void> => {
     try {
       const dir = await opendir(directory);
 
@@ -81,8 +82,8 @@ const findFiles = async (
         const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
         if (dirent.isDirectory()) {
-          if (recursive) {
-            await scanDirectory(path, false);
+          if (recursive && remainingDepth > 0) {
+            await scanDirectory(path, false, remainingDepth - 1);
           }
           continue;
         }
@@ -111,7 +112,7 @@ const findFiles = async (
     }
   };
 
-  await scanDirectory(watchDirectory, true);
+  await scanDirectory(watchDirectory, true, maximumDepth);
 };
 
 const singleIteration = async (callback: () => Promise<void>, ...ac: AbortController[]): Promise<void> => {
@@ -188,6 +189,7 @@ const watch = (
 
 interface WatchNewFilesOptions extends WatchOptions {
   recursive?: boolean;
+  maximumDepth?: number;
   indexDelay?: number;
   ignoreInitial?: boolean;
   abortController?: AbortController;
@@ -198,14 +200,14 @@ export const newFilesInDirectoryWatcher = (
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   options: WatchNewFilesOptions = {},
 ): Watcher => {
-  const { recursive = true, ignoreInitial = false, ...rest } = options;
+  const { recursive = true, maximumDepth = 10, ignoreInitial = false, ...rest } = options;
   const indexedFiles: Set<string> = new Set();
 
   const initialCallback = async () => {
-    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive);
+    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive, maximumDepth);
   };
   const iterationCallback = async () => {
-    await findFiles(directory, indexedFiles, onNewFile, recursive);
+    await findFiles(directory, indexedFiles, onNewFile, recursive, maximumDepth);
   };
 
   return watch(initialCallback, iterationCallback, iterationCallback, rest);
