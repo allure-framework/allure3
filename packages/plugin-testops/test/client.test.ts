@@ -6,8 +6,16 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import FormData from "form-data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("client");
+  await label("coverage", "testops-integration");
+});
 
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";

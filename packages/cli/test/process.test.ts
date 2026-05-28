@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { platform } from "node:process";
 
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { stopProcessTree } from "../src/utils/process.js";
 
@@ -168,6 +169,13 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
 };
 
 describe("stopProcessTree", () => {
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-run");
+    await story("process");
+    await label("coverage", "cli-run");
+  });
+
   // stopProcessTree on Windows calls powershell.exe so it might need more time to finish
   describe("on Windows", { skip: platform != "win32", timeout: 10_000 }, () => {
     it("should stop a tree of a single process", async () => {

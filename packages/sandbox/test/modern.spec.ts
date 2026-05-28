@@ -1,6 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { afterAll, beforeEach, expect, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("modern");
+  await label("coverage", "report-output");
+});
 import {
   Status,
   description,
@@ -11,7 +19,6 @@ import {
   logStep,
   step,
 } from "allure-js-commons";
-import { afterAll, expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);

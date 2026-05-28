@@ -4,8 +4,16 @@ import { env } from "node:process";
 import { detect } from "@allurereport/ci";
 import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("plugin");
+  await label("coverage", "testops-integration");
+});
 
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";

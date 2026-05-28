@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import * as path from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
@@ -18,7 +19,7 @@ export default defineConfig({
       },
       forks: {
         execArgv: ["--expose-gc"],
-      }
+      },
     },
     reporters: [
       "default",
@@ -29,7 +30,9 @@ export default defineConfig({
           globalLabels: [
             { name: "module", value: "aql" },
             { name: "layer", value: "unit" },
-            { name: "feature", value: "AQL" },
+            { name: "coverage", value: "aql" },
+            { name: "epic", value: "coverage" },
+            { name: "feature", value: "aql" },
           ],
           links: {
             issue: {

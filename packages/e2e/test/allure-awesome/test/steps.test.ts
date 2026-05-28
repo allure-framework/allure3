@@ -1,4 +1,4 @@
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { expect, test } from "../../playwright.js";
@@ -105,7 +105,10 @@ const fixtures = {
 test.describe("Steps in Allure Awesome", () => {
   test.beforeEach(async ({ page, browserName }) => {
     await label("env", browserName);
-
+    await epic("coverage");
+    await feature("ui-components");
+    await story("steps");
+    await label("coverage", "ui-components");
     treePage = new TreePage(page);
     testResultPage = new TestResultPage(page);
 

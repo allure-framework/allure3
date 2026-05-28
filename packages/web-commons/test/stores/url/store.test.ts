@@ -1,4 +1,4 @@
-import { label } from "allure-js-commons";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import * as helpers from "../../../src/stores/url/helpers.js";
@@ -8,6 +8,10 @@ describe("stores > url > store", () => {
   beforeEach(async () => {
     await label("layer", "unit");
     await label("component", "web-commons");
+    await epic("coverage");
+    await feature("url-routing");
+    await story("store");
+    await label("coverage", "url-routing");
   });
 
   afterEach(() => {

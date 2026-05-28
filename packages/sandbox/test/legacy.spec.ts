@@ -1,5 +1,13 @@
 /// <reference types="allure-vitest" />
-import { it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("legacy");
+  await label("coverage", "report-output");
+});
 
 it("sample test", async () => {
   await allure.owner("John Doe x");

@@ -4,9 +4,17 @@ import { dirname } from "node:path";
 
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AwesomePlugin from "../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("plugin-awesome");
+  await story("plugin");
+  await label("coverage", "plugin-awesome");
+});
 
 const require = createRequire(import.meta.url);
 

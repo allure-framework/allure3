@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   fallbackTestCaseIdLabelName,
@@ -19,6 +20,13 @@ import {
 } from "../../src/utils/history.js";
 
 const md5 = (data: string) => createHash("md5").update(data).digest("hex");
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 
 describe("history utils", () => {
   it("should sort and exclude parameters in stringifyHistoryParams", () => {

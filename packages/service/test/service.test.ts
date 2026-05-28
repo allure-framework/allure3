@@ -2,9 +2,17 @@ import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AllureServiceClient } from "../src/service.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("service");
+  await story("service");
+  await label("coverage", "service");
+});
 import { HttpClientMock, createHttpClientMock } from "./utils.js";
 
 const serviceAccessToken = "service-access-token";

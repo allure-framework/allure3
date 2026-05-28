@@ -1,6 +1,6 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { CommonPage, SummaryPage } from "../pageObjects/index.js";
 import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -16,7 +16,10 @@ test.describe("summary", () => {
 
   test.beforeEach(async ({ page, browserName }) => {
     await label("env", browserName);
-
+    await epic("coverage");
+    await feature("summary");
+    await story("summary");
+    await label("coverage", "summary");
     commonPage = new CommonPage(page);
     summaryPage = new SummaryPage(page);
   });

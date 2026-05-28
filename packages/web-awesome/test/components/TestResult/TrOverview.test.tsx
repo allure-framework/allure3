@@ -1,9 +1,16 @@
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
+import type { AwesomeTestResult } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TrOverview } from "@/components/TestResult/TrOverview";
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("TrOverview");
+  await label("coverage", "ui-components");
+});
 
-import type { AwesomeTestResult } from "../../../types";
+import { TrOverview } from "@/components/TestResult/TrOverview";
 
 vi.mock("@/components/TestResult/TestStepsEmpty", () => ({
   default: () => <div data-testid="test-steps-empty" />,

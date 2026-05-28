@@ -5,6 +5,7 @@ import {
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
 import { type QualityGateRuleState, md5 } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -43,7 +44,11 @@ const createTestResult = (
     sourceMetadata: { readerId: "", metadata: {} },
   }) as TestResult;
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("quality-gates");
+  await story("rules");
+  await label("coverage", "quality-gates");
   vi.clearAllMocks();
 });
 

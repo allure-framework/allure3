@@ -1,5 +1,13 @@
 import { cleanup, fireEvent, render } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("TrErrorStep");
+  await label("coverage", "ui-components");
+});
 
 const { matchMediaMock } = vi.hoisted(() => {
   const matchMediaMock = vi.fn().mockImplementation(() => ({

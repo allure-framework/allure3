@@ -2,6 +2,7 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -96,7 +97,11 @@ vi.mock("@allurereport/core", async () => {
 
 const originalAllureReportMockPrototype = AllureReportMock.prototype;
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("quality-gates");
+  await story("qualityGate");
+  await label("coverage", "quality-gates");
   AllureReportMock.prototype = { ...originalAllureReportMockPrototype };
   vi.clearAllMocks();
 });

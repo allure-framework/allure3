@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 
 import { BufferResultFile } from "@allurereport/reader-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
@@ -9,6 +10,13 @@ import { readResults } from "./utils.js";
 const generateTestResultName = () => `${randomUUID()}-result.json`;
 const generateCheckResultName = () => `${randomUUID()}-check.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("allure2");
+  await label("coverage", "reading");
+});
 
 describe("allure2 reader", () => {
   it("should parse check result", async () => {

@@ -1,10 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
 import type { AwesomeTestResult } from "../../types.js";
 
 // Predicate that always returns true (no filtering)
 const alwaysTruePredicate = () => true;
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("filters");
+  await story("treeFilters");
+  await label("coverage", "filters");
+});
 
 describe("utils > treeFilters", () => {
   describe("filterLeaves", () => {

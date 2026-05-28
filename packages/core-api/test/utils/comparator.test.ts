@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { Statistic, TestStatus } from "../../src/index.js";
 import { nullsDefault, nullsFirst, nullsLast } from "../../src/index.js";
@@ -18,6 +19,13 @@ const randomIntOrUndefined = (max: number = 1000): number | undefined => {
   }
   return randomInt(max);
 };
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("comparator");
+  await label("coverage", "report-data-model");
+});
 
 describe("comparator", () => {
   describe("alphabetically", () => {

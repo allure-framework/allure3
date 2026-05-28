@@ -3,6 +3,7 @@ import { join, resolve } from "node:path";
 
 import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,7 +28,11 @@ vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-config");
+  await story("config");
+  await label("coverage", "report-config");
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 });
 

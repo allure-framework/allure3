@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { AqlTokenizer } from "../src/tokenizer/index.js";
 
+beforeEach(async () => {
+  await story("tokenizer");
+});
 describe("AqlTokenizer", () => {
   test("should tokenize simple identifier", () => {
     const tokenizer = new AqlTokenizer("status");

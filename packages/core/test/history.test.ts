@@ -5,10 +5,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
 
 import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { AllureLocalHistory, createHistory } from "../src/history.js";
 import { getDataPath } from "./utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 
 describe("AllureLocalHistory", () => {
   describe("readHistory", () => {

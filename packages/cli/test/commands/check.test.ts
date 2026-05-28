@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 
 import { readConfig } from "@allurereport/core";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -95,6 +96,10 @@ const readWrittenCheckResult = () => {
 };
 
 beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("check");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
   childProcess.stdout.reset();
   childProcess.stderr.reset();

@@ -1,5 +1,5 @@
 import { md5 } from "@allurereport/plugin-api";
-import { attachment, issue, step } from "allure-js-commons";
+import { attachment, epic, feature, issue, label, step, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { StateData } from "../../src/store/convert.js";
@@ -25,6 +25,13 @@ const wrap = <T extends (...args: any) => any, P extends Parameters<T>, R extend
 const functionUnderTest = wrap(testResultRawToState).bind(this);
 
 let emptyStateData: StateData;
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("convert");
+  await label("coverage", "report-engine");
+});
 
 describe("testResultRawToState", () => {
   beforeEach(() => {

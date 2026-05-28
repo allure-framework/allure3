@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { FileSystemReportFiles } from "../../src/plugin.js";
 import {
@@ -12,6 +13,13 @@ import {
   UnsafeReportOutputPathError,
 } from "../../src/utils/safeOutputPath.js";
 import { isWindows } from "../../src/utils/windows.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("safeOutputPath");
+  await label("coverage", "report-engine");
+});
 
 describe("resolvePathUnderOutputRoot", () => {
   const root = resolve("/tmp/allure-output-test-root");

@@ -1,6 +1,7 @@
 import { setTimeout } from "node:timers/promises";
 
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RealtimeUpdateScheduler } from "../../src/utils/realtimeUpdateScheduler.js";
 
@@ -12,6 +13,13 @@ const createSignal = () => {
 
   return { promise, resolve };
 };
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("realtimeUpdateScheduler");
+  await label("coverage", "report-engine");
+});
 
 describe("RealtimeUpdateScheduler", () => {
   it("should run an idle request after cooldown", async () => {

@@ -2,8 +2,12 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { describe, expect, it } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
+beforeEach(async () => {
+  await story("skills");
+});
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 describe("allure agent-mode skills bundle", () => {

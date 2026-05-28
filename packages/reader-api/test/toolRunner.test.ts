@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   type ProcessRunOptions,
@@ -6,6 +7,13 @@ import {
   invokeJsonCliTool,
   invokeStdoutCliTool,
 } from "../src/toolRunner.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("toolRunner");
+  await label("coverage", "reading");
+});
 
 describe("invokeStdoutCliTool", () => {
   it("should stop with a timeout", async () => {

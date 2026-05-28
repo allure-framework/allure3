@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   environmentNameById,
@@ -10,6 +11,13 @@ const environments = [
   { id: "default", name: "default" },
   { id: "qa", name: "QA" },
 ];
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("environments");
+  await story("environments");
+  await label("coverage", "environments");
+});
 
 describe("environment helpers", () => {
   it("should resolve names from environment identities", () => {

@@ -1,12 +1,16 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { layer } from "allure-js-commons";
+import { layer, story } from "allure-js-commons";
 import axios from "axios";
 import getPort from "get-port";
 import { beforeEach, expect, it } from "vitest";
 
 import { type AllureStaticServer, serve } from "../../src/index.js";
+
+beforeEach(async () => {
+  await story("static");
+});
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const servePath = join(baseDir, "fixtures");

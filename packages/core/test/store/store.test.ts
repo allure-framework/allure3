@@ -8,7 +8,8 @@ import {
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateParametersHash, calculateRetryHash } from "../../src/store/retrySubstore.js";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
@@ -24,6 +25,13 @@ class AllureTestHistory implements AllureHistory {
 }
 
 const readerId = "store.test.ts";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("store");
+  await label("coverage", "report-engine");
+});
 
 describe("test results", () => {
   it("should return all test results", async () => {

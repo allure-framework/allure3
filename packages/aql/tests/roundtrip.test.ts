@@ -1,7 +1,12 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { parseAql } from "../src/parser/index.js";
 import { expressionToString } from "../src/utils/index.js";
 
+beforeEach(async () => {
+  await story("roundtrip");
+});
 /**
  * Round-trip tests - verify that parse → stringify → parse produces equivalent results
  * Tests that AST can be correctly serialized and deserialized
