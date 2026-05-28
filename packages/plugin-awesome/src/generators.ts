@@ -45,8 +45,10 @@ import {
 } from "@allurereport/plugin-api";
 import type {
   AwesomeCategory,
+  AwesomeExecutorInfo,
   AwesomeFixtureResult,
   AwesomeReportOptions,
+  AwesomeRunSummary,
   AwesomeSearchDocument,
   AwesomeTestResult,
   AwesomeTreeGroup,
@@ -271,6 +273,22 @@ export const generateSearchIndex = async (
   const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
 
   await writer.writeWidget(filename, searchDocuments);
+};
+
+export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): AwesomeRunSummary | undefined => {
+  let start = Infinity;
+  let stop = -Infinity;
+
+  for (const { start: s, stop: e } of testResults) {
+    if (typeof s === "number" && Number.isFinite(s) && typeof e === "number" && Number.isFinite(e)) {
+      start = Math.min(start, s);
+      stop = Math.max(stop, e);
+    }
+  }
+
+  return Number.isFinite(start) && Number.isFinite(stop)
+    ? { start, stop, duration: Math.max(0, stop - start) }
+    : undefined;
 };
 
 export const generateTree = async (
@@ -609,6 +627,8 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    executor?: AwesomeExecutorInfo;
+    runSummary?: AwesomeRunSummary;
   },
 ) => {
   const {
@@ -626,6 +646,8 @@ export const generateStaticFiles = async (
     layout = "base",
     defaultSection = "",
     ci,
+    executor,
+    runSummary,
     stepTreeExpansion,
   } = payload;
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -685,6 +707,8 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : [],
     cacheKey: now.toString(),
     ci,
+    executor,
+    runSummary,
     layout,
     allureVersion,
     sections,

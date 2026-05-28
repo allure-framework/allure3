@@ -14,6 +14,23 @@ import type {
 export type Layout = "base" | "split";
 export type StepTreeExpansion = "collapsed" | "expand_failed_only" | "expanded";
 
+export type AwesomeRunSummary = {
+  start: number;
+  stop: number;
+  duration: number;
+};
+
+export type AwesomeExecutorInfo = {
+  name?: string;
+  type?: string;
+  url?: string;
+  buildOrder?: number;
+  buildName?: string;
+  buildUrl?: string;
+  reportName?: string;
+  reportUrl?: string;
+};
+
 export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
@@ -28,6 +45,8 @@ export type AwesomeReportOptions = {
   sections?: string[];
   cacheKey: string;
   ci?: CiDescriptor;
+  executor?: AwesomeExecutorInfo;
+  runSummary?: AwesomeRunSummary;
   stepTreeExpansion?: StepTreeExpansion;
 };
 

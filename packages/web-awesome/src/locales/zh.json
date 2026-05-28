@@ -151,6 +151,7 @@
     "copy-email": "复制邮箱",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
+    "generated": "已生成",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace",
     "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",

@@ -151,6 +151,7 @@
     "copy-email": "نسخ البريد الإلكتروني",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "at": "في",
+    "generated": "تم الإنشاء",
     "variables": "المتغيرات",
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",

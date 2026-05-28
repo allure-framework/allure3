@@ -151,6 +151,7 @@
     "copy-email": "Copia email",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "at": "a",
+    "generated": "Generato",
     "variables": "Variabili",
     "openPwTrace": "Apri Playwright Trace",
     "pwTracePopupBlocked": "Il browser ha bloccato l'apertura di Playwright Trace Viewer.",

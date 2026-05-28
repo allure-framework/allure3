@@ -151,6 +151,7 @@
     "copy-email": "E-postayı kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
+    "generated": "Oluşturuldu",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace Aç",
     "pwTracePopupBlocked": "Tarayıcı Playwright Trace Viewer’ın açılmasını engelledi.",
