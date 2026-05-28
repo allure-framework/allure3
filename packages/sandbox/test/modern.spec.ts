@@ -19,7 +19,6 @@ import {
   logStep,
   step,
 } from "allure-js-commons";
-import { afterAll, expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
