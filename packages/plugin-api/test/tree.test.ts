@@ -9,6 +9,7 @@ import {
   filterTree,
   filterTreeLabels,
   preciseTreeLabels,
+  processTree,
   sortTree,
   transformTree,
 } from "../src/index.js";
@@ -395,6 +396,36 @@ describe("tree filtering", () => {
       groupsById: {
         g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l4"] },
         g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6"] },
+      },
+    });
+  });
+});
+
+describe("tree processing", () => {
+  it("filters, sorts, and transforms leaves in one traversal", () => {
+    const tree = JSON.parse(JSON.stringify(sampleTree));
+    const res = processTree(tree as TreeData<any, any>, {
+      filter: (leaf) => leaf.status !== "passed",
+      sort: nullsLast(compareBy("start", ordinal())),
+      transform: (leaf, i) => ({
+        ...leaf,
+        groupOrder: i + 1,
+      }),
+    });
+
+    expect(res).toMatchObject({
+      root: {
+        leaves: ["l2"],
+        groups: ["g1"],
+      },
+      groupsById: {
+        g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l4"] },
+        g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6"] },
+      },
+      leavesById: {
+        l2: expect.objectContaining({ groupOrder: 1 }),
+        l4: expect.objectContaining({ groupOrder: 1 }),
+        l6: expect.objectContaining({ groupOrder: 1 }),
       },
     });
   });

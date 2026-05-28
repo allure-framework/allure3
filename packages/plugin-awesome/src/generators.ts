@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
@@ -40,10 +40,8 @@ import {
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
-  filterTree,
   preciseTreeLabels,
-  sortTree,
-  transformTree,
+  processTree,
 } from "@allurereport/plugin-api";
 import type {
   AwesomeCategory,
@@ -100,6 +98,8 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
+const compiledTemplate = Handlebars.compile(template);
+
 export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
   const templateManifestSource = require.resolve(
     `@allurereport/web-awesome/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
@@ -138,8 +138,14 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
+const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
+  for (let i = 0; i < items.length; i += concurrency) {
+    await Promise.all(items.slice(i, i + concurrency).map(write));
+  }
+};
+
 export const generateTestResults = async (
-  writer: AwesomeDataWriter,
+  _writer: AwesomeDataWriter,
   store: AllureStore,
   trs: TestResult[],
   options: {
@@ -147,16 +153,17 @@ export const generateTestResults = async (
   } = {},
 ) => {
   let convertedTrs: AwesomeTestResult[] = [];
+  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
 
   for (const tr of trs) {
-    const trFixtures = await store.fixturesByTrId(tr.id);
+    const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
 
-    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
-    convertedTr.retries = await store.retriesByTrId(tr.id);
+    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
     convertedTr.isRetry = tr.isRetry;
@@ -164,7 +171,7 @@ export const generateTestResults = async (
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
     // @ts-ignore
-    convertedTr.attachments = (await store.attachmentsByTrId(tr.id)).map((attachment) => ({
+    convertedTr.attachments = (related.attachmentsByTrId.get(tr.id) ?? []).map((attachment) => ({
       link: attachment,
       type: "attachment",
     }));
@@ -178,17 +185,11 @@ export const generateTestResults = async (
     order: idx + 1,
   }));
 
-  for (const convertedTr of convertedTrs) {
-    await writer.writeTestCase(convertedTr);
-  }
-
   return convertedTrs;
 };
 
 export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[]) => {
-  for (const tr of trs) {
-    await writer.writeTestCase(tr);
-  }
+  await writeConcurrently(trs, (tr) => writer.writeTestCase(tr));
 };
 
 export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: TestEnvGroup[]) => {
@@ -293,10 +294,10 @@ export const generateTree = async (
     tree = buildTreeByLabels(visibleTests, labels);
   }
 
-  // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.isRetry);
-  sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+  processTree(tree, {
+    sort: nullsLast(compareBy("start", ordinal())),
+    transform: (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }),
+  });
 
   await writer.writeWidget(treeFilename, tree);
 };
@@ -627,18 +628,19 @@ export const generateStaticFiles = async (
     ci,
     stepTreeExpansion,
   } = payload;
-  const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = ["charts", "timeline"];
 
   if (!payload.singleFile) {
+    const manifestPath = require.resolve(
+      join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", "manifest.json"),
+    );
+    const templateDir = dirname(manifestPath);
+
     for (const key in manifest) {
       const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", fileName),
-      );
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -651,12 +653,14 @@ export const generateStaticFiles = async (
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
+    }
 
-      // we don't need to handle another files in single file mode
-      if (singleFile) {
+    for (const fileName of await readdir(templateDir)) {
+      if (fileName === "manifest.json") {
         continue;
       }
 
+      const filePath = join(templateDir, fileName);
       const fileContent = await readFile(filePath);
 
       await reportFiles.addFile(basename(filePath), fileContent);
@@ -689,7 +693,7 @@ export const generateStaticFiles = async (
   };
 
   try {
-    const html = compile({
+    const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),

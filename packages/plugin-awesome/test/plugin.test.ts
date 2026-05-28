@@ -1,8 +1,14 @@
+import { readdir } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
+
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
 
 import AwesomePlugin from "../src/index.js";
+
+const require = createRequire(import.meta.url);
 
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -21,6 +27,14 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
     { total: trsToProcess.length } as Statistic,
   );
 };
+
+const createRelatedByTestResultIdsMock = () =>
+  vi.fn(async (trIds: readonly string[]) => ({
+    attachmentsByTrId: new Map(trIds.map((trId) => [trId, []])),
+    fixturesByTrId: new Map(trIds.map((trId) => [trId, []])),
+    historyByTrId: new Map(trIds.map((trId) => [trId, undefined])),
+    retriesByTrId: new Map(trIds.map((trId) => [trId, []])),
+  }));
 
 const fixtures: any = {
   testResults: {
@@ -199,6 +213,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -287,6 +302,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -382,6 +398,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -499,6 +516,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -623,6 +641,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -668,7 +687,7 @@ describe("plugin", () => {
     });
   });
 
-  describe("single file mode", () => {
+  describe("report assets", () => {
     const makeSingleFileStore = (testResults: TestResult[]): AllureStore =>
       ({
         metadataByKey: vi.fn().mockResolvedValue(undefined),
@@ -697,6 +716,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -730,6 +750,29 @@ describe("plugin", () => {
 
       return data;
     };
+
+    it("should copy every emitted multi-file asset", async () => {
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const testResults = [
+        { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
+      ] as TestResult[];
+      const plugin = new AwesomePlugin();
+      const multiDist = dirname(require.resolve("@allurereport/web-awesome/dist/multi/manifest.json"));
+      const expectedAssets = (await readdir(multiDist)).filter((fileName) => fileName !== "manifest.json");
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      for (const fileName of expectedAssets) {
+        expect(addedFiles.has(fileName), `"${fileName}" must be copied to the report`).toBe(true);
+      }
+    });
 
     it("should embed all required widget files as valid base64 JSON with posix keys", async () => {
       const testResults: TestResult[] = [

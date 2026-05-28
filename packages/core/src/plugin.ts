@@ -58,6 +58,7 @@ export class InMemoryReportFiles implements ReportFiles {
 
 export class FileSystemReportFiles implements ReportFiles {
   readonly #output: string;
+  readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
     this.#output = resolve(output);
@@ -67,7 +68,14 @@ export class FileSystemReportFiles implements ReportFiles {
     const targetPath = resolvePathUnderOutputRoot(this.#output, path);
     const targetDirPath = dirname(targetPath);
 
-    await mkdir(targetDirPath, { recursive: true });
+    let createdDir = this.#createdDirs.get(targetDirPath);
+
+    if (!createdDir) {
+      createdDir = mkdir(targetDirPath, { recursive: true });
+      this.#createdDirs.set(targetDirPath, createdDir);
+    }
+
+    await createdDir;
     await writeFile(targetPath, data, { encoding: "utf-8" });
 
     return targetPath;

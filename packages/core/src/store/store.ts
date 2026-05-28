@@ -10,6 +10,7 @@ import {
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
   type EnvironmentIdentity,
+  type EnvironmentDescriptor,
   type EnvironmentsConfig,
   type HistoryDataPoint,
   type HistoryTestResult,
@@ -136,6 +137,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly #allowedEnvironmentIds: Set<string>;
   readonly #retrySubstore: RetrySubstore;
+  readonly #testResultIdsByEnvironmentId: Map<string, Set<string>> = new Map();
+  readonly #cachedEnvironmentEntries: [string, EnvironmentDescriptor][] = [];
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexTestResultByEnvironmentId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -223,6 +226,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#reportVariables = reportVariables;
     this.#allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
     this.#retrySubstore = new RetrySubstore();
+    this.#cachedEnvironmentEntries = Object.entries(this.#environmentsConfig);
 
     this.#addEnvironments(environments);
 
@@ -367,9 +371,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return;
     }
 
-    const existing = this.indexTestResultByEnvironmentId.get(environmentId);
-    if (existing?.some((tr) => tr.id === testResult.id)) {
+    const ids = this.#testResultIdsByEnvironmentId.get(environmentId);
+    if (ids?.has(testResult.id)) {
       return;
+    }
+
+    if (!ids) {
+      this.#testResultIdsByEnvironmentId.set(environmentId, new Set([testResult.id]));
+    } else {
+      ids.add(testResult.id);
     }
 
     index(this.indexTestResultByEnvironmentId, environmentId, testResult);
@@ -683,6 +693,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
+  /**
+   * Process a raw test result into the store.
+   *
+   * Time complexity: O(k) where k is the number of labels and attachments.
+   * Environment matching uses a cached entries array for O(m) lookup where m
+   * is the number of configured environments (typically < 10).
+   * History resolution is skipped entirely when no history is configured.
+   */
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
     const testResult = testResultRawToState(
@@ -715,9 +733,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const environmentIdentity =
       this.#environment ??
       (() => {
-        const match = Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
-          matcher({ labels: testResult.labels }),
-        );
+        const match = this.#cachedEnvironmentEntries.find(([, { matcher }]) => matcher({ labels: testResult.labels }));
 
         if (!match) {
           return DEFAULT_ENVIRONMENT_IDENTITY;
@@ -736,7 +752,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         : calculateParametersHash(testResult.parameters);
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
-    const trHistory = await this.historyByTr(testResult);
+    const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
 
     if (trHistory !== undefined) {
       testResult.transition = getStatusTransition(testResult, trHistory);
@@ -1112,7 +1128,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.indexAttachmentByTestResult.get(trId) ?? [];
   }
 
-  async retriesByTr(tr?: TestResult): Promise<TestResult[]> {
+  #retriesByTr(tr?: TestResult): TestResult[] {
     if (!tr) {
       return [];
     }
@@ -1120,13 +1136,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#retrySubstore.retriesByTr(tr);
   }
 
-  async retriesByTrId(trId: string): Promise<TestResult[]> {
-    const tr = await this.testResultById(trId);
-
-    return this.retriesByTr(tr);
+  async retriesByTr(tr?: TestResult): Promise<TestResult[]> {
+    return this.#retriesByTr(tr);
   }
 
-  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+  async retriesByTrId(trId: string): Promise<TestResult[]> {
+    const tr = this.#testResults.get(trId);
+
+    return this.#retriesByTr(tr);
+  }
+
+  #historyByTr(tr: TestResult): HistoryTestResult[] | undefined {
     if (!this.#history) {
       return undefined;
     }
@@ -1140,18 +1160,55 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return selectHistoryTestResults(this.#historyPoints, historyIdCandidates);
   }
 
+  /**
+   * Get historical test results for a given test result.
+   *
+   * Returns `undefined` when no history source is configured.
+   * Returns an empty array when history is configured but no matching
+   * history ID candidates are found.
+   *
+   * This method is async for API compatibility, but the underlying
+   * lookup is synchronous.
+   */
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+    return this.#historyByTr(tr);
+  }
+
   async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
-    const tr = await this.testResultById(trId);
+    const tr = this.#testResults.get(trId);
 
     if (!tr) {
       return undefined;
     }
 
-    return this.historyByTr(tr);
+    return this.#historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {
     return this.indexFixturesByTestResult.get(trId) ?? [];
+  }
+
+  async relatedByTestResultIds(trIds: readonly string[]) {
+    const attachmentsByTrId = new Map<string, AttachmentLink[]>();
+    const fixturesByTrId = new Map<string, TestFixtureResult[]>();
+    const historyByTrId = new Map<string, HistoryTestResult[] | undefined>();
+    const retriesByTrId = new Map<string, TestResult[]>();
+
+    for (const trId of trIds) {
+      const tr = this.#testResults.get(trId);
+
+      attachmentsByTrId.set(trId, this.indexAttachmentByTestResult.get(trId) ?? []);
+      fixturesByTrId.set(trId, this.indexFixturesByTestResult.get(trId) ?? []);
+      retriesByTrId.set(trId, this.#retriesByTr(tr));
+      historyByTrId.set(trId, tr ? this.#historyByTr(tr) : undefined);
+    }
+
+    return {
+      attachmentsByTrId,
+      fixturesByTrId,
+      historyByTrId,
+      retriesByTrId,
+    };
   }
 
   // aggregate API
@@ -1232,8 +1289,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       statistic.total++;
 
-      // This is fine because retriesByTr does not contain any async operations
-      const retries = await this.retriesByTr(tr);
+      const retries = this.#retriesByTr(tr);
 
       if (retries.length > 0) {
         statistic.retries = (statistic.retries ?? 0) + 1;
@@ -1538,6 +1594,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
 
     this.#retrySubstore.restoreIngestOrder(testResultIdsIngestOrder, (id) => this.#testResults.has(id));
+    // Rebuild the O(1) ID lookup Set from the restored array index
+    this.indexTestResultByEnvironmentId.forEach((trs, envId) => {
+      this.#testResultIdsByEnvironmentId.set(envId, new Set(trs.map((tr) => tr.id)));
+    });
 
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);

@@ -6,7 +6,7 @@ import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
-import { BufferResultFile } from "@allurereport/reader-api";
+import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
 import { attachment, step } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
@@ -154,6 +154,83 @@ describe("report", () => {
     await expect(() => allureReport.readResult(resultFile)).rejects.toThrowError(
       "report is not initialised. Call the start() method first",
     );
+  });
+
+  it("should skip readers whose matcher rejects the result file", async () => {
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const rejectedReader: ResultsReader = {
+      matches: vi.fn().mockReturnValue(false),
+      read: vi.fn().mockResolvedValue(true),
+      readerId: () => "rejected",
+    };
+    const acceptedReader: ResultsReader = {
+      matches: vi.fn().mockReturnValue(true),
+      read: vi.fn().mockResolvedValue(true),
+      readerId: () => "accepted",
+    };
+    const allureReport = new AllureReport({
+      ...config,
+      readers: [rejectedReader, acceptedReader],
+    });
+    const resultFile = new BufferResultFile(Buffer.from("some content", "utf-8"), "some-name.txt");
+
+    await allureReport.start();
+    await allureReport.readResult(resultFile);
+
+    expect(rejectedReader.matches).toHaveBeenCalledWith(resultFile);
+    expect(rejectedReader.read).not.toHaveBeenCalled();
+    expect(acceptedReader.read).toHaveBeenCalledWith(allureReport.store, resultFile);
+  });
+
+  it("should read result directory files with bounded concurrency", async () => {
+    const previousConcurrency = process.env.ALLURE_READ_CONCURRENCY;
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-read-directory-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const readFiles: string[] = [];
+    let activeReads = 0;
+    let maxActiveReads = 0;
+    const reader: ResultsReader = {
+      matches: vi.fn().mockReturnValue(true),
+      read: vi.fn(async (_visitor, data) => {
+        readFiles.push(data.getOriginalFileName());
+        activeReads++;
+        maxActiveReads = Math.max(maxActiveReads, activeReads);
+        await setTimeout(20);
+        activeReads--;
+
+        return true;
+      }),
+      readerId: () => "bounded",
+    };
+
+    process.env.ALLURE_READ_CONCURRENCY = "2";
+
+    try {
+      await writeFile(join(resultsDir, "b-result.json"), "{}");
+      await writeFile(join(resultsDir, "a-result.json"), "{}");
+      await writeFile(join(resultsDir, "c-result.json"), "{}");
+
+      const allureReport = new AllureReport({
+        ...config,
+        readers: [reader],
+      });
+
+      await allureReport.start();
+      await allureReport.readDirectory(resultsDir);
+
+      expect([...readFiles].sort()).toEqual(["a-result.json", "b-result.json", "c-result.json"]);
+      expect(maxActiveReads).toBe(2);
+    } finally {
+      if (previousConcurrency === undefined) {
+        delete process.env.ALLURE_READ_CONCURRENCY;
+      } else {
+        process.env.ALLURE_READ_CONCURRENCY = previousConcurrency;
+      }
+    }
   });
 
   it("should call plugins in specified order on start()", async () => {

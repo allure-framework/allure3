@@ -20,6 +20,13 @@ import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;
 
+export interface TestResultRelatedData {
+  attachmentsByTrId: Map<string, AttachmentLink[]>;
+  fixturesByTrId: Map<string, TestFixtureResult[]>;
+  historyByTrId: Map<string, HistoryTestResult[] | undefined>;
+  retriesByTrId: Map<string, TestResult[]>;
+}
+
 export interface AllureStore {
   // base state
   allTestCases: () => Promise<TestCase[]>;
@@ -58,6 +65,7 @@ export interface AllureStore {
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
   historyByTrId: (trId: string) => Promise<HistoryTestResult[] | undefined>;
   fixturesByTrId: (trId: string) => Promise<TestFixtureResult[]>;
+  relatedByTestResultIds: (trIds: readonly string[]) => Promise<TestResultRelatedData>;
   // aggregate api
   failedTestResults: () => Promise<TestResult[]>;
   unknownFailedTestResults: () => Promise<TestResult[]>;

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it } from "vitest";
 
 import { allure2 } from "../src/index.js";
@@ -26,6 +27,18 @@ describe("allure2 reader", () => {
         message: "lint ok",
       },
     });
+  });
+
+  it("should match attachment files so they keep the allure2 reader context", async () => {
+    const attachment = new BufferResultFile(Buffer.from("content"), `${randomUUID()}-attachment.txt`);
+
+    expect(await allure2.matches?.(attachment)).toBe(true);
+  });
+
+  it("should match check result files", async () => {
+    const checkResult = new BufferResultFile(Buffer.from("{}"), `${randomUUID()}-check.json`);
+
+    expect(await allure2.matches?.(checkResult)).toBe(true);
   });
 
   it("should parse simple result", async () => {

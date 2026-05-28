@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { currentEnvironment, environmentsStore } from "@/stores/env";
@@ -65,6 +65,7 @@ describe("components > EnvironmentPicker", () => {
   let restoreElementSizeMocks: () => void;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.stubGlobal(
       "matchMedia",
       vi.fn().mockImplementation(() => ({
@@ -96,6 +97,8 @@ describe("components > EnvironmentPicker", () => {
     restoreElementSizeMocks();
     vi.unstubAllGlobals();
     cleanup();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   it("should show tooltip on hover after resize truncates selected value", async () => {
@@ -108,14 +111,21 @@ describe("components > EnvironmentPicker", () => {
 
     expect(queryTooltip()).not.toBeInTheDocument();
 
-    setNarrowViewport(true);
-    await waitFor(() => {
+    await act(async () => {
+      setNarrowViewport(true);
       fireEvent(window, new Event("resize"));
+      vi.advanceTimersByTime(16);
+    });
+
+    await waitFor(() => {
       expect(getTooltipTrigger().childElementCount).toBe(2);
     });
 
     const tooltipTrigger = getTooltipTrigger();
     fireEvent.mouseEnter(tooltipTrigger);
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
     await waitFor(() => {
       expect(queryTooltip()).toBeInTheDocument();
     });
