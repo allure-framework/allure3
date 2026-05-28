@@ -9,6 +9,7 @@ import {
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrStepHeader } from "@/components/TestResult/TrSteps/TrStepHeader";
 import { isTreeOpened, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -26,6 +27,8 @@ export const TrErrorStep: FunctionComponent<TrErrorStepProps> = ({ item, stepInd
   return (
     <div data-testid="test-result-step" className={styles["test-result-step"]}>
       <TrStepHeader
+        className={trOverviewHeaderFocusClass(item.id)}
+        {...trOverviewFocusAttrs(item.id)}
         title={item.title}
         status={item.status}
         stepIndex={stepIndex}

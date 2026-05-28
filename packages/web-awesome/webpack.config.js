@@ -24,6 +24,7 @@ export default (env, argv) => {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
+      publicPath: devMode ? "auto" : undefined,
     },
     devtool: devMode ? "eval-source-map" : false,
     optimization: {
@@ -146,6 +147,8 @@ export default (env, argv) => {
     config.plugins.push(
       new HtmlWebpackPlugin({
         template: "src/index.html",
+        inject: "body",
+        scriptLoading: "defer",
       }),
     );
   }

@@ -1,20 +1,34 @@
+import { scrollFocusIntoView, scrollTreePaneToTop } from "@allurereport/web-commons";
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
-import { useMemo } from "preact/hooks";
+import clsx from "clsx";
+import { useLayoutEffect, useMemo } from "preact/hooks";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentNameById, environmentsStore } from "@/stores/env";
+import { flatTree, getFlatTreeNode, setTreeFocusId, treeFocusId, treeScrollPaneToTopPending } from "@/stores/keyboard";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
-import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
+import {
+  collapsedTrees,
+  filteredTree,
+  isTreeOpened,
+  noTests,
+  noTestsFound,
+  toggleTree,
+  treeStore,
+} from "@/stores/tree";
 import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { createTreeLocalizer } from "@/utils/tree";
 
 import * as styles from "./styles.scss";
 
-const treeNavigateTo = (id: string) => {
-  navigateToTestResult({ testResultId: id });
+const treeNavigateTo = (testResultId: string) => {
+  const flatNode = flatTree.value.find((node) => node.testResultId === testResultId || node.id === testResultId);
+
+  setTreeFocusId(flatNode?.id ?? testResultId);
+  navigateToTestResult({ testResultId });
 };
 
 export const TreeList = () => {
@@ -22,8 +36,30 @@ export const TreeList = () => {
   const { t: tEnvironments } = useI18n("environments");
   const { t: tooltip } = useI18n("transitions");
   const trId = currentTrId.value;
+  const focusedId = treeFocusId.value;
 
   const currentTreeStatus = treeStatus.value;
+
+  useLayoutEffect(() => {
+    if (!focusedId) {
+      return;
+    }
+
+    const node = document.querySelector(`[data-tree-node-id="${focusedId}"]`);
+
+    if (!node) {
+      return;
+    }
+
+    if (treeScrollPaneToTopPending.value) {
+      treeScrollPaneToTopPending.value = false;
+      scrollTreePaneToTop(node);
+      return;
+    }
+
+    const flatNode = getFlatTreeNode(focusedId);
+    scrollFocusIntoView(node, { kind: flatNode?.kind });
+  }, [focusedId]);
 
   const localizers = useMemo(
     () => ({
@@ -84,10 +120,12 @@ export const TreeList = () => {
                 statistic={soleStatistic}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
+                isGroupOpened={isTreeOpened}
                 navigateTo={treeNavigateTo}
                 tree={treeLocalizer(filteredTree.value[soleId])}
                 statusFilter={currentTreeStatus}
                 routeId={trId}
+                focusedId={focusedId}
                 root
               />
             </div>
@@ -104,10 +142,12 @@ export const TreeList = () => {
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
+                isGroupOpened={isTreeOpened}
                 navigateTo={treeNavigateTo}
                 tree={treeLocalizer(currentTree)}
                 statusFilter={currentTreeStatus}
                 routeId={trId}
+                focusedId={focusedId}
                 root
               />
             </div>
@@ -132,9 +172,15 @@ export const TreeList = () => {
               };
               const stats = statsByEnvStore.value.data[key];
 
+              const envFocusId = `env:${key}`;
+
               return (
                 <div key={key} className={styles["tree-section"]} data-testid={"tree-section"}>
-                  <div className={styles["tree-env-button"]}>
+                  <div
+                    className={clsx(styles["tree-env-button"], focusedId === envFocusId && styles["tree-env-focused"])}
+                    data-tree-node-id={envFocusId}
+                    id={envFocusId}
+                  >
                     <MetadataButton
                       isOpened={isOpened}
                       setIsOpen={toggleEnv}
@@ -157,10 +203,13 @@ export const TreeList = () => {
                         reportStatistic={reportStatsStore.value.data}
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}
+                        isGroupOpened={isTreeOpened}
                         statusFilter={currentTreeStatus}
                         navigateTo={treeNavigateTo}
                         tree={treeLocalizer(value)}
                         routeId={trId}
+                        focusedId={focusedId}
+                        focusIdPrefix={`${key}:`}
                         root
                       />
                     </div>

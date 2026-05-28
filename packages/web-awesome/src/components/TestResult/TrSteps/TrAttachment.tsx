@@ -9,6 +9,7 @@ import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentIn
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
 import { isTreeOpened, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -105,9 +106,10 @@ export const TrAttachment: FunctionComponent<{
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
         data-testid={"test-result-attachment-header"}
-        className={cx(styles["test-result-attachment-header"], {
+        className={cx(styles["test-result-attachment-header"], trOverviewHeaderFocusClass(item.link.id), {
           [styles.empty]: !isValidComponentType,
         })}
+        {...trOverviewFocusAttrs(item.link.id)}
         onClick={(e) => {
           e.stopPropagation();
           if (attachmentTreeId !== null) {

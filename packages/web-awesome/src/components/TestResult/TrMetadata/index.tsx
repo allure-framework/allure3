@@ -19,7 +19,7 @@ export type TrMetadataProps = {
 export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResult }) => {
   const { t } = useI18n("ui");
   const { labels, groupedLabels } = testResult ?? {};
-  const labelsId = id !== null ? `${id}-labels` : null;
+  const labelsId = id ? `${id}-labels` : null;
   const labelsShowAllId = id !== null ? `${id}-labels-showAll` : null;
   const isOpened = !collapsedTrees.value.has(labelsId);
   const entries = groupedLabels ? Object.entries(groupedLabels) : [];
