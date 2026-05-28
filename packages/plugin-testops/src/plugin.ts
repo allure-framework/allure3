@@ -10,14 +10,14 @@ import { bold } from "yoctocolors";
 import { TestOpsClient } from "./client.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import { toUploadCategory } from "./uploadCategory.js";
-import { uploadFilenameForLink } from "./uploaderDto.js";
 import {
   attachmentsResolverFactory,
   fixturesResolverFactory,
   resolvePluginOptions,
   unwrapStepsAttachments,
-} from "./utils.js";
+} from "./utils/index.js";
+import { toUploadCategory } from "./utils/uploadCategory.js";
+import { uploadFilenameForLink } from "./utils/uploaderDto.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
@@ -52,7 +52,6 @@ export class TestOpsPlugin implements Plugin {
       projectId,
       launchName,
       launchTags,
-      createLaunch = false,
       autocloseLaunch = true,
     } = resolvePluginOptions(options);
 
@@ -70,7 +69,6 @@ export class TestOpsPlugin implements Plugin {
     }
 
     this.#autocloseLaunch = autocloseLaunch;
-    this.#createLaunch = createLaunch;
 
     if (!accessToken) {
       this.#logger.warn(

@@ -7,9 +7,10 @@ import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
-import { resolvePluginOptions } from "../src/utils.js";
+import { resolvePluginOptions } from "../src/utils/index.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("@allurereport/ci", () => ({
@@ -24,7 +25,7 @@ vi.mock("../src/client.js", async () => {
   };
 });
 
-vi.mock("../src/utils.js", async (importOriginal) => {
+vi.mock("../src/utils/index.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     resolvePluginOptions: vi.fn(),
@@ -114,7 +115,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       const options = {
@@ -135,7 +135,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -151,7 +150,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -167,7 +165,6 @@ describe("testops plugin", () => {
         projectId: "",
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -183,7 +180,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -207,7 +203,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -223,7 +218,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -251,7 +245,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -267,7 +260,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -292,7 +284,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -319,7 +310,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Custom Launch",
         launchTags: fixtures.launchTags,
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -450,7 +440,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
         filter,
       });
 
@@ -888,7 +877,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -915,7 +903,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -937,7 +924,6 @@ describe("testops plugin", () => {
         projectId: "",
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -961,7 +947,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1067,7 +1052,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
         filter,
       });
 
@@ -1111,7 +1095,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -1133,7 +1116,6 @@ describe("testops plugin", () => {
           projectId: fixtures.projectId,
           launchName: "Allure Report",
           launchTags: fixtures.launchTags,
-          createLaunch: true,
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
@@ -1152,7 +1134,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1223,7 +1204,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
         filter,
       });
 
@@ -1258,7 +1238,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1272,7 +1251,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -1314,7 +1292,6 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
-        createLaunch: true,
         filter,
       });
 

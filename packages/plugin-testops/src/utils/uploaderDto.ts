@@ -8,8 +8,8 @@ import type {
   UploadTestResultDto,
   UploadTestResultCategoryGroupingDto,
   UploadTestResultStepDto,
-} from "./model.js";
-import type { TestOpsFixtureResult, TestOpsPluginTestResult } from "./model.js";
+} from "../model.js";
+import type { TestOpsFixtureResult, TestOpsPluginTestResult } from "../model.js";
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 

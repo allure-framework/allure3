@@ -47,6 +47,7 @@
     "glob": "^13.0.6",
     "handlebars": "^4.7.9",
     "node-stream-zip": "^1.15.0",
+    "p-limit": "^7.3.0",
     "yaml": "^2.8.3",
     "yoctocolors": "^2.1.1",
     "zip-stream": "^7.0.2"

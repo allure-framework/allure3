@@ -33,7 +33,7 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
-import { toUploadFixturesResultsDto, toUploadResultsDto } from "./uploaderDto.js";
+import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;

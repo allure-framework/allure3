@@ -42,6 +42,7 @@ import {
 import { generateSummary } from "@allurereport/summary";
 import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
+import pLimit from "p-limit";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";

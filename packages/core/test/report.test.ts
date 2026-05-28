@@ -7,8 +7,8 @@ import { setTimeout } from "node:timers/promises";
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { epic, feature, label, step, story } from "allure-js-commons";
 import { KnownError } from "@allurereport/service";
+import { Attachment, epic, feature, label, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -777,7 +777,7 @@ describe("report", () => {
     await allureReport.start();
 
     const attachments = await allureReport.store.allGlobalAttachments();
-    const names = attachments.map((a) => a.name).sort();
+    const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
     expect(names).toEqual(["global.log", "nested.txt"]);
   });
@@ -802,7 +802,7 @@ describe("report", () => {
     const attachments = await allureReport.store.allGlobalAttachments();
 
     expect(attachments).toHaveLength(1);
-    expect(attachments[0]?.name).toBe("duplicated.log");
+    expect((attachments[0] as unknown as Attachment)?.name).toBe("duplicated.log");
   });
 
   it("should ignore absolute global attachments outside working directory", async () => {
@@ -828,7 +828,7 @@ describe("report", () => {
     await allureReport.start();
 
     const attachments = await allureReport.store.allGlobalAttachments();
-    const names = attachments.map((a) => a.name).sort();
+    const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
     expect(names).toEqual(["inside.log"]);
     expect(names).not.toContain("outside.log");
@@ -857,7 +857,7 @@ describe("report", () => {
     await allureReport.start();
 
     const attachments = await allureReport.store.allGlobalAttachments();
-    const names = attachments.map((a) => a.name).sort();
+    const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
     expect(names).toEqual(["safe.txt"]);
     expect(names).not.toContain("token.txt");

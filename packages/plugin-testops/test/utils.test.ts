@@ -2,7 +2,7 @@ import type { TestStepResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils.js";
+import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils/index.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -381,38 +381,6 @@ describe("resolvePluginOptions", () => {
       } as any);
 
       expect(result.launchTags).toEqual([]);
-    });
-
-    it("should preserve publish option when enabled", () => {
-      const result = resolvePluginOptions({
-        accessToken: "token",
-        endpoint: "http://example.com",
-        projectId: "12345",
-        publish: true,
-      });
-
-      expect(result.publish).toBe(true);
-    });
-
-    it("should preserve createLaunch option when enabled", () => {
-      const result = resolvePluginOptions({
-        accessToken: "token",
-        endpoint: "http://example.com",
-        projectId: "12345",
-        createLaunch: true,
-      });
-
-      expect(result.createLaunch).toBe(true);
-    });
-
-    it("should not set createLaunch by default", () => {
-      const result = resolvePluginOptions({
-        accessToken: "token",
-        endpoint: "http://example.com",
-        projectId: "12345",
-      });
-
-      expect(result.createLaunch).toBeUndefined();
     });
   });
 });

@@ -232,8 +232,6 @@ export type TestOpsUploaderOptions = {
   projectId: string;
   launchName: string;
   launchTags: string[];
-  createLaunch?: boolean;
-  publish?: boolean;
   autocloseLaunch?: boolean;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
