@@ -873,7 +873,7 @@ const RequestSection = ({ request }: { request: HttpRequest }) => {
 
 const hasResponseDetails = (response: HttpResponse) =>
   Boolean(
-    response.status !== undefined ||
+    response.status ||
     response.reason ||
     response.httpVersion ||
     response.headers.length ||

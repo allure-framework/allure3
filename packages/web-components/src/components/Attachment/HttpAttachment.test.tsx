@@ -124,6 +124,19 @@ describe("HttpAttachment", () => {
     expect(screen.getAllByText("0")).toHaveLength(2);
   });
 
+  it("hides response section when response has no captured data", () => {
+    renderHttpAttachment({
+      schemaVersion: 1,
+      request: {
+        method: "GET",
+        url: "https://api.example.com/no-response-details",
+      },
+      response: {},
+    });
+
+    expect(screen.queryByText("Response")).toBeNull();
+  });
+
   it("renders base64 images and binary fallback", () => {
     const { unmount } = renderHttpAttachment({
       schemaVersion: 1,

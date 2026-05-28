@@ -117,6 +117,33 @@ export const TrAttachment: FunctionComponent<{
     />
   );
 
+  const attachmentHeaderContent = (
+    <>
+      {isValidComponentType ? (
+        <ArrowButton isOpened={isOpened} tag="span" />
+      ) : (
+        <span className={styles["test-result-strut"]} />
+      )}
+      <span className={styles["test-result-attachment-icon"]}>
+        <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
+      </span>
+
+      <Code size="s" className={styles["test-result-step-number"]}>
+        {stepIndex}
+      </Code>
+      <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
+      {missed && (
+        <Text
+          size={"s"}
+          className={styles["test-result-attachment-missed"]}
+          data-testid={"test-result-attachment-missed"}
+        >
+          missed
+        </Text>
+      )}
+    </>
+  );
+
   return (
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
@@ -126,35 +153,13 @@ export const TrAttachment: FunctionComponent<{
         })}
         {...trOverviewFocusAttrs(item.link.id)}
       >
-        <button
-          className={styles["test-result-attachment-toggle"]}
-          disabled={!isValidComponentType || attachmentTreeId === null}
-          onClick={toggleAttachment}
-          type="button"
-        >
-          {isValidComponentType ? (
-            <ArrowButton isOpened={isOpened} tag="span" />
-          ) : (
-            <span className={styles["test-result-strut"]} />
-          )}
-          <span className={styles["test-result-attachment-icon"]}>
-            <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
-          </span>
-
-          <Code size="s" className={styles["test-result-step-number"]}>
-            {stepIndex}
-          </Code>
-          <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
-          {missed && (
-            <Text
-              size={"s"}
-              className={styles["test-result-attachment-missed"]}
-              data-testid={"test-result-attachment-missed"}
-            >
-              missed
-            </Text>
-          )}
-        </button>
+        {isValidComponentType ? (
+          <button className={styles["test-result-attachment-toggle"]} onClick={toggleAttachment} type="button">
+            {attachmentHeaderContent}
+          </button>
+        ) : (
+          attachmentHeaderContent
+        )}
         <div>
           <TrAttachmentInfo
             item={item}
