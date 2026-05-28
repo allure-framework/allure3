@@ -276,6 +276,91 @@ describe("newFilesInDirectoryWatcher", () => {
     expect(handler).toBeCalledWith(file2, expect.any(Dirent));
     expect(handler).toBeCalledTimes(2);
   });
+
+  it("should discover every file under nested result directories during initial scan", async () => {
+    const expectedFiles: string[] = [];
+
+    for (let groupIndex = 0; groupIndex < 12; groupIndex++) {
+      const groupDirectory = join(fixturesDir, "build", "allure-results", `matrix-${groupIndex}`, "attachments");
+      await mkdir(groupDirectory, { recursive: true });
+
+      for (let fileIndex = 0; fileIndex < 25; fileIndex++) {
+        const file = join(groupDirectory, `${groupIndex}-${fileIndex}-attachment.txt`);
+        expectedFiles.push(file);
+        await writeFile(file, `attachment ${groupIndex}:${fileIndex}`, "utf8");
+      }
+    }
+
+    const seenFiles = new Set<string>();
+    const handler = vi.fn(async (file: string) => {
+      seenFiles.add(file);
+    });
+    const watcher = newFilesInDirectoryWatcher(fixturesDir, handler, {
+      indexDelay: 10_000,
+      abortController,
+    });
+
+    await watcher.initialScan();
+    await watcher.abort();
+
+    expect(handler).toBeCalledTimes(expectedFiles.length);
+    expect(seenFiles).toHaveLength(expectedFiles.length);
+    for (const file of expectedFiles) {
+      expect(seenFiles).toContain(file);
+    }
+  });
+
+  it("should limit recursive discovery by maximum depth", async () => {
+    const firstLevelDirectory = await randomDirectory(fixturesDir, "first");
+    const secondLevelDirectory = await randomDirectory(firstLevelDirectory, "second");
+    const rootFile = await randomFile(fixturesDir, "root.txt");
+    const firstLevelFile = await randomFile(firstLevelDirectory, "first.txt");
+    const secondLevelFile = await randomFile(secondLevelDirectory, "second.txt");
+
+    const seenFiles = new Set<string>();
+    const handler = vi.fn(async (file: string) => {
+      seenFiles.add(file);
+    });
+    const watcher = newFilesInDirectoryWatcher(fixturesDir, handler, {
+      indexDelay: 10_000,
+      maximumDepth: 1,
+      abortController,
+    });
+
+    await watcher.initialScan();
+    await watcher.abort();
+
+    expect(handler).toBeCalledTimes(2);
+    expect(seenFiles).toContain(rootFile);
+    expect(seenFiles).toContain(firstLevelFile);
+    expect(seenFiles).not.toContain(secondLevelFile);
+  });
+
+  it("should use a default maximum depth of 10", async () => {
+    let currentDirectory = fixturesDir;
+    for (let depth = 1; depth <= 10; depth++) {
+      currentDirectory = await randomDirectory(currentDirectory, `level-${depth}`);
+    }
+    const depth10File = await randomFile(currentDirectory, "depth-10.txt");
+    const depth11Directory = await randomDirectory(currentDirectory, "level-11");
+    const depth11File = await randomFile(depth11Directory, "depth-11.txt");
+
+    const seenFiles = new Set<string>();
+    const handler = vi.fn(async (file: string) => {
+      seenFiles.add(file);
+    });
+    const watcher = newFilesInDirectoryWatcher(fixturesDir, handler, {
+      indexDelay: 10_000,
+      abortController,
+    });
+
+    await watcher.initialScan();
+    await watcher.abort();
+
+    expect(handler).toBeCalledTimes(1);
+    expect(seenFiles).toContain(depth10File);
+    expect(seenFiles).not.toContain(depth11File);
+  });
 });
 
 describe("findMatching", () => {
@@ -419,6 +504,28 @@ describe("delayedFileProcessingWatcher", () => {
     writeStream.end();
     await watcher.abort();
 
+    expect(handler).toBeCalledTimes(1);
+    const expectedPath = await realpath(file);
+    expect(handler).toBeCalledWith(expectedPath);
+  });
+
+  it("should honor processing delay on abort for stable files", async () => {
+    const handler = vi.fn();
+    const watcher = delayedFileProcessingWatcher(handler, {
+      indexDelay: 10_000,
+      minProcessingDelay: 200,
+      maxProcessingDelay: 1_000,
+      abortController,
+    });
+    const file = join(fixturesDir, "stable-file.txt");
+    await writeFile(file, "content", "utf8");
+    await watcher.addFile(file);
+
+    const startedAt = Date.now();
+    await watcher.abort();
+    const elapsed = Date.now() - startedAt;
+
+    expect(elapsed).toBeGreaterThanOrEqual(100);
     expect(handler).toBeCalledTimes(1);
     const expectedPath = await realpath(file);
     expect(handler).toBeCalledWith(expectedPath);
