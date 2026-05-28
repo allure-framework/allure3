@@ -23,8 +23,8 @@
     "@types/node": "^20.17.9",
     "@vitest/runner": "^4.0.18",
     "allure": "workspace:*",
-    "allure-js-commons": "^3.6.0",
-    "allure-vitest": "^3.6.0",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "rimraf": "^6.0.1",
     "vite": "^8.0.9",
     "vitest": "^4.0.18"
