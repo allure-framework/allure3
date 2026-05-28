@@ -188,8 +188,8 @@ export class CheckCommand extends Command {
         logs: "pipe",
         shell: checkCommand!.shell,
       });
+      const { code } = await terminationOf(checkProcess);
       commandOutput = collectCheckCommandOutput(checkProcess);
-      const code = await terminationOf(checkProcess);
 
       originalExitCode = code ?? 1;
       status = originalExitCode === 0 ? "passed" : "failed";

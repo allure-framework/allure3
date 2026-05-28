@@ -2,13 +2,14 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
-import LogPlugin from "@allurereport/plugin-log";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogCommand } from "../../src/commands/log.js";
+import { AllureReportMock } from "../utils.js";
+import { existsSync } from "node:fs";
 
 const fixtures = {
   resultsDir: "foo/bar/allure-results",
@@ -17,6 +18,13 @@ const fixtures = {
   groupBy: "suites",
   config: "./custom/allurerc.mjs",
 };
+
+const { LogPluginMock, readConfigMock } = vi.hoisted(() => ({
+  LogPluginMock: vi.fn(function (this: { options?: unknown }, options?: unknown) {
+    this.options = options;
+  }),
+  readConfigMock: vi.fn(),
+}));
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -30,7 +38,7 @@ vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
-    readConfig: vi.fn(),
+    readConfig: readConfigMock,
     AllureReport: AllureReportMock,
   };
 });
@@ -39,6 +47,9 @@ vi.mock("glob", async () => {
     glob: vi.fn(),
   };
 });
+vi.mock("@allurereport/plugin-log", () => ({
+  default: LogPluginMock,
+}));
 
 beforeEach(async () => {
   await epic("coverage");
@@ -58,44 +69,46 @@ describe("log command", () => {
       expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
-    expect(AllureReport).not.toHaveBeenCalled();
+    expect(AllureReportMock).not.toHaveBeenCalled();
   });
 
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
+    (existsSync as Mock).mockReturnValueOnce(true);
+    readConfigMock.mockResolvedValueOnce({
       plugins: [],
     });
     (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
     await run(LogCommand, ["log", fixtures.resultsDir]);
 
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith({
+    expect(AllureReportMock).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock).toHaveBeenCalledWith({
       plugins: expect.arrayContaining([
         expect.objectContaining({
           id: "log",
           enabled: true,
           options: expect.objectContaining({}),
-          plugin: expect.any(LogPlugin),
+          plugin: expect.any(LogPluginMock),
         }),
       ]),
     });
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
+    (existsSync as Mock).mockReturnValueOnce(true);
+    readConfigMock.mockResolvedValueOnce({
       plugins: [
         {
           id: "my-log-plugin1",
           enabled: true,
           options: {},
-          plugin: new LogPlugin({}),
+          plugin: new LogPluginMock({}),
         },
         {
           id: "my-log-plugin2",
           enabled: true,
           options: {},
-          plugin: new LogPlugin({}),
+          plugin: new LogPluginMock({}),
         },
       ],
     });
@@ -103,13 +116,13 @@ describe("log command", () => {
 
     await run(LogCommand, ["log", fixtures.resultsDir]);
 
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
+    expect(AllureReportMock).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "log",
-            plugin: expect.any(LogPlugin),
+            plugin: expect.any(LogPluginMock),
           }),
         ]),
       }),

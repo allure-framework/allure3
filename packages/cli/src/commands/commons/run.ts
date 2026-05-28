@@ -46,7 +46,9 @@ export const executeNestedAllureCommand = async (params: {
     logs: params.silent ? "ignore" : "inherit",
   });
 
-  return await terminationOf(nestedProcess);
+  const { code } = await terminationOf(nestedProcess);
+
+  return code;
 };
 
 export const runTests = async (params: {
@@ -201,15 +203,21 @@ export const runTests = async (params: {
     });
   }
 
-  const code = await terminationOf(testProcess);
+  const { code, error } = await terminationOf(testProcess);
   const afterProcess = Date.now();
 
   if (logProcessExit) {
-    if (code !== null) {
+    if (error) {
+      console.log(`process failed to start: ${error.message} (${afterProcess - beforeProcess}ms)`);
+    } else if (code !== null) {
       console.log(`process finished with code ${code} (${afterProcess - beforeProcess}ms)`);
     } else {
       console.log(`process terminated (${afterProcess - beforeProcess}ms)`);
     }
+  }
+
+  if (error && !testProcessStderr.includes(error.message)) {
+    testProcessStderr = [testProcessStderr, error.message].filter(Boolean).join("\n");
   }
 
   await allureResultsWatch.abort();
@@ -394,13 +402,17 @@ export const executeAllureRun = async (params: {
     stderrResultFile.contentType = "text/plain";
 
     allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
+  }
 
-    if (processFailed) {
-      allureReport.realtimeDispatcher.sendGlobalError({
-        message: "Test process has failed",
-        trace: testProcessResult.stderr,
-      });
-    }
+  if (processFailed) {
+    const processFailureTrace = [testProcessResult?.stderr, testProcessResult?.stdout]
+      .filter((output): output is string => !!output)
+      .join("\n");
+
+    allureReport.realtimeDispatcher.sendGlobalError({
+      message: "Test process has failed",
+      ...(processFailureTrace ? { trace: processFailureTrace } : {}),
+    });
   }
 
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
