@@ -95,10 +95,6 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/plugin-slack"\
     },\
     {\
-      "name": "@allurereport/plugin-storage",\
-      "reference": "workspace:packages/plugin-storage"\
-    },\
-    {\
       "name": "@allurereport/plugin-testops",\
       "reference": "workspace:packages/plugin-testops"\
     },\
@@ -178,7 +174,6 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-progress", ["workspace:packages/plugin-progress"]],\
     ["@allurereport/plugin-server-reload", ["workspace:packages/plugin-server-reload"]],\
     ["@allurereport/plugin-slack", ["workspace:packages/plugin-slack"]],\
-    ["@allurereport/plugin-storage", ["workspace:packages/plugin-storage"]],\
     ["@allurereport/plugin-testops", ["workspace:packages/plugin-testops"]],\
     ["@allurereport/plugin-testplan", ["workspace:packages/plugin-testplan"]],\
     ["@allurereport/reader", ["workspace:packages/reader"]],\
@@ -301,7 +296,6 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
-          ["@allurereport/plugin-storage", "workspace:packages/plugin-storage"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
@@ -650,29 +644,6 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
-          ["rimraf", "npm:6.0.1"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
-          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
-        ],\
-        "linkType": "SOFT"\
-      }]\
-    ]],\
-    ["@allurereport/plugin-storage", [\
-      ["workspace:packages/plugin-storage", {\
-        "packageLocation": "./packages/plugin-storage/",\
-        "packageDependencies": [\
-          ["@allurereport/plugin-storage", "workspace:packages/plugin-storage"],\
-          ["@allurereport/core-api", "workspace:packages/core-api"],\
-          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
-          ["@allurereport/service", "workspace:packages/service"],\
-          ["@allurereport/summary", "workspace:packages/summary"],\
-          ["@types/node", "npm:20.17.9"],\
-          ["@types/progress", "npm:2.0.7"],\
-          ["@vitest/runner", "npm:2.1.9"],\
-          ["@vitest/snapshot", "npm:2.1.9"],\
-          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
-          ["p-limit", "npm:7.2.0"],\
-          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
@@ -20422,14 +20393,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["p-limit", "npm:4.0.0"],\
           ["yocto-queue", "npm:1.0.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:7.2.0", {\
-        "packageLocation": "./.yarn/cache/p-limit-npm-7.2.0-72063c9642-ea1cae6e8b.zip/node_modules/p-limit/",\
-        "packageDependencies": [\
-          ["p-limit", "npm:7.2.0"],\
-          ["yocto-queue", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
       }],\

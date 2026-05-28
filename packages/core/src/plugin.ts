@@ -31,7 +31,7 @@ export class PluginFiles implements ReportFiles {
   constructor(
     parent: ReportFiles,
     pluginId: string,
-    readonly callback?: (key: string, path: string) => void,
+    readonly callback?: (key: string, path: string) => void | Promise<void>,
   ) {
     this.#parent = parent;
     this.#pluginId = pluginId;
@@ -40,7 +40,7 @@ export class PluginFiles implements ReportFiles {
   addFile = async (key: string, data: Buffer): Promise<string> => {
     const filepath = await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
 
-    this.callback?.(key, filepath);
+    await this.callback?.(key, filepath);
 
     return filepath;
   };

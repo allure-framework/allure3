@@ -15,8 +15,14 @@ vi.mock("axios", () => ({
   isAxiosError: (err: unknown) => !!(err as { isAxiosError?: boolean })?.isAxiosError,
 }));
 
-const { KnownError, UnknownError, createServiceHttpClient, formatResponseErrorData } =
+const { KnownError, UnknownError, createServiceHttpClient, formatResponseErrorData, uploadReport } =
   await import("../src/utils/http.js");
+
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const createAxiosError = (payload: { status?: number; statusText?: string; data?: unknown; message?: string }) => ({
   isAxiosError: true,
@@ -54,7 +60,7 @@ describe("createServiceHttpClient", () => {
       }),
     );
 
-    const client = createServiceHttpClient("https://testops.example.com", "token");
+    const client = createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
     let caught: unknown;
 
     try {
@@ -85,7 +91,7 @@ describe("createServiceHttpClient", () => {
       }),
     );
 
-    const client = createServiceHttpClient("https://testops.example.com", "token");
+    const client = createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
     let caught: unknown;
 
     try {
@@ -106,7 +112,7 @@ describe("createServiceHttpClient", () => {
       }),
     );
 
-    const client = createServiceHttpClient("https://testops.example.com", "token");
+    const client = createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
     let caught: unknown;
 
     try {
@@ -117,6 +123,34 @@ describe("createServiceHttpClient", () => {
 
     expect(caught).toBeInstanceOf(UnknownError);
     expect((caught as Error).message).toBe("Allure service request failed: GET /api/test-report failed: Network Error");
+  });
+
+  it("should authorize requests with an API token", async () => {
+    axiosMock.get.mockResolvedValue({ data: {} });
+
+    const client = createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
+
+    await client.get("/api/test-report");
+
+    expect(axiosMock.get).toHaveBeenCalledWith("/api/test-report", {
+      headers: {
+        Authorization: "api-token token",
+      },
+    });
+  });
+
+  it("should authorize requests with a bearer access token", async () => {
+    axiosMock.get.mockResolvedValue({ data: {} });
+
+    const client = createServiceHttpClient("https://service.example.com", { accessToken: "token" });
+
+    await client.get("/api/reports");
+
+    expect(axiosMock.get).toHaveBeenCalledWith("/api/reports", {
+      headers: {
+        Authorization: "Bearer token",
+      },
+    });
   });
 });
 
@@ -137,5 +171,144 @@ describe("formatResponseErrorData", () => {
         error: "Project is not available",
       }),
     ).toBe("Project is not available");
+  });
+});
+
+describe("uploadReport", () => {
+  it("routes data files to addReportFile and assets to addReportAsset", async () => {
+    const addReportFile = vi.fn().mockResolvedValue("https://example.org/report/index.html");
+    const addReportAsset = vi.fn().mockResolvedValue(undefined);
+
+    const result = await uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      pluginId: "plugin-id",
+      files: {
+        "index.html": "/tmp/index.html",
+        "widgets/summary.json": "/tmp/widgets-summary.json",
+        "app.js": "/tmp/app.js",
+      },
+      addReportFile,
+      addReportAsset,
+    });
+
+    expect(addReportFile).toHaveBeenCalledTimes(2);
+    expect(addReportAsset).toHaveBeenCalledTimes(1);
+    expect(result.indexHref).toBe("https://example.org/report/index.html");
+  });
+
+  it("uses configured concurrency", async () => {
+    let active = 0;
+    let maxActive = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const addReportFile = vi.fn().mockImplementation(
+      async () => {
+        active++;
+        maxActive = Math.max(maxActive, active);
+        await gate;
+        active--;
+
+        return "https://example.org/file";
+      },
+    );
+
+    const promise = uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      files: Object.fromEntries(
+        Array.from({ length: 8 }, (_, index) => [`data/f${index}.json`, `/tmp/f${index}.json`]),
+      ),
+      uploadConcurrency: 3,
+      addReportFile,
+      addReportAsset: vi.fn(),
+    });
+
+    await Promise.resolve();
+    expect(maxActive).toBe(3);
+    release();
+    await promise;
+
+    expect(addReportFile).toHaveBeenCalledTimes(8);
+  });
+
+  it("uses provided upload concurrency of 100", async () => {
+    let active = 0;
+    let maxActive = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const addReportFile = vi.fn().mockImplementation(
+      async () => {
+        active++;
+        maxActive = Math.max(maxActive, active);
+        await gate;
+        active--;
+
+        return "https://example.org/file";
+      },
+    );
+
+    const promise = uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      files: Object.fromEntries(
+        Array.from({ length: 105 }, (_, index) => [`data/f${index}.json`, `/tmp/f${index}.json`]),
+      ),
+      addReportFile,
+      addReportAsset: vi.fn(),
+    });
+
+    await Promise.resolve();
+    expect(maxActive).toBe(100);
+    release();
+    await promise;
+
+    expect(addReportFile).toHaveBeenCalledTimes(105);
+  });
+
+  it("retries failed uploads up to max attempts", async () => {
+    const addReportFile = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("failed"))
+      .mockRejectedValueOnce(new Error("failed"))
+      .mockResolvedValue("https://example.org/report/index.html");
+
+    const result = await uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      files: { "index.html": "/tmp/index.html" },
+      uploadMaxAttempts: 3,
+      addReportFile,
+      addReportAsset: vi.fn(),
+    });
+
+    expect(addReportFile).toHaveBeenCalledTimes(3);
+    expect(result.indexHref).toBe("https://example.org/report/index.html");
+  });
+
+  it("fails fast when max simultaneous failures is 0", async () => {
+    const addReportFile = vi.fn().mockRejectedValue(new Error("upload failed"));
+
+    await expect(
+      uploadReport({
+        ...uploadConfig,
+        reportUuid: "report-uuid",
+        files: {
+          "index.html": "/tmp/index.html",
+          "widgets/summary.json": "/tmp/summary.json",
+        },
+        uploadConcurrency: 1,
+        uploadMaxAttempts: 10,
+        uploadMaxSimultaneousFailures: 0,
+        addReportFile,
+        addReportAsset: vi.fn(),
+      }),
+    ).rejects.toThrow("upload failed");
+
+    expect(addReportFile).toHaveBeenCalledTimes(1);
   });
 });

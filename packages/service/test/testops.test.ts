@@ -9,9 +9,23 @@ import { HttpClientMock, createHttpClientMock } from "./utils.js";
 
 const testOpsAccessToken = "testops-access-token";
 const testOpsUrl = "https://testops.example.com";
+const createAccessToken = (payload: Record<string, unknown>) =>
+  `ato1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
+const validAccessToken = createAccessToken({ accessToken: testOpsAccessToken, url: testOpsUrl, projectId: 123 });
+const validAccessTokenWithStringProjectId = createAccessToken({
+  accessToken: testOpsAccessToken,
+  url: testOpsUrl,
+  projectId: "123",
+});
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const fixtures = {
-  accessToken: testOpsAccessToken,
+  accessToken: validAccessToken,
+  testOpsAccessToken,
   url: testOpsUrl,
   projectId: 123,
   report: "11111111-1111-1111-1111-111111111111",
@@ -82,44 +96,50 @@ describe("AllureTestOpsClient", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     testOpsClient = new AllureTestOpsClientClass({
+      ...uploadConfig,
       accessToken: fixtures.accessToken,
-      endpoint: fixtures.url,
-      projectId: fixtures.projectId,
     });
   });
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() => new AllureTestOpsClientClass({ projectId: fixtures.projectId })).toThrow(
+      expect(() =>
+        new AllureTestOpsClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
+      ).toThrow(
         "Allure TestOps access token is required",
       );
     });
 
-    it("should throw an error if endpoint is not provided", () => {
+    it("should throw an error if access token is invalid", () => {
+      expect(() => new AllureTestOpsClientClass({ ...uploadConfig, accessToken: "invalid-token" })).toThrow(
+        "Allure service access token is invalid",
+      );
+    });
+
+    it("should throw an error if token payload doesn't contain a project ID", () => {
       expect(
         () =>
           new AllureTestOpsClientClass({
-            accessToken: fixtures.accessToken,
-            projectId: fixtures.projectId,
+            ...uploadConfig,
+            accessToken: createAccessToken({ accessToken: fixtures.testOpsAccessToken, url: fixtures.url }),
           }),
-      ).toThrow("Allure TestOps endpoint is required");
+      ).toThrow("Given access token doesn't contain project id");
     });
 
-    it("should throw an error if project ID is not provided", () => {
+    it("should throw an error if token payload doesn't contain a URL", () => {
       expect(
         () =>
           new AllureTestOpsClientClass({
-            accessToken: fixtures.accessToken,
-            projectId: undefined as unknown as number,
+            ...uploadConfig,
+            accessToken: createAccessToken({ accessToken: fixtures.testOpsAccessToken, projectId: fixtures.projectId }),
           }),
-      ).toThrow("Allure TestOps project ID is required");
+      ).toThrow("Allure service access token is invalid");
     });
 
-    it("should create the HTTP client with direct access token", async () => {
+    it("should create the HTTP client with API token from access token payload", async () => {
       const client = new AllureTestOpsClientClass({
+        ...uploadConfig,
         accessToken: fixtures.accessToken,
-        endpoint: fixtures.url,
-        projectId: fixtures.projectId,
       });
 
       HttpClientMock.prototype.post.mockResolvedValue({
@@ -129,7 +149,9 @@ describe("AllureTestOpsClient", () => {
       await client.createReport({ reportName: fixtures.reportName, reportUuid: fixtures.report });
 
       expect(fetchMock).not.toHaveBeenCalled();
-      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, fixtures.accessToken);
+      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, {
+        apiToken: fixtures.testOpsAccessToken,
+      });
     });
   });
 
@@ -158,18 +180,60 @@ describe("AllureTestOpsClient", () => {
           projectId: fixtures.projectId,
           reportName: fixtures.reportName,
           reportUuid: fixtures.report,
-          isPublic: undefined,
+          isPublic: true,
         },
       });
       expect(res.href).toBe(`${fixtures.url}${reportUrl}`);
     });
 
-    it("should create a public TestOps report when configured", async () => {
+    it("should send isPublic=false only when private mode is enabled", async () => {
       testOpsClient = new AllureTestOpsClientClass({
+        ...uploadConfig,
         accessToken: fixtures.accessToken,
-        endpoint: fixtures.url,
-        projectId: fixtures.projectId,
-        isPublic: true,
+        private: true,
+      });
+      HttpClientMock.prototype.post.mockResolvedValue({
+        url: `${fixtures.url}/api/test-report/view/${fixtures.report}/index.html`,
+      });
+
+      await testOpsClient.createReport({
+        reportName: fixtures.reportName,
+        reportUuid: fixtures.report,
+      });
+
+      expect(HttpClientMock.prototype.post).toHaveBeenLastCalledWith("/api/test-report", {
+        body: {
+          projectId: fixtures.projectId,
+          reportName: fixtures.reportName,
+          reportUuid: fixtures.report,
+          isPublic: false,
+        },
+      });
+
+      testOpsClient = new AllureTestOpsClientClass({
+        ...uploadConfig,
+        accessToken: fixtures.accessToken,
+      });
+
+      await testOpsClient.createReport({
+        reportName: fixtures.reportName,
+        reportUuid: fixtures.report,
+      });
+
+      expect(HttpClientMock.prototype.post).toHaveBeenLastCalledWith("/api/test-report", {
+        body: {
+          projectId: fixtures.projectId,
+          reportName: fixtures.reportName,
+          reportUuid: fixtures.report,
+          isPublic: true,
+        },
+      });
+    });
+
+    it("should coerce project ID from access token payload to a number", async () => {
+      testOpsClient = new AllureTestOpsClientClass({
+        ...uploadConfig,
+        accessToken: validAccessTokenWithStringProjectId,
       });
       HttpClientMock.prototype.post.mockResolvedValue({
         url: `${fixtures.url}/api/test-report/view/${fixtures.report}/index.html`,
@@ -298,15 +362,23 @@ describe("AllureTestOpsClient", () => {
         contentType: "application/octet-stream",
       });
     });
+  });
 
-    it("should throw an error if file size exceeds maximum", async () => {
-      await expect(
-        testOpsClient.addReportFile({
-          reportUuid: fixtures.report,
-          filename: fixtures.filename,
-          file: Buffer.alloc(201 * 1024 * 1024),
-        }),
-      ).rejects.toThrow("Report file size exceeds the maximum allowed size of 200MB");
+  describe("uploadReport", () => {
+    it("uploads files through shared helper", async () => {
+      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("<html></html>"));
+      HttpClientMock.prototype.post.mockResolvedValue(undefined);
+
+      const result = await testOpsClient.uploadReport({
+        reportUuid: fixtures.report,
+        pluginId: fixtures.pluginId,
+        files: {
+          "index.html": "index.html",
+        },
+      });
+
+      expect(result.indexHref).toBe(`${fixtures.url}/api/test-report/view/${fixtures.report}/${fixtures.pluginId}/index.html`);
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/test-report/${fixtures.report}/upload`, expect.anything());
     });
   });
 });

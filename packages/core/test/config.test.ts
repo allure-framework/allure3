@@ -325,28 +325,79 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
-  it("injects storage plugin when allureService token and publishable plugins exist", async () => {
+  it("does not inject storage plugin and preserves allureService config", async () => {
     const resolved = await resolveConfig({
-      allureService: { accessToken: "token" },
+      allureService: {
+        accessToken: "token",
+        private: true,
+        uploadConcurrency: 123,
+        uploadMaxAttempts: 7,
+        uploadMaxSimultaneousFailures: 2,
+      },
       plugins: {
         awesome: { options: { publish: true } },
       },
     });
 
-    expect(resolved.plugins?.[0]?.id).toEqual("storage");
-    expect(resolved.plugins?.[0]?.options).toEqual({ accessToken: "token", publish: true });
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      private: true,
+      uploadConcurrency: 123,
+      uploadMaxAttempts: 7,
+      uploadMaxSimultaneousFailures: 2,
+    });
   });
 
-  it("does not pass allureService.legacy into injected storage options", async () => {
+  it("fills default allureService upload options", async () => {
     const resolved = await resolveConfig({
-      allureService: { accessToken: "token", legacy: true },
-      plugins: {
-        awesome: { options: { publish: true } },
+      allureService: {
+        accessToken: "token",
       },
     });
 
-    expect(resolved.plugins?.[0]?.id).toEqual("storage");
-    expect(resolved.plugins?.[0]?.options).toEqual({ accessToken: "token", publish: true });
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("normalizes invalid allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: -1,
+        uploadMaxAttempts: Number.POSITIVE_INFINITY,
+        uploadMaxSimultaneousFailures: null as unknown as number,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("floors fractional allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: 4.9,
+        uploadMaxAttempts: 3.7,
+        uploadMaxSimultaneousFailures: 2.9,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 4,
+      uploadMaxAttempts: 3,
+      uploadMaxSimultaneousFailures: 2,
+    });
   });
 
   it("does not inject storage plugin when no plugin is publishable", async () => {

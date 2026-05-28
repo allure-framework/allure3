@@ -3,12 +3,16 @@ import { extname, join as joinPosix } from "node:path/posix";
 
 import { type HistoryDataPoint } from "@allurereport/core-api";
 
-import type { AllureServiceApiClient } from "./model.js";
-import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
+import {
+  ALLURE_SERIVCE_TESTOPS_PREFIX,
+  type AllureServiceApiClient,
+  type AllureServiceApiClientConfig,
+  type UploadReportPayload,
+} from "./model.js";
+import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
+import { parseServiceToken } from "./utils/token.js";
 
-const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const DEFAULT_UPLOAD_CONTENT_TYPE = "application/octet-stream";
-
 const CONTENT_TYPES: Record<string, string> = {
   ".css": "text/css",
   ".gif": "image/gif",
@@ -28,45 +32,43 @@ const CONTENT_TYPES: Record<string, string> = {
   ".woff2": "font/woff2",
 };
 
-export interface AllureTestOpsClientConfig {
-  accessToken?: string;
-  endpoint?: string;
-  baseUrl?: string;
-  projectId: number | string;
-  isPublic?: boolean;
-}
-
 const contentTypeByFilename = (filename: string) => CONTENT_TYPES[extname(filename)] ?? DEFAULT_UPLOAD_CONTENT_TYPE;
+
 const createUploadBlob = (content: Buffer, filename: string) =>
   new Blob([content], { type: contentTypeByFilename(filename) });
+
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/api/test-report/view/${joinPosix(reportUuid, reportFilename)}`;
+
 export class AllureTestOpsClient implements AllureServiceApiClient {
   readonly #url: string;
   readonly #accessToken: string;
   readonly #projectId: number;
   #client?: HttpClient;
 
-  constructor(readonly config: AllureTestOpsClientConfig) {
+  constructor(readonly config: AllureServiceApiClientConfig) {
     if (!config?.accessToken) {
       throw new Error("Allure TestOps access token is required");
     }
 
-    const projectId = Number(config.projectId);
+    if (!config.accessToken.startsWith(ALLURE_SERIVCE_TESTOPS_PREFIX)) {
+      throw new Error("Allure service access token is invalid");
+    }
+
+    const accessTokenPayload = parseServiceToken<{ projectId: number | string }>(config.accessToken);
+    const projectId = Number(accessTokenPayload.projectId);
 
     if (!Number.isFinite(projectId)) {
-      throw new Error("Allure TestOps project ID is required");
+      throw new Error("Given access token doesn't contain project id");
     }
 
-    const endpoint = config.baseUrl ?? config.endpoint;
-
-    if (!endpoint) {
-      throw new Error("Allure TestOps endpoint is required");
+    if (!accessTokenPayload.url) {
+      throw new Error("Given access token doesn't contain url");
     }
 
-    this.#accessToken = config.accessToken;
+    this.#accessToken = accessTokenPayload.accessToken;
     this.#projectId = projectId;
-    this.#url = endpoint.replace(/\/$/, "");
+    this.#url = accessTokenPayload.url.replace(/\/$/, "");
   }
 
   async #authorizedClient() {
@@ -88,13 +90,12 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
   async createReport(payload: { reportName: string; reportUuid?: string; repo?: string; branch?: string }) {
     const client = await this.#authorizedClient();
     const { reportName, reportUuid } = payload;
-    const { isPublic } = this.config;
     const { url } = await client.post<{ url: string }>("/api/test-report", {
       body: {
         projectId: this.#projectId,
+        isPublic: !this.config?.private,
         reportName,
         reportUuid,
-        isPublic,
       },
     });
 
@@ -126,10 +127,6 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
 
     if (!content) {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
-
-    if (content.length > ASSET_MAX_FILE_SIZE) {
-      throw new Error(`Asset size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
     const form = new FormData();
@@ -169,10 +166,6 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
     }
 
-    if (content.length > ASSET_MAX_FILE_SIZE) {
-      throw new Error(`Report file size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
-    }
-
     const form = new FormData();
 
     form.set("filename", reportFilename);
@@ -189,5 +182,16 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     });
 
     return createReportFileUrl(this.#url, reportUuid, reportFilename);
+  }
+
+  async uploadReport(payload: UploadReportPayload) {
+    return uploadReport({
+      ...payload,
+      uploadConcurrency: this.config.uploadConcurrency,
+      uploadMaxAttempts: this.config.uploadMaxAttempts,
+      uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
+      addReportAsset: this.addReportAsset.bind(this),
+      addReportFile: this.addReportFile.bind(this),
+    });
   }
 }

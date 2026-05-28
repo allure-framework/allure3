@@ -1,4 +1,3 @@
-import * as console from "node:console";
 import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
@@ -42,29 +41,28 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
+const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
+const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
+const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
 
-const isAgentDescriptor = (value: string | undefined) => {
+export const parseIntegerConfigValue = (value: unknown, defaultValue: number, minValue: number): number => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return defaultValue;
+  }
+
+  const normalized = Math.floor(value);
+
+  return normalized >= minValue ? normalized : defaultValue;
+};
+
+export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
 };
 
-const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
+export const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
   return Object.entries(plugins).some(
     ([key, descriptor]) => isAgentDescriptor(key) || isAgentDescriptor(descriptor.import),
   );
-};
-
-const isStorageDescriptor = (value: string | undefined) => {
-  return value === "storage" || value === "@allurereport/plugin-storage";
-};
-
-const hasConfiguredStorage = (plugins: Record<string, PluginDescriptor>) => {
-  return Object.entries(plugins).some(
-    ([key, descriptor]) => isStorageDescriptor(key) || isStorageDescriptor(descriptor.import),
-  );
-};
-
-const hasEnabledPublishablePlugin = (plugins: Record<string, PluginDescriptor>) => {
-  return Object.values(plugins).some((descriptor) => (descriptor.enabled ?? true) && !!descriptor.options?.publish);
 };
 
 /**
@@ -121,9 +119,7 @@ export const findConfig = async (cwd: string, configPath?: string) => {
       if (stats.isFile()) {
         return resolved;
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch {}
 
     throw new Error(`invalid config path ${resolved}: not a regular file`);
   }
@@ -334,24 +330,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         };
 
-    const shouldInjectStorage =
-      !!config.allureService?.accessToken &&
-      hasEnabledPublishablePlugin(pluginsWithAgent) &&
-      !hasConfiguredStorage(pluginsWithAgent);
-    const plugins = shouldInjectStorage
-      ? {
-          storage: {
-            import: "@allurereport/plugin-storage",
-            options: {
-              accessToken: config.allureService!.accessToken,
-              publish: true,
-            },
-          },
-          ...pluginsWithAgent,
-        }
-      : pluginsWithAgent;
-
-    pluginInstances = await resolvePlugins(plugins);
+    pluginInstances = await resolvePlugins(pluginsWithAgent);
   }
 
   return {
@@ -373,7 +352,25 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
-    allureService: config.allureService,
+    allureService: config.allureService ? {
+      accessToken: config.allureService?.accessToken,
+      private: config.allureService?.private,
+      uploadConcurrency: parseIntegerConfigValue(
+        config.allureService?.uploadConcurrency,
+        DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
+        1,
+      ),
+      uploadMaxAttempts: parseIntegerConfigValue(
+        config.allureService?.uploadMaxAttempts,
+        DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
+        1,
+      ),
+      uploadMaxSimultaneousFailures: parseIntegerConfigValue(
+        config.allureService?.uploadMaxSimultaneousFailures,
+        DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
+        0,
+      ),
+    } : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
   };

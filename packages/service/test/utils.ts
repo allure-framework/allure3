@@ -13,6 +13,8 @@ HttpClientMock.prototype.put = vi.fn();
 
 HttpClientMock.prototype.delete = vi.fn();
 
-export const createHttpClientMock = vi.fn((_serviceUrl?: string, _accessToken?: string): HttpClient => {
-  return new HttpClientMock() as unknown as HttpClient;
-});
+export const createHttpClientMock = vi.fn(
+  (_serviceUrl?: string, _params?: { accessToken?: string; apiToken?: string }): HttpClient => {
+    return new HttpClientMock() as unknown as HttpClient;
+  },
+);

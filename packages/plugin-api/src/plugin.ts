@@ -173,7 +173,5 @@ export interface Plugin {
 
   done?(context: PluginContext, store: AllureStore): Promise<void>;
 
-  publish?(context: PluginPublishContext, store: AllureStore): Promise<PluginPublishResult | undefined>;
-
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined>;
 }

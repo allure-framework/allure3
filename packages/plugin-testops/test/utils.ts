@@ -53,3 +53,5 @@ export const AxiosMock = {
   post: vi.fn(),
   postForm: vi.fn(),
 };
+
+export const AxiosCreateMock = vi.fn(() => AxiosMock);

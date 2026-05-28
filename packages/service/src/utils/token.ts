@@ -1,9 +1,9 @@
 interface ServiceTokenPayload {
-  accessToken?: string;
-  url?: string;
+  accessToken: string;
+  url: string;
 }
 
-export const parseServiceToken = (token: string) => {
+export const parseServiceToken = <T = ServiceTokenPayload>(token: string) => {
   try {
     const encodedPayload = token.split(".")[1];
 
@@ -11,7 +11,7 @@ export const parseServiceToken = (token: string) => {
       throw new Error("missing payload");
     }
 
-    const payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf-8")) as ServiceTokenPayload;
+    const payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf-8")) as T & ServiceTokenPayload;
 
     if (!payload.accessToken) {
       throw new Error("missing access token");
@@ -21,10 +21,7 @@ export const parseServiceToken = (token: string) => {
       throw new Error("missing url");
     }
 
-    return {
-      accessToken: payload.accessToken,
-      url: payload.url,
-    };
+    return payload;
   } catch {
     throw new Error("Allure service access token is invalid");
   }

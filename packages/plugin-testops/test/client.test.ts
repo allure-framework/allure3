@@ -19,7 +19,7 @@ beforeEach(async () => {
 
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
-import { AxiosMock, BASE_URL } from "./utils.js";
+import { AxiosCreateMock, AxiosMock } from "./utils.js";
 
 const fixtures = {
   accessToken: "test",
@@ -61,7 +61,7 @@ vi.mock("axios", async (importOriginal) => {
     ...original,
     default: {
       ...original.default,
-      create: () => utils.AxiosMock,
+      create: utils.AxiosCreateMock,
     },
   };
 });
@@ -141,20 +141,30 @@ describe("testops http client", () => {
       ).not.toThrow();
     });
 
-    it("should set authorization header from access token in request interceptor", async () => {
-      new TestOpsClient({
+    it("should set authorization header from access token in request config", async () => {
+      AxiosMock.post.mockResolvedValue({ data: {} });
+
+      const client = new TestOpsClient({
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
         baseUrl: fixtures.endpoint,
       });
 
-      expect(AxiosMock.interceptors.request.use).toHaveBeenCalledTimes(1);
-      const interceptor = AxiosMock.interceptors.request.use.mock.calls[0][0];
-      const headers = { set: vi.fn() };
+      await client.closeLaunch(fixtures.launch.id);
 
-      await interceptor({ headers });
-
-      expect(headers.set).toHaveBeenCalledWith("Authorization", `Bearer ${fixtures.accessToken}`);
+      expect(AxiosCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: fixtures.endpoint,
+          validateStatus: expect.any(Function),
+        }),
+      );
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/${fixtures.launch.id}/close`,
+        undefined,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
     });
   });
 
@@ -190,7 +200,7 @@ describe("testops http client", () => {
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
-      expect(client.launchUrl).toBe(`${BASE_URL}/launch/${fixtures.launch.id}`);
+      expect(client.launchUrl).toBe(`${fixtures.endpoint}/launch/${fixtures.launch.id}`);
     });
   });
 
@@ -240,13 +250,19 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
 
-      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/start", {
-        projectId: fixtures.projectId,
-        ci: { name: fixtures.ci.type },
-        job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
-        jobRun: { uid: fixtures.ci.jobRunUid },
-        launch: { id: fixtures.launch.id },
-      });
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        {
+          projectId: fixtures.projectId,
+          ci: { name: fixtures.ci.type },
+          job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
+          jobRun: { uid: fixtures.ci.jobRunUid },
+          launch: { id: fixtures.launch.id },
+        },
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
     });
   });
 
@@ -299,12 +315,18 @@ describe("testops http client", () => {
       await client.startUpload(fixtures.ci);
       await client.stopUpload(fixtures.ci, fixtures.uploadStatus);
 
-      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/stop", {
-        jobRunUid: fixtures.ci.jobRunUid,
-        jobUid: fixtures.ci.jobUid,
-        projectId: fixtures.projectId,
-        status: fixtures.uploadStatus,
-      });
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/stop",
+        {
+          jobRunUid: fixtures.ci.jobRunUid,
+          jobUid: fixtures.ci.jobUid,
+          projectId: fixtures.projectId,
+          status: fixtures.uploadStatus,
+        },
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
     });
   });
 
@@ -331,13 +353,20 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(1);
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/launch", {
-        name: fixtures.launchName,
-        projectId: fixtures.projectId,
-        autoclose: true,
-        external: true,
-        tags: fixtures.launchTags.map((tag) => ({ name: tag })),
-      });
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(
+        1,
+        "/api/launch",
+        {
+          name: fixtures.launchName,
+          projectId: fixtures.projectId,
+          autoclose: true,
+          external: true,
+          tags: fixtures.launchTags.map((tag) => ({ name: tag })),
+        },
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
     });
   });
 
@@ -376,7 +405,7 @@ describe("testops http client", () => {
       await client.createSession();
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(2);
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/launch", expect.anything());
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/launch", expect.anything(), expect.anything());
       expect(AxiosMock.post).toHaveBeenNthCalledWith(
         2,
         "/api/upload/session",
@@ -384,11 +413,12 @@ describe("testops http client", () => {
           launchId: fixtures.launch.id,
           environment: [],
         },
-        {
+        expect.objectContaining({
           params: {
             manual: "true",
           },
-        },
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
       );
     });
 
@@ -426,11 +456,12 @@ describe("testops http client", () => {
             { key: "BUILD_NUMBER", value: "42" },
           ],
         },
-        {
+        expect.objectContaining({
           params: {
             manual: "true",
           },
-        },
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
       );
     });
   });
@@ -520,10 +551,13 @@ describe("testops http client", () => {
             { externalId: "firefox", name: "Firefox" },
           ],
         },
-        {
-          headers: { "Content-Type": "application/json" },
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `api-token ${fixtures.accessToken}`,
+            "Content-Type": "application/json",
+          }),
           onUploadProgress: expect.any(Function),
-        },
+        }),
       );
     });
   });
@@ -1020,10 +1054,13 @@ describe("testops http client", () => {
             { externalId: "firefox", name: "Firefox" },
           ],
         },
-        {
-          headers: { "Content-Type": "application/json" },
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `api-token ${fixtures.accessToken}`,
+            "Content-Type": "application/json",
+          }),
           onUploadProgress: expect.any(Function),
-        },
+        }),
       );
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
@@ -1110,10 +1147,13 @@ describe("testops http client", () => {
             { externalId: "qa_b", name: "QA" },
           ],
         },
-        {
-          headers: { "Content-Type": "application/json" },
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `api-token ${fixtures.accessToken}`,
+            "Content-Type": "application/json",
+          }),
           onUploadProgress: expect.any(Function),
-        },
+        }),
       );
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
@@ -1290,6 +1330,9 @@ describe("testops http client", () => {
       expect(AxiosMock.post).toHaveBeenCalledWith(
         `/api/upload/test-result/${fixtures.testOpsResults[0].id}/test-fixture-result`,
         { fixtures: fixtures.fixtures },
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
       );
     });
   });

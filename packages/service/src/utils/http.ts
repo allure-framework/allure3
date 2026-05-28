@@ -1,5 +1,8 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
 
+import type { UploadReportConfig, UploadReportPayload, UploadReportResult } from "../model.js";
+import { isReportDataFile } from "./files.js";
+
 /**
  * The error that was explicitly thrown by the service. We can print the error's message as is to the user
  */
@@ -168,3 +171,143 @@ export const createServiceHttpClient = (
 };
 
 export type HttpClient = ReturnType<typeof createServiceHttpClient>;
+
+const uploadWithRetry = async (
+  filename: string,
+  uploadAbortController: AbortController,
+  failedUploads: Set<string>,
+  maxAttempts: number,
+  maxSimultaneousFailures: number,
+  uploadFn: () => Promise<void>,
+): Promise<boolean> => {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (uploadAbortController.signal.aborted) {
+      return false;
+    }
+
+    try {
+      await uploadFn();
+
+      failedUploads.delete(filename);
+
+      return true;
+    } catch (error) {
+      if (uploadAbortController.signal.aborted) {
+        return false;
+      }
+
+      failedUploads.add(filename);
+
+      if (failedUploads.size > maxSimultaneousFailures || attempt >= maxAttempts) {
+        throw error;
+      }
+    }
+  }
+
+  return false;
+};
+
+export const uploadReport = async (
+  payload: UploadReportPayload &
+    UploadReportConfig & {
+      addReportAsset: (payload: { filename: string; filepath: string; signal?: AbortSignal }) => Promise<unknown>;
+      addReportFile: (payload: {
+        reportUuid: string;
+        pluginId?: string;
+        filename: string;
+        filepath: string;
+        signal?: AbortSignal;
+      }) => Promise<string>;
+    },
+): Promise<UploadReportResult> => {
+  const {
+    reportUuid,
+    pluginId,
+    files,
+    onProgress,
+    addReportAsset,
+    addReportFile,
+    uploadConcurrency,
+    uploadMaxAttempts,
+    uploadMaxSimultaneousFailures,
+  } = payload;
+  const fileEntries = Object.entries(files);
+
+  if (fileEntries.length === 0) {
+    return {
+      hrefs: {},
+    };
+  }
+
+  const uploadAbortController = new AbortController();
+  const failedUploads = new Set<string>();
+  const hrefs: Record<string, string> = {};
+  let indexHref: string | undefined;
+  let nextFileIndex = 0;
+  const uploadNext = async (): Promise<void> => {
+    while (!uploadAbortController.signal.aborted) {
+      const fileIndex = nextFileIndex++;
+
+      if (fileIndex >= fileEntries.length) {
+        return;
+      }
+
+      const [filename, filepath] = fileEntries[fileIndex];
+      let fileUrl: string | undefined;
+      const uploaded = await uploadWithRetry(
+        filename,
+        uploadAbortController,
+        failedUploads,
+        uploadMaxAttempts,
+        uploadMaxSimultaneousFailures,
+        async () => {
+          if (isReportDataFile(filename)) {
+            fileUrl = await addReportFile({
+              reportUuid,
+              pluginId,
+              filename,
+              filepath,
+              signal: uploadAbortController.signal,
+            });
+          } else {
+            await addReportAsset({
+              filename,
+              filepath,
+              signal: uploadAbortController.signal,
+            });
+          }
+        },
+      );
+
+      if (!uploaded || uploadAbortController.signal.aborted) {
+        return;
+      }
+
+      if (fileUrl) {
+        hrefs[filename] = fileUrl;
+
+        if (filename === "index.html") {
+          indexHref = fileUrl;
+        }
+      }
+
+      onProgress?.();
+    }
+  };
+
+  const uploadTasks = Array.from({ length: Math.min(uploadConcurrency, fileEntries.length) }, () => uploadNext());
+
+  try {
+    await Promise.all(uploadTasks);
+  } catch (error) {
+    uploadAbortController.abort();
+    await Promise.allSettled(uploadTasks);
+
+    throw error;
+  }
+
+  return {
+    indexHref,
+    hrefs,
+  };
+};
