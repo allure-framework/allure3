@@ -352,25 +352,27 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
-    allureService: config.allureService ? {
-      accessToken: config.allureService?.accessToken,
-      private: config.allureService?.private,
-      uploadConcurrency: parseIntegerConfigValue(
-        config.allureService?.uploadConcurrency,
-        DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
-        1,
-      ),
-      uploadMaxAttempts: parseIntegerConfigValue(
-        config.allureService?.uploadMaxAttempts,
-        DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-        1,
-      ),
-      uploadMaxSimultaneousFailures: parseIntegerConfigValue(
-        config.allureService?.uploadMaxSimultaneousFailures,
-        DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-        0,
-      ),
-    } : undefined,
+    allureService: config.allureService
+      ? {
+          accessToken: config.allureService?.accessToken,
+          private: config.allureService?.private,
+          uploadConcurrency: parseIntegerConfigValue(
+            config.allureService?.uploadConcurrency,
+            DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
+            1,
+          ),
+          uploadMaxAttempts: parseIntegerConfigValue(
+            config.allureService?.uploadMaxAttempts,
+            DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
+            1,
+          ),
+          uploadMaxSimultaneousFailures: parseIntegerConfigValue(
+            config.allureService?.uploadMaxSimultaneousFailures,
+            DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
+            0,
+          ),
+        }
+      : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
   };

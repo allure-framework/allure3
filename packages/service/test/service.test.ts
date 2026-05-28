@@ -107,8 +107,8 @@ describe("AllureServiceClient", () => {
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() =>
-        new AllureServiceClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
+      expect(
+        () => new AllureServiceClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
       ).toThrow("Allure service access token is required");
     });
 
@@ -448,7 +448,10 @@ describe("AllureServiceClient", () => {
       });
 
       expect(result.indexHref).toBe(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/index.html`);
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/upload`, expect.anything());
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(
+        `/api/reports/${fixtures.report}/upload`,
+        expect.anything(),
+      );
     });
   });
 });

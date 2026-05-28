@@ -3,12 +3,7 @@ import { env } from "node:process";
 import { detect } from "@allurereport/ci";
 import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import {
-  type AllureStore,
-  type Plugin,
-  type PluginContext,
-  createPluginSummary,
-} from "@allurereport/plugin-api";
+import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 

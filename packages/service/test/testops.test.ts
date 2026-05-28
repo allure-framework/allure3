@@ -103,11 +103,9 @@ describe("AllureTestOpsClient", () => {
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() =>
-        new AllureTestOpsClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
-      ).toThrow(
-        "Allure TestOps access token is required",
-      );
+      expect(
+        () => new AllureTestOpsClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
+      ).toThrow("Allure TestOps access token is required");
     });
 
     it("should throw an error if access token is invalid", () => {
@@ -377,8 +375,13 @@ describe("AllureTestOpsClient", () => {
         },
       });
 
-      expect(result.indexHref).toBe(`${fixtures.url}/api/test-report/view/${fixtures.report}/${fixtures.pluginId}/index.html`);
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/test-report/${fixtures.report}/upload`, expect.anything());
+      expect(result.indexHref).toBe(
+        `${fixtures.url}/api/test-report/view/${fixtures.report}/${fixtures.pluginId}/index.html`,
+      );
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(
+        `/api/test-report/${fixtures.report}/upload`,
+        expect.anything(),
+      );
     });
   });
 });

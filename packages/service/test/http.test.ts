@@ -204,16 +204,14 @@ describe("uploadReport", () => {
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });
-    const addReportFile = vi.fn().mockImplementation(
-      async () => {
-        active++;
-        maxActive = Math.max(maxActive, active);
-        await gate;
-        active--;
+    const addReportFile = vi.fn().mockImplementation(async () => {
+      active++;
+      maxActive = Math.max(maxActive, active);
+      await gate;
+      active--;
 
-        return "https://example.org/file";
-      },
-    );
+      return "https://example.org/file";
+    });
 
     const promise = uploadReport({
       ...uploadConfig,
@@ -241,16 +239,14 @@ describe("uploadReport", () => {
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });
-    const addReportFile = vi.fn().mockImplementation(
-      async () => {
-        active++;
-        maxActive = Math.max(maxActive, active);
-        await gate;
-        active--;
+    const addReportFile = vi.fn().mockImplementation(async () => {
+      active++;
+      maxActive = Math.max(maxActive, active);
+      await gate;
+      active--;
 
-        return "https://example.org/file";
-      },
-    );
+      return "https://example.org/file";
+    });
 
     const promise = uploadReport({
       ...uploadConfig,

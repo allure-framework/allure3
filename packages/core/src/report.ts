@@ -49,9 +49,9 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
+import { createUploadProgressBarCounter } from "./utils/cli.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-import { createUploadProgressBarCounter } from "./utils/cli.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
@@ -932,9 +932,7 @@ export class AllureReport {
   };
 
   #cloneSummariesByPluginId = (): Map<string, PluginSummary> =>
-    new Map(
-      [...this.#summariesByPluginId].map(([pluginId, summary]) => [pluginId, clonePluginSummary(summary)]),
-    );
+    new Map([...this.#summariesByPluginId].map(([pluginId, summary]) => [pluginId, clonePluginSummary(summary)]));
 
   #writeSummaryFiles = async (pluginIds?: Iterable<string>): Promise<void> => {
     if (this.#summariesByPluginId.size === 0) {

@@ -1334,6 +1334,4 @@ describe("testops plugin", () => {
       expect(AllureStoreMock.prototype.testsStatistic).toHaveBeenCalledWith(filter);
     });
   });
-
-
 });

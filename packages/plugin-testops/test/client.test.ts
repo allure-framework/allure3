@@ -553,7 +553,7 @@ describe("testops http client", () => {
         },
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: `api-token ${fixtures.accessToken}`,
+            "Authorization": `api-token ${fixtures.accessToken}`,
             "Content-Type": "application/json",
           }),
           onUploadProgress: expect.any(Function),
@@ -1056,7 +1056,7 @@ describe("testops http client", () => {
         },
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: `api-token ${fixtures.accessToken}`,
+            "Authorization": `api-token ${fixtures.accessToken}`,
             "Content-Type": "application/json",
           }),
           onUploadProgress: expect.any(Function),
@@ -1149,7 +1149,7 @@ describe("testops http client", () => {
         },
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: `api-token ${fixtures.accessToken}`,
+            "Authorization": `api-token ${fixtures.accessToken}`,
             "Content-Type": "application/json",
           }),
           onUploadProgress: expect.any(Function),
