@@ -26,7 +26,6 @@ import {
   createTreeByCategories,
   createTreeByLabels,
   processTree,
-  relatedByTestResultIds,
 } from "@allurereport/plugin-api";
 import type {
   ClassicFixtureResult,
@@ -130,10 +129,7 @@ const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
 
 export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeRetries: true });
-  const related = await relatedByTestResultIds(
-    store,
-    allTr.map(({ id }) => id),
-  );
+  const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
   const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
   let convertedTrs: ClassicTestResult[] = [];
 

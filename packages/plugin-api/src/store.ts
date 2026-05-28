@@ -65,7 +65,7 @@ export interface AllureStore {
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
   historyByTrId: (trId: string) => Promise<HistoryTestResult[] | undefined>;
   fixturesByTrId: (trId: string) => Promise<TestFixtureResult[]>;
-  relatedByTestResultIds?: (trIds: readonly string[]) => Promise<TestResultRelatedData>;
+  relatedByTestResultIds: (trIds: readonly string[]) => Promise<TestResultRelatedData>;
   // aggregate api
   failedTestResults: () => Promise<TestResult[]>;
   unknownFailedTestResults: () => Promise<TestResult[]>;
@@ -85,43 +85,6 @@ export interface AllureStore {
   envVariables: (env: string) => Promise<Record<string, any>>;
   envVariablesByEnvironmentId: (envId: string) => Promise<Record<string, any>>;
 }
-
-export const relatedByTestResultIds = async (
-  store: AllureStore,
-  trIds: readonly string[],
-): Promise<TestResultRelatedData> => {
-  if (store.relatedByTestResultIds) {
-    return store.relatedByTestResultIds(trIds);
-  }
-
-  const attachmentsByTrId = new Map<string, AttachmentLink[]>();
-  const fixturesByTrId = new Map<string, TestFixtureResult[]>();
-  const historyByTrId = new Map<string, HistoryTestResult[] | undefined>();
-  const retriesByTrId = new Map<string, TestResult[]>();
-
-  await Promise.all(
-    trIds.map(async (trId) => {
-      const [attachments, fixtures, history, retries] = await Promise.all([
-        store.attachmentsByTrId(trId),
-        store.fixturesByTrId(trId),
-        store.historyByTrId(trId),
-        store.retriesByTrId(trId),
-      ]);
-
-      attachmentsByTrId.set(trId, attachments);
-      fixturesByTrId.set(trId, fixtures);
-      historyByTrId.set(trId, history);
-      retriesByTrId.set(trId, retries);
-    }),
-  );
-
-  return {
-    attachmentsByTrId,
-    fixturesByTrId,
-    historyByTrId,
-    retriesByTrId,
-  };
-};
 
 export interface AllureStoreDump {
   testResults: Record<string, TestResult>;

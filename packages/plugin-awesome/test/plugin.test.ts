@@ -28,6 +28,14 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
   );
 };
 
+const createRelatedByTestResultIdsMock = () =>
+  vi.fn(async (trIds: readonly string[]) => ({
+    attachmentsByTrId: new Map(trIds.map((trId) => [trId, []])),
+    fixturesByTrId: new Map(trIds.map((trId) => [trId, []])),
+    historyByTrId: new Map(trIds.map((trId) => [trId, undefined])),
+    retriesByTrId: new Map(trIds.map((trId) => [trId, []])),
+  }));
+
 const fixtures: any = {
   testResults: {
     passed: {
@@ -205,6 +213,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -293,6 +302,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -388,6 +398,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -505,6 +516,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -629,6 +641,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -703,6 +716,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),

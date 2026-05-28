@@ -5,7 +5,6 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
-  relatedByTestResultIds,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 
@@ -38,10 +37,7 @@ const statisticByTestResults = async (
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
-  const related = await relatedByTestResultIds(
-    store,
-    testResults.map(({ id }) => id),
-  );
+  const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
 
   for (const testResult of testResults) {
     if (testResult.isRetry) {

@@ -42,7 +42,6 @@ import {
   createTreeByTitlePath,
   preciseTreeLabels,
   processTree,
-  relatedByTestResultIds,
 } from "@allurereport/plugin-api";
 import type {
   AwesomeCategory,
@@ -154,10 +153,7 @@ export const generateTestResults = async (
   } = {},
 ) => {
   let convertedTrs: AwesomeTestResult[] = [];
-  const related = await relatedByTestResultIds(
-    store,
-    trs.map(({ id }) => id),
-  );
+  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
