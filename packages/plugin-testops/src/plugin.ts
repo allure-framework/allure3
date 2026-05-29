@@ -10,14 +10,14 @@ import { bold } from "yoctocolors";
 import { TestOpsClient } from "./client.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import { toUploadCategory } from "./uploadCategory.js";
-import { uploadFilenameForLink } from "./uploaderDto.js";
 import {
   attachmentsResolverFactory,
   fixturesResolverFactory,
   resolvePluginOptions,
   unwrapStepsAttachments,
-} from "./utils.js";
+} from "./utils/index.js";
+import { toUploadCategory } from "./utils/uploadCategory.js";
+import { uploadFilenameForLink } from "./utils/uploaderDto.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
@@ -275,12 +275,11 @@ export class TestOpsPlugin implements Plugin {
   async #upload(
     store: AllureStore,
     options = {} as {
-      issueNewToken?: boolean;
       context?: PluginContext;
       stage: "start" | "update" | "done";
     },
   ) {
-    const { issueNewToken = true, context, stage } = options;
+    const { context, stage } = options;
 
     const trsToUpload = await this.#trsToUpload(store);
 
@@ -294,11 +293,6 @@ export class TestOpsPlugin implements Plugin {
       }
 
       return;
-    }
-
-    if (issueNewToken) {
-      this.#logger.verbose("Issuing new OAuth token");
-      await this.#client.issueOauthToken();
     }
 
     await this.#client.createSession(env);
@@ -451,7 +445,6 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #startUpload() {
-    await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
 
     await this.#client.startUpload(this.#ci!);
@@ -469,7 +462,7 @@ export class TestOpsPlugin implements Plugin {
     this.#logger.verbose("Starting upload…");
 
     await this.#startUpload();
-    await this.#upload(store, { issueNewToken: false, context, stage: "start" });
+    await this.#upload(store, { context, stage: "start" });
 
     this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
   }

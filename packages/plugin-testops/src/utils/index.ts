@@ -9,7 +9,7 @@ import type {
   FixtureResolver,
   TestOpsFixtureResult,
   TestOpsPluginOptions,
-} from "./model.js";
+} from "../model.js";
 import { uploadFilenameForLink } from "./uploaderDto.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {

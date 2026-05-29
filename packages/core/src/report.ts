@@ -13,6 +13,7 @@ import type {
   AllureHistory,
   CategoryDefinition,
   CiDescriptor,
+  HistoryDataPoint,
   KnownTestFailure,
   TestResult,
 } from "@allurereport/core-api";
@@ -22,6 +23,7 @@ import {
   AllureStoreDumpFiles,
   type Plugin,
   type PluginContext,
+  type PluginReportFile,
   type PluginState,
   type PluginSummary,
   type ReportFiles,
@@ -32,6 +34,7 @@ import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
   AllureServiceClient,
+  AllureTestOpsClient,
   type AllureServiceApiClient,
   KnownError,
   UnknownError,
@@ -40,7 +43,6 @@ import { generateSummary } from "@allurereport/summary";
 import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
 import pLimit from "p-limit";
-import ProgressBar from "progress";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -48,6 +50,7 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
+import { createUploadProgressBarCounter } from "./utils/cli.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
@@ -69,6 +72,7 @@ const readConcurrency = () => {
   return Math.min(maxReadConcurrency, Math.max(1, parsed));
 };
 
+const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
 const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
   const repo = ci?.repoName;
   const branch = ci?.jobRunBranch;
@@ -76,13 +80,7 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
   return repo && branch ? { repo, branch } : {};
 };
 
-const REMOTE_UPLOAD_CONCURRENCY = 50;
-const REMOTE_UPLOAD_MAX_ATTEMPTS = 5;
-const REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED = 5;
-
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
-const isAbortError = (err: unknown): boolean =>
-  typeof err === "object" && err !== null && "name" in err && err?.name === "AbortError";
 
 const closeReadStream = async (stream: ReadStream): Promise<void> => {
   if (stream.closed) {
@@ -99,7 +97,6 @@ const closeReadStream = async (stream: ReadStream): Promise<void> => {
 };
 
 export class AllureReport {
-  readonly #reportName: string;
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
@@ -121,8 +118,14 @@ export class AllureReport {
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
   #executionStage: "init" | "running" | "done" = "init";
+  #historyDataPoint?: HistoryDataPoint;
+  #summaryPath?: string;
+  #summariesByPluginId: Map<string, PluginSummary> = new Map();
+  #publishedRemoteHrefs: Set<string> = new Set();
+  #published = false;
 
   readonly reportUuid: string;
+  readonly reportName: string;
   reportUrl?: string;
 
   constructor(opts: FullConfig) {
@@ -145,12 +148,22 @@ export class AllureReport {
       qualityGate,
       dump,
       categories,
-      allureService: allureServiceConfig,
+      allureService,
       globalAttachments,
     } = opts;
+    const allureServiceAccessToken = allureService?.accessToken;
 
-    if (allureServiceConfig?.accessToken) {
-      this.#allureServiceClient = new AllureServiceClient(allureServiceConfig);
+    if (allureServiceAccessToken) {
+      const allureServiceClientConfig = {
+        ...allureService,
+        accessToken: allureServiceAccessToken,
+      };
+
+      this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")
+        ? new AllureTestOpsClient(allureServiceClientConfig)
+        : allureServiceAccessToken.startsWith("ars1.")
+          ? new AllureServiceClient(allureServiceClientConfig)
+          : undefined;
     }
 
     this.reportUuid = randomUUID();
@@ -158,7 +171,7 @@ export class AllureReport {
 
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
-    this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
+    this.reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#realtimeChannel = new RealtimeChannel();
     this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
@@ -170,6 +183,7 @@ export class AllureReport {
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
     }
+
     this.#categories = normalizeCategoriesConfig(categories);
 
     if (this.#allureServiceClient) {
@@ -218,9 +232,150 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
-  get #publish() {
-    return this.#plugins.some(({ enabled, options }) => enabled && options.publish);
-  }
+  #publish = async (): Promise<void> => {
+    if (this.#published) {
+      return;
+    }
+
+    if (this.#executionStage !== "done") {
+      throw new Error("report is not completed. Call the done() method first.");
+    }
+
+    let historyPoint = this.#historyDataPoint;
+
+    if (!historyPoint) {
+      const allTrs = await this.#store.allTestResults();
+      const allTcs = await this.#store.allTestCases();
+
+      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      this.#historyDataPoint = historyPoint;
+    }
+
+    await this.#writeSummaryFiles();
+    await this.#generateRootSummary();
+
+    if (this.#realTime || !this.#allureServiceClient) {
+      this.#published = true;
+      return;
+    }
+
+    const reportsToPublish = (await this.#getReportsToPublish()).filter(
+      (report) => report.publish && Object.keys(report.files).length > 0,
+    );
+
+    if (reportsToPublish.length === 0) {
+      this.#published = true;
+      return;
+    }
+
+    const client = this.#allureServiceClient;
+    const linksByPluginId: Record<string, string> = {};
+    const summariesSnapshot = this.#cloneSummariesByPluginId();
+    const uploadProgressBar = createUploadProgressBarCounter(
+      reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports",
+      reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0),
+    );
+    let summariesMutated = false;
+    let reportCreated = false;
+    let publishErrorMessage = "Report upload has failed, the report won't be published";
+
+    try {
+      await client.createReport({
+        reportUuid: this.reportUuid,
+        reportName: this.reportName,
+        ...remoteReportParams(this.#ci),
+      });
+
+      reportCreated = true;
+
+      for (const report of reportsToPublish) {
+        publishErrorMessage = `Plugin "${report.pluginId}" upload has failed, the plugin won't be published`;
+
+        const uploadResult = await client.uploadReport({
+          reportUuid: this.reportUuid,
+          pluginId: report.pluginId,
+          files: Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
+          onProgress: () => uploadProgressBar.tick(),
+        });
+
+        if (uploadResult.indexHref) {
+          linksByPluginId[report.pluginId] = uploadResult.indexHref;
+        }
+      }
+
+      const changedPluginIds = this.#applyPublishLinksToSummaries(linksByPluginId);
+
+      summariesMutated = changedPluginIds.size > 0;
+
+      if (changedPluginIds.size > 0) {
+        await this.#writeSummaryFiles();
+        await this.#generateRootSummary();
+      }
+
+      const updatedReports = await this.#getReportsToPublish();
+      const updatedReportsByPluginId = new Map(updatedReports.map((report) => [report.pluginId, report]));
+
+      for (const report of reportsToPublish) {
+        const updatedReport = updatedReportsByPluginId.get(report.pluginId) ?? report;
+        const summaryFilepath = updatedReport.files["summary.json"];
+
+        if (!summaryFilepath) {
+          continue;
+        }
+
+        publishErrorMessage = `Plugin "${report.pluginId}" summary upload has failed, the plugin won't be published`;
+
+        await client.uploadReport({
+          reportUuid: this.reportUuid,
+          pluginId: updatedReport.pluginId,
+          files: { "summary.json": summaryFilepath },
+          onProgress: () => uploadProgressBar.tick(),
+        });
+      }
+
+      publishErrorMessage = "Report summary upload has failed, the report won't be published";
+
+      const summaryHref = this.#summaryPath
+        ? (
+            await client.uploadReport({
+              reportUuid: this.reportUuid,
+              files: { "index.html": this.#summaryPath },
+            })
+          ).indexHref
+        : undefined;
+
+      publishErrorMessage = "Report completion has failed, the report won't be published";
+
+      await client.completeReport({
+        reportUuid: this.reportUuid,
+        historyPoint,
+      });
+
+      Object.values(linksByPluginId)
+        .filter(Boolean)
+        .forEach((href) => this.#publishedRemoteHrefs.add(href));
+
+      if (summaryHref) {
+        this.#publishedRemoteHrefs.add(summaryHref);
+      }
+
+      this.#published = true;
+    } catch (err) {
+      if (reportCreated) {
+        await this.#cleanupFailedRemoteReport(client);
+      }
+
+      if (summariesMutated) {
+        this.#summariesByPluginId = summariesSnapshot;
+        await this.#writeSummaryFiles();
+        await this.#generateRootSummary();
+      }
+
+      this.#logPublishError(publishErrorMessage, err);
+    } finally {
+      uploadProgressBar.terminate();
+    }
+  };
 
   readDirectory = async (resultsDir: string) => {
     if (this.#executionStage !== "running") {
@@ -307,8 +462,6 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    const remoteParams = remoteReportParams(this.#ci);
-
     await this.#store.readHistory();
 
     if (this.#executionStage === "running") {
@@ -348,17 +501,6 @@ export class AllureReport {
           originalFileName,
         );
       }
-    }
-
-    // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish) {
-      const url = await this.#allureServiceClient.createReport({
-        reportUuid: this.reportUuid,
-        reportName: this.#reportName,
-        ...remoteParams,
-      });
-
-      this.reportUrl = url.href;
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
@@ -730,15 +872,104 @@ export class AllureReport {
     }
   };
 
+  #getReportsToPublish = async (): Promise<PluginReportFile[]> => {
+    const reports: PluginReportFile[] = [];
+
+    for (const { enabled, id, options } of this.#plugins) {
+      if (!enabled) {
+        continue;
+      }
+
+      const files = (await this.#state?.[id]?.get<Record<string, string>>("files")) ?? {};
+
+      reports.push({
+        pluginId: id,
+        publish: !!options?.publish,
+        files,
+      });
+    }
+
+    return reports;
+  };
+
+  #cleanupFailedRemoteReport = async (client: AllureServiceApiClient): Promise<void> => {
+    try {
+      await client.deleteReport({
+        reportUuid: this.reportUuid,
+      });
+    } catch (cleanupError) {
+      console.error("Failed to clean up failed report upload");
+      console.error(errorDetails(cleanupError));
+    }
+  };
+
+  #logPublishError = (message: string, err: unknown): void => {
+    console.error(message);
+
+    if (err instanceof KnownError) {
+      console.error(err.message);
+    } else {
+      console.error(errorDetails(err));
+    }
+  };
+
+  #applyPublishLinksToSummaries = (linksByPluginId: Record<string, string>): Set<string> => {
+    const changedPluginIds = new Set<string>();
+
+    if (this.#summariesByPluginId.size === 0) {
+      return changedPluginIds;
+    }
+
+    for (const [pluginId, remoteHref] of Object.entries(linksByPluginId)) {
+      const summary = this.#summariesByPluginId.get(pluginId);
+
+      if (summary && remoteHref) {
+        summary.remoteHref = remoteHref;
+        changedPluginIds.add(pluginId);
+      }
+    }
+
+    return changedPluginIds;
+  };
+
+  #cloneSummariesByPluginId = (): Map<string, PluginSummary> =>
+    new Map([...this.#summariesByPluginId].map(([pluginId, summary]) => [pluginId, clonePluginSummary(summary)]));
+
+  #writeSummaryFiles = async (pluginIds?: Iterable<string>): Promise<void> => {
+    if (this.#summariesByPluginId.size === 0) {
+      return;
+    }
+
+    const pluginIdsSet = pluginIds ? new Set(pluginIds) : undefined;
+
+    await this.#eachPlugin(false, async (_plugin, context) => {
+      if (pluginIdsSet && !pluginIdsSet.has(context.id)) {
+        return;
+      }
+
+      const summary = this.#summariesByPluginId.get(context.id);
+
+      if (!summary) {
+        return;
+      }
+
+      // expose summary.json file to the FS to make possible to use it in the integrations
+      await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
+    });
+  };
+
+  #generateRootSummary = async (): Promise<void> => {
+    const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
+
+    if (summaries.length > 1) {
+      this.#summaryPath = await generateSummary(this.#output, summaries);
+    } else {
+      this.#summaryPath = undefined;
+    }
+  };
+
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
-    const remoteHrefs: Set<string> = new Set();
-    const remoteHrefsByPluginId: Record<string, string> = {};
-    // track plugins that failed to upload to prevent wrong remote links generation
-    const cancelledPluginsIds: Set<string> = new Set();
-    let remoteCleanupFailed = false;
-    const getSuccessfulPublishedPlugins = () =>
-      this.#plugins.filter(({ enabled, id, options }) => enabled && !!options?.publish && !cancelledPluginsIds.has(id));
 
     if (this.#executionStage !== "running") {
       throw new Error(initRequired);
@@ -746,7 +977,7 @@ export class AllureReport {
 
     const testResults = await this.#store.allTestResults();
     const testCases = await this.#store.allTestCases();
-    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+    this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
 
     this.#realtimeChannel.close();
     try {
@@ -768,132 +999,6 @@ export class AllureReport {
       await plugin.done?.(context, this.#store);
     });
     await this.#eachPlugin(false, async (plugin, context) => {
-      // publish report files to the remote service
-      if (this.#allureServiceClient && context.publish) {
-        const pluginFiles = (await context.state.get("files")) ?? {};
-        const pluginFilesEntries = Object.entries(pluginFiles);
-        const progressBar =
-          pluginFilesEntries?.length > 0
-            ? new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
-                total: pluginFilesEntries.length,
-                width: 20,
-              })
-            : undefined;
-        const limitFn = pLimit(REMOTE_UPLOAD_CONCURRENCY);
-        const uploadAbortController = new AbortController();
-        const failedUploads = new Set<string>();
-        let terminalUploadError: unknown;
-        let remoteReportDeleted = false;
-        let fns: Promise<void>[] = [];
-        const cleanupFailedPluginUpload = async (err: unknown) => {
-          if (remoteReportDeleted) {
-            return;
-          }
-
-          remoteReportDeleted = true;
-          cancelledPluginsIds.add(context.id);
-          uploadAbortController.abort();
-
-          await Promise.allSettled(fns);
-
-          const pluginRemoteHref = remoteHrefsByPluginId[context.id];
-
-          if (pluginRemoteHref) {
-            remoteHrefs.delete(pluginRemoteHref);
-            delete remoteHrefsByPluginId[context.id];
-          }
-
-          // cleanup the report on failure to prevent incomplete reports on the server
-          // even lack of one file can make the report unusable
-          try {
-            await this.#allureServiceClient!.deleteReport({
-              reportUuid: this.reportUuid,
-              pluginId: context.id,
-            });
-          } catch (cleanupErr) {
-            remoteCleanupFailed = true;
-            console.error(`Plugin "${context.id}" upload cleanup has failed, the remote report won't be completed`);
-            console.error(cleanupErr);
-          }
-
-          console.error(`Plugin "${context.id}" upload has failed, the plugin won't be published`);
-          console.error(err);
-        };
-        fns = pluginFilesEntries.map(([filename, filepath]) =>
-          limitFn(async () => {
-            // skip next plugin files upload if the plugin upload has already failed
-            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-              return;
-            }
-
-            for (let attempt = 1; attempt <= REMOTE_UPLOAD_MAX_ATTEMPTS; attempt++) {
-              if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-                return;
-              }
-
-              try {
-                if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-                  const uploadedFileUrl = await this.#allureServiceClient!.addReportFile({
-                    reportUuid: this.reportUuid,
-                    pluginId: context.id,
-                    filename,
-                    filepath,
-                    signal: uploadAbortController.signal,
-                  });
-
-                  if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-                    return;
-                  }
-
-                  if (filename === "index.html") {
-                    remoteHrefsByPluginId[context.id] = uploadedFileUrl;
-                    remoteHrefs.add(uploadedFileUrl);
-                  }
-                } else {
-                  await this.#allureServiceClient!.addReportAsset({
-                    filename,
-                    filepath,
-                    signal: uploadAbortController.signal,
-                  });
-                }
-
-                failedUploads.delete(filename);
-                progressBar?.tick?.();
-
-                return;
-              } catch (err) {
-                if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
-                  return;
-                }
-
-                if (isAbortError(err)) {
-                  throw err;
-                }
-
-                failedUploads.add(filename);
-
-                if (
-                  failedUploads.size > REMOTE_UPLOAD_MAX_SIMULTANEOUS_FAILED ||
-                  attempt >= REMOTE_UPLOAD_MAX_ATTEMPTS
-                ) {
-                  terminalUploadError ??= err;
-
-                  throw terminalUploadError;
-                }
-              }
-            }
-          }),
-        );
-
-        progressBar?.render?.();
-
-        try {
-          await Promise.all(fns);
-        } catch (err) {
-          await cleanupFailedPluginUpload(terminalUploadError ?? err);
-        }
-      }
-
       const summary = await plugin?.info?.(context, this.#store);
 
       if (!summary) {
@@ -904,46 +1009,19 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish && !cancelledPluginsIds.has(context.id)) {
-        summary.remoteHref =
-          remoteHrefsByPluginId[context.id] ?? (this.reportUrl ? `${this.reportUrl}/${context.id}/` : undefined);
-
-        if (summary.remoteHref) {
-          remoteHrefs.add(summary.remoteHref);
-        }
-      }
-
       summaries.push({
         ...summary,
         href: `${context.id}/`,
       });
-
-      // expose summary.json file to the FS to make possible to use it in the integrations
-      await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
-    if (summaries.length > 1) {
-      const summaryPath = await generateSummary(this.#output, summaries);
-      const publishedReports = getSuccessfulPublishedPlugins();
+    this.#summariesByPluginId = new Map(
+      summaries
+        .filter((summary): summary is PluginSummary & { pluginId: string } => !!summary.pluginId)
+        .map((summary) => [summary.pluginId, summary]),
+    );
 
-      // publish summary when there are multiple published plugins
-      if (this.#publish && summaryPath && publishedReports.length > 1) {
-        await this.#allureServiceClient?.addReportFile({
-          reportUuid: this.reportUuid,
-          filename: "index.html",
-          filepath: summaryPath,
-        });
-      }
-    }
-
-    const publishedReports = getSuccessfulPublishedPlugins();
-
-    if (this.#publish && !remoteCleanupFailed && publishedReports.length > 0) {
-      await this.#allureServiceClient?.completeReport({
-        reportUuid: this.reportUuid,
-        historyPoint: historyDataPoint,
-      });
-    }
+    await this.#publish();
 
     let outputDirFiles: string[] = [];
 
@@ -985,7 +1063,7 @@ export class AllureReport {
 
     if (this.#history) {
       try {
-        await this.#store.appendHistory(historyDataPoint);
+        await this.#store.appendHistory(this.#historyDataPoint!);
       } catch (err) {
         if (err instanceof KnownError) {
           console.error("Failed to append history", err.message);
@@ -998,10 +1076,10 @@ export class AllureReport {
       }
     }
 
-    if (!remoteCleanupFailed && remoteHrefs.size > 0) {
+    if (this.#publishedRemoteHrefs.size > 0) {
       console.info("Next reports have been published:");
 
-      remoteHrefs.forEach((href) => {
+      this.#publishedRemoteHrefs.forEach((href) => {
         console.info(`- ${href}`);
       });
     }
@@ -1052,11 +1130,12 @@ export class AllureReport {
         publish: !!options?.publish,
         allureVersion: version,
         reportUuid: this.reportUuid,
-        reportName: this.#reportName,
+        reportName: this.reportName,
         hideLabels: this.#hideLabels,
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,
+        realTime: !!this.#realTime,
         output: this.#output,
         ci: this.#ci,
         categories: this.#categories,
@@ -1065,6 +1144,8 @@ export class AllureReport {
 
       try {
         await consumer.call(this, plugin, pluginContext);
+
+        this.reportUrl = pluginContext.reportUrl ?? this.reportUrl;
 
         if (initState) {
           this.#state![id] = pluginState;

@@ -7,7 +7,6 @@ export const TestOpsClientMock = vi.fn(function () {});
 
 TestOpsClientMock.prototype = {
   uploadTestResult: vi.fn(),
-  issueOauthToken: vi.fn(),
   createLaunch: vi.fn(),
   createSession: vi.fn(),
   createNamedEnvs: vi.fn(),
@@ -54,3 +53,5 @@ export const AxiosMock = {
   post: vi.fn(),
   postForm: vi.fn(),
 };
+
+export const AxiosCreateMock = vi.fn(() => AxiosMock);

@@ -105,7 +105,6 @@ __metadata:
     "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
     "@types/node": "npm:^20.17.9"
-    "@types/progress": "npm:^2"
     "@types/zip-stream": "npm:^7.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -114,8 +113,7 @@ __metadata:
     glob: "npm:^13.0.6"
     handlebars: "npm:^4.7.9"
     node-stream-zip: "npm:^1.15.0"
-    p-limit: "npm:^7.2.0"
-    progress: "npm:^2.0.3"
+    p-limit: "npm:^7.3.0"
     rimraf: "npm:^6.0.1"
     tslib: "npm:^2.7.0"
     typescript: "npm:^5.6.3"
@@ -414,6 +412,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
+    "@allurereport/service": "workspace:*"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20.17.9"
@@ -14698,15 +14697,6 @@ __metadata:
   dependencies:
     yocto-queue: "npm:^1.0.0"
   checksum: 10/01d9d70695187788f984226e16c903475ec6a947ee7b21948d6f597bed788e3112cc7ec2e171c1d37125057a5f45f3da21d8653e04a3a793589e12e9e80e756b
-  languageName: node
-  linkType: hard
-
-"p-limit@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "p-limit@npm:7.2.0"
-  dependencies:
-    yocto-queue: "npm:^1.2.1"
-  checksum: 10/ea1cae6e8bbf84a65cc832e4d6a802ec34902bfe0da2fba0c6fadb72f0c51d48db67b7fb2df8433dde5f4a970cf482b9c2cb4edbfa8cfadd7f4341c6fdb38a5d
   languageName: node
   linkType: hard
 

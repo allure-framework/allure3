@@ -303,7 +303,6 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/summary", "workspace:packages/summary"],\
           ["@types/node", "npm:20.17.9"],\
-          ["@types/progress", "npm:2.0.7"],\
           ["@types/zip-stream", "npm:7.0.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
@@ -312,8 +311,7 @@ const RAW_RUNTIME_STATE =
           ["glob", "npm:13.0.6"],\
           ["handlebars", "npm:4.7.9"],\
           ["node-stream-zip", "npm:1.15.0"],\
-          ["p-limit", "npm:7.2.0"],\
-          ["progress", "npm:2.0.3"],\
+          ["p-limit", "npm:7.3.0"],\
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
@@ -663,6 +661,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/node", "npm:20.17.9"],\
@@ -20395,14 +20394,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["p-limit", "npm:4.0.0"],\
           ["yocto-queue", "npm:1.0.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:7.2.0", {\
-        "packageLocation": "./.yarn/cache/p-limit-npm-7.2.0-72063c9642-ea1cae6e8b.zip/node_modules/p-limit/",\
-        "packageDependencies": [\
-          ["p-limit", "npm:7.2.0"],\
-          ["yocto-queue", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
       }],\

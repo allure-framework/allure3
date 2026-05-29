@@ -12,7 +12,7 @@
 
 ## Overview
 
-The plugin creates a new launch in Allure TestOps with all the tests data from the current report.
+The plugin can create a new launch in Allure TestOps with all the tests data from the current report.
 
 ## CI and local runs
 

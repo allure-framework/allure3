@@ -47,15 +47,13 @@
     "glob": "^13.0.6",
     "handlebars": "^4.7.9",
     "node-stream-zip": "^1.15.0",
-    "p-limit": "^7.2.0",
-    "progress": "^2.0.3",
+    "p-limit": "^7.3.0",
     "yaml": "^2.8.3",
     "yoctocolors": "^2.1.1",
     "zip-stream": "^7.0.2"
   },
   "devDependencies": {
     "@types/node": "^20.17.9",
-    "@types/progress": "^2",
     "@types/zip-stream": "^7.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",

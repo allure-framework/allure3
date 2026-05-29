@@ -1,7 +1,7 @@
 import type { CategoryDefinition } from "@allurereport/core-api";
 
-import type { TestResultWithCategories, UploadCategory } from "./model.js";
-import { buildUploadCategoryGrouping, toUploadCategoryFromContext } from "./utils/categories.js";
+import type { TestResultWithCategories, UploadCategory } from "../model.js";
+import { buildUploadCategoryGrouping, toUploadCategoryFromContext } from "./categories.js";
 
 export const toUploadCategory = (
   tr: TestResultWithCategories,

@@ -3,7 +3,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import type { TestResultWithCategories } from "../src/model.js";
-import { toUploadCategory } from "../src/uploadCategory.js";
+import { toUploadCategory } from "../src/utils/uploadCategory.js";
 
 beforeEach(async () => {
   await epic("coverage");

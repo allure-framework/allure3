@@ -24,7 +24,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "pretest": "rimraf ./out",
+    "pretest": "rimraf ./out && playwright install chromium",
     "test": "run-p 'test:*'",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",

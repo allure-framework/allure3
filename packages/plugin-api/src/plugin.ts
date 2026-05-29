@@ -3,6 +3,7 @@ import type {
   AttachmentLink,
   CategoryDefinition,
   CiDescriptor,
+  HistoryDataPoint,
   Statistic,
   TestError,
   TestResult,
@@ -41,6 +42,7 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
+  realTime?: boolean;
   output: string;
   ci?: CiDescriptor;
   categories?: CategoryDefinition[];
@@ -72,6 +74,29 @@ export interface PluginSummary {
    * The field can be used in integrations to make better experience
    */
   meta?: Record<string, any>;
+}
+
+export interface PluginReportFile {
+  pluginId: string;
+  publish: boolean;
+  files: Record<string, string>;
+}
+
+export interface PluginPublishContext {
+  reportUuid: string;
+  reportName: string;
+  ci?: CiDescriptor;
+  historyPoint?: HistoryDataPoint;
+  reports: PluginReportFile[];
+  summary?: {
+    filepath: string;
+    summaries?: PluginSummary[];
+  };
+}
+
+export interface PluginPublishResult {
+  linksByPluginId: Record<string, string>;
+  remoteHref?: string;
 }
 
 export interface ExitCode {

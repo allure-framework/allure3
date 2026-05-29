@@ -325,6 +325,104 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("does not inject storage plugin and preserves allureService config", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        private: true,
+        uploadConcurrency: 123,
+        uploadMaxAttempts: 7,
+        uploadMaxSimultaneousFailures: 2,
+      },
+      plugins: {
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      private: true,
+      uploadConcurrency: 123,
+      uploadMaxAttempts: 7,
+      uploadMaxSimultaneousFailures: 2,
+    });
+  });
+
+  it("fills default allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("normalizes invalid allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: -1,
+        uploadMaxAttempts: Number.POSITIVE_INFINITY,
+        uploadMaxSimultaneousFailures: null as unknown as number,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("floors fractional allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: 4.9,
+        uploadMaxAttempts: 3.7,
+        uploadMaxSimultaneousFailures: 2.9,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 4,
+      uploadMaxAttempts: 3,
+      uploadMaxSimultaneousFailures: 2,
+    });
+  });
+
+  it("does not inject storage plugin when no plugin is publishable", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        awesome: { options: {} },
+      },
+    });
+
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+  });
+
+  it("does not inject storage when already configured", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        storage: { options: { publish: true } },
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.filter((x) => x.id === "storage")).toHaveLength(1);
+  });
+
   it("should allow to override top-level hideLabels", async () => {
     const resolved = await resolveConfig(
       {
