@@ -33,6 +33,19 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
+button.test-result-attachment-content {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--on-border-muted);
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  padding: 0;
+  text-align: inherit;
+  width: 100%;
+}
+
 .test-result-attachment-content-wrapper {
   padding-left: 16px;
   margin-left: 11px;
@@ -147,6 +160,25 @@
 
   &:hover {
     background: var(--color-row-bg-hover);
+  }
+}
+
+.test-result-attachment-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+
+  &:not(:disabled) {
+    cursor: pointer;
   }
 }
 
