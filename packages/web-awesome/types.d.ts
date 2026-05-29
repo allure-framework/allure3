@@ -29,6 +29,7 @@ export type AwesomeReportOptions = {
   cacheKey: string;
   ci?: CiDescriptor;
   stepTreeExpansion?: StepTreeExpansion;
+  defaultSortBy?: string;
 };
 
 export type AwesomeFixtureResult = Omit<

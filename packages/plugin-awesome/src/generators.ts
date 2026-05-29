@@ -627,6 +627,7 @@ export const generateStaticFiles = async (
     defaultSection = "",
     ci,
     stepTreeExpansion,
+    defaultSortBy,
   } = payload;
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
@@ -690,6 +691,7 @@ export const generateStaticFiles = async (
     sections,
     defaultSection,
     stepTreeExpansion,
+    defaultSortBy,
   };
 
   try {
