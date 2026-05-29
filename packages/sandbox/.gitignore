@@ -1,4 +1,6 @@
 allure-results/
+allure-results-*/
+allure-results*/
 allure-report/
 node_modules/
 history.jsonl
