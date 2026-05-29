@@ -1,4 +1,4 @@
-import type { CategoriesConfig, KnownTestFailure } from "@allurereport/core-api";
+import type { CategoriesConfig, KnownTestFailure, ResolvedAllureServiceConfig } from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
@@ -13,7 +13,7 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "knownIssuesPath" | "plugins" | "port">,
+    Omit<Config, "name" | "output" | "open" | "knownIssuesPath" | "plugins" | "port" | "allureService">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
@@ -23,6 +23,7 @@ export interface FullConfig
   known?: KnownTestFailure[];
   realTime?: any;
   qualityGate?: Config["qualityGate"];
+  allureService?: ResolvedAllureServiceConfig;
   categories?: CategoriesConfig;
   globalAttachments?: string[];
 }

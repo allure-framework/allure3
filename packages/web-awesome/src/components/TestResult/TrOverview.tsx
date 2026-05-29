@@ -11,6 +11,7 @@ import { TrPwTraces } from "@/components/TestResult/TrPwTraces";
 import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
+import { useTestResultOverviewFocusScroll } from "@/hooks/useTestResultOverviewFocusScroll";
 import { useI18n } from "@/stores/locale";
 import { currentTrId } from "@/stores/testResult";
 
@@ -21,6 +22,7 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
+  useTestResultOverviewFocusScroll();
   const { parameters, groupedLabels, links, descriptionHtml, setup, teardown, id } = testResult || {};
   const testResultId = id ?? currentTrId.value;
   const { t } = useI18n("ui");

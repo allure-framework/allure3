@@ -15,6 +15,7 @@ import { AttachmentImage } from "./AttachmentImage";
 import { AttachmentImageDiff } from "./AttachmentImageDiff";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
+import { HttpAttachment } from "./HttpAttachment";
 import { MarkdownPreview } from "./MarkdownPreview";
 import type { AttachmentProps, I18nProp } from "./model";
 
@@ -33,6 +34,7 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "text": AttachmentCode,
   "video": AttachmentVideo,
   "image-diff": AttachmentImageDiff,
+  "http": HttpAttachment,
   "archive": null,
 };
 
@@ -69,7 +71,7 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
         isLoading.value = false;
         attachment.value = result;
       });
-    } catch (error) {
+    } catch {
       batch(() => {
         isLoading.value = false;
         isError.value = true;

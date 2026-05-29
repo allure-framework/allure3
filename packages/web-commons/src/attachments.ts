@@ -23,7 +23,16 @@ type AttachmentImageDiffData = {
   };
 };
 
-export type AttachmentData = AttachmentImageData | AttachmentTextData | AttachmentVideoData | AttachmentImageDiffData;
+type AttachmentHttpData = {
+  http: unknown;
+};
+
+export type AttachmentData =
+  | AttachmentImageData
+  | AttachmentTextData
+  | AttachmentVideoData
+  | AttachmentImageDiffData
+  | AttachmentHttpData;
 
 type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
 
@@ -73,6 +82,10 @@ export const fetchAttachment = async (
       const json = await response.json();
       return { diff: json };
     }
+    case "http": {
+      const json = await response.json();
+      return { http: json };
+    }
     default:
       return null;
   }
@@ -120,7 +133,8 @@ export type AttachmentType =
   | "video"
   | "uri"
   | "archive"
-  | "image-diff";
+  | "image-diff"
+  | "http";
 
 export const PREVIEWABLE_CONTENT_TYPES = [
   "text/html",
@@ -252,7 +266,9 @@ export const isSyntaxHighlightSupported = (payload?: {
 };
 
 export const attachmentType = (type?: string): AttachmentType | null => {
-  switch (type) {
+  const normalizedType = type?.split(";")[0].trim().toLowerCase();
+
+  switch (normalizedType) {
     case "image/bmp":
     case "image/gif":
     case "image/tiff":
@@ -317,6 +333,8 @@ export const attachmentType = (type?: string): AttachmentType | null => {
       return "archive";
     case "application/vnd.allure.image.diff":
       return "image-diff";
+    case "application/vnd.allure.http+json":
+      return "http";
     default:
       return null;
   }

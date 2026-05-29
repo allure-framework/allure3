@@ -2,16 +2,22 @@ import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
 import { type HistoryDataPoint } from "@allurereport/core-api";
-import { type Config } from "@allurereport/plugin-api";
 
-import type { AllureServiceApiClient } from "./model.js";
-import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
+import {
+  ALLURE_SERVICE_STORAGE_PREFIX,
+  type AllureServiceApiClient,
+  type AllureServiceApiClientConfig,
+  type UploadReportPayload,
+} from "./model.js";
+import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
 import { parseServiceToken } from "./utils/token.js";
 
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
 
 const createUploadBlob = (content: Buffer) => new Blob([content], { type: UPLOAD_CONTENT_TYPE });
+
 const createReportUrl = (baseUrl: string, reportUuid: string) => `${baseUrl}/${reportUuid}`;
+
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
 
@@ -19,15 +25,21 @@ export class AllureServiceClient implements AllureServiceApiClient {
   readonly #client: HttpClient;
   readonly #url: string;
 
-  constructor(readonly config: Config["allureService"]) {
+  constructor(readonly config: AllureServiceApiClientConfig) {
     if (!config?.accessToken) {
       throw new Error("Allure service access token is required");
+    }
+
+    if (!config.accessToken.startsWith(ALLURE_SERVICE_STORAGE_PREFIX)) {
+      throw new Error("Allure service access token is invalid");
     }
 
     const { url } = parseServiceToken(config.accessToken);
 
     this.#url = url.replace(/\/$/, "");
-    this.#client = createServiceHttpClient(this.#url, config.accessToken);
+    this.#client = createServiceHttpClient(this.#url, {
+      accessToken: config.accessToken,
+    });
   }
 
   /**
@@ -171,5 +183,16 @@ export class AllureServiceClient implements AllureServiceApiClient {
     });
 
     return createReportFileUrl(this.#url, reportUuid, reportFilename);
+  }
+
+  async uploadReport(payload: UploadReportPayload) {
+    return uploadReport({
+      ...payload,
+      uploadConcurrency: this.config.uploadConcurrency,
+      uploadMaxAttempts: this.config.uploadMaxAttempts,
+      uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
+      addReportAsset: this.addReportAsset.bind(this),
+      addReportFile: this.addReportFile.bind(this),
+    });
   }
 }

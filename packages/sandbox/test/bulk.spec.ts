@@ -18,6 +18,19 @@ const epics = ["checkout", "identity", "billing"];
 const features = ["create", "update", "delete", "read"];
 const stories = ["happy path", "edge case", "validation", "security"];
 
+type CoverageGroup = "billing" | "identity" | "infra" | "ui" | "shared" | "history";
+
+const coverageGroupBySuite: Record<(typeof suites)[number], CoverageGroup> = {
+  auth: "identity",
+  payments: "billing",
+  orders: "billing",
+  reporting: "billing",
+  infra: "infra",
+  ui: "ui",
+};
+
+const coverageLabel = (group: CoverageGroup) => group;
+
 const failedMessages = [
   "expected 200 to be 502 // Object.is equality",
   "expected true to be false // Object.is equality",
@@ -49,6 +62,7 @@ for (const suite of suites) {
       const tag = pick(tags, seed);
       const name = `${suite}/${env} — case ${i + 1}`;
       const variant = seed % 10;
+      const coverageGroup = coverageGroupBySuite[suite];
 
       it(name, async (ctx) => {
         await label("env", env);
@@ -62,6 +76,7 @@ for (const suite of suites) {
         await label("component", pick(suites, seed));
         await label("thread", `worker-${seed % 8}`);
         await label("host", `host-${seed % 5}`);
+        await label("coverage", coverageLabel(coverageGroup));
         await link(`JIRA-${100 + (seed % 50)}`, `https://example.org/browse/JIRA-${100 + (seed % 50)}`);
 
         // Exercise "most recent wins" for labels
@@ -115,6 +130,7 @@ for (const shared of sharedCases) {
       await label("severity", pick(severities, envIndex));
       await label("layer", pick(layers, envIndex));
       await label("tag", "shared");
+      await label("coverage", coverageLabel("shared"));
       await step("shared setup", () => {});
       await step("shared action", () => {});
 
@@ -138,6 +154,7 @@ describe("history group", () => {
       await label("owner", "history-group");
       await label("severity", "critical");
       await label("layer", "api");
+      await label("coverage", coverageLabel("history"));
       await step("history setup", () => {});
 
       await attachment("assertion", pick(failedMessages, envIndex), "text/plain");

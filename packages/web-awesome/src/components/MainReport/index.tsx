@@ -13,6 +13,7 @@ import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
+import { activePane, focusTreePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
 import {
@@ -84,6 +85,7 @@ const MainReport = () => {
       if (isCurrentTab) {
         return;
       }
+      focusTreePane();
       setCurrentTab(id);
       if (id === ReportRootTab.Results) {
         if (currentTrId.value) {
@@ -127,83 +129,98 @@ const MainReport = () => {
     return null;
   };
 
+  const treePaneActive = isSplitMode.value && activePane.value === "tree";
+
   return (
-    <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
-      <ReportHeader />
+    <div
+      className={clsx(
+        styles.content,
+        isSplitMode.value && styles["scroll-inside"],
+        treePaneActive && styles["pane-active"],
+      )}
+      onMouseDown={() => focusTreePane()}
+    >
+      <div className={styles["main-report-header"]}>
+        <ReportHeader />
+      </div>
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
           <RootTabRouteSync />
-          <NavTabsList>
-            <Loadable
-              source={reportStatsStore}
-              renderData={(stats) => (
-                <RootTab id={ReportRootTab.Results}>
-                  {t("results")} <Counter count={stats?.total ?? 0} />
-                </RootTab>
-              )}
-            />
-            <Loadable
-              source={categoriesStore}
-              renderData={(categories) => {
-                if (!categories || !categories.roots?.length) {
-                  return null;
-                }
-                return (
-                  <>
-                    <RootTab id={ReportRootTab.Categories}>
-                      {t("categories")} <Counter count={categories.roots?.length} />
+          <div className={styles["main-report-tabs-layout"]}>
+            <div className={styles["main-report-tabs-nav"]}>
+              <NavTabsList>
+                <Loadable
+                  source={reportStatsStore}
+                  renderData={(stats) => (
+                    <RootTab id={ReportRootTab.Results}>
+                      {t("results")} <Counter count={stats?.total ?? 0} />
                     </RootTab>
-                  </>
-                );
-              }}
-            />
-            <Loadable
-              source={qualityGateStore}
-              renderData={(results) => {
-                const currentEnvResults = currentEnvironment.value
-                  ? (results[currentEnvironment.value] ?? [])
-                  : Object.values(results).flatMap((envResults) => envResults);
+                  )}
+                />
+                <Loadable
+                  source={categoriesStore}
+                  renderData={(categories) => {
+                    if (!categories || !categories.roots?.length) {
+                      return null;
+                    }
+                    return (
+                      <>
+                        <RootTab id={ReportRootTab.Categories}>
+                          {t("categories")} <Counter count={categories.roots?.length} />
+                        </RootTab>
+                      </>
+                    );
+                  }}
+                />
+                <Loadable
+                  source={qualityGateStore}
+                  renderData={(results) => {
+                    const currentEnvResults = currentEnvironment.value
+                      ? (results[currentEnvironment.value] ?? [])
+                      : Object.values(results).flatMap((envResults) => envResults);
 
-                return (
-                  <RootTab id={ReportRootTab.QualityGate}>
-                    {t("qualityGates")}{" "}
-                    <Counter
-                      status={currentEnvResults.length > 0 ? "failed" : undefined}
-                      count={currentEnvResults.length}
-                    />
-                  </RootTab>
-                );
-              }}
-            />
-            <Loadable
-              source={globalsStore}
-              renderData={({ attachments = [], attachmentsByEnv = {}, errors = [], errorsByEnv = {} }) => {
-                const currentEnvAttachments = currentEnvironment.value
-                  ? (attachmentsByEnv[currentEnvironment.value] ?? [])
-                  : attachments;
-                const currentEnvErrors = currentEnvironment.value
-                  ? (errorsByEnv[currentEnvironment.value] ?? [])
-                  : errors;
+                    return (
+                      <RootTab id={ReportRootTab.QualityGate}>
+                        {t("qualityGates")}{" "}
+                        <Counter
+                          status={currentEnvResults.length > 0 ? "failed" : undefined}
+                          count={currentEnvResults.length}
+                        />
+                      </RootTab>
+                    );
+                  }}
+                />
+                <Loadable
+                  source={globalsStore}
+                  renderData={({ attachments = [], attachmentsByEnv = {}, errors = [], errorsByEnv = {} }) => {
+                    const currentEnvAttachments = currentEnvironment.value
+                      ? (attachmentsByEnv[currentEnvironment.value] ?? [])
+                      : attachments;
+                    const currentEnvErrors = currentEnvironment.value
+                      ? (errorsByEnv[currentEnvironment.value] ?? [])
+                      : errors;
 
-                return (
-                  <>
-                    <RootTab id={ReportRootTab.GlobalAttachments}>
-                      {t("globalAttachments")} <Counter count={currentEnvAttachments.length} />
-                    </RootTab>
-                    <RootTab id={ReportRootTab.GlobalErrors}>
-                      {t("globalErrors")}{" "}
-                      <Counter
-                        status={currentEnvErrors.length > 0 ? "failed" : undefined}
-                        count={currentEnvErrors.length}
-                      />
-                    </RootTab>
-                  </>
-                );
-              }}
-            />
-          </NavTabsList>
-          <div className={styles["main-report-tabs-content"]}>
-            <MainReportContent />
+                    return (
+                      <>
+                        <RootTab id={ReportRootTab.GlobalAttachments}>
+                          {t("globalAttachments")} <Counter count={currentEnvAttachments.length} />
+                        </RootTab>
+                        <RootTab id={ReportRootTab.GlobalErrors}>
+                          {t("globalErrors")}{" "}
+                          <Counter
+                            status={currentEnvErrors.length > 0 ? "failed" : undefined}
+                            count={currentEnvErrors.length}
+                          />
+                        </RootTab>
+                      </>
+                    );
+                  }}
+                />
+              </NavTabsList>
+            </div>
+            <div className={styles["main-report-tabs-content"]}>
+              <MainReportContent />
+            </div>
           </div>
         </NavTabs>
       </div>

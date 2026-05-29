@@ -47,6 +47,26 @@ export type ExpandableStepNode = {
 
 export type SubtreeNode = SubtreeNodeState;
 
+export const findStepBodyItems = (bodyItems: TrBodyItem[], stepId: string): TrBodyItem[] | null => {
+  for (const bodyItem of bodyItems) {
+    if (bodyItem.type !== "step") {
+      continue;
+    }
+
+    if (bodyItem.item.stepId === stepId) {
+      return bodyItem.bodyItems;
+    }
+
+    const nested = findStepBodyItems(bodyItem.bodyItems, stepId);
+
+    if (nested) {
+      return nested;
+    }
+  }
+
+  return null;
+};
+
 export const collectExpandableStepNodes = (
   bodyItems: TrBodyItem[],
   policy: StepTreeExpansion,

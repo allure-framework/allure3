@@ -98,7 +98,32 @@ export const TrError: FunctionalComponent<
       ) : showMessage ? (
         empty("no-message-provided")
       ) : null}
-      {hasDiff && (
+      {!showMessage && message && (
+        <div className={styles["test-result-error-header"]}>
+          {hasDiff ? (
+            <Button
+              style={"flat"}
+              data-testId={"test-result-diff-button"}
+              size={"s"}
+              text={tooltip("showDiff")}
+              onClick={openDiff}
+            />
+          ) : (
+            <span />
+          )}
+          <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
+            <IconButton
+              style={"ghost"}
+              size={"s"}
+              icon={allureIcons.lineGeneralCopy3}
+              onClick={() => {
+                copyToClipboard(message);
+              }}
+            />
+          </TooltipWrapper>
+        </div>
+      )}
+      {(showMessage || !message) && hasDiff && (
         <Button
           style={"flat"}
           data-testId={"test-result-diff-button"}

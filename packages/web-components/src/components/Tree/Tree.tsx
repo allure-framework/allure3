@@ -1,10 +1,12 @@
 import type { Statistic } from "@allurereport/core-api";
 import {
+  applySubtreeToggleState,
+  collectExpandableSubtreeNodes,
   getNextSubtreeToggleState,
   getSubtreeToggleIcon,
+  hasExpandableTreeChildren,
   isSubtreeExpandedAll,
   isSubtreeFirstLevelOnlyOpened,
-  type SubtreeNodeState,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import cx from "clsx";
@@ -28,9 +30,14 @@ interface TreeProps {
   root?: boolean;
   statusFilter?: Status;
   collapsedTrees: Set<string>;
-  toggleTree: (id: string) => void;
+  toggleTree: (id: string, openedByDefault?: boolean) => void;
   navigateTo: (id: string) => void;
   routeId?: string;
+  focusedId?: string;
+  /** Prefix for keyboard-focus ids when the same nodeId appears in multiple trees (e.g. environments). */
+  focusIdPrefix?: string;
+  /** When set, must match keyboard navigation open state (e.g. awesome `isTreeOpened`). */
+  isGroupOpened?: (scopedNodeId: string, openedByDefault: boolean) => boolean;
 }
 
 const isFailedOrBrokenNode = (statistic?: Statistic) =>
@@ -41,30 +48,9 @@ const getDefaultOpenedState = (statistic?: Statistic, root = false) => root || i
 const isNodeOpened = (nodeId: string, collapsedTrees: Set<string>, defaultOpened: boolean) =>
   collapsedTrees.has(nodeId) ? !defaultOpened : defaultOpened;
 
-const hasTreeChildren = (tree: RecursiveTree) => tree.trees.length > 0 || tree.leaves.length > 0;
+const hasTreeChildren = (tree: RecursiveTree) => hasExpandableTreeChildren(tree);
 
 const hasTreeOnlyLeafResults = (tree: RecursiveTree) => hasTreeChildren(tree) && tree.trees.length === 0;
-
-const collectExpandableSubtreeNodes = (tree: RecursiveTree): SubtreeNodeState[] => {
-  const nodes: SubtreeNodeState[] = [];
-  const stack: { tree: RecursiveTree; isRoot: boolean }[] = [{ tree, isRoot: true }];
-
-  while (stack.length > 0) {
-    const current = stack.pop();
-    if (!current) {
-      continue;
-    }
-
-    nodes.push({
-      id: current.tree.nodeId,
-      openedByDefault: getDefaultOpenedState(current.tree.statistic),
-      isRoot: current.isRoot,
-    });
-    current.tree.trees.forEach((nestedSubtree) => stack.push({ tree: nestedSubtree, isRoot: false }));
-  }
-
-  return nodes;
-};
 const subtreeToggleIconByState = {
   "single-down": allureIcons.lineArrowsChevronDown,
   "single-up": allureIcons.lineArrowsChevronUp,
@@ -82,26 +68,32 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   collapsedTrees,
   toggleTree,
   routeId,
+  focusedId,
+  focusIdPrefix,
+  isGroupOpened,
   navigateTo,
 }) => {
   const rootNodeId = tree.nodeId as string;
+  const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
   const defaultOpened = getDefaultOpenedState(statistic, Boolean(root));
-  const isOpened = isNodeOpened(rootNodeId, collapsedTrees, defaultOpened);
+  const resolveIsOpened = (scopedId: string, openedByDefault: boolean) =>
+    isGroupOpened ? isGroupOpened(scopedId, openedByDefault) : isNodeOpened(scopedId, collapsedTrees, openedByDefault);
+  const isOpened = resolveIsOpened(toScopedId(rootNodeId), defaultOpened);
   const hasChildren = hasTreeChildren(tree);
   const hasOnlyLeafResults = hasTreeOnlyLeafResults(tree);
   const expandableSubtreeNodes = hasChildren ? collectExpandableSubtreeNodes(tree) : [];
   const [lastSubtreeToggle, setLastSubtreeToggle] = useState<SubtreeToggleState | null>(null);
-  const isSubtreeCollapsedAll = !isNodeOpened(rootNodeId, collapsedTrees, defaultOpened);
+  const isSubtreeCollapsedAll = !resolveIsOpened(toScopedId(rootNodeId), defaultOpened);
   const isSubtreeFirstLevelOnly = isSubtreeFirstLevelOnlyOpened(
-    rootNodeId,
+    toScopedId(rootNodeId),
     defaultOpened,
     expandableSubtreeNodes,
-    (id, openedByDefault) => isNodeOpened(id, collapsedTrees, openedByDefault),
+    (id, openedByDefault) => resolveIsOpened(toScopedId(id), openedByDefault),
   );
   const isSubtreeFullyExpanded =
     hasChildren &&
     isSubtreeExpandedAll(expandableSubtreeNodes, (id, openedByDefault) =>
-      isNodeOpened(id, collapsedTrees, openedByDefault),
+      resolveIsOpened(toScopedId(id), openedByDefault),
     );
   const subtreeToggleIcon =
     subtreeToggleIconByState[
@@ -119,17 +111,21 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   });
 
   const toggleTreeHeader = () => {
-    toggleTree(rootNodeId);
+    toggleTree(toScopedId(rootNodeId), defaultOpened);
     setLastSubtreeToggle(null);
   };
 
   const setSubtreeState = (state: SubtreeToggleState) => {
-    expandableSubtreeNodes.forEach((node) => {
-      const shouldOpenSubtree = state === "all" ? true : state === "first" ? node.isRoot : false;
-      const currentlyOpened = isNodeOpened(node.id, collapsedTrees, node.openedByDefault);
-      if (currentlyOpened !== shouldOpenSubtree) {
-        toggleTree(node.id);
-      }
+    applySubtreeToggleState(expandableSubtreeNodes, state, {
+      toScopedId,
+      isOpened: (scopedId, openedByDefault) => resolveIsOpened(scopedId, openedByDefault),
+      setOpened: (scopedId, shouldOpen, openedByDefault) => {
+        const currentlyOpened = resolveIsOpened(scopedId, openedByDefault);
+
+        if (currentlyOpened !== shouldOpen) {
+          toggleTree(scopedId, openedByDefault);
+        }
+      },
     });
   };
 
@@ -163,6 +159,9 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       collapsedTrees={collapsedTrees}
       toggleTree={toggleTree}
       routeId={routeId}
+      focusedId={focusedId}
+      focusIdPrefix={focusIdPrefix}
+      isGroupOpened={isGroupOpened}
       navigateTo={navigateTo}
     />
   ));
@@ -182,6 +181,8 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       tooltips={leaf.tooltips}
       flaky={leaf.flaky}
       marked={leaf.nodeId === routeId}
+      focused={toScopedId(leaf.nodeId) === focusedId}
+      focusNodeId={toScopedId(leaf.nodeId)}
       navigateTo={navigateTo}
     />
   ));
@@ -215,6 +216,8 @@ export const Tree: FunctionalComponent<TreeProps> = ({
           statistic={statistic}
           reportStatistic={reportStatistic}
           actions={headerActions}
+          focused={toScopedId(rootNodeId) === focusedId}
+          nodeId={toScopedId(rootNodeId)}
         />
       ) : null}
       {treeContent}

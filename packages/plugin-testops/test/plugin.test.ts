@@ -8,16 +8,9 @@ import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-beforeEach(async () => {
-  await epic("coverage");
-  await feature("testops-integration");
-  await story("plugin");
-  await label("coverage", "testops-integration");
-});
-
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
-import { resolvePluginOptions } from "../src/utils.js";
+import { resolvePluginOptions } from "../src/utils/index.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("@allurereport/ci", () => ({
@@ -32,7 +25,7 @@ vi.mock("../src/client.js", async () => {
   };
 });
 
-vi.mock("../src/utils.js", async (importOriginal) => {
+vi.mock("../src/utils/index.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     resolvePluginOptions: vi.fn(),
@@ -94,7 +87,12 @@ const fixtures = {
   },
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("plugin");
+  await label("coverage", "testops-integration");
+
   vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
   vi.stubEnv("ALLURE_TESTOPS_ENABLED", "true");
   vi.clearAllMocks();
@@ -292,7 +290,7 @@ describe("testops plugin", () => {
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue oauth token, create launch and session", async () => {
+    it("should create launch and session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -300,7 +298,6 @@ describe("testops plugin", () => {
 
       await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", []);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
@@ -327,7 +324,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Custom Launch", fixtures.launchTags);
     });
 
-    it("should not issue oauth token again in upload when called from start", async () => {
+    it("should create direct-token upload session when called from start", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -335,7 +332,7 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
 
     it("should upload all test results from the store", async () => {
@@ -395,7 +392,6 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(0);
@@ -895,7 +891,6 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.createSession).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
@@ -919,7 +914,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
     });
 
@@ -941,7 +935,6 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
       expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
     });
   });
@@ -960,7 +953,7 @@ describe("testops plugin", () => {
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue new oauth token and create new session", async () => {
+    it("should create new session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -968,7 +961,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
@@ -1006,7 +998,6 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(0);
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(0);
     });
@@ -1149,7 +1140,7 @@ describe("testops plugin", () => {
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should issue new oauth token and create new session", async () => {
+    it("should create new session", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1157,7 +1148,6 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });

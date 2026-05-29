@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-slack",
-  "version": "3.8.2",
+  "version": "3.9.0",
   "description": "Allure Plugin to Report results to Slack",
   "keywords": [
     "allure",

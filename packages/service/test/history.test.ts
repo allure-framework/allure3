@@ -21,6 +21,11 @@ const serviceUrl = "https://service.allurereport.org";
 const createAccessToken = (payload: Record<string, string>) =>
   `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
 const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const fixtures = {
   accessToken: validAccessToken,
@@ -59,7 +64,7 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
+    serviceClient = new AllureServiceClientClass({ ...uploadConfig, accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
       repo: fixtures.repo,

@@ -20,6 +20,11 @@ const serviceUrl = "https://service.allurereport.org";
 const createAccessToken = (payload: Record<string, string>) =>
   `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
 const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const fixtures = {
   accessToken: validAccessToken,
@@ -95,32 +100,41 @@ describe("AllureServiceClient", () => {
     vi.clearAllMocks();
 
     serviceClient = new AllureServiceClientClass({
+      ...uploadConfig,
       accessToken: fixtures.accessToken,
     });
   });
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() => new AllureServiceClientClass({})).toThrow("Allure service access token is required");
+      expect(
+        () => new AllureServiceClientClass({ ...uploadConfig, accessToken: undefined as unknown as string }),
+      ).toThrow("Allure service access token is required");
     });
 
     it("should throw an error if access token is invalid", () => {
-      expect(() => new AllureServiceClientClass({ accessToken: "invalid-token" })).toThrow(
+      expect(() => new AllureServiceClientClass({ ...uploadConfig, accessToken: "invalid-token" })).toThrow(
         "Allure service access token is invalid",
       );
     });
 
     it("should throw an error if token payload doesn't contain a URL", () => {
       expect(
-        () => new AllureServiceClientClass({ accessToken: createAccessToken({ accessToken: serviceAccessToken }) }),
+        () =>
+          new AllureServiceClientClass({
+            ...uploadConfig,
+            accessToken: createAccessToken({ accessToken: serviceAccessToken }),
+          }),
       ).toThrow("Allure service access token is invalid");
     });
 
     it("should successfully create client with valid config", () => {
       vi.clearAllMocks();
 
-      expect(() => new AllureServiceClientClass({ accessToken: validAccessToken })).not.toThrow();
-      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, fixtures.accessToken);
+      expect(() => new AllureServiceClientClass({ ...uploadConfig, accessToken: validAccessToken })).not.toThrow();
+      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, {
+        accessToken: fixtures.accessToken,
+      });
     });
   });
 
@@ -399,6 +413,7 @@ describe("AllureServiceClient", () => {
 
     it("should preserve the URL protocol slashes in uploaded file hrefs", async () => {
       serviceClient = new AllureServiceClientClass({
+        ...uploadConfig,
         accessToken: createAccessToken({ accessToken: fixtures.serviceAccessToken, url: "http://localhost:3000/" }),
       });
       HttpClientMock.prototype.post.mockResolvedValue({});
@@ -416,6 +431,27 @@ describe("AllureServiceClient", () => {
         content: "test-content",
       });
       expect(res).toEqual(`http://localhost:3000/${fixtures.report}/awesome/index.html`);
+    });
+  });
+
+  describe("uploadReport", () => {
+    it("uploads files through shared helper", async () => {
+      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("<html></html>"));
+      HttpClientMock.prototype.post.mockResolvedValue(undefined);
+
+      const result = await serviceClient.uploadReport({
+        reportUuid: fixtures.report,
+        pluginId: fixtures.pluginId,
+        files: {
+          "index.html": "index.html",
+        },
+      });
+
+      expect(result.indexHref).toBe(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/index.html`);
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(
+        `/api/reports/${fixtures.report}/upload`,
+        expect.anything(),
+      );
     });
   });
 });
