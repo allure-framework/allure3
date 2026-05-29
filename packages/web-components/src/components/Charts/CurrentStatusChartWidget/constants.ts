@@ -10,7 +10,7 @@ export const EMPTY_ARC: ChartDatum = {
   id: "__EMPTY_ARC_DO_NOT_COUNT_IT_USED_FOR_VISUALS__",
   // We need to set value to 1 to make sure that the arc is visible
   value: 1,
-  color: "var(--bg-control-secondary)",
+  color: "var(--color-control-bg)",
   label: "",
 };
 

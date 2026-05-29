@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-testops",
-  "version": "3.5.0",
+  "version": "3.9.0",
   "description": "Allure Plugin TestOps",
   "keywords": [
     "allure",
@@ -36,7 +36,8 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
-    "axios": "^1.15.0",
+    "@allurereport/service": "workspace:*",
+    "axios": "^1.15.2",
     "form-data": "^4.0.5",
     "lodash-es": "^4.18.1",
     "p-limit": "^7.3.0",
@@ -50,7 +51,8 @@
     "@types/progress": "^2",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
     "vitest": "^2.1.9"

@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import type { ComponentChildren, FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import Prism from "prismjs";
+
+import { Prism } from "./prism-setup.js";
 
 import "./code.scss";
 

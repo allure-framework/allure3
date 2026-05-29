@@ -70,7 +70,7 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
               {categoryTitle}
             </Text>
             {treeHeaderBar && (
-              <div className={styles["tree-header-bar"]} style={{ width: `${width}px` }}>
+              <div className={styles["tree-header-bar"]} style={{ minWidth: `${width}px` }}>
                 {treeHeaderBar}
               </div>
             )}

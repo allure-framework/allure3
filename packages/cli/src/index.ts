@@ -4,8 +4,13 @@ import { argv } from "node:process";
 import { Builtins, Cli } from "clipanion";
 
 import {
+  AgentCommand,
+  AgentLatestCommand,
+  AgentSelectCommand,
+  AgentStateDirCommand,
   Allure2Command,
   AwesomeCommand,
+  CheckCommand,
   ClassicCommand,
   CsvCommand,
   DashboardCommand,
@@ -22,7 +27,6 @@ import {
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
-  WhoamiCommand,
 } from "./commands/index.js";
 
 const [node, app, ...args] = argv;
@@ -39,6 +43,11 @@ const cli = new Cli({
 
 cli.register(AwesomeCommand);
 cli.register(Allure2Command);
+cli.register(AgentLatestCommand);
+cli.register(AgentSelectCommand);
+cli.register(AgentStateDirCommand);
+cli.register(AgentCommand);
+cli.register(CheckCommand);
 cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);
@@ -55,7 +64,6 @@ cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
-cli.register(WhoamiCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 cli.runExit(args);

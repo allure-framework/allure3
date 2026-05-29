@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.5.0",
+  "version": "3.9.0",
   "description": "The static files for Allure Awesome Report",
   "keywords": [
     "allure",
@@ -15,7 +15,10 @@
   "types": "./types.d.ts",
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "webpack serve --mode development",
+    "dev": "run-s dev:demo dev:copy dev:serve",
+    "dev:demo": "rimraf out/demo && yarn run -T allure generate ${ALLURE_RESULTS_DIR:-../sandbox/allure-results} --config=./allurerc-dev.mjs --output=./out/demo",
+    "dev:copy": "rimraf out/dev/data out/dev/widgets && mkdir -p out/dev && cp -R out/demo/data out/dev/data && cp -R out/demo/widgets out/dev/widgets",
+    "dev:serve": "webpack serve --mode development",
     "build": "run-s clean 'build:prod:*'",
     "build:dev": "run-s clean 'build:dev:*'",
     "build:prod:single": "SINGLE_FILE_MODE=1 webpack --mode production",
@@ -37,6 +40,7 @@
     "d3-shape": "^3.2.0",
     "i18next": "^24.0.2",
     "md5": "^2.3.0",
+    "minisearch": "^7.2.0",
     "preact": "^10.28.2",
     "prismjs": "^1.30.0"
   },
@@ -58,7 +62,8 @@
     "@types/prismjs": "^1.26.5",
     "@vitest/runner": "^3.2.4",
     "@vitest/snapshot": "^3.2.4",
-    "allure-vitest": "^3.3.2",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
@@ -80,7 +85,7 @@
     "svg-sprite-loader": "^6.0.11",
     "terser-webpack-plugin": "^5.3.14",
     "typescript": "^5.6.3",
-    "vite": "^8.0.8",
+    "vite": "^8.0.9",
     "vitest": "^3.2.4",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4",

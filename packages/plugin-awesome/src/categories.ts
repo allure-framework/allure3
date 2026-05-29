@@ -197,7 +197,7 @@ export const generateCategories = async (
     defaultEnvironment?: string;
   },
 ) => {
-  const visible = tests.filter((t) => !t.hidden);
+  const visible = tests.filter((t) => !t.isRetry);
   const environmentOrderMap = buildEnvironmentSortOrder(environments, defaultEnvironment);
 
   const nodes: Record<string, CategoryNode> = {};

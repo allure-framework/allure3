@@ -32,7 +32,7 @@ export class PluginFiles implements ReportFiles {
   constructor(
     parent: ReportFiles,
     pluginId: string,
-    readonly callback?: (key: string, path: string) => void,
+    readonly callback?: (key: string, path: string) => void | Promise<void>,
   ) {
     this.#parent = parent;
     this.#pluginId = pluginId;
@@ -41,7 +41,7 @@ export class PluginFiles implements ReportFiles {
   addFile = async (key: string, data: Buffer): Promise<string> => {
     const filepath = await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
 
-    this.callback?.(key, filepath);
+    await this.callback?.(key, filepath);
 
     return filepath;
   };
@@ -61,6 +61,7 @@ export class FileSystemReportFiles implements ReportFiles {
   readonly #output: string;
   readonly #contentHashToPath = new Map<string, string>();
   readonly #pathToContentHash = new Map<string, string>();
+  readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
     this.#output = resolve(output);
@@ -73,7 +74,7 @@ export class FileSystemReportFiles implements ReportFiles {
     const targetPathHash = this.#pathToContentHash.get(targetPath);
     const canonicalPath = this.#contentHashToPath.get(contentHash);
 
-    await mkdir(targetDirPath, { recursive: true });
+    await this.#ensureDir(targetDirPath);
 
     if (targetPathHash === contentHash) {
       return targetPath;
@@ -91,11 +92,26 @@ export class FileSystemReportFiles implements ReportFiles {
       }
     }
 
+    if (targetPathHash && this.#contentHashToPath.get(targetPathHash) === targetPath) {
+      this.#contentHashToPath.delete(targetPathHash);
+    }
+
     await this.#replaceWithFile(targetPath, data);
     this.#contentHashToPath.set(contentHash, targetPath);
     this.#pathToContentHash.set(targetPath, contentHash);
 
     return targetPath;
+  };
+
+  #ensureDir = async (dirPath: string): Promise<void> => {
+    let createdDir = this.#createdDirs.get(dirPath);
+
+    if (!createdDir) {
+      createdDir = mkdir(dirPath, { recursive: true });
+      this.#createdDirs.set(dirPath, createdDir);
+    }
+
+    await createdDir;
   };
 
   #replaceWithFile = async (targetPath: string, data: Buffer): Promise<void> => {

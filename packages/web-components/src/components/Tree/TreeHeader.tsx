@@ -1,7 +1,7 @@
 import { type Statistic } from "@allurereport/core-api";
-import type { Status } from "global";
 import type { ComponentChildren, FunctionComponent } from "preact";
 
+import type { Status } from "../../../global";
 import { TreeSection } from "./TreeSection";
 import { TreeStatusBar } from "./TreeStatusBar";
 
@@ -13,6 +13,9 @@ interface TreeHeaderProps {
   toggleTree: () => void;
   statusFilter?: Status;
   style?: Record<string, string>;
+  actions?: ComponentChildren;
+  focused?: boolean;
+  nodeId?: string;
 }
 
 export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
@@ -22,10 +25,21 @@ export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   statistic,
   reportStatistic,
   statusFilter,
+  actions,
+  focused,
+  nodeId,
   ...rest
 }) => {
   return (
-    <TreeSection {...rest} title={categoryTitle} isOpened={isOpened} toggleTree={toggleTree}>
+    <TreeSection
+      {...rest}
+      title={categoryTitle}
+      isOpened={isOpened}
+      toggleTree={toggleTree}
+      focused={focused}
+      nodeId={nodeId}
+    >
+      {actions}
       <TreeStatusBar reportStatistic={reportStatistic} statusFilter={statusFilter} statistic={statistic} />
     </TreeSection>
   );

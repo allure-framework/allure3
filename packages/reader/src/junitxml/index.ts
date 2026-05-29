@@ -40,26 +40,31 @@ const xmlParser = new XMLParser({
 
 const readerId = "junit";
 
-export const junitXml: ResultsReader = {
-  read: async (visitor, data) => {
-    if (data.getOriginalFileName().endsWith(".xml")) {
-      try {
-        const content = await data.asUtf8String();
-        if (!content) {
-          return false;
-        }
-        const parsed = xmlParser.parse(content);
-        if (!isStringAnyRecord(parsed)) {
-          return false;
-        }
+const matchesJunitXmlFile = (fileName: string): boolean => fileName.endsWith(".xml");
 
-        return await parseRootElement(visitor, parsed);
-      } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+export const junitXml: ResultsReader = {
+  matches: (data) => matchesJunitXmlFile(data.getOriginalFileName()),
+  read: async (visitor, data) => {
+    const originalFileName = data.getOriginalFileName();
+
+    try {
+      const content = await data.asUtf8String();
+
+      if (!content) {
         return false;
       }
+
+      const parsed = xmlParser.parse(content);
+
+      if (!isStringAnyRecord(parsed)) {
+        return false;
+      }
+
+      return await parseRootElement(visitor, parsed);
+    } catch (e) {
+      console.error("error parsing", originalFileName, e);
+      return false;
     }
-    return false;
   },
 
   readerId: () => readerId,

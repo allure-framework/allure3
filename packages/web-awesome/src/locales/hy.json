@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Որոնում",
-    "search-placeholder": "Անվանում կամ ID"
+    "search-placeholder": "Որոնել թեստեր"
   },
   "filters": {
     "flaky": "Անհուսալի",
@@ -427,6 +427,66 @@
         "actual": "Իրական",
         "expected": "Ակնկալվող"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Ստեղնաշարի դյուրանցումներ",
+    "groups": {
+      "global": "Ընդհանուր",
+      "tree": "Ծառ",
+      "testResult": "Թեստի արդյունք"
+    },
+    "items": {
+      "toggleHelp": "Ցուցադրել կամ թաքցնել դյուրանցումները",
+      "focusSearch": "Ֆոկուս որոնման վրա",
+      "blurSearch": "Դուրս գալ որոնումից",
+      "focusTree": "Ֆոկուս ծառի վահանակի վրա",
+      "focusTestResult": "Ֆոկուս թեստի արդյունքի վահանակի վրա",
+      "toggleLayout": "Անջատել/միացնել բաժանված դիտումը (Shift+L)",
+      "toggleLayoutAlt": "Անջատել/միացնել բաժանված դիտումը (Ctrl/Cmd+\\)",
+      "moveUp": "Տեղաշարժ վեր",
+      "moveDown": "Տեղաշարժ վար",
+      "collapse": "Ծալել / գնալ ծնողին",
+      "expand": "Բացել / առաջին երեխա",
+      "parent": "Գնալ ծնողին (p)",
+      "parentAlt": "Գնալ ծնողին (u)",
+      "openNode": "Բացել թեստը / փոխել խումբը (o)",
+      "collapseNode": "Ծալել հանգույցը (-)",
+      "expandNode": "Բացել հանգույցը (+)",
+      "collapseAll": "Ծալել բոլոր երեխաները (C)",
+      "expandAll": "Բացել բոլոր երեխաները (A)",
+      "subtreeCycle": "Ենթածառի ծալում/բացում ցիկլ — ինչպես սլաքի կոճակ (>)",
+      "subtreeCollapse": "Ծալել ամբողջ ենթածառը (Shift+C)",
+      "subtreeExpand": "Բացել ամբողջ ենթածառը (Shift+A)",
+      "subtreeFirstLevel": "Բացել միայն առաջին մակարդակը (f)",
+      "toggleNode": "Փոխել խումբը կամ միջավայրը",
+      "openTest": "Բացել թեստի արդյունքը",
+      "firstTest": "Գնալ առաջին թեստ (g g), ոլորել ցուցակը վեր",
+      "lastTest": "Գնալ վերջին թեստ",
+      "treeTop": "Առաջին տող + ոլորել վեր (Home)",
+      "scrollTreeTop": "Ոլորել վեր — ցուցադրել փոփոխականներ և ֆիլտրեր (z t)",
+      "toggleReportVariables": "Ցուցադրել/թաքցնել փոփոխականները",
+      "toggleReportMetadata": "Ցուցադրել/թաքցնել մետատվյալները",
+      "reportTabResults": "Հաշվետվության ներդիր: Արդյունքներ",
+      "reportTabCategories": "Հաշվետվության ներդիր: Կատեգորիաներ",
+      "reportTabQualityGate": "Հաշվետվության ներդիր: Որակի դարպաս",
+      "reportTabGlobalAttachments": "Հաշվետվության ներդիր: Գլոբալ կցորդներ",
+      "reportTabGlobalErrors": "Հաշվետվության ներդիր: Գլոբալ սխալներ",
+      "reportTabNext": "Հաջորդ հաշվետվության ներդիր",
+      "reportTabPrev": "Նախորդ հաշվետվության ներդիր",
+      "nextTest": "Հաջորդ թեստի արդյունք",
+      "prevTest": "Նախորդ թեստի արդյունք",
+      "testTabNext": "Հաջորդ թեստի ներդիր",
+      "testTabPrev": "Նախորդ թեստի ներդիր",
+      "tabOverview": "Ակնարկի ներդիր",
+      "tabHistory": "Պատմության ներդիր",
+      "tabRetries": "Կրկնությունների ներդիր",
+      "tabAttachments": "Կցորդների ներդիր",
+      "tabEnvironments": "Միջավայրերի ներդիր",
+      "toggleLabels": "Ցուցադրել/թաքցնել պիտակները",
+      "toggleParameters": "Ցուցադրել/թաքցնել պարամետրերը",
+      "toggleLinks": "Ցուցադրել/թաքցնել հղումները",
+      "backToTree": "Վերադառնալ ծառ"
     }
   }
 }

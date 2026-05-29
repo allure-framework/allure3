@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader-api",
-  "version": "3.5.0",
+  "version": "3.9.0",
   "description": "Allure Reader API",
   "keywords": [
     "allure",
@@ -35,7 +35,8 @@
     "@types/mime-types": "^2.1.4",
     "@types/node": "^20.17.9",
     "@vitest/runner": "^2.1.9",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "tslib": "^2.7.0",

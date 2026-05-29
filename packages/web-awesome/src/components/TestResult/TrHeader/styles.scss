@@ -1,6 +1,8 @@
 .test-result-breadcrumbs {
   margin-right: auto;
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 4px;
   overflow: hidden;
   white-space: nowrap;
@@ -11,13 +13,14 @@
 }
 
 .test-result-breadcrumb-link {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-breadcrumb {
   display: flex;
+  min-width: 0;
   gap: 4px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;

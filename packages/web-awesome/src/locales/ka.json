@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "ძებნა",
-    "search-placeholder": "სახელი ან ID"
+    "search-placeholder": "ტესტების ძიება"
   },
   "filters": {
     "flaky": "არასტაბილური",
@@ -427,6 +427,66 @@
         "actual": "ფაქტობრივი",
         "expected": "მოსალოდნელი"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "კლავიატურის მალსახმობები",
+    "groups": {
+      "global": "ზოგადი",
+      "tree": "ხე",
+      "testResult": "ტესტის შედეგი"
+    },
+    "items": {
+      "toggleHelp": "მალსახმობების ჩვენება ან დამალვა",
+      "focusSearch": "ძიებაზე ფოკუსირება",
+      "blurSearch": "ძიებიდან გასვლა",
+      "focusTree": "ხის პანელზე ფოკუსირება",
+      "focusTestResult": "ტესტის შედეგის პანელზე ფოკუსირება",
+      "toggleLayout": "გაყოფილი ხედის გადართვა (Shift+L)",
+      "toggleLayoutAlt": "გაყოფილი ხედის გადართვა (Ctrl/Cmd+\\)",
+      "moveUp": "ზევით გადაადგილება",
+      "moveDown": "ქვევით გადაადგილება",
+      "collapse": "ჩაკეცვა / მშობელზე გადასვლა",
+      "expand": "გაშლა / პირველი შვილი",
+      "parent": "მშობელზე გადასვლა (p)",
+      "parentAlt": "მშობელზე გადასვლა (u)",
+      "openNode": "ტესტის გახსნა / ჯგუფის გადართვა (o)",
+      "collapseNode": "კვანძის ჩაკეცვა (-)",
+      "expandNode": "კვანძის გაშლა (+)",
+      "collapseAll": "ყველა შვილის ჩაკეცვა (C)",
+      "expandAll": "ყველა შვილის გაშლა (A)",
+      "subtreeCycle": "ქვეხის ჩაკეცვა/გაშლის ციკლი — ისრის ღილაკის მსგავსად (>)",
+      "subtreeCollapse": "მთელი ქვეხის ჩაკეცვა (Shift+C)",
+      "subtreeExpand": "მთელი ქვეხის გაშლა (Shift+A)",
+      "subtreeFirstLevel": "მხოლოდ პირველი დონის გაშლა (f)",
+      "toggleNode": "ჯგუფის ან გარემოს გადართვა",
+      "openTest": "ტესტის შედეგის გახსნა",
+      "firstTest": "პირველ ტესტზე გადასვლა (g g), სიის ზევით გადახვევა",
+      "lastTest": "ბოლო ტესტზე გადასვლა",
+      "treeTop": "პირველი მწკრივი + ზევით გადახვევა (Home)",
+      "scrollTreeTop": "ზევით გადახვევა — ცვლადების და ფილტრების ჩვენება (z t)",
+      "toggleReportVariables": "ცვლადების ჩვენება/დამალვა",
+      "toggleReportMetadata": "მეტამონაცემების ჩვენება/დამალვა",
+      "reportTabResults": "ანგარიშის ჩანართი: შედეგები",
+      "reportTabCategories": "ანგარიშის ჩანართი: კატეგორიები",
+      "reportTabQualityGate": "ანგარიშის ჩანართი: ხარისხის კარიბჭე",
+      "reportTabGlobalAttachments": "ანგარიშის ჩანართი: გლობალური დანართები",
+      "reportTabGlobalErrors": "ანგარიშის ჩანართი: გლობალური შეცდომები",
+      "reportTabNext": "შემდეგი ანგარიშის ჩანართი",
+      "reportTabPrev": "წინა ანგარიშის ჩანართი",
+      "nextTest": "შემდეგი ტესტის შედეგი",
+      "prevTest": "წინა ტესტის შედეგი",
+      "testTabNext": "შემდეგი ტესტის ჩანართი",
+      "testTabPrev": "წინა ტესტის ჩანართი",
+      "tabOverview": "მიმოხილვის ჩანართი",
+      "tabHistory": "ისტორიის ჩანართი",
+      "tabRetries": "გამეორებების ჩანართი",
+      "tabAttachments": "დანართების ჩანართი",
+      "tabEnvironments": "გარემოების ჩანართი",
+      "toggleLabels": "ლეიბლების ჩვენება/დამალვა",
+      "toggleParameters": "პარამეტრების ჩვენება/დამალვა",
+      "toggleLinks": "ბმულების ჩვენება/დამალვა",
+      "backToTree": "ხეზე დაბრუნება"
     }
   }
 }

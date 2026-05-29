@@ -1,7 +1,15 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InMemoryReportDataWriter } from "../src/writer.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("writer");
+  await label("coverage", "report-output");
+});
 
 describe("InMemoryReportDataWriter", () => {
   it("should store normalized POSIX keys for report data", async () => {
@@ -16,6 +24,7 @@ describe("InMemoryReportDataWriter", () => {
     } as unknown as ResultFile;
 
     await writer.writeData("history\\entry.json", { id: 1 });
+    await writer.writeWidget("allure_environment.json", []);
     await writer.writeWidget("default\\tree.json", { id: 2 });
     await writer.writeTestCase({ id: "tr-1" } as any);
     await writer.writeAttachment("foo\\bar.txt", attachment);
@@ -23,6 +32,7 @@ describe("InMemoryReportDataWriter", () => {
     const names = writer.reportFiles().map((file) => file.name);
 
     expect(names).toContain("data/history/entry.json");
+    expect(names).toContain("widgets/allure_environment.json");
     expect(names).toContain("widgets/default/tree.json");
     expect(names).toContain("data/test-results/tr-1.json");
     expect(names).toContain("data/attachments/foo/bar.txt");

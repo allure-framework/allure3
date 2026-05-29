@@ -59,9 +59,7 @@ export class ClassicPlugin implements Plugin {
     await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
 
-    if (environmentItems?.length) {
-      await generateEnvironmentJson(this.#writer!, environmentItems);
-    }
+    await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
     if (attachments?.length) {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));

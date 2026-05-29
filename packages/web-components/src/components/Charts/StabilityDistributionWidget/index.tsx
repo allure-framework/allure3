@@ -33,17 +33,17 @@ const isAboveThreshold = (stabilityRate: number, threshold: number) => {
 
 const colorByStRateAndTh = (stabilityRate: number, threshold: number) => {
   if (stabilityRate >= threshold) {
-    return "var(--bg-support-castor-heavy)";
+    return "var(--color-intent-success-bg-active)";
   }
 
   // Calculate warning zone: if remaining distance to threshold is less than 5%
   const warningThreshold = threshold > 20 ? threshold - 5 : undefined;
 
   if (warningThreshold && stabilityRate >= warningThreshold) {
-    return "var(--bg-support-atlas-heavy)";
+    return "var(--color-intent-warning-bg-active)";
   }
 
-  return "var(--bg-support-capella-heavy)";
+  return "var(--color-intent-danger-bg-active)";
 };
 
 const getThresholdPoisition = (threshold: number) => {
@@ -76,8 +76,8 @@ export const StabilityDistributionWidget: FunctionalComponent<Props> = (props) =
       id,
       label: stabilityRateLabel,
       color: isAboveThreshold(stabilityRate, restrictedThreshold)
-        ? "var(--bg-support-castor-heavy)"
-        : "var(--bg-support-capella-heavy)",
+        ? "var(--color-intent-success-bg-active)"
+        : "var(--color-intent-danger-bg-active)",
       value: stabilityRate,
       [id]: stabilityRate,
     }));

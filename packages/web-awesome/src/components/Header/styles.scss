@@ -1,7 +1,7 @@
 .above {
-  margin-bottom: 12px;
   display: flex;
   width: 100%;
+  min-width: 0;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
@@ -10,12 +10,12 @@
 
 .logoWrapper {
   margin-right: auto;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .logo {
   margin-right: 8px;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
   top: -2px;
 }
 
@@ -28,6 +28,7 @@
 
 .right {
   margin-left: auto;
+  flex: none;
   display: flex;
   gap: 4px;
   align-items: center;

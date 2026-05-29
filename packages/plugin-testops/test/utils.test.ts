@@ -1,7 +1,15 @@
 import type { TestStepResult } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils.js";
+import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("testops-integration");
+  await story("utils");
+  await label("coverage", "testops-integration");
+});
 
 describe("unwrapStepsAttachments", () => {
   it("should return empty array when given empty array", () => {

@@ -1,9 +1,10 @@
-import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
+
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import TerserPlugin from "terser-webpack-plugin";
 import webpack from "webpack";
@@ -23,6 +24,7 @@ export default (env, argv) => {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
+      publicPath: devMode ? "auto" : undefined,
     },
     devtool: devMode ? "eval-source-map" : false,
     optimization: {
@@ -79,6 +81,17 @@ export default (env, argv) => {
       static: "./out/dev",
       historyApiFallback: true,
       watchFiles: ["./src"],
+      client: {
+        overlay: {
+          runtimeErrors: (error) => {
+            if (!error?.message) {
+              return true;
+            }
+
+            return !error.message.includes("ResizeObserver loop completed with undelivered notifications");
+          },
+        },
+      },
       devMiddleware: {
         index: true,
         mimeTypes: { phtml: "text/html" },
@@ -134,6 +147,8 @@ export default (env, argv) => {
     config.plugins.push(
       new HtmlWebpackPlugin({
         template: "src/index.html",
+        inject: "body",
+        scriptLoading: "defer",
       }),
     );
   }

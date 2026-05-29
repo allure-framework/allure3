@@ -1,3 +1,4 @@
+import "./components/Attachment/prism-setup.js";
 import "@/assets/scss/index.scss";
 
 export { allureIcons } from "./components/SvgIcon";
@@ -6,6 +7,7 @@ export { DropdownButton, Button, IconButton, ButtonLink } from "./components/But
 export { Spinner } from "./components/Spinner";
 export { SvgIcon } from "./components/SvgIcon";
 export { Text, Code, Heading } from "./components/Typography";
+export { LinkifiedText } from "./components/LinkifiedText";
 export { TooltipWrapper, Tooltip, useTooltip } from "./components/Tooltip";
 export { useElementTruncation } from "./hooks/useElementTruncation";
 export { Loadable } from "./components/Loadable";

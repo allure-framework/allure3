@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { CategoriesConfig } from "../../src/index.js";
 import {
@@ -25,6 +26,13 @@ const mkData = (overrides?: Partial<ReturnType<typeof extractErrorMatchingData>>
   return { ...base, ...overrides };
 };
 
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("categories");
+  await story("categories");
+  await label("coverage", "categories");
+});
+
 describe("normalizeCategoriesConfig", () => {
   it("returns empty list when cfg is false", () => {
     const normalized = normalizeCategoriesConfig(false);
@@ -35,6 +43,19 @@ describe("normalizeCategoriesConfig", () => {
     const normalized = normalizeCategoriesConfig(undefined);
     expect(normalized.map((r) => r.name)).toEqual(DEFAULT_ERROR_CATEGORIES.map((r) => r.name));
     expect(normalized).toHaveLength(DEFAULT_ERROR_CATEGORIES.length);
+  });
+
+  it("assigns stable ids to default categories", () => {
+    const normalized = normalizeCategoriesConfig(undefined);
+    expect(normalized.map((r) => r.id)).toEqual(DEFAULT_ERROR_CATEGORIES.map((r) => r.id));
+  });
+
+  it("allows overriding defaults by name without explicit id", () => {
+    const normalized = normalizeCategoriesConfig([{ name: "Product errors", matchers: { message: "boom" } }]);
+    const product = normalized.find((r) => r.name === "Product errors")!;
+    expect(product).toBeDefined();
+    expect(product.matchers.length).toBeGreaterThanOrEqual(2);
+    expect(product.id).toBe(DEFAULT_ERROR_CATEGORIES[0].id);
   });
 
   it("accepts array config and appends defaults after custom rules", () => {

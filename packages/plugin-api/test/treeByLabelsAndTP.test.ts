@@ -1,9 +1,17 @@
 import { randomUUID } from "node:crypto";
 
 import type { TestResult } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createTreeByLabelsAndTitlePath } from "../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("treeByLabelsAndTP");
+  await label("coverage", "report-data-model");
+});
 
 const itResult = (args: Partial<TestResult> & { titlePath?: string[] }): TestResult => ({
   id: randomUUID(),
@@ -15,7 +23,7 @@ const itResult = (args: Partial<TestResult> & { titlePath?: string[] }): TestRes
   links: [],
   flaky: false,
   muted: false,
-  hidden: false,
+  isRetry: false,
   known: false,
   sourceMetadata: {
     readerId: "system",

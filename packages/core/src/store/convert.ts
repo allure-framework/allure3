@@ -104,7 +104,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     flaky: raw.flaky ?? false,
     muted: raw.muted ?? false,
     known: raw.known ?? false,
-    hidden: false,
+    isRetry: false,
 
     labels,
     steps: convertSteps(stateData, raw.steps).convertedSteps,
@@ -133,6 +133,7 @@ const processTestCase = ({ testCases }: StateData, raw: RawTestResult): TestCase
     const testCase: TestCase = {
       id,
       allureId,
+      externalId: raw.testId,
       name: raw.testCaseName ?? raw.name ?? __unknown,
       fullName: raw.fullName,
     };

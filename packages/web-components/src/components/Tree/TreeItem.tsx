@@ -17,8 +17,11 @@ interface TreeItemProps {
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   id: string;
+  /** Unique id for keyboard focus highlighting; defaults to `id`. */
+  focusNodeId?: string;
   groupOrder: number;
   marked?: boolean;
+  focused?: boolean;
   navigateTo: (id: string) => void;
   tooltips?: Record<string, string>;
 }
@@ -33,17 +36,27 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   transition,
   transitionTooltip,
   id,
+  focusNodeId,
   marked,
+  focused,
   navigateTo,
   tooltips,
   ...rest
 }) => {
+  const treeNodeId = focusNodeId ?? id;
+
   return (
     <div
       {...rest}
-      className={clsx(styles["tree-item"], marked ? styles["tree-item-marked"] : "")}
+      className={clsx(
+        styles["tree-item"],
+        marked ? styles["tree-item-marked"] : "",
+        focused ? styles["tree-item-focused"] : "",
+      )}
       onClick={() => navigateTo(id)}
       id={id}
+      data-tree-node-id={treeNodeId}
+      aria-current={focused ? "true" : undefined}
     >
       <TreeItemIcon status={status} />
       <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>

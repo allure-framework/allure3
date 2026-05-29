@@ -10,19 +10,37 @@ Use it when:
 - reviewing existing test suites, auditing coverage, or triaging failing suites
 - validating that intended tests ran and unrelated scope did not drift in
 - improving weak or low-signal runtime evidence
-- preparing richer Allure reports, quality gates, and future loop adoption
+- preparing richer agent-mode reviews, quality gates, and future loop adoption
 
 ## Review Principle
 
 Runtime first, source second.
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use `ALLURE_AGENT_*` with `allure run` only as the lower-level fallback when you need direct environment control.
 - If the agent-mode output is missing or incomplete, debug that first and treat any console-only conclusion as provisional.
 
 ## Verification Standard
 
-- Use `allure run` for smoke checks too, even when the change is small or mechanical.
+- Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
+- After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
+- After changing a package in this repository, run that package build command before finalizing (for example, `yarn workspace <package-name> build`).
+- Monorepo build order, full-repo builds, and lint/format/type-aware lint expectations before finalizing live in `AGENTS.md` (keep agent-mode docs focused on runtime evidence loops).
+
+## Agent mode failures and unavailable runs
+
+Use this when `allure agent` errors, produces no usable output directory, exits non-zero before manifests exist, or cannot be run in the current environment.
+
+1. **Keep conclusions honest:** do not upgrade a plain test-runner log to a “full” review outcome. If agent artifacts are missing, any pass/fail or scope claim stays **provisional** until agent mode succeeds for the intended command.
+2. **Confirm the invocation:** use the repo’s normal wrapper (here: `yarn allure agent -- …`) so the same subcommand runs with agent-mode instrumentation. Compare argv and cwd with a known-good run.
+3. **Locate output:** if you did not pass `--output`, run `allure agent latest` or `allure agent state-dir` and inspect the resolved directory. Prefer a fresh explicit path via `--output` or `ALLURE_AGENT_OUTPUT` when debugging path or permission issues.
+4. **Expectations and env:** ensure `ALLURE_AGENT_EXPECTATIONS` points at the file you intended (typos silently change behavior). When isolating bugs, set unique `ALLURE_AGENT_OUTPUT` / expectations paths per run (see [Per-Run Artifacts](#per-run-artifacts)).
+5. **Partial artifacts:** if `index.md` or under `manifest/` is missing but the process exited zero, treat the run as **incomplete** and investigate before signing off. If the runner shows failures that never appear in `manifest/tests.jsonl`, check `artifacts/global/stderr.txt` and other logs under `artifacts/global/` (see [When Console Errors Are Not Represented As Test Results](#when-console-errors-are-not-represented-as-test-results)).
+6. **CLI or environment blocked:** when agent mode truly cannot run (broken install, policy-blocked sandbox, missing binary), say so explicitly in your summary: what you ran instead, which artifacts are absent, and what to rerun with `allure agent` once unblocked. Do not silently default to “tests passed” narratives from console-only runs.
+7. **Escalation:** repeated failures after the steps above are a **tooling** problem—collect command line, exit code, first/last log chunks, and Allure CLI version; fix or report that before relying on any substitute workflow.
+
+Skipping agent mode remains limited to the cases already stated in this guide (impossible here, or you are debugging agent mode itself).
 
 ## Repository Status
 
@@ -30,8 +48,22 @@ This repository already has a working Allure 3 setup.
 
 - Root report configuration lives in `allurerc.mjs`.
 - Most package test suites emit results with `allure-vitest/reporter` into `./out/allure-results`.
-- The normal feature-delivery path here is to run a targeted workspace test command under `yarn allure run -- ...`.
+- The normal feature-delivery path here is to run a targeted workspace test command under `yarn allure agent -- ...`.
 - You usually do not need to bootstrap Allure from scratch in this repo; focus on expectations, evidence quality, and scope control.
+
+## Helpful Commands
+
+- `allure agent latest` prints the latest agent output directory for the current project cwd. Use it when a prior run omitted `--output` and you want to reopen the most recent agent-mode artifacts.
+- `allure agent state-dir` prints the state directory for the current project cwd. Use it when you need to inspect where `latest` pointers are stored or debug sandbox behavior.
+- `allure agent select --latest` or `allure agent select --from <output-dir>` prints the review-targeted test plan from a prior agent run. Add `--preset failed` or exact `--label name=value` / `--environment <id>` filters when you need a narrower rerun plan.
+- `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` reruns only the selected tests through the framework-agnostic Allure testplan flow. The default rerun preset is `review`.
+
+## Advanced Reruns
+
+- `--rerun-preset review|failed|unsuccessful|all` changes how the rerun seed set is chosen. Use `review` for the default agent-targeted loop, `failed` for classic failure reruns, `unsuccessful` for any non-passed tests, and `all` when you want the whole previously observed set.
+- `--rerun-environment <id>` narrows the rerun selection to one or more environment ids from the previous agent output. Repeat the flag for multiple environments.
+- `--rerun-label name=value` narrows the rerun selection to tests whose prior results carried exact matching labels. Repeat the flag for multiple label filters.
+- `ALLURE_AGENT_STATE_DIR` overrides the default project-scoped state directory used by `allure agent latest`, `allure agent state-dir`, and `--rerun-latest`. Use it when you need a deterministic shared location in CI or a constrained sandbox.
 
 ## Core Loops
 
@@ -39,18 +71,19 @@ This repository already has a working Allure 3 setup.
 
 1. Identify the exact review scope.
 2. Create a fresh expectations file for this run in a temp directory.
-3. Run only that scope with `allure run`.
+3. Run only that scope with `allure agent`.
 4. Read `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 5. Read per-test markdown only for tests that failed, drifted, or have findings.
 6. Only after runtime review, inspect source code for root cause or coverage gaps.
 7. If evidence is weak or partial, enrich the tests and rerun.
+8. When iterating on the same scope, prefer `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` so the rerun stays focused on the review-targeted tests.
 
 ### Feature Delivery Loop
 
 1. Understand the feature or issue and the intended test scope.
 2. Create a fresh expectations file for this run in a temp directory.
 3. Write or update the tests.
-4. Run the target scope with `allure run`.
+4. Run the target scope with `allure agent`.
 5. Review `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, `manifest/findings.jsonl`, and the relevant per-test markdown files.
 6. Fix scope drift, weak evidence, or bad test design.
 7. Rerun with a new temp output directory and a new expectations file until the run is acceptable.
@@ -69,7 +102,7 @@ Use this when the run is functionally correct but too weak to review:
 Use this when the code change is mostly mechanical, such as typing cleanup, mock refactors, or helper extraction:
 
 1. Create a fresh expectations file and temp output directory for the touched scope.
-2. Run the touched scope with `allure run`, even if the goal is only a smoke check after a small or mechanical change.
+2. Run the touched scope with `allure agent`, even if the goal is only a smoke check after a small or mechanical change.
 3. Review `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 4. Only then make a final statement about regression safety or test correctness.
 
@@ -79,13 +112,13 @@ Use this for command matrices, package audits, or business-logic coverage review
 
 1. Split the audit into scoped groups.
 2. Give each group its own expectations file and temp output directory.
-3. Run each group with `allure run`.
+3. Run each group with `allure agent`.
 4. Review runtime artifacts first, then inspect source code only after the run explains what actually executed.
 5. Mark the review incomplete until each scoped group either matched expectations or was explicitly documented as a broad package-health audit.
 
 ## Per-Run Artifacts
 
-Each run must use fresh temp paths so parallel runs stay isolated.
+Each run must use fresh temp paths so parallel runs stay isolated. `allure agent` creates a fresh temp output directory automatically when you omit `--output`, but this guide still uses explicit temp paths when you need deterministic file locations.
 
 - `ALLURE_AGENT_OUTPUT` should point to a unique temp directory per run.
 - `ALLURE_AGENT_EXPECTATIONS` should point to a unique expectations file per run.
@@ -94,6 +127,8 @@ Each run must use fresh temp paths so parallel runs stay isolated.
 YAML is the preferred format for expectations files in v1, though JSON also works.
 
 Example:
+
+Primary pattern:
 
 ```bash
 TMP_DIR="$(mktemp -d)"
@@ -112,6 +147,15 @@ notes:
   - Only feature A tests should run.
 YAML
 
+npx allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- npm test
+```
+
+Lower-level fallback:
+
+```bash
 ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
 ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
 npx allure run -- npm test
@@ -134,9 +178,10 @@ notes:
   - Review runtime evidence before source inspection.
 YAML
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-yarn allure run -- yarn workspace allure test
+yarn allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- yarn workspace allure test
 ```
 
 Compact coverage-review pattern:
@@ -145,9 +190,10 @@ Compact coverage-review pattern:
 TMP_DIR="$(mktemp -d)"
 EXPECTATIONS="$TMP_DIR/expectations.yaml"
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-yarn allure run -- yarn workspace <workspace> test <scope>
+yarn allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- yarn workspace <workspace> test <scope>
 ```
 
 Package review expectations example:
@@ -177,9 +223,10 @@ notes:
   - Review runtime evidence before source inspection.
 YAML
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-yarn allure run -- yarn workspace allure test test/commands/run.integration.test.ts
+yarn allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- yarn workspace allure test test/commands/run.integration.test.ts
 ```
 
 Single-spec expectations example:
@@ -207,9 +254,10 @@ notes:
   - Only plugin-agent tests should run.
 YAML
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-yarn allure run -- yarn workspace @allurereport/plugin-agent test
+yarn allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- yarn workspace @allurereport/plugin-agent test
 ```
 
 ```bash
@@ -223,9 +271,10 @@ expected:
     package: test.commands.run.integration.test.ts
 YAML
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-yarn allure run -- yarn workspace allure test test/commands/run.integration.test.ts
+yarn allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- yarn workspace allure test test/commands/run.integration.test.ts
 ```
 
 ## Reviewing Agent Output
@@ -330,6 +379,7 @@ A test review is not complete unless:
 - agent artifacts were reviewed before final conclusions
 - missing or partial runtime modeling was called out explicitly
 - console-only conclusions are treated as provisional when agent output is absent or incomplete
+- agent-mode tooling failures were handled using [Agent mode failures and unavailable runs](#agent-mode-failures-and-unavailable-runs) (or agent mode was skipped only per the exceptions above)
 
 ## Future Loops
 

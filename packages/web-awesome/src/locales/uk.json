@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Пошук",
-    "search-placeholder": "Назва або ID"
+    "search-placeholder": "Пошук тестів"
   },
   "filters": {
     "flaky": "Нестабільні",
@@ -378,6 +378,66 @@
         "actual": "Фактичний",
         "expected": "Очікуваний"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Гарячі клавіші",
+    "groups": {
+      "global": "Загальні",
+      "tree": "Дерево",
+      "testResult": "Результат тесту"
+    },
+    "items": {
+      "toggleHelp": "Показати або приховати підказки",
+      "focusSearch": "Фокус на пошук",
+      "blurSearch": "Вийти з пошуку",
+      "focusTree": "Фокус на дерево",
+      "focusTestResult": "Фокус на результат тесту",
+      "toggleLayout": "Перемкнути розділений режим (Shift+L)",
+      "toggleLayoutAlt": "Перемкнути розділений режим (Ctrl/Cmd+\\)",
+      "moveUp": "Вгору",
+      "moveDown": "Вниз",
+      "collapse": "Згорнути / до батьківського",
+      "expand": "Розгорнути / до першого нащадка",
+      "parent": "До батьківського (p)",
+      "parentAlt": "До батьківського (u)",
+      "openNode": "Відкрити тест / перемкнути групу (o)",
+      "collapseNode": "Згорнути вузол (-)",
+      "expandNode": "Розгорнути вузол (+)",
+      "collapseAll": "Згорнути всіх нащадків (C)",
+      "expandAll": "Розгорнути всіх нащадків (A)",
+      "subtreeCycle": "Цикл згорнути/розгорнути — як кнопка зі стрілкою (>)",
+      "subtreeCollapse": "Згорнути все піддерево (Shift+C)",
+      "subtreeExpand": "Розгорнути все піддерево (Shift+A)",
+      "subtreeFirstLevel": "Лише перший рівень (f)",
+      "toggleNode": "Перемкнути групу або середовище",
+      "openTest": "Відкрити результат тесту",
+      "firstTest": "Перший тест (g g), прокрутка списку вгору",
+      "lastTest": "Останній тест",
+      "treeTop": "Початок дерева + прокрутка вгору (Home)",
+      "scrollTreeTop": "Прокрутка вгору — Variables та фільтри (z t)",
+      "toggleReportVariables": "Показати/приховати Variables",
+      "toggleReportMetadata": "Показати/приховати Metadata",
+      "reportTabResults": "Вкладка звіту: Результати",
+      "reportTabCategories": "Вкладка звіту: Категорії",
+      "reportTabQualityGate": "Вкладка звіту: Quality gate",
+      "reportTabGlobalAttachments": "Вкладка звіту: Глобальні вкладення",
+      "reportTabGlobalErrors": "Вкладка звіту: Глобальні помилки",
+      "reportTabNext": "Наступна вкладка звіту",
+      "reportTabPrev": "Попередня вкладка звіту",
+      "nextTest": "Наступний результат тесту",
+      "prevTest": "Попередній результат тесту",
+      "testTabNext": "Наступна вкладка тесту",
+      "testTabPrev": "Попередня вкладка тесту",
+      "tabOverview": "Вкладка огляд",
+      "tabHistory": "Вкладка історія",
+      "tabRetries": "Вкладка повтори",
+      "tabAttachments": "Вкладка вкладення",
+      "tabEnvironments": "Вкладка середовища",
+      "toggleLabels": "Показати/приховати мітки",
+      "toggleParameters": "Показати/приховати параметри",
+      "toggleLinks": "Показати/приховати посилання",
+      "backToTree": "Назад до дерева"
     }
   }
 }

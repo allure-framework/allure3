@@ -1,5 +1,5 @@
 import console from "node:console";
-import type { EventEmitter } from "node:events";
+import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
 import type {
@@ -8,6 +8,7 @@ import type {
   PluginGlobalError,
   QualityGateValidationResult,
   RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
+  RealtimeListenerResult,
   RealtimeSubscriber as RealtimeSubscriberType,
   ResultFile,
 } from "@allurereport/plugin-api";
@@ -32,12 +33,37 @@ export interface AllureStoreEvents {
   [RealtimeEvents.GlobalError]: [PluginGlobalError];
 }
 
-interface HandlerData {
+type RealtimeListener<T extends unknown[]> = (...args: T) => RealtimeListenerResult;
+type BatchedRealtimeListener = (args: string[]) => RealtimeListenerResult;
+
+interface BatchHandler {
   buffer: string[];
-  timeout?: Promise<void>;
-  ac?: AbortController;
+  cycle?: Promise<void>;
+  abortController?: AbortController;
+  closed: boolean;
 }
 
+const runListener = <T extends unknown[]>(listener: RealtimeListener<T>, ...args: T): Promise<void> => {
+  try {
+    return Promise.resolve(listener(...args)).catch((err) => {
+      console.error("can't execute listener", err);
+    });
+  } catch (err) {
+    console.error("can't execute listener", err);
+
+    return Promise.resolve();
+  }
+};
+
+const createListenerHandler =
+  <T extends unknown[]>(listener: RealtimeListener<T>) =>
+  (...args: T) => {
+    void runListener(listener, ...args);
+  };
+
+/**
+ * Publishes store changes to realtime subscribers.
+ */
 export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
 
@@ -74,93 +100,89 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
   }
 }
 
+/**
+ * Subscriptions used by plugins and core code that react to realtime store changes.
+ *
+ * Result-like events are batched by id. Global events are delivered immediately.
+ */
 export class RealtimeSubscriber implements RealtimeSubscriberType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
-  #handlers: HandlerData[] = [];
+  #handlers: BatchHandler[] = [];
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
   }
 
   onGlobalAttachment(
-    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ) {
-    this.#emitter.on(RealtimeEvents.GlobalAttachment, listener);
+    return this.#onEvent(RealtimeEvents.GlobalAttachment, listener);
+  }
+
+  onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult) {
+    return this.#onEvent(RealtimeEvents.GlobalExitCode, listener);
+  }
+
+  onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult) {
+    return this.#onEvent(RealtimeEvents.GlobalError, listener);
+  }
+
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) {
+    return this.#onEvent(RealtimeEvents.QualityGateResults, listener);
+  }
+
+  /**
+   * Subscribe to test result ids.
+   *
+   * Ids are collected for up to `maxTimeout` ms. A subscriber is never called twice
+   * at the same time; ids received while the listener is running are sent in the
+   * next batch.
+   */
+  onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options: BatchOptions = {}) {
+    return this.#onBatchedEvent(RealtimeEvents.TestResult, listener, options);
+  }
+
+  /**
+   * Subscribe to test fixture result ids.
+   *
+   * @see {@link onTestResults} for batching semantics.
+   */
+  onTestFixtureResults(listener: (tfrIds: string[]) => RealtimeListenerResult, options: BatchOptions = {}) {
+    return this.#onBatchedEvent(RealtimeEvents.TestFixtureResult, listener, options);
+  }
+
+  /**
+   * Subscribe to attachment file ids.
+   *
+   * @see {@link onTestResults} for batching semantics.
+   */
+  onAttachmentFiles(listener: (afIds: string[]) => RealtimeListenerResult, options: BatchOptions = {}) {
+    return this.#onBatchedEvent(RealtimeEvents.AttachmentFile, listener, options);
+  }
+
+  #onEvent(event: keyof AllureStoreEvents, listener: (...args: any[]) => RealtimeListenerResult) {
+    const handler = createListenerHandler(listener);
+
+    this.#emitter.on(event, handler);
 
     return () => {
-      this.#emitter.off(RealtimeEvents.GlobalAttachment, listener);
+      this.#emitter.off(event, handler);
     };
   }
 
-  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.GlobalExitCode, listener);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.GlobalExitCode, listener);
-    };
-  }
-
-  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.GlobalError, listener);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.GlobalError, listener);
-    };
-  }
-
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.QualityGateResults, listener);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.QualityGateResults, listener);
-    };
-  }
-
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options: BatchOptions = {}) {
+  #onBatchedEvent(
+    event: RealtimeEvents.TestResult | RealtimeEvents.TestFixtureResult | RealtimeEvents.AttachmentFile,
+    listener: BatchedRealtimeListener,
+    options: BatchOptions,
+  ) {
     const { maxTimeout = 100 } = options;
-    const handler = this.#createBatchHandler(maxTimeout, listener);
+    const { dispose, eventHandler } = this.#createBatchHandler(maxTimeout, listener);
 
-    this.#emitter.on(RealtimeEvents.TestResult, handler);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.TestResult, handler);
-    };
-  }
-
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options: BatchOptions = {}) {
-    const { maxTimeout = 100 } = options;
-    const handler = this.#createBatchHandler(maxTimeout, listener);
-
-    this.#emitter.on(RealtimeEvents.TestFixtureResult, handler);
+    this.#emitter.on(event, eventHandler);
 
     return () => {
-      this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
-    };
-  }
-
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options: BatchOptions = {}) {
-    const { maxTimeout = 100 } = options;
-    const handler = this.#createBatchHandler(maxTimeout, listener);
-
-    this.#emitter.on(RealtimeEvents.AttachmentFile, handler);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
-    };
-  }
-
-  onAll(listener: () => Promise<void>, options: BatchOptions = {}) {
-    const { maxTimeout = 100 } = options;
-    const handler = this.#createBatchHandler(maxTimeout, listener);
-
-    this.#emitter.on(RealtimeEvents.TestResult, handler);
-    this.#emitter.on(RealtimeEvents.TestFixtureResult, handler);
-    this.#emitter.on(RealtimeEvents.AttachmentFile, handler);
-
-    return () => {
-      this.#emitter.off(RealtimeEvents.TestResult, handler);
-      this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
-      this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
+      this.#emitter.off(event, eventHandler);
+      dispose();
     };
   }
 
@@ -168,66 +190,79 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter.removeAllListeners();
 
     for (const handler of this.#handlers) {
-      handler.ac?.abort();
+      this.#disposeBatchHandler(handler);
     }
 
     this.#handlers = [];
   }
 
   /**
-   * Creates handler for event emitter that accumulates data and calls the given callback with the accumulated data once per given timeout
-   * @example
-   * ```ts
-   * const emitter = new EventEmitter();
-   * const dispatcher = new EventsDispatcher(emitter);
-   * const subscriber = new EventsSubscriber(emitter);
+   * Creates one batching queue for one subscription.
    *
-   * subscriber.onTestResults((trs) => {
-   *   console.log(trs); // [1, 2, 3]
-   * });
-   *
-   * dispatcher.sendTestResult(1);
-   * dispatcher.sendTestResult(2);
-   * dispatcher.sendTestResult(3);
-   * ```
-   * @param maxTimeout
-   * @param listener
-   * @private
+   * The listener may be sync or async. Either way, the next batch waits until the
+   * current listener call settles, so slow subscribers do not overlap with themselves.
    */
-  #createBatchHandler(maxTimeout: number, listener: (args: string[]) => Promise<void>) {
-    const handler: HandlerData = {
+  #createBatchHandler(maxTimeout: number, listener: BatchedRealtimeListener) {
+    const handler: BatchHandler = {
       buffer: [],
+      closed: false,
     };
 
     this.#handlers.push(handler);
 
-    return (trId: string) => {
-      handler.buffer.push(trId);
-
-      // release timeout is already set
-      if (handler.timeout) {
+    const eventHandler = (trId: string) => {
+      if (handler.closed) {
         return;
       }
 
-      handler.ac = new AbortController();
-      handler.timeout = setTimeout<void>(maxTimeout, undefined, { signal: handler.ac.signal })
-        .then(() => {
-          handler.timeout = undefined;
+      handler.buffer.push(trId);
 
-          const bufferCopy = [...handler.buffer];
+      // A delivery cycle is already scheduled or running.
+      if (handler.cycle) {
+        return;
+      }
 
-          handler.buffer = [];
-          handler.ac = undefined;
-
-          return listener(bufferCopy);
-        })
-        .catch((err) => {
-          if (err.name === "AbortError") {
-            return;
-          }
-
-          console.error("can't execute listener", err);
-        });
+      handler.cycle = this.#runBatchHandler(handler, maxTimeout, listener);
     };
+
+    return {
+      dispose: () => this.#disposeBatchHandler(handler),
+      eventHandler,
+    };
+  }
+
+  async #runBatchHandler(handler: BatchHandler, maxTimeout: number, listener: BatchedRealtimeListener) {
+    try {
+      while (!handler.closed && handler.buffer.length > 0) {
+        handler.abortController = new AbortController();
+        await setTimeout<void>(maxTimeout, undefined, { signal: handler.abortController.signal });
+        handler.abortController = undefined;
+
+        const bufferCopy = [...handler.buffer];
+
+        handler.buffer = [];
+
+        await runListener(listener, bufferCopy);
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        return;
+      }
+
+      handler.buffer = [];
+      console.error("can't execute listener", err);
+    } finally {
+      handler.abortController = undefined;
+      handler.cycle = undefined;
+    }
+  }
+
+  #disposeBatchHandler(handler: BatchHandler) {
+    handler.closed = true;
+    handler.abortController?.abort();
+    handler.abortController = undefined;
+    handler.buffer = [];
+    handler.cycle = undefined;
+    this.#handlers = this.#handlers.filter((registeredHandler) => registeredHandler !== handler);
   }
 }

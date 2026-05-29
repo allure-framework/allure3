@@ -1,8 +1,10 @@
 import type { EnvironmentIdentity } from "@allurereport/core-api";
 import {
   environmentNameById as resolveEnvironmentNameById,
+  errorMessageFromUnknown,
   fetchReportJsonData,
   migrateStoredEnvironmentSelection,
+  normalizeEnvironmentsWidget,
 } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
 
@@ -41,7 +43,8 @@ export const fetchEnvironments = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<EnvironmentIdentity[]>("widgets/environments.json", { bustCache: true });
+    const raw = await fetchReportJsonData<unknown>("widgets/environments.json", { bustCache: true });
+    const res = normalizeEnvironmentsWidget(raw);
 
     environmentsStore.value = {
       data: res,
@@ -53,7 +56,7 @@ export const fetchEnvironments = async () => {
   } catch (e) {
     environmentsStore.value = {
       ...environmentsStore.value,
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

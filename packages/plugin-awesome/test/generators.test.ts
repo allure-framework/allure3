@@ -1,10 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { EnvironmentIdentity, TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import type { ResultFile } from "@allurereport/plugin-api";
+import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { generateAllCharts, generateGlobals } from "../src/generators.js";
+import {
+  generateAllCharts,
+  generateAttachmentsFiles,
+  generateGlobals,
+  generateSearchIndex,
+} from "../src/generators.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("generators");
+  await label("coverage", "report-output");
+});
 import type { AwesomeDataWriter } from "../src/writer.js";
 
 const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -31,7 +46,7 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     sourceMetadata: { readerId: "system", metadata: {} },
     parameters: [],
     links: [],
@@ -286,5 +301,120 @@ describe("generateGlobals", () => {
         qa_env: [{ message: "QA error", environment: "QA" }],
       },
     });
+  });
+});
+
+describe("generateSearchIndex", () => {
+  it("should write searchable fields and skip retries", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const visibleTest = {
+      id: "tr-visible",
+      historyId: "history-visible",
+      name: "visible test",
+      fullName: "com.acme.VisibleTest.visible",
+      status: "failed",
+      isRetry: false,
+      flaky: false,
+      muted: false,
+      known: false,
+      labels: [
+        { name: "owner", value: "Igor Martynov" },
+        { name: "feature", value: "Checkout" },
+        { name: "tag", value: "smoke" },
+        { name: "ignored", value: "not searchable" },
+      ],
+      parameters: [
+        { name: "browser", value: "chromium", hidden: false, masked: false, excluded: false },
+        { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false },
+        { name: "internal", value: "hidden-value", hidden: true, masked: false, excluded: false },
+      ],
+      groupedLabels: {
+        owner: ["Igor Martynov"],
+        feature: ["Checkout"],
+      },
+      links: [{ name: "Issue 42", url: "https://example.com/ISSUE-42", type: "issue" }],
+      error: {
+        message: "Assertion error: Expected 1 to be 2",
+      },
+      categories: [{ name: "Product defects" }],
+    } as AwesomeTestResult;
+    const retryTest = {
+      ...visibleTest,
+      id: "tr-retry",
+      isRetry: true,
+      name: "retry test",
+    } as AwesomeTestResult;
+
+    await generateSearchIndex(writer, [visibleTest, retryTest], "qa/search-index.json");
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("qa/search-index.json", expect.any(Array));
+    const documents = writtenWidgets.get("qa/search-index.json") as AwesomeSearchDocument[];
+
+    expect(documents).toHaveLength(1);
+    expect(documents[0]).toMatchObject({
+      id: "tr-visible",
+      nodeId: "tr-visible",
+      name: "visible test",
+      fullName: "com.acme.VisibleTest.visible",
+      historyId: "history-visible",
+      labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
+      owner: "Igor Martynov",
+      tags: "smoke",
+      parameters: "browser:chromium browser chromium token",
+      categories: "Product defects",
+      statusMessage: "Assertion error: Expected 1 to be 2",
+      links: "Issue 42 https://example.com/ISSUE-42 issue",
+    });
+    expect(documents[0]?.labels).not.toContain("ignored");
+    expect(documents[0]?.parameters).not.toContain("secret-token");
+    expect(documents[0]?.parameters).not.toContain("hidden-value");
+  });
+});
+
+describe("generateAttachmentsFiles", () => {
+  it("should skip missed attachments and keep writing later available attachments", async () => {
+    const writtenContent = { kind: "attachment" } as ResultFile;
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const attachmentLinks: AttachmentLink[] = [
+      {
+        id: "missed",
+        ext: ".txt",
+        originalFileName: "missed.txt",
+        name: "missed",
+        missed: true,
+        used: true,
+      },
+      {
+        id: "written",
+        ext: ".txt",
+        originalFileName: "written.txt",
+        name: "written",
+        missed: false,
+        used: true,
+      },
+    ];
+
+    const result = await generateAttachmentsFiles(
+      writer,
+      attachmentLinks,
+      vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined)),
+    );
+
+    expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
+    expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
+    expect(result).toEqual(new Map([["written", "written.txt"]]));
   });
 });

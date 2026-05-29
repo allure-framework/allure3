@@ -1,8 +1,16 @@
 import { CiType } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { h } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("CiInfo");
+  await label("coverage", "ui-components");
+});
 
 import { CiInfo } from "@/components/Header/CiInfo";
 

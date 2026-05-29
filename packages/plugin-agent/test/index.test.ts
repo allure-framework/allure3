@@ -8,14 +8,19 @@ import type {
   ExitCode,
   PluginContext,
   QualityGateValidationResult,
+  RealtimeListenerResult,
   RealtimeSubscriber,
   ResultFile,
 } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
+import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AgentPlugin } from "../src/plugin.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 const AGENT_ENV_VARS = [
   "ALLURE_AGENT_OUTPUT",
   "ALLURE_AGENT_EXPECTATIONS",
@@ -43,7 +48,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels: [],
     parameters: [],
     links: [],
@@ -101,43 +106,45 @@ const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
 
 const createRealtimeSubscriber = () => {
   const listeners = {
-    testResults: [] as Array<(trIds: string[]) => Promise<void>>,
-    globalAttachments: [] as Array<(payload: { attachment: ResultFile; fileName?: string }) => Promise<void>>,
-    globalErrors: [] as Array<(error: TestError) => Promise<void>>,
-    globalExitCodes: [] as Array<(payload: ExitCode) => Promise<void>>,
-    qualityGateResults: [] as Array<(payload: QualityGateValidationResult[]) => Promise<void>>,
+    testResults: [] as Array<(trIds: string[]) => RealtimeListenerResult>,
+    globalAttachments: [] as Array<(payload: { attachment: ResultFile; fileName?: string }) => RealtimeListenerResult>,
+    globalErrors: [] as Array<(error: TestError) => RealtimeListenerResult>,
+    globalExitCodes: [] as Array<(payload: ExitCode) => RealtimeListenerResult>,
+    qualityGateResults: [] as Array<(payload: QualityGateValidationResult[]) => RealtimeListenerResult>,
   };
 
   const subscriber: RealtimeSubscriber = {
-    onTestResults: vi.fn((listener: (trIds: string[]) => Promise<void>) => {
+    onTestResults: vi.fn((listener: (trIds: string[]) => RealtimeListenerResult) => {
       listeners.testResults.push(listener);
 
       return () => {
         listeners.testResults = listeners.testResults.filter((candidate) => candidate !== listener);
       };
     }),
-    onGlobalAttachment: vi.fn((listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>) => {
-      listeners.globalAttachments.push(listener);
+    onGlobalAttachment: vi.fn(
+      (listener: (payload: { attachment: ResultFile; fileName?: string }) => RealtimeListenerResult) => {
+        listeners.globalAttachments.push(listener);
 
-      return () => {
-        listeners.globalAttachments = listeners.globalAttachments.filter((candidate) => candidate !== listener);
-      };
-    }),
-    onGlobalError: vi.fn((listener: (error: TestError) => Promise<void>) => {
+        return () => {
+          listeners.globalAttachments = listeners.globalAttachments.filter((candidate) => candidate !== listener);
+        };
+      },
+    ),
+    onGlobalError: vi.fn((listener: (error: TestError) => RealtimeListenerResult) => {
       listeners.globalErrors.push(listener);
 
       return () => {
         listeners.globalErrors = listeners.globalErrors.filter((candidate) => candidate !== listener);
       };
     }),
-    onGlobalExitCode: vi.fn((listener: (payload: ExitCode) => Promise<void>) => {
+    onGlobalExitCode: vi.fn((listener: (payload: ExitCode) => RealtimeListenerResult) => {
       listeners.globalExitCodes.push(listener);
 
       return () => {
         listeners.globalExitCodes = listeners.globalExitCodes.filter((candidate) => candidate !== listener);
       };
     }),
-    onQualityGateResults: vi.fn((listener: (payload: QualityGateValidationResult[]) => Promise<void>) => {
+    onQualityGateResults: vi.fn((listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) => {
       listeners.qualityGateResults.push(listener);
 
       return () => {
@@ -152,7 +159,7 @@ const createRealtimeSubscriber = () => {
     subscriber,
     emitTestResults: async (trIds: string[]) => {
       for (const listener of listeners.testResults) {
-        await listener(trIds);
+        await Promise.resolve(listener(trIds));
       }
     },
   };
@@ -381,7 +388,7 @@ describe("AgentPlugin", () => {
       historyId: "shared-history",
       name: "primary retry",
       fullName: "suite primary retry",
-      hidden: true,
+      isRetry: true,
       status: "broken",
       start: 200,
       error: {
@@ -506,10 +513,19 @@ describe("AgentPlugin", () => {
     expect(guide).toContain("## Enrichment Loop Workflow");
     expect(guide).toContain("## Verification Standard");
     expect(guide).toContain("manifest/test-events.jsonl");
+    expect(guide).toContain("allure agent latest");
+    expect(guide).toContain("allure agent state-dir");
+    expect(guide).toContain("allure agent select --latest");
+    expect(guide).toContain("allure agent --rerun-latest");
+    expect(guide).toContain("--rerun-preset");
+    expect(guide).toContain("--rerun-environment");
+    expect(guide).toContain("--rerun-label");
+    expect(guide).toContain("ALLURE_AGENT_STATE_DIR");
+    expect(guide).toContain("print the `index.md` path");
     expect(guide).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
     );
-    expect(guide).toContain("Use `allure run` for smoke checks too, even when the change is small or mechanical.");
+    expect(guide).toContain("Use `allure agent` for smoke checks too, even when the change is small or mechanical.");
     expect(guide).toContain("Only skip agent mode when it is impossible or when you are debugging agent mode itself.");
     expect(guide).toContain("## Small Test Change Workflow");
     expect(guide).toContain("## Coverage Review Workflow");
@@ -1140,7 +1156,7 @@ notes:
       historyId: "retry-evidence-history",
       fullName: "suite retry evidence",
       status: "failed",
-      hidden: true,
+      isRetry: true,
       duration: 150,
       start: 300,
       error: {

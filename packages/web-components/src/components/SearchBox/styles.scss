@@ -5,23 +5,23 @@
   gap: 8px;
   align-items: center;
   padding: 7px;
-  background-color: var(--bg-control-flat);
-  border: 1px solid var(--on-border-control);
+  background-color: var(--color-control-bg-ghost);
+  border: 1px solid var(--color-border-control);
   border-radius: 6px;
   height: 32px;
   max-height: 32px;
 
   &:hover:not(:focus-within) {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-ghost-hover);
   }
 
   &:focus-within {
     outline: none;
-    border-color: var(--on-border-heavy);
+    border-color: var(--color-border-strong);
   }
 
   &[data-invalid] {
-    border-color: var(--on-support-capella) !important;
+    border-color: var(--color-intent-danger-border) !important;
   }
 
   transition:
@@ -30,7 +30,7 @@
 }
 
 .input {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   font-size: inherit;
   line-height: inherit;
   font-weight: inherit;
@@ -50,7 +50,7 @@
   }
 
   &::placeholder {
-    color: var(--on-text-secondary);
+    color: var(--color-text-secondary);
   }
 }
 
@@ -59,7 +59,7 @@
   user-select: none;
   pointer-events: none;
   cursor: text;
-  color: var(--on-icon-primary);
+  color: var(--color-icon-primary);
 }
 
 .slot {

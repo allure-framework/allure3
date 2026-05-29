@@ -1,8 +1,24 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { globalAttachment, globalError, description, descriptionHtml, label, step } from "allure-js-commons";
-import { afterAll, expect, it } from "vitest";
+import { afterAll, beforeEach, expect, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("modern");
+  await label("coverage", "report-output");
+});
+import {
+  Status,
+  description,
+  descriptionHtml,
+  globalAttachment,
+  globalError,
+  label,
+  logStep,
+  step,
+} from "allure-js-commons";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
@@ -73,6 +89,19 @@ afterAll(async () => {
 it("sample passed test", async () => {
   await label("env", "foo");
   expect(true).toBe(true);
+});
+
+it("sample passed test with expected failure message", async () => {
+  await label("env", "foo");
+
+  try {
+    expect("actual value").toBe("expected value");
+  } catch (err) {
+    await logStep("expected assertion failure was observed", Status.PASSED, err as Error);
+    return;
+  }
+
+  throw new Error("Expected assertion failure was not thrown");
 });
 
 it("sample failed test", async () => {

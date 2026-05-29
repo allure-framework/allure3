@@ -1,22 +1,37 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AllureRemoteHistory } from "../src/history.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 import { type AllureServiceClient } from "../src/service.js";
 import { KnownError } from "../src/utils/http.js";
 import { HttpClientMock } from "./utils.js";
 
 const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 
-// Static JWT token fixture
-// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
-const validAccessToken =
-  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
+const serviceAccessToken = "service-access-token";
+const serviceUrl = "https://service.allurereport.org";
+const createAccessToken = (payload: Record<string, string>) =>
+  `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
+const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const fixtures = {
   accessToken: validAccessToken,
   project: "test-project-id",
-  url: "https://service.allurereport.org",
+  url: serviceUrl,
+  repo: "allure3",
   branch: "main",
   historyDataPoint: {
     uuid: "1",
@@ -49,9 +64,10 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
+    serviceClient = new AllureServiceClientClass({ ...uploadConfig, accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
+      repo: fixtures.repo,
       branch: fixtures.branch,
     });
   });
@@ -76,9 +92,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -108,6 +128,7 @@ describe("AllureRemoteHistory", () => {
     it("should return resolved history data with a limit set in the constructor", async () => {
       history = new AllureRemoteHistory({
         allureServiceClient: serviceClient,
+        repo: fixtures.repo,
         branch: fixtures.branch,
         limit: 10,
       });
@@ -116,9 +137,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?limit=10&branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: "10",
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -127,9 +152,28 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory({ branch: "feature" });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent("feature")}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent("feature"),
+        },
+      });
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should override the constructor repository via the method argument", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const result = await history.readHistory({ repo: "other-repo", branch: "feature" });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent("other-repo"),
+          branch: encodeURIComponent("feature"),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -142,7 +186,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await historyWithoutBranch.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/projects/history");
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: undefined,
+          branch: undefined,
+        },
+      });
       expect(result).toEqual([]);
     });
 

@@ -1,12 +1,20 @@
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("Timeline");
+  await label("coverage", "ui-components");
+});
 
 type TimelineTestResult = {
   id: string;
   name: string;
   status: "passed" | "failed";
-  hidden: boolean;
+  isRetry: boolean;
   environment: string;
   environmentName?: string;
   host: string;
@@ -30,11 +38,11 @@ const setup = async (timelineData: TimelineTestResult[]) => {
     Timeline: ({ data, dataId }: { data: TimelineTestResult[]; dataId: string }) => (
       <div data-testid={`timeline-${dataId}`}>{data.map(({ id }) => id).join(",")}</div>
     ),
-    Grid: ({ children }: { children: unknown }) => <div>{children}</div>,
-    GridItem: ({ children }: { children: unknown }) => <div>{children}</div>,
-    Loadable: ({ renderData }: { renderData: () => JSX.Element }) => renderData(),
+    Grid: ({ children }: { children: unknown }) => <div>{children as any}</div>,
+    GridItem: ({ children }: { children: unknown }) => <div>{children as any}</div>,
+    Loadable: ({ renderData }: { renderData: () => any }) => renderData(),
     PageLoader: () => <div>loading</div>,
-    Widget: ({ children }: { children: unknown }) => <div>{children}</div>,
+    Widget: ({ children }: { children: unknown }) => <div>{children as any}</div>,
   }));
   vi.doMock("@/stores", () => ({
     useI18n: () => ({
@@ -76,7 +84,7 @@ describe("components > Timeline", () => {
         id: "tr-qa-a",
         name: "qa a test",
         status: "passed",
-        hidden: false,
+        isRetry: false,
         environment: "qa_a",
         environmentName: "QA",
         host: "shared-host",
@@ -88,7 +96,7 @@ describe("components > Timeline", () => {
         id: "tr-qa-b",
         name: "qa b test",
         status: "failed",
-        hidden: false,
+        isRetry: false,
         environment: "qa_b",
         environmentName: "QA",
         host: "shared-host",

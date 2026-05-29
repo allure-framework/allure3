@@ -28,11 +28,12 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
 
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
+  const hasErrorDetails = Boolean(error?.trace || error?.message);
 
   return (
     <div data-testid="test-result-retries-item">
       <div className={styles["test-result-retries-item-header"]} onClick={() => setIsOpen(!isOpened)}>
-        {Boolean(error.trace || error.message) && (
+        {hasErrorDetails && (
           <ArrowButton
             data-testid="test-result-retries-item-arrow-button"
             isOpened={isOpened}
@@ -61,9 +62,9 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
           </div>
         </div>
       </div>
-      {isOpened && (error.message || error.trace) && (
+      {isOpened && hasErrorDetails && (
         <div className={styles["test-result-retries-item-content"]}>
-          <TrError {...error} status={status} />
+          <TrError {...(error ?? {})} status={status} />
         </div>
       )}
     </div>

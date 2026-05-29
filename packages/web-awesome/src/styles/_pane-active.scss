@@ -1,0 +1,8 @@
+// border-top on the white pane card (visible above header/content; inset shadow is covered by children).
+@mixin split-pane-indicator {
+  border-top: 3px solid transparent;
+}
+
+@mixin split-pane-indicator-active {
+  border-top-color: var(--bg-support-aldebaran);
+}

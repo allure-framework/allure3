@@ -1,10 +1,11 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import DashboardPlugin from "@allurereport/plugin-dashboard";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DashboardCommand } from "../../src/commands/dashboard.js";
@@ -28,10 +29,6 @@ vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
 }));
-vi.mock("node:fs", async (importOriginal) => ({
-  ...(await importOriginal()),
-  existsSync: vi.fn(),
-}));
 vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
@@ -40,41 +37,40 @@ vi.mock("@allurereport/core", async () => {
     AllureReport: AllureReportMock,
   };
 });
+vi.mock("glob", async () => {
+  return {
+    glob: vi.fn(),
+  };
+});
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("dashboard");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 
 describe("dashboard command", () => {
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(false);
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
-    const command = new DashboardCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(DashboardCommand, ["dashboard", fixtures.resultsDir]);
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+      expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();
   });
 
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [],
     });
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new DashboardCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(DashboardCommand, ["dashboard", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
@@ -89,7 +85,6 @@ describe("dashboard command", () => {
   });
 
   it("should initialize allure report with default plugin options even when config exists", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -106,13 +101,9 @@ describe("dashboard command", () => {
         },
       ],
     });
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new DashboardCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(DashboardCommand, ["dashboard", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -128,8 +119,8 @@ describe("dashboard command", () => {
   });
 
   it("should prefer CLI arguments over config and defaults", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
 
     await run(DashboardCommand, ["dashboard", "--output", "foo", "--report-name", "bar", "./allure-results"]);
 
@@ -141,8 +132,8 @@ describe("dashboard command", () => {
   });
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
 
     await run(DashboardCommand, ["dashboard", "./allure-results"]);
 
@@ -151,5 +142,21 @@ describe("dashboard command", () => {
       output: undefined,
       name: undefined,
     });
+  });
+
+  it("should support multiple resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar/"]);
+
+    await run(DashboardCommand, ["dashboard", "foo", "bar"]);
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", expect.any(Object));
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", expect.any(Object));
+
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(2);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(1, "./foo/");
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(2, "./bar/");
   });
 });

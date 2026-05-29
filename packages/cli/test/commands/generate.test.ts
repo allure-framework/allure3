@@ -1,7 +1,6 @@
-import { join } from "node:path";
-
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -23,145 +22,87 @@ vi.mock("../../src/commands/commons/generate.js", () => ({
   generate: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("generate");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 
 describe("generate command", () => {
   it("should call generate with correct parameters when results directory is provided", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-      output: "allure-report",
-    };
-
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: false });
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report", open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(GenerateCommand, ["generate", "--cwd", "foo", "bar"]);
 
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        config: { output: fixtures.output, open: false },
-        resultsDir: fixtures.resultsDir,
-        dump: expect.any(Object),
+        cwd: "foo",
+        config: { output: "allure-report", open: false },
+        resultsDir: ["bar"],
+        dump: undefined,
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
-  it("should call generate with default results directory when not provided", async () => {
-    const fixtures = {
-      cwd: ".",
-      defaultResultsDir: "./**/allure-results",
-    };
-
+  it("should call generate with empty array when resultsDir not provided", async () => {
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = undefined;
-
-    await command.execute();
+    await run(GenerateCommand, ["generate"]);
 
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        config: { open: false },
-        resultsDir: fixtures.defaultResultsDir,
-        dump: expect.any(Object),
+        resultsDir: [],
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
   it("should call generate with dump files when provided", async () => {
-    const fixtures = {
-      cwd: ".",
-      defaultResultsDir: "./**/allure-results",
-      dump: ["dump.zip", "dump.zip"],
-    };
-
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = undefined;
-    command.dump = fixtures.dump;
-
-    await command.execute();
+    await run(GenerateCommand, ["generate", "--dump", "dump.zip", "--dump", "dump.zip"]);
 
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        config: { open: false },
-        resultsDir: fixtures.defaultResultsDir,
-        dump: fixtures.dump,
+        dump: ["dump.zip", "dump.zip"],
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
   it("should call generate with both state dump files and results directory", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-    };
-
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(GenerateCommand, ["generate", "--dump", "dump.zip", "--dump", "dump.zip", "./allure-results"]);
 
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
+        cwd: expect.any(String),
         config: { open: false },
-        resultsDir: fixtures.resultsDir,
-        dump: expect.any(Object),
+        resultsDir: ["./allure-results"],
+        dump: ["dump.zip", "dump.zip"],
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
   it("should prefer CLI arguments over config and defaults", async () => {
-    const fixtures = {
-      resultsDir: join(".", "allure-results"),
-      output: "foo",
-      name: "bar",
-    };
-
     (readConfig as Mock).mockResolvedValueOnce({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, [
-      "generate",
-      "--output",
-      fixtures.output,
-      "--report-name",
-      fixtures.name,
-      fixtures.resultsDir,
-    ]);
+    await run(GenerateCommand, ["generate", "--output", "foo", "--report-name", "bar", "baz"]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      output: fixtures.output,
-      name: fixtures.name,
+      output: "foo",
+      name: "bar",
       open: undefined,
       port: undefined,
       hideLabels: undefined,
@@ -171,7 +112,7 @@ describe("generate command", () => {
       expect.objectContaining({
         cwd: expect.any(String),
         config: { open: false },
-        resultsDir: fixtures.resultsDir,
+        resultsDir: ["baz"],
         dump: undefined,
       }),
     );
@@ -179,14 +120,10 @@ describe("generate command", () => {
   });
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
-    const fixtures = {
-      resultsDir: join(".", "allure-results"),
-    };
-
     (readConfig as Mock).mockResolvedValueOnce({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", fixtures.resultsDir]);
+    await run(GenerateCommand, ["generate", "foo"]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
@@ -201,7 +138,7 @@ describe("generate command", () => {
       expect.objectContaining({
         cwd: expect.any(String),
         config: { open: false },
-        resultsDir: fixtures.resultsDir,
+        resultsDir: ["foo"],
         dump: undefined,
       }),
     );
@@ -209,18 +146,12 @@ describe("generate command", () => {
   });
 
   it("should pass config to generate function", async () => {
-    const fixtures = {
-      resultsDir: join(".", "allure-results"),
-      configPath: join(".", "custom-config.js"),
-      output: "custom-output",
-    };
-
-    (readConfig as Mock).mockResolvedValueOnce({ output: fixtures.output, open: false });
+    (readConfig as Mock).mockResolvedValueOnce({ output: "foo", open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--config", fixtures.configPath, fixtures.resultsDir]);
+    await run(GenerateCommand, ["generate", "--config", "bar.js", "baz"]);
 
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.configPath, {
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), "bar.js", {
       output: undefined,
       name: undefined,
       open: undefined,
@@ -231,8 +162,8 @@ describe("generate command", () => {
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: expect.any(String),
-        config: { output: fixtures.output, open: false },
-        resultsDir: fixtures.resultsDir,
+        config: { output: "foo", open: false },
+        resultsDir: ["baz"],
         dump: undefined,
       }),
     );
@@ -240,164 +171,131 @@ describe("generate command", () => {
   });
 
   it("should propagate errors from generate function", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-    };
-
     const error = new Error("Generate failed");
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockRejectedValue(error);
 
-    const command = new GenerateCommand();
+    const code = await run(GenerateCommand, ["generate", "foo"]);
 
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-
-    await expect(command.execute()).rejects.toThrow("Generate failed");
+    expect(code).not.toBe(0);
     expect(serve).not.toHaveBeenCalled();
   });
 
   it("should call serve when open flag is true", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-      output: "allure-report",
-    };
-
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true });
+    (readConfig as Mock).mockResolvedValue({ output: "foo", open: true });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
+    await run(GenerateCommand, ["generate", "--open", "bar"]);
 
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.open = true;
-
-    await command.execute();
-
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, expect.objectContaining({ open: true }));
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        config: { output: fixtures.output, open: true },
-        resultsDir: fixtures.resultsDir,
-        dump: expect.any(Object),
+        config: { output: "foo", open: true },
+        resultsDir: ["bar"],
       }),
     );
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: fixtures.output,
+        servePath: "foo",
         open: true,
       }),
     );
   });
 
   it("should pass port to serve when open flag is true and port is specified", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-      output: "allure-report",
-      port: "8080",
-    };
-
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true, port: fixtures.port });
+    (readConfig as Mock).mockResolvedValue({
+      output: "foo",
+      open: true,
+      port: 10202,
+    });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
+    await run(GenerateCommand, ["generate", "--open", "--port", "10201", "bar"]);
 
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.open = true;
-    command.port = fixtures.port;
-
-    await command.execute();
-
+    expect(readConfig).toHaveBeenCalledWith(
+      expect.any(String),
+      undefined,
+      expect.objectContaining({
+        open: true,
+        port: "10201",
+      }),
+    );
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        config: { output: fixtures.output, open: true, port: fixtures.port },
-        resultsDir: fixtures.resultsDir,
-        dump: expect.any(Object),
+        config: { output: "foo", open: true, port: 10202 },
+        resultsDir: ["bar"],
       }),
     );
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
-        port: 8080,
-        servePath: fixtures.output,
+        port: 10202,
+        servePath: "foo",
         open: true,
       }),
     );
   });
 
-  it("should not call serve when open flag is false", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-      output: "allure-report",
-    };
-
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: false });
+  it("should not call serve when not open flag is passed", async () => {
+    (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    const command = new GenerateCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.open = false;
-
-    await command.execute();
+    await run(GenerateCommand, ["generate", "foo"]);
 
     expect(generate).toHaveBeenCalled();
     expect(serve).not.toHaveBeenCalled();
   });
 
   it("should handle errors from serve function when open is true", async () => {
-    const fixtures = {
-      cwd: ".",
-      resultsDir: join(".", "allure-results"),
-      output: "allure-report",
-    };
-
     const error = new Error("Serve failed");
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true });
+    (readConfig as Mock).mockResolvedValue({ open: true });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockRejectedValue(error);
 
-    const command = new GenerateCommand();
+    const code = await run(GenerateCommand, ["generate", "--open", "foo"]);
 
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.open = true;
-
-    await expect(command.execute()).rejects.toThrow("Serve failed");
+    expect(code).not.toBe(0);
     expect(generate).toHaveBeenCalled();
   });
 
   it("should pass hideLabels override to readConfig and use normalized config", async () => {
     (readConfig as Mock).mockResolvedValue({
       open: false,
-      hideLabels: ["owner", "tag"],
+      hideLabels: ["foo", "bar"],
     });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--hide-labels", "owner", "--hide-labels", "tag", "./allure-results"]);
+    await run(GenerateCommand, ["generate", "--hide-labels", "baz", "--hide-labels", "qux", "qut"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: undefined,
       output: undefined,
       open: undefined,
       port: undefined,
-      hideLabels: ["owner", "tag"],
+      hideLabels: ["baz", "qux"],
       historyLimit: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          hideLabels: ["owner", "tag"],
+          hideLabels: ["foo", "bar"],
         }),
+      }),
+    );
+  });
+
+  it("should support multiple resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValue({});
+    (generate as Mock).mockResolvedValue(undefined);
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "foo", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsDir: ["foo", "bar"],
       }),
     );
   });

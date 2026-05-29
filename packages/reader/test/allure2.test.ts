@@ -1,14 +1,54 @@
 import { randomUUID } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { BufferResultFile } from "@allurereport/reader-api";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
+const generateCheckResultName = () => `${randomUUID()}-check.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("allure2");
+  await label("coverage", "reading");
+});
+
 describe("allure2 reader", () => {
+  it("should parse check result", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/check.json": generateCheckResultName(),
+    });
+
+    expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);
+    expect(visitor.visitTestResult).not.toHaveBeenCalled();
+    expect(visitor.visitCheckResult.mock.calls[0][0]).toEqual({
+      name: "Lint",
+      status: "passed",
+      tags: ["ci", "linux"],
+      details: {
+        command: "npm run lint",
+        message: "lint ok",
+      },
+    });
+  });
+
+  it("should match attachment files so they keep the allure2 reader context", async () => {
+    const attachment = new BufferResultFile(Buffer.from("content"), `${randomUUID()}-attachment.txt`);
+
+    expect(await allure2.matches?.(attachment)).toBe(true);
+  });
+
+  it("should match check result files", async () => {
+    const checkResult = new BufferResultFile(Buffer.from("{}"), `${randomUUID()}-check.json`);
+
+    expect(await allure2.matches?.(checkResult)).toBe(true);
+  });
+
   it("should parse simple result", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": generateTestResultName(),

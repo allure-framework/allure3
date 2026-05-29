@@ -1,8 +1,21 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult } from "@allurereport/core-api";
-import type { AwesomeTestResult } from "types";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { getBodyItems, getTestLevelErrorId } from "@/components/TestResult/bodyItems";
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("bodyItems");
+  await label("coverage", "ui-components");
+});
+
+import {
+  fixtureResultToTrStepItem,
+  getBodyItems,
+  getStepBodyItems,
+  getTestLevelErrorId,
+} from "@/components/TestResult/bodyItems";
 
 const sampleStep: DefaultTestStepResult = {
   type: "step",
@@ -190,5 +203,23 @@ describe("components > TestResult > bodyItems", () => {
         error: { message: "boom" },
       },
     ]);
+  });
+
+  it("fixtureResultToTrStepItem builds TrStepItem from setup or teardown fixture", () => {
+    const fixture: AwesomeFixtureResult = {
+      id: "fixture-before-1",
+      type: "before",
+      name: "before suite",
+      status: "passed",
+      steps: [sampleStep],
+    };
+
+    const wrapped = fixtureResultToTrStepItem(fixture);
+
+    expect(wrapped.type).toBe("step");
+    expect(wrapped.item.name).toBe("before suite");
+    expect(wrapped.item.stepId).toBe("fixture-before-1");
+    expect(wrapped.item.type).toBe("step");
+    expect(wrapped.bodyItems).toEqual(getStepBodyItems([sampleStep]));
   });
 });

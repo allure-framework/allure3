@@ -29,6 +29,13 @@
   border-radius: 4px;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-row-bg-hover);
   }
+}
+
+.test-result-dropdown-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

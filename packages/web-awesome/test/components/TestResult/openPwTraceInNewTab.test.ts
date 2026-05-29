@@ -1,4 +1,12 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("openPwTraceInNewTab");
+  await label("coverage", "ui-components");
+});
 
 describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
   beforeEach(() => {

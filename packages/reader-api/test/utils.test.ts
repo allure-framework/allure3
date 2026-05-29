@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { extension } from "../src/utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("utils");
+  await label("coverage", "reading");
+});
 
 describe("extension", () => {
   it("should return original extension if any", () => {

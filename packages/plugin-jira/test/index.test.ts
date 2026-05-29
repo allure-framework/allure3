@@ -1,11 +1,15 @@
 import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { story } from "allure-js-commons";
 import axios from "axios";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { JiraPluginOptions } from "../src/plugin.js";
 import { JiraPlugin } from "../src/plugin.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => {
   const defaultStore = {
     testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
@@ -46,7 +50,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels: [],
     steps: [],
     sourceMetadata: undefined,

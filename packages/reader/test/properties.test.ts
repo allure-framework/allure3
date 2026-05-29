@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseProperties } from "../src/properties.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("properties");
+  await label("coverage", "reading");
+});
 
 const data = `allure.test.run.id=2a54c4d7-7d79-4615-b80d-ffc1107016a1
 allure.test.run.name=Allure sample test pack

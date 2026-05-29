@@ -25,8 +25,9 @@ export const runProcess = (params: {
   cwd: string | undefined;
   environmentVariables?: Record<string, string>;
   logs?: "pipe" | "inherit" | "ignore";
+  shell?: boolean;
 }): ChildProcess => {
-  const { command, commandArgs, cwd, environmentVariables = {}, logs = "inherit" } = params;
+  const { command, commandArgs, cwd, environmentVariables = {}, logs = "inherit", shell = IS_WIN } = params;
   const env = {
     ...process.env,
     ...environmentVariables,
@@ -41,13 +42,14 @@ export const runProcess = (params: {
       COLORTERM: "truecolor",
       TERM: "xterm-256color",
     });
+    delete env.NO_COLOR;
   }
 
   return spawn(command, commandArgs, {
     env,
     cwd,
     stdio: logs,
-    shell: true,
+    shell,
   });
 };
 

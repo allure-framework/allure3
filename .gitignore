@@ -55,3 +55,8 @@ allure-results.zip
 .cursorindexingignore
 
 *storybook.log
+
+# Obsidian vault metadata (notes are tracked)
+docs/kb/.obsidian/
+
+.tmp

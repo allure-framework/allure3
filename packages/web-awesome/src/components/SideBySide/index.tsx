@@ -2,6 +2,8 @@ import type { JSX } from "preact";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import Split from "split.js";
 
+import { activePane, focusTestResultPane, focusTreePane } from "@/stores/keyboard";
+
 import * as styles from "./styles.scss";
 
 const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) => {
@@ -15,7 +17,7 @@ const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) 
 
     const splitter = Split([`.${styles["side-left"]}`, `.${styles["side-right"]}`], {
       sizes,
-      gutterSize: 7,
+      gutterSize: 4,
       gutter: (): HTMLElement => {
         const gutter = document.createElement("div");
         gutter.className = `${styles.gutter}`;
@@ -42,10 +44,26 @@ const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) 
     };
   }, []);
 
+  const pane = activePane.value;
+
   return (
     <div class={styles.side} ref={containerRef}>
-      <div class={styles["side-left"]}>{leftContent}</div>
-      <div class={styles["side-right"]}>{rightContent}</div>
+      <div
+        class={styles["side-left"]}
+        data-pane="tree"
+        data-pane-active={pane === "tree" ? "true" : undefined}
+        onMouseDown={() => focusTreePane()}
+      >
+        {leftContent}
+      </div>
+      <div
+        class={styles["side-right"]}
+        data-pane="testResult"
+        data-pane-active={pane === "testResult" ? "true" : undefined}
+        onMouseDown={() => focusTestResultPane()}
+      >
+        {rightContent}
+      </div>
     </div>
   );
 };

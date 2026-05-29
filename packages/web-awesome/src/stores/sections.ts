@@ -25,7 +25,9 @@ const onInit = () => {
 
 onInit();
 
-export const currentSection = computed(() => sectionRoute.value.params.section ?? "default");
+export const currentSection = computed(() =>
+  sectionRoute.value.matches ? (sectionRoute.value.params.section ?? "default") : "default",
+);
 
 effect(() => {
   const section = currentSection.value;

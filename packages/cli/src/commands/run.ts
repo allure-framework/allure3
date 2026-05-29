@@ -1,28 +1,10 @@
 import * as console from "node:console";
-import { randomUUID } from "node:crypto";
-import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { realpath, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 import process, { exit } from "node:process";
 
-import {
-  AllureReport,
-  QualityGateState,
-  isFileNotFoundError,
-  readConfig,
-  stringifyQualityGateResults,
-} from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
-import type { Watcher } from "@allurereport/directory-watcher";
-import {
-  allureResultsDirectoriesWatcher,
-  delayedFileProcessingWatcher,
-  newFilesInDirectoryWatcher,
-} from "@allurereport/directory-watcher";
-import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
+import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
-import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
-import { KnownError } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
@@ -33,195 +15,9 @@ import {
   normalizeCommandEnvironmentOptions,
   resolveCommandEnvironment,
 } from "../utils/environment.js";
-import { logTests, runProcess, terminationOf } from "../utils/index.js";
-import { logError } from "../utils/logs.js";
-import { stopProcessTree } from "../utils/process.js";
-
-export type TestProcessResult = {
-  code: number | null;
-  stdout: string;
-  stderr: string;
-  qualityGateResults: QualityGateValidationResult[];
-};
-
-const runTests = async (params: {
-  allureReport: AllureReport;
-  knownIssues: KnownTestFailure[];
-  cwd: string;
-  command: string;
-  commandArgs: string[];
-  environmentVariables: Record<string, string>;
-  environment?: string;
-  withQualityGate: boolean;
-  silent?: boolean;
-  logs?: "pipe" | "inherit" | "ignore";
-}): Promise<TestProcessResult | null> => {
-  const {
-    allureReport,
-    knownIssues,
-    cwd,
-    command,
-    commandArgs,
-    logs,
-    environmentVariables,
-    environment,
-    withQualityGate,
-    silent,
-  } = params;
-  let testProcessStarted = false;
-  const allureResultsWatchers: Map<string, Watcher> = new Map();
-  const processWatcher = delayedFileProcessingWatcher(
-    async (path) => {
-      await allureReport.readResult(new PathResultFile(path));
-    },
-    {
-      indexDelay: 200,
-      minProcessingDelay: 1_000,
-    },
-  );
-  const allureResultsWatch = allureResultsDirectoriesWatcher(
-    cwd,
-    async (newAllureResults, deletedAllureResults) => {
-      for (const delAr of deletedAllureResults) {
-        const watcher = allureResultsWatchers.get(delAr);
-
-        if (watcher) {
-          await watcher.abort();
-        }
-
-        allureResultsWatchers.delete(delAr);
-      }
-
-      for (const newAr of newAllureResults) {
-        if (allureResultsWatchers.has(newAr)) {
-          continue;
-        }
-
-        const watcher = newFilesInDirectoryWatcher(
-          newAr,
-          async (path) => {
-            await processWatcher.addFile(path);
-          },
-          {
-            // the initial scan is preformed before we start the test process.
-            // all the watchers created before the test process
-            // should ignore initial results.
-            ignoreInitial: !testProcessStarted,
-            indexDelay: 300,
-          },
-        );
-
-        allureResultsWatchers.set(newAr, watcher);
-
-        await watcher.initialScan();
-      }
-    },
-    { indexDelay: 600 },
-  );
-
-  await allureResultsWatch.initialScan();
-
-  testProcessStarted = true;
-
-  const beforeProcess = Date.now();
-  const testProcess = runProcess({
-    command,
-    commandArgs,
-    cwd,
-    environmentVariables,
-    logs,
-  });
-  const qualityGateState = new QualityGateState();
-  let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
-  let qualityGateResults: QualityGateValidationResult[] = [];
-  let testProcessStdout = "";
-  let testProcessStderr = "";
-
-  if (withQualityGate) {
-    qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
-      const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
-      const filteredTrs = trs.filter((tr) => tr !== undefined);
-
-      if (!filteredTrs.length) {
-        return;
-      }
-
-      const { results, fastFailed } = await allureReport.validate({
-        trs: filteredTrs,
-        state: qualityGateState,
-        environment,
-        knownIssues,
-      });
-
-      // process only fast-failed checks here
-      if (!fastFailed) {
-        return;
-      }
-
-      allureReport.realtimeDispatcher.sendQualityGateResults(results);
-      qualityGateResults = results;
-
-      try {
-        await stopProcessTree(testProcess.pid!);
-      } catch (err) {
-        if ((err as Error).message.includes("kill ESRCH")) {
-          return;
-        }
-
-        throw err;
-      }
-    });
-  }
-
-  if (logs === "pipe") {
-    testProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
-      testProcessStdout += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stdout.write(data);
-    });
-    testProcess.stderr?.setEncoding("utf8").on?.("data", async (data: string) => {
-      testProcessStderr += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stderr.write(data);
-    });
-  }
-
-  const code = await terminationOf(testProcess);
-  const afterProcess = Date.now();
-
-  if (code !== null) {
-    console.log(`process finished with code ${code} (${afterProcess - beforeProcess}ms)`);
-  } else {
-    console.log(`process terminated (${afterProcess - beforeProcess}ms)`);
-  }
-
-  await allureResultsWatch.abort();
-
-  for (const [ar, watcher] of allureResultsWatchers) {
-    await watcher.abort();
-
-    allureResultsWatchers.delete(ar);
-  }
-
-  await processWatcher.abort();
-
-  qualityGateUnsub?.();
-
-  return {
-    code,
-    stdout: testProcessStdout,
-    stderr: testProcessStderr,
-    qualityGateResults,
-  };
-};
+import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { executeAgentMode } from "./agent.js";
+import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -309,12 +105,23 @@ export class RunCommand extends Command {
       throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
     }
 
-    const environmentOptions = {
-      environment: this.environment,
-      environmentName: this.environmentName,
-    };
+    const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
 
-    normalizeCommandEnvironmentOptions(environmentOptions);
+    if (legacyAgentOutput) {
+      await executeAgentMode({
+        configPath: this.config,
+        cwd: this.cwd,
+        output: resolve(process.cwd(), legacyAgentOutput),
+        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
+          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
+          : undefined,
+        environment: this.environment,
+        environmentName: this.environmentName,
+        silent: this.silent,
+        args,
+      });
+      return;
+    }
 
     const before = new Date().getTime();
 
@@ -330,6 +137,25 @@ export class RunCommand extends Command {
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
     console.log(`${command} ${commandArgs.join(" ")}`);
+
+    if (getActiveAllureCliCommand()) {
+      const exitCode = await executeNestedAllureCommand({
+        command,
+        commandArgs,
+        cwd,
+        silent: this.silent,
+      });
+
+      exit(exitCode ?? -1);
+      return;
+    }
+
+    const environmentOptions = {
+      environment: this.environment,
+      environmentName: this.environmentName,
+    };
+
+    normalizeCommandEnvironmentOptions(environmentOptions);
 
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
     const config = await readConfig(cwd, this.config, {
@@ -378,145 +204,20 @@ export class RunCommand extends Command {
       ],
     });
     const knownIssues = await allureReport.store.allKnownIssues();
-
-    await allureReport.start();
-
-    const globalExitCode: ExitCode = {
-      original: 0,
-      actual: undefined,
-    };
-    let qualityGateResults: QualityGateValidationResult[];
-    let testProcessResult: TestProcessResult | null = null;
-
-    try {
-      testProcessResult = await runTests({
-        logs: this.logs,
-        silent: this.silent,
-        allureReport,
-        knownIssues,
-        cwd,
-        command,
-        commandArgs,
-        environment: resolvedEnvironment?.id,
-        environmentVariables: {},
-        withQualityGate,
-      });
-
-      for (let rerun = 0; rerun < maxRerun; rerun++) {
-        const failed = await allureReport.store.failedTestResults();
-
-        if (failed.length === 0) {
-          console.log("no failed tests is detected.");
-          break;
-        }
-
-        const testPlan = createTestPlan(failed);
-
-        console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
-        logTests(failed);
-
-        const tmpDir = await mkdtemp(join(tmpdir(), "allure-run-"));
-        const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
-
-        await writeFile(testPlanPath, JSON.stringify(testPlan));
-
-        testProcessResult = await runTests({
-          silent: this.silent,
-          logs: this.logs,
-          allureReport,
-          knownIssues,
-          cwd,
-          command,
-          commandArgs,
-          environment: resolvedEnvironment?.id,
-          environmentVariables: {
-            ALLURE_TESTPLAN_PATH: testPlanPath,
-            ALLURE_RERUN: `${rerun}`,
-          },
-          withQualityGate,
-        });
-
-        await rm(tmpDir, { recursive: true });
-
-        logTests(await allureReport.store.allTestResults());
-      }
-
-      const trs = await allureReport.store.allTestResults({ includeHidden: false });
-      qualityGateResults = testProcessResult?.qualityGateResults ?? [];
-
-      if (withQualityGate && !qualityGateResults?.length) {
-        const { results } = await allureReport.validate({
-          trs,
-          knownIssues,
-          environment: resolvedEnvironment?.id,
-        });
-
-        qualityGateResults = results;
-      }
-
-      if (qualityGateResults?.length) {
-        const qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
-
-        console.error(qualityGateMessage);
-
-        allureReport.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
-      }
-
-      globalExitCode.original = testProcessResult?.code ?? -1;
-
-      if (withQualityGate) {
-        globalExitCode.actual = qualityGateResults.length > 0 ? 1 : 0;
-      }
-    } catch (error) {
-      globalExitCode.actual = 1;
-
-      if (error instanceof KnownError) {
-        // eslint-disable-next-line no-console
-        console.error(red(error.message));
-
-        allureReport.realtimeDispatcher.sendGlobalError({
-          message: error.message,
-        });
-      } else {
-        await logError("Failed to run tests using Allure due to unexpected error", error as Error);
-
-        allureReport.realtimeDispatcher.sendGlobalError({
-          message: (error as Error).message,
-          trace: (error as Error).stack,
-        });
-      }
-    }
-
-    const processFailed = Math.abs(globalExitCode.actual ?? globalExitCode.original) !== 0;
-
-    if (!this.ignoreLogs && testProcessResult?.stdout) {
-      const fileName = randomUUID();
-      const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), `${fileName}`);
-
-      stdoutResultFile.contentType = "text/plain";
-
-      allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, "stdout.txt");
-    }
-
-    if (!this.ignoreLogs && testProcessResult?.stderr) {
-      const fileName = randomUUID();
-      const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), fileName);
-
-      stderrResultFile.contentType = "text/plain";
-
-      allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
-
-      if (processFailed) {
-        allureReport.realtimeDispatcher.sendGlobalError({
-          message: "Test process has failed",
-          trace: testProcessResult.stderr,
-        });
-      }
-    }
-
-    allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
-
-    await allureReport.done();
+    const { globalExitCode } = await executeAllureRun({
+      allureReport,
+      knownIssues,
+      cwd,
+      command,
+      commandArgs,
+      environmentVariables: createChildAllureCliEnvironment("run"),
+      environment: resolvedEnvironment?.id,
+      withQualityGate,
+      logs: this.logs,
+      silent: this.silent,
+      ignoreLogs: this.ignoreLogs,
+      maxRerun,
+    });
 
     if (config.open) {
       await serve({

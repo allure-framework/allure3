@@ -10,7 +10,7 @@ const DEFAULT_MIN_DURATION = 1;
 
 type TimelineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "hidden" | "environment" | "start" | "duration" | "historyId"
+  "id" | "name" | "status" | "isRetry" | "environment" | "start" | "duration" | "historyId"
 > & {
   environmentName?: string;
   host: string;
@@ -58,7 +58,7 @@ export const generateTimeline = async (
       historyId: test.historyId,
       name: test.name,
       status: test.status,
-      hidden: test.hidden,
+      isRetry: test.isRetry,
       host,
       thread,
       environment: environmentIdByTrId.get(test.id) ?? test.environment,

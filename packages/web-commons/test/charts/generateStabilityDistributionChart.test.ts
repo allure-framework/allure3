@@ -1,12 +1,20 @@
 import { ChartType } from "@allurereport/charts-api";
 import type { AllureChartsStoreData } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   generateStabilityDistributionChart,
   getStabilityScore,
 } from "../../src/charts/generateStabilityDistributionChart.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("charts");
+  await story("generateStabilityDistributionChart");
+  await label("coverage", "charts");
+});
 
 const historyDepth = 10;
 const stabilizationPeriod = 5;
@@ -129,7 +137,7 @@ const baseTestResult: Pick<
   | "flaky"
   | "muted"
   | "known"
-  | "hidden"
+  | "isRetry"
   | "labels"
   | "parameters"
   | "links"
@@ -141,7 +149,7 @@ const baseTestResult: Pick<
   flaky: false,
   muted: false,
   known: true,
-  hidden: false,
+  isRetry: false,
   labels: [],
   parameters: [],
   links: [],

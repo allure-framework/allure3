@@ -1,11 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { environmentNameById, migrateStoredEnvironmentSelection } from "../src/environments.js";
+import {
+  environmentNameById,
+  migrateStoredEnvironmentSelection,
+  normalizeEnvironmentsWidget,
+} from "../src/environments.js";
 
 const environments = [
   { id: "default", name: "default" },
   { id: "qa", name: "QA" },
 ];
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("environments");
+  await story("environments");
+  await label("coverage", "environments");
+});
 
 describe("environment helpers", () => {
   it("should resolve names from environment identities", () => {
@@ -24,5 +36,30 @@ describe("environment helpers", () => {
   it("should reset invalid or missing persisted values", () => {
     expect(migrateStoredEnvironmentSelection("", environments)).toBe("");
     expect(migrateStoredEnvironmentSelection("missing", environments)).toBe("");
+  });
+
+  it("normalizeEnvironmentsWidget should map legacy string[] to identities", () => {
+    expect(normalizeEnvironmentsWidget(["default", "staging"])).toEqual([
+      { id: "default", name: "default" },
+      { id: "staging", name: "staging" },
+    ]);
+  });
+
+  it("normalizeEnvironmentsWidget should accept EnvironmentIdentity objects", () => {
+    expect(
+      normalizeEnvironmentsWidget([
+        { id: "default", name: "default" },
+        { id: "qa", name: "QA" },
+      ]),
+    ).toEqual([
+      { id: "default", name: "default" },
+      { id: "qa", name: "QA" },
+    ]);
+  });
+
+  it("normalizeEnvironmentsWidget should skip invalid ids and non-arrays", () => {
+    expect(normalizeEnvironmentsWidget(null)).toEqual([]);
+    expect(normalizeEnvironmentsWidget([{ id: "bad id!", name: "x" }])).toEqual([]);
+    expect(normalizeEnvironmentsWidget([42, "ok"])).toEqual([{ id: "ok", name: "ok" }]);
   });
 });

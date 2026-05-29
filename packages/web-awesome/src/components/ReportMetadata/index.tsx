@@ -9,6 +9,7 @@ import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
+import { getReportEnvSectionId } from "@/stores/reportEnvSections";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
 
@@ -34,9 +35,8 @@ export type MetadataVariablesProps = {
 };
 
 const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
-  const envKey = currentEnvironment.value ?? "default";
-  const sectionId = `report-${envKey}-metadata`;
-  const showAllId = `report-${envKey}-metadata-showAll`;
+  const sectionId = getReportEnvSectionId("metadata");
+  const showAllId = `${sectionId}-showAll`;
   const isOpened = !collapsedTrees.value.has(sectionId);
   const showAll = collapsedTrees.value.has(showAllId);
   const list = envInfo.map((env) => ({ ...env, value: env.values.join(", ") }));
@@ -71,9 +71,8 @@ const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
 
 const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) => {
   const { t } = useI18n("ui");
-  const envKey = currentEnvironment.value ?? "default";
-  const sectionId = `report-${envKey}-variables`;
-  const showAllId = `report-${envKey}-variables-showAll`;
+  const sectionId = getReportEnvSectionId("variables");
+  const showAllId = `${sectionId}-showAll`;
   const isOpened = !collapsedTrees.value.has(sectionId);
   const showAll = collapsedTrees.value.has(showAllId);
   const fullList = Object.entries(props.variables).map(([key, value]) => ({
@@ -111,13 +110,12 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
 };
 
 export const ReportMetadata = () => {
-  const stats = currentEnvironment.value
-    ? statsByEnvStore.value.data[currentEnvironment.value]
-    : reportStatsStore.value.data;
+  const envId = currentEnvironment.value;
+  const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
 
   useEffect(() => {
-    fetchVariables(currentEnvironment.value);
-  }, [currentEnvironment.value]);
+    fetchVariables(envId);
+  }, [envId]);
 
   return (
     <div className={styles["report-metadata-wrapper"]}>

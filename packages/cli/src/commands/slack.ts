@@ -1,5 +1,4 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
 import process, { exit } from "node:process";
 
@@ -7,6 +6,8 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin, { type SlackPluginOptions } from "@allurereport/plugin-slack";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
+
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class SlackCommand extends Command {
   static paths = [["slack"]];
@@ -20,10 +21,20 @@ export class SlackCommand extends Command {
         "slack ./allure-results --token xoxb-token --channel C12345",
         "Post test results from the ./allure-results directory to the specified Slack channel",
       ],
+      [
+        "slack ./packages/*/allure-results --token xoxb-token --channel C12345",
+        "Post test results from all Allure result directories matching the pattern",
+      ],
+      [
+        "slack ./packages/foo/allure-results ./packages/bar/allure-results --token xoxb-token --channel C12345",
+        "Post test results from two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -44,13 +55,15 @@ export class SlackCommand extends Command {
   });
 
   async execute() {
-    if (!existsSync(this.resultsDir)) {
-      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+    const cwd = await realpath(this.cwd ?? process.cwd());
+
+    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
 
-    const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
     const defaultSlackOptions = {
       token: this.token,
@@ -70,7 +83,11 @@ export class SlackCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir);
+
+    for (const directory of resultDirectories) {
+      await allureReport.readDirectory(directory);
+    }
+
     await allureReport.done();
 
     const after = new Date().getTime();

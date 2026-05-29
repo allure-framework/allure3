@@ -72,35 +72,47 @@ const findFiles = async (
   existingResults: Set<string>,
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   recursive: boolean,
+  maximumDepth: number = 10,
 ) => {
-  try {
-    const dir = await opendir(watchDirectory, { recursive });
-    for await (const dirent of dir) {
-      if (dirent.isDirectory()) {
-        continue;
-      }
+  const scanDirectory = async (directory: string, isRoot: boolean, remainingDepth: number): Promise<void> => {
+    try {
+      const dir = await opendir(directory);
 
-      const path = join(dirent.parentPath ?? dirent.path, dirent.name);
-      if (existingResults.has(path)) {
-        continue;
-      }
+      for await (const dirent of dir) {
+        const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
-      try {
-        await onNewFile(path, dirent);
-        existingResults.add(path);
-      } catch (e) {
-        if (!isFileNotFoundError(e)) {
-          console.error("can't process file", path, e);
+        if (dirent.isDirectory()) {
+          if (recursive && remainingDepth > 0) {
+            await scanDirectory(path, false, remainingDepth - 1);
+          }
+          continue;
+        }
+
+        if (existingResults.has(path)) {
+          continue;
+        }
+
+        try {
+          await onNewFile(path, dirent);
+          existingResults.add(path);
+        } catch (e) {
+          if (!isFileNotFoundError(e)) {
+            console.error("can't process file", path, e);
+          }
         }
       }
+    } catch (e) {
+      if (isFileNotFoundError(e)) {
+        if (isRoot) {
+          existingResults.clear();
+        }
+        return;
+      }
+      console.error("can't read directory", e);
     }
-  } catch (e) {
-    if (isFileNotFoundError(e)) {
-      existingResults.clear();
-      return;
-    }
-    console.error("can't read directory", e);
-  }
+  };
+
+  await scanDirectory(watchDirectory, true, maximumDepth);
 };
 
 const singleIteration = async (callback: () => Promise<void>, ...ac: AbortController[]): Promise<void> => {
@@ -177,6 +189,7 @@ const watch = (
 
 interface WatchNewFilesOptions extends WatchOptions {
   recursive?: boolean;
+  maximumDepth?: number;
   indexDelay?: number;
   ignoreInitial?: boolean;
   abortController?: AbortController;
@@ -187,14 +200,14 @@ export const newFilesInDirectoryWatcher = (
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   options: WatchNewFilesOptions = {},
 ): Watcher => {
-  const { recursive = true, ignoreInitial = false, ...rest } = options;
+  const { recursive = true, maximumDepth = 10, ignoreInitial = false, ...rest } = options;
   const indexedFiles: Set<string> = new Set();
 
   const initialCallback = async () => {
-    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive);
+    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive, maximumDepth);
   };
   const iterationCallback = async () => {
-    await findFiles(directory, indexedFiles, onNewFile, recursive);
+    await findFiles(directory, indexedFiles, onNewFile, recursive, maximumDepth);
   };
 
   return watch(initialCallback, iterationCallback, iterationCallback, rest);
@@ -273,7 +286,12 @@ const waitUntilFileStopChanging = async (
     }
     const sinceChange = now - prev.timestamp;
     if (sinceChange < minWait) {
-      await setTimeout(Math.min(0, maxWait, minWait - sinceChange + 1));
+      const maxDelay = maxWait - (now - start);
+      if (maxDelay <= 0) {
+        return false;
+      }
+      await setTimeout(Math.min(maxDelay, minWait - sinceChange + 1));
+      continue;
     }
     const current = await calculateInfo(file);
     if (!current) {

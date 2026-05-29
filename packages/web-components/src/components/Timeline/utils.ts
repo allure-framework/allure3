@@ -143,7 +143,7 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
   const groups: TimelineData = [];
 
   for (const test of timelineData) {
-    const { host, thread, historyId, id: testId, start, duration, status, hidden, name } = test;
+    const { host, thread, historyId, id: testId, start, duration, status, isRetry, name } = test;
     const stop = start! + duration!;
 
     const hostId = stringToNanoIdWithSalt(host, dataId);
@@ -165,7 +165,7 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
         val: duration!,
         status: status,
         id: segmentId,
-        hidden: hidden,
+        isRetry,
       });
     }
 

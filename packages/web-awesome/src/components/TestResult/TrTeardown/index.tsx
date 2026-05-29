@@ -3,20 +3,14 @@ import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 
+import { fixtureResultToTrStepItem } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
-import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
-
-const typeMap = {
-  before: TrStep,
-  after: TrStep,
-  step: TrStep,
-  attachment: TrAttachment,
-};
 
 export type TrTeardownProps = {
   teardown: AwesomeTestResult["teardown"];
@@ -24,13 +18,16 @@ export type TrTeardownProps = {
 };
 
 export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id }) => {
-  const teardownId = `${id}-teardown`;
-  const isEarlyCollapsed = !collapsedTrees.value.has(teardownId);
+  const teardownId = id ? `${id}-teardown` : null;
+  const isEarlyCollapsed = teardownId ? !collapsedTrees.value.has(teardownId) : true;
   const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
 
   const handleClick = () => {
     setIsOpen(!isOpened);
-    toggleTree(teardownId);
+
+    if (teardownId) {
+      toggleTree(teardownId);
+    }
   };
 
   const { t } = useI18n("execution");
@@ -38,6 +35,8 @@ export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id 
   return (
     <div className={styles["test-result-steps"]}>
       <TrDropdown
+        className={trOverviewHeaderFocusClass(teardownId)}
+        {...trOverviewFocusAttrs(teardownId)}
         icon={allureIcons.lineHelpersFlag}
         isOpened={isOpened}
         setIsOpen={handleClick}
@@ -46,14 +45,11 @@ export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id 
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
-          {teardown?.map((item, key) => {
-            const StepComponent = typeMap[item.type];
-            return StepComponent ? (
-              // FIXME: use proper type in the StepComponent component
-              // @ts-ignore
-              <StepComponent item={item} stepIndex={key + 1} key={key} className={styles["test-result-step-root"]} />
-            ) : null;
-          })}
+          {teardown?.map((fixture, key) => (
+            <div className={styles["test-result-step-root"]} key={fixture.id}>
+              <TrStep item={fixtureResultToTrStepItem(fixture)} stepIndex={key + 1} />
+            </div>
+          ))}
         </div>
       )}
     </div>

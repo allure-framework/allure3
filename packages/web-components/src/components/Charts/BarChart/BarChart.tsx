@@ -171,7 +171,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             colors={
               typeof colors === "function"
                 ? colors
-                : (d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? "var(--bg-base-secondary)"
+                : (d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? "var(--color-bg-secondary)"
             }
             enableLabel={false}
             enableTotals={false}

@@ -26,12 +26,19 @@ export const TRANSITION_ORDER: Record<string, number> = {
   fixed: 3,
 };
 
+export const DEFAULT_ERROR_CATEGORY_IDS = {
+  productErrors: "_product_errors_default_category",
+  testErrors: "_test_errors_default_category",
+} as const;
+
 export const DEFAULT_ERROR_CATEGORIES: CategoryRule[] = [
   {
+    id: DEFAULT_ERROR_CATEGORY_IDS.productErrors,
     name: "Product errors",
     matchers: { statuses: ["failed"] },
   },
   {
+    id: DEFAULT_ERROR_CATEGORY_IDS.testErrors,
     name: "Test errors",
     matchers: { statuses: ["broken"] },
   },
@@ -254,13 +261,19 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
       throw new Error(`categories[${index}].name must be non-empty string`);
     }
 
-    const idValidationResult = normalizeCategoryId(rule.id ?? rule.name);
+    const defaultIdByName = new Map<string, string>([
+      ["Product errors", DEFAULT_ERROR_CATEGORY_IDS.productErrors],
+      ["Test errors", DEFAULT_ERROR_CATEGORY_IDS.testErrors],
+    ]);
+    const effectiveId = rule.id ?? defaultIdByName.get(rule.name) ?? rule.name;
+
+    const idValidationResult = normalizeCategoryId(effectiveId);
     if (!idValidationResult.valid) {
       throw new Error(`categories[${index}].id ${idValidationResult.reason}`);
     }
     const normalizedId = idValidationResult.normalized;
     const sourceIds = sourceIdsByNormalizedId.get(normalizedId) ?? new Set<string>();
-    sourceIds.add(rule.id ?? rule.name);
+    sourceIds.add(effectiveId);
     sourceIdsByNormalizedId.set(normalizedId, sourceIds);
 
     const matchers = normalizeMatchers(rule, index);

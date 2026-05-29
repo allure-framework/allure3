@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { platform } from "node:os";
+
 import { defineConfig } from "vitest/config";
 
 const getOsLabel = () => {
@@ -29,6 +30,9 @@ export default defineConfig({
           resultsDir: "./out/allure-results",
           globalLabels: [
             { name: "module", value: "plugin-jira" },
+            { name: "coverage", value: "plugin-jira" },
+            { name: "epic", value: "coverage" },
+            { name: "feature", value: "plugin-jira" },
             { name: "os", value: getOsLabel() },
           ],
         },

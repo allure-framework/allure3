@@ -20,6 +20,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
   title,
   titleTooltipText,
   truncateTitle = false,
+  className,
   ...rest
 }) => {
   const { ref: titleRef, isTruncated: isTitleTruncated } = useElementTruncation<HTMLSpanElement>([title], {
@@ -41,6 +42,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
         styles["report-metadata-header"],
         truncateTitle && styles["report-metadata-header-truncated"],
         isOpened && styles["report-metadata-header-opened"],
+        className,
       )}
       type={"button"}
       onClick={() => setIsOpen(!isOpened)}

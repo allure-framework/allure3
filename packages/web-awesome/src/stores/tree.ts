@@ -1,4 +1,4 @@
-import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-commons";
+import { buildFilterPredicate, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";
@@ -7,7 +7,9 @@ import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
-import { treeFilters } from "./treeFilters/store";
+import { currentEnvironment } from "./env";
+import { fetchEnvSearchIndexes, searchIndexesStore, searchNodeIds } from "./search";
+import { treeNonQueryFilters, treeQueryFilterValue } from "./treeFilters/store";
 import { sortBy } from "./treeSort";
 
 export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
@@ -23,19 +25,51 @@ export const noTests = computed(() => {
 });
 
 export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
+export const expandedTrees = signal(new Set(loadFromLocalStorage<string[]>("expandedTrees", [])));
 
 effect(() => {
   localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));
 });
 
-export const toggleTree = (id: string) => {
-  const newSet = new Set(collapsedTrees.value);
-  if (newSet.has(id)) {
-    newSet.delete(id);
-  } else {
-    newSet.add(id);
+effect(() => {
+  localStorage.setItem("expandedTrees", JSON.stringify([...expandedTrees.value]));
+});
+
+export const isTreeOpened = (id: string, openedByDefault = true): boolean => {
+  if (openedByDefault) {
+    return !collapsedTrees.value.has(id);
   }
-  collapsedTrees.value = newSet;
+
+  return expandedTrees.value.has(id);
+};
+
+const setTreeStoredState = (id: string, shouldBeOpened: boolean, openedByDefault: boolean) => {
+  if (openedByDefault) {
+    const nextCollapsedTrees = new Set(collapsedTrees.value);
+    if (shouldBeOpened) {
+      nextCollapsedTrees.delete(id);
+    } else {
+      nextCollapsedTrees.add(id);
+    }
+    collapsedTrees.value = nextCollapsedTrees;
+    return;
+  }
+
+  const nextExpandedTrees = new Set(expandedTrees.value);
+  if (shouldBeOpened) {
+    nextExpandedTrees.add(id);
+  } else {
+    nextExpandedTrees.delete(id);
+  }
+  expandedTrees.value = nextExpandedTrees;
+};
+
+export const toggleTree = (id: string, openedByDefault = true) => {
+  setTreeStoredState(id, !isTreeOpened(id, openedByDefault), openedByDefault);
+};
+
+export const setTreeOpened = (id: string, shouldBeOpened: boolean, openedByDefault = true) => {
+  setTreeStoredState(id, shouldBeOpened, openedByDefault);
 };
 
 export const fetchEnvTreesData = async (envs: string[]) => {
@@ -74,7 +108,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
   } catch (e) {
     treeStore.value = {
       ...treeStore.peek(),
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }
@@ -85,12 +119,47 @@ const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeSt
 const alwaysTruePredicate = () => true;
 
 const filterPredicate = computed(() => {
-  if (treeFilters.value.length === 0) {
+  if (treeNonQueryFilters.value.length === 0) {
     return alwaysTruePredicate;
   }
 
-  return buildFilterPredicate(treeFilters.value);
+  return buildFilterPredicate(treeNonQueryFilters.value);
 });
+
+effect(() => {
+  if (!treeQueryFilterValue.value?.trim()) {
+    return;
+  }
+
+  const treeEnvIds = Object.keys(treeStore.value.data ?? {});
+  const envsToFetch = currentEnvironment.value ? [currentEnvironment.value] : treeEnvIds;
+
+  if (envsToFetch.length === 0) {
+    return;
+  }
+
+  fetchEnvSearchIndexes(envsToFetch);
+});
+
+const searchFilterPredicate = (env: string) => {
+  const query = treeQueryFilterValue.value?.trim();
+
+  if (!query) {
+    return alwaysTruePredicate;
+  }
+
+  const searchIndex = searchIndexesStore.value.data?.[env];
+
+  if (!searchIndex) {
+    fetchEnvSearchIndexes([env]);
+
+    return alwaysTruePredicate;
+  }
+
+  const matchingNodeIds = searchNodeIds(searchIndex, query);
+
+  return (leaf: { nodeId: string }) => matchingNodeIds.has(leaf.nodeId);
+};
 
 export const filteredTree = computed(() => {
   return treeEntries.value.reduce(
@@ -100,12 +169,13 @@ export const filteredTree = computed(() => {
       }
 
       const { root, leavesById, groupsById } = value;
+      const envSearchFilterPredicate = searchFilterPredicate(key);
 
       const tree = createRecursiveTree({
         group: root as AwesomeTreeGroup,
         leavesById,
         groupsById,
-        filterPredicate: filterPredicate.value,
+        filterPredicate: (leaf) => filterPredicate.value(leaf) && envSearchFilterPredicate(leaf),
         sortBy: sortBy.value,
       });
 

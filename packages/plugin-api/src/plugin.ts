@@ -3,6 +3,7 @@ import type {
   AttachmentLink,
   CategoryDefinition,
   CiDescriptor,
+  HistoryDataPoint,
   Statistic,
   TestError,
   TestResult,
@@ -41,6 +42,7 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
+  realTime?: boolean;
   output: string;
   ci?: CiDescriptor;
   categories?: CategoryDefinition[];
@@ -74,6 +76,29 @@ export interface PluginSummary {
   meta?: Record<string, any>;
 }
 
+export interface PluginReportFile {
+  pluginId: string;
+  publish: boolean;
+  files: Record<string, string>;
+}
+
+export interface PluginPublishContext {
+  reportUuid: string;
+  reportName: string;
+  ci?: CiDescriptor;
+  historyPoint?: HistoryDataPoint;
+  reports: PluginReportFile[];
+  summary?: {
+    filepath: string;
+    summaries?: PluginSummary[];
+  };
+}
+
+export interface PluginPublishResult {
+  linksByPluginId: Record<string, string>;
+  remoteHref?: string;
+}
+
 export interface ExitCode {
   /**
    * Actual exit code the allure command exited with
@@ -105,22 +130,24 @@ export interface BatchOptions {
   maxTimeout?: number;
 }
 
+export type RealtimeListenerResult = void | Promise<void>;
+
 export interface RealtimeSubscriber {
   onGlobalAttachment(
-    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
-  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
+  onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
-  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>): () => void;
+  onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
 
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestFixtureResults(listener: (tfrIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onAttachmentFiles(listener: (afIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 }
 
 export interface RealtimeEventsDispatcher {

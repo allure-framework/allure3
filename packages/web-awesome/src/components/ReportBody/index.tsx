@@ -1,8 +1,10 @@
 import { capitalize, statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components";
+import clsx from "clsx";
 
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
+import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
 
@@ -62,17 +64,24 @@ const Header = () => {
 };
 
 const Body = () => {
+  const split = isSplitMode.value;
+
   return (
-    <div className={styles.body}>
+    <div
+      className={clsx(styles.body, split && styles["body-split"])}
+      {...(split ? { "data-tree-scroll-container": true } : {})}
+    >
       <TreeList />
     </div>
   );
 };
 
 export const ReportBody = () => {
+  const split = isSplitMode.value;
+
   return (
     <ReportContentProvider>
-      <section>
+      <section className={clsx(split && styles.split)}>
         <Header />
         <Body />
       </section>

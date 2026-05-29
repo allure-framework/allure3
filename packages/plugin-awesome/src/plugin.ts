@@ -19,6 +19,7 @@ import {
   generateHistoryDataPoints,
   generateNav,
   generateQualityGateResults,
+  generateSearchIndex,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -36,16 +37,16 @@ const statisticByTestResults = async (
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
+  const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
 
   for (const testResult of testResults) {
-    if (testResult.hidden) {
+    if (testResult.isRetry) {
       continue;
     }
 
-    statistic.total++;
     incrementStatistic(statistic, testResult.status);
 
-    if ((await store.retriesByTrId(testResult.id)).length > 0) {
+    if ((related.retriesByTrId.get(testResult.id)?.length ?? 0) > 0) {
       statistic.retries = (statistic.retries ?? 0) + 1;
     }
 
@@ -72,7 +73,7 @@ export class AwesomePlugin implements Plugin {
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const attachments = await store.allAttachments();
-    const allTrs = await store.allTestResults({ includeHidden: true, filter });
+    const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
@@ -83,12 +84,7 @@ export class AwesomePlugin implements Plugin {
     const globalErrors = await store.allGlobalErrors();
     const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
     const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
-    const envResultsById = new Map<string, Awaited<ReturnType<AllureStore["allTestResults"]>>>();
     const envIdByTrId = new Map<string, string>();
-
-    environments.forEach(({ id }) => {
-      envResultsById.set(id, []);
-    });
 
     await Promise.all(
       allTrs.map(async (tr) => {
@@ -99,18 +95,14 @@ export class AwesomePlugin implements Plugin {
         }
 
         envIdByTrId.set(tr.id, environmentId);
-
-        if (!envResultsById.has(environmentId)) {
-          envResultsById.set(environmentId, []);
-        }
-
-        envResultsById.get(environmentId)!.push(tr);
       }),
     );
 
     await Promise.all(
       environments.map(async ({ id }) => {
-        envStatistics.set(id, await statisticByTestResults(store, envResultsById.get(id) ?? []));
+        const envTrs = await store.testResultsByEnvironmentId(id, { includeRetries: true });
+
+        envStatistics.set(id, await statisticByTestResults(store, envTrs));
       }),
     );
 
@@ -144,31 +136,26 @@ export class AwesomePlugin implements Plugin {
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
+    await generateSearchIndex(this.#writer!, convertedTrs, "search-index.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
-    const envConvertedTrsById = new Map<string, typeof convertedTrs>();
-
-    convertedTrs.forEach((tr) => {
-      const environmentId = envIdByTrId.get(tr.id);
-
-      if (!environmentId) {
-        return;
-      }
-
-      if (!envConvertedTrsById.has(environmentId)) {
-        envConvertedTrsById.set(environmentId, []);
-      }
-
-      envConvertedTrsById.get(environmentId)!.push(tr);
-    });
+    const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
 
     for (const reportEnvironment of environments) {
-      const envConvertedTrs = envConvertedTrsById.get(reportEnvironment.id) ?? [];
+      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
+      const envConvertedTrs = envTrs
+        .map((tr) => convertedTrsById.get(tr.id))
+        .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));
 
       await generateTree(this.#writer!, joinPosixPath(reportEnvironment.id, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
       await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
+      await generateSearchIndex(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "search-index.json"),
+      );
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,
@@ -184,9 +171,7 @@ export class AwesomePlugin implements Plugin {
     await generateEnvirontmentsList(this.#writer!, store);
     await generateVariables(this.#writer!, store);
 
-    if (environmentItems?.length) {
-      await generateEnvironmentJson(this.#writer!, environmentItems);
-    }
+    await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
     if (attachments?.length) {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));

@@ -7,30 +7,44 @@ import {
   type TreeGroup,
   type TreeLeaf,
   type WithChildren,
-  createDictionary,
-  findByLabelName,
 } from "@allurereport/core-api";
 import { emptyStatistic } from "@allurereport/core-api";
 
 import { md5 } from "./misc.js";
 
-const addLeaf = (node: WithChildren, nodeId: string) => {
+const addLeaf = (childLeaves: WeakMap<WithChildren, Set<string>>, node: WithChildren, nodeId: string) => {
   if (node.leaves === undefined) {
     node.leaves = [];
   }
-  if (node.leaves.find((value) => value === nodeId)) {
+  let leaves = childLeaves.get(node);
+
+  if (!leaves) {
+    leaves = new Set(node.leaves);
+    childLeaves.set(node, leaves);
+  }
+
+  if (leaves.has(nodeId)) {
     return;
   }
+  leaves.add(nodeId);
   node.leaves.push(nodeId);
 };
 
-const addGroup = (node: WithChildren, nodeId: string) => {
+const addGroup = (childGroups: WeakMap<WithChildren, Set<string>>, node: WithChildren, nodeId: string) => {
   if (node.groups === undefined) {
     node.groups = [];
   }
-  if (node.groups.find((value) => value === nodeId)) {
+  let groups = childGroups.get(node);
+
+  if (!groups) {
+    groups = new Set(node.groups);
+    childGroups.set(node, groups);
+  }
+
+  if (groups.has(nodeId)) {
     return;
   }
+  groups.add(nodeId);
   node.groups.push(nodeId);
 };
 
@@ -41,9 +55,11 @@ const createTree = <T, L, G>(
   groupFactory: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
   addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
 ): TreeData<L, G> => {
-  const groupsByClassifier = createDictionary<Record<string, TreeGroup<G>>>();
+  const groupsByClassifier = new Map<string, Map<string, TreeGroup<G>>>();
   const leavesById: Record<string, TreeLeaf<L>> = {};
   const groupsById: Record<string, TreeGroup<G>> = {};
+  const childLeaves = new WeakMap<WithChildren, Set<string>>();
+  const childGroups = new WeakMap<WithChildren, Set<string>>();
   const root: WithChildren = { groups: [], leaves: [] };
 
   for (const item of data) {
@@ -59,39 +75,49 @@ const createTree = <T, L, G>(
         break;
       }
 
-      parentGroups = layer.flatMap((group) => {
-        return parentGroups.flatMap((parentGroup) => {
-          const parentId = "nodeId" in parentGroup ? (parentGroup.nodeId as string) : "";
+      const nextParentGroups: TreeGroup<G>[] = [];
+      const nextParentGroupIds = new Set<string>();
 
-          if (groupsByClassifier[parentId] === undefined) {
-            groupsByClassifier[parentId] = createDictionary<TreeGroup<G>>();
+      for (const group of layer) {
+        for (const parentGroup of parentGroups) {
+          const parentId = "nodeId" in parentGroup ? (parentGroup.nodeId as string) : "";
+          let groupsByParent = groupsByClassifier.get(parentId);
+
+          if (groupsByParent === undefined) {
+            groupsByParent = new Map<string, TreeGroup<G>>();
+            groupsByClassifier.set(parentId, groupsByParent);
           }
 
-          if (groupsByClassifier[parentId][group] === undefined) {
+          if (groupsByParent.get(group) === undefined) {
             const newGroup = groupFactory(parentId, group);
             if (!newGroup || typeof newGroup !== "object" || typeof newGroup.nodeId !== "string") {
-              return [];
+              continue;
             }
 
-            groupsByClassifier[parentId][group] = newGroup;
+            groupsByParent.set(group, newGroup);
             groupsById[newGroup.nodeId] = newGroup;
           }
 
-          const currentGroup = groupsByClassifier[parentId][group];
+          const currentGroup = groupsByParent.get(group);
           if (!currentGroup || typeof currentGroup !== "object") {
-            return [];
+            continue;
           }
 
-          addGroup(parentGroup, currentGroup.nodeId);
+          addGroup(childGroups, parentGroup, currentGroup.nodeId);
           addLeafToGroup(currentGroup, leaf);
 
-          return [currentGroup];
-        });
-      });
+          if (!nextParentGroupIds.has(currentGroup.nodeId)) {
+            nextParentGroupIds.add(currentGroup.nodeId);
+            nextParentGroups.push(currentGroup);
+          }
+        }
+      }
+
+      parentGroups = nextParentGroups;
     }
 
     parentGroups.forEach((parentGroup) => {
-      addLeaf(parentGroup, leaf.nodeId);
+      addLeaf(childLeaves, parentGroup, leaf.nodeId);
     });
   }
 
@@ -104,20 +130,39 @@ const createTree = <T, L, G>(
   };
 };
 
-export const byLabels = (item: TestResult, labelNames: string[]): string[][] => {
-  return labelNames
-    .map(
-      (labelName) =>
-        item.labels.filter((label) => labelName === label.name).map((label) => label.value ?? "__unknown") ?? [],
-    )
-    .filter((layer) => layer.length > 0);
+const byLabelsWithFallback = (item: TestResult, labelNames: string[], fallbackValue: string): string[][] => {
+  const labelsByName = new Map<string, string[]>();
+
+  for (const label of item.labels) {
+    const values = labelsByName.get(label.name) ?? [];
+
+    values.push(label.value ?? fallbackValue);
+    labelsByName.set(label.name, values);
+  }
+
+  return labelNames.map((labelName) => labelsByName.get(labelName) ?? []).filter((layer) => layer.length > 0);
 };
 
+export const byLabels = (item: TestResult, labelNames: string[]): string[][] =>
+  byLabelsWithFallback(item, labelNames, "__unknown");
+
 export const filterTreeLabels = (data: TestResult[], labelNames: string[]) => {
-  return [...labelNames]
-    .reverse()
-    .filter((labelName) => data.find((item) => findByLabelName(item.labels, labelName)))
-    .reverse();
+  const requested = new Set(labelNames);
+  const found = new Set<string>();
+
+  for (const item of data) {
+    for (const label of item.labels) {
+      if (requested.has(label.name)) {
+        found.add(label.name);
+      }
+    }
+
+    if (found.size === requested.size) {
+      break;
+    }
+  }
+
+  return labelNames.filter((labelName) => found.has(labelName));
 };
 
 export const createTreeByLabels = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
@@ -219,15 +264,84 @@ export const preciseTreeLabels = <T = TestResult>(
   trs: T[],
   labelNamesAccessor: (tr: T) => string[] = (tr: T) => (tr as TestResult).labels.map(({ name }) => name),
 ) => {
-  const result = new Set<string>();
+  const requested = new Set(labelNames);
+  const found = new Set<string>();
 
-  for (const labelName of labelNames) {
-    if (trs.some((tr) => labelNamesAccessor(tr).includes(labelName))) {
-      result.add(labelName);
+  for (const tr of trs) {
+    for (const labelName of labelNamesAccessor(tr)) {
+      if (requested.has(labelName)) {
+        found.add(labelName);
+      }
+    }
+
+    if (found.size === requested.size) {
+      break;
     }
   }
 
-  return Array.from(result);
+  const emitted = new Set<string>();
+
+  return labelNames.filter((labelName) => {
+    if (!found.has(labelName) || emitted.has(labelName)) {
+      return false;
+    }
+
+    emitted.add(labelName);
+    return true;
+  });
+};
+
+export const processTree = <L, G>(
+  tree: TreeData<L, G>,
+  options: {
+    filter?: (leaf: TreeLeaf<L>) => boolean;
+    sort?: Comparator<TreeLeaf<L>>;
+    transform?: (leaf: TreeLeaf<L>, idx: number) => TreeLeaf<L>;
+  },
+) => {
+  const visitedGroups = new Set<string>();
+  const { root, leavesById, groupsById } = tree;
+  const processGroup = (group: TreeGroup<G>) => {
+    if (group.groups?.length) {
+      group.groups.forEach((groupId) => {
+        const subGroup = groupsById[groupId];
+
+        if (!subGroup || visitedGroups.has(groupId)) {
+          return;
+        }
+
+        processGroup(subGroup);
+        visitedGroups.add(groupId);
+      });
+    }
+
+    if (group.leaves?.length) {
+      if (options.filter) {
+        group.leaves = group.leaves.filter((leaveId) => options.filter!(leavesById[leaveId]));
+      }
+
+      if (options.sort) {
+        group.leaves = group.leaves.sort((a, b) => {
+          const leafA = leavesById[a];
+          const leafB = leavesById[b];
+
+          return options.sort!(leafA, leafB);
+        });
+      }
+
+      if (options.transform) {
+        group.leaves.forEach((leafId, i) => {
+          leavesById[leafId] = options.transform!(leavesById[leafId], i);
+        });
+      }
+    }
+
+    return group;
+  };
+
+  processGroup(root as TreeGroup<G>);
+
+  return tree;
 };
 
 /**
@@ -237,36 +351,7 @@ export const preciseTreeLabels = <T = TestResult>(
  * @param predicate
  */
 export const filterTree = <L, G>(tree: TreeData<L, G>, predicate: (leaf: TreeLeaf<L>) => boolean) => {
-  const visitedGroups = new Set<string>();
-  const { root, leavesById, groupsById } = tree;
-  const filterGroupLeaves = (group: TreeGroup<G>) => {
-    if (!predicate) {
-      return group;
-    }
-
-    if (group.groups?.length) {
-      group.groups.forEach((groupId) => {
-        const subGroup = groupsById[groupId];
-
-        if (!subGroup || visitedGroups.has(groupId)) {
-          return;
-        }
-
-        filterGroupLeaves(subGroup);
-        visitedGroups.add(groupId);
-      });
-    }
-
-    if (group.leaves?.length) {
-      group.leaves = group.leaves.filter((leaveId) => predicate(leavesById[leaveId]));
-    }
-
-    return group;
-  };
-
-  filterGroupLeaves(root as TreeGroup<G>);
-
-  return tree;
+  return processTree(tree, { filter: predicate });
 };
 
 /**
@@ -276,39 +361,7 @@ export const filterTree = <L, G>(tree: TreeData<L, G>, predicate: (leaf: TreeLea
  * @param comparator
  */
 export const sortTree = <L, G>(tree: TreeData<L, G>, comparator: Comparator<TreeLeaf<L>>) => {
-  const visitedGroups = new Set<string>();
-  const { root, leavesById, groupsById } = tree;
-  const sortGroupLeaves = (group: TreeGroup<G>) => {
-    if (!comparator) {
-      return group;
-    }
-
-    if (group.groups?.length) {
-      group.groups.forEach((groupId) => {
-        if (visitedGroups.has(groupId)) {
-          return;
-        }
-
-        sortGroupLeaves(groupsById[groupId]);
-        visitedGroups.add(groupId);
-      });
-    }
-
-    if (group.leaves?.length) {
-      group.leaves = group.leaves.sort((a, b) => {
-        const leafA = leavesById[a];
-        const leafB = leavesById[b];
-
-        return comparator(leafA, leafB);
-      });
-    }
-
-    return group;
-  };
-
-  sortGroupLeaves(root as TreeGroup<G>);
-
-  return tree;
+  return processTree(tree, { sort: comparator });
 };
 
 /**
@@ -321,36 +374,7 @@ export const transformTree = <L, G>(
   tree: TreeData<L, G>,
   transformer: (leaf: TreeLeaf<L>, idx: number) => TreeLeaf<L>,
 ) => {
-  const visitedGroups = new Set<string>();
-  const { root, leavesById, groupsById } = tree;
-  const transformGroupLeaves = (group: TreeGroup<G>) => {
-    if (!transformer) {
-      return group;
-    }
-
-    if (group.groups?.length) {
-      group.groups.forEach((groupId) => {
-        if (visitedGroups.has(groupId)) {
-          return;
-        }
-
-        transformGroupLeaves(groupsById[groupId]);
-        visitedGroups.add(groupId);
-      });
-    }
-
-    if (group.leaves?.length) {
-      group.leaves.forEach((leaf, i) => {
-        leavesById[leaf] = transformer(leavesById[leaf], i);
-      });
-    }
-
-    return group;
-  };
-
-  transformGroupLeaves(root as TreeGroup<G>);
-
-  return tree;
+  return processTree(tree, { transform: transformer });
 };
 
 export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
@@ -390,17 +414,7 @@ export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = D
 };
 
 const byLabelsAndTitlePath = (item: TestResult, labelNames: string[]): string[][] => {
-  const leaves: string[][] = [];
-
-  for (const labelName of labelNames) {
-    const values = item.labels.filter((label) => label.name === labelName).map((label) => label.value ?? "");
-
-    if (!values.length) {
-      continue;
-    }
-
-    leaves.push(values);
-  }
+  const leaves = byLabelsWithFallback(item, labelNames, "");
 
   const titlePath = item.titlePath;
   if (Array.isArray(titlePath) && titlePath.length > 0) {

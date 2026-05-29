@@ -10,13 +10,14 @@ import { bold } from "yoctocolors";
 import { TestOpsClient } from "./client.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import { toUploadCategory } from "./uploadCategory.js";
 import {
   attachmentsResolverFactory,
   fixturesResolverFactory,
   resolvePluginOptions,
   unwrapStepsAttachments,
-} from "./utils.js";
+} from "./utils/index.js";
+import { toUploadCategory } from "./utils/uploadCategory.js";
+import { uploadFilenameForLink } from "./utils/uploaderDto.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
@@ -27,15 +28,24 @@ export class TestOpsPlugin implements Plugin {
   // @ts-expect-error - if client is not initialized it will not be used
   #client: TestOpsClient;
   /**
-   * If the plugin is enabled
+   * If the client is configured
    */
-  #enabled: boolean = false;
+  #clientConfigured: boolean = false;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
-  #autocloseLaunch: boolean;
+  #autocloseLaunch: boolean = false;
 
   constructor(readonly options: TestOpsPluginOptions) {
+    this.#ci = detect();
+
+    if (!this.#ci || this.#ci.type === "local") {
+      this.#logger.info(
+        `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
+      );
+      return;
+    }
+
     const {
       accessToken,
       endpoint,
@@ -45,12 +55,10 @@ export class TestOpsPlugin implements Plugin {
       autocloseLaunch = true,
     } = resolvePluginOptions(options);
 
-    this.#ci = detect();
-
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
-      this.#enabled = true;
+      this.#clientConfigured = true;
       this.#client = new TestOpsClient({
         baseUrl: endpoint,
         accessToken,
@@ -81,8 +89,32 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  get ciMode() {
-    return this.#ci && this.#ci.type !== "local";
+  get isOverridenByEnv(): boolean {
+    const isEnabled = (value: string | undefined) => {
+      if (!value) {
+        return false;
+      }
+
+      return ["true", "1"].includes(value);
+    };
+
+    return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
+  }
+
+  get enabled(): boolean {
+    if (!this.#clientConfigured) {
+      return false;
+    }
+
+    if (this.isOverridenByEnv) {
+      return true;
+    }
+
+    if (!this.#ci || this.#ci.type === "local") {
+      return false;
+    }
+
+    return true;
   }
 
   async #uploadQualityGateResults(store: AllureStore) {
@@ -170,15 +202,14 @@ export class TestOpsPlugin implements Plugin {
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
           const body = await content?.readContent(async (stream) => stream);
-          // @ts-expect-error - FIXME
-          const attachmentName = attachmentLink.name || attachmentLink.originalFileName;
+          const filename = uploadFilenameForLink(attachmentLink);
 
-          if (attachmentName === undefined || body === undefined) {
+          if (filename === undefined || body === undefined) {
             return undefined;
           }
 
           return {
-            originalFileName: attachmentName,
+            originalFileName: filename,
             contentType: attachmentLink.contentType ?? "application/octet-stream",
             content: body,
           };
@@ -244,12 +275,11 @@ export class TestOpsPlugin implements Plugin {
   async #upload(
     store: AllureStore,
     options = {} as {
-      issueNewToken?: boolean;
       context?: PluginContext;
       stage: "start" | "update" | "done";
     },
   ) {
-    const { issueNewToken = true, context, stage } = options;
+    const { context, stage } = options;
 
     const trsToUpload = await this.#trsToUpload(store);
 
@@ -263,11 +293,6 @@ export class TestOpsPlugin implements Plugin {
       }
 
       return;
-    }
-
-    if (issueNewToken) {
-      this.#logger.verbose("Issuing new OAuth token");
-      await this.#client.issueOauthToken();
     }
 
     await this.#client.createSession(env);
@@ -297,7 +322,7 @@ export class TestOpsPlugin implements Plugin {
 
         return filter(tr);
       },
-      includeHidden: false,
+      includeRetries: false,
     });
 
     return filteredTrs;
@@ -420,39 +445,30 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #startUpload() {
-    await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
-
-    if (!this.ciMode) {
-      return;
-    }
 
     await this.#client.startUpload(this.#ci!);
   }
 
   async #stopUpload(status: TestStatus) {
-    if (!this.ciMode) {
-      return;
-    }
-
     await this.#client.stopUpload(this.#ci!, status);
   }
 
   async start(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
     this.#logger.verbose("Starting upload…");
 
     await this.#startUpload();
-    await this.#upload(store, { issueNewToken: false, context, stage: "start" });
+    await this.#upload(store, { context, stage: "start" });
 
     this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
   }
 
   async update(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
@@ -462,13 +478,13 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async done(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return;
     }
 
     const allTrs = await store.allTestResults({
       filter: this.options.filter,
-      includeHidden: false,
+      includeRetries: false,
     });
 
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
@@ -503,7 +519,7 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async info(context: PluginContext, store: AllureStore) {
-    if (!this.#enabled) {
+    if (!this.enabled) {
       return undefined;
     }
 

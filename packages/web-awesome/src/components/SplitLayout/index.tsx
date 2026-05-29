@@ -1,5 +1,6 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
+import clsx from "clsx";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -7,6 +8,8 @@ import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
+import { activePane } from "@/stores/keyboard";
+import { isSplitMode } from "@/stores/layout";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
@@ -59,7 +62,13 @@ export const SplitLayout = () => {
         }}
       />
     ) : (
-      <div className={styles.empty}>
+      <div
+        className={clsx(
+          styles.empty,
+          isSplitMode.value && styles["empty-split-pane"],
+          isSplitMode.value && activePane.value === "testResult" && styles["pane-active"],
+        )}
+      >
         <Text>{t("noSelectedTR")}</Text>
       </div>
     );

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-dashboard",
-  "version": "3.5.0",
+  "version": "3.9.0",
   "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",
@@ -15,7 +15,10 @@
   "types": "./types.d.ts",
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "webpack serve --mode development",
+    "dev": "run-s dev:demo dev:copy dev:serve",
+    "dev:demo": "rimraf out/demo && yarn run -T allure generate ${ALLURE_RESULTS_DIR:-../sandbox/allure-results} --config=./allurerc-dev.mjs --output=./out/demo",
+    "dev:copy": "rimraf out/dev/widgets && mkdir -p out/dev && cp -R out/demo/widgets out/dev/widgets",
+    "dev:serve": "webpack serve --mode development",
     "build": "run-s clean 'build:prod:*'",
     "build:dev": "run-s clean 'build:dev:*'",
     "build:prod:single": "SINGLE_FILE_MODE=1 webpack --mode production",
@@ -49,7 +52,8 @@
     "@types/node": "^20.17.9",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",

@@ -1,8 +1,22 @@
+import { readdir } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
+
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AwesomePlugin from "../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("plugin-awesome");
+  await story("plugin");
+  await label("coverage", "plugin-awesome");
+});
+
+const require = createRequire(import.meta.url);
 
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -21,6 +35,14 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
     { total: trsToProcess.length } as Statistic,
   );
 };
+
+const createRelatedByTestResultIdsMock = () =>
+  vi.fn(async (trIds: readonly string[]) => ({
+    attachmentsByTrId: new Map(trIds.map((trId) => [trId, []])),
+    fixturesByTrId: new Map(trIds.map((trId) => [trId, []])),
+    historyByTrId: new Map(trIds.map((trId) => [trId, undefined])),
+    retriesByTrId: new Map(trIds.map((trId) => [trId, []])),
+  }));
 
 const fixtures: any = {
   testResults: {
@@ -49,7 +71,7 @@ const fixtures: any = {
     reportUuid: "report-uuid",
   } as PluginContext,
   store: {
-    allTestResults: async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+    allTestResults: async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
       const all = [
         fixtures.testResults.passed,
         fixtures.testResults.failed,
@@ -176,7 +198,7 @@ describe("plugin", () => {
         allEnvironments: vi.fn().mockResolvedValue([]),
         allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResultsWithTags.filter(options.filter) : testResultsWithTags;
           return trs;
         }),
@@ -199,6 +221,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -240,7 +263,201 @@ describe("plugin", () => {
     });
   });
 
+  describe("generated widget files", () => {
+    it("always writes widgets/allure_environment.json (and environments.json) in multi-file mode when metadata is absent", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          labels: [],
+        },
+      ] as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default"]),
+        allEnvironmentIdentities: vi
+          .fn()
+          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({ charts: [] });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(addedFiles.has("widgets/allure_environment.json")).toBe(true);
+      expect(JSON.parse(addedFiles.get("widgets/allure_environment.json")!.toString("utf-8"))).toEqual([]);
+
+      expect(addedFiles.has("widgets/environments.json")).toBe(true);
+      expect(addedFiles.get("widgets/environments.json")!.toString("utf-8")).toBeTruthy();
+
+      expect(addedFiles.has("widgets/tree-filters.json")).toBe(true);
+      expect(JSON.parse(addedFiles.get("widgets/tree-filters.json")!.toString("utf-8"))).toEqual({
+        tags: [],
+        categories: [],
+      });
+    });
+  });
+
   describe("environment-specific outputs", () => {
+    it("should derive environment-specific widgets from the store environment index without double-counting default", async () => {
+      const stagingTestResult = {
+        id: "tr-staging",
+        name: "staging test",
+        status: "passed",
+        environment: "staging",
+        labels: [],
+        parameters: [],
+        links: [],
+        steps: [],
+        isRetry: false,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const testResults = [stagingTestResult];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default", "staging"]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([
+          { id: "default", name: "default" },
+          { id: "staging", name: "staging" },
+        ] satisfies EnvironmentIdentity[]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironmentId: vi
+          .fn()
+          .mockImplementation(async (environmentId: string) =>
+            environmentId === "staging" ? [stagingTestResult] : [],
+          ),
+        environmentIdByTrId: vi.fn().mockResolvedValue("staging"),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        charts: [],
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/staging/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/default/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 0,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/staging/nav.json")!.toString("utf-8"))).toEqual(["tr-staging"]);
+      expect(JSON.parse(addedFiles.get("widgets/default/nav.json")!.toString("utf-8"))).toEqual([]);
+      expect(JSON.parse(addedFiles.get("widgets/staging/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({
+          id: "tr-staging",
+          nodeId: "tr-staging",
+          name: "staging test",
+        }),
+      ]);
+      expect(JSON.parse(addedFiles.get("widgets/default/search-index.json")!.toString("utf-8"))).toEqual([]);
+    });
+
     it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
       const qaATestResult = {
         id: "tr-qa-a",
@@ -251,7 +468,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
       } as TestResult;
       const qaBTestResult = {
@@ -263,7 +480,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
       } as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
@@ -283,11 +500,10 @@ describe("plugin", () => {
           { id: "qa_b", name: "QA" },
         ] satisfies EnvironmentIdentity[]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
         testResultsByEnvironmentId: vi
           .fn()
           .mockImplementation(async (environmentId: string) =>
@@ -308,6 +524,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -338,6 +555,20 @@ describe("plugin", () => {
 
       expect(JSON.parse(addedFiles.get("widgets/qa_a/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-a"]);
       expect(JSON.parse(addedFiles.get("widgets/qa_b/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-b"]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({ id: "tr-qa-a", nodeId: "tr-qa-a", name: "qa a test" }),
+      ]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/search-index.json")!.toString("utf-8"))).toEqual([
+        expect.objectContaining({ id: "tr-qa-b", nodeId: "tr-qa-b", name: "qa b test" }),
+      ]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        failed: 1,
+      });
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");
     });
@@ -355,7 +586,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         start: 1,
         stop: 11,
         sourceMetadata: { readerId: "system", metadata: {} },
@@ -372,7 +603,7 @@ describe("plugin", () => {
         parameters: [],
         links: [],
         steps: [],
-        hidden: false,
+        isRetry: false,
         start: 2,
         stop: 22,
         sourceMetadata: { readerId: "system", metadata: {} },
@@ -394,11 +625,10 @@ describe("plugin", () => {
           { id: "qa_b", name: "QA" },
         ] satisfies EnvironmentIdentity[]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
         testResultsByEnvironmentId: vi
           .fn()
           .mockImplementation(async (environmentId: string) =>
@@ -419,6 +649,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -464,7 +695,7 @@ describe("plugin", () => {
     });
   });
 
-  describe("single file mode", () => {
+  describe("report assets", () => {
     const makeSingleFileStore = (testResults: TestResult[]): AllureStore =>
       ({
         metadataByKey: vi.fn().mockResolvedValue(undefined),
@@ -473,11 +704,10 @@ describe("plugin", () => {
           .fn()
           .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
         testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
         environmentIdByTrId: vi.fn().mockResolvedValue("default"),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
@@ -494,6 +724,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -527,6 +758,29 @@ describe("plugin", () => {
 
       return data;
     };
+
+    it("should copy every emitted multi-file asset", async () => {
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const testResults = [
+        { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
+      ] as TestResult[];
+      const plugin = new AwesomePlugin();
+      const multiDist = dirname(require.resolve("@allurereport/web-awesome/dist/multi/manifest.json"));
+      const expectedAssets = (await readdir(multiDist)).filter((fileName) => fileName !== "manifest.json");
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      for (const fileName of expectedAssets) {
+        expect(addedFiles.has(fileName), `"${fileName}" must be copied to the report`).toBe(true);
+      }
+    });
 
     it("should embed all required widget files as valid base64 JSON with posix keys", async () => {
       const testResults: TestResult[] = [
@@ -568,9 +822,12 @@ describe("plugin", () => {
       // Required widget files must be present
       const requiredKeys = [
         "widgets/nav.json",
+        "widgets/search-index.json",
         "widgets/default/tree.json",
         "widgets/default/nav.json",
+        "widgets/default/search-index.json",
         "widgets/environments.json",
+        "widgets/allure_environment.json",
         "widgets/statistic.json",
         "widgets/globals.json",
       ];
@@ -591,6 +848,20 @@ describe("plugin", () => {
       const envs = JSON.parse(Buffer.from(envsRaw, "base64").toString("utf-8")) as EnvironmentIdentity[];
 
       expect(envs).toContainEqual({ id: "default", name: "default" });
+
+      const envMetaRaw = embeddedData["widgets/allure_environment.json"];
+      const envMeta = JSON.parse(Buffer.from(envMetaRaw, "base64").toString("utf-8"));
+
+      expect(envMeta).toEqual([]);
+
+      const treeFiltersRaw = embeddedData["widgets/tree-filters.json"];
+      const treeFilters = JSON.parse(Buffer.from(treeFiltersRaw, "base64").toString("utf-8")) as {
+        tags: string[];
+        categories: string[];
+      };
+
+      expect(treeFilters.tags).toEqual(["smoke"]);
+      expect(Array.isArray(treeFilters.categories)).toBe(true);
 
       // data test results file for the test must be present
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);

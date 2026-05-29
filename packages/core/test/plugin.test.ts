@@ -88,4 +88,17 @@ describe("FileSystemReportFiles", () => {
       expect(firstStat.ino).toBe(secondStat.ino);
     }
   });
+
+  it("does not reuse rewritten canonical path for the old payload", async () => {
+    const { writer } = await createWriter();
+
+    const canonicalPath = await writer.addFile("report1/asset.txt", Buffer.from("old-content", "utf8"));
+
+    await writer.addFile("report1/asset.txt", Buffer.from("new-content", "utf8"));
+
+    const targetPath = await writer.addFile("report2/asset.txt", Buffer.from("old-content", "utf8"));
+
+    expect(await readFile(canonicalPath, "utf8")).toBe("new-content");
+    expect(await readFile(targetPath, "utf8")).toBe("old-content");
+  });
 });
