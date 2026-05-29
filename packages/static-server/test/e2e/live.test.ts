@@ -65,14 +65,10 @@ test("reloads the page when a file changes", async ({ page }) => {
 
   const prevContent = await page.$("#content").then((el) => el?.textContent());
 
-  await page.pause();
-
   test.expect(prevContent).not.toEqual(fixtures.json.content);
 
   await writeFile(sampleFilePath, JSON.stringify(fixtures.json), "utf8");
   await page.waitForTimeout(200);
-
-  await page.pause();
 
   const actualContent = await page.$("#content").then((el) => el?.textContent());
 

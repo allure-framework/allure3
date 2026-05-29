@@ -207,6 +207,10 @@ export default defineConfig({
     url: "http://localhost:3000",
     accessToken: "storage_test",
   },
+  // allureService: {
+  //   url: "http://localhost:3000",
+  //   accessToken: "storage_test"
+  // },
   environments: {
     foo: {
       name: "foo",
