@@ -57,7 +57,7 @@ The plugin accepts the following options:
 | `ci`           | CI data which will be rendered in the report                                                                                                                | `{ type: "github" \| "jenkins", url: string, name: string }` | `undefined`                   |
 | `groupBy`      | Grouping tests by labels or combining labels. By default, tests are grouped using the `titlePath` provided by the test framework. | `string`                                                      | `[]`(Grouping by `titlepath`) |
 | `appendTitlePath`| Special marker for `groupBy`. Forces a final grouping by `titlePath` after all label-based groups.                                                          | `boolean`                                                    | `false`                       |
-| `stepTreeExpansion` | Default expansion policy for step trees in test details. | `"collapsed" \| "expand_failed_only" \| "expanded"` | `"expand_failed_only"` |
+| `stepTreeExpansion` | Default expansion policy for step trees in test details. | `"collapsed" \| "expand_failed_only" \| "expanded"` | `"expanded"` |
 | `defaultSortBy` | Default sort order for the test tree. Accepted values: `order,asc`, `order,desc`, `duration,asc`, `duration,desc`, `name,asc`, `name,desc`, `status,asc`, `status,desc`. User's manual selection is preserved in `localStorage` and takes priority over this value. | `string` | `order,asc` |
 
 ### Default sort order
@@ -95,7 +95,7 @@ export default defineConfig({
   plugins: {
     awesome: {
       options: {
-        stepTreeExpansion: "expand_failed_only",
+        stepTreeExpansion: "expanded",
       },
     },
   },
