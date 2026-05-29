@@ -5,7 +5,7 @@ import { hasTestLevelErrorContent, type TrBodyItem, type TrStepItem } from "@/co
 
 import type { AwesomeReportOptions, StepTreeExpansion } from "../../../../types";
 
-const DEFAULT_STEP_TREE_EXPANSION_POLICY: StepTreeExpansion = "expanded";
+const DEFAULT_STEP_TREE_EXPANSION_POLICY: StepTreeExpansion = "expand_failed_only";
 
 const isFailedStatus = (status: TestStatus) => status === "failed" || status === "broken";
 
