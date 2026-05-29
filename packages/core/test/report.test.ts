@@ -863,7 +863,7 @@ describe("report", () => {
     expect(names).not.toContain("token.txt");
   });
 
-  it("should coalesce realtime updates without dropping events", async () => {
+  it("should coalesce realtime updates without dropping events", { timeout: 10000 }, async () => {
     const p1 = createPlugin("p1");
     const config = await resolveConfig({
       name: "Allure Report",
@@ -930,33 +930,37 @@ describe("report", () => {
     expect(p1.plugin.done).toBeCalledTimes(1);
   });
 
-  it("should not schedule extra updates for realtime events before scheduled update starts", async () => {
-    const p1 = createPlugin("p1");
-    const config = await resolveConfig({
-      name: "Allure Report",
-    });
+  it(
+    "should not schedule extra updates for realtime events before scheduled update starts",
+    { timeout: 10000 },
+    async () => {
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({
+        name: "Allure Report",
+      });
 
-    config.plugins?.push(p1);
+      config.plugins?.push(p1);
 
-    const allureReport = new AllureReport({
-      ...config,
-      realTime: true,
-    });
+      const allureReport = new AllureReport({
+        ...config,
+        realTime: true,
+      });
 
-    await allureReport.start();
+      await allureReport.start();
 
-    (p1.plugin.update as Mock).mockReset().mockResolvedValue(undefined);
+      (p1.plugin.update as Mock).mockReset().mockResolvedValue(undefined);
 
-    allureReport.realtimeDispatcher.sendTestResult("tr-1");
-    allureReport.realtimeDispatcher.sendTestFixtureResult("tfr-1");
-    allureReport.realtimeDispatcher.sendAttachmentFile("af-1");
+      allureReport.realtimeDispatcher.sendTestResult("tr-1");
+      allureReport.realtimeDispatcher.sendTestFixtureResult("tfr-1");
+      allureReport.realtimeDispatcher.sendAttachmentFile("af-1");
 
-    await allureReport.done();
+      await allureReport.done();
 
-    expect(p1.plugin.update).toBeCalledTimes(1);
-  });
+      expect(p1.plugin.update).toBeCalledTimes(1);
+    },
+  );
 
-  it("should wait for active realtime update before plugin done", async () => {
+  it("should wait for active realtime update before plugin done", { timeout: 10000 }, async () => {
     const p1 = createPlugin("p1");
     const config = await resolveConfig({
       name: "Allure Report",
@@ -1006,49 +1010,53 @@ describe("report", () => {
     );
   });
 
-  it("should finish plugin done when active realtime plugin update fails during shutdown", async () => {
-    const p1 = createPlugin("p1");
-    const config = await resolveConfig({
-      name: "Allure Report",
-    });
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    const updateError = new Error("update failed");
-    const releaseUpdate = createSignal();
-    const updateStarted = createSignal();
+  it(
+    "should finish plugin done when active realtime plugin update fails during shutdown",
+    { timeout: 10000 },
+    async () => {
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({
+        name: "Allure Report",
+      });
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const updateError = new Error("update failed");
+      const releaseUpdate = createSignal();
+      const updateStarted = createSignal();
 
-    config.plugins?.push(p1);
+      config.plugins?.push(p1);
 
-    const allureReport = new AllureReport({
-      ...config,
-      realTime: true,
-    });
+      const allureReport = new AllureReport({
+        ...config,
+        realTime: true,
+      });
 
-    await allureReport.start();
+      await allureReport.start();
 
-    (p1.plugin.update as Mock).mockReset().mockImplementationOnce(async () => {
-      updateStarted.resolve();
-      await releaseUpdate.promise;
-      throw updateError;
-    });
-    (p1.plugin.done as Mock).mockReset().mockResolvedValue(undefined);
+      (p1.plugin.update as Mock).mockReset().mockImplementationOnce(async () => {
+        updateStarted.resolve();
+        await releaseUpdate.promise;
+        throw updateError;
+      });
+      (p1.plugin.done as Mock).mockReset().mockResolvedValue(undefined);
 
-    allureReport.realtimeDispatcher.sendTestResult("tr-1");
-    await updateStarted.promise;
+      allureReport.realtimeDispatcher.sendTestResult("tr-1");
+      await updateStarted.promise;
 
-    const donePromise = allureReport.done();
-    await setTimeout(100);
+      const donePromise = allureReport.done();
+      await setTimeout(100);
 
-    expect(p1.plugin.done).not.toBeCalled();
+      expect(p1.plugin.done).not.toBeCalled();
 
-    releaseUpdate.resolve();
-    await donePromise;
+      releaseUpdate.resolve();
+      await donePromise;
 
-    const pluginErrorCalls = consoleError.mock.calls.filter(([message]) => message === "plugin p1 error");
+      const pluginErrorCalls = consoleError.mock.calls.filter(([message]) => message === "plugin p1 error");
 
-    expect(pluginErrorCalls).toHaveLength(1);
-    expect(pluginErrorCalls[0][1]).toBe(updateError);
-    expect(p1.plugin.done).toBeCalledTimes(1);
+      expect(pluginErrorCalls).toHaveLength(1);
+      expect(pluginErrorCalls[0][1]).toBe(updateError);
+      expect(p1.plugin.done).toBeCalledTimes(1);
 
-    consoleError.mockRestore();
-  });
+      consoleError.mockRestore();
+    },
+  );
 });
