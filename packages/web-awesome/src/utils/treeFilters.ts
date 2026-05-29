@@ -1,4 +1,4 @@
-import type { Comparator, DefaultTreeGroup, Statistic, TestStatus, TreeLeaf } from "@allurereport/core-api";
+import type { Comparator, Statistic, TestStatus, TreeLeaf } from "@allurereport/core-api";
 import {
   alphabetically,
   andThen,
@@ -38,16 +38,18 @@ const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<T
   }
 };
 
-const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<DefaultTreeGroup> => {
-  const typedCompareBy = compareBy<DefaultTreeGroup>;
+const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<AwesomeRecursiveTree> => {
+  const typedCompareBy = compareBy<AwesomeRecursiveTree>;
   switch (sortBy) {
     case "name,desc":
     case "name,asc":
       return typedCompareBy("name", alphabetically());
     case "order,desc":
     case "order,asc":
+      return typedCompareBy("groupOrder", ordinal());
     case "duration,desc":
     case "duration,asc":
+      return typedCompareBy("duration", ordinal());
     case "status,desc":
     case "status,asc":
       return typedCompareBy("statistic", byStatistic());
@@ -76,7 +78,7 @@ export const leafComparator = (sortBy: SortBy = "status,asc"): Comparator<TreeLe
   return withDirection(cmp, sortBy);
 };
 
-export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<DefaultTreeGroup> => {
+export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<AwesomeRecursiveTree> => {
   const cmp = groupComparatorByTreeSortBy(sortBy);
 
   return withDirection(cmp, sortBy);
@@ -150,11 +152,20 @@ export const createRecursiveTree = (payload: {
     incrementStatistic(statistic, status);
   });
 
+  const duration =
+    leaves.reduce((acc, leaf) => acc + (leaf.duration ?? 0), 0) + trees.reduce((acc, rt) => acc + rt.duration, 0);
+
+  const leafMinOrder = leaves.reduce((acc, leaf) => Math.min(acc, leaf.groupOrder ?? Infinity), Infinity);
+  const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder), Infinity);
+  const groupOrder = Math.min(leafMinOrder, treeMinOrder);
+
   return {
     ...group,
     statistic,
     leaves,
     trees: trees.sort(groupComparator(sortBy)),
+    duration,
+    groupOrder: isFinite(groupOrder) ? groupOrder : 0,
   };
 };
 

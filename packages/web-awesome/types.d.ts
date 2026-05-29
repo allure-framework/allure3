@@ -29,6 +29,7 @@ export type AwesomeReportOptions = {
   cacheKey: string;
   ci?: CiDescriptor;
   stepTreeExpansion?: StepTreeExpansion;
+  defaultSortBy?: string;
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -122,6 +123,8 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
   leaves: AwesomeTreeLeaf[];
   trees: AwesomeRecursiveTree[];
+  duration: number;
+  groupOrder: number;
 };
 
 // TODO: maybe it should call `TestCase` instead of Group

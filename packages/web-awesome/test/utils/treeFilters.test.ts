@@ -345,6 +345,110 @@ describe("utils > treeFilters", () => {
       );
     });
 
+    it("sorts groups by earliest leaf groupOrder when sorting by order ascending", () => {
+      const group = {
+        leaves: [],
+        groups: ["groupA", "groupB", "groupC"],
+      };
+      const leavesById = {
+        t1: { name: "t1", status: "passed", groupOrder: 5 } as AwesomeTestResult,
+        t2: { name: "t2", status: "passed", groupOrder: 2 } as AwesomeTestResult,
+        t3: { name: "t3", status: "passed", groupOrder: 8 } as AwesomeTestResult,
+      };
+      const groupsById = {
+        groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
+        groupB: { name: "groupB", leaves: ["t2"], groups: [] as string[] },
+        groupC: { name: "groupC", leaves: ["t3"], groups: [] as string[] },
+      };
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "order,asc",
+      });
+
+      expect(result.trees.map((t) => t.name)).toEqual(["groupB", "groupA", "groupC"]);
+    });
+
+    it("sorts groups by earliest leaf groupOrder when sorting by order descending", () => {
+      const group = {
+        leaves: [],
+        groups: ["groupA", "groupB", "groupC"],
+      };
+      const leavesById = {
+        t1: { name: "t1", status: "passed", groupOrder: 5 } as AwesomeTestResult,
+        t2: { name: "t2", status: "passed", groupOrder: 2 } as AwesomeTestResult,
+        t3: { name: "t3", status: "passed", groupOrder: 8 } as AwesomeTestResult,
+      };
+      const groupsById = {
+        groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
+        groupB: { name: "groupB", leaves: ["t2"], groups: [] as string[] },
+        groupC: { name: "groupC", leaves: ["t3"], groups: [] as string[] },
+      };
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "order,desc",
+      });
+
+      expect(result.trees.map((t) => t.name)).toEqual(["groupC", "groupA", "groupB"]);
+    });
+
+    it("sorts groups by aggregated duration when sorting by duration ascending", () => {
+      const group = {
+        leaves: [],
+        groups: ["groupA", "groupB", "groupC"],
+      };
+      const leavesById = {
+        t1: { name: "t1", status: "passed", duration: 3000 } as AwesomeTestResult,
+        t2: { name: "t2", status: "passed", duration: 1000 } as AwesomeTestResult,
+        t3: { name: "t3", status: "passed", duration: 5000 } as AwesomeTestResult,
+      };
+      const groupsById = {
+        groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
+        groupB: { name: "groupB", leaves: ["t2"], groups: [] as string[] },
+        groupC: { name: "groupC", leaves: ["t3"], groups: [] as string[] },
+      };
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "duration,asc",
+      });
+
+      expect(result.trees.map((t) => t.name)).toEqual(["groupB", "groupA", "groupC"]);
+    });
+
+    it("sorts groups by aggregated duration when sorting by duration descending", () => {
+      const group = {
+        leaves: [],
+        groups: ["groupA", "groupB", "groupC"],
+      };
+      const leavesById = {
+        t1: { name: "t1", status: "passed", duration: 3000 } as AwesomeTestResult,
+        t2: { name: "t2", status: "passed", duration: 1000 } as AwesomeTestResult,
+        t3: { name: "t3", status: "passed", duration: 5000 } as AwesomeTestResult,
+      };
+      const groupsById = {
+        groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
+        groupB: { name: "groupB", leaves: ["t2"], groups: [] as string[] },
+        groupC: { name: "groupC", leaves: ["t3"], groups: [] as string[] },
+      };
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "duration,desc",
+      });
+
+      expect(result.trees.map((t) => t.name)).toEqual(["groupC", "groupA", "groupB"]);
+    });
+
     it("keeps problem-heavy groups first when sorting by status in descending order", () => {
       const group = {
         leaves: [],
