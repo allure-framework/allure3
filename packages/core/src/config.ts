@@ -354,20 +354,20 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     qualityGate: config.qualityGate,
     allureService: config.allureService
       ? {
-          accessToken: config.allureService?.accessToken,
-          private: config.allureService?.private,
+          accessToken: config.allureService.accessToken,
+          private: config.allureService.private,
           uploadConcurrency: parseIntegerConfigValue(
-            config.allureService?.uploadConcurrency,
+            config.allureService.uploadConcurrency,
             DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
             1,
           ),
           uploadMaxAttempts: parseIntegerConfigValue(
-            config.allureService?.uploadMaxAttempts,
+            config.allureService.uploadMaxAttempts,
             DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
             1,
           ),
           uploadMaxSimultaneousFailures: parseIntegerConfigValue(
-            config.allureService?.uploadMaxSimultaneousFailures,
+            config.allureService.uploadMaxSimultaneousFailures,
             DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
             0,
           ),

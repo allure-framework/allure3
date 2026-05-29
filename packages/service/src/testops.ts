@@ -4,7 +4,7 @@ import { extname, join as joinPosix } from "node:path/posix";
 import { type HistoryDataPoint } from "@allurereport/core-api";
 
 import {
-  ALLURE_SERIVCE_TESTOPS_PREFIX,
+  ALLURE_SERVICE_TESTOPS_PREFIX,
   type AllureServiceApiClient,
   type AllureServiceApiClientConfig,
   type UploadReportPayload,
@@ -51,7 +51,7 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
       throw new Error("Allure TestOps access token is required");
     }
 
-    if (!config.accessToken.startsWith(ALLURE_SERIVCE_TESTOPS_PREFIX)) {
+    if (!config.accessToken.startsWith(ALLURE_SERVICE_TESTOPS_PREFIX)) {
       throw new Error("Allure service access token is invalid");
     }
 

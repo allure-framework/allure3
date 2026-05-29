@@ -13,7 +13,7 @@ export const ALLURE_ACCESS_TOKEN_PATH = join(ALLURE_FILES_DIRNAME, "access_token
 
 export const ALLURE_SERVICE_STORAGE_PREFIX = "ars1.";
 
-export const ALLURE_SERIVCE_TESTOPS_PREFIX = "ato1.";
+export const ALLURE_SERVICE_TESTOPS_PREFIX = "ato1.";
 
 export type UploadReportConfig = Required<
   Pick<AllureServiceConfig, "uploadConcurrency" | "uploadMaxAttempts" | "uploadMaxSimultaneousFailures">
