@@ -8,8 +8,6 @@ import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import {
   collectExpandableStepNodes,
   getStepTreeExpansionPolicy,
-  hasFailedStepContext,
-  isOpenByDefaultForPolicy,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeNode,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
