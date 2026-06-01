@@ -26,6 +26,21 @@ Runtime first, source second.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 - After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
 - After changing a package in this repository, run that package build command before finalizing (for example, `yarn workspace <package-name> build`).
+- Monorepo build order, full-repo builds, and lint/format/type-aware lint expectations before finalizing live in `AGENTS.md` (keep agent-mode docs focused on runtime evidence loops).
+
+## Agent mode failures and unavailable runs
+
+Use this when `allure agent` errors, produces no usable output directory, exits non-zero before manifests exist, or cannot be run in the current environment.
+
+1. **Keep conclusions honest:** do not upgrade a plain test-runner log to a “full” review outcome. If agent artifacts are missing, any pass/fail or scope claim stays **provisional** until agent mode succeeds for the intended command.
+2. **Confirm the invocation:** use the repo’s normal wrapper (here: `yarn allure agent -- …`) so the same subcommand runs with agent-mode instrumentation. Compare argv and cwd with a known-good run.
+3. **Locate output:** if you did not pass `--output`, run `allure agent latest` or `allure agent state-dir` and inspect the resolved directory. Prefer a fresh explicit path via `--output` or `ALLURE_AGENT_OUTPUT` when debugging path or permission issues.
+4. **Expectations and env:** ensure `ALLURE_AGENT_EXPECTATIONS` points at the file you intended (typos silently change behavior). When isolating bugs, set unique `ALLURE_AGENT_OUTPUT` / expectations paths per run (see [Per-Run Artifacts](#per-run-artifacts)).
+5. **Partial artifacts:** if `index.md` or under `manifest/` is missing but the process exited zero, treat the run as **incomplete** and investigate before signing off. If the runner shows failures that never appear in `manifest/tests.jsonl`, check `artifacts/global/stderr.txt` and other logs under `artifacts/global/` (see [When Console Errors Are Not Represented As Test Results](#when-console-errors-are-not-represented-as-test-results)).
+6. **CLI or environment blocked:** when agent mode truly cannot run (broken install, policy-blocked sandbox, missing binary), say so explicitly in your summary: what you ran instead, which artifacts are absent, and what to rerun with `allure agent` once unblocked. Do not silently default to “tests passed” narratives from console-only runs.
+7. **Escalation:** repeated failures after the steps above are a **tooling** problem—collect command line, exit code, first/last log chunks, and Allure CLI version; fix or report that before relying on any substitute workflow.
+
+Skipping agent mode remains limited to the cases already stated in this guide (impossible here, or you are debugging agent mode itself).
 
 ## Repository Status
 
@@ -364,6 +379,7 @@ A test review is not complete unless:
 - agent artifacts were reviewed before final conclusions
 - missing or partial runtime modeling was called out explicitly
 - console-only conclusions are treated as provisional when agent output is absent or incomplete
+- agent-mode tooling failures were handled using [Agent mode failures and unavailable runs](#agent-mode-failures-and-unavailable-runs) (or agent mode was skipped only per the exceptions above)
 
 ## Future Loops
 

@@ -7,7 +7,7 @@
   left: 0;
   top: 0;
   width: 100%;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   z-index: 1;
 }
 
@@ -16,8 +16,8 @@
   left: 0;
   top: 0;
   width: 100%;
-  background: var(--bg-base-primary);
-  z-index: 1;
+  background: var(--color-bg-primary);
+  z-index: 2;
 }
 
 .test-result-info-data {
@@ -27,7 +27,7 @@
   margin-bottom: 8px;
 
   & > *:not(:first-child):not(:empty) {
-    border-left: 1px solid var(--on-border-primary);
+    border-left: 1px solid var(--color-border-default);
     padding-left: 12px;
   }
 }
@@ -38,15 +38,15 @@
 }
 
 .test-result-duration {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-category {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-tabs {
-  border-bottom: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .test-result-tab {
@@ -69,5 +69,5 @@
 
 .metadata-icon {
   margin-right: 8px;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }

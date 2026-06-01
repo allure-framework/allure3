@@ -1,7 +1,7 @@
 @import "../../../../assets/scss/mixins.scss";
 
 .metadata-item-title {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 6px;
 }
 
@@ -11,14 +11,14 @@
 
 .metadata-test-type {
   display: flex;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .metadata-color-badge {
   width: 4px;
   height: 12px;
   border-radius: 2px;
-  background: var(--on-text-secondary);
+  background: var(--color-text-secondary);
   margin-right: 8px;
   align-self: center;
   @include status-bg-and-text();

@@ -1,9 +1,14 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { AqlErrorCode, isAqlParserError } from "../src/errors/index.js";
 import type { AqlParserConfig } from "../src/model.js";
 import { AqlLogicalOperator, AqlOperation } from "../src/model.js";
 import { parseAql } from "../src/parser/index.js";
 
+beforeEach(async () => {
+  await story("parser.config");
+});
 describe("AqlParser Configuration", () => {
   describe("logicalOperators", () => {
     test("should allow only specified logical operators", () => {

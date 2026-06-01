@@ -70,7 +70,7 @@ export const TreeMapChart: FunctionalComponent<
         colors={(n) => colors(n.data.colorValue ?? 0)}
         labelTextColor={labelColor}
         parentLabelTextColor={labelColor}
-        borderColor={"var(--bg-base-primary)"}
+        borderColor={"var(--color-bg-primary)"}
         borderWidth={1}
         nodeComponent={TreeMapNodeComponent}
       />

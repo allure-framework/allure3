@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 
+import { epic, feature, label, story } from "allure-js-commons";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -23,7 +24,11 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   writeFile: vi.fn().mockResolvedValue(undefined),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("agent-state");
+  await story("agent-state");
+  await label("coverage", "agent-state");
   vi.clearAllMocks();
   delete process.env[ALLURE_AGENT_STATE_DIR_ENV];
 });

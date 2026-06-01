@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.8.2",
+  "version": "3.9.0",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
@@ -24,7 +24,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "pretest": "rimraf ./out",
+    "pretest": "rimraf ./out && playwright install chromium",
     "test": "run-p 'test:*'",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
@@ -40,9 +40,9 @@
     "@types/node": "^20.17.9",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-js-commons": "^3.3.3",
-    "allure-playwright": "^3.3.3",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-playwright": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "axios": "^1.15.2",
     "get-port": "^7.1.0",
     "npm-run-all2": "^7.0.1",

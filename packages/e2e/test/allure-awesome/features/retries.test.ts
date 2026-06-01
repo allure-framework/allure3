@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -64,7 +64,10 @@ test.describe("retries", () => {
 
     test.beforeEach(async ({ browserName, page }) => {
       await label("env", browserName);
-
+      await epic("coverage");
+      await feature("flakiness-and-transitions");
+      await story("retries");
+      await label("coverage", "flakiness-and-transitions");
       treePage = new TreePage(page);
     });
 
@@ -183,7 +186,10 @@ test.describe("retries", () => {
 
     test.beforeEach(async ({ page, browserName }) => {
       await label("env", browserName);
-
+      await epic("coverage");
+      await feature("flakiness-and-transitions");
+      await story("retries");
+      await label("coverage", "flakiness-and-transitions");
       treePage = new TreePage(page);
       testResultPage = new TestResultPage(page);
 

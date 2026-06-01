@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-classic",
-  "version": "3.8.2",
+  "version": "3.9.0",
   "description": "The static files for Allure Classic Report",
   "keywords": [
     "allure",
@@ -57,7 +57,8 @@
     "@types/underscore": "^1",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",

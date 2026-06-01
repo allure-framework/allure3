@@ -3,8 +3,15 @@ import path from "node:path";
 
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
-import { step } from "allure-js-commons";
-import { beforeAll, describe, expect, it } from "vitest";
+import { epic, feature, label, step, story } from "allure-js-commons";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("xcresult");
+  await label("coverage", "reading");
+});
 
 import { IS_MAC } from "../src/xcresult/bundle.js";
 import { isXcResultToolAvailable, readXcResultBundle } from "../src/xcresult/index.js";

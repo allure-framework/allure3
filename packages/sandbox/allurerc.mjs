@@ -3,6 +3,7 @@ import { defaultChartsConfig, defineConfig } from "allure";
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
 const sandboxTestopsEnabled = process.env.SANDBOX_ENABLE_TESTOPS === "true";
+const sandboxTestopsToken = process.env.TESTOPS_SANDBOX_TOKEN;
 
 const chartLayout = [
   {
@@ -191,8 +192,8 @@ export default defineConfig({
       ? {
           testops: {
             options: {
-              accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
-              projectId: "770",
+              accessToken: sandboxTestopsToken,
+              projectId: "1",
               endpoint: "http://localhost:8080",
             },
           },
@@ -204,8 +205,12 @@ export default defineConfig({
   },
   allureService: {
     url: "http://localhost:3000",
-    accessToken: "storage_test"
+    accessToken: "storage_test",
   },
+  // allureService: {
+  //   url: "http://localhost:3000",
+  //   accessToken: "storage_test"
+  // },
   environments: {
     foo: {
       name: "foo",
@@ -237,8 +242,7 @@ export default defineConfig({
         env_variable: MAX_ENV_NAME_64_UNICODE,
         env_specific_variable: "max-length-64-unicode",
       },
-      matcher: ({ labels }) =>
-        labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64_UNICODE),
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64_UNICODE),
     },
   },
 });

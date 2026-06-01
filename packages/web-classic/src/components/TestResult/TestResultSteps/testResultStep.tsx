@@ -1,5 +1,5 @@
 import type { DefaultTestStepResult } from "@allurereport/core-api";
-import { Code, Text, allureIcons } from "@allurereport/web-components";
+import { Code, LinkifiedText, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 
@@ -71,7 +71,7 @@ export const TestResultStep: FunctionComponent<{
         <Code size={"s"} className={styles["test-result-step-number"]}>
           {stepIndex}
         </Code>
-        <Text className={styles["test-result-header-text"]}>{item.name}</Text>
+        <LinkifiedText className={styles["test-result-header-text"]} text={item.name} />
         <TestResultStepInfo item={item} />
       </div>
       {hasContent && isOpened && <TestResultStepsContent item={item} />}

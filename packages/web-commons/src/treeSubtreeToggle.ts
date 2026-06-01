@@ -60,6 +60,41 @@ export const getNextSubtreeToggleState = (payload: {
   return "all";
 };
 
+export const resolveNextSubtreeToggleState = (
+  subtreeNodes: SubtreeNodeState[],
+  isNodeOpened: (id: string, openedByDefault: boolean) => boolean,
+  lastSubtreeToggle: SubtreeToggleState | null,
+): { nextState: SubtreeToggleState; nextLastToggle: SubtreeToggleState | null } => {
+  const root = subtreeNodes.find((node) => node.isRoot);
+
+  if (!root || subtreeNodes.length === 0) {
+    return { nextState: "first", nextLastToggle: null };
+  }
+
+  const isSubtreeCollapsedAll = !isNodeOpened(root.id, root.openedByDefault);
+  const isSubtreeFirstLevelOnly = isSubtreeFirstLevelOnlyOpened(
+    root.id,
+    root.openedByDefault,
+    subtreeNodes,
+    isNodeOpened,
+  );
+  const subtreeExpandedAll = isSubtreeExpandedAll(subtreeNodes, isNodeOpened);
+  const hasOnlyLeafResults = subtreeNodes.every((node) => node.isRoot);
+
+  const nextState = getNextSubtreeToggleState({
+    hasOnlyLeafResults,
+    isSubtreeCollapsedAll,
+    isSubtreeFirstLevelOnly,
+    isSubtreeExpandedAll: subtreeExpandedAll,
+    lastSubtreeToggle,
+  });
+
+  return {
+    nextState,
+    nextLastToggle: nextState !== "first" ? nextState : lastSubtreeToggle,
+  };
+};
+
 export const getSubtreeToggleIcon = (payload: {
   hasOnlyLeafResults: boolean;
   isSubtreeCollapsedAll: boolean;

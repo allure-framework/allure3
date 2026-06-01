@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/directory-watcher",
-  "version": "3.8.2",
+  "version": "3.9.0",
   "description": "File system watcher for directories",
   "keywords": [
     "allure",
@@ -35,7 +35,8 @@
   "devDependencies": {
     "@types/node": "^20.17.9",
     "@vitest/runner": "^2.1.9",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",

@@ -1,9 +1,17 @@
 import type { AttachmentLink } from "@allurereport/core-api";
 import type { ResultFile } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generateAttachmentsFiles } from "../src/generators.js";
 import type { ClassicDataWriter } from "../src/writer.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("generators");
+  await label("coverage", "report-output");
+});
 
 describe("generateAttachmentsFiles", () => {
   it("should skip missed attachments and keep writing later available attachments", async () => {

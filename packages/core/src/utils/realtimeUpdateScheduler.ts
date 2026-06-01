@@ -13,6 +13,10 @@ export interface RealtimeUpdateSchedulerOptions {
  * cooldown, runs the worker once, and runs one more pass if more requests arrived
  * while the worker was active. `close()` stops new requests and waits for already
  * scheduled work before final report generation continues.
+ *
+ * Dynamic cooldown: after each update completes, the scheduler waits at least as
+ * long as the update took before starting the next one. This prevents plugin
+ * overload when results arrive faster than reports can be regenerated.
  */
 export class RealtimeUpdateScheduler {
   readonly #worker: () => Promise<void>;
@@ -93,7 +97,16 @@ export class RealtimeUpdateScheduler {
 
       this.#phase = "running";
       this.#dirty = false;
+      const start = Date.now();
       await this.#worker();
+      const elapsed = Date.now() - start;
+
+      // Dynamic cooldown: wait at least as long as the update took before
+      // scheduling the next one. This prevents update storms when results
+      // arrive faster than plugins can regenerate reports.
+      if (this.#dirty && elapsed > this.#cooldownMs) {
+        await setTimeout(elapsed - this.#cooldownMs);
+      }
     } while (this.#dirty);
   };
 }

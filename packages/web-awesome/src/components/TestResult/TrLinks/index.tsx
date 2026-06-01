@@ -62,8 +62,8 @@ export type TrLinksProps = {
 
 export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const { t } = useI18n("ui");
-  const linksId = id !== null ? `${id}-links` : null;
-  const linksShowAllId = id !== null ? `${id}-links-showAll` : null;
+  const linksId = id ? `${id}-links` : null;
+  const linksShowAllId = id ? `${id}-links-showAll` : null;
   const isOpened = !collapsedTrees.value.has(linksId);
   const showAll = collapsedTrees.value.has(linksShowAllId);
   const visibleLinks =

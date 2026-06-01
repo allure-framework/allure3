@@ -2,12 +2,20 @@ import console from "node:console";
 import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max);
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("event");
+  await label("coverage", "report-engine");
+});
 
 describe("Events", () => {
   it("should batch test result events", async () => {

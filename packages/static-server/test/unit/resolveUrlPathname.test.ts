@@ -1,9 +1,13 @@
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { resolveUrlPathnameUnderServeRoot } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("resolveUrlPathname");
+});
 describe("resolveUrlPathnameUnderServeRoot", () => {
   const root = resolve("/tmp/allure-static-serve-root");
 

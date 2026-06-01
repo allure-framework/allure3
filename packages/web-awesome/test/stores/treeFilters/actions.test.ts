@@ -1,4 +1,12 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-state");
+  await story("actions");
+  await label("coverage", "ui-state");
+});
 
 const { fetchReportJsonDataMock, setParamsMock } = vi.hoisted(() => ({
   fetchReportJsonDataMock: vi.fn(),

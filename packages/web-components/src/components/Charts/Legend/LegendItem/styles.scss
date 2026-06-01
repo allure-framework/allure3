@@ -13,7 +13,7 @@
 
   &:hover,
   &:focus {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-ghost-hover);
   }
 }
 
@@ -42,10 +42,10 @@
 }
 
 .legendValue {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 
   [data-tooltip-type="chart"] & {
-    color: var(--constant-on-text-secondary);
+    color: var(--color-text-inverse-secondary);
   }
 
   display: block;

@@ -1,4 +1,4 @@
-import { label } from "allure-js-commons";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { getHistoryUrl, isSameDocumentUrl, toSameDocumentHistoryUrl } from "../../../src/stores/url/helpers.js";
@@ -7,6 +7,10 @@ describe("stores > url > helpers", () => {
   beforeEach(async () => {
     await label("layer", "unit");
     await label("component", "web-commons");
+    await epic("coverage");
+    await feature("url-routing");
+    await story("helpers");
+    await label("coverage", "url-routing");
   });
 
   describe("isSameDocumentUrl", () => {

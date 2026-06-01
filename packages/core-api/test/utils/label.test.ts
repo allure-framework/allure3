@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { shouldHideLabel } from "../../src/utils/label.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("labels-and-tags");
+  await story("label");
+  await label("coverage", "labels-and-tags");
+});
 
 describe("label utils", () => {
   it("should hide underscore-prefixed labels by default", () => {

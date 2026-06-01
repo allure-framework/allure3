@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { parseAql } from "../src/parser/index.js";
 
+beforeEach(async () => {
+  await story("parser");
+});
 describe("AqlParser", () => {
   test("should parse simple condition", async () => {
     const result = parseAql('status = "passed"');

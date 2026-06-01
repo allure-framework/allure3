@@ -32,11 +32,11 @@ const useGetColor = (currentTheme: string = "light") => {
     return getColorScale(
       [0, 1],
       [
-        "var(--bg-support-castor)",
-        "var(--bg-support-atlas-heavy)",
-        "var(--bg-support-atlas)",
-        "var(--bg-support-atlas-heavy)",
-        "var(--bg-support-capella)",
+        "var(--color-chart-heatmap-low)",
+        "var(--color-chart-heatmap-mid-strong)",
+        "var(--color-chart-heatmap-mid)",
+        "var(--color-chart-heatmap-mid-strong)",
+        "var(--color-chart-heatmap-high)",
       ],
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- this is intentional
@@ -88,9 +88,9 @@ export const HeatMap: FunctionalComponent<HeatMapProps> = ({
         animate={!REDUCE_MOTION}
         valueFormat={valueFormat}
         colors={(n) => getColor(n.data.y ?? 0)}
-        labelTextColor={"var(--constant-on-text-primary)"}
+        labelTextColor={"var(--color-text-inverse)"}
         tooltip={HeatMapTooltip}
-        emptyColor={"var(--bg-control-secondary)"}
+        emptyColor={"var(--color-control-bg)"}
         inactiveOpacity={0}
         borderRadius={4}
         {...restProps}

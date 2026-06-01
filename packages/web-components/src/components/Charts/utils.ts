@@ -2,20 +2,24 @@ import type { TestStatus } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
 
-export const getColorFromStatus = (status: TestStatus) => {
+export type StatusColorRole = "chart" | "chartFill";
+
+export const getColorFromStatus = (status: TestStatus, role: StatusColorRole = "chart") => {
+  const suffix = role === "chartFill" ? "chart-fill" : "chart";
+
   switch (status) {
     case "passed":
-      return "var(--bg-support-castor)";
+      return `var(--color-status-passed-${suffix})`;
     case "failed":
-      return "var(--bg-support-capella)";
+      return `var(--color-status-failed-${suffix})`;
     case "broken":
-      return "var(--bg-support-atlas)";
+      return `var(--color-status-broken-${suffix})`;
     case "unknown":
-      return "var(--bg-support-skat)";
+      return `var(--color-status-unknown-${suffix})`;
     case "skipped":
-      return "var(--bg-support-rau)";
+      return `var(--color-status-skipped-${suffix})`;
     default:
-      return "var(--bg-support-skat)";
+      return `var(--color-status-unknown-${suffix})`;
   }
 };
 

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
+import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AgentPlugin, {
@@ -17,6 +18,9 @@ import AgentPlugin, {
   reviewAgentOutput,
 } from "../src/index.js";
 
+beforeEach(async () => {
+  await story("harness");
+});
 const AGENT_ENV_VARS = ["ALLURE_AGENT_EXPECTATIONS", "ALLURE_AGENT_COMMAND", "ALLURE_AGENT_PROJECT_ROOT"] as const;
 
 const createContext = (reportName: string = "Harness Report"): PluginContext =>

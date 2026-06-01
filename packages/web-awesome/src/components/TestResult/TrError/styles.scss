@@ -1,6 +1,6 @@
 .test-result-error {
   padding: 8px 8px 12px 16px;
-  background-color: var(--bg-alpha-capella);
+  background-color: var(--color-status-failed-bg-subtle);
   border-radius: 8px;
   position: relative;
   overflow: hidden;
@@ -18,37 +18,37 @@
 }
 
 .tr-status-failed {
-  background-color: var(--bg-alpha-capella);
+  background-color: var(--color-status-failed-bg-subtle);
   &:before {
-    background-color: var(--bg-support-capella);
+    background-color: var(--color-status-failed-chart);
   }
 }
 
 .tr-status-broken {
-  background-color: var(--bg-alpha-atlas);
+  background-color: var(--color-status-broken-bg-subtle);
   &:before {
-    background-color: var(--bg-support-atlas);
+    background-color: var(--color-status-broken-chart);
   }
 }
 
 .tr-status-skipped {
-  background-color: var(--bg-alpha-rau);
+  background-color: var(--color-status-skipped-bg-subtle);
   &:before {
-    background-color: var(--bg-support-rau);
+    background-color: var(--color-status-skipped-chart);
   }
 }
 
 .tr-status-unknown {
-  background-color: var(--bg-alpha-skat);
+  background-color: var(--color-status-unknown-bg-subtle);
   &:before {
-    background-color: var(--bg-support-skat);
+    background-color: var(--color-status-unknown-chart);
   }
 }
 
 .tr-status-passed {
-  background-color: var(--bg-alpha-castor);
+  background-color: var(--color-status-passed-bg-subtle);
   &:before {
-    background-color: var(--bg-support-castor);
+    background-color: var(--color-status-passed-chart);
   }
 }
 
@@ -61,27 +61,27 @@
 .test-result-error-text {
   margin-bottom: 8px;
   padding-left: 8px;
-  color: var(--on-support-capella);
+  color: var(--color-status-failed-text);
   margin-right: auto;
 }
 
 .tr-color-failed {
-  color: var(--on-support-capella);
+  color: var(--color-status-failed-text);
 }
 
 .tr-color-broken {
-  color: var(--on-support-atlas);
+  color: var(--color-status-broken-text);
 }
 
 .tr-color-skipped {
-  color: var(--on-support-rau);
+  color: var(--color-status-skipped-text);
 }
 
 .tr-color-passed {
-  color: var(--on-support-castor);
+  color: var(--color-status-passed-text);
 }
 .tr-color-unknown {
-  color: var(--on-support-skat);
+  color: var(--color-status-unknown-text);
 }
 
 .test-result-error-trace {
@@ -143,18 +143,18 @@
 }
 
 .diff-green {
-  color: var(--on-support-castor);
-  background: #09933729;
+  color: var(--color-intent-success-text);
+  background: var(--color-intent-success-bg-subtle);
 }
 
 .diff-grey {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 .diff-red {
-  color: var(--on-support-capella);
-  background: var(--bg-alpha-capella);
+  color: var(--color-intent-danger-text);
+  background: var(--color-intent-danger-bg-subtle);
 }
 
 .diff-buttons {
@@ -201,6 +201,6 @@
 }
 
 .diff-buttons-title {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   margin-right: 8px;
 }

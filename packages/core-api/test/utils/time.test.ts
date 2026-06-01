@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { formatDuration } from "../../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("time");
+  await label("coverage", "report-data-model");
+});
 
 const randomInt = (max: number = 1000, min: number = 0): number => {
   return Math.floor(Math.random() * (max - min)) + min;

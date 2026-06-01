@@ -1,6 +1,6 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
@@ -322,7 +322,10 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
-
+  await epic("coverage");
+  await feature("ui-components");
+  await story("testResult");
+  await label("coverage", "ui-components");
   treePage = new TreePage(page);
   testResultPage = new TestResultPage(page);
 

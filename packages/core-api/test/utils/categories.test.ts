@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { CategoriesConfig } from "../../src/index.js";
 import {
@@ -24,6 +25,13 @@ const mkData = (overrides?: Partial<ReturnType<typeof extractErrorMatchingData>>
   };
   return { ...base, ...overrides };
 };
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("categories");
+  await story("categories");
+  await label("coverage", "categories");
+});
 
 describe("normalizeCategoriesConfig", () => {
   it("returns empty list when cfg is false", () => {

@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { filterByAql, parseAql } from "../src/index.js";
 
+beforeEach(async () => {
+  await story("property");
+});
 /**
  * Property-based tests - verify invariants and properties that should always hold
  * These tests check mathematical properties and invariants of the parser
@@ -27,12 +32,7 @@ describe("Property-based Tests", () => {
     });
 
     test("should always throw AQL error for invalid input", () => {
-      const invalidInputs = [
-        'status @ "passed"',
-        "status =",
-        "= \"passed\"",
-        'status = "unterminated',
-      ];
+      const invalidInputs = ['status @ "passed"', "status =", '= "passed"', 'status = "unterminated'];
 
       invalidInputs.forEach((input) => {
         try {
@@ -85,11 +85,7 @@ describe("Property-based Tests", () => {
     });
 
     test("filtering with empty string should always return all items", () => {
-      const testArrays = [
-        [{ id: 1 }, { id: 2 }],
-        [],
-        [{ status: "passed" }],
-      ];
+      const testArrays = [[{ id: 1 }, { id: 2 }], [], [{ status: "passed" }]];
 
       testArrays.forEach((items) => {
         const result = filterByAql(items as any, "");
@@ -98,12 +94,7 @@ describe("Property-based Tests", () => {
     });
 
     test("filtering empty array should always return empty array", () => {
-      const expressions = [
-        'status = "passed"',
-        "age > 25",
-        'name ~= "test"',
-        'status IN ["passed", "failed"]',
-      ];
+      const expressions = ['status = "passed"', "age > 25", 'name ~= "test"', 'status IN ["passed", "failed"]'];
 
       expressions.forEach((aql) => {
         const result = filterByAql([], aql);
@@ -129,11 +120,7 @@ describe("Property-based Tests", () => {
         { id: 1, status: "passed" },
         { id: 2, status: "failed" },
       ];
-      const expressions = [
-        'status = "passed"',
-        'status = "nonexistent"',
-        "age > 100",
-      ];
+      const expressions = ['status = "passed"', 'status = "nonexistent"', "age > 100"];
 
       expressions.forEach((aql) => {
         const result = filterByAql(items, aql);
@@ -144,11 +131,7 @@ describe("Property-based Tests", () => {
 
   describe("Logical operator properties", () => {
     test("NOT NOT should be equivalent to original (double negation)", () => {
-      const expressions = [
-        'status = "passed"',
-        "age > 25",
-        'name ~= "test"',
-      ];
+      const expressions = ['status = "passed"', "age > 25", 'name ~= "test"'];
 
       expressions.forEach((aql) => {
         const original = parseAql(aql);
@@ -190,11 +173,7 @@ describe("Property-based Tests", () => {
     });
 
     test("OR should be commutative", () => {
-      const items = [
-        { status: "passed" },
-        { status: "failed" },
-        { status: "broken" },
-      ];
+      const items = [{ status: "passed" }, { status: "failed" }, { status: "broken" }];
 
       const expr1 = parseAql('status = "passed" OR status = "failed"');
       const expr2 = parseAql('status = "failed" OR status = "passed"');
@@ -231,10 +210,7 @@ describe("Property-based Tests", () => {
 
   describe("Expression equivalence", () => {
     test("'is' operator should be equivalent to '='", () => {
-      const items = [
-        { status: "passed" },
-        { status: "failed" },
-      ];
+      const items = [{ status: "passed" }, { status: "failed" }];
 
       const eqExpr = parseAql('status = "passed"');
       const isExpr = parseAql('status is "passed"');
@@ -322,11 +298,7 @@ describe("Property-based Tests", () => {
     });
 
     test("filtering with condition that matches everything should return all items", () => {
-      const items = [
-        { status: "passed" },
-        { status: "passed" },
-        { status: "passed" },
-      ];
+      const items = [{ status: "passed" }, { status: "passed" }, { status: "passed" }];
       const aql = 'status = "passed"';
 
       const result = filterByAql(items, aql);

@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { sanitizeExternalUrl } from "../../src/utils/url.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("url-routing");
+  await story("url");
+  await label("coverage", "url-routing");
+});
 
 describe("sanitizeExternalUrl", () => {
   it("allows known-safe protocols", () => {

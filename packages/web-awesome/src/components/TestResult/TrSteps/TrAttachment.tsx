@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType, isPreviewableContentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
+import { attachmentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
@@ -9,6 +9,7 @@ import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentIn
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
 import { isTreeOpened, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -52,75 +53,112 @@ const iconMap: Record<string, string> = {
   "video/mp4": lineImagesImage,
   "application/vnd.allure.image.diff": lineImagesImage,
   "application/vnd.allure.playwright-trace": playwrightLogo,
+  "application/vnd.allure.http+json": lineFilesFileAttachment2,
 };
 
-const HAS_PREVIEW_COMPONENT = new Set(["html"]);
+const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
+const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
+  const { link } = item;
   const attachmentTreeId = item.link?.id !== null ? `attachment-${item.link.id}` : null;
   const isOpened = attachmentTreeId !== null ? isTreeOpened(attachmentTreeId, false) : false;
-  const [showPreview, setShowPreview] = useState(false);
+  const componentTypeForPreview = attachmentType(link.contentType);
+  const [showPreview, setShowPreview] = useState(() => DEFAULT_PREVIEW_TYPES.has(componentTypeForPreview ?? ""));
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
-  const { link } = item;
   const { missed } = link;
-  const componentType = attachmentType(link.contentType);
+  const componentType = componentTypeForPreview;
   const isValidComponentType = !["archive", null].includes(componentType);
   const isPreviewable = HAS_PREVIEW_COMPONENT.has(componentType ?? "");
-  const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
+  const isImageAttachment = componentType === "image";
   const isSyntaxHighlightable = isSyntaxHighlightSupported({
     contentType: link.contentType,
     ext: link.ext,
     name: link.name,
     originalFileName: link.originalFileName,
   });
+  const supportsSyntaxHighlightToggle =
+    isSyntaxHighlightable &&
+    (componentType === "code" || componentType === "text" || componentType === "markdown" || componentType === "html");
+
+  const handleHighlightToggle = () => {
+    if (isPreviewable && showPreview) {
+      setShowPreview(false);
+    }
+    setHighlightCode((highlight) => !highlight);
+  };
+
+  const toggleAttachment = (event: Event) => {
+    event.stopPropagation();
+    if (attachmentTreeId !== null) {
+      toggleTree(attachmentTreeId, false);
+    }
+  };
 
   const expandAttachment = (event: Event) => {
     event.stopPropagation();
-    if (componentType !== "image") {
-      return;
-    }
     openModal({
       data: item,
       component: <Attachment item={item} previewable={true} />,
     });
   };
 
+  const content = (
+    <Attachment
+      item={item}
+      previewable={showPreview}
+      highlightCode={highlightCode}
+      i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+    />
+  );
+
+  const attachmentHeaderContent = (
+    <>
+      {isValidComponentType ? (
+        <ArrowButton isOpened={isOpened} tag="span" />
+      ) : (
+        <span className={styles["test-result-strut"]} />
+      )}
+      <span className={styles["test-result-attachment-icon"]}>
+        <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
+      </span>
+
+      <Code size="s" className={styles["test-result-step-number"]}>
+        {stepIndex}
+      </Code>
+      <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
+      {missed && (
+        <Text
+          size={"s"}
+          className={styles["test-result-attachment-missed"]}
+          data-testid={"test-result-attachment-missed"}
+        >
+          missed
+        </Text>
+      )}
+    </>
+  );
+
   return (
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
         data-testid={"test-result-attachment-header"}
-        className={cx(styles["test-result-attachment-header"], {
+        className={cx(styles["test-result-attachment-header"], trOverviewHeaderFocusClass(item.link.id), {
           [styles.empty]: !isValidComponentType,
         })}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (attachmentTreeId !== null) {
-            toggleTree(attachmentTreeId, false);
-          }
-        }}
+        {...trOverviewFocusAttrs(item.link.id)}
       >
-        {isValidComponentType ? <ArrowButton isOpened={isOpened} /> : <div className={styles["test-result-strut"]} />}
-        <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
-        </div>
-
-        <Code size="s" className={styles["test-result-step-number"]}>
-          {stepIndex}
-        </Code>
-        <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
-        {missed && (
-          <Text
-            size={"s"}
-            className={styles["test-result-attachment-missed"]}
-            data-testid={"test-result-attachment-missed"}
-          >
-            missed
-          </Text>
+        {isValidComponentType ? (
+          <button className={styles["test-result-attachment-toggle"]} onClick={toggleAttachment} type="button">
+            {attachmentHeaderContent}
+          </button>
+        ) : (
+          attachmentHeaderContent
         )}
         <div>
           <TrAttachmentInfo
@@ -129,22 +167,20 @@ export const TrAttachment: FunctionComponent<{
             isPreviewable={isPreviewable}
             showPreview={showPreview}
             onPreviewToggle={isPreviewable ? () => setShowPreview((p) => !p) : undefined}
-            isCodeView={isCodeView && isSyntaxHighlightable}
             highlightCode={highlightCode}
-            onHighlightToggle={isCodeView && isSyntaxHighlightable ? () => setHighlightCode((h) => !h) : undefined}
+            onHighlightToggle={supportsSyntaxHighlightToggle ? handleHighlightToggle : undefined}
           />
         </div>
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
-          <div className={styles["test-result-attachment-content"]} role={"button"} onClick={expandAttachment}>
-            <Attachment
-              item={item}
-              previewable={showPreview}
-              highlightCode={highlightCode}
-              i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
-            />
-          </div>
+          {isImageAttachment ? (
+            <button className={styles["test-result-attachment-content"]} onClick={expandAttachment} type="button">
+              {content}
+            </button>
+          ) : (
+            <div className={styles["test-result-attachment-content"]}>{content}</div>
+          )}
         </div>
       )}
     </div>

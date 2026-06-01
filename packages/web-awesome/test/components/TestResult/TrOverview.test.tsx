@@ -1,9 +1,16 @@
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
+import type { AwesomeTestResult } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TrOverview } from "@/components/TestResult/TrOverview";
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("TrOverview");
+  await label("coverage", "ui-components");
+});
 
-import type { AwesomeTestResult } from "../../../types";
+import { TrOverview } from "@/components/TestResult/TrOverview";
 
 vi.mock("@/components/TestResult/TestStepsEmpty", () => ({
   default: () => <div data-testid="test-steps-empty" />,
@@ -11,6 +18,10 @@ vi.mock("@/components/TestResult/TestStepsEmpty", () => ({
 
 vi.mock("@/components/TestResult/TrSteps", () => ({
   TrSteps: () => <div data-testid="tr-steps" />,
+}));
+
+vi.mock("@/components/TestResult/TrError", () => ({
+  TrError: () => <div data-testid="test-result-error" />,
 }));
 
 vi.mock("@/components/TestResult/TrDescription", () => ({
@@ -49,6 +60,7 @@ vi.mock("@/stores/locale", () => ({
 
 vi.mock("@/stores/testResult", () => ({
   currentTrId: { value: "current-test-result-id" },
+  trCurrentTab: { value: "overview" },
 }));
 
 const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
@@ -99,8 +111,15 @@ describe("components > TestResult > TrOverview", () => {
     expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
   });
 
-  it("should render TrSteps when the test has an error", () => {
-    render(<TrOverview testResult={makeTestResult({ error: { message: "boom" } })} />);
+  it("should render TrSteps when the test has steps and an error", () => {
+    render(
+      <TrOverview
+        testResult={makeTestResult({
+          error: { message: "boom" },
+          steps: [{ type: "step", name: "step", status: "passed", parameters: [], steps: [] }],
+        })}
+      />,
+    );
 
     expect(screen.getByTestId("tr-steps")).toBeInTheDocument();
     expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();

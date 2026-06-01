@@ -58,6 +58,27 @@ The plugin accepts the following options:
 | `groupBy`      | Grouping tests by labels or combining labels. By default, tests are grouped using the `titlePath` provided by the test framework. | `string`                                                      | `[]`(Grouping by `titlepath`) |
 | `appendTitlePath`| Special marker for `groupBy`. Forces a final grouping by `titlePath` after all label-based groups.                                                          | `boolean`                                                    | `false`                       |
 | `stepTreeExpansion` | Default expansion policy for step trees in test details. | `"collapsed" \| "expand_failed_only" \| "expanded"` | `"expand_failed_only"` |
+| `defaultSortBy` | Default sort order for the test tree. Accepted values: `order,asc`, `order,desc`, `duration,asc`, `duration,desc`, `name,asc`, `name,desc`, `status,asc`, `status,desc`. User's manual selection is preserved in `localStorage` and takes priority over this value. | `string` | `order,asc` |
+
+### Default sort order
+
+Use `defaultSortBy` to change the initial sort order of the test tree:
+
+```ts
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  plugins: {
+    awesome: {
+      options: {
+        defaultSortBy: "name,asc",
+      },
+    },
+  },
+});
+```
+
+The user's last selected sort order is always preserved in `localStorage`, so once a user changes the sort manually, their preference takes priority over the configured default.
 
 ### Step tree expansion
 

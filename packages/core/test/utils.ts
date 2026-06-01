@@ -33,4 +33,6 @@ AllureServiceClientMock.prototype.addReportAsset = vi.fn();
 
 AllureServiceClientMock.prototype.addReportFile = vi.fn();
 
+AllureServiceClientMock.prototype.uploadReport = vi.fn();
+
 export const getDataPath = (name: string) => path.resolve(import.meta.filename, "..", "data", "history", name);

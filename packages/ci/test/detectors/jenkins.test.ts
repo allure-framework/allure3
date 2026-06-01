@@ -1,8 +1,12 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { jenkins } from "../../src/detectors/jenkins.js";
 import { getEnv } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("jenkins");
+});
 vi.mock("../../src/utils.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/utils.js")>();
 

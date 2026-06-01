@@ -6,9 +6,10 @@ import {
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
-import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
+import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateParametersHash, calculateRetryHash } from "../../src/store/retrySubstore.js";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
@@ -24,6 +25,13 @@ class AllureTestHistory implements AllureHistory {
 }
 
 const readerId = "store.test.ts";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("store");
+  await label("coverage", "report-engine");
+});
 
 describe("test results", () => {
   it("should return all test results", async () => {
@@ -4144,6 +4152,28 @@ describe("dump state", () => {
     expect(env2Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1"]);
   });
 
+  it("should not duplicate environment test results when restoring the same dump repeatedly", async () => {
+    const sourceStore = new DefaultAllureStore({ environment: "qa" });
+    const rawTr: RawTestResult = {
+      name: "restored env test",
+      status: "passed",
+      testId: "restored-env-test",
+      historyId: "restored-env-test",
+    };
+
+    await sourceStore.visitTestResult(rawTr, { readerId });
+
+    const targetStore = new DefaultAllureStore();
+    const dump = sourceStore.dumpState();
+
+    await targetStore.restoreState(dump);
+    await targetStore.restoreState(dump);
+
+    const restoredResults = await targetStore.testResultsByEnvironmentId("qa", { includeHidden: true });
+
+    expect(restoredResults.map(({ name }) => name)).toEqual(["restored env test"]);
+  });
+
   it("should merge two dumps with no envs", async () => {
     let ndumps = 1;
 
@@ -4285,6 +4315,82 @@ describe("dictionary safety", () => {
     expect(byEnv["__proto__"]).toHaveLength(1);
     expect(byEnv["constructor"]).toHaveLength(1);
     expect(byEnv["toString"]).toHaveLength(1);
+  });
+});
+
+describe("relatedByTestResultIds", () => {
+  it("should return batch data equivalent to single-result store lookups", async () => {
+    const testHistoryId = `${md5("case-id")}.${md5("")}`;
+    const retryResultId = md5("retry-result");
+    const latestResultId = md5("latest-result");
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([
+        {
+          uuid: "history-point",
+          name: "History Point",
+          timestamp: 1,
+          knownTestCaseIds: [],
+          metrics: {},
+          url: "https://example.com/history",
+          testResults: {
+            "history-result": {
+              id: "history-result",
+              name: "historical test",
+              status: "failed",
+              url: "https://example.com/history/history-result",
+              historyId: testHistoryId,
+            },
+          },
+        },
+      ]),
+    });
+    const attachment: RawTestAttachment = {
+      type: "attachment",
+      name: "stdout",
+      originalFileName: "stdout.txt",
+    };
+    const retryResult: RawTestResult = {
+      uuid: "retry-result",
+      name: "retry",
+      fullName: "sample test",
+      testId: "case-id",
+      status: "failed",
+      start: 1,
+    };
+    const latestResult: RawTestResult = {
+      uuid: "latest-result",
+      name: "latest",
+      fullName: "sample test",
+      testId: "case-id",
+      status: "passed",
+      start: 2,
+      steps: [attachment],
+    };
+    const fixture: RawFixtureResult = {
+      uuid: "fixture-id",
+      type: "before",
+      name: "setup",
+      testResults: ["latest-result"],
+      status: "passed",
+    };
+
+    await store.readHistory();
+    await store.visitTestResult(retryResult, { readerId });
+    await store.visitTestResult(latestResult, { readerId });
+    await store.visitTestFixtureResult(fixture, { readerId });
+
+    const related = await store.relatedByTestResultIds([latestResultId, retryResultId]);
+
+    expect(related.attachmentsByTrId.get(latestResultId)).toEqual(await store.attachmentsByTrId(latestResultId));
+    expect(related.fixturesByTrId.get(latestResultId)).toEqual(await store.fixturesByTrId(latestResultId));
+    expect(related.historyByTrId.get(latestResultId)).toEqual(await store.historyByTrId(latestResultId));
+    expect(related.retriesByTrId.get(latestResultId)).toEqual(await store.retriesByTrId(latestResultId));
+    expect(related.retriesByTrId.get(latestResultId)).toEqual([
+      expect.objectContaining({
+        id: retryResultId,
+        isRetry: true,
+      }),
+    ]);
   });
 });
 

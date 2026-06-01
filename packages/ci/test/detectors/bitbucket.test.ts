@@ -1,8 +1,12 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { bitbucket, getJobURL } from "../../src/detectors/bitbucket.js";
 import { getEnv } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("bitbucket");
+});
 vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
 }));

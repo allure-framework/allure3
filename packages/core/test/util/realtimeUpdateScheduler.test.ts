@@ -1,6 +1,7 @@
 import { setTimeout } from "node:timers/promises";
 
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RealtimeUpdateScheduler } from "../../src/utils/realtimeUpdateScheduler.js";
 
@@ -12,6 +13,13 @@ const createSignal = () => {
 
   return { promise, resolve };
 };
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("realtimeUpdateScheduler");
+  await label("coverage", "report-engine");
+});
 
 describe("RealtimeUpdateScheduler", () => {
   it("should run an idle request after cooldown", async () => {
@@ -77,6 +85,36 @@ describe("RealtimeUpdateScheduler", () => {
     await scheduler.flush();
 
     expect(worker).toBeCalledTimes(2);
+  });
+
+  it("should delay a dirty follow-up by at least the previous update duration after completion", async () => {
+    const firstUpdateStarted = createSignal();
+    const updateStarts: number[] = [];
+    const updateCompletions: number[] = [];
+    let scheduler!: RealtimeUpdateScheduler;
+    let calls = 0;
+    const cooldownMs = 20;
+    const longUpdateMs = 80;
+    const worker = vi.fn(async () => {
+      calls += 1;
+      updateStarts.push(Date.now());
+
+      if (calls === 1) {
+        firstUpdateStarted.resolve();
+        scheduler.request();
+        await setTimeout(longUpdateMs);
+        updateCompletions.push(Date.now());
+      }
+    });
+    scheduler = new RealtimeUpdateScheduler(worker, { cooldownMs });
+
+    scheduler.request();
+    await firstUpdateStarted.promise;
+    await scheduler.flush();
+
+    expect(worker).toBeCalledTimes(2);
+    expect(updateCompletions).toHaveLength(1);
+    expect(updateStarts[1] - updateCompletions[0]).toBeGreaterThanOrEqual(longUpdateMs);
   });
 
   it("should not schedule a follow-up for requests before update starts", async () => {

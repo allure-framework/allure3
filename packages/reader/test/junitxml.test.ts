@@ -1,12 +1,20 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { randomUUID } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { junitXml } from "../src/index.js";
 import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 
 const randomTestsuiteFileName = () => `${randomUUID()}.xml`;
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("junitxml");
+  await label("coverage", "reading");
+});
 
 describe("junit xml reader", () => {
   describe("names", () => {

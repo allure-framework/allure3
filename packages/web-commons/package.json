@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.8.2",
+  "version": "3.9.0",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
@@ -44,8 +44,8 @@
     "@types/d3-scale": "^4.0.9",
     "@types/d3-shape": "^3.1.6",
     "@vitest/runner": "^2.1.9",
-    "allure-js-commons": "^3.3.0",
-    "allure-vitest": "^3.3.0",
+    "allure-js-commons": "^3.9.0",
+    "allure-vitest": "3.8.0",
     "jsdom": "^26.1.0",
     "rimraf": "^6.0.1",
     "tslib": "^2.7.0",

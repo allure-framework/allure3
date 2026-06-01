@@ -1,5 +1,12 @@
-import { attachment, step } from "allure-js-commons";
+import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("fixtures");
+  await label("coverage", "report-output");
+});
 
 beforeAll(async () => {
   await step("beforeAll 1", () => {});

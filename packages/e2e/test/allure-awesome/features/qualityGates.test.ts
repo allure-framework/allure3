@@ -1,6 +1,6 @@
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, feature, parameter } from "allure-js-commons";
+import { epic, feature, label, parameter, Stage, Status, story } from "allure-js-commons";
 import { QualityGatesPage } from "test/pageObjects/QualityGates.js";
 
 import { CommonPage } from "../../pageObjects/index.js";
@@ -18,6 +18,10 @@ test.describe("quality gates", () => {
 
     await feature("Quality Gates");
     await parameter("browser", browserName);
+    await epic("coverage");
+    await feature("quality-gates");
+    await story("qualityGates");
+    await label("coverage", "quality-gates");
   });
 
   test.afterEach(async () => {

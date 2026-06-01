@@ -7,9 +7,17 @@ import {
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
 import { type AllureStore, md5 } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { generateCharts } from "../../src/charts/generators.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("charts");
+  await story("generators");
+  await label("coverage", "charts");
+});
 
 const baseTestResult: Pick<
   TestResult,

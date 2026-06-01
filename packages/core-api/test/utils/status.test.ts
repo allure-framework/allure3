@@ -1,7 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { TestStatus } from "../../src/model.js";
 import { getWorstStatus, statusToPriority } from "../../src/utils/status.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("status");
+  await label("coverage", "report-data-model");
+});
 
 describe("statusToPriority", () => {
   it("should return priority of status", () => {

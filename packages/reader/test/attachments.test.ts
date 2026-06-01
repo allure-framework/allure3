@@ -1,9 +1,16 @@
 import { BufferResultFile } from "@allurereport/reader-api";
-import { attachment, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { attachment, epic, feature, label, step, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { attachments } from "../src/attachments/index.js";
 import { mockVisitor } from "./utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("attachments");
+  await story("attachments");
+  await label("coverage", "attachments");
+});
 
 describe("attachments reader", () => {
   it("should pass attachment files through to the visitor", async () => {

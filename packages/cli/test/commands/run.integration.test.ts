@@ -7,7 +7,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const execFileAsync = promisify(execFile);
 const commandsDir = dirname(fileURLToPath(import.meta.url));
@@ -104,6 +105,13 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
 
 describe("run command integration", () => {
   let tempDir: string;
+
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-run");
+    await story("run.integration");
+    await label("coverage", "cli-run");
+  });
 
   beforeAll(async () => {
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));

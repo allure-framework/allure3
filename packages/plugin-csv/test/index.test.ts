@@ -3,10 +3,14 @@ import { dirname } from "node:path";
 
 import { type TestResult } from "@allurereport/core-api";
 import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { CsvPlugin } from "../src/plugin.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 vi.mock("node:fs/promises");
 vi.mock("@allurereport/core-api", async (importOriginal) => {
   return {

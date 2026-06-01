@@ -1,6 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { filterByAql, parseAql } from "../src/index.js";
 
+beforeEach(async () => {
+  await story("integration");
+});
 /**
  * Integration tests - test full workflow from AQL string to filtered results
  * Tests interaction between tokenizer, parser, and filter components

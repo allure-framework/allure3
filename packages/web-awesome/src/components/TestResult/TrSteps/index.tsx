@@ -1,3 +1,4 @@
+import { getNextSubtreeToggleState, getSubtreeToggleIcon, type SubtreeToggleState } from "@allurereport/web-commons";
 import { IconButton, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -6,16 +7,16 @@ import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import {
   collectExpandableStepNodes,
-  getNextSubtreeToggleState,
-  getSubtreeToggleIcon,
   getStepTreeExpansionPolicy,
+  hasFailedStepContext,
+  isOpenByDefaultForPolicy,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeNode,
-  type SubtreeToggleState,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { useI18n } from "@/stores/locale";
 import { isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "./styles.scss";
 
@@ -34,7 +35,7 @@ export type TrStepsProps = {
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) => {
   const stepsId = typeof id === "string" ? `${id}-steps` : null;
   const policy = getStepTreeExpansionPolicy();
-  const isRootOpenedByDefault = policy !== "collapsed";
+  const isRootOpenedByDefault = isOpenByDefaultForPolicy(policy, hasFailedStepContext(bodyItems));
   const isOpened = stepsId !== null ? isTreeOpened(stepsId, isRootOpenedByDefault) : isRootOpenedByDefault;
   const expandableTreeNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasChildren = stepsId !== null && bodyItems.length > 0;
@@ -96,6 +97,8 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
   return (
     <div className={styles["test-result-steps"]}>
       <TrDropdown
+        className={trOverviewHeaderFocusClass(stepsId)}
+        {...trOverviewFocusAttrs(stepsId)}
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
         setIsOpen={toggleRoot}

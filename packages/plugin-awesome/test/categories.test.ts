@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import type { CategoryDefinition } from "@allurereport/core-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("categories");
+  await story("categories");
+  await label("coverage", "categories");
+});
 
 import { applyCategoriesToTestResults, generateCategories } from "../src/categories.js";
 import type { AwesomeDataWriter } from "../src/writer.js";

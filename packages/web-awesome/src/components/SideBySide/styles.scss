@@ -15,10 +15,18 @@
 }
 
 .side-left {
+  display: flex;
+  flex-direction: column;
   margin-right: auto;
   border-radius: 12px 0 0 12px;
   box-shadow: var(--shadow-small);
   overflow: hidden;
+  min-height: 0;
+
+  > * {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 .side-right {
@@ -56,7 +64,7 @@
 }
 
 .gutter {
-  background: var(--bg-base-secondary) no-repeat 50%;
+  background: var(--color-bg-secondary) no-repeat 50%;
   height: 100%;
 }
 

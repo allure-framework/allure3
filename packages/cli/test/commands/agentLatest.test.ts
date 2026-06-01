@@ -1,3 +1,4 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -23,7 +24,11 @@ vi.mock("../../src/utils/agent-state.js", () => ({
   writeLatestAgentState: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("agent-mode");
+  await story("agentLatest");
+  await label("coverage", "agent-mode");
   vi.clearAllMocks();
 });
 

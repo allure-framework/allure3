@@ -1,7 +1,15 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AllureRemoteHistory } from "../src/history.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 import { type AllureServiceClient } from "../src/service.js";
 import { KnownError } from "../src/utils/http.js";
 import { HttpClientMock } from "./utils.js";
@@ -13,6 +21,11 @@ const serviceUrl = "https://service.allurereport.org";
 const createAccessToken = (payload: Record<string, string>) =>
   `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
 const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
+const uploadConfig = {
+  uploadConcurrency: 100,
+  uploadMaxAttempts: 5,
+  uploadMaxSimultaneousFailures: 5,
+};
 
 const fixtures = {
   accessToken: validAccessToken,
@@ -51,7 +64,7 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
+    serviceClient = new AllureServiceClientClass({ ...uploadConfig, accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
       repo: fixtures.repo,

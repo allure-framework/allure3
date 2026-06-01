@@ -18,6 +18,7 @@ export interface ResultsVisitor {
 }
 
 export interface ResultsReader {
+  matches?(data: ResultFile): boolean | Promise<boolean>;
   read(visitor: ResultsVisitor, data: ResultFile): Promise<boolean>;
   readerId(): string;
 }

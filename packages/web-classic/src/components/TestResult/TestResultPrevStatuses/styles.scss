@@ -26,23 +26,23 @@
 }
 
 .status-passed {
-  color: var(--bg-support-castor);
+  color: var(--color-status-passed-chart);
 }
 
 .status-failed {
-  color: var(--bg-support-capella);
+  color: var(--color-status-failed-chart);
 }
 
 .status-broken {
-  color: var(--bg-support-atlas);
+  color: var(--color-status-broken-chart);
 }
 
 .status-skipped {
-  color: var(--bg-support-rau);
+  color: var(--color-status-skipped-chart);
 }
 
 .status-unknown {
-  color: var(--bg-support-skat);
+  color: var(--color-status-unknown-chart);
 }
 
 .test-result-prev-status-tooltip {

@@ -12,10 +12,10 @@ export const CHART_MOTION_CONFIG = {
 export const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const CHART_PALETTE = {
-  axesTickColor: "var(--on-text-secondary)",
-  gridLineColor: "var(--on-border-muted)",
-  chartBackgroundColor: "var(--bg-base-primary)",
-  textFillColor: "var(--on-text-primary)",
+  axesTickColor: "var(--color-text-secondary)",
+  gridLineColor: "var(--color-border-default)",
+  chartBackgroundColor: "var(--color-bg-primary)",
+  textFillColor: "var(--color-text-primary)",
 } as const;
 
 export const CHART_THEME: PartialTheme = {
@@ -52,7 +52,7 @@ export const CHART_THEME: PartialTheme = {
     fontSize: 12,
   },
   markers: {
-    lineColor: "var(--on-border-primary)",
+    lineColor: "var(--color-border-default)",
     lineStrokeWidth: 2,
     text: {
       fill: CHART_PALETTE.textFillColor,
@@ -68,8 +68,8 @@ export const CHART_THEME: PartialTheme = {
   },
   tooltip: {
     container: {
-      background: "var(--bg-base-modal)",
-      color: "var(--on-text-primary)",
+      background: "var(--color-bg-raised)",
+      color: "var(--color-text-primary)",
     },
   },
 };

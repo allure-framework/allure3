@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ComponentChildren, FunctionComponent } from "preact";
 
 import { ArrowButton } from "@/components/ArrowButton";
@@ -11,6 +12,8 @@ interface TreeSectionProps {
   isOpened: boolean;
   toggleTree: () => void;
   icon?: string;
+  focused?: boolean;
+  nodeId?: string;
 }
 
 export const TreeSection: FunctionComponent<TreeSectionProps> = ({
@@ -18,11 +21,20 @@ export const TreeSection: FunctionComponent<TreeSectionProps> = ({
   icon,
   isOpened,
   toggleTree,
+  focused,
+  nodeId,
   children,
   ...rest
 }) => {
   return (
-    <div data-testid="tree-section" {...rest} className={styles["tree-section"]} onClick={toggleTree}>
+    <div
+      data-testid="tree-section"
+      {...rest}
+      className={clsx(styles["tree-section"], focused ? styles["tree-section-focused"] : "")}
+      onClick={toggleTree}
+      id={nodeId}
+      data-tree-node-id={nodeId}
+    >
       <ArrowButton data-testid="tree-arrow" isOpened={isOpened} />
       {icon && <SvgIcon id={icon} size={"xs"} />}
       <Text data-testid="tree-section-title" size="m" bold className={styles["tree-section-title"]}>

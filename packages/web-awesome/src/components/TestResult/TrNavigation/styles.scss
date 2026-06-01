@@ -19,7 +19,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     width: 100%;
-    color: var(--on-text-secondary);
+    color: var(--color-text-secondary);
   }
 }
 
@@ -32,7 +32,7 @@
 }
 
 .counter {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   padding-left: 4px;
   padding-right: 4px;
 }

@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
 import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogPlugin } from "../src/plugin.js";
 import { printSummary, printTest } from "../src/utils.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 const fixtures = {
   testResults: [
     {

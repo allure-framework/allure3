@@ -33,7 +33,7 @@
 .report-quality-gate-result-icon {
   flex: 0 0 auto;
   margin-top: 3px;
-  color: var(--bg-support-capella);
+  color: var(--color-status-failed-chart);
 }
 
 .report-quality-gate-result-content {
@@ -52,6 +52,6 @@
   &:not(:last-child) {
     padding-bottom: 8px;
     margin-bottom: 14px;
-    border-bottom: 1px solid var(--on-border-muted);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 }

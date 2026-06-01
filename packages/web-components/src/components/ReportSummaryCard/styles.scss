@@ -11,15 +11,15 @@
 
   padding: 16px;
 
-  background: var(--bg-base-primary);
-  border: 1px solid var(--on-border-muted);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   box-shadow: var(--shadow-small);
 
   &:is(a) {
     --offset-y: 0;
 
-    color: var(--on-text-primary);
+    color: var(--color-text-primary);
     text-decoration: none;
 
     cursor: pointer;
@@ -31,7 +31,7 @@
 
     &:hover {
       --offset-y: -2px;
-      border-color: var(--on-border-primary);
+      border-color: var(--color-border-default);
       box-shadow: var(--shadow-raised);
     }
   }
@@ -66,12 +66,12 @@
 }
 
 .title {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   margin-bottom: calc(var(--gap) / 2 * -1);
 }
 
 .createdAt {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .reportStatus {
@@ -80,7 +80,7 @@
   align-items: center;
   gap: 6px;
 
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .metadata {
@@ -104,6 +104,6 @@
 }
 
 .pluginName {
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
   margin-bottom: calc(var(--gap) * -1);
 }

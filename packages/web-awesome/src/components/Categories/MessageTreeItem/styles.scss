@@ -11,7 +11,7 @@
   gap: 8px;
   align-items: center;
   flex: 1 1 auto;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   min-height: var(--tree-section-min-height, auto);
   padding: 4px 0;
   position: var(--tree-section-position, relative);
@@ -24,7 +24,7 @@
   width: 100%;
   padding: 4px 8px 4px 16px;
   border-radius: 4px;
-  background-color: var(--bg-alpha-capella);
+  background-color: var(--color-status-failed-bg-subtle);
   position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -39,7 +39,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    background-color: var(--bg-support-capella);
+    background-color: var(--color-status-failed-chart);
   }
 }
 
@@ -123,56 +123,56 @@
 }
 
 .message-status-failed {
-  background-color: var(--bg-alpha-capella);
+  background-color: var(--color-status-failed-bg-subtle);
   &:before {
-    background-color: var(--bg-support-capella);
+    background-color: var(--color-status-failed-chart);
   }
 }
 
 .message-status-broken {
-  background-color: var(--bg-alpha-atlas);
+  background-color: var(--color-status-broken-bg-subtle);
   &:before {
-    background-color: var(--bg-support-atlas);
+    background-color: var(--color-status-broken-chart);
   }
 }
 
 .message-status-skipped {
-  background-color: var(--bg-alpha-rau);
+  background-color: var(--color-status-skipped-bg-subtle);
   &:before {
-    background-color: var(--bg-support-rau);
+    background-color: var(--color-status-skipped-chart);
   }
 }
 
 .message-status-unknown {
-  background-color: var(--bg-alpha-skat);
+  background-color: var(--color-status-unknown-bg-subtle);
   &:before {
-    background-color: var(--bg-support-skat);
+    background-color: var(--color-status-unknown-chart);
   }
 }
 
 .message-status-passed {
-  background-color: var(--bg-alpha-castor);
+  background-color: var(--color-status-passed-bg-subtle);
   &:before {
-    background-color: var(--bg-support-castor);
+    background-color: var(--color-status-passed-chart);
   }
 }
 
 .message-color-failed {
-  color: var(--on-support-capella);
+  color: var(--color-status-failed-text);
 }
 
 .message-color-broken {
-  color: var(--on-support-atlas);
+  color: var(--color-status-broken-text);
 }
 
 .message-color-skipped {
-  color: var(--on-support-rau);
+  color: var(--color-status-skipped-text);
 }
 
 .message-color-passed {
-  color: var(--on-support-castor);
+  color: var(--color-status-passed-text);
 }
 
 .message-color-unknown {
-  color: var(--on-support-skat);
+  color: var(--color-status-unknown-text);
 }

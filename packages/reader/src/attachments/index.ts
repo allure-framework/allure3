@@ -3,6 +3,7 @@ import type { ResultsReader } from "@allurereport/reader-api";
 const readerId = "attachments";
 
 export const attachments: ResultsReader = {
+  matches: () => true,
   read: async (visitor, data) => {
     await visitor.visitAttachmentFile(data, { readerId });
 
