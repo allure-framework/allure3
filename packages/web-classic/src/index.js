@@ -16,6 +16,7 @@ import "./favicon.ico";
 import "./pluginApi.js";
 import "./plugins/default/index.js";
 import "./plugins/screen-diff/index.js";
+
 import "./plugins/screen-diff/styles.css";
 import "./plugins/tab-behaviors/index.js";
 import "./plugins/tab-category/index.js";

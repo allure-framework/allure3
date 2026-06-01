@@ -53,15 +53,15 @@
     "zip-stream": "^7.0.2"
   },
   "devDependencies": {
-    "@types/node": "^20.17.9",
+    "@types/node": "^20",
     "@types/zip-stream": "^7.0.0",
-    "@vitest/runner": "^2.1.9",
+    "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
-    "allure-js-commons": "^3.9.0",
-    "allure-vitest": "3.8.0",
-    "rimraf": "^6.0.1",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
     "tslib": "^2.7.0",
-    "typescript": "^5.6.3",
+    "typescript": "^5",
     "vitest": "^2.1.9"
   }
 }
