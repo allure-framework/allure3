@@ -11,6 +11,14 @@ const generateTestResultName = () => `${randomUUID()}-result.json`;
 const generateCheckResultName = () => `${randomUUID()}-check.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
+const SIMPLE_ATTACHMENT_JSON = {
+  name: "Passed test",
+  fullName: "Simple Tests > Passed test",
+  status: "passed",
+  start: 1566219149481,
+  stop: 1566219149485,
+};
+
 beforeEach(async () => {
   await epic("coverage");
   await feature("reading");
@@ -763,15 +771,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should add attachments without extension", async () => {
@@ -784,15 +784,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should add attachments with complex extension", async () => {
@@ -805,15 +797,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should parse environment.properties", async () => {
