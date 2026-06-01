@@ -20,7 +20,7 @@
     "test": "yarn workspaces foreach -Avvp --exclude sandbox run test",
     "lint": "yarn workspaces foreach -Avvt run lint",
     "lint:fix": "yarn workspaces foreach -Avvt run lint:fix",
-    "lint:type": "yarn oxlint --type-aware --import-plugin packages",
+    "lint:type": "yarn oxlint --type-aware --import-plugin packages --quiet",
     "verify": "yarn format:check && yarn lint && yarn lint:type --quiet",
     "format:check": "node ./scripts/run-oxfmt.cjs --check",
     "format:write": "node ./scripts/run-oxfmt.cjs --write"

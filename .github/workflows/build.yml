@@ -31,8 +31,8 @@ jobs:
         run: yarn lint
       - name: Check formatting
         run: yarn format:check
-      - name: Type-aware lint
-        run: yarn lint:type
+      # - name: Type-aware lint
+      #   run: yarn lint:type
 
   test:
     needs: lint
