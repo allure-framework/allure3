@@ -13,7 +13,7 @@ export type HotkeyControllerOptions = {
 };
 
 const getBindingScopes = (binding: HotkeyBinding): HotkeyScope[] =>
-  Array.isArray(binding.scope) ? [...binding.scope] : [binding.scope];
+  Array.isArray(binding.scope) ? [...binding.scope] : ([binding.scope] as HotkeyScope[]);
 
 const bindingMatchesScope = (binding: HotkeyBinding, activeScope: HotkeyScope): boolean => {
   const scopes = getBindingScopes(binding);
