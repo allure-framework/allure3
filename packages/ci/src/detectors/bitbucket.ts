@@ -1,4 +1,4 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
+import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import { getEnv } from "../utils.js";
 
@@ -61,5 +61,40 @@ export const bitbucket: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get provider() {
+    return GitProvider.Bitbucket;
+  },
+
+  get repository() {
+    const repositorySlug = getEnv("BITBUCKET_REPO_FULL_NAME");
+
+    return repositorySlug
+      ? {
+          slug: repositorySlug,
+          url: getEnv("BITBUCKET_GIT_HTTP_ORIGIN") || undefined,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return getEnv("BITBUCKET_BRANCH") || this.jobRunBranch || undefined;
+  },
+
+  get targetBranch() {
+    return getEnv("BITBUCKET_PR_DESTINATION_BRANCH") || undefined;
+  },
+
+  get pullRequest() {
+    const prId = getEnv("BITBUCKET_PR_ID");
+
+    return prId
+      ? {
+          id: prId,
+          url: this.pullRequestUrl || undefined,
+          title: this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };

@@ -1,5 +1,6 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
+import { resolveRepositoryFromGitUrl, stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;
@@ -33,6 +34,48 @@ export const getPipelineName = (): string => {
   }
 
   return initiator.match(PIPELINE_REGEXP)?.[1] ?? "";
+};
+
+const parseBranchFromSourceVersion = (sourceVersion?: string): string | undefined => {
+  const prefix = "refs/heads/";
+  const normalizedSourceVersion = sourceVersion ?? "";
+
+  if (normalizedSourceVersion.startsWith(prefix)) {
+    const branch = normalizedSourceVersion.slice(prefix.length).replace(/\^\{[^}]+\}$/, "");
+
+    return branch || undefined;
+  }
+
+  const branchTrigger = getEnv("CODEBUILD_WEBHOOK_TRIGGER") || "";
+
+  if (branchTrigger.startsWith("branch/")) {
+    return branchTrigger.slice("branch/".length);
+  }
+
+  return undefined;
+};
+
+const parsePullRequestFromSourceVersion = (sourceVersion?: string): string | undefined => {
+  const normalizedSourceVersion = sourceVersion ?? "";
+  const prPrefixMatch = normalizedSourceVersion.match(/^pr\/(?<id>\d+)$/i)?.groups?.id;
+
+  if (prPrefixMatch) {
+    return prPrefixMatch;
+  }
+
+  return normalizedSourceVersion.match(/refs\/pull\/(?<id>\d+)\//)?.groups?.id;
+};
+
+const parsePullRequestFromWebhookTrigger = (): string | undefined => {
+  const trigger = getEnv("CODEBUILD_WEBHOOK_TRIGGER") || "";
+
+  return trigger.match(/^pr\/(?<id>\d+)$/i)?.groups?.id;
+};
+
+const getRepository = () => {
+  const repoUrl = getEnv("CODEBUILD_SOURCE_REPO_URL");
+
+  return repoUrl ? resolveRepositoryFromGitUrl(repoUrl) : undefined;
 };
 
 export const amazon: CiDescriptor = {
@@ -151,9 +194,8 @@ export const amazon: CiDescriptor = {
 
   get jobRunBranch(): string {
     const sourceVersion = getEnv("CODEBUILD_SOURCE_VERSION");
-    const { branch } = sourceVersion?.match?.(/refs\/heads\/(?<branch>\S+)\^\{(?<commithash>\S+)\}/)?.groups ?? {};
 
-    return branch ?? "";
+    return parseBranchFromSourceVersion(sourceVersion) ?? "";
   },
 
   get pullRequestUrl(): string {
@@ -162,5 +204,48 @@ export const amazon: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get provider() {
+    return getRepository()?.provider;
+  },
+
+  get repository() {
+    const repository = getRepository();
+
+    return repository
+      ? {
+          slug: repository.slug,
+          url: repository.url,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    const headRef = getEnv("CODEBUILD_WEBHOOK_HEAD_REF");
+
+    return (
+      (headRef ? stripRefsHeads(headRef) : undefined) ||
+      parseBranchFromSourceVersion(getEnv("CODEBUILD_SOURCE_VERSION")) ||
+      this.jobRunBranch ||
+      undefined
+    );
+  },
+
+  get targetBranch() {
+    return stripRefsHeads(getEnv("CODEBUILD_WEBHOOK_BASE_REF")) || undefined;
+  },
+
+  get pullRequest() {
+    const pullRequestId =
+      parsePullRequestFromWebhookTrigger() || parsePullRequestFromSourceVersion(getEnv("CODEBUILD_SOURCE_VERSION"));
+
+    return pullRequestId
+      ? {
+          id: pullRequestId,
+          url: this.pullRequestUrl || undefined,
+          title: this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };

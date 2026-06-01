@@ -1,3 +1,5 @@
+import type { GitProvider, GitPullRequestRef, GitRepositoryRef } from "./gitFlow.js";
+
 export enum CiType {
   Amazon = "amazon",
   Azure = "azure",
@@ -23,4 +25,9 @@ export interface CiDescriptor {
   jobRunBranch: string;
   pullRequestName: string;
   pullRequestUrl: string;
+  provider?: GitProvider;
+  repository?: GitRepositoryRef;
+  sourceBranch?: string;
+  targetBranch?: string;
+  pullRequest?: GitPullRequestRef;
 }

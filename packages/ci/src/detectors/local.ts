@@ -3,6 +3,24 @@ import { basename } from "node:path";
 
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
+import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
+
+const readGitRemoteUrl = (): string => {
+  const output = spawnSync("git", ["remote", "get-url", "origin"]);
+
+  if (output.error) {
+    return "";
+  }
+
+  return output.stdout.toString().trim();
+};
+
+const getRepository = () => {
+  const remoteUrl = readGitRemoteUrl();
+
+  return remoteUrl ? resolveRepositoryFromGitUrl(remoteUrl) : undefined;
+};
+
 export const local: CiDescriptor = {
   type: CiType.Local,
 
@@ -60,6 +78,25 @@ export const local: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get provider() {
+    return getRepository()?.provider;
+  },
+
+  get repository() {
+    const repository = getRepository();
+
+    return repository
+      ? {
+          slug: repository.slug,
+          url: repository.url,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return this.jobRunBranch || undefined;
   },
 };
 

@@ -1,0 +1,43 @@
+{
+  "name": "@allurereport/git",
+  "version": "3.9.0",
+  "description": "Git metadata collection for Allure Git Flow",
+  "keywords": [
+    "allure",
+    "git",
+    "report",
+    "testing"
+  ],
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "files": [
+    "./dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "test": "rimraf ./out && vitest run",
+    "lint": "oxlint --import-plugin src test",
+    "lint:fix": "oxlint --import-plugin --fix src test"
+  },
+  "dependencies": {
+    "@allurereport/core-api": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@vitest/runner": "^2",
+    "@vitest/snapshot": "^2",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
+    "typescript": "^5",
+    "vitest": "^4"
+  }
+}

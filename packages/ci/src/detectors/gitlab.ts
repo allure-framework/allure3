@@ -1,4 +1,4 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
+import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import { getEnv } from "../utils.js";
 
@@ -55,5 +55,42 @@ export const gitlab: CiDescriptor = {
 
   get pullRequestName(): string {
     return getEnv("CI_MERGE_REQUEST_TITLE");
+  },
+
+  get provider() {
+    return GitProvider.Gitlab;
+  },
+
+  get repository() {
+    const projectPath = getEnv("CI_PROJECT_PATH");
+
+    return projectPath
+      ? {
+          slug: projectPath,
+          url: getEnv("CI_PROJECT_URL") || undefined,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return (
+      getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_NAME") || getEnv("CI_COMMIT_REF_NAME") || this.jobRunBranch || undefined
+    );
+  },
+
+  get targetBranch() {
+    return getEnv("CI_MERGE_REQUEST_TARGET_BRANCH_NAME") || undefined;
+  },
+
+  get pullRequest() {
+    const mergeRequestIid = getEnv("CI_MERGE_REQUEST_IID");
+
+    return mergeRequestIid
+      ? {
+          id: mergeRequestIid,
+          url: this.pullRequestUrl || undefined,
+          title: getEnv("CI_MERGE_REQUEST_TITLE") || this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };

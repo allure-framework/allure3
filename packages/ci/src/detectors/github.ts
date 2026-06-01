@@ -1,10 +1,10 @@
 import { join } from "node:path/posix";
 
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
+import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
+import { resolveGithubPullRequestNumber } from "../helpers/github.js";
+import { stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
-
-const pullRequestSuffixRe = /\/merge$/;
 
 const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
 
@@ -62,13 +62,12 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    const refName = getEnv("GITHUB_REF_NAME");
+    const pullRequestNumber = resolveGithubPullRequestNumber();
 
-    if (!pullRequestSuffixRe.test(refName)) {
+    if (!pullRequestNumber) {
       return "";
     }
 
-    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
     const serverUrl = getEnv("GITHUB_SERVER_URL");
     const repo = getRepo();
     const pathname = join(repo, "pull", pullRequestNumber);
@@ -77,14 +76,48 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestName(): string {
-    const refName = getEnv("GITHUB_REF_NAME");
+    const pullRequestNumber = resolveGithubPullRequestNumber();
 
-    if (!pullRequestSuffixRe.test(refName)) {
+    if (!pullRequestNumber) {
       return "";
     }
 
-    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
-
     return `Pull request #${pullRequestNumber}`;
+  },
+
+  get provider() {
+    return GitProvider.Github;
+  },
+
+  get repository() {
+    const repositorySlug = getEnv("GITHUB_REPOSITORY");
+    const serverUrl = getEnv("GITHUB_SERVER_URL");
+
+    return repositorySlug
+      ? {
+          slug: repositorySlug,
+          url: serverUrl ? `${serverUrl}/${repositorySlug}` : undefined,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return getEnv("GITHUB_HEAD_REF") || stripRefsHeads(getEnv("GITHUB_REF") || "") || this.jobRunBranch || undefined;
+  },
+
+  get targetBranch() {
+    return getEnv("GITHUB_BASE_REF") || undefined;
+  },
+
+  get pullRequest() {
+    const pullRequestId = resolveGithubPullRequestNumber();
+
+    return pullRequestId
+      ? {
+          id: pullRequestId,
+          url: this.pullRequestUrl || undefined,
+          title: this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };

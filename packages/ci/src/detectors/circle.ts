@@ -1,5 +1,6 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
+import { parsePullRequestNumberFromUrl, resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
 import { getEnv, parseURLPath } from "../utils.js";
 
 export const getBuildNumber = (): string => getEnv("CIRCLE_BUILD_NUM");
@@ -11,6 +12,12 @@ const getJobURL = (): string => {
   const buildNumber = getBuildNumber();
 
   return jobRunURL.replace(`/${buildNumber}`, "");
+};
+
+const getRepository = () => {
+  const repositoryUrl = getEnv("CIRCLE_REPOSITORY_URL");
+
+  return repositoryUrl ? resolveRepositoryFromGitUrl(repositoryUrl) : undefined;
 };
 
 export const circle: CiDescriptor = {
@@ -67,5 +74,37 @@ export const circle: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get provider() {
+    return getRepository()?.provider;
+  },
+
+  get repository() {
+    const repository = getRepository();
+
+    return repository
+      ? {
+          slug: repository.slug,
+          url: repository.url,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return getEnv("CIRCLE_BRANCH") || this.jobRunBranch || undefined;
+  },
+
+  get pullRequest() {
+    const pullRequestUrl = getEnv("CIRCLE_PULL_REQUEST");
+    const pullRequestNumber = pullRequestUrl ? parsePullRequestNumberFromUrl(pullRequestUrl) : undefined;
+
+    return pullRequestNumber
+      ? {
+          id: pullRequestNumber,
+          url: this.pullRequestUrl || pullRequestUrl || undefined,
+          title: this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };
