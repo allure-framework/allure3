@@ -5,3 +5,5 @@ export * from "./execution-context.js";
 export * from "./agent-state.js";
 export * from "./agent-select.js";
 export * from "./fileSystem.js";
+export * from "./after-command.js";
+export * from "./terminal-hooks.js";

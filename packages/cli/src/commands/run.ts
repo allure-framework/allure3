@@ -9,6 +9,7 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
+import { buildAllureOpenNextStepCommands } from "../utils/after-command.js";
 import {
   environmentNameOption,
   environmentOption,
@@ -16,6 +17,7 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { emitTerminalHookEvent, runWithTerminalHooks } from "../utils/terminal-hooks.js";
 import { executeAgentMode } from "./agent.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
@@ -99,134 +101,152 @@ export class RunCommand extends Command {
   }
 
   async execute() {
-    const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
+    return runWithTerminalHooks({
+      commandId: "run",
+      payload: {
+        config: this.config,
+        output: this.output,
+      },
+      run: async () => {
+        const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
 
-    if (!args || !args.length) {
-      throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
-    }
+        if (!args || !args.length) {
+          throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
+        }
 
-    const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
+        const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
 
-    if (legacyAgentOutput) {
-      await executeAgentMode({
-        configPath: this.config,
-        cwd: this.cwd,
-        output: resolve(process.cwd(), legacyAgentOutput),
-        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
-          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
-          : undefined,
-        environment: this.environment,
-        environmentName: this.environmentName,
-        silent: this.silent,
-        args,
-      });
-      return;
-    }
+        if (legacyAgentOutput) {
+          await executeAgentMode({
+            configPath: this.config,
+            cwd: this.cwd,
+            output: resolve(process.cwd(), legacyAgentOutput),
+            expectations: process.env.ALLURE_AGENT_EXPECTATIONS
+              ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
+              : undefined,
 
-    const before = new Date().getTime();
+            environment: this.environment,
+            environmentName: this.environmentName,
+            silent: this.silent,
+            args,
+          });
+          return;
+        }
 
-    process.on("exit", (exitCode) => {
-      const after = new Date().getTime();
+        const before = new Date().getTime();
 
-      console.log(`exit code ${exitCode} (${after - before}ms)`);
+        process.on("exit", (exitCode) => {
+          const after = new Date().getTime();
+
+          console.log(`exit code ${exitCode} (${after - before}ms)`);
+        });
+
+        const command = args[0];
+        const commandArgs = args.slice(1);
+        const cwd = await realpath(this.cwd ?? process.cwd());
+        const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
+
+        console.log(`${command} ${commandArgs.join(" ")}`);
+
+        if (getActiveAllureCliCommand()) {
+          const exitCode = await executeNestedAllureCommand({
+            command,
+            commandArgs,
+            cwd,
+            silent: this.silent,
+          });
+
+          exit(exitCode ?? -1);
+          return;
+        }
+
+        const environmentOptions = {
+          environment: this.environment,
+          environmentName: this.environmentName,
+        };
+
+        normalizeCommandEnvironmentOptions(environmentOptions);
+        const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
+        const config = await readConfig(cwd, this.config, {
+          output: this.output,
+          name: this.reportName,
+          open: this.open,
+          port: this.port,
+          hideLabels,
+          historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+        });
+        const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
+        const withQualityGate = !!config.qualityGate;
+        const withRerun = !!this.rerun;
+
+        if (withQualityGate && withRerun) {
+          console.error(red("At this moment, quality gate and rerun can't be used at the same time!"));
+          console.error(red("Consider using --rerun=0 or disable quality gate in the config to run tests"));
+          exit(-1);
+        }
+
+        try {
+          await rm(config.output, { recursive: true });
+        } catch (e) {
+          if (!isFileNotFoundError(e)) {
+            console.error("could not clean output directory", e);
+          }
+        }
+        const allureReport = new AllureReport({
+          ...config,
+          environment: resolvedEnvironment?.id,
+          dump: this.dump,
+          realTime: false,
+          plugins: [
+            ...(config.plugins?.length
+              ? config.plugins
+              : [
+                  {
+                    id: "awesome",
+                    enabled: true,
+                    options: {},
+                    plugin: new Awesome({
+                      reportName: config.name,
+                    }),
+                  },
+                ]),
+          ],
+        });
+        const knownIssues = await allureReport.store.allKnownIssues();
+
+        const { globalExitCode } = await executeAllureRun({
+          allureReport,
+          knownIssues,
+          cwd,
+          command,
+          commandArgs,
+          environmentVariables: createChildAllureCliEnvironment("run"),
+          environment: resolvedEnvironment?.id,
+
+          withQualityGate,
+          logs: this.logs,
+          silent: this.silent,
+          ignoreLogs: this.ignoreLogs,
+          maxRerun,
+        });
+
+        if (config.open) {
+          await serve({
+            port: config.port ? parseInt(config.port, 10) : undefined,
+            servePath: config.output,
+            open: true,
+          });
+          return;
+        }
+
+        await emitTerminalHookEvent({
+          kind: "next-step",
+          text: "You can open the generated report with:",
+          commands: buildAllureOpenNextStepCommands({ cwd, reportPath: config.output }),
+        });
+
+        exit(globalExitCode.actual ?? globalExitCode.original);
+      },
     });
-
-    const command = args[0];
-    const commandArgs = args.slice(1);
-    const cwd = await realpath(this.cwd ?? process.cwd());
-    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
-
-    console.log(`${command} ${commandArgs.join(" ")}`);
-
-    if (getActiveAllureCliCommand()) {
-      const exitCode = await executeNestedAllureCommand({
-        command,
-        commandArgs,
-        cwd,
-        silent: this.silent,
-      });
-
-      exit(exitCode ?? -1);
-      return;
-    }
-
-    const environmentOptions = {
-      environment: this.environment,
-      environmentName: this.environmentName,
-    };
-
-    normalizeCommandEnvironmentOptions(environmentOptions);
-
-    const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
-    const config = await readConfig(cwd, this.config, {
-      output: this.output,
-      name: this.reportName,
-      open: this.open,
-      port: this.port,
-      hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
-    });
-    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
-    const withRerun = !!this.rerun;
-
-    if (withQualityGate && withRerun) {
-      console.error(red("At this moment, quality gate and rerun can't be used at the same time!"));
-      console.error(red("Consider using --rerun=0 or disable quality gate in the config to run tests"));
-      exit(-1);
-    }
-
-    try {
-      await rm(config.output, { recursive: true });
-    } catch (e) {
-      if (!isFileNotFoundError(e)) {
-        console.error("could not clean output directory", e);
-      }
-    }
-    const allureReport = new AllureReport({
-      ...config,
-      environment: resolvedEnvironment?.id,
-      dump: this.dump,
-      realTime: false,
-      plugins: [
-        ...(config.plugins?.length
-          ? config.plugins
-          : [
-              {
-                id: "awesome",
-                enabled: true,
-                options: {},
-                plugin: new Awesome({
-                  reportName: config.name,
-                }),
-              },
-            ]),
-      ],
-    });
-    const knownIssues = await allureReport.store.allKnownIssues();
-    const { globalExitCode } = await executeAllureRun({
-      allureReport,
-      knownIssues,
-      cwd,
-      command,
-      commandArgs,
-      environmentVariables: createChildAllureCliEnvironment("run"),
-      environment: resolvedEnvironment?.id,
-      withQualityGate,
-      logs: this.logs,
-      silent: this.silent,
-      ignoreLogs: this.ignoreLogs,
-      maxRerun,
-    });
-
-    if (config.open) {
-      await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: config.output,
-        open: true,
-      });
-    } else {
-      exit(globalExitCode.actual ?? globalExitCode.original);
-    }
   }
 }

@@ -19,3 +19,4 @@ export * from "./generate.js";
 export * from "./dashboard.js";
 export * from "./results/index.js";
 export * from "./jira/index.js";
+export * from "./kit/index.js";

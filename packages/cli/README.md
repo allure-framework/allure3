@@ -36,6 +36,29 @@ This approach ensures you always use the latest version without managing global 
 
 ## Commands
 
+### Bootstrapping and Maintaining Setup (`allure kit`)
+
+Allure 3 includes a toolkit to bootstrap and maintain your project setup:
+
+```bash
+npx allure kit init
+```
+
+Common workflows:
+
+```bash
+# Diagnose your setup
+npx allure kit doctor
+
+# Manage plugins
+npx allure kit plugin list
+npx allure kit plugin add dashboard
+npx allure kit plugin remove dashboard --uninstall
+
+# Update Allure-related packages
+npx allure kit update --yes
+```
+
 ### Running Tests and Generating Reports
 
 Running tests and generating a report with Allure 3 is straightforward. Using the `run` command, you can execute your test suite and automatically generate a report:
