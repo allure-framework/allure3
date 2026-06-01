@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
+
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { github } from "../../src/detectors/github.js";
 import { getEnv } from "../../src/utils.js";
@@ -7,8 +9,13 @@ import { getEnv } from "../../src/utils.js";
 beforeEach(async () => {
   await story("github");
 });
+
 vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
+}));
+
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
 }));
 
 beforeEach(() => {
@@ -275,6 +282,25 @@ describe("github", () => {
 
       expect(github.pullRequestUrl).toBe("");
     });
+
+    it("should resolve pull request URL from GITHUB_EVENT_PATH for pull_request_target workflows", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+          GITHUB_SERVER_URL: "https://github.com",
+          GITHUB_REPOSITORY: "myorg/myrepo",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123 } }));
+
+      expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+    });
   });
 
   describe("pullRequestName", () => {
@@ -306,6 +332,23 @@ describe("github", () => {
       });
 
       expect(github.pullRequestName).toBe("");
+    });
+
+    it("should resolve pull request name from GITHUB_EVENT_PATH for pull_request_target workflows", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123 } }));
+
+      expect(github.pullRequestName).toBe("Pull request #123");
     });
   });
 });

@@ -8,6 +8,7 @@ import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
+import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
 import {
@@ -31,6 +32,8 @@ export class TestOpsPlugin implements Plugin {
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
+  // @ts-expect-error - if gitFlow is not initialized it will not be used
+  #gitFlow: LaunchGitFlow;
 
   constructor(readonly options: TestOpsPluginOptions) {
     if (isLocalCiDescriptor(this.#ci) && !this.isOverridenByEnv) {
@@ -62,6 +65,14 @@ export class TestOpsPlugin implements Plugin {
     }
 
     this.#autocloseLaunch = autocloseLaunch;
+    const gitFlowOptions = resolveGitFlowOptions(options);
+
+    this.#gitFlow = new LaunchGitFlow({
+      ci: this.#ci,
+      gitFlow: gitFlowOptions.gitFlow,
+      ancestorLimit: gitFlowOptions.ancestorLimit,
+      logger: this.#logger,
+    });
 
     if (!accessToken) {
       this.#logger.warn(
@@ -438,7 +449,9 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #startUpload() {
-    await this.#client.createLaunch(this.#launchName, this.#launchTags);
+    const launchGitContext = this.#gitFlow.resolve();
+
+    await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext);
 
     await this.#client.startUpload(this.#ci!);
   }

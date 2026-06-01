@@ -47,6 +47,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/e2e"\
     },\
     {\
+      "name": "@allurereport/git",\
+      "reference": "workspace:packages/git"\
+    },\
+    {\
       "name": "@allurereport/plugin-agent",\
       "reference": "workspace:packages/plugin-agent"\
     },\
@@ -162,6 +166,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/core-api", ["workspace:packages/core-api"]],\
     ["@allurereport/directory-watcher", ["workspace:packages/directory-watcher"]],\
     ["@allurereport/e2e", ["workspace:packages/e2e"]],\
+    ["@allurereport/git", ["workspace:packages/git"]],\
     ["@allurereport/monorepo", ["workspace:."]],\
     ["@allurereport/plugin-agent", ["workspace:packages/plugin-agent"]],\
     ["@allurereport/plugin-allure2", ["workspace:packages/plugin-allure2"]],\
@@ -381,6 +386,23 @@ const RAW_RUNTIME_STATE =
           ["lodash.times", "npm:4.3.2"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/git", [\
+      ["workspace:packages/git", {\
+        "packageLocation": "./packages/git/",\
+        "packageDependencies": [\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/git", "workspace:packages/git"],\
+          ["@types/node", "npm:20.19.41"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["@vitest/snapshot", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
+          ["rimraf", "npm:6.1.2"],\
+          ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -659,6 +681,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/git", "workspace:packages/git"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\

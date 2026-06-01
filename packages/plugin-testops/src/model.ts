@@ -233,6 +233,10 @@ export type TestOpsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   autocloseLaunch?: boolean;
+  /** When false, Git Flow metadata is never collected or sent. Default: false */
+  gitFlow?: boolean;
+  /** First-parent ancestor limit (server N). Default: 100 */
+  ancestorLimit?: number;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
 };
