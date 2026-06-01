@@ -151,6 +151,7 @@
     "copy-email": "E-poçtu kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "at": "tarixində",
+    "generated": "Yaradıldı",
     "variables": "Dəyişənlər",
     "openPwTrace": "Playwright Trace-i aç",
     "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",

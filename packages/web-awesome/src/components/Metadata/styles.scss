@@ -85,6 +85,18 @@
   line-height: 16px;
 }
 
+.report-metadata-keyvalue-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .report-metadata-keyvalue-value {
   width: max-content;
   height: max-content;

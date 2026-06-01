@@ -1,3 +1,4 @@
+import { formatDuration } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { AwesomeReportOptions } from "types";
@@ -5,22 +6,28 @@ import type { AwesomeReportOptions } from "types";
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
-import { currentLocaleIso, useI18n } from "@/stores";
+import { useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
+import { timestampToDate } from "@/utils/time";
 
 import * as styles from "./styles.scss";
 
+const reportDateOptions: Intl.DateTimeFormatOptions = {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+  second: "numeric",
+};
+
 export const ReportHeader = () => {
-  const { reportName, createdAt } = getReportOptions<AwesomeReportOptions>() ?? {};
+  const { reportName, createdAt, runSummary } = getReportOptions<AwesomeReportOptions>() ?? {};
   const { t } = useI18n("ui");
-  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
+  const formattedCreatedAt = timestampToDate(createdAt as number, reportDateOptions);
+  const formattedReportTime = runSummary
+    ? `${timestampToDate(runSummary.start, reportDateOptions)} (${formatDuration(runSummary.duration)})`
+    : formattedCreatedAt;
 
   return (
     <div className={styles["report-header"]}>
@@ -41,14 +48,19 @@ export const ReportHeader = () => {
                 </div>
                 <Text type="paragraph" size="m" className={styles["report-date"]} data-testid="report-data">
                   {code === undefined
-                    ? formattedCreatedAt
+                    ? formattedReportTime
                     : exitCode.actual !== undefined
                       ? t("finishedAtBoth", {
-                          formattedCreatedAt,
+                          // Keep the existing i18n parameter name; the value can now be either a timestamp or run interval.
+                          formattedCreatedAt: formattedReportTime,
                           actual: exitCode.actual,
                           original: exitCode.original,
                         })
-                      : t("finishedAtOriginal", { formattedCreatedAt, original: exitCode.original })}
+                      : t("finishedAtOriginal", {
+                          // Keep the existing i18n parameter name; the value can now be either a timestamp or run interval.
+                          formattedCreatedAt: formattedReportTime,
+                          original: exitCode.original,
+                        })}
                 </Text>
               </div>
             );

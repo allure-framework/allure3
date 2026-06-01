@@ -151,6 +151,7 @@
     "copy-email": "Պատճենել էլ. փոստը",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "at": "է",
+    "generated": "Ստեղծվել է",
     "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace",
     "pwTracePopupBlocked": "Բրաուզերը արգելափակեց Playwright Trace Viewer-ի բացումը։",

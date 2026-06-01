@@ -151,6 +151,7 @@
     "copy-email": "이메일 복사",
     "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서",
+    "generated": "생성됨",
     "variables": "변수",
     "openPwTrace": "Playwright Trace 열기",
     "pwTracePopupBlocked": "브라우저가 Playwright Trace Viewer 열기를 차단했습니다.",

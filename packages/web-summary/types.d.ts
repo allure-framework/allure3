@@ -12,6 +12,23 @@ import type {
 
 export type Layout = "base" | "split";
 
+export type AwesomeRunSummary = {
+  start: number;
+  stop: number;
+  duration: number;
+};
+
+export type AwesomeExecutorInfo = {
+  name?: string;
+  type?: string;
+  url?: string;
+  buildOrder?: number;
+  buildName?: string;
+  buildUrl?: string;
+  reportName?: string;
+  reportUrl?: string;
+};
+
 export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
@@ -22,6 +39,8 @@ export type AwesomeReportOptions = {
   createdAt: number;
   reportUuid: string;
   layout?: Layout;
+  executor?: AwesomeExecutorInfo;
+  runSummary?: AwesomeRunSummary;
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -97,4 +116,4 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
 // TODO: add worst status
 export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
   testResults: AwesomeTestResult[];
-}
+};
