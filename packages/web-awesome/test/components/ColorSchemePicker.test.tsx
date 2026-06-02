@@ -7,19 +7,25 @@ vi.mock("@allurereport/web-commons", () => ({
   themeStore: { value: { current: "light", selected: "auto" } },
 }));
 
-vi.mock("@allurereport/web-components", () => ({
-  DropdownButton: ({ text, onClick }: { text: string; onClick: () => void }) => (
-    <button data-testid="trigger" onClick={onClick}>
-      {text}
-    </button>
-  ),
-  Menu: ({ children, menuTrigger }: any) => (
+vi.mock("@allurereport/web-components", () => {
+  const Menu = ({ children, menuTrigger }: any) => (
     <div>
       {menuTrigger({ isOpened: false, onClick: vi.fn() })}
       <ul data-testid="menu">{children}</ul>
     </div>
-  ),
-}));
+  );
+  Menu.Section = ({ children }: any) => <li>{children}</li>;
+  Menu.ItemWithCheckmark = ({ children, onClick }: any) => <li onClick={onClick}>{children}</li>;
+
+  return {
+    DropdownButton: ({ text, onClick }: { text: string; onClick: () => void }) => (
+      <button data-testid="trigger" onClick={onClick}>
+        {text}
+      </button>
+    ),
+    Menu,
+  };
+});
 
 vi.mock("@/stores/colorScheme", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/stores/colorScheme")>();
