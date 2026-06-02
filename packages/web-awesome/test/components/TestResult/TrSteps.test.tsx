@@ -75,8 +75,8 @@ describe("components > TestResult > TrSteps", () => {
     globalThis.allureReportOptions = { stepTreeExpansion: "expand_failed_only" } as any;
   });
 
-  it("always shows the steps root container", () => {
-    const view = render(<TrSteps id="test" bodyItems={[failedStepWithContent]} />);
+  it("always shows the steps root container regardless of step status", () => {
+    const view = render(<TrSteps id="test" bodyItems={[passedStepWithContent]} />);
 
     expect(view.getByTestId("test-result-steps-root")).toBeInTheDocument();
   });
