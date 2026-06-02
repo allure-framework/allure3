@@ -70,7 +70,8 @@ export const TrStepsContent = (props: { item: TrStepItem }) => {
 export const TrStep: FunctionComponent<{
   item: TrStepItem;
   stepIndex?: number;
-}> = ({ item, stepIndex }) => {
+  isTopLevel?: boolean;
+}> = ({ item, stepIndex, isTopLevel }) => {
   const { item: stepData, bodyItems, suppressInlineError } = item;
   const inlineError = {
     message: stepData.message ?? stepData.error?.message,
@@ -85,7 +86,7 @@ export const TrStep: FunctionComponent<{
   );
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
-  const openedByDefault = isStepOpenedByDefault(policy, stepData.status, bodyItems);
+  const openedByDefault = isTopLevel ? true : isStepOpenedByDefault(policy, stepData.status, bodyItems);
   const isOpened = isTreeOpened(stepData.stepId, openedByDefault);
   const expandableDescendantNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasExpandableDescendants = expandableDescendantNodes.length > 0;

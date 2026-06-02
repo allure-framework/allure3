@@ -46,7 +46,7 @@ export const TrSetup: FunctionalComponent<TrSetupProps> = ({ setup, id }) => {
         <div className={styles["test-result-steps-root"]}>
           {setup?.map((fixture, key) => (
             <div className={styles["test-result-step-root"]} key={fixture.id}>
-              <TrStep item={fixtureResultToTrStepItem(fixture)} stepIndex={key + 1} />
+              <TrStep item={fixtureResultToTrStepItem(fixture)} stepIndex={key + 1} isTopLevel={true} />
             </div>
           ))}
         </div>
