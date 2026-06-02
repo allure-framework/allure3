@@ -7,7 +7,11 @@ export type ColorScheme =
   | "catppuccin"
   | "nord"
   | "solarized-dark"
-  | "github-dark";
+  | "github-dark"
+  | "github-light"
+  | "solarized-light"
+  | "one-light"
+  | "catppuccin-latte";
 
 export interface ColorSchemeOption {
   key: ColorScheme;

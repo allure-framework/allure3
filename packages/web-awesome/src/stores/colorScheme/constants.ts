@@ -12,4 +12,8 @@ export const COLOR_SCHEMES: ColorSchemeOption[] = [
   { key: "nord", label: "Nord", preview: "#2e3440" },
   { key: "solarized-dark", label: "Solarized Dark", preview: "#002b36" },
   { key: "github-dark", label: "GitHub Dark", preview: "#0d1117" },
+  { key: "github-light", label: "GitHub Light", preview: "#f6f8fa" },
+  { key: "solarized-light", label: "Solarized Light", preview: "#fdf6e3" },
+  { key: "one-light", label: "One Light", preview: "#fafafa" },
+  { key: "catppuccin-latte", label: "Catppuccin Latte", preview: "#eff1f5" },
 ];
