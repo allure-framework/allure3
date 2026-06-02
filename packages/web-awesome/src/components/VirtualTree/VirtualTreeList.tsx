@@ -5,9 +5,11 @@ import { useLayoutEffect, useRef } from "preact/hooks";
 
 import { getFlatTreeNode, setTreeFocusId, treeFocusId, treeScrollPaneToTopPending } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
+import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { treeStatus } from "@/stores/treeFilters/store";
+import type { VirtualLeafRow } from "@/stores/virtualTree";
 import { flatVirtualRows } from "@/stores/virtualTree";
 
 import { EnvHeader } from "./EnvHeader";
@@ -25,6 +27,38 @@ const treeNavigateTo = (testResultId: string) => {
   );
   setTreeFocusId(flatNode?.id ?? testResultId);
   navigateToTestResult({ testResultId });
+};
+
+const useLeafTooltips = (row: VirtualLeafRow) => {
+  const { t } = useI18n("transitions");
+  return {
+    transition: row.transition ? t(`description.${row.transition}`) : undefined,
+    flaky: row.flaky ? t("description.flaky") : undefined,
+    retries: row.retriesCount ? t("description.retries", { count: row.retriesCount }) : undefined,
+  };
+};
+
+const LeafRow = ({ row, trId, focusedId }: { row: VirtualLeafRow; trId?: string; focusedId?: string }) => {
+  const tooltips = useLeafTooltips(row);
+  return (
+    <TreeItem
+      data-testid="tree-leaf"
+      id={row.nodeId}
+      focusNodeId={row.id}
+      name={row.name}
+      status={row.status}
+      groupOrder={row.groupOrder}
+      duration={row.duration}
+      retriesCount={row.retriesCount}
+      transition={row.transition}
+      transitionTooltip={row.transitionTooltip}
+      tooltips={tooltips}
+      flaky={row.flaky}
+      marked={row.nodeId === trId}
+      focused={row.id === focusedId}
+      navigateTo={treeNavigateTo}
+    />
+  );
 };
 
 export const VirtualTreeList = () => {
@@ -87,26 +121,13 @@ export const VirtualTreeList = () => {
                 ref={(el) => measureElement(el as HTMLElement | null)}
                 style={{ paddingLeft: row.depth * INDENT_WIDTH }}
               >
-                {row.kind === "leaf" && (
-                  <TreeItem
-                    data-testid="tree-leaf"
-                    id={row.nodeId}
-                    focusNodeId={row.id}
-                    name={row.name}
-                    status={row.status}
-                    groupOrder={row.groupOrder}
-                    duration={row.duration}
-                    retriesCount={row.retriesCount}
-                    transition={row.transition}
-                    transitionTooltip={row.transitionTooltip}
-                    tooltips={row.tooltips}
-                    flaky={row.flaky}
-                    marked={row.nodeId === trId}
-                    focused={focused}
-                    navigateTo={treeNavigateTo}
-                  />
+                {row.kind === "leaf" && <LeafRow row={row} trId={trId} focusedId={focusedId} />}
+                {row.kind === "group" && (
+                  <>
+                    <GroupHeader row={row} focused={focused} statusFilter={statusFilter} />
+                    {row.isExpanded && <span data-testid="tree-content" hidden />}
+                  </>
                 )}
-                {row.kind === "group" && <GroupHeader row={row} focused={focused} statusFilter={statusFilter} />}
                 {row.kind === "env" && <EnvHeader row={row} focused={focused} statusFilter={statusFilter} />}
               </div>
             );
