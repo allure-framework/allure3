@@ -1,0 +1,74 @@
+:root[data-color-scheme="monokai"] {
+  --color-bg-canvas: #272822;
+  --color-bg-primary: #3e3d32;
+  --color-bg-secondary: #272822;
+  --color-bg-raised: #49483e;
+  --color-bg-neutral: #75715e;
+  --color-bg-overlay: rgba(0, 0, 0, 0.6);
+  --color-bg-inverse-primary: #1a1a16;
+  --color-bg-inverse-raised: #1e1e1a;
+
+  --color-text-primary: #f8f8f2;
+  --color-text-secondary: #cfcfc2;
+  --color-text-muted: #75715e;
+  --color-text-inverse: #272822;
+  --color-text-on-accent: #272822;
+  --color-icon-primary: #cfcfc2;
+  --color-icon-secondary: #a59f85;
+  --color-icon-muted: #75715e;
+
+  --color-border-subtle: rgba(117, 113, 94, 0.14);
+  --color-border-default: rgba(117, 113, 94, 0.3);
+  --color-border-medium: rgba(117, 113, 94, 0.45);
+  --color-border-control: rgba(117, 113, 94, 0.38);
+  --color-border-strong: #cfcfc2;
+
+  --color-control-bg: rgba(117, 113, 94, 0.2);
+  --color-control-bg-hover: rgba(117, 113, 94, 0.3);
+  --color-control-bg-active: rgba(117, 113, 94, 0.38);
+  --color-control-bg-ghost: transparent;
+  --color-control-bg-ghost-hover: rgba(117, 113, 94, 0.12);
+  --color-control-bg-ghost-active: rgba(117, 113, 94, 0.2);
+  --color-scrollbar: #49483e;
+
+  --color-nav-item-bg-hover: rgba(117, 113, 94, 0.1);
+  --color-nav-item-bg-active: rgba(166, 226, 46, 0.12);
+  --color-nav-item-bg-active-hover: rgba(166, 226, 46, 0.2);
+  --color-nav-item-text-active: #a6e22e;
+  --color-nav-item-icon-active: #a6e22e;
+  --color-row-bg-hover: rgba(117, 113, 94, 0.08);
+  --color-row-bg-selected: rgba(117, 113, 94, 0.16);
+  --color-row-bg-selected-hover: rgba(117, 113, 94, 0.24);
+  --color-sorter-fg: #75715e;
+  --color-sorter-fg-hover: #cfcfc2;
+  --color-sorter-fg-active: #a6e22e;
+
+  --color-link-text: #66d9e8;
+  --color-link-text-hover: #66d9e8;
+  --color-link-text-active: #4bc8d7;
+
+  --color-intent-primary-bg: #a6e22e;
+  --color-intent-primary-bg-hover: #8ec828;
+  --color-intent-primary-bg-active: #76ae22;
+  --color-intent-primary-text: #a6e22e;
+  --color-intent-primary-on-bg: #272822;
+
+  --color-tag-default-bg: rgba(117, 113, 94, 0.2);
+  --color-tag-default-text: #f8f8f2;
+  --color-tag-secondary-bg: #49483e;
+  --color-tag-secondary-text: #cfcfc2;
+
+  --color-syntax-number: #ae81ff;
+  --color-syntax-property: #f8f8f2;
+  --color-syntax-string: #e6db74;
+  --color-syntax-keyword: #f92672;
+  --color-syntax-function: #a6e22e;
+  --color-syntax-type: #66d9e8;
+  --color-syntax-muted-accent: #ae81ff;
+
+  --color-decorative-1-text: #ae81ff;
+  --color-decorative-2-text: #f92672;
+  --color-decorative-3-text: #fd971f;
+  --color-decorative-4-text: #e6db74;
+  --color-decorative-5-text: #66d9e8;
+}
