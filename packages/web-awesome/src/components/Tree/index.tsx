@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useLayoutEffect, useMemo } from "preact/hooks";
 
 import { MetadataButton } from "@/components/MetadataButton";
+import { VirtualTreeList } from "@/components/VirtualTree";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentNameById, environmentsStore } from "@/stores/env";
 import { flatTree, getFlatTreeNode, setTreeFocusId, treeFocusId, treeScrollPaneToTopPending } from "@/stores/keyboard";
@@ -22,8 +23,6 @@ import {
 } from "@/stores/tree";
 import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { createTreeLocalizer } from "@/utils/tree";
-
-import { VirtualTreeList } from "./VirtualTreeList";
 
 import * as styles from "./styles.scss";
 
@@ -44,7 +43,6 @@ export const TreeList = () => {
 
   const currentTreeStatus = treeStatus.value;
 
-  // In split mode, VirtualTreeList handles keyboard scroll; keep this only for non-split.
   useLayoutEffect(() => {
     if (split) {
       return;

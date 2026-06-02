@@ -31,7 +31,6 @@ export type VirtualGroupRow = {
   nodeId: string;
   name: string;
   statistic?: Statistic;
-  /** The recursive subtree — kept for subtree-toggle logic. */
   tree: AwesomeRecursiveTree;
   idPrefix?: string;
 };
@@ -179,7 +178,6 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
     }
   }
 
-  // read reportStatsStore to invalidate when report stats change
   void reportStatsStore.value;
 
   return rows;

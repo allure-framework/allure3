@@ -1,0 +1,40 @@
+.virtual-tree-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  height: 100%;
+}
+
+.tree-env-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 6px;
+  min-width: 0;
+  gap: 8px;
+
+  > :first-child {
+    min-width: 0;
+    width: max-content;
+  }
+
+  > :last-child {
+    flex: 0 0 auto;
+  }
+}
+
+.tree-env-focused {
+  outline: none;
+  background: var(--bg-control-flat-medium);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--bg-support-aldebaran);
+    pointer-events: none;
+  }
+}
