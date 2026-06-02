@@ -1,8 +1,10 @@
 import { scrollFocusIntoView, scrollTreePaneToTop } from "@allurereport/web-commons";
 import { TreeItem } from "@allurereport/web-components";
+import clsx from "clsx";
 import { useLayoutEffect, useRef } from "preact/hooks";
 
 import { getFlatTreeNode, setTreeFocusId, treeFocusId, treeScrollPaneToTopPending } from "@/stores/keyboard";
+import { isSplitMode } from "@/stores/layout";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { treeStatus } from "@/stores/treeFilters/store";
@@ -27,6 +29,7 @@ const treeNavigateTo = (testResultId: string) => {
 
 export const VirtualTreeList = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const split = isSplitMode.value;
   const rows = flatVirtualRows.value;
   const trId = currentTrId.value;
   const focusedId = treeFocusId.value;
@@ -36,6 +39,7 @@ export const VirtualTreeList = () => {
     containerRef,
     rows.length,
     OVERSCAN,
+    split,
   );
 
   useLayoutEffect(() => {
@@ -49,8 +53,7 @@ export const VirtualTreeList = () => {
         scrollTreePaneToTop(node);
         return;
       }
-      const flatNode = getFlatTreeNode(focusedId);
-      scrollFocusIntoView(node, { kind: flatNode?.kind });
+      scrollFocusIntoView(node, { kind: getFlatTreeNode(focusedId)?.kind });
     } else {
       const idx = rows.findIndex((row) => row.id === focusedId);
       if (idx >= 0) scrollToIndex(idx, "auto");
@@ -58,7 +61,11 @@ export const VirtualTreeList = () => {
   }, [focusedId]);
 
   return (
-    <div ref={containerRef} data-tree-scroll-container className={styles["virtual-tree-container"]}>
+    <div
+      ref={containerRef}
+      data-tree-scroll-container={split || undefined}
+      className={clsx(split && styles["virtual-tree-container"])}
+    >
       <div style={{ height: totalSize, position: "relative" }}>
         <div
           style={{

@@ -50,15 +50,13 @@ export type VirtualRow = VirtualLeafRow | VirtualGroupRow | VirtualEnvRow;
 const isFailedOrBrokenNode = (statistic?: Statistic) =>
   statistic === undefined || Boolean(statistic?.failed || statistic?.broken);
 
-const getDefaultOpenedState = (statistic?: Statistic, root = false) => root || isFailedOrBrokenNode(statistic);
+export const getDefaultOpenedState = (statistic?: Statistic, root = false) => root || isFailedOrBrokenNode(statistic);
 
-function flattenTreeWithData(
+export function flattenTreeWithData(
   tree: AwesomeRecursiveTree,
   depth: number,
-  options: {
-    isRoot?: boolean;
-    idPrefix?: string;
-  },
+  isGroupOpened: (id: string, openedByDefault: boolean) => boolean,
+  options: { isRoot?: boolean; idPrefix?: string } = {},
 ): VirtualRow[] {
   const rows: VirtualRow[] = [];
   const { idPrefix } = options;
@@ -68,7 +66,7 @@ function flattenTreeWithData(
   const showHeader = Boolean(tree.name) && hasChildren;
   const defaultOpened = getDefaultOpenedState(tree.statistic, Boolean(options.isRoot));
   const groupFocusId = toScopedId(tree.nodeId);
-  const isExpanded = isTreeOpened(groupFocusId, defaultOpened);
+  const isExpanded = isGroupOpened(groupFocusId, defaultOpened);
 
   if (showHeader) {
     rows.push({
@@ -85,16 +83,14 @@ function flattenTreeWithData(
     });
   }
 
-  if (!hasChildren) {
-    return rows;
-  }
+  if (!hasChildren) return rows;
 
   const childDepth = showHeader ? depth + 1 : depth;
   const canShowChildren = showHeader ? isExpanded : options.isRoot ? isExpanded : true;
 
   if (canShowChildren) {
     for (const subTree of tree.trees) {
-      rows.push(...flattenTreeWithData(subTree, childDepth, { idPrefix }));
+      rows.push(...flattenTreeWithData(subTree, childDepth, isGroupOpened, { idPrefix }));
     }
 
     for (const leaf of tree.leaves as AwesomeTreeLeaf[]) {
@@ -120,9 +116,7 @@ function flattenTreeWithData(
 }
 
 export const flatVirtualRows = computed((): VirtualRow[] => {
-  if (noTests.value || noTestsFound.value) {
-    return [];
-  }
+  if (noTests.value || noTestsFound.value) return [];
 
   const envs = environmentsStore.value.data;
   const trees = filteredTree.value as Record<string, AwesomeRecursiveTree>;
@@ -130,12 +124,8 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
   if (envs.length === 1) {
     const soleId = envs[0]!.id;
     const tree = trees[soleId];
-
-    if (!tree) {
-      return [];
-    }
-
-    return flattenTreeWithData(tree, 0, { isRoot: true });
+    if (!tree) return [];
+    return flattenTreeWithData(tree, 0, isTreeOpened, { isRoot: true });
   }
 
   const currentTree = currentEnvironment.value
@@ -143,17 +133,14 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
     : undefined;
 
   if (currentTree) {
-    return flattenTreeWithData(currentTree, 0, { isRoot: true });
+    return flattenTreeWithData(currentTree, 0, isTreeOpened, { isRoot: true });
   }
 
   const rows: VirtualRow[] = [];
 
   for (const [envId, tree] of Object.entries(trees)) {
     const stats = statsByEnvStore.value.data[envId];
-
-    if ((stats?.total ?? 0) === 0) {
-      continue;
-    }
+    if ((stats?.total ?? 0) === 0) continue;
 
     const isOpened = !collapsedEnvironments.value.includes(envId);
     const envFocusId = `env:${envId}`;
@@ -169,12 +156,7 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
     });
 
     if (isOpened) {
-      rows.push(
-        ...flattenTreeWithData(tree, 1, {
-          isRoot: true,
-          idPrefix: `${envId}:`,
-        }),
-      );
+      rows.push(...flattenTreeWithData(tree, 1, isTreeOpened, { isRoot: true, idPrefix: `${envId}:` }));
     }
   }
 

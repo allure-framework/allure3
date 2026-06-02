@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-const ESTIMATE_ROW_HEIGHT = 32;
+export const ESTIMATE_ROW_HEIGHT = 32;
 
 export type VirtualItem = { index: number; start: number };
 
@@ -11,36 +11,70 @@ export type VirtualListResult = {
   scrollToIndex: (index: number, align?: "start" | "center" | "auto") => void;
 };
 
+type ScrollContext = {
+  scrollEl: HTMLElement;
+  getContainerOffset: () => number;
+};
+
+function findScrollContainer(el: HTMLElement): HTMLElement | null {
+  let node = el.parentElement;
+  while (node) {
+    if (node.hasAttribute("data-tree-scroll-container")) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
 export function useVirtualList(
-  scrollElementRef: { current: HTMLElement | null },
+  containerRef: { current: HTMLElement | null },
   count: number,
   overscan: number,
+  ownScrollContainer: boolean,
 ): VirtualListResult {
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
   const measuredHeights = useRef<Map<number, number>>(new Map());
+  const scrollCtxRef = useRef<ScrollContext | null>(null);
+  const prevCountRef = useRef(count);
+
+  if (prevCountRef.current !== count) {
+    prevCountRef.current = count;
+    measuredHeights.current.clear();
+  }
 
   useEffect(() => {
-    const el = scrollElementRef.current;
-    if (!el) return;
+    const containerEl = containerRef.current;
+    if (!containerEl) return;
 
-    const onScroll = () => setScrollTop(el.scrollTop);
-    const onResize = () => setContainerHeight(el.clientHeight);
+    const scrollEl = ownScrollContainer ? containerEl : findScrollContainer(containerEl);
+    if (!scrollEl) return;
 
-    setContainerHeight(el.clientHeight);
-    setScrollTop(el.scrollTop);
+    const getContainerOffset = (): number => {
+      if (scrollEl === containerEl) return 0;
+      return containerEl.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop;
+    };
 
-    el.addEventListener("scroll", onScroll, { passive: true });
-    const ro = new ResizeObserver(onResize);
-    ro.observe(el);
+    scrollCtxRef.current = { scrollEl, getContainerOffset };
+
+    const update = () => {
+      const offset = getContainerOffset();
+      setScrollTop(Math.max(0, scrollEl.scrollTop - offset));
+      setContainerHeight(scrollEl.clientHeight);
+    };
+
+    update();
+    scrollEl.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(scrollEl);
 
     return () => {
-      el.removeEventListener("scroll", onScroll);
+      scrollEl.removeEventListener("scroll", update);
       ro.disconnect();
+      scrollCtxRef.current = null;
     };
   }, []);
 
-  const getOffset = (idx: number) => {
+  const getItemOffset = (idx: number): number => {
     let offset = 0;
     for (let i = 0; i < idx; i++) {
       offset += measuredHeights.current.get(i) ?? ESTIMATE_ROW_HEIGHT;
@@ -48,7 +82,7 @@ export function useVirtualList(
     return offset;
   };
 
-  const getTotalSize = () => {
+  const getTotalSize = (): number => {
     let total = 0;
     for (let i = 0; i < count; i++) {
       total += measuredHeights.current.get(i) ?? ESTIMATE_ROW_HEIGHT;
@@ -87,14 +121,12 @@ export function useVirtualList(
 
   const virtualItems: VirtualItem[] = [];
   for (let i = startIdx; i <= endIdx; i++) {
-    virtualItems.push({ index: i, start: getOffset(i) });
+    virtualItems.push({ index: i, start: getItemOffset(i) });
   }
 
   const measureElement = (el: HTMLElement | null) => {
     if (!el) return;
-    const indexAttr = el.getAttribute("data-index");
-    if (indexAttr === null) return;
-    const idx = parseInt(indexAttr, 10);
+    const idx = parseInt(el.getAttribute("data-index") ?? "", 10);
     if (isNaN(idx)) return;
     const h = el.getBoundingClientRect().height;
     if (h > 0 && measuredHeights.current.get(idx) !== h) {
@@ -103,19 +135,21 @@ export function useVirtualList(
   };
 
   const scrollToIndex = (index: number, align: "start" | "center" | "auto" = "auto") => {
-    const el = scrollElementRef.current;
-    if (!el) return;
-    const itemStart = getOffset(index);
+    const ctx = scrollCtxRef.current;
+    if (!ctx) return;
+    const { scrollEl, getContainerOffset } = ctx;
+    const containerOffset = getContainerOffset();
+    const itemStart = getItemOffset(index) + containerOffset;
     const itemHeight = measuredHeights.current.get(index) ?? ESTIMATE_ROW_HEIGHT;
     if (align === "start") {
-      el.scrollTop = itemStart;
+      scrollEl.scrollTop = itemStart;
     } else if (align === "center") {
-      el.scrollTop = itemStart - el.clientHeight / 2 + itemHeight / 2;
+      scrollEl.scrollTop = itemStart - scrollEl.clientHeight / 2 + itemHeight / 2;
     } else {
-      if (itemStart < el.scrollTop) {
-        el.scrollTop = itemStart;
-      } else if (itemStart + itemHeight > el.scrollTop + el.clientHeight) {
-        el.scrollTop = itemStart + itemHeight - el.clientHeight;
+      if (itemStart < scrollEl.scrollTop) {
+        scrollEl.scrollTop = itemStart;
+      } else if (itemStart + itemHeight > scrollEl.scrollTop + scrollEl.clientHeight) {
+        scrollEl.scrollTop = itemStart + itemHeight - scrollEl.clientHeight;
       }
     }
   };
