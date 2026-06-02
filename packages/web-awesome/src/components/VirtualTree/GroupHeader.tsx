@@ -8,7 +8,7 @@ import {
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import { IconButton, TreeHeader, allureIcons } from "@allurereport/web-components";
+import { IconButton, TreeHeader, allureIcons, treeSubtreeToggleClass } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
 
 import { reportStatsStore } from "@/stores";
@@ -87,6 +87,7 @@ export const GroupHeader = ({ row, focused, statusFilter }: Props) => {
       style="ghost"
       icon={subtreeToggleIcon}
       onClick={handleToggleSubtree}
+      className={treeSubtreeToggleClass}
       data-testid="tree-subtree-toggle"
     />
   ) : undefined;
