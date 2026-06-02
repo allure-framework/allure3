@@ -12,6 +12,7 @@ import {
   generateAttachmentsFiles,
   generateGlobals,
   generateSearchIndex,
+  getRunSummary,
 } from "../src/generators.js";
 
 beforeEach(async () => {
@@ -36,6 +37,35 @@ const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => bool
     { total: trsToProcess.length } as Record<string, number>,
   );
 };
+
+describe("getRunSummary", () => {
+  it("should return undefined for empty result input", () => {
+    expect(getRunSummary([])).toBeUndefined();
+  });
+
+  it("should derive launch interval from valid result timings", () => {
+    expect(
+      getRunSummary([
+        { start: 1000, stop: 2000 },
+        { start: 500, stop: 2500 },
+        { start: 1500, stop: 1800 },
+      ]),
+    ).toEqual({
+      start: 500,
+      stop: 2500,
+      duration: 2000,
+    });
+  });
+
+  it("should ignore results without valid timing data", () => {
+    expect(
+      getRunSummary([
+        { start: undefined, stop: 2000 },
+        { start: 1000, stop: undefined },
+      ]),
+    ).toBeUndefined();
+  });
+});
 
 const mockTestResult = (id: string, name: string, status: TestResult["status"]): TestResult =>
   ({

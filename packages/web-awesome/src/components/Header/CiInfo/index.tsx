@@ -13,7 +13,7 @@ interface CiInfoProps {
 }
 
 interface CiIconProps {
-  type: CiDescriptor["type"];
+  type?: CiDescriptor["type"];
 }
 
 export const CiIcon = ({ type }: CiIconProps) => {
@@ -47,24 +47,20 @@ export const CiIcon = ({ type }: CiIconProps) => {
 export const CiInfo = ({ className }: CiInfoProps) => {
   const { ci } = getReportOptions<AwesomeReportOptions>();
 
-  if (!ci) {
-    return null;
-  }
+  const ciLink = ci ? ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl : undefined;
+  const ciLabel = getCiLabel(ci, ciLink);
+  const safeLink = sanitizeExternalUrl(ciLink);
 
-  const link = ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl;
-  const safeLink = sanitizeExternalUrl(link);
-  const label = ci.pullRequestName || ci.jobRunName || ci.jobName || link;
-
-  if (!link) {
+  if (!ciLabel) {
     return null;
   }
 
   if (!safeLink) {
     return (
       <span className={clsx(styles["ci-info"], className)}>
-        <CiIcon type={ci.type} />
+        <CiIcon type={ci?.type} />
         <Text type="paragraph" size="m" bold>
-          {label}
+          {ciLabel}
         </Text>
       </span>
     );
@@ -72,10 +68,18 @@ export const CiInfo = ({ className }: CiInfoProps) => {
 
   return (
     <a className={clsx(styles["ci-info"], className)} href={safeLink} target="_blank" rel="noopener noreferrer">
-      <CiIcon type={ci.type} />
+      <CiIcon type={ci?.type} />
       <Text type="paragraph" size="m" bold>
-        {label}
+        {ciLabel}
       </Text>
     </a>
   );
+};
+
+const getCiLabel = (ci?: CiDescriptor, link?: string) => {
+  if (!ci) {
+    return undefined;
+  }
+
+  return ci.pullRequestName || ci.jobRunName || ci.jobName || link;
 };

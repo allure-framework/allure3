@@ -151,6 +151,7 @@
     "copy-email": "Скопировать email",
     "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
+    "generated": "Сгенерировано",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
     "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",

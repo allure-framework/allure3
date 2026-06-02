@@ -1,4 +1,5 @@
-import { Button, ButtonLink, Menu, Text, allureIcons } from "@allurereport/web-components";
+import { sanitizeExternalUrl } from "@allurereport/core-api";
+import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -23,8 +24,8 @@ export const MetadataList: FunctionalComponent<MetadataProps & { columns?: numbe
       style={{ gridTemplateColumns: `repeat(${columns}, ${100 / columns - 5}%)` }}
       data-testid={"metadata-list"}
     >
-      {envInfo?.map(({ name, values, value }) => (
-        <MetadataKeyValue key={name} size={size} title={name} value={value} values={values} />
+      {envInfo?.map(({ name, values, value, url }, index) => (
+        <MetadataKeyValue key={`${name}-${index}`} size={size} title={name} value={value} values={values} url={url} />
       ))}
     </div>
   );
@@ -160,10 +161,29 @@ const MetaDataOwnerLabel: FunctionalComponent<{
 const MetaDataKeyLabel: FunctionalComponent<{
   name: string;
   size?: "s" | "m";
+  url?: string;
   value: string;
-}> = ({ name, size = "s", value }) => {
+}> = ({ name, size = "s", url, value }) => {
   if (name === "owner") {
     return <MetaDataOwnerLabel value={value} size={size} />;
+  }
+
+  const safeUrl = sanitizeExternalUrl(url);
+
+  if (safeUrl) {
+    return (
+      <a
+        className={clsx(styles["report-metadata-keyvalue-wrapper"], styles["report-metadata-keyvalue-link"])}
+        href={safeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Text type={"ui"} size={size} bold className={styles["report-metadata-keyvalue-value"]}>
+          {value}
+        </Text>
+        <SvgIcon id={allureIcons.lineGeneralLinkExternal} size="s" />
+      </a>
+    );
   }
 
   return (
@@ -186,10 +206,11 @@ const MetaDataKeyLabel: FunctionalComponent<{
 
 const MetadataKeyValue: FunctionalComponent<{
   title: string;
+  url?: string;
   value?: string;
   values?: string[];
   size?: "s" | "m";
-}> = ({ title, value, values, size = "m" }) => {
+}> = ({ title, url, value, values, size = "m" }) => {
   return (
     <div className={styles["report-metadata-keyvalue"]} data-testid={"metadata-item"}>
       <Text
@@ -208,7 +229,7 @@ const MetadataKeyValue: FunctionalComponent<{
         </div>
       ) : (
         <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
-          <MetaDataKeyLabel value={value ?? ""} name={title} />
+          <MetaDataKeyLabel value={value ?? ""} name={title} url={url} />
         </div>
       )}
     </div>

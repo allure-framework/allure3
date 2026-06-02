@@ -151,6 +151,7 @@
     "copy-email": "Скопіювати email",
     "attempt": "Спроба {{attempt}} з {{total}}",
     "at": "в",
+    "generated": "Згенеровано",
     "variables": "Змінні",
     "openPwTrace": "Відкрити Playwright Trace",
     "pwTracePopupBlocked": "Браузер заблокував відкриття Playwright Trace Viewer.",
