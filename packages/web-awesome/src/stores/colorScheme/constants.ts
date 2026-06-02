@@ -3,7 +3,7 @@ import type { ColorSchemeOption } from "./types";
 export const STORAGE_KEY = "colorScheme";
 
 export const COLOR_SCHEMES: ColorSchemeOption[] = [
-  { key: "default", label: "Default", preview: "" },
+  { key: "default", label: "Allure", preview: "" },
   { key: "tokyo-night", label: "Tokyo Night", preview: "#1a1b2e" },
   { key: "monokai", label: "Monokai", preview: "#272822" },
   { key: "dracula", label: "Dracula", preview: "#282a36" },
