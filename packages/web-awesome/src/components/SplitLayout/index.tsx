@@ -21,7 +21,7 @@ const MainReportWrapper = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.wrapper} ref={containerRef}>
+    <div className={styles.wrapper} ref={containerRef} data-tree-scroll-container>
       <MainReport />
     </div>
   );

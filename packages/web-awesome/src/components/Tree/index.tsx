@@ -61,6 +61,20 @@ export const TreeList = () => {
     scrollFocusIntoView(node, { kind: flatNode?.kind });
   }, [focusedId]);
 
+  useLayoutEffect(() => {
+    if (!trId || focusedId) {
+      return;
+    }
+
+    const node = document.getElementById(trId);
+
+    if (!node) {
+      return;
+    }
+
+    scrollFocusIntoView(node, { kind: "leaf" });
+  }, [trId]);
+
   const localizers = useMemo(
     () => ({
       tooltip: (key: string, options: Record<string, string>) => tooltip(`description.${key}`, options),
