@@ -49,7 +49,7 @@ describe("stores > colorScheme", () => {
     vi.doMock("@allurereport/web-commons", () => ({
       themeStore: { value: { current: "light", selected: "light" } },
     }));
-    const { selectedFamily, colorScheme, setThemeFamily } = await import("../../src/stores/colorScheme/store.js");
+    const { colorScheme, setThemeFamily } = await import("../../src/stores/colorScheme/store.js");
     setThemeFamily("github");
     expect(colorScheme.value).toBe("github-light");
   });
@@ -58,7 +58,7 @@ describe("stores > colorScheme", () => {
     vi.doMock("@allurereport/web-commons", () => ({
       themeStore: { value: { current: "dark", selected: "dark" } },
     }));
-    const { selectedFamily, colorScheme, setThemeFamily } = await import("../../src/stores/colorScheme/store.js");
+    const { colorScheme, setThemeFamily } = await import("../../src/stores/colorScheme/store.js");
     setThemeFamily("github");
     expect(colorScheme.value).toBe("github-dark");
   });
