@@ -19,6 +19,7 @@ vi.hoisted(() => {
 
 import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import { TrSteps } from "@/components/TestResult/TrSteps";
+import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
 import { collapsedTrees, expandedTrees } from "@/stores/tree";
 
 const nestedPassedStep = {
@@ -75,13 +76,13 @@ describe("components > TestResult > TrSteps", () => {
   });
 
   it("always shows the steps root container", () => {
-    const view = render(<TrSteps id="passed-test" bodyItems={[passedStepWithContent]} />);
+    const view = render(<TrSteps id="test" bodyItems={[failedStepWithContent]} />);
 
     expect(view.getByTestId("test-result-steps-root")).toBeInTheDocument();
   });
 
   it("opens top-level passed steps by default even with expand_failed_only", () => {
-    const view = render(<TrSteps id="passed-test" bodyItems={[passedStepWithContent]} />);
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
 
     expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
   });
@@ -93,7 +94,7 @@ describe("components > TestResult > TrSteps", () => {
   });
 
   it("collapses nested passed steps by default with expand_failed_only", () => {
-    const view = render(<TrSteps id="passed-test" bodyItems={[passedStepWithContent]} />);
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
 
     expect(view.queryAllByTestId("test-result-step-content")).toHaveLength(1);
   });
