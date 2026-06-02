@@ -15,7 +15,7 @@ vi.mock("@allurereport/web-components", () => {
     </div>
   );
   Menu.Section = ({ children }: any) => <li>{children}</li>;
-  Menu.ItemWithCheckmark = ({ children, onClick }: any) => <li onClick={onClick}>{children}</li>;
+  Menu.ItemWithCheckmark = ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>;
 
   return {
     DropdownButton: ({ text, onClick }: { text: string; onClick: () => void }) => (
