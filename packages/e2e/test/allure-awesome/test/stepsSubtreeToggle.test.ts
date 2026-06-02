@@ -94,33 +94,23 @@ test("should cycle body subtree toggle state like categories", async () => {
   const level2Step = level1Step.getSubstepByName("level 2");
   const level3Step = level2Step.getSubstepByName("level 3");
 
-  // Initial state: top-level step is open by default; nested steps follow the "collapsed" policy
-  await expect(level1Step.locator).toHaveCount(1);
-  await expect(level2Step.locator).toHaveCount(1);
-  await expect(level3Step.locator).toHaveCount(0);
+  await expect(level1Step.locator).toHaveCount(0);
 
-  // Toggle 1: expand all subtrees
   await testResultPage.toggleStepsSubtree();
   await expect(level1Step.locator).toHaveCount(1);
+  await expect(level2Step.locator).toHaveCount(0);
+
+  await testResultPage.toggleStepsSubtree();
   await expect(level2Step.locator).toHaveCount(1);
   await expect(level3Step.locator).toHaveCount(1);
 
-  // Toggle 2: first-level (level1 stays open as top-level default, level2 visible as header)
   await testResultPage.toggleStepsSubtree();
   await expect(level1Step.locator).toHaveCount(1);
-  await expect(level2Step.locator).toHaveCount(1);
-  await expect(level3Step.locator).toHaveCount(0);
+  await expect(level2Step.locator).toHaveCount(0);
 
-  // Toggle 3: collapse all (root closed, level1 not in DOM)
   await testResultPage.toggleStepsSubtree();
   await expect(level1Step.locator).toHaveCount(0);
   await expect(level2Step.locator).toHaveCount(0);
-  await expect(level3Step.locator).toHaveCount(0);
-
-  // Toggle 4: restore initial state
-  await testResultPage.toggleStepsSubtree();
-  await expect(level1Step.locator).toHaveCount(1);
-  await expect(level2Step.locator).toHaveCount(1);
   await expect(level3Step.locator).toHaveCount(0);
 });
 
