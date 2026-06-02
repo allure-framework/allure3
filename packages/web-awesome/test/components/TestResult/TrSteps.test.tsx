@@ -87,6 +87,13 @@ describe("components > TestResult > TrSteps", () => {
     expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
   });
 
+  it("collapses top-level steps when policy is collapsed", () => {
+    globalThis.allureReportOptions = { stepTreeExpansion: "collapsed" } as any;
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+
+    expect(view.queryByTestId("test-result-step-content")).not.toBeInTheDocument();
+  });
+
   it("opens top-level failed steps by default with expand_failed_only", () => {
     const view = render(<TrSteps id="failed-test" bodyItems={[failedStepWithContent]} />);
 
