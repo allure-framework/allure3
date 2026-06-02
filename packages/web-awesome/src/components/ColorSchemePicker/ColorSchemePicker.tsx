@@ -1,12 +1,12 @@
 import { DropdownButton, Menu } from "@allurereport/web-components";
 
-import { COLOR_SCHEMES, colorScheme, setColorScheme } from "@/stores/colorScheme";
+import { THEME_FAMILIES, selectedFamily, setThemeFamily } from "@/stores/colorScheme";
 
 import { ColorSchemeItem } from "./ColorSchemeItem";
 
 export const ColorSchemePicker = () => {
-  const current = colorScheme.value;
-  const currentLabel = COLOR_SCHEMES.find((s) => s.key === current)?.label ?? "Theme";
+  const current = selectedFamily.value;
+  const currentLabel = THEME_FAMILIES.find((f) => f.key === current)?.label ?? "Theme";
 
   return (
     <Menu
@@ -16,13 +16,13 @@ export const ColorSchemePicker = () => {
       )}
     >
       <Menu.Section>
-        {COLOR_SCHEMES.map((option) => (
+        {THEME_FAMILIES.map((family) => (
           <Menu.ItemWithCheckmark
-            key={option.key}
-            onClick={() => setColorScheme(option.key)}
-            isChecked={current === option.key}
+            key={family.key}
+            onClick={() => setThemeFamily(family.key)}
+            isChecked={current === family.key}
           >
-            <ColorSchemeItem option={option} />
+            <ColorSchemeItem option={family} />
           </Menu.ItemWithCheckmark>
         ))}
       </Menu.Section>

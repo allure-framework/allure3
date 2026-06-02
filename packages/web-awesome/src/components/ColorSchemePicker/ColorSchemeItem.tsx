@@ -1,9 +1,9 @@
-import type { ColorSchemeOption } from "@/stores/colorScheme";
+import type { ThemeFamilyOption } from "@/stores/colorScheme";
 
 import * as styles from "./styles.scss";
 
 interface ColorSchemeItemProps {
-  option: ColorSchemeOption;
+  option: ThemeFamilyOption;
 }
 
 export const ColorSchemeItem = ({ option }: ColorSchemeItemProps) => (

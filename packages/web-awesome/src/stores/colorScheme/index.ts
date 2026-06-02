@@ -1,3 +1,3 @@
-export { COLOR_SCHEMES, STORAGE_KEY } from "./constants";
-export { colorScheme, setColorScheme } from "./store";
-export type { ColorScheme, ColorSchemeOption } from "./types";
+export { STORAGE_KEY, THEME_FAMILIES } from "./constants";
+export { colorScheme, selectedFamily, setThemeFamily } from "./store";
+export type { ColorScheme, ThemeFamily, ThemeFamilyOption } from "./types";
