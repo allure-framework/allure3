@@ -117,9 +117,7 @@ jobs:
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
       - name: Write perf metrics summary
         if: always()
-        run: |
-          node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md
-          cat ./allure-report/allure-perf-metrics.md >> "$GITHUB_STEP_SUMMARY"
+        run: node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md --github-step-summary
       - name: Upload perf metrics
         uses: actions/upload-artifact@v5
         if: always()
@@ -142,8 +140,10 @@ jobs:
     if: always() && github.event_name == 'pull_request'
     permissions:
       actions: read
+      contents: read
       pull-requests: write
     steps:
+      - uses: actions/checkout@v6
       - name: Download perf metrics
         uses: actions/download-artifact@v6
         continue-on-error: true
@@ -154,19 +154,6 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            const fs = require("node:fs");
-            const marker = "<!-- allure-perf-metrics -->";
-            const summaryPath = "./allure-perf-metrics/allure-perf-metrics.md";
-            const { owner, repo } = context.repo;
-            const artifactsUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-            const summary = fs.existsSync(summaryPath) ? fs.readFileSync(summaryPath, "utf8") : "### Allure perf metrics\n\nMetrics file was not generated.\n";
-            const body = `${marker}\n${summary}\nArtifacts: [allure-perf-metrics](${artifactsUrl})`;
-            const issue_number = context.payload.pull_request.number;
-            const comments = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
-            const previous = comments.data.find((comment) => comment.user.type === "Bot" && comment.body?.includes(marker));
+            const commentPerfMetrics = require("./scripts/comment-allure-perf-metrics.cjs");
 
-            if (previous) {
-              await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body });
-            } else {
-              await github.rest.issues.createComment({ owner, repo, issue_number, body });
-            }
+            await commentPerfMetrics({ context, github });

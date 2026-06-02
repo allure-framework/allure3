@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const phaseOrder = [
@@ -19,12 +19,15 @@ const dynamicPhasePrefixes = ["generate.plugin.done.", "publish.upload.plugin."]
 
 const parseArgs = (argv) => {
   const args = {
+    githubStepSummary: false,
     metrics: argv[0],
     output: "",
   };
 
   for (let i = 1; i < argv.length; i += 1) {
-    if (argv[i] === "--output") {
+    if (argv[i] === "--github-step-summary") {
+      args.githubStepSummary = true;
+    } else if (argv[i] === "--output") {
       args.output = argv[i + 1] ?? "";
       i += 1;
     }
@@ -133,4 +136,8 @@ if (args.output) {
   writeFileSync(outputPath, markdown, "utf8");
 } else {
   process.stdout.write(markdown);
+}
+
+if (args.githubStepSummary && process.env.GITHUB_STEP_SUMMARY) {
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown, "utf8");
 }

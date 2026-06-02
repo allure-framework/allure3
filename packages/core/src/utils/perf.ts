@@ -27,11 +27,11 @@ export type PerfMetricsPayload = {
   summary: PerfMetricSummary[];
 };
 
-const markPrefix = "allure:perf:";
-const enabledValues = new Set(["1", "true", "yes", "on"]);
-const spans: PerfMetricSpan[] = [];
-const marks = new Set<string>();
-const measures = new Set<string>();
+const MARK_PREFIX = "allure:perf:";
+const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
+const SPANS: PerfMetricSpan[] = [];
+const MARKS = new Set<string>();
+const MEASURES = new Set<string>();
 
 let sequence = 0;
 
@@ -54,21 +54,21 @@ export const PERF_METRIC_PREFIXES = {
   publishUploadPlugin: "publish.upload.plugin.",
 } as const;
 
-export const isPerfMetricsEnabled = () => enabledValues.has((process.env.ALLURE_PERF_METRICS ?? "").toLowerCase());
+export const isPerfMetricsEnabled = () => ENABLED_VALUES.has((process.env.ALLURE_PERF_METRICS ?? "").toLowerCase());
 
 export const startPerfSpan = (name: string): (() => void) => {
   if (!isPerfMetricsEnabled()) {
     return () => {};
   }
 
-  const id = `${markPrefix}${sequence++}:${name}`;
+  const id = `${MARK_PREFIX}${sequence++}:${name}`;
   const startMark = `${id}:start`;
   const endMark = `${id}:end`;
   let ended = false;
 
-  marks.add(startMark);
-  marks.add(endMark);
-  measures.add(id);
+  MARKS.add(startMark);
+  MARKS.add(endMark);
+  MEASURES.add(id);
   performance.mark(startMark);
 
   return () => {
@@ -83,7 +83,7 @@ export const startPerfSpan = (name: string): (() => void) => {
     const entry = performance.getEntriesByName(id, "measure").at(-1);
 
     if (entry) {
-      spans.push({
+      SPANS.push({
         name,
         startTimeMs: round(entry.startTime),
         durationMs: round(entry.duration),
@@ -93,9 +93,9 @@ export const startPerfSpan = (name: string): (() => void) => {
     performance.clearMarks(startMark);
     performance.clearMarks(endMark);
     performance.clearMeasures(id);
-    marks.delete(startMark);
-    marks.delete(endMark);
-    measures.delete(id);
+    MARKS.delete(startMark);
+    MARKS.delete(endMark);
+    MEASURES.delete(id);
   };
 };
 
@@ -116,7 +116,7 @@ export const measurePerf = async <T>(name: string, fn: () => Promise<T>): Promis
 export const getPerfMetricsPayload = (): PerfMetricsPayload => {
   const byName = new Map<string, PerfMetricSpan[]>();
 
-  for (const span of spans) {
+  for (const span of SPANS) {
     const current = byName.get(span.name) ?? [];
 
     current.push(span);
@@ -127,7 +127,7 @@ export const getPerfMetricsPayload = (): PerfMetricsPayload => {
     version: 1,
     generatedAt: new Date().toISOString(),
     timeOriginMs: round(performance.timeOrigin),
-    spans: [...spans],
+    spans: [...SPANS],
     summary: [...byName.entries()].map(([name, group]) => {
       const durations = group.map(({ durationMs }) => durationMs);
       const totalMs = durations.reduce((acc, duration) => acc + duration, 0);
@@ -159,17 +159,17 @@ export const writePerfMetrics = async (output: string): Promise<boolean> => {
 };
 
 export const resetPerfMetrics = () => {
-  spans.length = 0;
+  SPANS.length = 0;
   sequence = 0;
 
-  for (const mark of marks) {
+  for (const mark of MARKS) {
     performance.clearMarks(mark);
   }
 
-  for (const measure of measures) {
+  for (const measure of MEASURES) {
     performance.clearMeasures(measure);
   }
 
-  marks.clear();
-  measures.clear();
+  MARKS.clear();
+  MEASURES.clear();
 };
