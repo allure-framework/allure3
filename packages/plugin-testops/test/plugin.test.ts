@@ -13,9 +13,14 @@ import { TestOpsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils/index.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
-vi.mock("@allurereport/ci", () => ({
-  detect: vi.fn(),
-}));
+vi.mock("@allurereport/ci", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@allurereport/ci")>();
+
+  return {
+    ...actual,
+    detect: vi.fn(),
+  };
+});
 
 vi.mock("../src/client.js", async () => {
   const utils = await import("./utils.js");
@@ -237,6 +242,11 @@ describe("testops plugin", () => {
     });
 
     describe("outside ci mode", () => {
+      beforeEach(() => {
+        vi.stubEnv("ALLURE_TESTOPS_ENABLED", "");
+        vi.stubEnv("CI", "");
+      });
+
       it("should return false from enabled getter when ci is local", () => {
         (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({
@@ -1108,6 +1118,11 @@ describe("testops plugin", () => {
     });
 
     describe("outside ci mode", () => {
+      beforeEach(() => {
+        vi.stubEnv("ALLURE_TESTOPS_ENABLED", "");
+        vi.stubEnv("CI", "");
+      });
+
       it("should not stop upload when ci is local", async () => {
         (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({
