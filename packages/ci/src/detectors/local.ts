@@ -62,3 +62,6 @@ export const local: CiDescriptor = {
     return "";
   },
 };
+
+export const isLocalCiDescriptor = (ci: CiDescriptor): ci is Omit<CiDescriptor, "type"> & { type: CiType.Local } =>
+  ci.type === CiType.Local;

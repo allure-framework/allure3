@@ -7,9 +7,14 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TestOpsPlugin } from "../../src/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
 
-vi.mock("@allurereport/ci", () => ({
-  detect: vi.fn(() => ({ type: "github" }) as CiDescriptor),
-}));
+vi.mock("@allurereport/ci", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@allurereport/ci")>();
+
+  return {
+    ...actual,
+    detect: vi.fn(() => ({ type: "github" }) as CiDescriptor),
+  };
+});
 
 beforeEach(async () => {
   await epic("coverage");
