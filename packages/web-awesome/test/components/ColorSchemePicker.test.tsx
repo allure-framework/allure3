@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/preact";
+import { render, screen, within } from "@testing-library/preact";
 import { describe, expect, it, vi } from "vitest";
 
 import { THEME_FAMILIES } from "@/stores/colorScheme";
@@ -46,8 +46,9 @@ describe("components > ColorSchemePicker", () => {
   it("renders all theme families", async () => {
     const { ColorSchemePicker } = await import("@/components/ColorSchemePicker/ColorSchemePicker");
     render(<ColorSchemePicker />);
+    const menu = screen.getByTestId("menu");
     for (const family of THEME_FAMILIES) {
-      expect(screen.getByText(family.label)).toBeInTheDocument();
+      expect(within(menu).getByText(family.label)).toBeInTheDocument();
     }
   });
 });
