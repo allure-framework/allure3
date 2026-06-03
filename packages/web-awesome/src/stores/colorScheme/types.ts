@@ -1,5 +1,8 @@
 export type ThemeFamily =
   | "allure"
+  | "allure-deuteranopia"
+  | "allure-tritanopia"
+  | "allure-high-contrast"
   | "github"
   | "one"
   | "catppuccin"
@@ -11,6 +14,12 @@ export type ThemeFamily =
 
 export type ColorScheme =
   | "default"
+  | "allure-deuteranopia-light"
+  | "allure-deuteranopia-dark"
+  | "allure-tritanopia-light"
+  | "allure-tritanopia-dark"
+  | "allure-high-contrast-light"
+  | "allure-high-contrast-dark"
   | "github-light"
   | "github-dark"
   | "one-light"
