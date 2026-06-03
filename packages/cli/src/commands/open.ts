@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { cwd as processCwd, exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
@@ -106,7 +106,7 @@ export class OpenCommand extends Command {
   private resolveReportPath(cwd: string, inputs: readonly string[], fallback: string = "allure-report") {
     if (inputs.length <= 1) {
       const [maybeRelativeReportPath = fallback] = inputs;
-      return resolve(cwd, maybeRelativeReportPath);
+      return isAbsolute(maybeRelativeReportPath) ? maybeRelativeReportPath : join(cwd, maybeRelativeReportPath);
     }
   }
 
