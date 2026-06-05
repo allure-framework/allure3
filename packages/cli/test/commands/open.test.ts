@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
@@ -74,7 +74,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: join("bar", "allure-report"),
+      cwd: resolve("bar", "allure-report"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -83,7 +83,7 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: join("bar", "allure-report"),
+        servePath: resolve("bar", "allure-report"),
         open: true,
       }),
     );
@@ -103,7 +103,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: join("baz", "bar"),
+      cwd: resolve("baz", "bar"),
     });
     expect(readConfig).toHaveBeenCalledWith("baz", undefined, {
       port: undefined,
@@ -112,7 +112,7 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: join("baz", "bar"),
+        servePath: resolve("baz", "bar"),
         open: true,
       }),
     );
@@ -160,7 +160,9 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "bar"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(`A report doesn't exist in ${join("bar", "foo")} and no input was provided to generate.`),
+      expect.stringContaining(
+        `A report doesn't exist in ${resolve("bar", "foo")} and no input was provided to generate.`,
+      ),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -175,7 +177,7 @@ describe("open command", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
-        `A report doesn't exist in ${join("foo", "allure-report")} and no input was provided to generate.`,
+        `A report doesn't exist in ${resolve("foo", "allure-report")} and no input was provided to generate.`,
       ),
     );
     expect(exit).toHaveBeenCalledWith(1);
@@ -191,7 +193,9 @@ describe("open command", () => {
     await run(OpenCommand, ["open", "--cwd", "bar"]);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(`A report doesn't exist in ${join("bar", "foo")} and no input was provided to generate.`),
+      expect.stringContaining(
+        `A report doesn't exist in ${resolve("bar", "foo")} and no input was provided to generate.`,
+      ),
     );
     expect(exit).toHaveBeenCalledWith(1);
   });
@@ -207,7 +211,7 @@ describe("open command", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
-        `A report doesn't exist in ${join("foo", "allure-report")} and no input was provided to generate.`,
+        `A report doesn't exist in ${resolve("foo", "allure-report")} and no input was provided to generate.`,
       ),
     );
     expect(exit).toHaveBeenCalledWith(1);
@@ -226,7 +230,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: join("bar", "baz"),
+      cwd: resolve("bar", "baz"),
     });
     expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
       port: undefined,
@@ -235,7 +239,7 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: join("bar", "baz"),
+        servePath: resolve("bar", "baz"),
         open: true,
       }),
     );
@@ -284,7 +288,7 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: 10201,
-        servePath: join("bar", "baz"),
+        servePath: resolve("bar", "baz"),
         open: true,
       }),
     );
@@ -323,7 +327,7 @@ describe("open command", () => {
     expect(glob).toHaveBeenCalledWith(
       join("**", "summary.json"),
       expect.objectContaining({
-        cwd: join(process.cwd(), "qux"),
+        cwd: resolve(process.cwd(), "qux"),
       }),
     );
     expect(generate).toHaveBeenCalledWith(
@@ -350,7 +354,7 @@ describe("open command", () => {
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: join("qux", "qut"),
+      cwd: resolve("qux", "qut"),
     });
   });
 
