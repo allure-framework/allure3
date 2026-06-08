@@ -1,7 +1,7 @@
 import { env } from "node:process";
 
-import { detect } from "@allurereport/ci";
-import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
+import { detect, isLocalCiDescriptor } from "@allurereport/ci";
+import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
@@ -24,22 +24,16 @@ const categoryDisplayName = (cat: UploadCategory): string =>
 
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
-  #ci?: CiDescriptor;
+  #ci = detect();
   // @ts-expect-error - if client is not initialized it will not be used
   #client: TestOpsClient;
-  /**
-   * If the client is configured
-   */
-  #clientConfigured: boolean = false;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
 
   constructor(readonly options: TestOpsPluginOptions) {
-    this.#ci = detect();
-
-    if (!this.#ci || this.#ci.type === "local") {
+    if (isLocalCiDescriptor(this.#ci) && !this.isOverridenByEnv) {
       this.#logger.info(
         `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
       );
@@ -58,7 +52,6 @@ export class TestOpsPlugin implements Plugin {
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
-      this.#clientConfigured = true;
       this.#client = new TestOpsClient({
         baseUrl: endpoint,
         accessToken,
@@ -102,7 +95,7 @@ export class TestOpsPlugin implements Plugin {
   }
 
   get enabled(): boolean {
-    if (!this.#clientConfigured) {
+    if (!(this.#client instanceof TestOpsClient)) {
       return false;
     }
 

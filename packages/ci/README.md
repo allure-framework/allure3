@@ -9,5 +9,3 @@
 - 💬 [General Discussion ](https://github.com/orgs/allure-framework/discussions/categories/general-discussion) – engage in casual conversations, share insights and ideas with the community
 
 ---
-
-TODO:
