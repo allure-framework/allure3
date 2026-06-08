@@ -20,13 +20,13 @@
 
 .test-result-retries-item-wrap {
   transition: background-color 300ms;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) max-content;
   gap: 4px;
-  justify-content: space-between;
   border-radius: 6px;
   padding: 4px;
   width: 100%;
-  align-items: flex-start;
+  align-items: center;
 
   &:hover {
     background: var(--color-row-bg-hover);
@@ -34,20 +34,30 @@
 }
 
 .test-result-retries-item-text {
-  padding-top: 2px;
+  flex: 0 0 auto;
+}
+
+.test-result-retries-item-error-preview {
+  flex: 1 1 auto;
+  color: var(--on-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .test-result-retries-item-info {
   display: flex;
   gap: 4px;
   align-items: center;
-  margin-left: auto;
+  justify-content: flex-end;
+  margin-left: 8px;
 }
 
 .item-time {
-  margin-left: auto;
-  line-height: 20px;
   color: var(--color-text-secondary);
+  line-height: 16px;
+  white-space: nowrap;
 }
 
 .test-result-retries-item-content {

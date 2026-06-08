@@ -696,9 +696,9 @@ describe("plugin", () => {
   });
 
   describe("report assets", () => {
-    const makeSingleFileStore = (testResults: TestResult[]): AllureStore =>
+    const makeSingleFileStore = (testResults: TestResult[], metadata: Record<string, unknown> = {}): AllureStore =>
       ({
-        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        metadataByKey: vi.fn(async (key: string) => metadata[key]),
         allEnvironments: vi.fn().mockResolvedValue(["default"]),
         allEnvironmentIdentities: vi
           .fn()
@@ -757,6 +757,14 @@ describe("plugin", () => {
       }
 
       return data;
+    };
+
+    const extractReportOptions = (html: string) => {
+      const match = html.match(/window\.allureReportOptions = (\{.*?\})\s*<\/script>/s);
+
+      expect(match, "index.html must include report options").not.toBeNull();
+
+      return JSON.parse(match![1]);
     };
 
     it("should copy every emitted multi-file asset", async () => {
@@ -865,6 +873,61 @@ describe("plugin", () => {
 
       // data test results file for the test must be present
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
+    });
+
+    it("should include launch timing and allure2 executor metadata in report options", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          environment: "default",
+          start: 1000,
+          stop: 2000,
+          labels: [],
+        },
+        {
+          id: "tr-retry",
+          name: "failed retry",
+          status: "failed",
+          environment: "default",
+          isRetry: true,
+          start: 500,
+          stop: 2500,
+          labels: [],
+        },
+      ] as TestResult[];
+      const executor = {
+        name: "TeamCity",
+        type: "teamcity",
+        buildName: "Wrike #123",
+        buildUrl: "https://teamcity.example/build/123",
+        reportUrl: "https://teamcity.example/report/123",
+      };
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(
+        makeSingleFileContext(reportFiles),
+        makeSingleFileStore(testResults, { allure2_executor: executor }),
+      );
+
+      const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+      const reportOptions = extractReportOptions(indexHtml);
+
+      expect(reportOptions.runSummary).toEqual({
+        start: 500,
+        stop: 2500,
+        duration: 2000,
+      });
+      expect(reportOptions.executor).toEqual(executor);
     });
   });
 });

@@ -7,6 +7,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -28,6 +29,7 @@ import {
   generateTree,
   generateTreeFilters,
   generateVariables,
+  getRunSummary,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -72,8 +74,10 @@ export class AwesomePlugin implements Plugin {
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
+    const executor = await store.metadataByKey<AwesomeExecutorInfo>("allure2_executor");
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeRetries: true, filter });
+    const runSummary = getRunSummary(allTrs);
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
@@ -197,6 +201,8 @@ export class AwesomePlugin implements Plugin {
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       ci: context.ci,
+      executor,
+      runSummary,
       reportDataFiles,
     });
   };

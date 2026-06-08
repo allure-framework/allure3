@@ -151,6 +151,7 @@
     "copy-email": "העתק אימייל",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
+    "generated": "נוצר",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
     "pwTracePopupBlocked": "הדפדפן חסם את פתיחת Playwright Trace Viewer.",

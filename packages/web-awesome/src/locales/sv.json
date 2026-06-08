@@ -151,6 +151,7 @@
     "copy-email": "Kopiera e-post",
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
+    "generated": "Genererad",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
     "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",

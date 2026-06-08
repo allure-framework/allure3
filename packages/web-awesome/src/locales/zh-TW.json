@@ -151,6 +151,7 @@
     "copy-email": "複製電子郵件",
     "attempt": "第 {{attempt}} 次嘗試，共 {{total}} 次",
     "at": "於",
+    "generated": "已產生",
     "variables": "變數",
     "openPwTrace": "開啟 Playwright Trace",
     "pwTracePopupBlocked": "瀏覽器封鎖了開啟 Playwright Trace Viewer。",
