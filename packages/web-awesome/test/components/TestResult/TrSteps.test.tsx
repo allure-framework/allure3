@@ -19,9 +19,25 @@ vi.hoisted(() => {
 
 import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import { TrSteps } from "@/components/TestResult/TrSteps";
+import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
 import { collapsedTrees, expandedTrees } from "@/stores/tree";
 
-const passedStep = {
+const nestedPassedStep = {
+  type: "step",
+  item: {
+    stepId: "nested-passed-step",
+    name: "nested passed step",
+    status: "passed",
+    parameters: [],
+    message: "",
+    trace: "",
+    hasSimilarErrorInSubSteps: false,
+  },
+  suppressInlineError: false,
+  bodyItems: [],
+} satisfies TrBodyItem;
+
+const passedStepWithContent = {
   type: "step",
   item: {
     stepId: "passed-step",
@@ -33,10 +49,10 @@ const passedStep = {
     hasSimilarErrorInSubSteps: false,
   },
   suppressInlineError: false,
-  bodyItems: [],
+  bodyItems: [nestedPassedStep],
 } satisfies TrBodyItem;
 
-const failedStep = {
+const failedStepWithContent = {
   type: "step",
   item: {
     stepId: "failed-step",
@@ -48,7 +64,7 @@ const failedStep = {
     hasSimilarErrorInSubSteps: false,
   },
   suppressInlineError: false,
-  bodyItems: [],
+  bodyItems: [nestedPassedStep],
 } satisfies TrBodyItem;
 
 describe("components > TestResult > TrSteps", () => {
@@ -59,15 +75,34 @@ describe("components > TestResult > TrSteps", () => {
     globalThis.allureReportOptions = { stepTreeExpansion: "expand_failed_only" } as any;
   });
 
-  it("collapses passed-only root steps by default with expand_failed_only", () => {
-    const view = render(<TrSteps id="passed-test" bodyItems={[passedStep]} />);
-
-    expect(view.queryByTestId("test-result-steps-root")).not.toBeInTheDocument();
-  });
-
-  it("opens root steps by default when expand_failed_only finds failed context", () => {
-    const view = render(<TrSteps id="failed-test" bodyItems={[passedStep, failedStep]} />);
+  it("always shows the steps root container regardless of step status", () => {
+    const view = render(<TrSteps id="test" bodyItems={[passedStepWithContent]} />);
 
     expect(view.getByTestId("test-result-steps-root")).toBeInTheDocument();
+  });
+
+  it("opens top-level passed steps by default even with expand_failed_only", () => {
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+
+    expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
+  });
+
+  it("collapses top-level steps when policy is collapsed", () => {
+    globalThis.allureReportOptions = { stepTreeExpansion: "collapsed" } as any;
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+
+    expect(view.queryByTestId("test-result-step-content")).not.toBeInTheDocument();
+  });
+
+  it("opens top-level failed steps by default with expand_failed_only", () => {
+    const view = render(<TrSteps id="failed-test" bodyItems={[failedStepWithContent]} />);
+
+    expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
+  });
+
+  it("collapses nested passed steps by default with expand_failed_only", () => {
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+
+    expect(view.queryAllByTestId("test-result-step-content")).toHaveLength(1);
   });
 });

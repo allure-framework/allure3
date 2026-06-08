@@ -259,25 +259,25 @@
 }
 
 .tree-item-marked {
-  background: var(--color-bg-secondary);
+  background: var(--color-row-bg-selected);
 }
 
 .tree-item-focused {
   outline: none;
-  background: var(--bg-control-flat-medium);
+  background: var(--color-control-bg);
 
   &::before {
     content: "";
     position: absolute;
     inset: 0 auto 0 0;
     width: 3px;
-    background: var(--bg-support-aldebaran);
+    background: var(--color-intent-primary-bg);
     pointer-events: none;
   }
 }
 
 .tree-section-focused {
   outline: none;
-  background: var(--bg-control-flat-medium);
-  box-shadow: inset 3px 0 0 var(--bg-support-aldebaran);
+  background: var(--color-control-bg);
+  box-shadow: inset 3px 0 0 var(--color-intent-primary-bg);
 }

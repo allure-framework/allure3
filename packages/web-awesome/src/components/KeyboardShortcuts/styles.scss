@@ -22,8 +22,8 @@
   overflow: auto;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid var(--on-border-muted);
-  background: var(--bg-base-primary);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-raised);
   box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
 }
 
@@ -43,7 +43,7 @@
 
 .groupTitle {
   margin-bottom: 6px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .item {
@@ -58,8 +58,8 @@
   flex-shrink: 0;
   font-family: var(--font-family-mono);
   font-size: var(--font-size-xs);
-  color: var(--on-text-secondary);
-  background: var(--bg-base-secondary);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-neutral);
   border-radius: 4px;
   padding: 2px 6px;
 }
