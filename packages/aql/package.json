@@ -35,6 +35,6 @@
     "rimraf": "^6",
     "tslib": "^2",
     "typescript": "^5",
-    "vitest": "^2"
+    "vitest": "^4.1.0"
   }
 }

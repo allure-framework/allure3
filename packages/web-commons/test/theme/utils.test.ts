@@ -23,7 +23,10 @@ const mockMediaQueryDark = {
 
 const getMockMatchMedia = (mockReturnValue: MediaQueryList) => {
   const mockMatchMedia = vi.fn().mockReturnValue(mockReturnValue);
-  return vi.spyOn(window, "matchMedia").mockImplementation(mockMatchMedia);
+
+  vi.stubGlobal("matchMedia", mockMatchMedia);
+
+  return mockMatchMedia;
 };
 
 describe("theme utils", () => {
@@ -34,6 +37,7 @@ describe("theme utils", () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      vi.unstubAllGlobals();
     });
 
     it("should return window.matchMedia result when window is defined", () => {

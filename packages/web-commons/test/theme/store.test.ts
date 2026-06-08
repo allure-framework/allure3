@@ -24,7 +24,11 @@ const mockMediaQuery = {
 } as MediaQueryList;
 
 const getMockMatchMedia = () => {
-  return vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery);
+  const mockMatchMedia = vi.fn().mockReturnValue(mockMediaQuery);
+
+  vi.stubGlobal("matchMedia", mockMatchMedia);
+
+  return mockMatchMedia;
 };
 
 const getMockGetPrefersColorSchemeMQ = () => {
@@ -51,6 +55,7 @@ describe("theme store", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 
