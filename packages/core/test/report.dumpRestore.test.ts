@@ -16,6 +16,7 @@ import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
+import { PERF_METRICS_FILE, PERF_METRIC_NAMES, resetPerfMetrics } from "../src/utils/perf.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -102,6 +103,8 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
   afterEach(async () => {
     vi.restoreAllMocks();
+    delete process.env.ALLURE_PERF_METRICS;
+    resetPerfMetrics();
     await Promise.all(zipPaths.splice(0).map((p) => unlink(p).catch(() => {})));
     await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true })));
   });
@@ -130,6 +133,57 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await step("restore a dump with a safe attachment entry", async () => {
       await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
     });
+  });
+
+  it("writes opt-in dump restore perf metrics", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const zipPath = tempZipPath();
+    const output = await tempDir();
+
+    await writeDumpZip(zipPath, [{ name: "safe-attachment-id-1", data: Buffer.from("hello") }]);
+
+    const config = await resolveConfig({ name: "Allure Report", output });
+    const report = new AllureReport(config);
+
+    await report.restoreState([zipPath]);
+    await report.start();
+    await report.done();
+
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+
+    expect(metrics.summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateTotal, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateDump, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateAttachments, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateStoreRestore, count: 1 }),
+      ]),
+    );
+  });
+
+  it("writes opt-in generation perf metrics in dump-only mode", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const dir = await tempDir();
+    const dumpPath = join(dir, "dump");
+    const output = join(dir, "report");
+    const config = await resolveConfig({ name: "Allure Report", output });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await report.start();
+    await report.done();
+
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+
+    expect(existsSync(`${dumpPath}.zip`)).toBe(true);
+    expect(metrics.summary).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 })]),
+    );
   });
 
   it("closes the dump archive after restore", async () => {

@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
+import { PERF_METRICS_FILE, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, resetPerfMetrics } from "../src/utils/perf.js";
 import { AllureServiceClientMock } from "./utils.js";
 
 // Token payload: { "accessToken": "ELzFh8...", "url": "http://localhost:3000" }
@@ -97,6 +98,8 @@ beforeEach(async () => {
 
 afterEach(() => {
   process.chdir(previousCwd);
+  delete process.env.ALLURE_PERF_METRICS;
+  resetPerfMetrics();
 });
 
 describe("report", () => {
@@ -336,6 +339,117 @@ describe("report", () => {
     expect(p3.plugin.done).toBeCalledTimes(1);
 
     expect(p1.plugin.done.mock.invocationCallOrder[0]).toBeLessThan(p3.plugin.done.mock.invocationCallOrder[0]);
+  });
+
+  it("should write opt-in generation perf metrics", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-generation-"));
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-perf-results-"));
+    const p1 = createPlugin("p1");
+    const reader: ResultsReader = {
+      read: vi.fn(async () => true),
+    };
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    await writeFile(join(resultsDir, "result.json"), "{}");
+
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport({
+      ...config,
+      readers: [reader],
+    });
+
+    await allureReport.start();
+    await allureReport.readDirectory(resultsDir);
+    await allureReport.done();
+
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+
+    expect(metrics.summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.generateReadResults, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
+        expect.objectContaining({ name: `${PERF_METRIC_PREFIXES.generatePluginDone}p1`, count: 1 }),
+      ]),
+    );
+  });
+
+  it("should write opt-in read perf metrics for a single result file", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-read-file-"));
+    const resultsFile = join(await mkdtemp(join(tmpdir(), "allure3-perf-read-file-input-")), "result.json");
+    const reader: ResultsReader = {
+      read: vi.fn(async () => true),
+    };
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    await writeFile(resultsFile, "{}");
+
+    const allureReport = new AllureReport({
+      ...config,
+      readers: [reader],
+    });
+
+    await allureReport.start();
+    await allureReport.readFile(resultsFile);
+    await allureReport.done();
+
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+
+    expect(metrics.summary).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateReadResults, count: 1 })]),
+    );
+  });
+
+  it("should write opt-in publishing perf metrics", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-publish-"));
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const generateTotal = metrics.spans.find(({ name }: { name: string }) => name === PERF_METRIC_NAMES.generateTotal);
+    const publishUploadTotal = metrics.spans.find(
+      ({ name }: { name: string }) => name === PERF_METRIC_NAMES.publishUploadTotal,
+    );
+
+    expect(metrics.summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.publishUploadTotal, count: 1 }),
+        expect.objectContaining({ name: `${PERF_METRIC_PREFIXES.publishUploadPlugin}p1`, count: 1 }),
+      ]),
+    );
+    expect(generateTotal.startTimeMs + generateTotal.durationMs).toBeLessThanOrEqual(publishUploadTotal.startTimeMs);
   });
 
   it("should upload report files only for plugins with options.publish", async () => {
