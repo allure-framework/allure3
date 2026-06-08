@@ -76,7 +76,7 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
       continue;
     }
 
-    const trId = tr.historyId ?? tr.id;
+    const trId = tr.historyHash ?? tr.historyId ?? tr.id;
 
     if (!trMap.has(trId)) {
       trMap.set(trId, {

@@ -560,6 +560,7 @@ describe("createHistory", () => {
       {
         id: "test-result-id",
         name: "test result",
+        historyHash: "history-hash",
         historyId: "history-id",
         status: "passed",
         labels: [],
@@ -569,6 +570,32 @@ describe("createHistory", () => {
     const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
 
     expect(history.url).toBe(remoteUrl);
-    expect(history.testResults["history-id"].url).toBe(remoteUrl);
+    expect(history.testResults["history-hash"]).toMatchObject({
+      url: remoteUrl,
+      historyId: "history-id",
+      historyHash: "history-hash",
+    });
+    expect(history.testResults["history-id"]).toBeUndefined();
+  });
+
+  it("should keep legacy historyId-only test results", () => {
+    const testCases = [{ id: "test-case-id" }] as TestCase[];
+    const testResults = [
+      {
+        id: "test-result-id",
+        name: "test result",
+        historyId: "history-id",
+        status: "passed",
+        labels: [],
+      } as TestResult,
+    ];
+
+    const history = createHistory("report-id", "Report", testCases, testResults);
+
+    expect(history.testResults["history-id"]).toMatchObject({
+      id: "test-result-id",
+      historyId: "history-id",
+      historyHash: undefined,
+    });
   });
 });

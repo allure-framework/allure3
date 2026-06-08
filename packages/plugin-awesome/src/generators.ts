@@ -255,6 +255,7 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
     name: test.name,
     fullName: test.fullName,
     historyId: test.historyId,
+    historyHash: test.historyHash,
     labels: joinSearchValues(labels),
     owner: joinSearchValues(test.groupedLabels.owner ?? []),
     tags: joinSearchValues(tags),
@@ -441,10 +442,12 @@ const leafFactory = ({
   historyId,
   groupedLabels,
   categories,
+  ...rest
 }: AwesomeTestResult): AwesomeTreeLeaf => {
+  const historyHash = (rest as { historyHash?: string }).historyHash;
   const leaf: AwesomeTreeLeaf = {
     nodeId: id,
-    id: historyId ?? id,
+    id: historyHash ?? historyId ?? id,
     name,
     status,
     duration,

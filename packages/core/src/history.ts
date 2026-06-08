@@ -17,7 +17,7 @@ import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
-    .filter((tr) => tr.historyId)
+    .filter((tr) => tr.historyHash || tr.historyId)
     .map(
       ({
         id,
@@ -25,6 +25,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
         fullName,
         environment,
         historyId,
+        historyHash,
         status,
         error: { message, trace } = {},
         start,
@@ -45,14 +46,21 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           duration,
           labels,
           url: remoteUrl,
-          historyId: historyId!,
+          historyId,
+          historyHash,
           reportLinks: [],
         } as HistoryTestResult;
       },
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        const historyKey = item.historyHash ?? item.historyId;
+
+        if (!historyKey) {
+          return acc;
+        }
+
+        acc[historyKey] = item;
 
         return acc;
       },

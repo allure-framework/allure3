@@ -16,6 +16,7 @@ type CategoryOverrides = Partial<CategoryDefinition>;
 type UploadCategoryTr = TestResultWithCategories & {
   id?: string;
   name?: string;
+  historyHash?: string;
   historyId?: string;
 };
 
@@ -104,7 +105,7 @@ describe("toUploadCategory", () => {
       name: "Product errors",
       grouping: [
         { key: "severity", value: "normal", name: "severity: normal" },
-        { key: "historyId", value: "tr-id-ctx", name: "my test name" },
+        { key: "historyHash", value: "tr-id-ctx", name: "my test name" },
         { key: "environment", value: "foo", name: "environment: foo" },
       ],
     });
@@ -187,7 +188,7 @@ describe("toUploadCategory", () => {
     });
   });
 
-  it("adds historyId and environment levels when groupEnvironments is enabled", () => {
+  it("adds historyHash and environment levels when groupEnvironments is enabled", () => {
     const tr = mkTr({
       id: "tr-id-1",
       name: "My failed test",
@@ -200,7 +201,7 @@ describe("toUploadCategory", () => {
       externalId: "product-errors",
       name: "Product errors",
       grouping: [
-        { key: "historyId", value: "hist-id-1", name: "My failed test" },
+        { key: "historyHash", value: "hist-id-1", name: "My failed test" },
         { key: "environment", value: "stage", name: "environment: stage" },
       ],
       hide: false,
@@ -223,14 +224,14 @@ describe("toUploadCategory", () => {
       name: "Product errors",
       grouping: [
         { key: "environment", value: "stage", name: "environment: stage" },
-        { key: "historyId", value: "tr-id-2", name: "tr-id-2" },
+        { key: "historyHash", value: "tr-id-2", name: "tr-id-2" },
       ],
       hide: false,
       expand: false,
     });
   });
 
-  it("uses fallback values for historyId and environment when missing", () => {
+  it("uses fallback values for historyHash and environment when missing", () => {
     const tr = mkTr({ id: undefined, name: "   ", environment: " " });
     const category = mkCategory({ groupEnvironments: true });
 
@@ -238,7 +239,7 @@ describe("toUploadCategory", () => {
       externalId: "product-errors",
       name: "Product errors",
       grouping: [
-        { key: "historyId", value: "<Empty>", name: "<Empty>" },
+        { key: "historyHash", value: "<Empty>", name: "<Empty>" },
         { key: "environment", value: "<Empty>", name: "environment: No environment" },
       ],
       hide: false,

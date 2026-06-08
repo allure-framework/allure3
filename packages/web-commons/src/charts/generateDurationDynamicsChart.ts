@@ -102,7 +102,7 @@ export const generateDurationDynamicsChart = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
+          acc[testResult.historyHash ?? testResult.historyId ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,

@@ -126,6 +126,7 @@ export type AwesomeSearchDocument = {
   name: string;
   fullName?: string;
   historyId?: string;
+  historyHash?: string;
   labels?: string;
   owner?: string;
   tags?: string;

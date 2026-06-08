@@ -41,6 +41,7 @@ export const convertTestResult = (
     status: tr.status,
     fullName: tr.fullName,
     historyId: tr.historyId,
+    historyHash: tr.historyHash,
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,

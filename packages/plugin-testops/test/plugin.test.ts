@@ -706,7 +706,7 @@ describe("testops plugin", () => {
                       value: "boom from testops",
                       name: "message: boom from testops",
                     },
-                    { key: "historyId", value: failedTr.id, name: failedTr.id },
+                    { key: "historyHash", value: failedTr.id, name: failedTr.id },
                     { key: "environment", value: "foo", name: "environment: foo" },
                   ],
                 }),
@@ -774,7 +774,7 @@ describe("testops plugin", () => {
                 { key: "severity", value: "critical", name: "severity: critical" },
                 { key: "layer", value: "api", name: "layer: api" },
                 { key: "message", value: "assert failed", name: "message: assert failed" },
-                { key: "historyId", value: "hist-1", name: "my flaky test" },
+                { key: "historyHash", value: "hist-1", name: "my flaky test" },
                 { key: "environment", value: "prod", name: "environment: prod" },
               ],
             },
@@ -803,13 +803,13 @@ describe("testops plugin", () => {
             { key: "severity", value: "critical", name: "severity: critical" },
             { key: "layer", value: "api", name: "layer: api" },
             { key: "message", value: "assert failed", name: "message: assert failed" },
-            { key: "historyId", value: "hist-1", name: "my flaky test" },
+            { key: "historyHash", value: "hist-1", name: "my flaky test" },
             { key: "environment", value: "prod", name: "environment: prod" },
           ],
         });
       });
 
-      it("should include historyId but not duplicate environment when groupBy already has environment", async () => {
+      it("should include historyHash but not duplicate environment when groupBy already has environment", async () => {
         const categoryWithEnvironmentGroup: CategoryDefinition = {
           ...categoryProductErrors,
           id: "env-in-group-by",
@@ -843,7 +843,7 @@ describe("testops plugin", () => {
           { key: "environment", value: "stage", name: "environment: stage" },
           { key: "severity", value: "critical", name: "severity: critical" },
           { key: "message", value: "boom", name: "message: boom" },
-          { key: "historyId", value: "history-123", name: "broken test name" },
+          { key: "historyHash", value: "history-123", name: "broken test name" },
         ]);
       });
 

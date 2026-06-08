@@ -451,7 +451,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "historyHash",
     );
     expect(historyNodes.length).toBeGreaterThan(0);
 
@@ -495,7 +495,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "historyHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -537,7 +537,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "historyHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -586,7 +586,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "historyHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -641,7 +641,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "historyHash",
     );
     expect(historyNodes.length).toBeGreaterThan(0);
 

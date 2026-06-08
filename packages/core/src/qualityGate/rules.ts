@@ -7,7 +7,9 @@ export const maxFailuresRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, knownIssues, expected, state }) => {
-    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
+    const knownIssuesHistoryIds = new Set(
+      knownIssues.map(({ historyHash, historyId }) => historyHash ?? historyId).filter((k): k is string => Boolean(k)),
+    );
     const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
     const failedTrs = unknown.filter(filterUnsuccessful);
     const actual = failedTrs.length + (state.getResult() ?? 0);
@@ -42,7 +44,9 @@ export const successRateRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, knownIssues, expected }) => {
-    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
+    const knownIssuesHistoryIds = new Set(
+      knownIssues.map(({ historyHash, historyId }) => historyHash ?? historyId).filter((k): k is string => Boolean(k)),
+    );
     const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
     const passedTrs = unknown.filter(filterSuccessful);
     const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;

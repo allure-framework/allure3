@@ -141,7 +141,9 @@ export type CategoryNodeItem = {
   name: string;
   key?: string;
   value?: string;
+  /** @deprecated Prefer `historyHash` for copy/group identity. */
   historyId?: string;
+  historyHash?: string;
   retriesCount?: number;
   transition?: TestStatusTransition;
   tooltips?: Record<string, string>;

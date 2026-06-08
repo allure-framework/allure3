@@ -56,21 +56,23 @@ export const generateStatusAgePyramid = (props: {
     };
   }
 
-  const currTrIds = new Set(testResults.map((tr) => tr.historyId ?? tr.id));
+  const currTrIds = new Set(testResults.map((tr) => tr.historyHash ?? tr.historyId ?? tr.id));
 
   const hdps = limitedHistoryPoints.map((datapoint) => ({
     ...datapoint,
     testResults: Object.values(datapoint.testResults).reduce(
       (acc, testResult) => {
-        if (!testResult.historyId) {
+        const historyKey = testResult.historyHash ?? testResult.historyId;
+
+        if (!historyKey) {
           return acc;
         }
 
-        const isInCurrentRun = currTrIds.has(testResult.historyId);
+        const isInCurrentRun = currTrIds.has(historyKey);
 
         // Skip all tests that are not in the current run
         if (isInCurrentRun) {
-          acc[testResult.historyId] = testResult;
+          acc[historyKey] = testResult;
         }
 
         return acc;
@@ -87,7 +89,7 @@ export const generateStatusAgePyramid = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
+          acc[testResult.historyHash ?? testResult.historyId ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,
@@ -112,8 +114,9 @@ export const generateStatusAgePyramid = (props: {
         continue;
       }
 
+      const historyKey = cTr.historyHash ?? cTr.historyId ?? cTr.id;
       const historyAfterTrsStatuses: (TestStatus | undefined)[] = historyAfter.map(
-        (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
+        (hdp) => hdp.testResults[historyKey]?.status ?? undefined,
       );
 
       // If the test status changed in a later run, skip it

@@ -22,7 +22,10 @@ export interface HistoryTestResult {
 
   url: string;
 
-  historyId?: string; // TODO: double check the necessity to have historyId in the history test result
+  /** @deprecated Legacy map key / field without environment in the hash. Prefer `historyHash`. */
+  historyId?: string;
+  /** Primary key in history `testResults` maps for new history entries. */
+  historyHash?: string;
   reportLinks?: any[]; // TODO: add the correct type for previously missing report links
 }
 

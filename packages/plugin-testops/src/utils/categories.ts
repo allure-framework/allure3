@@ -56,6 +56,7 @@ const buildGrouping = (
     id?: string;
     name?: string;
     error?: TestResult["error"];
+    historyHash?: string;
     historyId?: string;
   },
   category: CategoryDefinition,
@@ -72,10 +73,10 @@ const buildGrouping = (
   }
 
   if (category.groupEnvironments) {
-    const historyValue = tr.historyId ?? tr.id ?? EMPTY_VALUE;
+    const historyValue = tr.historyHash ?? tr.historyId ?? tr.id ?? EMPTY_VALUE;
     const historyName = tr.name?.trim() ? tr.name : historyValue;
     grouping.push({
-      key: "historyId",
+      key: "historyHash",
       value: historyValue,
       name: historyName,
     });

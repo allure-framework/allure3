@@ -34,26 +34,28 @@ const buildFallbackHistoryAliases = (testResults: TestResult[]): Map<string, str
   const ambiguousAliases = new Set<string>();
 
   for (const testResult of testResults) {
-    if (!testResult.historyId) {
+    const primaryKey = testResult.historyHash ?? testResult.historyId;
+
+    if (!primaryKey) {
       continue;
     }
 
     const fallbackHistoryId = getFallbackHistoryId(testResult);
 
-    if (!fallbackHistoryId || fallbackHistoryId === testResult.historyId) {
+    if (!fallbackHistoryId || fallbackHistoryId === primaryKey) {
       continue;
     }
 
     const existingAlias = aliases.get(fallbackHistoryId);
 
-    if (existingAlias && existingAlias !== testResult.historyId) {
+    if (existingAlias && existingAlias !== primaryKey) {
       aliases.delete(fallbackHistoryId);
       ambiguousAliases.add(fallbackHistoryId);
       continue;
     }
 
     if (!ambiguousAliases.has(fallbackHistoryId)) {
-      aliases.set(fallbackHistoryId, testResult.historyId);
+      aliases.set(fallbackHistoryId, primaryKey);
     }
   }
 
@@ -86,7 +88,8 @@ const normalizeHistoryDataPointsByAliases = (
 
       testResults[primaryHistoryId] = {
         ...testResults[legacyHistoryId],
-        historyId: primaryHistoryId,
+        historyHash: primaryHistoryId,
+        historyId: testResults[legacyHistoryId].historyId,
       };
       delete testResults[legacyHistoryId];
     }

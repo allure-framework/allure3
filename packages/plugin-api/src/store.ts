@@ -98,11 +98,19 @@ export interface AllureStoreDump {
   reportVariables: ReportVariables;
   qualityGateResults: QualityGateValidationResult[];
   indexAttachmentByTestResult: Record<string, string[]>;
-  indexTestResultByHistoryId: Record<string, string[]>;
+  indexTestResultByHistoryHash: Record<string, string[]>;
+  /**
+   * @deprecated Restored from older dump archives only; prefer {@link AllureStoreDump.indexTestResultByHistoryHash}.
+   */
+  indexTestResultByHistoryId?: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
-  indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
+  indexKnownByHistoryHash: Record<string, KnownTestFailure[]>;
+  /**
+   * @deprecated Restored from older dump archives only; prefer {@link AllureStoreDump.indexKnownByHistoryHash}.
+   */
+  indexKnownByHistoryId?: Record<string, KnownTestFailure[]>;
   /** Global ingest order of test result ids (append order in store). */
   testResultIdsIngestOrder: string[];
 }

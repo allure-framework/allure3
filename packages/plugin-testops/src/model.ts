@@ -110,7 +110,9 @@ export type UploadTestResultStepDto =
 
 export type UploadTestResultDto = {
   uuid?: string;
+  /** @deprecated Prefer historyHash */
   historyId?: string;
+  historyHash?: string;
   testCaseId?: string;
   name?: string;
   fullName?: string;

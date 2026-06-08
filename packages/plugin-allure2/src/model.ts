@@ -54,7 +54,9 @@ export interface Allure2TestResult {
   uid: string;
   name: string;
   fullName?: string;
+  /** @deprecated Prefer historyHash */
   historyId?: string;
+  historyHash?: string;
   testId?: string;
   time: Allure2Time;
   description?: string;

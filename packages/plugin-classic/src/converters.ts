@@ -27,6 +27,7 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     status: tr.status,
     fullName: tr.fullName,
     historyId: tr.historyId,
+    historyHash: tr.historyHash,
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
