@@ -3,6 +3,7 @@
 const { spawnSync } = require('node:child_process');
 
 const mode = process.argv.includes('--check') ? '--check' : '--write';
+const quiet = process.argv.includes('--quiet');
 
 const pathspecs = ['package.json', ':(glob)packages/*/package.json'];
 for (const dir of ['src', 'test', 'features']) {
@@ -27,9 +28,23 @@ const files = gitResult.stdout
   .filter((filePath) => !filePath.includes('/src/assets/data/test-results/'));
 
 if (files.length === 0) {
-  console.log('No files matched the configured OXFmt scope.');
+  if (!quiet) {
+    console.log('No files matched the configured OXFmt scope.');
+  }
   process.exit(0);
 }
 
-const formatResult = spawnSync('oxfmt', [mode, ...files], { stdio: 'inherit' });
+const formatResult = spawnSync('oxfmt', [mode, ...files], {
+  encoding: 'utf8',
+  stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+});
+
+if (quiet && formatResult.status !== 0) {
+  const output = [formatResult.stdout, formatResult.stderr].filter(Boolean).join('\n').trim();
+
+  if (output) {
+    console.error(output);
+  }
+}
+
 process.exit(formatResult.status || 0);
