@@ -60,3 +60,4 @@ allure-results.zip
 docs/kb/.obsidian/
 
 .tmp
+.agent-workspace

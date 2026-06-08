@@ -166,8 +166,8 @@ describe("allure2 reader", () => {
 
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
-    expect(tr).toMatchObject({
-      labels: expect.arrayContaining([
+    expect(tr.labels).toEqual(
+      expect.arrayContaining([
         {
           name: "first",
           value: "first value",
@@ -187,7 +187,7 @@ describe("allure2 reader", () => {
           value: "only value",
         },
       ]),
-    });
+    );
   });
 
   it("should parse links", async () => {
@@ -197,8 +197,8 @@ describe("allure2 reader", () => {
 
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
-    expect(tr).toMatchObject({
-      links: expect.arrayContaining([
+    expect(tr.links).toEqual(
+      expect.arrayContaining([
         {
           name: "Default link",
           url: "https://example.org/",
@@ -225,7 +225,7 @@ describe("allure2 reader", () => {
           name: "https://example.org/name-as-url",
         },
       ]),
-    });
+    );
   });
 
   it("should parse parameters", async () => {
@@ -236,8 +236,8 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    expect(tr).toMatchObject({
-      parameters: expect.arrayContaining([
+    expect(tr.parameters).toEqual(
+      expect.arrayContaining([
         {
           name: "param 1",
           value: "value 1",
@@ -284,7 +284,7 @@ describe("allure2 reader", () => {
           masked: true,
         },
       ]),
-    });
+    );
   });
 
   it("should parse steps", async () => {
@@ -454,60 +454,57 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    expect(tr).toMatchObject({
-      steps: expect.arrayContaining([
-        expect.objectContaining({
-          name: "Some step with parameters",
-          parameters: expect.arrayContaining([
-            {
-              name: "param 1",
-              value: "value 1",
-              hidden: true,
-              masked: false,
-              excluded: true,
-            },
-            {
-              name: "param 2",
-              value: "value 2",
-              hidden: true,
-              masked: false,
-              excluded: false,
-            },
-            {
-              name: "param 3",
-              value: "value 3",
-              hidden: false,
-              masked: false,
-            },
-            {
-              name: "param 4",
-              value: "value 4",
-              hidden: true,
-              masked: false,
-            },
-            {
-              name: "param 5",
-              value: "value 5",
-              hidden: false,
-              masked: false,
-              excluded: true,
-            },
-            {
-              name: "param 6",
-              value: "value 6",
-              hidden: false,
-              masked: false,
-            },
-            {
-              name: "param 7",
-              value: "value 7",
-              hidden: false,
-              masked: true,
-            },
-          ]),
-        }),
+    const step = tr.steps.find((item) => item.name === "Some step with parameters");
+
+    expect(step?.parameters).toEqual(
+      expect.arrayContaining([
+        {
+          name: "param 1",
+          value: "value 1",
+          hidden: true,
+          masked: false,
+          excluded: true,
+        },
+        {
+          name: "param 2",
+          value: "value 2",
+          hidden: true,
+          masked: false,
+          excluded: false,
+        },
+        {
+          name: "param 3",
+          value: "value 3",
+          hidden: false,
+          masked: false,
+        },
+        {
+          name: "param 4",
+          value: "value 4",
+          hidden: true,
+          masked: false,
+        },
+        {
+          name: "param 5",
+          value: "value 5",
+          hidden: false,
+          masked: false,
+          excluded: true,
+        },
+        {
+          name: "param 6",
+          value: "value 6",
+          hidden: false,
+          masked: false,
+        },
+        {
+          name: "param 7",
+          value: "value 7",
+          hidden: false,
+          masked: true,
+        },
       ]),
-    });
+    );
   });
 
   it("should parse step attachments", async () => {
