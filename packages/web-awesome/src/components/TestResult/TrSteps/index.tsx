@@ -8,7 +8,6 @@ import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import {
   collectExpandableStepNodes,
   getStepTreeExpansionPolicy,
-  hasFailedStepContext,
   isOpenByDefaultForPolicy,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeNode,
@@ -35,7 +34,7 @@ export type TrStepsProps = {
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) => {
   const stepsId = typeof id === "string" ? `${id}-steps` : null;
   const policy = getStepTreeExpansionPolicy();
-  const isRootOpenedByDefault = isOpenByDefaultForPolicy(policy, hasFailedStepContext(bodyItems));
+  const isRootOpenedByDefault = isOpenByDefaultForPolicy(policy, true);
   const isOpened = stepsId !== null ? isTreeOpened(stepsId, isRootOpenedByDefault) : isRootOpenedByDefault;
   const expandableTreeNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasChildren = stepsId !== null && bodyItems.length > 0;
@@ -118,7 +117,7 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
       />
       {isOpened && (
         <div data-testid="test-result-steps-root" className={styles["test-result-steps-root"]}>
-          <TrBodyItems bodyItems={bodyItems} />
+          <TrBodyItems bodyItems={bodyItems} isTopLevel={true} />
         </div>
       )}
     </div>

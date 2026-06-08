@@ -58,8 +58,33 @@ export const TreeList = () => {
     }
 
     const flatNode = getFlatTreeNode(focusedId);
-    scrollFocusIntoView(node, { kind: flatNode?.kind });
+    const kind = flatNode?.kind;
+
+    // For group/env nodes always pin to top (even when already visible in viewport)
+    if (kind === "group" || kind === "env") {
+      (node as HTMLElement).scrollIntoView({ block: "start", inline: "nearest" });
+    } else {
+      scrollFocusIntoView(node, { kind });
+    }
   }, [focusedId]);
+
+  useLayoutEffect(() => {
+    if (!trId || focusedId) {
+      return;
+    }
+
+    // Use flatTree to find the scoped node id — avoids duplicate id issues in multi-env trees
+    const flatNode = flatTree.value.find((n) => n.testResultId === trId || n.id === trId);
+    const node = flatNode
+      ? (document.querySelector(`[data-tree-node-id="${flatNode.id}"]`) as HTMLElement | null)
+      : document.getElementById(trId);
+
+    if (!node) {
+      return;
+    }
+
+    scrollFocusIntoView(node, { kind: "leaf" });
+  }, [trId]);
 
   const localizers = useMemo(
     () => ({
