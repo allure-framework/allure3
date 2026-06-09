@@ -26,7 +26,11 @@ const getMockSetAttribute = () => {
 };
 
 const getMockMatchMedia = () => {
-  return vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery);
+  const mockMatchMedia = vi.fn().mockReturnValue(mockMediaQuery);
+
+  vi.stubGlobal("matchMedia", mockMatchMedia);
+
+  return mockMatchMedia;
 };
 
 describe("theme actions", () => {
@@ -46,6 +50,7 @@ describe("theme actions", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 

@@ -2,13 +2,17 @@ import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import axios from "axios";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { JiraPluginOptions } from "../src/plugin.js";
 import { JiraPlugin } from "../src/plugin.js";
 
 beforeEach(async () => {
   await story("index");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => {
   const defaultStore = {

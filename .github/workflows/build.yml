@@ -73,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     permissions:
+      actions: read
       contents: write
       pull-requests: write
       checks: write
@@ -111,9 +112,48 @@ jobs:
       - name: Build project
         run: yarn build
       - name: Generate report
+        env:
+          ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
+      - name: Write perf metrics summary
+        if: always()
+        run: node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md --github-step-summary
+      - name: Upload perf metrics
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: allure-perf-metrics
+          path: |
+            ./allure-report/allure-perf-metrics.json
+            ./allure-report/allure-perf-metrics.md
+          if-no-files-found: ignore
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:
           report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  perf-metrics-comment:
+    needs: report
+    name: Comment perf metrics
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download perf metrics
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-perf-metrics
+          path: ./allure-perf-metrics
+      - name: Comment perf metrics on pull request
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const commentPerfMetrics = require("./scripts/comment-allure-perf-metrics.cjs");
+
+            await commentPerfMetrics({ context, github });

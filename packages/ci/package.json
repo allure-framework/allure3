@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/ci",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "description": "Utilities set to get useful report data from different CI",
   "keywords": [
     "allure",
@@ -40,6 +40,6 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.0"
   }
 }

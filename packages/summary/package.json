@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/summary",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "description": "Allure Summary Plugin – dashboard page generator with charts for Allure Report",
   "keywords": [
     "allure",
@@ -42,6 +42,6 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }

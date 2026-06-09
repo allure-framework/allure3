@@ -1,6 +1,6 @@
 {
   "name": "sandbox",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "private": true,
   "description": "A package to test another Allure Report packages in action",
   "keywords": [],
@@ -27,7 +27,7 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "vite": "^8.0.9",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   },
   "packageManager": "yarn@4.3.1"
 }
