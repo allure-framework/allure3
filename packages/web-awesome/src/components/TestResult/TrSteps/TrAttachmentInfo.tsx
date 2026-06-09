@@ -73,7 +73,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         ),
       });
     }
-  }, [item, tAttachments]);
+  }, [item, isPreviewable, tAttachments]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();
