@@ -1,4 +1,9 @@
-import { getNextSubtreeToggleState, getSubtreeToggleIcon, type SubtreeToggleState } from "@allurereport/web-commons";
+import {
+  getNextSubtreeToggleState,
+  getSubtreeToggleIcon,
+  isSubtreeFirstLevelOnlyOpened,
+  type SubtreeToggleState,
+} from "@allurereport/web-commons";
 import { IconButton, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -9,7 +14,6 @@ import {
   collectExpandableStepNodes,
   getStepTreeExpansionPolicy,
   isOpenByDefaultForPolicy,
-  isSubtreeFirstLevelOnlyOpened,
   type SubtreeNode,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
