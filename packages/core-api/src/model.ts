@@ -43,7 +43,12 @@ export interface TestResult {
   environment?: string;
 
   fullName?: string;
+  /** @deprecated Use `historyHash`. Legacy key without environment in the hash. */
   historyId?: string;
+  /**
+   * Stable key for history storage and lookup: md5(`${testCaseId}:${parametersHash}:${environmentId ?? "default"}`).
+   */
+  historyHash?: string;
 
   description?: string;
   descriptionHtml?: string;

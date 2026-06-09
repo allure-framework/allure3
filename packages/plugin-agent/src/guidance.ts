@@ -240,12 +240,12 @@ ${
 2. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
 3. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 4. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
-5. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
+5. Open the relevant file under \`tests/<environment>/<historyHash-or-trId>.md\` for evidence review.
 6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.`
     : `1. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
 2. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 3. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
-4. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
+4. Open the relevant file under \`tests/<environment>/<historyHash-or-trId>.md\` for evidence review.
 5. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.`
 }
 

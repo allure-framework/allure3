@@ -17,6 +17,7 @@ const SEARCH_FIELDS: (keyof AwesomeSearchDocument)[] = [
   "parameters",
   "statusMessage",
   "historyId",
+  "historyHash",
 ];
 
 const STORE_FIELDS: (keyof AwesomeSearchDocument)[] = ["nodeId", "name"];
@@ -41,6 +42,7 @@ export const createSearchIndex = (documents: AwesomeSearchDocument[]) => {
         parameters: 1,
         statusMessage: 0.75,
         historyId: 0.5,
+        historyHash: 0.5,
       },
     },
   });

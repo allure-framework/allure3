@@ -31,6 +31,7 @@ const documents: AwesomeSearchDocument[] = [
     name: "renders request form",
     fullName: "forms.RequestWithDatesFormTest.shouldRender",
     historyId: "history-request-form",
+    historyHash: "hash-request-form",
     owner: "Igor Martynov",
     labels: "feature:Forms Forms",
     tags: "smoke",
@@ -66,6 +67,7 @@ describe("stores > search", () => {
   it.each<SearchFindCase>([
     ["RequestWithDatesFormTest", ["tr-1"]],
     ["history-request-form", ["tr-1"]],
+    ["hash-request-form", ["tr-1"]],
     ["Igor Martynov", ["tr-1"]],
     ["smoke", ["tr-1"]],
     ["browser:chromium", ["tr-1"]],

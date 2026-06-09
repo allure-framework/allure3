@@ -1401,7 +1401,7 @@ const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
     `- Name: ${escapeInlineMarkdown(tr.name)}`,
     `- Full Name: ${escapeInlineMarkdown(tr.fullName ?? tr.name)}`,
     `- Environment: ${escapeInlineMarkdown(environmentId)}`,
-    `- History ID: ${escapeInlineMarkdown(tr.historyId ?? "n/a")}`,
+    `- History Hash: ${escapeInlineMarkdown(tr.historyHash ?? tr.historyId ?? "n/a")}`,
     `- Test Result ID: ${escapeInlineMarkdown(tr.id)}`,
     `- Status: ${statusLabel(tr.status)}`,
     `- Duration: ${formatDurationValue(tr.duration)}`,
@@ -2585,7 +2585,7 @@ const listVisibleTestLayouts = async (params: { outputDir: string; store: Allure
     const rawEnvironmentId = (await store.environmentIdByTrId(tr.id)) ?? "default";
     const environmentId = rawEnvironmentId;
     const environmentPath = sanitizePathSegment(rawEnvironmentId, "default");
-    const slugSeed = sanitizePathSegment(tr.historyId ?? tr.id, sanitizePathSegment(tr.id, "test"));
+    const slugSeed = sanitizePathSegment(tr.historyHash ?? tr.historyId ?? tr.id, sanitizePathSegment(tr.id, "test"));
     const usedSlugs = slugsByEnvironment.get(environmentPath) ?? new Set<string>();
 
     slugsByEnvironment.set(environmentPath, usedSlugs);
@@ -2979,6 +2979,7 @@ const writeBootstrapFiles = async (runtime: AgentRuntimeState) => {
 
 const toTestsManifestLine = (entry: TestEntry) => ({
   environment_id: entry.environmentId,
+  history_hash: entry.tr.historyHash ?? null,
   history_id: entry.tr.historyId ?? null,
   test_result_id: entry.tr.id,
   full_name: entry.tr.fullName ?? entry.tr.name,

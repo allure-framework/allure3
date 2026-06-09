@@ -71,8 +71,12 @@ const calculateColorValue = (metrics: SubtreeMetrics): number => {
 
 const isSkipped = (tr: TestResult | HistoryTestResult): boolean => tr.status === "skipped";
 
+const historyKeyOf = (tr: Pick<TestResult, "historyHash" | "historyId" | "id">): string => {
+  return tr.historyHash ?? tr.historyId ?? tr.id;
+};
+
 const getNewTestResults = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TestResult[] => {
-  return trs.filter((tr) => !closestHtrs[tr.historyId!]);
+  return trs.filter((tr) => !closestHtrs[historyKeyOf(tr)]);
 };
 
 const getRemovedTestResults = (
@@ -80,14 +84,16 @@ const getRemovedTestResults = (
   closestHtrs: Record<string, HistoryTestResult>,
 ): HistoryTestResult[] => {
   const historyPointTestResultsAsArray = Object.values(closestHtrs);
-  const testResultsAsDictionary: Record<string, TestResult> = Object.fromEntries(trs.map((tr) => [tr.historyId, tr]));
+  const testResultsAsDictionary: Record<string, TestResult> = Object.fromEntries(
+    trs.map((tr) => [historyKeyOf(tr), tr]),
+  );
 
-  return historyPointTestResultsAsArray.filter((htr) => !testResultsAsDictionary[htr.historyId!]);
+  return historyPointTestResultsAsArray.filter((htr) => !testResultsAsDictionary[historyKeyOf(htr)]);
 };
 
 const getEnabledTestResults = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TestResult[] => {
   return trs.filter((tr) => {
-    const historyPointTestResult: HistoryTestResult | undefined = closestHtrs[tr.historyId!];
+    const historyPointTestResult: HistoryTestResult | undefined = closestHtrs[historyKeyOf(tr)];
 
     return historyPointTestResult && isSkipped(historyPointTestResult) && !isSkipped(tr);
   });
@@ -95,7 +101,7 @@ const getEnabledTestResults = (trs: TestResult[], closestHtrs: Record<string, Hi
 
 const getDisabledTestResults = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TestResult[] => {
   return trs.filter((tr) => {
-    const historyPointTestResult: HistoryTestResult | undefined = closestHtrs[tr.historyId!];
+    const historyPointTestResult: HistoryTestResult | undefined = closestHtrs[historyKeyOf(tr)];
 
     return historyPointTestResult && !isSkipped(historyPointTestResult) && isSkipped(tr);
   });
@@ -143,25 +149,29 @@ const createCoverageDiffTreeMap = (
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
   const disabledTrs = getDisabledTestResults(trs, closestHtrs);
 
-  const newTestsById = new Map(newTrs.map((tr) => [tr.historyId, tr]));
-  const deletedTestsById = new Map(removedHtrs.map((htr) => [htr.historyId, htr]));
-  const enabledTestsById = new Map(enabledTrs.map((tr) => [tr.historyId, tr]));
-  const disabledTestsById = new Map(disabledTrs.map((tr) => [tr.historyId, tr]));
+  const newTestsById = new Map(newTrs.map((tr) => [historyKeyOf(tr), tr]));
+  const deletedTestsById = new Map(removedHtrs.map((htr) => [historyKeyOf(htr), htr]));
+  const enabledTestsById = new Map(enabledTrs.map((tr) => [historyKeyOf(tr), tr]));
+  const disabledTestsById = new Map(disabledTrs.map((tr) => [historyKeyOf(tr), tr]));
 
   // Including into future tree current tests + removed historical tests to be able to reflect removed historical tests
   const allTests: (TestResult | HistoryTestResult)[] = [...trs, ...removedHtrs];
 
-  const getChangeType = (historyId?: string): ChangeType => {
-    if (newTestsById.has(historyId)) {
+  const getChangeType = (historyKey?: string): ChangeType => {
+    if (!historyKey) {
+      return "unchanged";
+    }
+
+    if (newTestsById.has(historyKey)) {
       return "new";
     }
-    if (deletedTestsById.has(historyId)) {
+    if (deletedTestsById.has(historyKey)) {
       return "deleted";
     }
-    if (enabledTestsById.has(historyId)) {
+    if (enabledTestsById.has(historyKey)) {
       return "enabled";
     }
-    if (disabledTestsById.has(historyId)) {
+    if (disabledTestsById.has(historyKey)) {
       return "disabled";
     }
 
@@ -169,7 +179,7 @@ const createCoverageDiffTreeMap = (
   };
 
   const leafFactoryFnWithMaps = (test: TestResult | HistoryTestResult): Leaf => {
-    const changeType = getChangeType(test.historyId);
+    const changeType = getChangeType(historyKeyOf(test));
 
     return {
       nodeId: test.id,
@@ -266,7 +276,7 @@ export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<ExtendedTreeMapNod
     const closestHtrs = closestHdp.testResults;
     const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
     const closestHtrsWithBehaviorLabelsById = Object.fromEntries(
-      closestHtrsWithBehaviorLabels.map((htr) => [htr.historyId, htr]),
+      closestHtrsWithBehaviorLabels.map((htr) => [historyKeyOf(htr), htr]),
     );
 
     return createCoverageDiffTreeMap(testsWithBehaviorLabels, closestHtrsWithBehaviorLabelsById);

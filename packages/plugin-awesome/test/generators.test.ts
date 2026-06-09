@@ -348,6 +348,7 @@ describe("generateSearchIndex", () => {
     const visibleTest = {
       id: "tr-visible",
       historyId: "history-visible",
+      historyHash: "hash-visible",
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       status: "failed",
@@ -395,6 +396,7 @@ describe("generateSearchIndex", () => {
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       historyId: "history-visible",
+      historyHash: "hash-visible",
       labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
       owner: "Igor Martynov",
       tags: "smoke",

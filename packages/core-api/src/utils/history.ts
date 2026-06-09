@@ -44,10 +44,31 @@ export const getFallbackHistoryId = (tr: Pick<TestResult, "labels" | "parameters
   return `${fallbackTestCaseId}.${md5(stringifyHistoryParams(tr.parameters ?? []))}`;
 };
 
-export const getHistoryIdCandidates = (tr: Pick<TestResult, "historyId" | "labels" | "parameters">): string[] => {
+/**
+ * Same formula as retry grouping: md5(`${testCaseId}:${parametersHash}:${environmentId ?? "default"}`).
+ */
+export const calculateHistoryHash = (
+  testCaseId: string | undefined,
+  parametersHash: string,
+  environmentId: string | undefined,
+): string | undefined => {
+  if (!testCaseId) {
+    return undefined;
+  }
+
+  return md5(`${testCaseId}:${parametersHash}:${environmentId ?? "default"}`);
+};
+
+export const getHistoryHashCandidates = (
+  tr: Pick<TestResult, "historyHash" | "historyId" | "labels" | "parameters">,
+): string[] => {
   const result: string[] = [];
 
-  if (tr.historyId) {
+  if (tr.historyHash) {
+    result.push(tr.historyHash);
+  }
+
+  if (tr.historyId && !result.includes(tr.historyId)) {
     result.push(tr.historyId);
   }
 
@@ -60,18 +81,37 @@ export const getHistoryIdCandidates = (tr: Pick<TestResult, "historyId" | "label
   return result;
 };
 
+/**
+ * @deprecated Use {@link getHistoryHashCandidates}.
+ */
+export const getHistoryIdCandidates = getHistoryHashCandidates;
+
+const getHistoryTestResultKeyCandidates = (htr: HistoryTestResult): string[] => {
+  const result: string[] = [];
+
+  if (htr.historyHash) {
+    result.push(htr.historyHash);
+  }
+
+  if (htr.historyId && !result.includes(htr.historyId)) {
+    result.push(htr.historyId);
+  }
+
+  return result;
+};
+
 export const filterUnknownByKnownIssues = (
   trs: TestResult[],
   knownIssueHistoryIds: ReadonlySet<string>,
 ): TestResult[] => {
   return trs.filter((tr) => {
-    const historyIdCandidates = getHistoryIdCandidates(tr);
+    const historyKeyCandidates = getHistoryHashCandidates(tr);
 
-    if (historyIdCandidates.length === 0) {
+    if (historyKeyCandidates.length === 0) {
       return true;
     }
 
-    return historyIdCandidates.every((historyId) => !knownIssueHistoryIds.has(historyId));
+    return historyKeyCandidates.every((historyKey) => !knownIssueHistoryIds.has(historyKey));
   });
 };
 
@@ -120,15 +160,19 @@ export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint
 
 export const selectHistoryTestResults = (
   historyDataPoints: HistoryDataPoint[],
-  historyIdCandidates: readonly string[],
+  historyKeyCandidates: readonly string[],
 ): HistoryTestResult[] => {
-  if (historyIdCandidates.length === 0) {
+  if (historyKeyCandidates.length === 0) {
     return [];
   }
 
   return historyDataPoints.reduce((acc, historyDataPoint) => {
-    for (const historyId of historyIdCandidates) {
-      const historyTestResult = historyDataPoint.testResults?.[historyId];
+    if (!historyDataPoint.testResults) {
+      return acc;
+    }
+
+    for (const historyKey of historyKeyCandidates) {
+      const historyTestResult = historyDataPoint.testResults[historyKey];
 
       if (!historyTestResult) {
         continue;
@@ -149,9 +193,8 @@ export const selectHistoryTestResults = (
  * @returns The history test results array.
  */
 export const htrsByTr = (hdps: HistoryDataPoint[], tr: TestResult | HistoryTestResult): HistoryTestResult[] => {
-  if (!tr?.historyId) {
-    return [];
-  }
+  const candidates =
+    "parameters" in tr ? getHistoryHashCandidates(tr) : getHistoryTestResultKeyCandidates(tr as HistoryTestResult);
 
-  return selectHistoryTestResults(hdps, [tr.historyId]);
+  return selectHistoryTestResults(hdps, candidates);
 };

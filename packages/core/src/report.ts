@@ -594,11 +594,11 @@ export class AllureReport {
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
-      indexTestResultByHistoryId = {},
+      indexTestResultByHistoryHash = {},
       indexTestResultByTestCase = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      indexKnownByHistoryId = {},
+      indexKnownByHistoryHash = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
@@ -612,11 +612,11 @@ export class AllureReport {
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
-      [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
+      [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryHash],
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
-      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
+      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryHash],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
     ];
@@ -812,6 +812,8 @@ export class AllureReport {
                     });
                 }
               }, {});
+              const indexTestResultByHistoryHash = JSON.parse(indexTestResultsByHistoryId.toString("utf8"));
+              const indexKnownByHistoryHash = JSON.parse(indexKnownByHistoryIdEntry.toString("utf8"));
               const dumpState: AllureStoreDump = {
                 testResults: JSON.parse(testResultsEntry.toString("utf8")),
                 testCases: JSON.parse(testCasesEntry.toString("utf8")),
@@ -823,11 +825,13 @@ export class AllureReport {
                 globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
                 globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
                 indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
-                indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
+                indexTestResultByHistoryHash,
+                indexTestResultByHistoryId: indexTestResultByHistoryHash,
                 indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-                indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+                indexKnownByHistoryHash,
+                indexKnownByHistoryId: indexKnownByHistoryHash,
                 qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))

@@ -364,7 +364,7 @@ describe("AgentPlugin", () => {
     expect(indexContent).toContain("test/index.test.ts#AgentPlugin should keep markdown readable (v1)");
     expect(testContent).toContain("Name: should keep markdown readable (v1)");
     expect(testContent).toContain("Full Name: test/index.test.ts#AgentPlugin should keep markdown readable (v1)");
-    expect(testContent).toContain("History ID: history.id#1");
+    expect(testContent).toContain("History Hash: history.id#1");
     expect(testContent).not.toContain("\\.");
     expect(testContent).not.toContain("\\#");
     expect(testContent).not.toContain("\\(");

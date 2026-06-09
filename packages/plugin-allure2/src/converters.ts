@@ -201,6 +201,7 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     name: test.name,
     fullName: test.fullName,
     historyId: test.historyId,
+    historyHash: test.historyHash,
     testId: test.testCase?.id,
     time: {
       start: test.start,

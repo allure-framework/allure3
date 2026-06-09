@@ -32,9 +32,9 @@ export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: str
   const testResults = await store.allTestResults();
   const knownIssues: KnownTestFailure[] = testResults
     .filter((tr) => failedStatuses.has(tr.status))
-    .filter((tr) => tr.historyId)
-    .map(({ historyId, links }) => ({
-      historyId: historyId!,
+    .filter((tr) => tr.historyHash)
+    .map(({ historyHash, links }) => ({
+      historyHash,
       issues: links.filter((l) => l.type === "issue"),
       comment: "automatically generated from failure by allure known-issue command",
     }));

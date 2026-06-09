@@ -32,11 +32,12 @@ export const HistoryTreeItem: FC<HistoryTreeItemProps> = ({
 }) => {
   const { t } = useI18n("controls");
   const stickyStyle = createCategoriesStickyStyle(depth);
+  const historyKey = node.historyHash ?? node.historyId;
   const categoryTitle = (
     <div className={styles["tree-item-history-title"]}>
       <div className={styles["tree-item-history-main"]}>
         <span className={styles["tree-item-history-name"]}>{node.name}</span>
-        {node.historyId && (
+        {historyKey && (
           <span className={styles["tree-item-history-copy"]}>
             <TooltipWrapper tooltipText={t("clipboard")} tooltipTextAfterClick={t("clipboardSuccess")}>
               <IconButton
@@ -45,7 +46,7 @@ export const HistoryTreeItem: FC<HistoryTreeItemProps> = ({
                 icon={allureIcons.lineGeneralCopy3}
                 onClick={(event) => {
                   event.stopPropagation();
-                  copyToClipboard(node.historyId ?? "");
+                  copyToClipboard(historyKey);
                 }}
               />
             </TooltipWrapper>
