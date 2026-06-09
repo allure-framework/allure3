@@ -239,9 +239,10 @@
 }
 
 .markdown-attachment-preview {
-  padding: 0 16px;
+  padding: 8px 16px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 100%;
 }
 
 .test-result-attachment-video {

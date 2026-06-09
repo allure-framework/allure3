@@ -104,8 +104,8 @@ export const TrAttachment: FunctionComponent<{
     event.stopPropagation();
     openModal({
       data: item,
-      preview: showPreview,
-      component: <Attachment item={item} previewable={showPreview} />,
+      preview: isPreviewable,
+      component: <Attachment item={item} previewable={isPreviewable} />,
     });
   };
 

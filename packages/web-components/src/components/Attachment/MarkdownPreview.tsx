@@ -46,6 +46,7 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
     <meta charset="utf-8">
     <style>:root {${iframeThemeVars}}</style>
     <style>${proseStyles}</style>
+    <style>html, body { margin: 0; }</style>
   </head>
   <body>${sanitized}</body>
 </html>`;
