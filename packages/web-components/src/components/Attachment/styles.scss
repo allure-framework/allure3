@@ -238,6 +238,12 @@
   }
 }
 
+.markdown-attachment-preview {
+  padding: 0 16px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
 .test-result-attachment-video {
   display: block;
   max-width: 100%;
