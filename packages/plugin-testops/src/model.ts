@@ -112,6 +112,7 @@ export type UploadTestResultDto = {
   uuid?: string;
   historyId?: string;
   testCaseId?: string;
+  retryOf?: string;
   name?: string;
   fullName?: string;
   description?: string;

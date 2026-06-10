@@ -33,7 +33,7 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
-import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
+import { toUploadFixturesResultsDto, toUploadTestResultDto } from "./utils/uploaderDto.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;
@@ -65,6 +65,7 @@ export class TestOpsClient {
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
+  // #trIdByRetryHash: Map<string, string> = new Map();
 
   constructor(params: TestOpsClientParams) {
     if (!params.accessToken) {
@@ -232,6 +233,7 @@ export class TestOpsClient {
     });
 
     this.#launch = data;
+    // this.#trIdByRetryHash.clear();
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
   }
 
@@ -376,13 +378,14 @@ export class TestOpsClient {
     environments: EnvironmentIdentity[];
     attachmentsResolver: AttachmentsResolver;
     fixturesResolver: FixtureResolver;
+    retryOf?: string;
     onProgress?: () => void;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, retryOf, onProgress } = params;
     const trsChunks = chunk(trs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
     const uploadedTrs: TestResult[] = [];
@@ -407,16 +410,24 @@ export class TestOpsClient {
           await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
 
-        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
+        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk, retryOf);
 
-        await this.#uploadChunkAttachmentsAndFixtures(
+        // if (!retryOf) {
+        //   trsChunk.forEach((tr) => {
+        //     if (tr.retryHash) {
+        //       this.#trIdByRetryHash.set(tr.retryHash, tr.id);
+        //     }
+        //   });
+        // }
+
+        await this.#uploadChunkAttachmentsAndFixtures({
           trsChunk,
           reportIdsToTestOpsIds,
           attachmentsResolver,
           fixturesResolver,
           uploadLimitFn,
           onProgress,
-        );
+        });
 
         uploadedTrs.push(...trsChunk);
       }
@@ -436,21 +447,19 @@ export class TestOpsClient {
     return uploadedTrs;
   }
 
-  async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[]): Promise<Record<string, number>> {
+  async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[], retryOf?: string): Promise<Record<string, number>> {
     const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
       const extendedTestResult: TestOpsPluginTestResult = {
         ...testResult,
         // pass the report id to TestOps to be able to match the test result with the report
         uuid: testResult.id,
       };
-
       const namedEnvironment = !!testResult.environment && this.getNamedEnvFor(testResult.environment);
+      const error = extendedTestResult.error;
 
       if (namedEnvironment) {
         extendedTestResult.namedEnv = { id: namedEnvironment.id };
       }
-
-      const error = extendedTestResult.error;
 
       if (typeof error?.message === "string") {
         extendedTestResult.message = error.message;
@@ -462,14 +471,17 @@ export class TestOpsClient {
 
       return extendedTestResult;
     });
+    const body: UploadResultsDto = {
+      testSessionId: this.#session!.id,
+      results: extendedChunk.map((testResult) => toUploadTestResultDto(testResult, retryOf)),
+    };
 
-    const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
+    console.log(JSON.stringify(body, null, 2));
 
     const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
       body,
       headers: { "Content-Type": "application/json" },
     });
-
     const reportIdsToTestOpsIds: Record<string, number> = {};
 
     for (const { id, uuid } of data.results ?? []) {
@@ -482,14 +494,17 @@ export class TestOpsClient {
     return reportIdsToTestOpsIds;
   }
 
-  async #uploadChunkAttachmentsAndFixtures(
-    trsChunk: TestOpsPluginTestResult[],
-    reportIdsToTestOpsIds: Record<string, number>,
-    attachmentsResolver: AttachmentsResolver,
-    fixturesResolver: FixtureResolver,
-    uploadLimitFn: (fn: () => Promise<void>) => Promise<void>,
-    onProgress?: () => void,
-  ): Promise<void> {
+  async #uploadChunkAttachmentsAndFixtures(params: {
+    trsChunk: TestOpsPluginTestResult[];
+    reportIdsToTestOpsIds: Record<string, number>;
+    attachmentsResolver: AttachmentsResolver;
+    fixturesResolver: FixtureResolver;
+    uploadLimitFn: (fn: () => Promise<void>) => Promise<void>;
+    onProgress?: () => void;
+  }): Promise<void> {
+    const { trsChunk, reportIdsToTestOpsIds, fixturesResolver, attachmentsResolver, uploadLimitFn, onProgress } =
+      params;
+
     await Promise.all(
       trsChunk.map((tr) =>
         uploadLimitFn(async () => {
@@ -499,6 +514,7 @@ export class TestOpsClient {
 
           await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
           await this.#uploadFixturesForResult(testOpsId, fixtures);
+
           onProgress?.();
         }),
       ),
@@ -588,6 +604,7 @@ export class TestOpsClient {
       onUploadProgress(progressEvent) {
         const total = progressEvent.total ?? 100;
         const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+
         onProgress?.(percent, total);
       },
     });

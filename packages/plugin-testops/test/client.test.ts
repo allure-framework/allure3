@@ -1280,6 +1280,320 @@ describe("testops http client", () => {
       expect(namedEnvCalls).toHaveLength(0);
     });
 
+    it("should handle retryOf mapping by retryHash for retry uploads", async () => {
+      AxiosMock.post.mockImplementation((url: string, body?: any) => {
+        if (url === "/api/uaa/oauth/token") {
+          throw new Error("Unexpected OAuth token exchange request");
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          const uuid = body?.results?.[0]?.uuid;
+
+          if (uuid === "tr-1") {
+            return Promise.resolve({ data: { results: [{ id: 101, uuid: "tr-1" }] } });
+          }
+
+          if (uuid === "tr-2") {
+            return Promise.resolve({ data: { results: [{ id: 102, uuid: "tr-2" }] } });
+          }
+
+          return Promise.resolve({ data: { results: [{ id: 103, uuid }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "tr-1", name: "first", status: "passed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const firstUploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect(firstUploadCall?.[1]?.results?.[0]?.retryOf).toBeUndefined();
+
+      vi.clearAllMocks();
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [{ id: 102, uuid: "tr-2" }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.uploadTestResults({
+        trs: [{ id: "tr-2", name: "second", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      const secondUploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect(secondUploadCall?.[1]?.results?.[0]?.retryOf).toBe("tr-1");
+
+      vi.clearAllMocks();
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [{ id: 201, uuid: "tr-3" }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.uploadTestResults({
+        trs: [{ id: "tr-3", name: "without retryHash", status: "passed" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      const uploadWithoutTestCaseId = AxiosMock.post.mock.calls.find(
+        (call: any[]) => call[0] === "/api/upload/test-result",
+      );
+
+      expect(uploadWithoutTestCaseId?.[1]?.results?.[0]?.retryOf).toBeUndefined();
+    });
+
+    it("should not apply retryOf to normal uploads with a known retryHash", async () => {
+      AxiosMock.post.mockImplementation((url: string, body?: any) => {
+        if (url === "/api/uaa/oauth/token") {
+          throw new Error("Unexpected OAuth token exchange request");
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          const uuid = body?.results?.[0]?.uuid;
+
+          if (uuid === "first-parent") {
+            return Promise.resolve({ data: { results: [{ id: 101, uuid }] } });
+          }
+
+          if (uuid === "second-parent") {
+            return Promise.resolve({ data: { results: [{ id: 102, uuid }] } });
+          }
+
+          return Promise.resolve({ data: { results: [{ id: 103, uuid }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "first-parent", name: "first parent", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+      await client.uploadTestResults({
+        trs: [
+          { id: "second-parent", name: "second parent", status: "failed", retryHash: "retry-hash-1" } as TestResult,
+        ],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+      await client.uploadTestResults({
+        trs: [{ id: "retry", name: "retry", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      const uploadCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect(uploadCalls).toHaveLength(3);
+      expect(uploadCalls[0]?.[1]?.results?.[0]?.retryOf).toBeUndefined();
+      expect(uploadCalls[1]?.[1]?.results?.[0]?.retryOf).toBeUndefined();
+      expect(uploadCalls[2]?.[1]?.results?.[0]?.retryOf).toBe("second-parent");
+    });
+
+    it("should not replace the parent retryHash mapping during retry uploads", async () => {
+      AxiosMock.post.mockImplementation((url: string, body?: any) => {
+        if (url === "/api/uaa/oauth/token") {
+          throw new Error("Unexpected OAuth token exchange request");
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          const uuid = body?.results?.[0]?.uuid;
+
+          if (uuid === "parent") {
+            return Promise.resolve({ data: { results: [{ id: 201, uuid: "parent" }] } });
+          }
+
+          if (uuid === "retry-1") {
+            return Promise.resolve({ data: { results: [{ id: 202, uuid: "retry-1" }] } });
+          }
+
+          if (uuid === "retry-2") {
+            return Promise.resolve({ data: { results: [{ id: 203, uuid: "retry-2" }] } });
+          }
+
+          return Promise.resolve({ data: { results: [{ id: 999, uuid }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [
+          {
+            id: "parent",
+            name: "parent",
+            status: "failed",
+            retryHash: "retry-hash-1",
+          } as TestResult,
+        ],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      await client.uploadTestResults({
+        trs: [{ id: "retry-1", name: "retry 1", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      await client.uploadTestResults({
+        trs: [{ id: "retry-2", name: "retry 2", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      const uploadCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect(uploadCalls).toHaveLength(3);
+      expect(uploadCalls[0]?.[1]?.results?.[0]?.retryOf).toBeUndefined();
+      expect(uploadCalls[1]?.[1]?.results?.[0]?.retryOf).toBe("parent");
+      expect(uploadCalls[2]?.[1]?.results?.[0]?.retryOf).toBe("parent");
+    });
+
+    it("should apply parent report id to every retry in a retry chunk", async () => {
+      AxiosMock.post.mockImplementation((url: string, body?: any) => {
+        if (url === "/api/uaa/oauth/token") {
+          throw new Error("Unexpected OAuth token exchange request");
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          const results = body?.results ?? [];
+
+          return Promise.resolve({
+            data: {
+              results: results.map((result: { uuid: string }, index: number) => ({
+                id: result.uuid === "parent" ? 301 : 400 + index,
+                uuid: result.uuid,
+              })),
+            },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "parent", name: "parent", status: "failed", retryHash: "retry-hash-1" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+      await client.uploadTestResults({
+        trs: [
+          { id: "retry-1", name: "retry 1", status: "failed", retryHash: "retry-hash-1" } as TestResult,
+          { id: "retry-2", name: "retry 2", status: "failed", retryHash: "retry-hash-1" } as TestResult,
+          { id: "retry-3", name: "retry 3", status: "passed", retryHash: "retry-hash-1" } as TestResult,
+        ],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+        isRetry: true,
+      });
+
+      const uploadCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect(uploadCalls).toHaveLength(2);
+      expect(uploadCalls[1]?.[1]?.results).toHaveLength(3);
+      expect(uploadCalls[1]?.[1]?.results?.map(({ retryOf }: { retryOf?: string }) => retryOf)).toEqual([
+        "parent",
+        "parent",
+        "parent",
+      ]);
+    });
+
     it("should resolve fixtures and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {

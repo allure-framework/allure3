@@ -11,7 +11,8 @@
     "g": "yarn allure generate --config=./allurerc.mjs",
     "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
-    "t": "yarn allure run -- vitest run",
+    "t": "yarn allure run --rerun=5 -- vitest run",
+    "report": "yarn allure generate",
     "test": "vitest run",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"

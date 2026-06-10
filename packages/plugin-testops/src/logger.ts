@@ -54,6 +54,7 @@ export class Logger {
         tick: () => {},
         update: () => {},
         terminate: () => {},
+        total: 0,
       };
     }
 

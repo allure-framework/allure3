@@ -104,9 +104,8 @@ const optionalArray = <T>(v: unknown, isItem: (x: unknown) => x is T): T[] | und
 
 const isAttachmentLink = (v: unknown): v is AttachmentLink => isObject(v) && hasString(v, "id");
 
-export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestResultDto => {
+export const toUploadTestResultDto = (tr: TestOpsPluginTestResult, retryOf?: string): UploadTestResultDto => {
   const attachmentsUnknown = (tr as unknown as Record<string, unknown>).attachments;
-
   const attachments = optionalArray(attachmentsUnknown, isAttachmentLink)?.map(toUploadAttachmentDto);
 
   return {
@@ -137,13 +136,20 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
     parameters: tr.parameters,
     links: tr.links,
     labels: tr.labels,
+    retryOf,
   };
 };
 
-export const toUploadResultsDto = (testSessionId: number, trs: TestOpsPluginTestResult[]): UploadResultsDto => {
+export const toUploadResultsDto = (params: {
+  sessionId: number;
+  chunk: TestOpsPluginTestResult[];
+  retryOf?: string;
+}): UploadResultsDto => {
+  const { sessionId, chunk, retryOf } = params;
+
   return {
-    testSessionId,
-    results: trs.map(toUploadTestResultDto),
+    testSessionId: sessionId,
+    results: chunk.map((tr) => toUploadTestResultDto(tr, retryOf)),
   };
 };
 

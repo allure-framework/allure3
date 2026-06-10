@@ -125,88 +125,96 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   hideLabels: ["owner"],
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 5,
-        fastFail: true,
-      },
-      {
-        // Fails: not all tests have env "foo" (some have "bar" or "default")
-        allTestsContainEnv: "foo",
-      },
-      {
-        // Fails: "staging" is not present in the run (only foo, bar, default exist)
-        environmentsTested: ["foo", "bar", "staging"],
-      },
-    ],
-  },
+  // qualityGate: {
+  //   rules: [
+  //     {
+  //       maxFailures: 5,
+  //       fastFail: true,
+  //     },
+  //     {
+  //       // Fails: not all tests have env "foo" (some have "bar" or "default")
+  //       allTestsContainEnv: "foo",
+  //     },
+  //     {
+  //       // Fails: "staging" is not present in the run (only foo, bar, default exist)
+  //       environmentsTested: ["foo", "bar", "staging"],
+  //     },
+  //   ],
+  // },
   categories: {
     rules: comboRules,
   },
   plugins: {
-    allure2: {
+    // allure2: {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //   },
+    // },
+    // classic: {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //   },
+    // },
+    // awesome: {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     theme: "light",
+    //     reportLanguage: "en",
+    //     open: false,
+    //     charts: chartLayout,
+    //     publish: true,
+    //   },
+    // },
+    // dashboard: {
+    //   options: {
+    //     singleFile: false,
+    //     reportName: "HelloWorld-Dashboard",
+    //     reportLanguage: "en",
+    //     layout: defaultChartsConfig,
+    //   },
+    // },
+    // csv: {
+    //   options: {
+    //     fileName: "allure-report.csv",
+    //   },
+    // },
+    // log: {
+    //   options: {
+    //     groupBy: "none",
+    //   },
+    // },
+    testops: {
+      enabled: true,
       options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-      },
+        accessToken: "98afa9bc-96df-466e-bc96-9293911319fb",
+        projectId: "1",
+        endpoint: "http://localhost:8080",
+        launchName: "Hello",
+      }
     },
-    classic: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-      },
-    },
-    awesome: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        theme: "light",
-        reportLanguage: "en",
-        open: false,
-        charts: chartLayout,
-        publish: true,
-      },
-    },
-    dashboard: {
-      options: {
-        singleFile: false,
-        reportName: "HelloWorld-Dashboard",
-        reportLanguage: "en",
-        layout: defaultChartsConfig,
-      },
-    },
-    csv: {
-      options: {
-        fileName: "allure-report.csv",
-      },
-    },
-    log: {
-      options: {
-        groupBy: "none",
-      },
-    },
-    ...(sandboxTestopsEnabled
-      ? {
-          testops: {
-            options: {
-              accessToken: sandboxTestopsToken,
-              projectId: "1",
-              endpoint: "http://localhost:8080",
-            },
-          },
-        }
-      : {}),
+    // ...(sandboxTestopsEnabled
+    //   ? {
+    //       testops: {
+    //         options: {
+    //           accessToken: sandboxTestopsToken,
+    //           projectId: "1",
+    //           endpoint: "http://localhost:8080",
+    //         },
+    //       },
+    //     }
+    // : {}),
   },
   variables: {
     env_variable: "unknown",
   },
-  allureService: {
-    url: "http://localhost:3000",
-    accessToken: "storage_test",
-  },
+  // allureService: {
+  //   accessToken: "ato1.eyJhY2Nlc3NUb2tlbiI6ImUxMjU4MTI5LThhNTQtNDg3ZC04ODAyLTc2MTY3NTc3NjZjZCIsInByb2plY3RJZCI6NzcwLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjgwODAifQ.1c456bb10dcd58ae512539aff23eaa6ad66759e05a09c094e2a6320edc1d1799"
+  // },
   // allureService: {
   //   url: "http://localhost:3000",
   //   accessToken: "storage_test"

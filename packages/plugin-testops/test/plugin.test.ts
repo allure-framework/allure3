@@ -101,6 +101,7 @@ beforeEach(async () => {
   AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue(undefined);
   AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
   AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
+  AllureStoreMock.prototype.retriesByTrId.mockResolvedValue([]);
 });
 
 describe("testops plugin", () => {
@@ -352,6 +353,91 @@ describe("testops plugin", () => {
           fixturesResolver: expect.any(Function),
         }),
       );
+    });
+
+    it("should upload retries through the same upload method without resolving nested retries", async () => {
+      const parent = {
+        ...fixtures.testResults[0],
+        id: "parent",
+        retryHash: "retry-hash-1",
+      } as TestResult;
+      const retry = {
+        ...fixtures.testResults[1],
+        id: "retry",
+        retryHash: "retry-hash-1",
+      } as TestResult;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([parent]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.retriesByTrId.mockImplementation(async (trId: string) =>
+        trId === parent.id ? [retry] : [{ ...retry, id: "nested-retry" }],
+      );
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.retriesByTrId).toHaveBeenCalledTimes(1);
+      expect(AllureStoreMock.prototype.retriesByTrId).toHaveBeenCalledWith(parent.id);
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: parent.id, retryHash: parent.retryHash })],
+          isRetry: false,
+        }),
+      );
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: retry.id, retryHash: retry.retryHash })],
+          isRetry: true,
+        }),
+      );
+    });
+
+    it("should upload all retries returned for a parent test result", async () => {
+      const parent = {
+        ...fixtures.testResults[0],
+        id: "parent",
+        retryHash: "retry-hash-1",
+      } as TestResult;
+      const retries = Array.from({ length: 5 }, (_, index) => ({
+        ...fixtures.testResults[1],
+        id: `retry-${index + 1}`,
+        retryHash: "retry-hash-1",
+      })) as TestResult[];
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([parent]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.retriesByTrId.mockImplementation(async (trId: string) =>
+        trId === parent.id ? retries : [{ ...retries[0], id: "nested-retry" }],
+      );
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.retriesByTrId).toHaveBeenCalledTimes(1);
+      expect(AllureStoreMock.prototype.retriesByTrId).toHaveBeenCalledWith(parent.id);
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(1 + retries.length);
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: parent.id, retryHash: parent.retryHash })],
+          isRetry: false,
+        }),
+      );
+
+      retries.forEach((retry, index) => {
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenNthCalledWith(
+          index + 2,
+          expect.objectContaining({
+            trs: [expect.objectContaining({ id: retry.id, retryHash: retry.retryHash })],
+            isRetry: true,
+          }),
+        );
+      });
     });
 
     it("should map linked steps attachments before upload test results", async () => {

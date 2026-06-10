@@ -1,7 +1,7 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
+import type { CategoryDefinition, CiDescriptor, TestResult, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
@@ -12,15 +12,16 @@ import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
 import {
   attachmentsResolverFactory,
+  enrichWithCategories,
   fixturesResolverFactory,
   resolvePluginOptions,
-  unwrapStepsAttachments,
 } from "./utils/index.js";
-import { toUploadCategory } from "./utils/uploadCategory.js";
 import { uploadFilenameForLink } from "./utils/uploaderDto.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
+
+type UploadProgressBar = ReturnType<Logger["progressBarCounter"]>;
 
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
@@ -39,7 +40,8 @@ export class TestOpsPlugin implements Plugin {
   constructor(readonly options: TestOpsPluginOptions) {
     this.#ci = detect();
 
-    if (!this.#ci || this.#ci.type === "local") {
+    // if (!this.#ci || this.#ci.type === "local") {
+    if (!this.#ci) {
       this.#logger.info(
         `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
       );
@@ -89,28 +91,13 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  get isOverridenByEnv(): boolean {
-    const isEnabled = (value: string | undefined) => {
-      if (!value) {
-        return false;
-      }
-
-      return ["true", "1"].includes(value);
-    };
-
-    return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
-  }
-
   get enabled(): boolean {
     if (!this.#clientConfigured) {
       return false;
     }
 
-    if (this.isOverridenByEnv) {
-      return true;
-    }
-
-    if (!this.#ci || this.#ci.type === "local") {
+    // if (!this.#ci || this.#ci.type === "local") {
+    if (!this.#ci) {
       return false;
     }
 
@@ -236,33 +223,62 @@ export class TestOpsPlugin implements Plugin {
 
   async #uploadTestResults(
     store: AllureStore,
-    trsToUpload: TestOpsPluginTestResult[],
-    environments: EnvironmentIdentity[],
+    trsToUpload: TestResult[],
+    categories: CategoryDefinition[],
+    options: {
+      retryOf?: string;
+      progressBar?: UploadProgressBar;
+    } = {},
   ) {
+    const { retryOf } = options;
     const totalCount = trsToUpload.length;
+    const progressBarOwner = options.progressBar === undefined;
+    const trsProgressBar = options.progressBar ?? this.#logger.progressBarCounter("Uploading test results", totalCount);
+    const environments = await store.allEnvironmentIdentities();
+    const trsEnrichedWithCategories = await enrichWithCategories(store, trsToUpload, categories);
+
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, categories);
 
     this.#logger.info(
       `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}`,
     );
 
-    const trsProgressBar = this.#logger.progressBarCounter("Uploading test results", totalCount);
-
     const uploadedTrs = await this.#client.uploadTestResults({
       attachmentsResolver: attachmentsResolverFactory(store),
       fixturesResolver: fixturesResolverFactory(store),
       environments,
-      trs: trsToUpload,
+      trs: trsEnrichedWithCategories,
       onProgress: () => trsProgressBar.tick(),
+      retryOf,
     });
 
     uploadedTrs.forEach((tr) => {
       this.#uploadedTestResultsIds.add(tr.id);
     });
 
+    if (!retryOf) {
+      for (const tr of uploadedTrs) {
+        const retries = await store.retriesByTrId(tr.id);
+
+        if (retries.length === 0) {
+          continue;
+        }
+
+        trsProgressBar.total += retries.length;
+
+        await this.#uploadTestResults(store, retries, categories, {
+          progressBar: trsProgressBar,
+          retryOf: tr.id,
+        });
+      }
+    }
+
     const uploadedCount = uploadedTrs.length;
 
-    trsProgressBar.update(uploadedCount / totalCount);
-    trsProgressBar.terminate();
+    if (progressBarOwner) {
+      trsProgressBar.update(uploadedCount / totalCount);
+      trsProgressBar.terminate();
+    }
 
     if (uploadedCount === 0) {
       this.#logger.warn("No test results were uploaded");
@@ -272,26 +288,10 @@ export class TestOpsPlugin implements Plugin {
     this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
   }
 
-  async #upload(
-    store: AllureStore,
-    options = {} as {
-      context?: PluginContext;
-      stage: "start" | "update" | "done";
-    },
-  ) {
-    const { context, stage } = options;
-
+  async #upload(store: AllureStore, context?: PluginContext) {
     const trsToUpload = await this.#trsToUpload(store);
 
     if (trsToUpload.length === 0) {
-      if (stage == "update") {
-        this.#logger.info("No new test results to upload");
-      }
-
-      if (stage === "done") {
-        this.#logger.info("No test results to upload");
-      }
-
       return;
     }
 
@@ -301,18 +301,13 @@ export class TestOpsPlugin implements Plugin {
     await this.#uploadGlobalErrors(store);
     await this.#uploadQualityGateResults(store);
 
-    const environments = await store.allEnvironmentIdentities();
-    const contextCategories = context?.categories ?? [];
-    const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
-
-    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
+    await this.#uploadTestResults(store, trsToUpload, context?.categories ?? []);
   }
 
   async #trsToUpload(store: AllureStore) {
     const filter = this.options.filter ?? stubTrue;
 
-    const filteredTrs = await store.allTestResults({
+    return store.allTestResults({
       filter: (tr) => {
         const uploaded = this.#uploadedTestResultsIds.has(tr.id);
 
@@ -324,32 +319,6 @@ export class TestOpsPlugin implements Plugin {
       },
       includeRetries: false,
     });
-
-    return filteredTrs;
-  }
-
-  async #enrichWithCategories(
-    store: AllureStore,
-    trs: TestOpsPluginTestResult[],
-    contextCategories: CategoryDefinition[],
-  ): Promise<TestOpsPluginTestResult[]> {
-    return Promise.all(
-      trs.map(async (tr) => {
-        const environmentId = await store.environmentIdByTrId(tr.id);
-        const base = {
-          ...tr,
-          ...(environmentId ? { environment: environmentId } : {}),
-          steps: unwrapStepsAttachments(tr.steps),
-        };
-        const category = toUploadCategory(base, contextCategories ?? []);
-
-        if (category) {
-          base.category = category;
-        }
-
-        return base;
-      }),
-    );
   }
 
   async #syncLaunchCategories(trs: TestOpsPluginTestResult[], contextCategories: CategoryDefinition[]): Promise<void> {
@@ -462,7 +431,7 @@ export class TestOpsPlugin implements Plugin {
     this.#logger.verbose("Starting upload…");
 
     await this.#startUpload();
-    await this.#upload(store, { context, stage: "start" });
+    await this.#upload(store, context);
 
     this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
   }
@@ -474,7 +443,7 @@ export class TestOpsPlugin implements Plugin {
 
     this.#logger.verbose("Updating (uploading new results)…");
 
-    await this.#upload(store, { context, stage: "update" });
+    await this.#upload(store, context);
   }
 
   async done(context: PluginContext, store: AllureStore) {
@@ -486,12 +455,11 @@ export class TestOpsPlugin implements Plugin {
       filter: this.options.filter,
       includeRetries: false,
     });
-
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
     this.#logger.verbose("Finalizing upload…");
 
-    await this.#upload(store, { context, stage: "done" });
+    await this.#upload(store, context);
     await this.#stopUpload(worstStatus || "unknown");
 
     const launchId = this.#client.launchId;

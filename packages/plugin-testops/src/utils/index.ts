@@ -1,15 +1,17 @@
 import { env } from "node:process";
 
-import type { TestStepResult } from "@allurereport/core-api";
+import type { TestResult, TestStepResult } from "@allurereport/core-api";
 import { AllureStore } from "@allurereport/plugin-api";
 
 import type {
   AttachmentForUpload,
   AttachmentsResolver,
   FixtureResolver,
+  TestOpsPluginTestResult,
   TestOpsFixtureResult,
   TestOpsPluginOptions,
 } from "../model.js";
+import { toUploadCategory } from "./uploadCategory.js";
 import { uploadFilenameForLink } from "./uploaderDto.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
@@ -99,4 +101,28 @@ export function fixturesResolverFactory(store: AllureStore) {
   };
 
   return fixturesResolver;
+}
+
+export async function enrichWithCategories(
+  store: AllureStore,
+  trs: TestResult[],
+  contextCategories: Parameters<typeof toUploadCategory>[1],
+): Promise<TestOpsPluginTestResult[]> {
+  return Promise.all(
+    trs.map(async (tr) => {
+      const environmentId = await store.environmentIdByTrId(tr.id);
+      const base: TestOpsPluginTestResult = {
+        ...tr,
+        ...(environmentId ? { environment: environmentId } : {}),
+        steps: unwrapStepsAttachments(tr.steps),
+      };
+      const category = toUploadCategory(base, contextCategories ?? []);
+
+      if (category) {
+        base.category = category;
+      }
+
+      return base;
+    }),
+  );
 }

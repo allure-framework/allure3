@@ -71,12 +71,15 @@ const config = {
     ],
     use: [...qualityGateDefaultRules],
   },
+  allureService: {
+    accessToken: "ato1.eyJhY2Nlc3NUb2tlbiI6ImUxMjU4MTI5LThhNTQtNDg3ZC04ODAyLTc2MTY3NTc3NjZjZCIsInByb2plY3RJZCI6NzcwLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjgwODAifQ.1c456bb10dcd58ae512539aff23eaa6ad66759e05a09c094e2a6320edc1d1799"
+  }
 };
 
-if (ALLURE_SERVICE_ACCESS_TOKEN) {
-  config.allureService = {
-    accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
-  };
-}
+// if (ALLURE_SERVICE_ACCESS_TOKEN) {
+//   config.allureService = {
+//     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
+//   };
+// }
 
 export default defineConfig(config);
