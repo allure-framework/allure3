@@ -12,6 +12,10 @@
   "license": "Apache-2.0",
   "author": "Qameta Software",
   "repository": "https://github.com/allure-framework/allure3",
+  "homepage": "https://github.com/allure-framework/allure3#readme",
+  "bugs": {
+    "url": "https://github.com/allure-framework/allure3/issues"
+  },
   "files": [
     "./dist"
   ],
