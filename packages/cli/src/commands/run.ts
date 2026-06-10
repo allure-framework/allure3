@@ -1,6 +1,5 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
@@ -16,7 +15,6 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAgentMode } from "./agent.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
@@ -103,24 +101,6 @@ export class RunCommand extends Command {
 
     if (!args || !args.length) {
       throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
-    }
-
-    const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
-
-    if (legacyAgentOutput) {
-      await executeAgentMode({
-        configPath: this.config,
-        cwd: this.cwd,
-        output: resolve(process.cwd(), legacyAgentOutput),
-        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
-          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
-          : undefined,
-        environment: this.environment,
-        environmentName: this.environmentName,
-        silent: this.silent,
-        args,
-      });
-      return;
     }
 
     const before = new Date().getTime();

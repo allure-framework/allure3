@@ -1,61 +1,54 @@
 import * as console from "node:console";
-import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import process, { exit } from "node:process";
 
-import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
+import {
+  AGENT_FINDING_CATEGORIES,
+  AGENT_FINDING_SEVERITIES,
+  AGENT_TASK_MAP_HELP,
+  AGENT_TEST_STATUSES,
+  AgentExpectationUsageError,
+  buildAgentInlineExpectations,
+  buildAgentQueryPayload,
+  createAgentCapabilities,
+  formatAgentOutputLinks,
+  isAgentExpectationUsageError,
+  isAgentTaskMapHelpRequest,
+  isAgentUsageError,
+  loadAgentOutput,
+  normalizeAgentQueryLimit,
+  normalizeAgentQueryView,
+  normalizeAgentRerunPreset,
+  normalizeRepeatedEnumValues,
+  normalizeRepeatedStringValues,
+  parseAgentLabelFilters,
+  readLatestAgentState,
+  resolveAgentSelectionOutputDir,
+  resolveAgentStateDir,
+  selectAgentTestPlan,
+  validateAgentExpectationsFile,
+  writeLatestAgentState,
+  writeInvalidAgentExpectationOutput,
+  type AgentExpectationsInput,
+} from "@allurereport/plugin-agent";
 import { Command, Option, UsageError } from "clipanion";
 
-import {
-  createAgentTestPlanContext,
-  normalizeAgentRerunPreset,
-  parseAgentLabelFilters,
-  resolveAgentSelectionOutputDir,
-  selectAgentTestPlan,
-} from "../utils/agent-select.js";
-import { readLatestAgentState, resolveAgentStateDir, writeLatestAgentState } from "../utils/agent-state.js";
-import {
-  environmentNameOption,
-  environmentOption,
-  normalizeCommandEnvironmentOptions,
-  resolveCommandEnvironment,
-} from "../utils/environment.js";
-import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
+export { AGENT_TASK_MAP_HELP, createAgentCapabilities, isAgentTaskMapHelpRequest };
 
-const withProcessEnv = async <T>(overrides: Record<string, string | undefined>, fn: () => Promise<T>): Promise<T> => {
-  const previousValues = new Map<string, string | undefined>();
+const readOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
-  for (const [key, value] of Object.entries(overrides)) {
-    previousValues.set(key, process.env[key]);
+const readOptionalBoolean = (value: unknown): boolean => value === true;
 
-    if (value === undefined) {
-      delete process.env[key];
-      continue;
-    }
+const readOptionalStringArray = (value: unknown): string[] | undefined => (Array.isArray(value) ? value : undefined);
 
-    process.env[key] = value;
+const formatAgentCommand = (args: string[]) => args.join(" ");
+
+const printAgentOutputLinks = (outputDir: string) => {
+  for (const line of formatAgentOutputLinks(outputDir)) {
+    console.log(line);
   }
-
-  try {
-    return await fn();
-  } finally {
-    for (const [key, value] of previousValues) {
-      if (value === undefined) {
-        delete process.env[key];
-        continue;
-      }
-
-      process.env[key] = value;
-    }
-  }
-};
-
-const isPathInside = (parentPath: string, candidatePath: string) => {
-  const rel = relative(parentPath, candidatePath);
-
-  return rel === "" || (!rel.startsWith("..") && rel !== "." && !rel.startsWith("../"));
 };
 
 const persistLatestAgentState = async (value: Parameters<typeof writeLatestAgentState>[0]) => {
@@ -68,11 +61,47 @@ const persistLatestAgentState = async (value: Parameters<typeof writeLatestAgent
   }
 };
 
-const readOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+const agentEnvironmentOption = () =>
+  Option.String("--environment,--env", {
+    description:
+      "Force specific environment ID to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
+  });
 
-const readOptionalBoolean = (value: unknown): boolean => value === true;
+const agentEnvironmentNameOption = () =>
+  Option.String("--environment-name", {
+    description:
+      "Force specific environment display name to all tests in the run. Has lower priority than --environment and higher than the config value (default: empty string)",
+  });
 
-const readOptionalStringArray = (value: unknown): string[] | undefined => (Array.isArray(value) ? value : undefined);
+const throwCliUsageError = (error: unknown): never => {
+  if (isAgentUsageError(error)) {
+    throw new UsageError((error as Error).message);
+  }
+
+  throw error;
+};
+
+export class AgentCapabilitiesCommand extends Command {
+  static paths = [["agent", "capabilities"]];
+
+  static usage = Command.Usage({
+    description: "Print structured Allure agent capability information",
+    details:
+      "This command prints the locally supported agent-mode commands, expectation controls, output files, rerun support, and known unsupported capability families as JSON.",
+    examples: [
+      ["agent capabilities", "Print agent capabilities as JSON"],
+      ["agent capabilities --json", "Print agent capabilities as JSON explicitly"],
+    ],
+  });
+
+  json = Option.Boolean("--json", true, {
+    description: "Print capabilities as JSON (default: true)",
+  });
+
+  async execute() {
+    console.log(JSON.stringify(createAgentCapabilities(), null, 2));
+  }
+}
 
 export class AgentCommand extends Command {
   static paths = [["agent"]];
@@ -105,9 +134,58 @@ export class AgentCommand extends Command {
     description: "The path to a YAML or JSON expectations file",
   });
 
-  environment = environmentOption();
+  goal = Option.Array("--goal", {
+    description: "The review goal to record in inline agent expectations",
+  });
 
-  environmentName = environmentNameOption();
+  taskId = Option.Array("--task-id", {
+    description: "The task or feature id to record in inline agent expectations",
+  });
+
+  expectTests = Option.Array("--expect-tests", {
+    description: "The expected number of visible logical tests in the intended scope",
+  });
+
+  expectLabels = Option.Array("--expect-label", {
+    description: "Expected label selector in name=value form. Repeat the option for multiple selectors",
+  });
+
+  expectEnvironments = Option.Array("--expect-env", {
+    description: "Expected environment id. Repeat the option for multiple environments",
+  });
+
+  expectFullNames = Option.Array("--expect-test", {
+    description: "Expected full test name. Repeat the option for multiple tests",
+  });
+
+  expectPrefixes = Option.Array("--expect-prefix", {
+    description: "Expected full-name prefix. Repeat the option for multiple prefixes",
+  });
+
+  forbidLabels = Option.Array("--forbid-label", {
+    description: "Forbidden label selector in name=value form. Repeat the option for multiple selectors",
+  });
+
+  expectStepContains = Option.Array("--expect-step-containing", {
+    description: "Require a test-scoped step name containing this text per evidence-target logical test",
+  });
+
+  expectSteps = Option.Array("--expect-steps", {
+    description: "Require at least this many meaningful steps per expected logical test",
+  });
+
+  expectAttachments = Option.Array("--expect-attachments", {
+    description: "Require at least this many non-missing attachments per expected logical test",
+  });
+
+  expectAttachmentFilters = Option.Array("--expect-attachment", {
+    description:
+      "Require a matching non-missing attachment per expected logical test. Use a file name or name=value/content-type=value",
+  });
+
+  environment = agentEnvironmentOption();
+
+  environmentName = agentEnvironmentNameOption();
 
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: false)",
@@ -137,22 +215,91 @@ export class AgentCommand extends Command {
 
   async execute() {
     const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
+    const configPath = readOptionalString(this.config);
+    const configuredCwd = readOptionalString(this.cwd);
+    const output = readOptionalString(this.output);
+    const expectations = readOptionalString(this.expectations);
 
-    await executeAgentMode({
-      configPath: readOptionalString(this.config),
-      cwd: readOptionalString(this.cwd),
-      output: readOptionalString(this.output),
-      expectations: readOptionalString(this.expectations),
-      environment: readOptionalString(this.environment),
-      environmentName: readOptionalString(this.environmentName),
-      silent: readOptionalBoolean(this.silent),
-      rerunFrom: readOptionalString(this.rerunFrom),
-      rerunLatest: readOptionalBoolean(this.rerunLatest),
-      rerunPreset: readOptionalString(this.rerunPreset),
-      rerunEnvironments: readOptionalStringArray(this.rerunEnvironments),
-      rerunLabels: readOptionalStringArray(this.rerunLabels),
-      args,
-    });
+    if (!args || !args.length) {
+      throw new UsageError("expecting command to be specified after --, e.g. allure agent -- npm run test");
+    }
+
+    try {
+      const inlineExpectations = buildAgentInlineExpectations({
+        goal: this.goal,
+        taskId: this.taskId,
+        expectTests: this.expectTests,
+        expectLabels: readOptionalStringArray(this.expectLabels),
+        expectEnvironments: readOptionalStringArray(this.expectEnvironments),
+        expectFullNames: readOptionalStringArray(this.expectFullNames),
+        expectPrefixes: readOptionalStringArray(this.expectPrefixes),
+        forbidLabels: readOptionalStringArray(this.forbidLabels),
+        expectStepContains: readOptionalStringArray(this.expectStepContains),
+        expectSteps: this.expectSteps,
+        expectAttachments: this.expectAttachments,
+        expectAttachmentFilters: readOptionalStringArray(this.expectAttachmentFilters),
+      });
+
+      if (expectations && inlineExpectations) {
+        throw new AgentExpectationUsageError(
+          "Use either --expectations <file> or inline expectation flags, not both",
+          "--expectations",
+        );
+      }
+
+      await validateAgentExpectationsFile({
+        cwd: await realpath(configuredCwd ?? process.cwd()),
+        output,
+        expectations,
+      });
+
+      const { executeAgentMode } = await import("./agent-run.js");
+
+      await executeAgentMode({
+        configPath,
+        cwd: configuredCwd,
+        output,
+        expectations,
+        inlineExpectations: inlineExpectations as AgentExpectationsInput | undefined,
+        environment: readOptionalString(this.environment),
+        environmentName: readOptionalString(this.environmentName),
+        silent: readOptionalBoolean(this.silent),
+        rerunFrom: readOptionalString(this.rerunFrom),
+        rerunLatest: readOptionalBoolean(this.rerunLatest),
+        rerunPreset: readOptionalString(this.rerunPreset),
+        rerunEnvironments: readOptionalStringArray(this.rerunEnvironments),
+        rerunLabels: readOptionalStringArray(this.rerunLabels),
+        args,
+      });
+    } catch (error) {
+      if (!isAgentExpectationUsageError(error)) {
+        throwCliUsageError(error);
+      }
+
+      const expectationError = error as AgentExpectationUsageError;
+      const cwd = await realpath(configuredCwd ?? process.cwd());
+      const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
+      const commandString = formatAgentCommand(args);
+      const { generatedAt } = await writeInvalidAgentExpectationOutput({
+        outputDir,
+        command: commandString,
+        error: expectationError,
+      });
+
+      await persistLatestAgentState({
+        cwd,
+        outputDir,
+        command: commandString,
+        startedAt: generatedAt,
+        finishedAt: generatedAt,
+        status: "finished",
+        exitCode: 1,
+      });
+
+      printAgentOutputLinks(outputDir);
+      console.error(expectationError.message);
+      exit(1);
+    }
   }
 }
 
@@ -160,11 +307,15 @@ export class AgentLatestCommand extends Command {
   static paths = [["agent", "latest"]];
 
   static usage = Command.Usage({
-    description: "Print the latest Allure agent output directory for the current project",
-    details: "This command prints the latest agent output directory recorded for the resolved project cwd.",
+    description: "Print the latest Allure agent output directory and index path for the current project",
+    details:
+      "This command prints the latest agent output directory and index.md path recorded for the resolved project cwd.",
     examples: [
-      ["agent latest", "Print the latest agent output directory for the current project"],
-      ["agent latest --cwd ./packages/cli", "Print the latest agent output directory for a specific project cwd"],
+      ["agent latest", "Print the latest agent output directory and index path for the current project"],
+      [
+        "agent latest --cwd ./packages/cli",
+        "Print the latest agent output directory and index path for a specific project cwd",
+      ],
     ],
   });
 
@@ -190,7 +341,7 @@ export class AgentLatestCommand extends Command {
       return;
     }
 
-    console.log(latestState.outputDir);
+    printAgentOutputLinks(latestState.outputDir);
   }
 }
 
@@ -218,13 +369,125 @@ export class AgentStateDirCommand extends Command {
   }
 }
 
+export class AgentQueryCommand extends Command {
+  static paths = [["agent", "query"]];
+
+  static usage = Command.Usage({
+    description: "Query an existing Allure agent output directory as focused JSON",
+    details:
+      "This command reads a prior agent output directory and prints focused JSON for a run summary, test list, findings list, or one test. Use --latest to query the latest recorded output for the project, or --from to query a specific output directory.",
+    examples: [
+      ["agent query --latest summary", "Print a summary for the latest agent output"],
+      ["agent query --from ./out/agent-output tests --status failed", "List failed tests from a prior output"],
+      [
+        "agent query --from ./out/agent-output findings --severity high",
+        "List high-severity findings from a prior output",
+      ],
+      [
+        'agent query --latest test --test "suite should pass" --include-markdown',
+        "Print one test summary with its per-test markdown",
+      ],
+    ],
+  });
+
+  view = Option.String({
+    required: false,
+    name: "Query view: summary, tests, findings, or test (default: summary)",
+  });
+
+  cwd = Option.String("--cwd", {
+    description:
+      "The project directory used to resolve --latest and relative paths (default: current working directory)",
+  });
+
+  from = Option.String("--from", {
+    description: "The prior agent output directory to query",
+  });
+
+  latest = Option.Boolean("--latest", {
+    description: "Use the latest recorded agent output for the current project cwd",
+  });
+
+  statuses = Option.Array("--status", {
+    description: "Filter tests by status: failed, broken, unknown, skipped, or passed. Repeat for multiple statuses",
+  });
+
+  environments = Option.Array("--environment", {
+    description: "Filter tests by environment id. Repeat the option for multiple environments",
+  });
+
+  labels = Option.Array("--label", {
+    description: "Filter tests by exact label name=value. Repeat the option for multiple filters",
+  });
+
+  severities = Option.Array("--severity", {
+    description: "Filter findings by severity: high, warning, or info. Repeat for multiple severities",
+  });
+
+  categories = Option.Array("--category", {
+    description: "Filter findings by category. Repeat the option for multiple categories",
+  });
+
+  checks = Option.Array("--check", {
+    description: "Filter findings by check name. Repeat the option for multiple checks",
+  });
+
+  test = Option.String("--test", {
+    description: "Filter to one test by full name, test result id, history id, or markdown path",
+  });
+
+  limit = Option.String("--limit", {
+    description: "Limit returned tests or findings to this non-negative count",
+  });
+
+  includeMarkdown = Option.Boolean("--include-markdown", {
+    description: "Include the per-test markdown content for the test view",
+  });
+
+  async execute() {
+    try {
+      const cwd = await realpath(readOptionalString(this.cwd) ?? process.cwd());
+      const view = normalizeAgentQueryView(readOptionalString(this.view));
+      const outputDir = await resolveAgentSelectionOutputDir({
+        cwd,
+        from: readOptionalString(this.from),
+        latest: readOptionalBoolean(this.latest),
+      });
+      const output = await loadAgentOutput(outputDir);
+      const payload = await buildAgentQueryPayload(output, view, {
+        environments: normalizeRepeatedStringValues(readOptionalStringArray(this.environments)),
+        labelFilters: parseAgentLabelFilters(readOptionalStringArray(this.labels)),
+        statuses: normalizeRepeatedEnumValues(readOptionalStringArray(this.statuses), AGENT_TEST_STATUSES, "--status"),
+        severities: normalizeRepeatedEnumValues(
+          readOptionalStringArray(this.severities),
+          AGENT_FINDING_SEVERITIES,
+          "--severity",
+        ),
+        categories: normalizeRepeatedEnumValues(
+          readOptionalStringArray(this.categories),
+          AGENT_FINDING_CATEGORIES,
+          "--category",
+        ),
+        checks: normalizeRepeatedStringValues(readOptionalStringArray(this.checks)),
+        test: readOptionalString(this.test),
+        limit: normalizeAgentQueryLimit(readOptionalString(this.limit)),
+        includeMarkdown: readOptionalBoolean(this.includeMarkdown),
+      });
+
+      console.log(JSON.stringify(payload, null, 2));
+    } catch (error) {
+      throwCliUsageError(error);
+    }
+  }
+}
+
 export class AgentSelectCommand extends Command {
   static paths = [["agent", "select"]];
 
   static usage = Command.Usage({
     description: "Select tests from an existing agent output and emit a test plan",
     details:
-      "This command resolves a set of tests from a prior agent run and prints or writes a testplan.json payload.",
+      "This command resolves a set of tests from a prior agent run and prints or writes a testplan.json payload. When --output is used, stdout contains the written test plan path, source output directory, preset, and selected test count.",
     examples: [
       ["agent select --from ./out/agent-output", "Print a test plan for the default review-targeted tests"],
       ["agent select --latest --preset failed", "Print a test plan for failed tests from the latest project run"],
@@ -262,225 +525,46 @@ export class AgentSelectCommand extends Command {
   });
 
   async execute() {
-    const cwd = await realpath(readOptionalString(this.cwd) ?? process.cwd());
-    const environments = readOptionalStringArray(this.environments);
-    const labels = readOptionalStringArray(this.labels);
-    const outputDir = await resolveAgentSelectionOutputDir({
-      cwd,
-      from: readOptionalString(this.from),
-      latest: readOptionalBoolean(this.latest),
-    });
-    const selection = await selectAgentTestPlan({
-      outputDir,
-      preset: normalizeAgentRerunPreset(readOptionalString(this.preset)),
-      environments: environments?.length ? environments : undefined,
-      labelFilters: parseAgentLabelFilters(labels),
-    });
-
-    if (!selection.testPlan.tests.length) {
-      console.error(`No tests matched selection in ${selection.outputDir}`);
-      exit(1);
-      return;
-    }
-
-    const serialized = `${JSON.stringify(selection.testPlan, null, 2)}\n`;
-
-    const output = readOptionalString(this.output);
-
-    if (!output) {
-      console.log(serialized.trimEnd());
-      return;
-    }
-
-    const outputPath = resolve(cwd, output);
-
-    await mkdir(dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, serialized, "utf-8");
-    console.log(outputPath);
-  }
-}
-
-export const executeAgentMode = async (params: {
-  configPath?: string;
-  cwd?: string;
-  output?: string;
-  expectations?: string;
-  environment?: string;
-  environmentName?: string;
-  silent?: boolean;
-  rerunFrom?: string;
-  rerunLatest?: boolean;
-  rerunPreset?: string;
-  rerunEnvironments?: string[];
-  rerunLabels?: string[];
-  args?: string[];
-}) => {
-  const {
-    configPath,
-    cwd: configuredCwd,
-    output,
-    expectations,
-    environment,
-    environmentName,
-    silent,
-    rerunFrom,
-    rerunLatest,
-    rerunPreset,
-    rerunEnvironments,
-    rerunLabels,
-    args,
-  } = params;
-
-  if (!args || !args.length) {
-    throw new UsageError("expecting command to be specified after --, e.g. allure agent -- npm run test");
-  }
-
-  const command = args[0];
-  const commandArgs = args.slice(1);
-  const cwd = await realpath(configuredCwd ?? process.cwd());
-  const commandString = `${command} ${commandArgs.join(" ")}`;
-  const hasRerunSource = !!rerunFrom || !!rerunLatest;
-  const hasRerunFilters = !!rerunPreset || !!rerunEnvironments?.length || !!rerunLabels?.length;
-
-  if (!hasRerunSource && hasRerunFilters) {
-    throw new UsageError("Use rerun filters only together with --rerun-from <path> or --rerun-latest");
-  }
-
-  const rerunContext = await createAgentTestPlanContext({
-    cwd,
-    from: rerunFrom,
-    latest: rerunLatest,
-    preset: normalizeAgentRerunPreset(rerunPreset),
-    environments: rerunEnvironments?.length ? rerunEnvironments : undefined,
-    labelFilters: parseAgentLabelFilters(rerunLabels),
-  });
-  const childEnvironmentVariables = {
-    ...createChildAllureCliEnvironment("agent"),
-    ...(rerunContext ? { ALLURE_TESTPLAN_PATH: rerunContext.testPlanPath } : {}),
-  };
-
-  try {
-    if (getActiveAllureCliCommand()) {
-      console.log(commandString);
-
-      const exitCode = await executeNestedAllureCommand({
-        command,
-        commandArgs,
+    try {
+      const cwd = await realpath(readOptionalString(this.cwd) ?? process.cwd());
+      const environments = readOptionalStringArray(this.environments);
+      const labels = readOptionalStringArray(this.labels);
+      const outputDir = await resolveAgentSelectionOutputDir({
         cwd,
-        ...(rerunContext ? { environmentVariables: { ALLURE_TESTPLAN_PATH: rerunContext.testPlanPath } } : {}),
-        silent,
+        from: readOptionalString(this.from),
+        latest: readOptionalBoolean(this.latest),
+      });
+      const selection = await selectAgentTestPlan({
+        outputDir,
+        preset: normalizeAgentRerunPreset(readOptionalString(this.preset)),
+        environments: environments?.length ? environments : undefined,
+        labelFilters: parseAgentLabelFilters(labels),
       });
 
-      exit(exitCode ?? -1);
-      return;
-    }
-
-    const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
-    const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
-    const environmentOptions = {
-      environment,
-      environmentName,
-    };
-
-    normalizeCommandEnvironmentOptions(environmentOptions);
-
-    if (expectationsPath && isPathInside(outputDir, expectationsPath)) {
-      throw new UsageError(
-        `--expectations path ${JSON.stringify(expectationsPath)} must not be inside the agent output directory ${JSON.stringify(outputDir)}`,
-      );
-    }
-
-    const config = await readConfig(cwd, configPath, {
-      output: outputDir,
-      plugins: {
-        agent: {
-          options: {
-            outputDir,
-          },
-        },
-      },
-    });
-    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-
-    try {
-      await rm(outputDir, { recursive: true });
-    } catch (error) {
-      if (!isFileNotFoundError(error)) {
-        console.error("could not clean output directory", error);
+      if (!selection.testPlan.tests.length) {
+        console.error(`No tests matched selection in ${selection.outputDir}`);
+        exit(1);
+        return;
       }
+
+      const serialized = `${JSON.stringify(selection.testPlan, null, 2)}\n`;
+      const output = readOptionalString(this.output);
+
+      if (!output) {
+        console.log(serialized.trimEnd());
+        return;
+      }
+
+      const outputPath = resolve(cwd, output);
+
+      await mkdir(dirname(outputPath), { recursive: true });
+      await writeFile(outputPath, serialized, "utf-8");
+      console.log(`agent testplan: ${outputPath}`);
+      console.log(`agent selection source: ${selection.outputDir}`);
+      console.log(`agent selection preset: ${selection.preset}`);
+      console.log(`agent selection tests: ${selection.selectedTests.length}`);
+    } catch (error) {
+      throwCliUsageError(error);
     }
-
-    const startedAt = new Date().toISOString();
-
-    await persistLatestAgentState({
-      cwd,
-      outputDir,
-      expectationsPath,
-      command: commandString,
-      startedAt,
-      status: "running",
-    });
-
-    console.log(`agent output: ${outputDir}`);
-    if (expectationsPath) {
-      console.log(`agent expectations: ${expectationsPath}`);
-    }
-    console.log(commandString);
-
-    const allureReport = new AllureReport({
-      ...config,
-      output: outputDir,
-      environment: resolvedEnvironment?.id,
-      open: false,
-      port: undefined,
-      qualityGate: undefined,
-      allureService: undefined,
-      realTime: false,
-      plugins: config.plugins,
-    });
-    const knownIssues = await allureReport.store.allKnownIssues();
-
-    const { globalExitCode } = await withProcessEnv(
-      {
-        ALLURE_AGENT_OUTPUT: outputDir,
-        ALLURE_AGENT_EXPECTATIONS: expectationsPath,
-        ALLURE_AGENT_COMMAND: commandString,
-        ALLURE_AGENT_PROJECT_ROOT: cwd,
-        ALLURE_AGENT_NAME: undefined,
-        ALLURE_AGENT_LOOP_ID: undefined,
-        ALLURE_AGENT_TASK_ID: undefined,
-        ALLURE_AGENT_CONVERSATION_ID: undefined,
-      },
-      async () =>
-        await executeAllureRun({
-          allureReport,
-          knownIssues,
-          cwd,
-          command,
-          commandArgs,
-          environmentVariables: childEnvironmentVariables,
-          environment: resolvedEnvironment?.id,
-          withQualityGate: false,
-          logs: "pipe",
-          silent,
-          ignoreLogs: false,
-          logProcessExit: false,
-        }),
-    );
-
-    await persistLatestAgentState({
-      cwd,
-      outputDir,
-      expectationsPath,
-      command: commandString,
-      startedAt,
-      finishedAt: new Date().toISOString(),
-      status: "finished",
-      exitCode: globalExitCode.actual ?? globalExitCode.original,
-    });
-
-    exit(globalExitCode.actual ?? globalExitCode.original);
-  } finally {
-    await rerunContext?.cleanup();
   }
-};
+}

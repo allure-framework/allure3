@@ -6,12 +6,13 @@ import {
   parseAgentLabelFilters,
   resolveAgentSelectionOutputDir,
   selectAgentTestPlan,
-} from "../../src/utils/agent-select.js";
+} from "../src/selection.js";
+import { attachJsonEvidence } from "./evidence.js";
 
-vi.mock("../../src/utils/agent-state.js", () => ({
+vi.mock("../src/state.js", () => ({
   readLatestAgentState: vi.fn(),
 }));
-vi.mock("@allurereport/plugin-agent", () => ({
+vi.mock("../src/harness.js", () => ({
   loadAgentOutput: vi.fn(),
   planAgentEnrichmentReview: vi.fn(),
 }));
@@ -26,7 +27,7 @@ beforeEach(async () => {
 
 describe("agent-select utils", () => {
   it("should select review-targeted tests and apply environment and label filters", async () => {
-    const { loadAgentOutput, planAgentEnrichmentReview } = await import("@allurereport/plugin-agent");
+    const { loadAgentOutput, planAgentEnrichmentReview } = await import("../src/harness.js");
 
     (loadAgentOutput as Mock).mockResolvedValueOnce({
       outputDir: "/tmp/agent-output",
@@ -65,6 +66,7 @@ describe("agent-select utils", () => {
       labelFilters: [{ name: "feature", value: "checkout" }],
     });
 
+    await attachJsonEvidence("selected agent test plan", selection);
     expect(selection.outputDir).toBe("/tmp/agent-output");
     expect(selection.preset).toBe("review");
     expect(selection.selectedTests).toHaveLength(1);
@@ -76,17 +78,24 @@ describe("agent-select utils", () => {
   });
 
   it("should resolve latest output directories and parse supported filters", async () => {
-    const { readLatestAgentState } = await import("../../src/utils/agent-state.js");
+    const { readLatestAgentState } = await import("../src/state.js");
 
     (readLatestAgentState as Mock).mockResolvedValueOnce({
       outputDir: "/tmp/latest-agent-output",
     });
 
-    await expect(resolveAgentSelectionOutputDir({ cwd: "/cwd", latest: true })).resolves.toBe(
-      "/tmp/latest-agent-output",
-    );
-    expect(normalizeAgentRerunPreset("failed")).toBe("failed");
-    expect(parseAgentLabelFilters(["feature=checkout", "priority=high"])).toEqual([
+    const resolvedOutputDir = await resolveAgentSelectionOutputDir({ cwd: "/cwd", latest: true });
+    const preset = normalizeAgentRerunPreset("failed");
+    const labelFilters = parseAgentLabelFilters(["feature=checkout", "priority=high"]);
+
+    await attachJsonEvidence("latest selection resolution", {
+      resolvedOutputDir,
+      preset,
+      labelFilters,
+    });
+    expect(resolvedOutputDir).toBe("/tmp/latest-agent-output");
+    expect(preset).toBe("failed");
+    expect(labelFilters).toEqual([
       { name: "feature", value: "checkout" },
       { name: "priority", value: "high" },
     ]);

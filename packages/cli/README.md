@@ -74,7 +74,21 @@ For example:
 npx allure agent -- npm test
 ```
 
-`allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, can load an expectations file with `--expectations`, and ignores configured presentation or export plugins such as Awesome or TestOps unless you explicitly fall back to the lower-level `ALLURE_AGENT_*` plus `allure run` flow.
+`allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, accepts compact inline expectations such as `--goal`, `--expect-tests`, `--expect-test`, `--expect-label`, and `--expect-step-containing`, and can still load an expectations file with `--expectations` when needed. Configured presentation or export plugins such as Awesome or TestOps are ignored for that run.
+
+Agents and setup tools can inspect the local structured capability contract without scraping help text:
+
+```bash
+npx allure agent capabilities --json
+```
+
+After a run, agents can query the output directory without manually reading every manifest:
+
+```bash
+npx allure agent query --latest summary
+npx allure agent query --latest tests --status failed
+npx allure agent query --from ./agent-output findings --severity high
+```
 
 ### Generating Reports Manually
 
@@ -118,6 +132,7 @@ The Allure CLI includes several helpful global options. Use `--help` to explore 
 
 ```bash
 npx allure run --help
+npx allure agent capabilities --json
 npx allure agent --help
 npx allure watch --help
 ```

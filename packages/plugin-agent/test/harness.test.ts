@@ -1,8 +1,8 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { AttachmentLink, TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, DefaultTestStepResult, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { story } from "allure-js-commons";
@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AgentPlugin, {
   type AgentFindingManifestLine,
+  type AgentExpectationsInput,
   type AgentOutputBundle,
   AGENT_ENRICHMENT_ACTIONS,
   buildAgentExpectations,
@@ -17,11 +18,11 @@ import AgentPlugin, {
   planAgentEnrichmentReview,
   reviewAgentOutput,
 } from "../src/index.js";
+import { attachJsonEvidence } from "./evidence.js";
 
 beforeEach(async () => {
   await story("harness");
 });
-const AGENT_ENV_VARS = ["ALLURE_AGENT_EXPECTATIONS", "ALLURE_AGENT_COMMAND", "ALLURE_AGENT_PROJECT_ROOT"] as const;
 
 const createContext = (reportName: string = "Harness Report"): PluginContext =>
   ({
@@ -64,6 +65,16 @@ const createAttachment = (overrides: Partial<AttachmentLink> = {}): AttachmentLi
     ...overrides,
   }) as AttachmentLink;
 
+const createStep = (overrides: Partial<DefaultTestStepResult> = {}): DefaultTestStepResult => ({
+  name: "assert expected behavior",
+  parameters: [],
+  status: "passed",
+  steps: [],
+  type: "step",
+  message: "checked",
+  ...overrides,
+});
+
 const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
   ({
     allTestResults: vi.fn().mockResolvedValue([]),
@@ -79,6 +90,28 @@ const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
     attachmentContentById: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }) as AllureStore;
+
+const readJson = async <T>(path: string): Promise<T> => {
+  const value = JSON.parse(await readFile(path, "utf-8")) as T;
+
+  await attachJsonEvidence(`parsed ${path}`, value);
+
+  return value;
+};
+
+const readJsonl = async <T>(path: string): Promise<T[]> => {
+  const content = await readFile(path, "utf-8");
+
+  const values = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as T);
+
+  await attachJsonEvidence(`parsed ${path}`, values);
+
+  return values;
+};
 
 const createFinding = (overrides: Partial<AgentFindingManifestLine> = {}): AgentFindingManifestLine => ({
   finding_id: "finding-1",
@@ -158,7 +191,6 @@ const createOutputBundle = (overrides: Partial<AgentOutputBundle> = {}): AgentOu
       tests_manifest: "manifest/tests.jsonl",
       findings_manifest: "manifest/findings.jsonl",
       expected_manifest: "manifest/expected.json",
-      project_guide: null,
       process_logs: {
         stdout: "artifacts/global/stdout.txt",
         stderr: null,
@@ -204,6 +236,30 @@ const createOutputBundle = (overrides: Partial<AgentOutputBundle> = {}): AgentOu
       },
     },
     expectations_present: true,
+    expectations: {
+      goal: "Verify harness fixture",
+    },
+    expectation_result: {
+      schema_version: "allure-agent-expectation-result/v1",
+      status: "matched",
+      impact: "accept",
+      source: {
+        kind: "inline",
+        path: null,
+      },
+      recognized_control_count: 1,
+      unsupported_controls: [],
+      degraded_controls: [],
+      summary: {
+        expected_tests: 0,
+        observed_tests: 1,
+        missing_expected: 0,
+        forbidden_observed: 0,
+        unexpected_observed: 0,
+        evidence_mismatches: 0,
+      },
+      finding_ids: [],
+    },
     check_summary: {
       total: 0,
       countsBySeverity: {
@@ -267,17 +323,82 @@ describe("agent enrichment harness", () => {
 
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), "plugin-agent-harness-"));
-    AGENT_ENV_VARS.forEach((name) => {
-      delete process.env[name];
-    });
   });
 
   afterEach(async () => {
-    AGENT_ENV_VARS.forEach((name) => {
-      delete process.env[name];
-    });
     await rm(tempDir, { recursive: true, force: true });
   });
+
+  type ExpectationHarnessRun = {
+    expectations: AgentExpectationsInput;
+    tests?: TestResult[];
+    environmentByTestId?: Record<string, string>;
+    attachmentsByTestId?: Record<string, AttachmentLink[]>;
+    contentByAttachmentId?: Record<string, BufferResultFile>;
+  };
+
+  const runExpectationHarness = async (name: string, params: ExpectationHarnessRun) => {
+    const outputDir = join(tempDir, name);
+    const tests = params.tests ?? [createTestResult()];
+    const stats = tests.reduce<Record<string, number>>(
+      (acc, test) => {
+        acc.total += 1;
+        acc[test.status] = (acc[test.status] ?? 0) + 1;
+
+        return acc;
+      },
+      {
+        total: 0,
+      },
+    );
+
+    await new AgentPlugin({
+      outputDir,
+      expectations: params.expectations,
+      command: "yarn test expectation-harness",
+    }).done(
+      createContext(),
+      createStore({
+        allTestResults: vi.fn().mockResolvedValue(tests),
+        testsStatistic: vi.fn().mockResolvedValue(stats),
+        environmentIdByTrId: vi.fn().mockImplementation(async (id: string) => {
+          return params.environmentByTestId?.[id] ?? "default";
+        }),
+        attachmentsByTrId: vi.fn().mockImplementation(async (id: string) => {
+          return params.attachmentsByTestId?.[id] ?? [];
+        }),
+        attachmentContentById: vi.fn().mockImplementation(async (id: string) => {
+          return params.contentByAttachmentId?.[id];
+        }),
+      }),
+    );
+
+    return {
+      outputDir,
+      run: await readJson<AgentOutputBundle["run"]>(join(outputDir, "manifest", "run.json")),
+      findings: await readJsonl<AgentFindingManifestLine>(join(outputDir, "manifest", "findings.jsonl")),
+    };
+  };
+
+  const expectNoExpectationFinding = (findings: AgentFindingManifestLine[], checkName: string) => {
+    expect(findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          check_name: checkName,
+        }),
+      ]),
+    );
+  };
+
+  const expectExpectationFinding = (findings: AgentFindingManifestLine[], checkName: string) => {
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          check_name: checkName,
+        }),
+      ]),
+    );
+  };
 
   it("should build expectations from a harness request", () => {
     expect(
@@ -321,22 +442,311 @@ describe("agent enrichment harness", () => {
     });
   });
 
-  it("should map enrichment findings to the intended remediation categories", () => {
-    expect(AGENT_ENRICHMENT_ACTIONS["failed-without-useful-steps"].category).toBe("add-meaningful-steps");
-    expect(mapFindingToEnrichmentAction("nontrivial-run-with-empty-trace").category).toBe("add-meaningful-steps");
-    expect(mapFindingToEnrichmentAction("passed-without-observable-evidence").category).toBe("add-meaningful-steps");
-    expect(mapFindingToEnrichmentAction("failed-without-attachments").category).toBe("add-test-attachments");
-    expect(mapFindingToEnrichmentAction("global-only-artifacts").category).toBe("add-test-attachments");
-    expect(mapFindingToEnrichmentAction("runner-failures-outside-logical-results").category).toBe("bootstrap-allure");
-    expect(mapFindingToEnrichmentAction("unmodeled-visible-results").category).toBe("review-manually");
-    expect(mapFindingToEnrichmentAction("metadata-mismatch").category).toBe("repair-test-metadata");
-    expect(mapFindingToEnrichmentAction("retries-without-new-evidence").category).toBe("add-retry-diagnostics");
-    expect(mapFindingToEnrichmentAction("noop-dominated-steps").category).toBe("collapse-low-signal-trace");
-    expect(mapFindingToEnrichmentAction("step-spam").category).toBe("collapse-low-signal-trace");
-    expect(mapFindingToEnrichmentAction("unexpected-test").category).toBe("narrow-test-scope");
+  it.each([
+    {
+      name: "expected test count",
+      checkName: "expected-count-mismatch",
+      matched: {
+        expectations: {
+          expected: {
+            test_count: 1,
+          },
+        },
+      },
+      unmet: {
+        expectations: {
+          expected: {
+            test_count: 2,
+          },
+        },
+      },
+    },
+    {
+      name: "expected test full name",
+      checkName: "expected-test-missing",
+      matched: {
+        expectations: {
+          expected: {
+            full_names: ["suite should pass"],
+          },
+        },
+      },
+      unmet: {
+        expectations: {
+          expected: {
+            full_names: ["suite should be visible"],
+          },
+        },
+      },
+    },
+    {
+      name: "expected test full-name prefix",
+      checkName: "expected-prefix-missing",
+      matched: {
+        expectations: {
+          expected: {
+            full_name_prefixes: ["suite should"],
+          },
+        },
+      },
+      unmet: {
+        expectations: {
+          expected: {
+            full_name_prefixes: ["api should"],
+          },
+        },
+      },
+    },
+    {
+      name: "expected environment",
+      checkName: "expected-environment-missing",
+      matched: {
+        expectations: {
+          expected: {
+            environments: ["default"],
+          },
+        },
+      },
+      unmet: {
+        expectations: {
+          expected: {
+            environments: ["web"],
+          },
+        },
+      },
+    },
+    {
+      name: "expected label value",
+      checkName: "expected-label-missing",
+      matched: {
+        expectations: {
+          expected: {
+            label_values: {
+              module: "cli",
+            },
+          },
+        },
+        tests: [
+          createTestResult({
+            labels: [{ name: "module", value: "cli" }],
+          }),
+        ],
+      },
+      unmet: {
+        expectations: {
+          expected: {
+            label_values: {
+              module: "cli",
+            },
+          },
+        },
+      },
+    },
+    {
+      name: "forbidden label value",
+      checkName: "forbidden-label-observed",
+      matched: {
+        expectations: {
+          forbidden: {
+            label_values: {
+              layer: "e2e",
+            },
+          },
+        },
+      },
+      unmet: {
+        expectations: {
+          forbidden: {
+            label_values: {
+              layer: "e2e",
+            },
+          },
+        },
+        tests: [
+          createTestResult({
+            labels: [{ name: "layer", value: "e2e" }],
+          }),
+        ],
+      },
+    },
+    {
+      name: "expected step text",
+      checkName: "expected-step-containing-missing",
+      matched: {
+        expectations: {
+          evidence: {
+            step_name_contains: ["assert expected behavior"],
+          },
+        },
+        tests: [
+          createTestResult({
+            steps: [createStep()],
+          }),
+        ],
+      },
+      unmet: {
+        expectations: {
+          evidence: {
+            step_name_contains: ["assert expected behavior"],
+          },
+        },
+      },
+    },
+    {
+      name: "expected meaningful step count",
+      checkName: "insufficient-expected-steps",
+      matched: {
+        expectations: {
+          evidence: {
+            min_steps: 1,
+          },
+        },
+        tests: [
+          createTestResult({
+            steps: [createStep()],
+          }),
+        ],
+      },
+      unmet: {
+        expectations: {
+          evidence: {
+            min_steps: 1,
+          },
+        },
+      },
+    },
+    {
+      name: "expected attachment count",
+      checkName: "insufficient-expected-attachments",
+      matched: {
+        expectations: {
+          evidence: {
+            min_attachments: 1,
+          },
+        },
+        attachmentsByTestId: {
+          "tr-1": [createAttachment()],
+        },
+        contentByAttachmentId: {
+          "attachment-1": new BufferResultFile(Buffer.from("artifact", "utf-8"), "artifact.txt"),
+        },
+      },
+      unmet: {
+        expectations: {
+          evidence: {
+            min_attachments: 1,
+          },
+        },
+      },
+    },
+    {
+      name: "expected attachment name",
+      checkName: "missing-expected-attachment",
+      matched: {
+        expectations: {
+          evidence: {
+            attachments: [{ name: "artifact.txt" }],
+          },
+        },
+        attachmentsByTestId: {
+          "tr-1": [createAttachment()],
+        },
+        contentByAttachmentId: {
+          "attachment-1": new BufferResultFile(Buffer.from("artifact", "utf-8"), "artifact.txt"),
+        },
+      },
+      unmet: {
+        expectations: {
+          evidence: {
+            attachments: [{ name: "missing.txt" }],
+          },
+        },
+        attachmentsByTestId: {
+          "tr-1": [createAttachment()],
+        },
+        contentByAttachmentId: {
+          "attachment-1": new BufferResultFile(Buffer.from("artifact", "utf-8"), "artifact.txt"),
+        },
+      },
+    },
+    {
+      name: "expected attachment content type",
+      checkName: "missing-expected-attachment",
+      matched: {
+        expectations: {
+          evidence: {
+            attachments: [{ content_type: "text/plain" }],
+          },
+        },
+        attachmentsByTestId: {
+          "tr-1": [createAttachment()],
+        },
+        contentByAttachmentId: {
+          "attachment-1": new BufferResultFile(Buffer.from("artifact", "utf-8"), "artifact.txt"),
+        },
+      },
+      unmet: {
+        expectations: {
+          evidence: {
+            attachments: [{ content_type: "application/json" }],
+          },
+        },
+        attachmentsByTestId: {
+          "tr-1": [createAttachment()],
+        },
+        contentByAttachmentId: {
+          "attachment-1": new BufferResultFile(Buffer.from("artifact", "utf-8"), "artifact.txt"),
+        },
+      },
+    },
+  ] satisfies Array<{
+    name: string;
+    checkName: string;
+    matched: ExpectationHarnessRun;
+    unmet: ExpectationHarnessRun;
+  }>)("should report $checkName only when $name is unmet", async ({ name, checkName, matched, unmet }) => {
+    const matchedOutput = await runExpectationHarness(`${name.replace(/[^a-z0-9]+/gi, "-")}-matched`, matched);
+    const unmetOutput = await runExpectationHarness(`${name.replace(/[^a-z0-9]+/gi, "-")}-unmet`, unmet);
+
+    expectNoExpectationFinding(matchedOutput.findings, checkName);
+    expectExpectationFinding(unmetOutput.findings, checkName);
   });
 
-  it("should reject high-confidence noop-style evidence", () => {
+  it("should map enrichment findings to the intended remediation categories", async () => {
+    const mappedActions = {
+      "failed-without-useful-steps": AGENT_ENRICHMENT_ACTIONS["failed-without-useful-steps"].category,
+      "nontrivial-run-with-empty-trace": mapFindingToEnrichmentAction("nontrivial-run-with-empty-trace").category,
+      "passed-without-observable-evidence": mapFindingToEnrichmentAction("passed-without-observable-evidence").category,
+      "failed-without-attachments": mapFindingToEnrichmentAction("failed-without-attachments").category,
+      "global-only-artifacts": mapFindingToEnrichmentAction("global-only-artifacts").category,
+      "runner-failures-outside-logical-results": mapFindingToEnrichmentAction("runner-failures-outside-logical-results")
+        .category,
+      "unmodeled-visible-results": mapFindingToEnrichmentAction("unmodeled-visible-results").category,
+      "metadata-mismatch": mapFindingToEnrichmentAction("metadata-mismatch").category,
+      "retries-without-new-evidence": mapFindingToEnrichmentAction("retries-without-new-evidence").category,
+      "noop-dominated-steps": mapFindingToEnrichmentAction("noop-dominated-steps").category,
+      "step-spam": mapFindingToEnrichmentAction("step-spam").category,
+      "unexpected-test": mapFindingToEnrichmentAction("unexpected-test").category,
+    };
+
+    await attachJsonEvidence("enrichment action category map", mappedActions);
+    expect(mappedActions).toEqual({
+      "failed-without-useful-steps": "add-meaningful-steps",
+      "nontrivial-run-with-empty-trace": "add-meaningful-steps",
+      "passed-without-observable-evidence": "add-meaningful-steps",
+      "failed-without-attachments": "add-test-attachments",
+      "global-only-artifacts": "add-test-attachments",
+      "runner-failures-outside-logical-results": "bootstrap-allure",
+      "unmodeled-visible-results": "review-manually",
+      "metadata-mismatch": "repair-test-metadata",
+      "retries-without-new-evidence": "add-retry-diagnostics",
+      "noop-dominated-steps": "collapse-low-signal-trace",
+      "step-spam": "collapse-low-signal-trace",
+      "unexpected-test": "narrow-test-scope",
+    });
+  });
+
+  it("should reject high-confidence noop-style evidence", async () => {
     const review = planAgentEnrichmentReview(
       createOutputBundle({
         findings: [
@@ -352,6 +762,7 @@ describe("agent enrichment harness", () => {
       }),
     );
 
+    await attachJsonEvidence("noop-style evidence review decision", review);
     expect(review.status).toBe("reject");
     expect(review.rejecting).toEqual(
       expect.arrayContaining([
@@ -403,10 +814,7 @@ describe("agent enrichment harness", () => {
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-    process.env.ALLURE_AGENT_COMMAND = "yarn test clean-run";
-
-    await new AgentPlugin({ outputDir }).done(
+    await new AgentPlugin({ outputDir, expectationsPath, command: "yarn test clean-run" }).done(
       createContext(),
       createStore({
         allTestResults: vi.fn().mockResolvedValue([testResult]),
@@ -424,6 +832,7 @@ describe("agent enrichment harness", () => {
 
     const review = await reviewAgentOutput(outputDir);
 
+    await attachJsonEvidence("clean scoped run review decision", review);
     expect(review.status).toBe("accept");
     expect(review.plan).toEqual([]);
     expect(review.rerun.useExistingExpectations).toBe(true);
@@ -479,9 +888,7 @@ describe("agent enrichment harness", () => {
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-
-    await new AgentPlugin({ outputDir }).done(
+    await new AgentPlugin({ outputDir, expectationsPath }).done(
       createContext(),
       createStore({
         allTestResults: vi.fn().mockResolvedValue([matching, forbidden]),
@@ -496,7 +903,7 @@ describe("agent enrichment harness", () => {
     expect(review.rejecting).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          checkName: "forbidden-selector-match",
+          checkName: "forbidden-label-observed",
           category: "narrow-test-scope",
         }),
       ]),
@@ -539,9 +946,7 @@ describe("agent enrichment harness", () => {
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-
-    await new AgentPlugin({ outputDir }).done(
+    await new AgentPlugin({ outputDir, expectationsPath }).done(
       createContext(),
       createStore({
         allTestResults: vi.fn().mockResolvedValue([testResult]),
@@ -551,6 +956,7 @@ describe("agent enrichment harness", () => {
 
     const review = await reviewAgentOutput(outputDir);
 
+    await attachJsonEvidence("low-signal failure review decision", review);
     expect(review.status).toBe("iterate");
     expect(review.iterate).toEqual(
       expect.arrayContaining([
@@ -644,9 +1050,7 @@ describe("agent enrichment harness", () => {
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-
-    await new AgentPlugin({ outputDir }).done(
+    await new AgentPlugin({ outputDir, expectationsPath }).done(
       createContext(),
       createStore({
         allTestResults: vi.fn().mockResolvedValue([current]),

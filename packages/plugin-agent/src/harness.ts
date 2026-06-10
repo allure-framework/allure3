@@ -10,6 +10,15 @@ export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidenc
 export type AgentScopeMatch = "match" | "unexpected" | "forbidden" | "unknown";
 export type AgentAcceptanceStatus = "accept" | "iterate" | "reject";
 export type AgentAcceptanceImpact = "advisory" | "iterate" | "reject";
+export type AgentExpectationResultStatus =
+  | "matched"
+  | "failed"
+  | "partial"
+  | "degraded"
+  | "unsupported"
+  | "unavailable"
+  | "not_requested";
+export type AgentExpectationResultImpact = "accept" | "reject" | "iterate" | "advisory";
 export type AgentEnrichmentActionCategory = EnrichmentActionCategory;
 
 export type AgentExpectationSelector = {
@@ -17,6 +26,18 @@ export type AgentExpectationSelector = {
   full_names?: string[];
   full_name_prefixes?: string[];
   label_values?: Record<string, string | string[]>;
+  test_count?: number;
+};
+
+export type AgentEvidenceExpectations = {
+  required?: boolean;
+  min_steps?: number;
+  min_attachments?: number;
+  step_name_contains?: string[];
+  attachments?: Array<{
+    name?: string;
+    content_type?: string;
+  }>;
 };
 
 export type AgentExpectations = {
@@ -24,6 +45,7 @@ export type AgentExpectations = {
   task_id?: string;
   expected?: AgentExpectationSelector;
   forbidden?: AgentExpectationSelector;
+  evidence?: AgentEvidenceExpectations;
   notes?: string[];
 };
 
@@ -107,7 +129,6 @@ export type AgentRunManifest = {
     findings_manifest: string;
     test_events_manifest?: string;
     expected_manifest: string | null;
-    project_guide: string | null;
     process_logs: {
       stdout: string | null;
       stderr: string | null;
@@ -158,6 +179,28 @@ export type AgentRunManifest = {
     };
   };
   expectations_present: boolean;
+  expectations: AgentExpectations | null;
+  expectation_result: {
+    schema_version: "allure-agent-expectation-result/v1";
+    status: AgentExpectationResultStatus;
+    impact: AgentExpectationResultImpact;
+    source: {
+      kind: "inline" | "file" | "none";
+      path: string | null;
+    };
+    recognized_control_count: number;
+    unsupported_controls: string[];
+    degraded_controls: string[];
+    summary: {
+      expected_tests: number;
+      observed_tests: number;
+      missing_expected: number;
+      forbidden_observed: number;
+      unexpected_observed: number;
+      evidence_mismatches: number;
+    };
+    finding_ids: string[];
+  };
   check_summary: {
     total: number;
     countsBySeverity: Record<AgentFindingSeverity, number>;
@@ -195,17 +238,48 @@ export type AgentTestManifestLine = {
 };
 
 export type AgentFindingManifestLine = {
+  schema_version?: "allure-agent-finding/v2";
+  check_id?: string;
+  instance_id?: string;
   finding_id: string;
-  subject: string;
+  subject:
+    | string
+    | {
+        type: "run" | "test" | "environment" | "attachment" | "global";
+        id?: string;
+        path?: string;
+        full_name?: string;
+        environment?: string;
+      };
+  subject_ref?: string;
+  subject_type?: "run" | "test";
   severity: AgentFindingSeverity;
+  impact?: AgentAcceptanceImpact;
   category: AgentFindingCategory;
   check_name: string;
+  title?: string;
   message: string;
   explanation: string;
   evidence_paths: string[];
   remediation_hint: string;
   expected_reference?: string;
   confidence?: number;
+  expected?: Record<string, unknown>;
+  observed?: Record<string, unknown>;
+  evidence?: {
+    paths?: string[];
+  };
+  action?: string;
+  legacy?: {
+    finding_id: string;
+    subject: string;
+    subject_type?: "run" | "test";
+    check_name: string;
+    explanation?: string;
+    evidence_paths?: string[];
+    remediation_hint: string;
+    expected_reference?: string;
+  };
 };
 
 export type AgentOutputBundle = {
@@ -284,21 +358,28 @@ export const AGENT_ENRICHMENT_ACTIONS: Record<string, AgentEnrichmentAction> = O
 ) as Record<string, AgentEnrichmentAction>;
 
 export const SCOPE_REJECTING_CHECKS = [
-  "missing-expected-test",
-  "missing-expected-prefix",
-  "missing-expected-environment",
+  "expected-test-missing",
+  "expected-count-mismatch",
+  "expected-prefix-missing",
+  "expected-label-missing",
+  "expected-environment-missing",
+  "no-tests-observed",
   "unexpected-environment",
-  "forbidden-selector-match",
+  "forbidden-label-observed",
   "unexpected-test",
 ] as const;
 
 export const ITERATION_REQUIRED_CHECKS = [
-  "invalid-expectations-file",
-  "no-visible-tests",
+  "expectations-invalid",
+  "expectations-empty",
+  "expectations-unsupported-control",
   "runner-failures-outside-logical-results",
-  "missing-expected-label-selector",
   "metadata-mismatch",
   "history-id-collision",
+  "expected-step-containing-missing",
+  "insufficient-expected-steps",
+  "insufficient-expected-attachments",
+  "missing-expected-attachment",
   "failed-without-useful-steps",
   "failed-without-attachments",
   "nontrivial-run-with-empty-trace",
@@ -321,6 +402,28 @@ const IMPACT_ORDER: Record<AgentAcceptanceImpact, number> = {
 };
 
 const uniqueValues = (values: string[]) => Array.from(new Set(values));
+
+const checkNameForFinding = (finding: AgentFindingManifestLine) => finding.check_id ?? finding.check_name;
+
+const subjectRefForFinding = (finding: AgentFindingManifestLine) => {
+  if (finding.subject_ref) {
+    return finding.subject_ref;
+  }
+
+  if (typeof finding.subject === "string") {
+    return finding.subject;
+  }
+
+  return finding.subject.path ?? finding.subject.id ?? finding.subject.type;
+};
+
+const subjectTypeForFinding = (finding: AgentFindingManifestLine): "run" | "test" =>
+  finding.subject_type ??
+  (typeof finding.subject === "object" && finding.subject.type === "test"
+    ? "test"
+    : subjectRefForFinding(finding) === "run"
+      ? "run"
+      : "test");
 
 const normalizeStringArray = (value?: string | string[]) => {
   if (typeof value === "string") {
@@ -426,18 +529,24 @@ const impactForFinding = (
   finding: AgentFindingManifestLine,
   antiDummyConfidenceThreshold: number,
 ): AgentAcceptanceImpact => {
-  if (SCOPE_REJECTING_CHECKS.includes(finding.check_name as (typeof SCOPE_REJECTING_CHECKS)[number])) {
+  if (finding.impact === "reject" || finding.impact === "iterate" || finding.impact === "advisory") {
+    return finding.impact;
+  }
+
+  const checkName = checkNameForFinding(finding);
+
+  if (SCOPE_REJECTING_CHECKS.includes(checkName as (typeof SCOPE_REJECTING_CHECKS)[number])) {
     return "reject";
   }
 
   if (
-    ANTI_DUMMY_CHECKS.includes(finding.check_name as (typeof ANTI_DUMMY_CHECKS)[number]) &&
+    ANTI_DUMMY_CHECKS.includes(checkName as (typeof ANTI_DUMMY_CHECKS)[number]) &&
     (finding.confidence ?? 0) >= antiDummyConfidenceThreshold
   ) {
     return "reject";
   }
 
-  if (ITERATION_REQUIRED_CHECKS.includes(finding.check_name as (typeof ITERATION_REQUIRED_CHECKS)[number])) {
+  if (ITERATION_REQUIRED_CHECKS.includes(checkName as (typeof ITERATION_REQUIRED_CHECKS)[number])) {
     return "iterate";
   }
 
@@ -463,7 +572,7 @@ export const buildAgentExpectations = (input: AgentHarnessRequest): AgentExpecta
 };
 
 export const mapFindingToEnrichmentAction = (finding: AgentFindingManifestLine | string): AgentEnrichmentAction => {
-  const checkName = typeof finding === "string" ? finding : finding.check_name;
+  const checkName = typeof finding === "string" ? finding : checkNameForFinding(finding);
   const mapped = AGENT_ENRICHMENT_ACTIONS[checkName];
 
   return mapped ?? { ...FALLBACK_ACTION, checkName };
@@ -498,17 +607,18 @@ export const planAgentEnrichmentReview = (
   const plan = sortPlan(
     output.findings.map((finding) => {
       const action = mapFindingToEnrichmentAction(finding);
-      const matchedTest = testsByPath.get(finding.subject);
+      const subject = subjectRefForFinding(finding);
+      const matchedTest = testsByPath.get(subject);
 
       return {
         ...action,
-        subject: finding.subject,
-        subjectType: finding.subject === "run" ? "run" : "test",
+        subject,
+        subjectType: subjectTypeForFinding(finding),
         severity: finding.severity,
         message: finding.message,
         explanation: finding.explanation,
-        remediationHint: finding.remediation_hint,
-        evidencePaths: finding.evidence_paths,
+        remediationHint: finding.action ?? finding.remediation_hint,
+        evidencePaths: finding.evidence?.paths ?? finding.evidence_paths,
         expectedReference: finding.expected_reference,
         confidence: finding.confidence,
         acceptanceImpact: impactForFinding(finding, antiDummyConfidenceThreshold),
@@ -525,7 +635,7 @@ export const planAgentEnrichmentReview = (
 
   if (!output.run.expectations_present) {
     notes.push(
-      "Generate ALLURE_AGENT_EXPECTATIONS before the next enrichment iteration so scope checks are comparable.",
+      "Declare inline expectations or provide an expectations file before the next enrichment iteration so scope checks are comparable.",
     );
   }
 

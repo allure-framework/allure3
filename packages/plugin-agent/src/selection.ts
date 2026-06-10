@@ -3,15 +3,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import type { TestLabel, TestPlan, TestPlanTest } from "@allurereport/core-api";
-import {
-  loadAgentOutput,
-  planAgentEnrichmentReview,
-  type AgentOutputBundle,
-  type AgentTestManifestLine,
-} from "@allurereport/plugin-agent";
-import { UsageError } from "clipanion";
 
-import { readLatestAgentState } from "./agent-state.js";
+import { AgentUsageError } from "./errors.js";
+import { loadAgentOutput, planAgentEnrichmentReview, type AgentOutputBundle, type AgentTestManifestLine } from "./harness.js";
+import { readLatestAgentState } from "./state.js";
 
 export type AgentRerunPreset = "review" | "failed" | "unsuccessful" | "all";
 
@@ -35,7 +30,7 @@ export type AgentTestPlanContext = {
   cleanup: () => Promise<void>;
 };
 
-const AGENT_RERUN_PRESETS: AgentRerunPreset[] = ["review", "failed", "unsuccessful", "all"];
+export const AGENT_RERUN_PRESETS: AgentRerunPreset[] = ["review", "failed", "unsuccessful", "all"];
 
 const ALLURE_ID_LABEL = "ALLURE_ID";
 
@@ -108,7 +103,7 @@ export const normalizeAgentRerunPreset = (value?: string): AgentRerunPreset => {
   const normalized = value.trim().toLowerCase();
 
   if (!isAgentRerunPreset(normalized)) {
-    throw new UsageError(
+    throw new AgentUsageError(
       `Invalid rerun preset ${JSON.stringify(value)}. Expected one of: ${AGENT_RERUN_PRESETS.join(", ")}`,
     );
   }
@@ -121,7 +116,7 @@ export const parseAgentLabelFilters = (values?: string[]): AgentLabelFilter[] =>
     const separatorIndex = value.indexOf("=");
 
     if (separatorIndex <= 0 || separatorIndex === value.length - 1) {
-      throw new UsageError(
+      throw new AgentUsageError(
         `Invalid label filter ${JSON.stringify(value)}. Expected the form name=value, for example feature=checkout`,
       );
     }
@@ -130,7 +125,7 @@ export const parseAgentLabelFilters = (values?: string[]): AgentLabelFilter[] =>
     const filterValue = value.slice(separatorIndex + 1).trim();
 
     if (!name || !filterValue) {
-      throw new UsageError(
+      throw new AgentUsageError(
         `Invalid label filter ${JSON.stringify(value)}. Expected the form name=value, for example feature=checkout`,
       );
     }
@@ -149,11 +144,11 @@ export const resolveAgentSelectionOutputDir = async (params: {
   const { cwd, from, latest } = params;
 
   if (from && latest) {
-    throw new UsageError("Use either --from or --latest, not both");
+    throw new AgentUsageError("Use either --from or --latest, not both");
   }
 
   if (!from && !latest) {
-    throw new UsageError("Expected either --from <path> or --latest");
+    throw new AgentUsageError("Expected either --from <path> or --latest");
   }
 
   if (from) {
@@ -163,7 +158,7 @@ export const resolveAgentSelectionOutputDir = async (params: {
   const latestState = await readLatestAgentState(cwd);
 
   if (!latestState) {
-    throw new UsageError(`No latest agent output found for ${cwd}`);
+    throw new AgentUsageError(`No latest agent output found for ${cwd}`);
   }
 
   return latestState.outputDir;
@@ -216,7 +211,7 @@ export const createAgentTestPlanContext = async (params: {
   });
 
   if (!selection.testPlan.tests.length) {
-    throw new UsageError(
+    throw new AgentUsageError(
       `No tests matched rerun selection in ${selection.outputDir}. Adjust the preset or filters before rerunning.`,
     );
   }

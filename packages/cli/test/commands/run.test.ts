@@ -1,12 +1,9 @@
-import { resolve } from "node:path";
-
 import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { executeAgentMode } from "../../src/commands/agent.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
@@ -90,10 +87,6 @@ vi.mock("@allurereport/static-server", async (importOriginal) => ({
   ...(await importOriginal()),
   serve: vi.fn(),
 }));
-vi.mock("../../src/commands/agent.js", () => ({
-  executeAgentMode: vi.fn().mockResolvedValue(undefined),
-}));
-
 beforeEach(async () => {
   await epic("coverage");
   await feature("cli-run");
@@ -101,8 +94,6 @@ beforeEach(async () => {
   await label("coverage", "cli-run");
   vi.clearAllMocks();
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
-  delete process.env.ALLURE_AGENT_OUTPUT;
-  delete process.env.ALLURE_AGENT_EXPECTATIONS;
 
   const { AllureReportMock } = await import("../utils.js");
 
@@ -234,36 +225,5 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
-  });
-
-  it("should delegate legacy env-based agent mode to the agent command", async () => {
-    await epic("coverage");
-    await feature("agent-mode");
-    await story("run");
-    await label("coverage", "agent-mode");
-    const { AllureReportMock } = await import("../utils.js");
-    const { runProcess } = await import("../../src/utils/index.js");
-    const consoleModule = await import("node:console");
-
-    process.env.ALLURE_AGENT_OUTPUT = "./legacy-agent-output";
-    process.env.ALLURE_AGENT_EXPECTATIONS = "./legacy-expected.yaml";
-
-    await run(RunCommand, ["run", "--cwd", "./fixture", "--silent", "--", "npm", "test"]);
-
-    expect(executeAgentMode).toHaveBeenCalledWith({
-      configPath: undefined,
-      cwd: "./fixture",
-      output: resolve(process.cwd(), "./legacy-agent-output"),
-      expectations: resolve(process.cwd(), "./legacy-expected.yaml"),
-      environment: undefined,
-      environmentName: undefined,
-      silent: true,
-      args: ["npm", "test"],
-    });
-    expect(readConfig).not.toHaveBeenCalled();
-    expect(AllureReportMock).not.toHaveBeenCalled();
-    expect(runProcess).not.toHaveBeenCalled();
-    expect(consoleModule.log).not.toHaveBeenCalled();
-    expect(exitMock).not.toHaveBeenCalled();
   });
 });

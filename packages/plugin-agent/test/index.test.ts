@@ -13,25 +13,16 @@ import type {
   ResultFile,
 } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { story } from "allure-js-commons";
+import { attachment, step, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AgentExpectationsInput } from "../src/index.js";
 import { AgentPlugin } from "../src/plugin.js";
+import { attachJsonEvidence, attachTextEvidence } from "./evidence.js";
 
 beforeEach(async () => {
   await story("index");
 });
-const AGENT_ENV_VARS = [
-  "ALLURE_AGENT_OUTPUT",
-  "ALLURE_AGENT_EXPECTATIONS",
-  "ALLURE_AGENT_COMMAND",
-  "ALLURE_AGENT_PROJECT_ROOT",
-  "ALLURE_AGENT_NAME",
-  "ALLURE_AGENT_LOOP_ID",
-  "ALLURE_AGENT_TASK_ID",
-  "ALLURE_AGENT_CONVERSATION_ID",
-] as const;
-
 const createContext = (reportName: string = "Agent Report"): PluginContext =>
   ({
     reportName,
@@ -165,29 +156,146 @@ const createRealtimeSubscriber = () => {
   };
 };
 
-const readJson = async <T>(path: string): Promise<T> => JSON.parse(await readFile(path, "utf-8")) as T;
+const readText = async (path: string, contentType: string = "text/plain"): Promise<string> => {
+  const content = await readFile(path, "utf-8");
 
-const readJsonl = async <T>(path: string): Promise<T[]> =>
-  (await readFile(path, "utf-8"))
+  await attachTextEvidence(`agent artifact ${path}`, content, contentType);
+
+  return content;
+};
+
+const readJson = async <T>(path: string): Promise<T> => {
+  const value = JSON.parse(await readFile(path, "utf-8")) as T;
+
+  await attachJsonEvidence(`parsed ${path}`, value);
+
+  return value;
+};
+
+const readJsonl = async <T>(path: string): Promise<T[]> => {
+  const values = (await readFile(path, "utf-8"))
     .trim()
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line) as T);
 
+  await attachJsonEvidence(`parsed ${path}`, values);
+
+  return values;
+};
+
+type TestFindingLine = {
+  schema_version?: string;
+  check_id?: string;
+  instance_id?: string;
+  check_name: string;
+  severity: "info" | "warning" | "high";
+  impact?: "reject" | "iterate" | "advisory";
+  subject: unknown;
+  subject_ref?: string;
+};
+
+type AttachmentContentFixture = {
+  content: string;
+  fileName: string;
+};
+
+const createMeaningfulStep = (name: string = "assert expected behavior"): TestStepResult =>
+  ({
+    type: "step",
+    name,
+    parameters: [
+      {
+        name: "state",
+        value: "verified",
+      },
+    ],
+    status: "passed",
+    steps: [],
+  }) as TestStepResult;
+
+const createStoreWithGlobalLogs = (
+  overrides: Partial<AllureStore> = {},
+  attachmentContents: Record<string, AttachmentContentFixture> = {},
+): AllureStore => {
+  const stdout = createAttachment({
+    id: "global-stdout",
+    name: "stdout.txt",
+    originalFileName: "stdout.txt",
+  });
+  const contents = new Map<string, AttachmentContentFixture>([
+    [
+      stdout.id,
+      {
+        content: "stdout",
+        fileName: "stdout.txt",
+      },
+    ],
+    ...Object.entries(attachmentContents),
+  ]);
+
+  return createStore({
+    ...overrides,
+    allGlobalAttachments: overrides.allGlobalAttachments ?? vi.fn().mockResolvedValue([stdout]),
+    attachmentContentById:
+      overrides.attachmentContentById ??
+      vi.fn().mockImplementation(async (id: string) => {
+        const fixture = contents.get(id);
+
+        return fixture ? new BufferResultFile(Buffer.from(fixture.content, "utf-8"), fixture.fileName) : undefined;
+      }),
+  });
+};
+
+const expectationOutputName = (field: string, suffix: string) => `${field.replace(/\./g, "-")}-${suffix}`;
+
 describe("AgentPlugin", () => {
   let tempDir: string;
 
+  const runInlineExpectationCase = async (params: {
+    outputName: string;
+    expectations: AgentExpectationsInput;
+    testResult?: TestResult;
+    environmentId?: string;
+    attachments?: AttachmentLink[];
+    attachmentContents?: Record<string, AttachmentContentFixture>;
+  }) => {
+    const outputDir = join(tempDir, params.outputName);
+    const testResult =
+      params.testResult ??
+      createTestResult({
+        id: "tr-expectation",
+        historyId: "expectation-history",
+        fullName: "suite expected behavior",
+      });
+
+    await new AgentPlugin({
+      outputDir,
+      expectations: { goal: "Verify expectation case", ...params.expectations },
+    }).done(
+      createContext(),
+      createStoreWithGlobalLogs(
+        {
+          allTestResults: vi.fn().mockResolvedValue([testResult]),
+          testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+          environmentIdByTrId: vi.fn().mockResolvedValue(params.environmentId ?? "default"),
+          attachmentsByTrId: vi.fn().mockResolvedValue(params.attachments ?? []),
+        },
+        params.attachmentContents,
+      ),
+    );
+
+    return {
+      outputDir,
+      findings: await readJsonl<TestFindingLine>(join(outputDir, "manifest", "findings.jsonl")),
+    };
+  };
+
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), "plugin-agent-"));
-    AGENT_ENV_VARS.forEach((name) => {
-      delete process.env[name];
-    });
   });
 
   afterEach(async () => {
-    AGENT_ENV_VARS.forEach((name) => {
-      delete process.env[name];
-    });
     await rm(tempDir, { recursive: true, force: true });
   });
 
@@ -212,9 +320,9 @@ describe("AgentPlugin", () => {
         test_events_manifest: string;
       };
     }>(join(outputDir, "manifest", "run.json"));
-    const guide = await readFile(join(outputDir, "AGENTS.md"), "utf-8");
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
-    const testEvents = await readFile(join(outputDir, "manifest", "test-events.jsonl"), "utf-8");
+    const guide = await readText(join(outputDir, "AGENTS.md"), "text/markdown");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+    const testEvents = await readText(join(outputDir, "manifest", "test-events.jsonl"), "application/x-jsonlines");
 
     expect(runManifest.phase).toBe("running");
     expect(runManifest.paths.test_events_manifest).toBe("manifest/test-events.jsonl");
@@ -250,7 +358,7 @@ describe("AgentPlugin", () => {
     const runningManifest = await readJson<{
       phase: "running" | "done";
     }>(join(outputDir, "manifest", "run.json"));
-    const testContent = await readFile(join(outputDir, "tests", "default", "live-history.md"), "utf-8");
+    const testContent = await readText(join(outputDir, "tests", "default", "live-history.md"), "text/markdown");
     const eventLines = await readJsonl<{
       event_type: string;
       markdown_path?: string;
@@ -284,21 +392,17 @@ describe("AgentPlugin", () => {
     expect(finalEvents.at(-1)).toEqual(expect.objectContaining({ event_type: "run_finished" }));
   });
 
-  it("should prefer option outputDir over ALLURE_AGENT_OUTPUT", async () => {
+  it("should write output only when outputDir is configured", async () => {
     const optionDir = join(tempDir, "option-output");
-    const envDir = join(tempDir, "env-output");
     const store = createStore({
       allTestResults: vi.fn().mockResolvedValue([createTestResult()]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
     });
 
-    process.env.ALLURE_AGENT_OUTPUT = envDir;
-
     await new AgentPlugin({ outputDir: optionDir }).done(createContext(), store);
 
     await expect(stat(join(optionDir, "index.md"))).resolves.toBeTruthy();
     await expect(stat(join(optionDir, "AGENTS.md"))).resolves.toBeTruthy();
-    await expect(stat(join(envDir, "index.md"))).rejects.toThrow();
   });
 
   it("should clean only managed entries before writing", async () => {
@@ -312,9 +416,9 @@ describe("AgentPlugin", () => {
 
     await new AgentPlugin({ outputDir }).done(createContext(), createStore());
 
-    expect(await readFile(join(outputDir, "notes.txt"), "utf-8")).toBe("keep me");
-    expect(await readFile(join(outputDir, "index.md"), "utf-8")).toContain("# Agent Report");
-    expect(await readFile(join(outputDir, "AGENTS.md"), "utf-8")).toContain("# AGENTS Guide");
+    expect(await readText(join(outputDir, "notes.txt"))).toBe("keep me");
+    expect(await readText(join(outputDir, "index.md"), "text/markdown")).toContain("# Agent Report");
+    expect(await readText(join(outputDir, "AGENTS.md"), "text/markdown")).toContain("# AGENTS Guide");
   });
 
   it("should use historyId-based file names and fall back to the test result id", async () => {
@@ -358,8 +462,8 @@ describe("AgentPlugin", () => {
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
-    const testContent = await readFile(join(outputDir, "tests", "default", "history.id_1.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+    const testContent = await readText(join(outputDir, "tests", "default", "history.id_1.md"), "text/markdown");
 
     expect(indexContent).toContain("test/index.test.ts#AgentPlugin should keep markdown readable (v1)");
     expect(testContent).toContain("Name: should keep markdown readable (v1)");
@@ -411,7 +515,7 @@ describe("AgentPlugin", () => {
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const primaryContent = await readFile(join(outputDir, "tests", "default", "shared-history.md"), "utf-8");
+    const primaryContent = await readText(join(outputDir, "tests", "default", "shared-history.md"), "text/markdown");
 
     expect(primaryContent).toContain("## Retry 1");
     expect(primaryContent).toContain("retry failure");
@@ -460,7 +564,7 @@ describe("AgentPlugin", () => {
 
     await new AgentPlugin({ outputDir }).done(createContext("My Report"), store);
 
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(indexContent).toContain("# My Report");
     expect(indexContent).toContain("## Process Logs");
@@ -470,73 +574,109 @@ describe("AgentPlugin", () => {
     expect(indexContent).toContain("stdout.txt");
     expect(indexContent).toContain("stderr.txt");
     expect(indexContent).toContain("Too many failures");
-    expect(await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8")).toBe("stdout content");
-    expect(await readFile(join(outputDir, "artifacts", "global", "stderr.txt"), "utf-8")).toBe("stderr content");
-    expect(await readFile(join(outputDir, "AGENTS.md"), "utf-8")).toContain("## Reading Order");
+    expect(await readText(join(outputDir, "artifacts", "global", "stdout.txt"))).toBe("stdout content");
+    expect(await readText(join(outputDir, "artifacts", "global", "stderr.txt"))).toBe("stderr content");
+    expect(await readText(join(outputDir, "AGENTS.md"), "text/markdown")).toContain("## Reading Order");
   });
 
-  it("should copy project guidance and reference it from AGENTS.md and run manifest", async () => {
-    const outputDir = join(tempDir, "project-guide");
-    const projectRoot = join(tempDir, "project-root");
-    const guidePath = join(projectRoot, "docs", "allure-agent-mode.md");
+  it("should generate standalone AGENTS guidance", async () => {
+    const outputDir = join(tempDir, "standalone-agents-guide");
     const store = createStore({
       allTestResults: vi.fn().mockResolvedValue([createTestResult()]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
     });
 
-    await mkdir(join(projectRoot, "docs"), { recursive: true });
-    await writeFile(guidePath, "# Project Allure Guide\n\nUse agent mode here.\n", "utf-8");
-    process.env.ALLURE_AGENT_PROJECT_ROOT = projectRoot;
-
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const guideCopy = await readFile(join(outputDir, "project", "docs", "allure-agent-mode.md"), "utf-8");
-    const agentsGuide = await readFile(join(outputDir, "AGENTS.md"), "utf-8");
+    const agentsGuide = await readText(join(outputDir, "AGENTS.md"), "text/markdown");
     const runManifest = await readJson<{
-      paths: {
-        project_guide: string | null;
-      };
+      paths: Record<string, unknown>;
     }>(join(outputDir, "manifest", "run.json"));
 
-    expect(guideCopy).toContain("Project Allure Guide");
-    expect(agentsGuide).toContain("[project guidance](project/docs/allure-agent-mode.md)");
-    expect(runManifest.paths.project_guide).toBe("project/docs/allure-agent-mode.md");
+    expect(agentsGuide).toContain("## Reading Order");
+    expect(agentsGuide).toContain("## Command Task Map");
+    expect(runManifest.paths).toEqual(expect.objectContaining({ index_md: "index.md", agents_md: "AGENTS.md" }));
   });
 
   it("should include downstream enrichment best practices in AGENTS.md", async () => {
     const outputDir = join(tempDir, "agents-guide");
 
-    await new AgentPlugin({ outputDir }).done(createContext(), createStore());
+    const guide = await step("render AGENTS guidance", async () => {
+      await new AgentPlugin({ outputDir }).done(createContext(), createStore());
 
-    const guide = await readFile(join(outputDir, "AGENTS.md"), "utf-8");
+      return await readText(join(outputDir, "AGENTS.md"), "text/markdown");
+    });
 
-    expect(guide).toContain("## Enrichment Loop Workflow");
-    expect(guide).toContain("## Verification Standard");
-    expect(guide).toContain("manifest/test-events.jsonl");
-    expect(guide).toContain("allure agent latest");
-    expect(guide).toContain("allure agent state-dir");
-    expect(guide).toContain("allure agent select --latest");
-    expect(guide).toContain("allure agent --rerun-latest");
-    expect(guide).toContain("--rerun-preset");
-    expect(guide).toContain("--rerun-environment");
-    expect(guide).toContain("--rerun-label");
-    expect(guide).toContain("ALLURE_AGENT_STATE_DIR");
-    expect(guide).toContain("print the `index.md` path");
-    expect(guide).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
-    );
-    expect(guide).toContain("Use `allure agent` for smoke checks too, even when the change is small or mechanical.");
-    expect(guide).toContain("Only skip agent mode when it is impossible or when you are debugging agent mode itself.");
-    expect(guide).toContain("## Small Test Change Workflow");
-    expect(guide).toContain("## Coverage Review Workflow");
-    expect(guide).toContain("## Test Enrichment Best Practices");
-    expect(guide).toContain("## Anti-Dummy Policy");
-    expect(guide).toContain("## Acceptance Checklist");
-    expect(guide).toContain("## Review Completeness");
-    expect(guide).toContain("## Partial Runtime Review");
-    expect(guide).toContain("teach `runCommand` to emit a step");
-    expect(guide).toContain("`failed-without-useful-steps`");
-    expect(guide).toContain("`noop-dominated-steps`");
+    await step("verify generated workflow guidance", async () => {
+      await attachment(
+        "verified AGENTS guidance sections",
+        JSON.stringify(
+          {
+            sections: [
+              "Agent Workflows",
+              "Command Task Map",
+              "Verification Standard",
+              "Test Enrichment Best Practices",
+            ],
+            command: 'allure agent --goal <text> --expect-tests <count> --expect-test "<fullName>"',
+          },
+          null,
+          2,
+        ),
+        "application/json",
+      );
+      expect(guide).toContain("## Agent Workflows");
+      expect(guide).toContain("Use the smallest workflow that matches the task.");
+      expect(guide).toContain("### Validate A Change");
+      expect(guide).toContain("### Add Or Update Tests");
+      expect(guide).toContain("### Review Existing Coverage");
+      expect(guide).toContain("### Triage Failures");
+      expect(guide).toContain("### Rerun A Prior Scope");
+      expect(guide).toContain("### Improve Evidence Quality");
+      expect(guide).toContain("### Recover Or Diagnose Agent Mode");
+      expect(guide).toContain("Use when code or tests changed and you need a user-facing safety conclusion.");
+      expect(guide).toContain("Commands:");
+      expect(guide).toContain("Done when:");
+      expect(guide).toContain("## Verification Standard");
+      expect(guide).toContain("manifest/test-events.jsonl");
+      expect(guide).toContain("allure agent latest");
+      expect(guide).toContain("allure agent state-dir");
+      expect(guide).toContain("allure agent select --latest");
+      expect(guide).toContain("allure agent --rerun-latest");
+      expect(guide).toContain("## Command Task Map");
+      expect(guide).toContain("setup and capability-detection loop");
+      expect(guide).toContain("output recovery loop");
+      expect(guide).toContain("tooling diagnosis loop");
+      expect(guide).toContain("rerun-planning loop");
+      expect(guide).toContain("focused retry loop");
+      expect(guide).toContain("state-control loop");
+      expect(guide).toContain("--rerun-preset");
+      expect(guide).toContain("instead of rebuilding runner-specific test names");
+      expect(guide).toContain("allure agent --rerun-latest --rerun-preset failed -- <command>");
+      expect(guide).toContain("--rerun-environment");
+      expect(guide).toContain("--rerun-label");
+      expect(guide).toContain("ALLURE_AGENT_STATE_DIR");
+      expect(guide).toContain('allure agent --goal <text> --expect-tests <count> --expect-test "<fullName>"');
+      expect(guide).toContain("print the `index.md` path");
+      expect(guide).toContain(
+        "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
+      );
+      expect(guide).toContain("Use `allure agent` for smoke checks too, even when the change is small or mechanical.");
+      expect(guide).toContain(
+        "Only skip agent mode when it is impossible or when you are debugging agent mode itself.",
+      );
+      expect(guide).toContain(
+        "For small mechanical changes, use this same workflow with narrower expectations rather than a separate shortcut.",
+      );
+      expect(guide).toContain("## Test Enrichment Best Practices");
+      expect(guide).toContain("## Anti-Dummy Policy");
+      expect(guide).toContain("## Acceptance Checklist");
+      expect(guide).toContain("## Review Completeness");
+      expect(guide).toContain("## Partial Runtime Review");
+      expect(guide).toContain("teach `runCommand` to emit a step");
+      expect(guide).toContain("`failed-without-useful-steps`");
+      expect(guide).toContain("`noop-dominated-steps`");
+    });
   });
 
   it("should render fixtures, copy attachments, and keep missing attachments visible", async () => {
@@ -622,7 +762,7 @@ describe("AgentPlugin", () => {
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const content = await readFile(join(outputDir, "tests", "default", "artifact-history.md"), "utf-8");
+    const content = await readText(join(outputDir, "tests", "default", "artifact-history.md"), "text/markdown");
 
     expect(content).toContain("### Before Fixture: setup");
     expect(content).toContain("### Steps");
@@ -630,9 +770,9 @@ describe("AgentPlugin", () => {
     expect(content).toContain("screenshot.png");
     expect(content).toContain("fixture.log");
     expect(
-      await readFile(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png"), "utf-8"),
+      await readText(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png")),
     ).toBe("png-bytes");
-    expect(await readFile(join(outputDir, "tests", "default", "artifact-history.assets", "fixture.log"), "utf-8")).toBe(
+    expect(await readText(join(outputDir, "tests", "default", "artifact-history.assets", "fixture.log"))).toBe(
       "fixture log",
     );
   });
@@ -694,13 +834,14 @@ notes:
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-    process.env.ALLURE_AGENT_COMMAND = "yarn test feature-a";
-    process.env.ALLURE_AGENT_NAME = "codex";
-    process.env.ALLURE_AGENT_LOOP_ID = "loop-1";
-    process.env.ALLURE_AGENT_CONVERSATION_ID = "conversation-1";
-
-    await new AgentPlugin({ outputDir }).done(createContext(), store);
+    await new AgentPlugin({
+      outputDir,
+      expectationsPath,
+      command: "yarn test feature-a",
+      agentName: "codex",
+      loopId: "loop-1",
+      conversationId: "conversation-1",
+    }).done(createContext(), store);
 
     const runManifest = await readJson<{
       command: string;
@@ -713,7 +854,6 @@ notes:
       };
       paths: {
         expected_manifest: string;
-        project_guide: string | null;
       };
       check_summary: {
         total: number;
@@ -726,15 +866,15 @@ notes:
     const findingsManifest = await readJsonl<{
       check_name: string;
       severity: "info" | "warning" | "high";
-      subject: string;
+      subject?: unknown;
+      subject_ref?: string;
     }>(join(outputDir, "manifest", "findings.jsonl"));
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
-    const forbiddenContent = await readFile(join(outputDir, "tests", "api", "feature-b-history.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+    const forbiddenContent = await readText(join(outputDir, "tests", "api", "feature-b-history.md"), "text/markdown");
 
     expect(runManifest.command).toBe("yarn test feature-a");
     expect(runManifest.expectations_present).toBe(true);
     expect(runManifest.paths.expected_manifest).toBe("manifest/expected.json");
-    expect(runManifest.paths.project_guide).toBeNull();
     expect(runManifest.agent_context).toEqual({
       agent_name: "codex",
       loop_id: "loop-1",
@@ -756,14 +896,14 @@ notes:
     expect(findingsManifest).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          check_name: "forbidden-selector-match",
+          check_name: "forbidden-label-observed",
           severity: "high",
-          subject: "tests/api/feature-b-history.md",
+          subject_ref: "tests/api/feature-b-history.md",
         }),
         expect.objectContaining({
           check_name: "unexpected-environment",
           severity: "warning",
-          subject: "run",
+          subject_ref: "run",
         }),
       ]),
     );
@@ -776,7 +916,773 @@ notes:
     expect(forbiddenContent).toContain("## Expectation Comparison");
     expect(forbiddenContent).toContain("Scope Match: forbidden");
     expect(forbiddenContent).toContain("## Quality Findings");
-    expect(await readFile(join(outputDir, "manifest", "expected.json"), "utf-8")).toContain('"task_id": "feature-a"');
+    expect(await readText(join(outputDir, "manifest", "expected.json"), "application/json")).toContain(
+      '"task_id": "feature-a"',
+    );
+  });
+
+  it("should load inline expectations and report count and evidence gaps", async () => {
+    const outputDir = join(tempDir, "inline-expectations");
+    const matching = createTestResult({
+      id: "tr-inline",
+      historyId: "inline-history",
+      name: "inline should be visible",
+      fullName: "inline should be visible",
+      labels: [
+        {
+          name: "feature",
+          value: "inline",
+        },
+      ],
+    });
+    const store = createStore({
+      allTestResults: vi.fn().mockResolvedValue([matching]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+    });
+
+    const expectations = {
+      goal: "Review inline expectations",
+      expected: {
+        test_count: 2,
+        label_values: {
+          feature: "inline",
+        },
+      },
+      evidence: {
+        min_steps: 1,
+        min_attachments: 1,
+        step_name_contains: ["assert expected behavior"],
+        attachments: [
+          {
+            name: "evidence.json",
+          },
+        ],
+      },
+    };
+
+    await new AgentPlugin({ outputDir, expectations }).done(createContext(), store);
+
+    const expectedManifest = await readJson<{
+      expected: {
+        test_count: number;
+      };
+      evidence: {
+        step_name_contains: string[];
+      };
+    }>(join(outputDir, "manifest", "expected.json"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      severity: "info" | "warning" | "high";
+      subject?: unknown;
+      subject_ref?: string;
+    }>(join(outputDir, "manifest", "findings.jsonl"));
+    const runManifest = await readJson<{
+      expectations: {
+        evidence: {
+          step_name_contains: string[];
+        };
+      };
+      expectation_result: {
+        status: string;
+        impact: string;
+        recognized_control_count: number;
+        summary: {
+          expected_tests: number;
+          observed_tests: number;
+          evidence_mismatches: number;
+        };
+      };
+    }>(join(outputDir, "manifest", "run.json"));
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+
+    expect(expectedManifest.expected.test_count).toBe(2);
+    expect(expectedManifest.evidence.step_name_contains).toEqual(["assert expected behavior"]);
+    expect(runManifest.expectations.evidence.step_name_contains).toEqual(["assert expected behavior"]);
+    expect(runManifest.expectation_result.status).toBe("failed");
+    expect(runManifest.expectation_result.impact).toBe("iterate");
+    expect(runManifest.expectation_result.recognized_control_count).toBe(7);
+    expect(runManifest.expectation_result.summary).toEqual(
+      expect.objectContaining({
+        expected_tests: 2,
+        observed_tests: 1,
+        evidence_mismatches: 4,
+      }),
+    );
+    expect(indexContent).toContain("Expectations Source: CLI options");
+    expect(indexContent).toContain("## Expectation Result");
+    expect(indexContent).toContain("Status: failed");
+    expect(indexContent).toContain("test count: 2");
+    expect(indexContent).toContain("step contains: assert expected behavior");
+    expect(findingsManifest).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          schema_version: "allure-agent-finding/v2",
+          check_id: "expected-count-mismatch",
+          check_name: "expected-count-mismatch",
+          severity: "warning",
+          impact: "iterate",
+          subject_ref: "run",
+        }),
+        expect.objectContaining({
+          check_name: "expected-step-containing-missing",
+          severity: "warning",
+          subject_ref: "tests/default/inline-history.md",
+        }),
+        expect.objectContaining({
+          check_name: "insufficient-expected-steps",
+          severity: "warning",
+          subject_ref: "tests/default/inline-history.md",
+        }),
+        expect.objectContaining({
+          check_name: "insufficient-expected-attachments",
+          severity: "warning",
+          subject_ref: "tests/default/inline-history.md",
+        }),
+        expect.objectContaining({
+          check_name: "missing-expected-attachment",
+          severity: "warning",
+          subject_ref: "tests/default/inline-history.md",
+        }),
+      ]),
+    );
+  });
+
+  it("should mark metadata-only expectations as not requested", async () => {
+    const outputDir = join(tempDir, "metadata-only-expectations");
+    const matching = createTestResult({
+      id: "tr-metadata-only",
+      historyId: "metadata-only-history",
+      name: "metadata-only test",
+      fullName: "metadata-only test",
+    });
+    const store = createStore({
+      allTestResults: vi.fn().mockResolvedValue([matching]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+    });
+
+    await new AgentPlugin({
+      outputDir,
+      expectations: {
+        goal: "record review context",
+        task_id: "TASK-1",
+      },
+    }).done(createContext(), store);
+
+    const runManifest = await readJson<{
+      expectation_result: {
+        status: string;
+        impact: string;
+        recognized_control_count: number;
+        summary: {
+          observed_tests: number;
+        };
+      };
+    }>(join(outputDir, "manifest", "run.json"));
+
+    expect(runManifest.expectation_result).toEqual(
+      expect.objectContaining({
+        status: "not_requested",
+        impact: "advisory",
+        recognized_control_count: 2,
+      }),
+    );
+    expect(runManifest.expectation_result.summary.observed_tests).toBe(1);
+  });
+
+  it("should render every parsed inline expectation config field", async () => {
+    const traceAttachment = createAttachment({
+      id: "trace-json",
+      name: "trace.json",
+      originalFileName: "trace.json",
+      ext: ".json",
+      contentType: "application/json",
+    });
+    const { outputDir, findings } = await runInlineExpectationCase({
+      outputName: "parsed-inline-config-fields",
+      environmentId: "web",
+      testResult: createTestResult({
+        id: "tr-parsed-config",
+        historyId: "parsed-config-history",
+        fullName: "suite expected behavior",
+        labels: [
+          {
+            name: "feature",
+            value: "scope",
+          },
+        ],
+        steps: [createMeaningfulStep()],
+      }),
+      attachments: [traceAttachment],
+      attachmentContents: {
+        "trace-json": {
+          content: "{}",
+          fileName: "trace.json",
+        },
+      },
+      expectations: {
+        goal: "Review parsed inline config fields",
+        task_id: "agent-inline-fields",
+        expected: {
+          test_count: 1,
+          environments: ["web"],
+          full_names: ["suite expected behavior"],
+          full_name_prefixes: ["suite expected"],
+          label_values: {
+            feature: "scope",
+          },
+        },
+        forbidden: {
+          environments: ["api"],
+          full_names: ["suite forbidden behavior"],
+          full_name_prefixes: ["suite forbidden"],
+          label_values: {
+            feature: ["forbidden"],
+          },
+        },
+        evidence: {
+          min_steps: 1,
+          min_attachments: 1,
+          step_name_contains: ["assert expected behavior"],
+          attachments: [
+            {
+              name: "trace.json",
+            },
+            {
+              content_type: "application/json",
+            },
+          ],
+        },
+        notes: "Keep every field visible to reviewers",
+      },
+    });
+
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+
+    expect(findings).toEqual([]);
+    expect(indexContent).toContain("Goal: Review parsed inline config fields");
+    expect(indexContent).toContain("Feature / Task: agent-inline-fields");
+    expect(indexContent).toContain(
+      "Expected selectors: test count: 1 | environments: web | full names: suite expected behavior | prefixes: suite expected | labels: feature in [scope]",
+    );
+    expect(indexContent).toContain(
+      "Forbidden selectors: environments: api | full names: suite forbidden behavior | prefixes: suite forbidden | labels: feature in [forbidden]",
+    );
+    expect(indexContent).toContain(
+      "Evidence expectations: meaningful steps per test: >= 1 | attachments per test: >= 1 | step contains: assert expected behavior | attachments: name=trace.json; content-type=application/json",
+    );
+    expect(indexContent).toContain("Notes: Keep every field visible to reviewers");
+  });
+
+  it.each([
+    {
+      field: "expected.test_count",
+      expectations: {
+        expected: {
+          test_count: 1,
+        },
+      },
+    },
+    {
+      field: "expected.environments",
+      environmentId: "web",
+      expectations: {
+        expected: {
+          environments: ["web"],
+        },
+      },
+    },
+    {
+      field: "expected.full_names",
+      expectations: {
+        expected: {
+          full_names: ["suite expected behavior"],
+        },
+      },
+    },
+    {
+      field: "expected.full_name_prefixes",
+      expectations: {
+        expected: {
+          full_name_prefixes: ["suite expected"],
+        },
+      },
+    },
+    {
+      field: "expected.label_values",
+      testResult: createTestResult({
+        id: "tr-expected-label-pass",
+        historyId: "expected-label-pass-history",
+        fullName: "suite expected behavior",
+        labels: [
+          {
+            name: "feature",
+            value: "scope",
+          },
+        ],
+      }),
+      expectations: {
+        expected: {
+          label_values: {
+            feature: "scope",
+          },
+        },
+      },
+    },
+  ])("should report no findings when $field is met", async ({ field, expectations, testResult, environmentId }) => {
+    const { findings } = await runInlineExpectationCase({
+      outputName: expectationOutputName(field, "met"),
+      expectations,
+      testResult,
+      environmentId,
+    });
+
+    expect(findings).toEqual([]);
+  });
+
+  it.each([
+    {
+      field: "expected.test_count",
+      checkName: "expected-count-mismatch",
+      expectations: {
+        expected: {
+          test_count: 2,
+        },
+      },
+    },
+    {
+      field: "expected.environments",
+      checkName: "expected-environment-missing",
+      environmentId: "api",
+      expectations: {
+        expected: {
+          environments: ["web"],
+        },
+      },
+    },
+    {
+      field: "expected.full_names",
+      checkName: "expected-test-missing",
+      expectations: {
+        expected: {
+          full_names: ["suite missing behavior"],
+        },
+      },
+    },
+    {
+      field: "expected.full_name_prefixes",
+      checkName: "expected-prefix-missing",
+      expectations: {
+        expected: {
+          full_name_prefixes: ["suite missing"],
+        },
+      },
+    },
+    {
+      field: "expected.label_values",
+      checkName: "expected-label-missing",
+      testResult: createTestResult({
+        id: "tr-expected-label-fail",
+        historyId: "expected-label-fail-history",
+        fullName: "suite expected behavior",
+        labels: [
+          {
+            name: "feature",
+            value: "other",
+          },
+        ],
+      }),
+      expectations: {
+        expected: {
+          label_values: {
+            feature: "scope",
+          },
+        },
+      },
+    },
+  ])(
+    "should report $checkName when $field is not met",
+    async ({ field, checkName, expectations, testResult, environmentId }) => {
+      const { findings } = await runInlineExpectationCase({
+        outputName: expectationOutputName(field, "missing"),
+        expectations,
+        testResult,
+        environmentId,
+      });
+
+      expect(findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            check_name: checkName,
+          }),
+        ]),
+      );
+    },
+  );
+
+  it.each([
+    {
+      field: "forbidden.environments",
+      environmentId: "web",
+      expectations: {
+        forbidden: {
+          environments: ["api"],
+        },
+      },
+    },
+    {
+      field: "forbidden.full_names",
+      expectations: {
+        forbidden: {
+          full_names: ["suite forbidden behavior"],
+        },
+      },
+    },
+    {
+      field: "forbidden.full_name_prefixes",
+      expectations: {
+        forbidden: {
+          full_name_prefixes: ["suite forbidden"],
+        },
+      },
+    },
+    {
+      field: "forbidden.label_values",
+      testResult: createTestResult({
+        id: "tr-forbidden-label-pass",
+        historyId: "forbidden-label-pass-history",
+        fullName: "suite expected behavior",
+        labels: [
+          {
+            name: "feature",
+            value: "scope",
+          },
+        ],
+      }),
+      expectations: {
+        forbidden: {
+          label_values: {
+            feature: "forbidden",
+          },
+        },
+      },
+    },
+  ])(
+    "should report no findings when $field is not matched",
+    async ({ field, expectations, testResult, environmentId }) => {
+      const { findings } = await runInlineExpectationCase({
+        outputName: expectationOutputName(field, "allowed"),
+        expectations,
+        testResult,
+        environmentId,
+      });
+
+      expect(findings).toEqual([]);
+    },
+  );
+
+  it.each([
+    {
+      field: "forbidden.environments",
+      checkName: "forbidden-selector-match",
+      environmentId: "api",
+      expectations: {
+        forbidden: {
+          environments: ["api"],
+        },
+      },
+    },
+    {
+      field: "forbidden.full_names",
+      checkName: "forbidden-selector-match",
+      expectations: {
+        forbidden: {
+          full_names: ["suite expected behavior"],
+        },
+      },
+    },
+    {
+      field: "forbidden.full_name_prefixes",
+      checkName: "forbidden-selector-match",
+      expectations: {
+        forbidden: {
+          full_name_prefixes: ["suite expected"],
+        },
+      },
+    },
+    {
+      field: "forbidden.label_values",
+      checkName: "forbidden-label-observed",
+      testResult: createTestResult({
+        id: "tr-forbidden-label-fail",
+        historyId: "forbidden-label-fail-history",
+        fullName: "suite expected behavior",
+        labels: [
+          {
+            name: "feature",
+            value: "forbidden",
+          },
+        ],
+      }),
+      expectations: {
+        forbidden: {
+          label_values: {
+            feature: "forbidden",
+          },
+        },
+      },
+    },
+  ])(
+    "should report $checkName when $field is matched",
+    async ({ field, checkName, expectations, testResult, environmentId }) => {
+      const { findings } = await runInlineExpectationCase({
+        outputName: expectationOutputName(field, "forbidden"),
+        expectations,
+        testResult,
+        environmentId,
+      });
+
+      expect(findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            check_name: checkName,
+          }),
+        ]),
+      );
+    },
+  );
+
+  it.each([
+    {
+      field: "evidence.step_name_contains",
+      expectations: {
+        evidence: {
+          step_name_contains: ["expected behavior"],
+        },
+      },
+      testResult: createTestResult({
+        id: "tr-evidence-step-text-pass",
+        historyId: "evidence-step-text-pass-history",
+        fullName: "suite expected behavior",
+        steps: [createMeaningfulStep()],
+      }),
+    },
+    {
+      field: "evidence.min_steps",
+      expectations: {
+        evidence: {
+          min_steps: 1,
+        },
+      },
+      testResult: createTestResult({
+        id: "tr-evidence-steps-pass",
+        historyId: "evidence-steps-pass-history",
+        fullName: "suite expected behavior",
+        steps: [createMeaningfulStep()],
+      }),
+    },
+    {
+      field: "evidence.min_attachments",
+      expectations: {
+        evidence: {
+          min_attachments: 1,
+        },
+      },
+      attachments: [
+        createAttachment({
+          id: "evidence-attachment-pass",
+          name: "evidence.txt",
+          originalFileName: "evidence.txt",
+        }),
+      ],
+      attachmentContents: {
+        "evidence-attachment-pass": {
+          content: "evidence",
+          fileName: "evidence.txt",
+        },
+      },
+    },
+    {
+      field: "evidence.attachments.name",
+      expectations: {
+        evidence: {
+          attachments: [
+            {
+              name: "evidence.txt",
+            },
+          ],
+        },
+      },
+      attachments: [
+        createAttachment({
+          id: "evidence-name-pass",
+          name: "evidence.txt",
+          originalFileName: "evidence.txt",
+        }),
+      ],
+      attachmentContents: {
+        "evidence-name-pass": {
+          content: "evidence",
+          fileName: "evidence.txt",
+        },
+      },
+    },
+    {
+      field: "evidence.attachments.content_type",
+      expectations: {
+        evidence: {
+          attachments: [
+            {
+              content_type: "application/json",
+            },
+          ],
+        },
+      },
+      attachments: [
+        createAttachment({
+          id: "evidence-type-pass",
+          name: "evidence.json",
+          originalFileName: "evidence.json",
+          ext: ".json",
+          contentType: "application/json",
+        }),
+      ],
+      attachmentContents: {
+        "evidence-type-pass": {
+          content: "{}",
+          fileName: "evidence.json",
+        },
+      },
+    },
+  ])(
+    "should report no findings when $field is met",
+    async ({ field, expectations, testResult, attachments, attachmentContents }) => {
+      const { findings } = await runInlineExpectationCase({
+        outputName: expectationOutputName(field, "met"),
+        expectations,
+        testResult,
+        attachments,
+        attachmentContents,
+      });
+
+      expect(findings).toEqual([]);
+    },
+  );
+
+  it("should match expected step text in nested test-scoped steps", async () => {
+    const nestedStep = {
+      ...createMeaningfulStep("parent action"),
+      steps: [createMeaningfulStep("Validate order total includes discount")],
+    } as TestStepResult;
+    const { findings } = await runInlineExpectationCase({
+      outputName: "evidence-step-name-nested-met",
+      expectations: {
+        evidence: {
+          step_name_contains: ["order total includes discount"],
+        },
+      },
+      testResult: createTestResult({
+        id: "tr-nested-step",
+        historyId: "nested-step-history",
+        fullName: "suite expected behavior",
+        steps: [nestedStep],
+      }),
+    });
+
+    expect(findings).toEqual([]);
+  });
+
+  it("should not satisfy expected step text from global output only", async () => {
+    const { findings } = await runInlineExpectationCase({
+      outputName: "evidence-step-name-global-output-missing",
+      expectations: {
+        evidence: {
+          step_name_contains: ["global-only marker"],
+        },
+      },
+      attachmentContents: {
+        "global-stdout": {
+          content: "global-only marker",
+          fileName: "stdout.txt",
+        },
+      },
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          check_name: "expected-step-containing-missing",
+        }),
+      ]),
+    );
+  });
+
+  it.each([
+    {
+      field: "evidence.step_name_contains",
+      checkName: "expected-step-containing-missing",
+      expectations: {
+        evidence: {
+          step_name_contains: ["expected behavior"],
+        },
+      },
+    },
+    {
+      field: "evidence.min_steps",
+      checkName: "insufficient-expected-steps",
+      expectations: {
+        evidence: {
+          min_steps: 1,
+        },
+      },
+    },
+    {
+      field: "evidence.min_attachments",
+      checkName: "insufficient-expected-attachments",
+      expectations: {
+        evidence: {
+          min_attachments: 1,
+        },
+      },
+    },
+    {
+      field: "evidence.attachments.name",
+      checkName: "missing-expected-attachment",
+      expectations: {
+        evidence: {
+          attachments: [
+            {
+              name: "evidence.txt",
+            },
+          ],
+        },
+      },
+    },
+    {
+      field: "evidence.attachments.content_type",
+      checkName: "missing-expected-attachment",
+      expectations: {
+        evidence: {
+          attachments: [
+            {
+              content_type: "application/json",
+            },
+          ],
+        },
+      },
+    },
+  ])("should report $checkName when $field is not met", async ({ field, checkName, expectations }) => {
+    const { findings } = await runInlineExpectationCase({
+      outputName: expectationOutputName(field, "missing"),
+      expectations,
+    });
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          check_name: checkName,
+        }),
+      ]),
+    );
   });
 
   it("should emit bootstrap findings when no visible tests are present", async () => {
@@ -791,12 +1697,12 @@ notes:
       check_name: string;
       severity: "info" | "warning" | "high";
     }>(join(outputDir, "manifest", "findings.jsonl"));
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(findingsManifest).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          check_name: "no-visible-tests",
+          check_name: "no-tests-observed",
           severity: "high",
         }),
         expect.objectContaining({
@@ -806,6 +1712,42 @@ notes:
       ]),
     );
     expect(indexContent).toContain("No visible test results were found in the run.");
+  });
+
+  it("should accept zero observed logical tests when --expect-tests 0 was requested", async () => {
+    const outputDir = join(tempDir, "expect-zero-tests");
+    const store = createStore({
+      testsStatistic: vi.fn().mockResolvedValue({ total: 0 }),
+    });
+
+    await new AgentPlugin({
+      outputDir,
+      expectations: {
+        goal: "Verify no logical tests are selected",
+        expected: {
+          test_count: 0,
+        },
+      },
+    }).done(createContext(), store);
+
+    const runManifest = await readJson<{
+      expectation_result: {
+        status: string;
+        impact: string;
+      };
+    }>(join(outputDir, "manifest", "run.json"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+    }>(join(outputDir, "manifest", "findings.jsonl"));
+
+    expect(runManifest.expectation_result).toEqual(expect.objectContaining({ status: "matched", impact: "accept" }));
+    expect(findingsManifest).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          check_name: "no-tests-observed",
+        }),
+      ]),
+    );
   });
 
   it("should surface partial runtime modeling and high-signal stderr summaries", async () => {
@@ -891,7 +1833,7 @@ notes:
       check_name: string;
       severity: "info" | "warning" | "high";
     }>(join(outputDir, "manifest", "findings.jsonl"));
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(runManifest.actual_exit_code).toBe(1);
     expect(runManifest.original_exit_code).toBe(1);
@@ -983,7 +1925,7 @@ notes:
         };
       };
     }>(join(outputDir, "manifest", "run.json"));
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(runManifest.modeling.stderr.actionableSamples).toEqual(
       expect.arrayContaining([expect.stringContaining('unable to find utility "xcresulttool"')]),
@@ -1047,10 +1989,7 @@ notes:
       "utf-8",
     );
 
-    process.env.ALLURE_AGENT_EXPECTATIONS = expectationsPath;
-    process.env.ALLURE_AGENT_COMMAND = "yarn test clean-run";
-
-    await new AgentPlugin({ outputDir }).done(createContext(), store);
+    await new AgentPlugin({ outputDir, expectationsPath, command: "yarn test clean-run" }).done(createContext(), store);
 
     const runManifest = await readJson<{
       actual_exit_code: number | null;
@@ -1071,7 +2010,7 @@ notes:
       };
     }>(join(outputDir, "manifest", "run.json"));
     const findingsManifest = await readJsonl(join(outputDir, "manifest", "findings.jsonl"));
-    const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(runManifest.check_summary.total).toBe(0);
     expect(runManifest.actual_exit_code).toBeNull();
@@ -1113,25 +2052,26 @@ notes:
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const testContent = await readFile(join(outputDir, "tests", "default", "low-signal-history.md"), "utf-8");
+    const testContent = await readText(join(outputDir, "tests", "default", "low-signal-history.md"), "text/markdown");
     const findingsManifest = await readJsonl<{
       check_name: string;
-      subject: string;
+      subject?: unknown;
+      subject_ref?: string;
     }>(join(outputDir, "manifest", "findings.jsonl"));
 
-    expect(testContent).toContain("failed-without-useful-steps");
-    expect(testContent).toContain("failed-without-attachments");
-    expect(testContent).toContain("nontrivial-run-with-empty-trace");
+    expect(testContent).toContain("A failed or broken test has no useful runtime steps.");
+    expect(testContent).toContain("A failed or broken test has no test-scoped attachments.");
+    expect(testContent).toContain("A nontrivial test run recorded no steps or fixture activity.");
     expect(testContent).toContain("## Rerun Guidance");
     expect(findingsManifest).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           check_name: "failed-without-useful-steps",
-          subject: "tests/default/low-signal-history.md",
+          subject_ref: "tests/default/low-signal-history.md",
         }),
         expect.objectContaining({
           check_name: "failed-without-attachments",
-          subject: "tests/default/low-signal-history.md",
+          subject_ref: "tests/default/low-signal-history.md",
         }),
       ]),
     );
@@ -1172,21 +2112,25 @@ notes:
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const testContent = await readFile(join(outputDir, "tests", "default", "retry-evidence-history.md"), "utf-8");
+    const testContent = await readText(
+      join(outputDir, "tests", "default", "retry-evidence-history.md"),
+      "text/markdown",
+    );
     const findingsManifest = await readJsonl<{
       check_name: string;
       severity: "info" | "warning" | "high";
-      subject: string;
+      subject?: unknown;
+      subject_ref?: string;
     }>(join(outputDir, "manifest", "findings.jsonl"));
 
-    expect(testContent).toContain("retries-without-new-evidence");
+    expect(testContent).toContain("Retries did not add any new observable evidence.");
     expect(testContent).toContain("## Retry 1");
     expect(findingsManifest).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           check_name: "retries-without-new-evidence",
           severity: "info",
-          subject: "tests/default/retry-evidence-history.md",
+          subject_ref: "tests/default/retry-evidence-history.md",
         }),
       ]),
     );

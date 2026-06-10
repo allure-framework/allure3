@@ -9,7 +9,8 @@ import {
   readLatestAgentState,
   resolveAgentStateDir,
   writeLatestAgentState,
-} from "../../src/utils/agent-state.js";
+} from "../src/state.js";
+import { attachJsonEvidence } from "./evidence.js";
 
 vi.mock("node:os", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -40,13 +41,21 @@ describe("agent-state utils", () => {
     const normalizedCwd = resolve(cwd);
     const projectHash = createHash("sha256").update(normalizedCwd).digest("hex").slice(0, 16);
     const statePath = join("/tmp", `allure-agent-state-${projectHash}`, "latest.json");
-
-    await writeLatestAgentState({
+    const latestState = {
       cwd,
       outputDir: "/tmp/allure-agent-123",
       command: "npm test",
       startedAt: "2026-04-15T18:00:00.000Z",
-      status: "running",
+      status: "running" as const,
+    };
+
+    await writeLatestAgentState(latestState);
+
+    await attachJsonEvidence("latest state write contract", {
+      normalizedCwd,
+      projectHash,
+      statePath,
+      latestState,
     });
 
     expect(fsModule.mkdir).toHaveBeenCalledWith(dirname(statePath), { recursive: true });
