@@ -13,7 +13,7 @@ import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
-import { activePane, focusTreePane } from "@/stores/keyboard";
+import { focusTreePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
 import {

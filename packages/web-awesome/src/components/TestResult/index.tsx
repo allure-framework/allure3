@@ -13,7 +13,7 @@ import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
 import { TrTabs } from "@/components/TestResult/TrTabs";
 import { fetchTestEnvGroup } from "@/stores/env";
-import { activePane, focusTestResultPane } from "@/stores/keyboard";
+import { focusTestResultPane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { trCurrentTab } from "@/stores/testResult";
 
