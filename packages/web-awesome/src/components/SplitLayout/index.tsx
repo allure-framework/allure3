@@ -62,13 +62,7 @@ export const SplitLayout = () => {
         }}
       />
     ) : (
-      <div
-        className={clsx(
-          styles.empty,
-          isSplitMode.value && styles["empty-split-pane"],
-          isSplitMode.value && activePane.value === "testResult" && styles["pane-active"],
-        )}
-      >
+      <div className={clsx(styles.empty, isSplitMode.value && styles["empty-split-pane"])}>
         <Text>{t("noSelectedTR")}</Text>
       </div>
     );

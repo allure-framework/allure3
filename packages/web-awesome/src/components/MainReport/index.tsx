@@ -129,15 +129,9 @@ const MainReport = () => {
     return null;
   };
 
-  const treePaneActive = isSplitMode.value && activePane.value === "tree";
-
   return (
     <div
-      className={clsx(
-        styles.content,
-        isSplitMode.value && styles["scroll-inside"],
-        treePaneActive && styles["pane-active"],
-      )}
+      className={clsx(styles.content, isSplitMode.value && styles["scroll-inside"])}
       onMouseDown={() => focusTreePane()}
     >
       <div className={styles["main-report-header"]}>
@@ -146,7 +140,7 @@ const MainReport = () => {
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
           <RootTabRouteSync />
-          <div className={styles["main-report-tabs-layout"]}>
+          <div>
             <div className={styles["main-report-tabs-nav"]}>
               <NavTabsList>
                 <Loadable

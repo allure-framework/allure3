@@ -12,8 +12,10 @@
 .wrapper {
   max-width: 920px;
   width: 100%;
+  display: flex;
   flex-direction: column;
-  margin: auto;
+  margin: 0 auto;
+  min-height: 100%;
 }
 
 .content {

@@ -59,7 +59,6 @@ const TrContent: FunctionalComponent<TrContentProps> = ({ testResult }) => {
 
 const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
   const split = isSplitMode.value;
-  const trPaneActive = split && activePane.value === "testResult";
 
   useEffect(() => {
     const testCaseId = testResult?.testCase?.id;
@@ -72,7 +71,7 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
   return (
     <>
       <div
-        className={clsx(styles.content, split && styles["scroll-inside"], trPaneActive && styles["pane-active"])}
+        className={clsx(styles.content, split && styles["scroll-inside"])}
         data-tr-scroll-container
         onMouseDown={() => focusTestResultPane()}
       >
