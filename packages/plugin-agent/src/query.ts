@@ -4,14 +4,25 @@ import { join } from "node:path";
 import type { TestLabel, TestStatus } from "@allurereport/core-api";
 
 import { AgentUsageError } from "./errors.js";
-import type { AgentFindingCategory, AgentFindingSeverity, AgentOutputBundle, AgentTestManifestLine } from "./harness.js";
+import type {
+  AgentFindingCategory,
+  AgentFindingSeverity,
+  AgentOutputBundle,
+  AgentTestManifestLine,
+} from "./harness.js";
 import type { AgentLabelFilter } from "./selection.js";
 
 export const AGENT_QUERY_SCHEMA = "allure-agent-query/v1";
 export const AGENT_QUERY_VIEWS = ["summary", "tests", "findings", "test"] as const;
 export const AGENT_TEST_STATUSES: TestStatus[] = ["failed", "broken", "unknown", "skipped", "passed"];
 export const AGENT_FINDING_SEVERITIES: AgentFindingSeverity[] = ["high", "warning", "info"];
-export const AGENT_FINDING_CATEGORIES: AgentFindingCategory[] = ["bootstrap", "scope", "metadata", "evidence", "smells"];
+export const AGENT_FINDING_CATEGORIES: AgentFindingCategory[] = [
+  "bootstrap",
+  "scope",
+  "metadata",
+  "evidence",
+  "smells",
+];
 
 export type AgentQueryView = (typeof AGENT_QUERY_VIEWS)[number];
 
@@ -213,7 +224,9 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
   }
 
   if (matched.length > 1) {
-    throw new AgentUsageError(`Query matched ${matched.length} tests in ${output.outputDir}. Use --test <full-name-or-id>.`);
+    throw new AgentUsageError(
+      `Query matched ${matched.length} tests in ${output.outputDir}. Use --test <full-name-or-id>.`,
+    );
   }
 
   const test = matched[0];

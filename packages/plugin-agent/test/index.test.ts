@@ -769,9 +769,9 @@ describe("AgentPlugin", () => {
     expect(content).toContain("missing attachment");
     expect(content).toContain("screenshot.png");
     expect(content).toContain("fixture.log");
-    expect(
-      await readText(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png")),
-    ).toBe("png-bytes");
+    expect(await readText(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png"))).toBe(
+      "png-bytes",
+    );
     expect(await readText(join(outputDir, "tests", "default", "artifact-history.assets", "fixture.log"))).toBe(
       "fixture log",
     );

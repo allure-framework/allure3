@@ -147,8 +147,14 @@ export const buildAgentInlineExpectations = (
   addLabelValues(expectedLabels, options.expectLabels, "--expect-label");
   addLabelValues(forbiddenLabels, options.forbidLabels, "--forbid-label");
 
-  const expectTests = readNonNegativeInteger(readSingleStringOption(options.expectTests, "--expect-tests"), "--expect-tests");
-  const expectSteps = readPositiveInteger(readSingleStringOption(options.expectSteps, "--expect-steps"), "--expect-steps");
+  const expectTests = readNonNegativeInteger(
+    readSingleStringOption(options.expectTests, "--expect-tests"),
+    "--expect-tests",
+  );
+  const expectSteps = readPositiveInteger(
+    readSingleStringOption(options.expectSteps, "--expect-steps"),
+    "--expect-steps",
+  );
   const expectAttachments = readPositiveInteger(
     readSingleStringOption(options.expectAttachments, "--expect-attachments"),
     "--expect-attachments",

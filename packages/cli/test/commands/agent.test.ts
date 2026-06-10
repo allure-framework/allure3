@@ -523,7 +523,9 @@ describe("agent command", () => {
       command: "npm test",
       error: expect.any(AgentExpectationUsageError),
     });
-    expect(consoleModule.error).toHaveBeenCalledWith("Use either --expectations <file> or inline expectation flags, not both");
+    expect(consoleModule.error).toHaveBeenCalledWith(
+      "Use either --expectations <file> or inline expectation flags, not both",
+    );
     expect(executeAllureRun).not.toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(1);
   });
