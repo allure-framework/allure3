@@ -2767,7 +2767,6 @@ const buildRunAndTestFindings = (params: {
 
   if (expectations) {
     const allFullNames = entries.map(({ tr }) => tr.fullName ?? tr.name);
-    const targetEntries = getExpectationTargetEntries(entries, expectations);
     const hasRuntimeControls = runtimeMatchingControlCount(expectations) > 0;
     const genericGoal = expectations.goal ? normalizeStepText(expectations.goal).replace(/[^\p{L}\p{N}\s]/gu, "") : "";
 
