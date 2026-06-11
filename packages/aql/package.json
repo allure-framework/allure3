@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/aql",
-  "version": "3.10.0",
+  "version": "3.11.0",
   "description": "Allure Query Language implementation in TypeScript",
   "keywords": [
     "allure",

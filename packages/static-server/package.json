@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.10.0",
+  "version": "3.11.0",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
