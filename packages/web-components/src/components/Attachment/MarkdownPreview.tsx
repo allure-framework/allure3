@@ -46,6 +46,7 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
     <meta charset="utf-8">
     <style>:root {${iframeThemeVars}}</style>
     <style>${proseStyles}</style>
+    <style>html, body { margin: 0; } body { padding: 8px 0; }</style>
   </head>
   <body>${sanitized}</body>
 </html>`;
@@ -67,13 +68,13 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
   }
 
   return (
-    <div className={styles["html-attachment-preview"]} data-testid="markdown-attachment-preview">
+    <div className={styles["markdown-attachment-preview"]} data-testid="markdown-attachment-preview">
       {blobUrl && (
         <iframe
           title="Markdown attachment"
           src={blobUrl}
           width="100%"
-          height={height ? String(height) : "100%"}
+          height={height || undefined}
           frameBorder={0}
           sandbox="allow-same-origin"
           onLoad={handleLoad}

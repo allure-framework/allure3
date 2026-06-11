@@ -6,17 +6,13 @@
   background: var(--color-bg-primary);
   border-radius: 12px;
   width: 100%;
+  flex: 1 1 auto;
 }
 
 .scroll-inside {
   display: flex;
   flex-direction: column;
   border-radius: 0;
-  @include paneActive.split-pane-indicator;
-
-  &.pane-active {
-    @include paneActive.split-pane-indicator-active;
-  }
 }
 
 .main-report-header {
