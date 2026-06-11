@@ -60,12 +60,7 @@ export const TreeList = () => {
     const flatNode = getFlatTreeNode(focusedId);
     const kind = flatNode?.kind;
 
-    // For group/env nodes always pin to top (even when already visible in viewport)
-    if (kind === "group" || kind === "env") {
-      (node as HTMLElement).scrollIntoView({ block: "start", inline: "nearest" });
-    } else {
-      scrollFocusIntoView(node, { kind });
-    }
+    scrollFocusIntoView(node, { kind });
   }, [focusedId]);
 
   useLayoutEffect(() => {

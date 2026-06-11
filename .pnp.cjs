@@ -18651,7 +18651,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["launch-editor", "npm:2.9.1"],\
           ["picocolors", "npm:1.0.0"],\
-          ["shell-quote", "npm:1.8.1"]\
+          ["shell-quote", "npm:1.8.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -19911,7 +19911,7 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["pidtree", "npm:0.6.0"],\
           ["read-package-json-fast", "npm:4.0.0"],\
-          ["shell-quote", "npm:1.8.1"],\
+          ["shell-quote", "npm:1.8.4"],\
           ["which", "npm:5.0.0"]\
         ],\
         "linkType": "HARD"\
@@ -23039,10 +23039,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["shell-quote", [\
-      ["npm:1.8.1", {\
-        "packageLocation": "./.yarn/cache/shell-quote-npm-1.8.1-fcccf06093-af19ab5a1e.zip/node_modules/shell-quote/",\
+      ["npm:1.8.4", {\
+        "packageLocation": "./.yarn/cache/shell-quote-npm-1.8.4-13eacaabff-a3e3796385.zip/node_modules/shell-quote/",\
         "packageDependencies": [\
-          ["shell-quote", "npm:1.8.1"]\
+          ["shell-quote", "npm:1.8.4"]\
         ],\
         "linkType": "HARD"\
       }]\
