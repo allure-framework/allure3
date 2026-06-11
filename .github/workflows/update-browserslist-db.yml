@@ -1,0 +1,96 @@
+name: Update Browserslist DB
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 1 * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-browserslist-db
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update Browserslist DB
+    runs-on: ubuntu-latest
+    env:
+      BASE_BRANCH: ${{ github.event.repository.default_branch }}
+      # Prefer a PAT or GitHub App token so generated PRs trigger normal pull_request checks.
+      GH_TOKEN: ${{ secrets.BROWSERSLIST_UPDATE_TOKEN || github.token }}
+      UPDATE_BRANCH: chore/update-browserslist-db
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.BROWSERSLIST_UPDATE_TOKEN || github.token }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+
+      - name: Update Browserslist DB
+        run: yarn dlx -p update-browserslist-db@latest -p browserslist@latest update-browserslist-db
+
+      - name: Verify updated install
+        run: yarn install --immutable --immutable-cache --check-cache
+
+      - name: Check for changes
+        id: changes
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build project
+        if: steps.changes.outputs.has_changes == 'true'
+        run: yarn build
+
+      - name: Create or update pull request
+        if: steps.changes.outputs.has_changes == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$UPDATE_BRANCH"
+          git add -A yarn.lock .yarn/cache .pnp.cjs .pnp.loader.mjs
+
+          if git diff --cached --quiet; then
+            echo "No Browserslist DB changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: update Browserslist DB"
+          git push --force-with-lease origin "$UPDATE_BRANCH"
+
+          cat > "$RUNNER_TEMP/browserslist-pr-body.md" <<'BODY'
+          Updates the Browserslist `caniuse-lite` database used by frontend build tooling.
+
+          This keeps the resolved browser targets current for the existing support policy without changing that policy.
+          BODY
+
+          pr_number="$(gh pr list --head "$UPDATE_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number')"
+
+          if [[ -n "$pr_number" ]]; then
+            gh pr edit "$pr_number" \
+              --title "chore: update Browserslist DB" \
+              --body-file "$RUNNER_TEMP/browserslist-pr-body.md"
+          else
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$UPDATE_BRANCH" \
+              --title "chore: update Browserslist DB" \
+              --body-file "$RUNNER_TEMP/browserslist-pr-body.md"
+          fi

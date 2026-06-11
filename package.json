@@ -68,5 +68,10 @@
     "webpack": "^5.105.0",
     "ws": "8.20.1"
   },
+  "browserslist": [
+    "last 2 versions",
+    "> 0.2%",
+    "not dead"
+  ],
   "packageManager": "yarn@4.15.0"
 }
