@@ -17,7 +17,7 @@
     "clean": "rimraf dist",
     "dev": "webpack serve --mode development",
     "build": "run-s clean 'build:prod'",
-    "build:prod": "webpack --mode production",
+    "build:prod": "BROWSERSLIST_IGNORE_OLD_DATA=1 NODE_NO_WARNINGS=1 webpack --mode production --stats errors-only",
     "build:dev": "webpack --mode development",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
