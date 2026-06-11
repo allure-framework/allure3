@@ -1,5 +1,7 @@
+import { dirname, resolve } from "node:path";
+
 import { resolveAgentSelectionOutputDir, selectAgentTestPlan } from "@allurereport/plugin-agent";
-import { epic, feature, label, story } from "allure-js-commons";
+import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -90,6 +92,8 @@ describe("agent select command", () => {
   it("should write the selected test plan and print selection summary when output is provided", async () => {
     const consoleModule = await import("node:console");
     const fsModule = await import("node:fs/promises");
+    const outputPath = resolve("/cwd", "./testplan.json");
+    const outputDir = dirname(outputPath);
 
     (resolveAgentSelectionOutputDir as Mock).mockResolvedValueOnce("/tmp/agent-output");
     (selectAgentTestPlan as Mock).mockResolvedValueOnce({
@@ -113,13 +117,18 @@ describe("agent select command", () => {
       "./testplan.json",
     ]);
 
-    expect(fsModule.mkdir).toHaveBeenCalledWith("/cwd", { recursive: true });
+    await attachment(
+      "selected test plan output path contract",
+      JSON.stringify({ outputPath, outputDir }, null, 2),
+      "application/json",
+    );
+    expect(fsModule.mkdir).toHaveBeenCalledWith(outputDir, { recursive: true });
     expect(fsModule.writeFile).toHaveBeenCalledWith(
-      "/cwd/testplan.json",
+      outputPath,
       `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    },\n    {\n      "selector": "suite feature B"\n    }\n  ]\n}\n`,
       "utf-8",
     );
-    expect(consoleModule.log).toHaveBeenNthCalledWith(1, "agent testplan: /cwd/testplan.json");
+    expect(consoleModule.log).toHaveBeenNthCalledWith(1, `agent testplan: ${outputPath}`);
     expect(consoleModule.log).toHaveBeenNthCalledWith(2, "agent selection source: /tmp/agent-output");
     expect(consoleModule.log).toHaveBeenNthCalledWith(3, "agent selection preset: failed");
     expect(consoleModule.log).toHaveBeenNthCalledWith(4, "agent selection tests: 2");
