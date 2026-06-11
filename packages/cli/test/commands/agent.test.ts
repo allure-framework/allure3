@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 
 import { readConfig } from "@allurereport/core";
 import {
@@ -359,7 +359,7 @@ describe("agent command", () => {
       }),
     );
     expect(logMock).toHaveBeenNthCalledWith(1, "agent output: /tmp/allure-agent-123");
-    expect(logMock).toHaveBeenNthCalledWith(2, "agent index: /tmp/allure-agent-123/index.md");
+    expect(logMock).toHaveBeenNthCalledWith(2, `agent index: ${join("/tmp/allure-agent-123", "index.md")}`);
     expect(logMock).toHaveBeenNthCalledWith(3, "npm test");
     expect(logMock.mock.invocationCallOrder[0]).toBeLessThan((executeAllureRun as Mock).mock.invocationCallOrder[0]);
     expect(writeLatestAgentState).toHaveBeenNthCalledWith(
@@ -437,7 +437,7 @@ describe("agent command", () => {
       },
     });
     expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${resolvedOutput}`);
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${resolvedOutput}/index.md`);
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${join(resolvedOutput, "index.md")}`);
     expect(consoleModule.log).toHaveBeenCalledWith(`agent expectations: ${resolvedExpectations}`);
   });
 
@@ -557,7 +557,7 @@ describe("agent command", () => {
     expect(readConfig).not.toHaveBeenCalled();
     expect(executeAllureRun).not.toHaveBeenCalled();
     expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${outputDir}`);
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${outputDir}/index.md`);
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${join(outputDir, "index.md")}`);
     expect(consoleModule.error).toHaveBeenCalledWith(
       'Invalid --expect-label "module". Expected the form name=value, for example module=cli',
     );
@@ -589,7 +589,7 @@ describe("agent command", () => {
     expect(readConfig).not.toHaveBeenCalled();
     expect(executeAllureRun).not.toHaveBeenCalled();
     expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${outputDir}`);
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${outputDir}/index.md`);
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${join(outputDir, "index.md")}`);
     expect(consoleModule.error).toHaveBeenCalledWith(
       "Could not load expectations from /cwd/expected.yaml: Expected a YAML or JSON object",
     );
