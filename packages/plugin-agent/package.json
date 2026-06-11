@@ -27,8 +27,8 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "yarn run -T oxlint --import-plugin src test features stories",
+    "lint:fix": "yarn run -T oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
