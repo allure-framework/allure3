@@ -9,6 +9,9 @@ import { collapsedTrees, isTreeOpened, setTreeOpened, toggleTree } from "@/store
 import { flattenTestResultOverview } from "@/utils/flattenTestResultOverview";
 export const testResultFocusId = signal<string | undefined>(undefined);
 
+/** Set only by explicit keyboard navigation (not auto-initialization). Controls scroll in useTestResultOverviewFocusScroll. */
+export const testResultScrollToId = signal<string | undefined>(undefined);
+
 export const isTestResultOverviewNavigationContext = (): boolean =>
   isTestResultHotkeysContext() && trCurrentTab.value === "overview";
 
@@ -52,6 +55,7 @@ export const moveTestResultFocus = (direction: MoveDirection): MoveFocusResult =
 
 export const setTestResultFocusId = (id: string | undefined) => {
   testResultFocusId.value = id;
+  testResultScrollToId.value = id;
 };
 
 export const ensureTestResultFocusId = () => {
@@ -87,6 +91,7 @@ effect(() => {
 
   if (trCurrentTab.value !== "overview") {
     testResultFocusId.value = undefined;
+    testResultScrollToId.value = undefined;
   }
 });
 
