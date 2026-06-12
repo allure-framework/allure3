@@ -19,6 +19,17 @@ vi.mock("@allurereport/ci", async (importOriginal) => {
   return {
     ...actual,
     detect: vi.fn(),
+    resolveGitHints: vi.fn(() => ({})),
+  };
+});
+
+vi.mock("@allurereport/git", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@allurereport/git")>();
+
+  return {
+    ...actual,
+    collectGitFacts: vi.fn(() => undefined),
+    isGitAvailable: vi.fn(() => true),
   };
 });
 
@@ -308,7 +319,7 @@ describe("testops plugin", () => {
 
       await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", []);
+      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", [], undefined);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
@@ -331,7 +342,11 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Custom Launch", fixtures.launchTags);
+      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(
+        "Custom Launch",
+        fixtures.launchTags,
+        undefined,
+      );
     });
 
     it("should create direct-token upload session when called from start", async () => {

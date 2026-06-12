@@ -82,10 +82,6 @@ export const mockRequests = () => {
       return createLaunchCategoriesBulkRequest(url, data, config);
     }
 
-    if (url === "/api/uaa/oauth/token") {
-      throw new Error("Unexpected OAuth token request: direct access token auth should be used");
-    }
-
     if (url === "/api/upload/start") {
       return startUploadRequest(url, data, config);
     }

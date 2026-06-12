@@ -21,6 +21,7 @@ export const PackagesList = () => {
 
   useEffect(() => {
     setPackagesStatus(currentTab.value as ClassicStatus);
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [currentTab.value]);
 
   return (

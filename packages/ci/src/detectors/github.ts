@@ -2,9 +2,8 @@ import { join } from "node:path/posix";
 
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
+import { resolveGithubPullRequestNumber } from "../helpers/github.js";
 import { getEnv } from "../utils.js";
-
-const pullRequestSuffixRe = /\/merge$/;
 
 const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
 
@@ -62,13 +61,12 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    const refName = getEnv("GITHUB_REF_NAME");
+    const pullRequestNumber = resolveGithubPullRequestNumber();
 
-    if (!pullRequestSuffixRe.test(refName)) {
+    if (!pullRequestNumber) {
       return "";
     }
 
-    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
     const serverUrl = getEnv("GITHUB_SERVER_URL");
     const repo = getRepo();
     const pathname = join(repo, "pull", pullRequestNumber);
@@ -77,13 +75,11 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestName(): string {
-    const refName = getEnv("GITHUB_REF_NAME");
+    const pullRequestNumber = resolveGithubPullRequestNumber();
 
-    if (!pullRequestSuffixRe.test(refName)) {
+    if (!pullRequestNumber) {
       return "";
     }
-
-    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
 
     return `Pull request #${pullRequestNumber}`;
   },

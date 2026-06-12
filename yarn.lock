@@ -161,6 +161,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allurereport/git@workspace:*, @allurereport/git@workspace:packages/git":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/git@workspace:packages/git"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@types/node": "npm:^20"
+    "@vitest/runner": "npm:^2"
+    "@vitest/snapshot": "npm:^2"
+    allure-vitest: "npm:^3"
+    rimraf: "npm:^6"
+    typescript: "npm:^5"
+    vitest: "npm:^4"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@allurereport/monorepo@workspace:."
@@ -409,6 +424,7 @@ __metadata:
   dependencies:
     "@allurereport/ci": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/git": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
@@ -18336,7 +18352,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:*, vitest@npm:^4.1.0":
+"vitest@npm:*, vitest@npm:^4, vitest@npm:^4.1.0":
   version: 4.1.8
   resolution: "vitest@npm:4.1.8"
   dependencies:
