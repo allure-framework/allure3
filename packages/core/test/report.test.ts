@@ -8,7 +8,7 @@ import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
-import { Attachment, epic, feature, label, story } from "allure-js-commons";
+import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -104,14 +104,19 @@ afterEach(() => {
 
 describe("report", () => {
   it("should not fail with the empty report", async () => {
-    const config = await resolveConfig({
-      name: "Allure Report",
-    });
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+      },
+      { plugins: {} },
+    );
 
     const allureReport = new AllureReport(config);
 
-    await allureReport.start();
-    await allureReport.done();
+    await step("complete empty report lifecycle without plugins", async () => {
+      await expect(allureReport.start()).resolves.toBeUndefined();
+      await expect(allureReport.done()).resolves.toBeUndefined();
+    });
   });
 
   it("should not allow call done() before start()", async () => {
