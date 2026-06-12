@@ -37,7 +37,7 @@ const fixtures = {
     jobUid: "job-uid",
     jobRunUid: "job-run-uid",
   } as unknown as CiDescriptor,
-  uploadStatus: "passed" as TestStatus,
+  uploadStatus: "broken" as TestStatus,
   testResults: [{ id: "0-0-0-0" } as TestResult, { id: "1-1-1-1" } as TestResult, { id: "2-2-2-2" } as TestResult],
   testOpsResults: [
     { id: 1, uuid: "0-0-0-0" },
@@ -321,7 +321,7 @@ describe("testops http client", () => {
           jobRunUid: fixtures.ci.jobRunUid,
           jobUid: fixtures.ci.jobUid,
           projectId: fixtures.projectId,
-          status: fixtures.uploadStatus,
+          status: "failed",
         },
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
