@@ -10,7 +10,7 @@ import type {
 } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { createServiceHttpClient } from "@allurereport/service";
-import { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
+import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
@@ -33,6 +33,7 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
+import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
 
 class TestOpsClientError extends AxiosError<{
@@ -211,7 +212,7 @@ export class TestOpsClient {
         jobRunUid: ci.jobRunUid,
         jobUid: ci.jobUid,
         projectId: this.#projectId,
-        status,
+        status: testStatusToLaunchStatus(status),
       },
     });
 

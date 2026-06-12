@@ -267,6 +267,8 @@ export type TestOpsLaunch = {
   lastModifiedDate: number;
 };
 
+export type TestOpsLaunchStatus = "passed" | "cancelled" | "unknown" | "failed";
+
 export interface TestResultWithAttachments extends TestResult {
   attachments: AttachmentLink[];
 }
