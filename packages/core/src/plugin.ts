@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { link, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
@@ -58,6 +59,8 @@ export class InMemoryReportFiles implements ReportFiles {
 
 export class FileSystemReportFiles implements ReportFiles {
   readonly #output: string;
+  readonly #contentHashToPath = new Map<string, string>();
+  readonly #pathToContentHash = new Map<string, string>();
   readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
@@ -67,17 +70,83 @@ export class FileSystemReportFiles implements ReportFiles {
   addFile = async (path: string, data: Buffer): Promise<string> => {
     const targetPath = resolvePathUnderOutputRoot(this.#output, path);
     const targetDirPath = dirname(targetPath);
+    const contentHash = createHash("sha256").update(data).digest("hex");
+    const targetPathHash = this.#pathToContentHash.get(targetPath);
+    const canonicalPath = this.#contentHashToPath.get(contentHash);
 
-    let createdDir = this.#createdDirs.get(targetDirPath);
+    await this.#ensureDir(targetDirPath);
+
+    if (targetPathHash === contentHash) {
+      return targetPath;
+    }
+
+    if (canonicalPath && canonicalPath !== targetPath) {
+      try {
+        await this.#replaceWithHardlink(canonicalPath, targetPath);
+        this.#pathToContentHash.set(targetPath, contentHash);
+        return targetPath;
+      } catch (error) {
+        if (!this.#isRecoverableHardlinkError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (targetPathHash && this.#contentHashToPath.get(targetPathHash) === targetPath) {
+      this.#contentHashToPath.delete(targetPathHash);
+    }
+
+    await this.#replaceWithFile(targetPath, data);
+    this.#contentHashToPath.set(contentHash, targetPath);
+    this.#pathToContentHash.set(targetPath, contentHash);
+
+    return targetPath;
+  };
+
+  #ensureDir = async (dirPath: string): Promise<void> => {
+    let createdDir = this.#createdDirs.get(dirPath);
 
     if (!createdDir) {
-      createdDir = mkdir(targetDirPath, { recursive: true });
-      this.#createdDirs.set(targetDirPath, createdDir);
+      createdDir = mkdir(dirPath, { recursive: true });
+      this.#createdDirs.set(dirPath, createdDir);
     }
 
     await createdDir;
-    await writeFile(targetPath, data, { encoding: "utf-8" });
+  };
 
-    return targetPath;
+  #replaceWithFile = async (targetPath: string, data: Buffer): Promise<void> => {
+    const tempPath = `${targetPath}.${randomUUID()}.tmp`;
+
+    try {
+      await writeFile(tempPath, data, { encoding: "utf-8" });
+      await rename(tempPath, targetPath);
+    } finally {
+      await rm(tempPath, { force: true });
+    }
+  };
+
+  #replaceWithHardlink = async (canonicalPath: string, targetPath: string): Promise<void> => {
+    const tempPath = `${targetPath}.${randomUUID()}.tmp`;
+
+    try {
+      await link(canonicalPath, tempPath);
+      await rename(tempPath, targetPath);
+    } finally {
+      await rm(tempPath, { force: true });
+    }
+  };
+
+  #isRecoverableHardlinkError = (error: unknown): boolean => {
+    if (!error || typeof error !== "object" || !("code" in error)) {
+      return false;
+    }
+
+    return (
+      error.code === "EXDEV" ||
+      error.code === "EPERM" ||
+      error.code === "EEXIST" ||
+      error.code === "ENOENT" ||
+      error.code === "EACCES"
+    );
   };
 }
