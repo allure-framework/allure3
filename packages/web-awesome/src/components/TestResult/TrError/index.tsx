@@ -83,7 +83,7 @@ export const TrError: FunctionalComponent<
                 size={"s"}
                 icon={allureIcons.lineGeneralCopy3}
                 onClick={() => {
-                  copyToClipboard(message);
+                  copyToClipboard(trace || message);
                 }}
               />
             </TooltipWrapper>
@@ -117,7 +117,7 @@ export const TrError: FunctionalComponent<
               size={"s"}
               icon={allureIcons.lineGeneralCopy3}
               onClick={() => {
-                copyToClipboard(message);
+                copyToClipboard(trace || message);
               }}
             />
           </TooltipWrapper>
