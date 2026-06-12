@@ -32,8 +32,8 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: 'yarn'
+          node-version: "24.14.x"
+          cache: "yarn"
 
       - name: "Yarn install"
         run: |
@@ -52,7 +52,7 @@ jobs:
           git push origin ${GITHUB_REF}
 
       - name: "Publish Github Release"
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v3
         with:
           route: POST /repos/${{ github.repository }}/releases
           tag_name: v${{ github.event.inputs.releaseVersion }}
