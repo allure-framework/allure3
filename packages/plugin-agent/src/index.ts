@@ -3,6 +3,12 @@ export {
   type AgentEvidenceExpectationInput,
   type AgentExpectationSelectorInput,
   type AgentExpectationsInput,
+  type AgentHumanReportEntry,
+  type AgentHumanReportError,
+  type AgentHumanReportMode,
+  type AgentHumanReportStatus,
+  type AgentHumanReportStatusName,
+  type AgentHumanReportStatusProvider,
   type AgentPluginOptions,
   parseAgentExpectations,
 } from "./model.js";

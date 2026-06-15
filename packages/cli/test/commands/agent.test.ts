@@ -1,6 +1,6 @@
 import { join, resolve } from "node:path";
 
-import { readConfig } from "@allurereport/core";
+import { readConfig, readRawConfig } from "@allurereport/core";
 import {
   AgentExpectationUsageError,
   AgentUsageError,
@@ -25,6 +25,7 @@ import {
   AgentStateDirCommand,
   createAgentCapabilities,
 } from "../../src/commands/agent.js";
+import { createAgentHumanReportConfig } from "../../src/commands/agent-human-report.js";
 import { executeAllureRun, executeNestedAllureCommand } from "../../src/commands/commons/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
@@ -58,9 +59,18 @@ vi.mock("@allurereport/core", async () => {
   return {
     AllureReport: AllureReportMock,
     readConfig: vi.fn(),
+    readRawConfig: vi.fn(),
     isFileNotFoundError: vi.fn().mockReturnValue(false),
   };
 });
+vi.mock("@allurereport/plugin-awesome", () => ({
+  default: vi.fn(function (this: Record<string, unknown>, options?: unknown) {
+    this.options = options;
+    this.start = vi.fn().mockResolvedValue(undefined);
+    this.done = vi.fn().mockResolvedValue(undefined);
+    this.info = vi.fn().mockResolvedValue(undefined);
+  }),
+}));
 vi.mock("../../src/commands/commons/run.js", () => ({
   executeAllureRun: vi.fn().mockResolvedValue({
     globalExitCode: {
@@ -129,6 +139,7 @@ beforeEach(async () => {
   (validateAgentExpectationsFile as Mock).mockReset();
   (writeInvalidAgentExpectationOutput as Mock).mockReset();
   (readConfig as Mock).mockReset();
+  (readRawConfig as Mock).mockReset();
   vi.mocked(glob).mockReset();
 
   (executeAllureRun as Mock).mockResolvedValue({
@@ -153,6 +164,7 @@ beforeEach(async () => {
     outputDir: "/tmp/allure-agent-123",
     generatedAt: "2026-06-10T16:00:00.000Z",
   });
+  (readRawConfig as Mock).mockResolvedValue({ plugins: {} });
   AllureReportMock.prototype.store = {
     allKnownIssues: vi.fn().mockResolvedValue([]),
   };
@@ -219,6 +231,7 @@ describe("agent command", () => {
         "allure agent select",
         "allure agent state-dir",
         "allure agent [--config",
+        "--report #0",
         "--expect-tests #0",
         "--expect-label #0",
         "--expect-test #0",
@@ -232,8 +245,12 @@ describe("agent command", () => {
       args: ["agent", "inspect", "--help"],
       expected: [
         "Inspect existing Allure results or dump archives in Allure agent mode",
+        "With the default --report auto mode",
+        "manifest/human-report.json",
+        "human-report manifest before regenerating anything",
         "$ allure agent inspect",
         "--dump #0",
+        "--report #0",
         "--report-name,--name #0",
         "--open",
         "--port #0",
@@ -280,6 +297,10 @@ describe("agent command", () => {
       args: ["agent", "latest", "--help"],
       expected: [
         "Print the latest Allure agent output directory and index path for the current project",
+        "When a user asks for a human-readable report from",
+        "the last run",
+        "manifest/human-report.json",
+        "usually awesome/index.html",
         "$ allure agent latest",
         "--cwd #0",
       ],
@@ -314,6 +335,19 @@ describe("agent command", () => {
 
     expect(payload).toEqual(createAgentCapabilities());
     expect(payload.commands.inspect.options).toContain("--dump");
+    expect(payload.commands.inspect.options).toContain("--report");
+    expect(payload.commands.run.options).toContain("--report");
+    expect(payload.output.files).toContain("manifest/human-report.json");
+    expect(payload.output.files).toContain("awesome/index.html");
+    expect(payload.humanReports.defaultMode).toBe("auto");
+    expect(payload.humanReports.statusManifest).toBe("manifest/human-report.json");
+    expect(payload.humanReports.defaultGeneratedPath).toBe("awesome/index.html");
+    expect(payload.humanReports.discovery).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("allure agent latest"),
+        expect.stringContaining("If the status is `generated`"),
+      ]),
+    );
   });
 
   it("should fail with usage error when command to run is missing", async () => {
@@ -338,7 +372,7 @@ describe("agent command", () => {
     expect(executeAllureRun).not.toHaveBeenCalled();
   });
 
-  it("should use an auto-created agent output dir and pass agent-only overrides to readConfig", async () => {
+  it("should use an auto-created agent output dir and pass agent-mode overrides to readConfig", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const consoleModule = await import("node:console");
     const logMock = consoleModule.log as Mock;
@@ -352,6 +386,7 @@ describe("agent command", () => {
           options: {
             outputDir: "/tmp/allure-agent-123",
             command: "npm test",
+            humanReport: expect.any(Function),
           },
         },
       },
@@ -364,6 +399,9 @@ describe("agent command", () => {
         qualityGate: undefined,
         allureService: undefined,
         plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "awesome",
+          }),
           expect.objectContaining({
             id: "agent",
           }),
@@ -415,7 +453,185 @@ describe("agent command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
-  it("should inspect repeated dump files and result directories into an agent-only output without running a command", async () => {
+  it("should disable human reports when --report off is used", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+
+    await run(AgentCommand, ["agent", "--report", "off", "--", "npm", "test"]);
+
+    expect(readRawConfig).not.toHaveBeenCalled();
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: [
+          expect.objectContaining({
+            id: "agent",
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("should reject unsupported human report modes", async () => {
+    const command = new AgentCommand();
+
+    command.report = "html";
+    command.commandToRun = ["--", "npm", "test"];
+
+    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+    expect(readConfig).not.toHaveBeenCalled();
+    expect(executeAllureRun).not.toHaveBeenCalled();
+  });
+
+  it("should use configured non-agent plugins when --report config is forced", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const customPlugin = {
+      id: "dashboard",
+      enabled: true,
+      options: {},
+      plugin: {
+        done: vi.fn(),
+      },
+    };
+
+    (readConfig as Mock)
+      .mockResolvedValueOnce({
+        plugins: [
+          customPlugin,
+          {
+            id: "agent",
+            enabled: true,
+            options: {},
+            plugin: {},
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        output: "./allure-report",
+        plugins: [
+          {
+            id: "agent",
+            enabled: true,
+            options: {
+              outputDir: "/tmp/allure-agent-123",
+            },
+            plugin: { name: "agent-plugin" },
+          },
+        ],
+      });
+
+    await run(AgentCommand, ["agent", "--report", "config", "--", "npm", "test"]);
+
+    expect(readConfig).toHaveBeenNthCalledWith(1, "/cwd", undefined, {
+      output: "/tmp/allure-agent-123",
+    });
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: [
+          expect.objectContaining({
+            id: "dashboard",
+          }),
+          expect.objectContaining({
+            id: "agent",
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("should generate the auto human report when the stored result count is at the threshold", async () => {
+    const humanReport = await createAgentHumanReportConfig({
+      mode: "auto",
+      cwd: "/cwd",
+      outputDir: "/tmp/allure-agent-123",
+    });
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1000 }, (_, index) => ({ id: `tr-${index}` }))),
+    };
+    const plugin = humanReport.plugins[0].plugin;
+
+    await plugin.start?.({} as any, store as any, {} as any);
+    await plugin.done?.({} as any, store as any);
+
+    expect(humanReport.status.status).toBe("generated");
+    expect(humanReport.status.result_count).toBe(1000);
+    expect(humanReport.status.path).toBe("awesome/index.html");
+    expect(humanReport.status.reports).toEqual([{ plugin_id: "awesome", path: "awesome/index.html" }]);
+  });
+
+  it("should skip the auto human report when the stored result count exceeds the threshold", async () => {
+    const humanReport = await createAgentHumanReportConfig({
+      mode: "auto",
+      cwd: "/cwd",
+      outputDir: "/tmp/allure-agent-123",
+    });
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
+    };
+    const plugin = humanReport.plugins[0].plugin;
+
+    await plugin.start?.({} as any, store as any, {} as any);
+    await plugin.done?.({} as any, store as any);
+
+    expect(humanReport.status.status).toBe("skipped");
+    expect(humanReport.status.result_count).toBe(1001);
+    expect(humanReport.status.path).toBeNull();
+    expect(humanReport.status.reason).toBe("result count 1001 exceeds threshold 1000");
+  });
+
+  it("should force the awesome human report beyond the auto threshold", async () => {
+    const humanReport = await createAgentHumanReportConfig({
+      mode: "awesome",
+      cwd: "/cwd",
+      outputDir: "/tmp/allure-agent-123",
+    });
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
+    };
+    const plugin = humanReport.plugins[0].plugin;
+
+    await plugin.start?.({} as any, store as any, {} as any);
+    await plugin.done?.({} as any, store as any);
+
+    expect(humanReport.status.status).toBe("generated");
+    expect(humanReport.status.result_count).toBe(1001);
+    expect(humanReport.status.path).toBe("awesome/index.html");
+  });
+
+  it("should force configured human reports beyond the auto threshold", async () => {
+    const configuredPlugin = {
+      id: "dashboard",
+      enabled: true,
+      options: {},
+      plugin: {
+        start: vi.fn(),
+        done: vi.fn(),
+      },
+    };
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [configuredPlugin],
+    });
+
+    const humanReport = await createAgentHumanReportConfig({
+      mode: "config",
+      cwd: "/cwd",
+      outputDir: "/tmp/allure-agent-123",
+    });
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
+    };
+    const plugin = humanReport.plugins[0].plugin;
+
+    await plugin.start?.({} as any, store as any, {} as any);
+    await plugin.done?.({} as any, store as any);
+
+    expect(configuredPlugin.plugin.done).toHaveBeenCalled();
+    expect(humanReport.status.status).toBe("generated");
+    expect(humanReport.status.result_count).toBe(1001);
+    expect(humanReport.status.path).toBe("dashboard/");
+  });
+
+  it("should inspect repeated dump files and result directories into agent-mode output without running a command", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const consoleModule = await import("node:console");
     const logMock = consoleModule.log as Mock;
@@ -485,6 +701,7 @@ describe("agent command", () => {
             outputDir: resolvedOutput,
             command:
               "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
+            humanReport: expect.any(Function),
           },
         },
       },
@@ -497,6 +714,9 @@ describe("agent command", () => {
         qualityGate: undefined,
         allureService: undefined,
         plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "awesome",
+          }),
           expect.objectContaining({
             id: "agent",
           }),
@@ -613,6 +833,7 @@ describe("agent command", () => {
           options: {
             outputDir: resolvedOutput,
             command: "npm test",
+            humanReport: expect.any(Function),
             expectationsPath: resolvedExpectations,
           },
         },
@@ -884,6 +1105,7 @@ describe("agent command", () => {
           options: {
             outputDir: resolvedOutput,
             command: "npm test",
+            humanReport: expect.any(Function),
             expectationsPath: resolvedExpectations,
           },
         },

@@ -16,7 +16,7 @@ import { BufferResultFile } from "@allurereport/reader-api";
 import { attachment, step, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AgentExpectationsInput } from "../src/index.js";
+import type { AgentExpectationsInput, AgentHumanReportStatus } from "../src/index.js";
 import { AgentPlugin } from "../src/plugin.js";
 import { attachJsonEvidence, attachTextEvidence } from "./evidence.js";
 
@@ -403,6 +403,92 @@ describe("AgentPlugin", () => {
 
     await expect(stat(join(optionDir, "index.md"))).resolves.toBeTruthy();
     await expect(stat(join(optionDir, "AGENTS.md"))).resolves.toBeTruthy();
+  });
+
+  it.each([
+    {
+      name: "generated",
+      status: {
+        schema_version: "allure-agent-human-report/v1",
+        mode: "auto",
+        status: "generated",
+        result_count: 1,
+        threshold: 1000,
+        path: "awesome/index.html",
+        reports: [{ plugin_id: "awesome", path: "awesome/index.html" }],
+        reason: null,
+        error: null,
+        generated_at: "2026-06-10T16:00:00.000Z",
+      } satisfies AgentHumanReportStatus,
+      expectedText: "- Path: [awesome/index.html](awesome/index.html)",
+    },
+    {
+      name: "skipped",
+      status: {
+        schema_version: "allure-agent-human-report/v1",
+        mode: "auto",
+        status: "skipped",
+        result_count: 1001,
+        threshold: 1000,
+        path: null,
+        reports: [],
+        reason: "result count 1001 exceeds threshold 1000",
+        error: null,
+      } satisfies AgentHumanReportStatus,
+      expectedText: "- Reason: result count 1001 exceeds threshold 1000",
+    },
+    {
+      name: "disabled",
+      status: {
+        schema_version: "allure-agent-human-report/v1",
+        mode: "off",
+        status: "disabled",
+        result_count: null,
+        threshold: 1000,
+        path: null,
+        reports: [],
+        reason: "disabled by --report off",
+        error: null,
+      } satisfies AgentHumanReportStatus,
+      expectedText: "- Reason: disabled by --report off",
+    },
+    {
+      name: "failed",
+      status: {
+        schema_version: "allure-agent-human-report/v1",
+        mode: "awesome",
+        status: "failed",
+        result_count: 1,
+        threshold: 1000,
+        path: null,
+        reports: [],
+        reason: null,
+        error: "single-file report failed",
+        errors: [{ plugin_id: "awesome", message: "single-file report failed" }],
+      } satisfies AgentHumanReportStatus,
+      expectedText: "- Error: single-file report failed",
+    },
+  ])("should write $name human report status to manifests and index", async ({ name, status, expectedText }) => {
+    const outputDir = join(tempDir, `human-report-${name}`);
+
+    await new AgentPlugin({ outputDir, humanReport: status }).done(createContext(), createStore());
+
+    const runManifest = await readJson<{
+      paths: {
+        human_report_manifest: string | null;
+      };
+      human_report: AgentHumanReportStatus | null;
+    }>(join(outputDir, "manifest", "run.json"));
+    const humanReportManifest = await readJson<AgentHumanReportStatus>(join(outputDir, "manifest", "human-report.json"));
+    const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
+
+    expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
+    expect(runManifest.human_report).toEqual(status);
+    expect(humanReportManifest).toEqual(status);
+    expect(indexContent).toContain("## Human Report");
+    expect(indexContent).toContain(`- Status: ${status.status}`);
+    expect(indexContent).toContain(`- Mode: ${status.mode}`);
+    expect(indexContent).toContain(expectedText);
   });
 
   it("should clean only managed entries before writing", async () => {

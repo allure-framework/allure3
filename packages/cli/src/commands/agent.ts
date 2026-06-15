@@ -32,6 +32,7 @@ import {
   writeLatestAgentState,
   writeInvalidAgentExpectationOutput,
   type AgentExpectationsInput,
+  type AgentHumanReportMode,
 } from "@allurereport/plugin-agent";
 import { Command, Option, UsageError } from "clipanion";
 
@@ -44,6 +45,7 @@ const readOptionalBoolean = (value: unknown): boolean => value === true;
 const readOptionalStringArray = (value: unknown): string[] | undefined => (Array.isArray(value) ? value : undefined);
 
 const formatAgentCommand = (args: string[]) => args.join(" ");
+const AGENT_HUMAN_REPORT_MODES = ["auto", "off", "awesome", "config"] as const;
 
 const formatAgentInspectCommand = (params: { dumps?: string[]; resultsDir?: string[] }) =>
   [
@@ -121,6 +123,18 @@ const throwCliUsageError = (error: unknown): never => {
   throw error;
 };
 
+const normalizeAgentHumanReportMode = (value: string | undefined): AgentHumanReportMode => {
+  if (value === undefined) {
+    return "auto";
+  }
+
+  if ((AGENT_HUMAN_REPORT_MODES as readonly string[]).includes(value)) {
+    return value as AgentHumanReportMode;
+  }
+
+  throw new UsageError(`Unsupported --report mode ${JSON.stringify(value)}. Use auto, off, awesome, or config.`);
+};
+
 export class AgentCapabilitiesCommand extends Command {
   static paths = [["agent", "capabilities"]];
 
@@ -148,9 +162,11 @@ export class AgentCommand extends Command {
 
   static usage = Command.Usage({
     description: "Run specified command in Allure agent mode",
-    details: "This command runs the specified command with an agent-only Allure profile.",
+    details:
+      "This command runs the specified command with an agent-mode Allure profile and optional human-readable report output. With the default --report auto mode, runs with 1000 or fewer stored visible logical results also write a single-file Awesome report at <output>/awesome/index.html and record its status in <output>/manifest/human-report.json. If a user asks for the report after a run, use `allure agent latest` to recover the output directory and check the human-report manifest before regenerating anything.",
     examples: [
-      ["agent -- npm test", "Run npm test and capture only the agent-mode output"],
+      ["agent -- npm test", "Run npm test and capture agent-mode output with the default human report policy"],
+      ["agent --report off -- npm test", "Run npm test and capture only the agent-mode artifacts"],
       [
         "agent --expectations ./expected.yaml -- npm test",
         "Run npm test with agent-mode expectations loaded from ./expected.yaml",
@@ -168,6 +184,11 @@ export class AgentCommand extends Command {
 
   output = Option.String("--output,-o", {
     description: "The output directory for agent artifacts. Absolute paths are accepted as well",
+  });
+
+  report = Option.String("--report", {
+    description:
+      "Human report mode: auto, off, awesome, or config. Auto writes awesome/index.html for 1000 or fewer stored visible results and records manifest/human-report.json (default: auto)",
   });
 
   expectations = Option.String("--expectations", {
@@ -258,6 +279,7 @@ export class AgentCommand extends Command {
     const configPath = readOptionalString(this.config);
     const configuredCwd = readOptionalString(this.cwd);
     const output = readOptionalString(this.output);
+    const reportMode = normalizeAgentHumanReportMode(readOptionalString(this.report));
     const expectations = readOptionalString(this.expectations);
 
     if (!args.length) {
@@ -309,6 +331,7 @@ export class AgentCommand extends Command {
         rerunPreset: readOptionalString(this.rerunPreset),
         rerunEnvironments: readOptionalStringArray(this.rerunEnvironments),
         rerunLabels: readOptionalStringArray(this.rerunLabels),
+        reportMode,
         args,
       });
     } catch (error) {
@@ -349,7 +372,7 @@ export class AgentInspectCommand extends Command {
   static usage = Command.Usage({
     description: "Inspect existing Allure results or dump archives in Allure agent mode",
     details:
-      "This command restores dump archives and reads existing Allure results directories, then writes agent-mode output without running a test command.",
+      "This command restores dump archives and reads existing Allure results directories, then writes agent-mode output and optional human-readable report output without running a test command. With the default --report auto mode, inputs with 1000 or fewer stored visible logical results also write a single-file Awesome report at <output>/awesome/index.html and record its status in <output>/manifest/human-report.json. If a user asks for the report after an inspect run, use `allure agent latest` to recover the output directory and check the human-report manifest before regenerating anything.",
     examples: [
       ["agent inspect ./allure-results", "Inspect an existing Allure results directory"],
       ["agent inspect ./packages/*/out/allure-results", "Inspect matching Allure results directories"],
@@ -383,6 +406,11 @@ export class AgentInspectCommand extends Command {
 
   output = Option.String("--output,-o", {
     description: "The output directory for agent artifacts. Absolute paths are accepted as well",
+  });
+
+  report = Option.String("--report", {
+    description:
+      "Human report mode: auto, off, awesome, or config. Auto writes awesome/index.html for 1000 or fewer stored visible results and records manifest/human-report.json (default: auto)",
   });
 
   reportName = Option.String("--report-name,--name", {
@@ -472,6 +500,7 @@ export class AgentInspectCommand extends Command {
     const configPath = readOptionalString(this.config);
     const configuredCwd = readOptionalString(this.cwd);
     const output = readOptionalString(this.output);
+    const reportMode = normalizeAgentHumanReportMode(readOptionalString(this.report));
     const dumps = readOptionalStringArray(this.dump) ?? [];
     const resultsDir = this.resultsDir as string[];
     const expectations = readOptionalString(this.expectations);
@@ -527,6 +556,7 @@ export class AgentInspectCommand extends Command {
         historyLimit: readOptionalString(this.historyLimit),
         hideLabels: readOptionalStringArray(this.hideLabels),
         dumps,
+        reportMode,
         resultsDir,
       });
     } catch (error) {
@@ -567,7 +597,7 @@ export class AgentLatestCommand extends Command {
   static usage = Command.Usage({
     description: "Print the latest Allure agent output directory and index path for the current project",
     details:
-      "This command prints the latest agent output directory and index.md path recorded for the resolved project cwd.",
+      "This command prints the latest agent output directory and index.md path recorded for the resolved project cwd. When a user asks for a human-readable report from the last run, use this output directory to check manifest/human-report.json; if its status is generated, the report path is relative to that same output directory, usually awesome/index.html.",
     examples: [
       ["agent latest", "Print the latest agent output directory and index path for the current project"],
       [

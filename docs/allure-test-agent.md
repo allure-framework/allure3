@@ -20,10 +20,11 @@ Refresh this section when Allure, test runners, CI, or project wrappers change. 
 Do not store the exact Allure version here. Version output is a runtime fact; this file stores the wrapper, last snapshot marker, and how to refresh capabilities.
 
 - Allure wrapper: `yarn allure`
-- Capability snapshot last checked: `2026-06-10`
+- Capability snapshot last checked: `2026-06-15`
 - Refresh capabilities with: `yarn allure --version`, `yarn allure agent capabilities --json`, and `yarn allure agent --help`
 - Agent execution: supported with `yarn allure agent -- <command>`; existing results or dump review with `yarn allure agent inspect <allure-results-dir-or-glob>` or `yarn allure agent inspect --dump <archive-or-glob>`
 - Output option: `--output <dir>` or `-o <dir>`; omitted output uses a fresh temporary directory
+- Human report option: `--report auto|off|awesome|config`; `auto` writes a single-file Awesome report at `awesome/index.html` when the stored visible result count is 1000 or fewer and records the state in `manifest/human-report.json`. If a human report is requested after a run, use `yarn allure agent latest` to recover the output directory and read `<output>/manifest/human-report.json` before regenerating anything.
 - Agent inspect input: positional Allure results directory patterns plus repeated `--dump <archive-or-glob>` for multiple CI dump archives; accepts generate-style configuration options such as `--config`, `--cwd`, `--report-name`, `--history-limit`, `--hide-labels`, and `--output`
 - Agent inspect output: `--output <dir>` writes the agentic output directory
 - Expectation controls: `--goal`, `--task-id`, `--expect-tests`, `--expect-test`, `--expect-prefix`, `--expect-label`, `--expect-env`, `--forbid-label`, `--expect-step-containing`, `--expect-steps`, `--expect-attachments`, `--expect-attachment`, and advanced `--expectations <yaml|json>`

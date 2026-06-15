@@ -172,6 +172,7 @@ const buildAgentQuerySummaryPayload = (output: AgentOutputBundle) => ({
   },
   summary: output.run.summary,
   modeling: output.run.modeling ?? null,
+  human_report: output.humanReport ?? output.run.human_report ?? null,
   check_summary: output.run.check_summary,
   paths: {
     index_md: resolveAgentOutputPath(output, output.run.paths.index_md),
@@ -180,6 +181,7 @@ const buildAgentQuerySummaryPayload = (output: AgentOutputBundle) => ({
     findings_manifest: resolveAgentOutputPath(output, output.run.paths.findings_manifest),
     test_events_manifest: resolveAgentOutputPath(output, output.run.paths.test_events_manifest),
     expected_manifest: resolveAgentOutputPath(output, output.run.paths.expected_manifest),
+    human_report_manifest: resolveAgentOutputPath(output, output.run.paths.human_report_manifest),
     process_logs: {
       stdout: resolveAgentOutputPath(output, output.run.paths.process_logs.stdout),
       stderr: resolveAgentOutputPath(output, output.run.paths.process_logs.stderr),

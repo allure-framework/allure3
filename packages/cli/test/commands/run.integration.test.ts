@@ -215,6 +215,12 @@ describe("run command integration", () => {
         output: {
           files: string[];
         };
+        humanReports: {
+          defaultMode: string;
+          statusManifest: string;
+          defaultGeneratedPath: string;
+          discovery: string[];
+        };
         unsupported: {
           discovery: boolean;
           localAgentService: boolean;
@@ -228,9 +234,11 @@ describe("run command integration", () => {
       expect(capabilities.commands.inspect.options).toContain("--dump");
       expect(capabilities.commands.inspect.options).toContain("--config");
       expect(capabilities.commands.inspect.options).toContain("--output");
+      expect(capabilities.commands.inspect.options).toContain("--report");
       expect(capabilities.commands.inspect.options).toContain("--report-name");
       expect(capabilities.commands.inspect.options).toContain("--history-limit");
       expect(capabilities.commands.inspect.options).toContain("--hide-labels");
+      expect(capabilities.commands.run.options).toContain("--report");
       expect(capabilities.commands.run.options).toContain("--expect-test");
       expect(capabilities.commands.latest.output).toEqual(["agent output: <dir>", "agent index: <dir>/index.md"]);
       expect(capabilities.commands.select.supported).toBe(true);
@@ -246,13 +254,24 @@ describe("run command integration", () => {
       expect(capabilities.expectations.inline.forbidden.fullNames).toBe(false);
       expect(capabilities.expectations.inline.evidence.attachmentFilters).toEqual(["name", "content-type"]);
       expect(capabilities.output.files).toContain("manifest/run.json");
+      expect(capabilities.output.files).toContain("manifest/human-report.json");
+      expect(capabilities.output.files).toContain("awesome/index.html");
+      expect(capabilities.humanReports.defaultMode).toBe("auto");
+      expect(capabilities.humanReports.statusManifest).toBe("manifest/human-report.json");
+      expect(capabilities.humanReports.defaultGeneratedPath).toBe("awesome/index.html");
+      expect(capabilities.humanReports.discovery).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining("allure agent latest"),
+          expect.stringContaining("If the status is `generated`"),
+        ]),
+      );
       expect(capabilities.unsupported.discovery).toBe(true);
       expect(capabilities.unsupported).not.toHaveProperty("query");
       expect(capabilities.unsupported.localAgentService).toBe(true);
     });
   }, 240_000);
 
-  it("runs the built agent command with an agent-only profile", async () => {
+  it("runs the built agent command with default human report output", async () => {
     const fixtureDir = join(tempDir, "built-agent");
     const homeDir = join(fixtureDir, "home");
     const outputDir = join(fixtureDir, "agent-output");
@@ -266,7 +285,7 @@ expected:
   environments:
     - default
 notes:
-  - The agent command should ignore configured report and export plugins.
+  - The agent command should generate the default single-file human report but ignore configured export plugins.
 `;
     const configSource = `
 export default {
@@ -384,25 +403,54 @@ console.log("emitted simple result");
       await expect(stat(join(outputDir, "manifest", "run.json"))).resolves.toBeTruthy();
       await expect(stat(join(outputDir, "manifest", "tests.jsonl"))).resolves.toBeTruthy();
       await expect(stat(join(outputDir, "manifest", "findings.jsonl"))).resolves.toBeTruthy();
+      await expect(stat(join(outputDir, "manifest", "human-report.json"))).resolves.toBeTruthy();
+      await expect(stat(join(outputDir, "awesome", "index.html"))).resolves.toBeTruthy();
 
       const runManifest = JSON.parse(await readFile(join(outputDir, "manifest", "run.json"), "utf-8")) as {
         command: string | null;
         expectations_present: boolean;
         paths: {
           expected_manifest: string | null;
+          human_report_manifest: string | null;
         };
+        human_report: {
+          mode: string;
+          status: string;
+          result_count: number | null;
+          threshold: number;
+          path: string | null;
+          reports: Array<{ plugin_id: string; path: string }>;
+        } | null;
       };
+      const humanReportManifest = JSON.parse(
+        await readFile(join(outputDir, "manifest", "human-report.json"), "utf-8"),
+      ) as NonNullable<typeof runManifest.human_report>;
       const agentsGuide = await readFile(join(outputDir, "AGENTS.md"), "utf-8");
+      const indexMarkdown = await readFile(join(outputDir, "index.md"), "utf-8");
       const findingsContent = await readFile(join(outputDir, "manifest", "findings.jsonl"), "utf-8");
 
       expect(runManifest.command).toBe(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(runManifest.expectations_present).toBe(true);
       expect(runManifest.paths.expected_manifest).toBe("manifest/expected.json");
+      expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
+      expect(runManifest.human_report).toEqual(humanReportManifest);
+      expect(humanReportManifest).toEqual(
+        expect.objectContaining({
+          mode: "auto",
+          status: "generated",
+          result_count: 1,
+          threshold: 1000,
+          path: "awesome/index.html",
+          reports: [{ plugin_id: "awesome", path: "awesome/index.html" }],
+        }),
+      );
       expect(agentsGuide).toContain("## Command Task Map");
       expect(agentsGuide).toContain("manifest/run.json");
+      expect(indexMarkdown).toContain("## Human Report");
+      expect(indexMarkdown).toContain("- Status: generated");
+      expect(indexMarkdown).toContain("- Path: [awesome/index.html](awesome/index.html)");
       expect(await pathExists(join(outputDir, "project"))).toBe(false);
       expect(findingsContent).toBe("");
-      expect(await pathExists(join(outputDir, "awesome"))).toBe(false);
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
