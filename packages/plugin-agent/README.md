@@ -104,6 +104,22 @@ The preferred CLI entrypoint is:
 npx allure agent -- npm test
 ```
 
+To analyze existing Allure results or dump archives downloaded from CI without
+rerunning tests, use `agent inspect`. Positional arguments match Allure results
+directories. `--dump` accepts paths or glob patterns and can be repeated for
+multiple jobs or environments:
+
+```shell
+npx allure agent inspect path/to/allure-results
+npx allure agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip
+npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to/allure-results
+```
+
+`agent inspect` accepts the same result inputs and configuration-style options as
+`allure generate`, including result directory globs, `--dump`, `--config`,
+`--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
+option writes the agentic output directory.
+
 You can provide compact inline expectations for the common review path:
 
 ```shell
@@ -284,6 +300,7 @@ support is unclear:
 - Use `allure --version`, `allure agent capabilities --json`, and `allure agent --help` before choosing flags when the local CLI surface is unknown.
 - Use `allure agent latest` to print the newest output directory and `index.md` path when `--output` was omitted.
 - Use `allure agent latest`, `state-dir`, `query`, `select`, and `--rerun-*` according to their loop/task/problem mapping instead of treating them as interchangeable helper commands.
+- Use `allure agent inspect <allure-results-dir-or-glob>` or `allure agent inspect --dump <archive-or-glob>` when you need agent-readable markdown and manifests from existing Allure results without rerunning tests locally; repeat `--dump` for multiple CI jobs or environments.
 - Use `allure agent query --latest summary|tests|findings|test` or `allure agent query --from <output-dir> ...` to inspect prior output as focused JSON before manually opening raw manifests.
 - Use `allure agent select --from <output-dir> --output <file>` when you want the CLI to write the test plan and print a short summary with the file path, source output, preset, and selected count.
 - When rerunning previous failures, use `allure agent --rerun-latest --rerun-preset failed -- <command>` or `allure agent --rerun-from <output-dir> --rerun-preset failed -- <command>` instead of manually rebuilding runner-specific test names.

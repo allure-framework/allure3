@@ -18,6 +18,15 @@ describe("agent capabilities", () => {
     await attachJsonEvidence("agent capabilities payload", payload);
     expect(payload.schema).toBe("allure-agent-capabilities/v1");
     expect(payload.commands.run.supported).toBe(true);
+    expect(payload.commands.run.usage).toContain("-- <command>");
+    expect(payload.commands.run.options).not.toContain("--dump");
+    expect(payload.commands.inspect.usage).toContain("allure agent inspect");
+    expect(payload.commands.inspect.options).toContain("--dump");
+    expect(payload.commands.inspect.options).toContain("--config");
+    expect(payload.commands.inspect.options).toContain("--output");
+    expect(payload.commands.inspect.options).toContain("--report-name");
+    expect(payload.commands.inspect.options).toContain("--history-limit");
+    expect(payload.commands.inspect.options).toContain("--hide-labels");
     expect(payload.commands.run.options).toContain("--expect-test");
     expect(payload.commands.latest.output).toEqual(["agent output: <dir>", "agent index: <dir>/index.md"]);
     expect(payload.commands.select.output).toEqual(["stdout-testplan-json", "file-testplan-json", "file-summary"]);
@@ -53,6 +62,7 @@ describe("agent capabilities", () => {
       "Agent task map:",
       "allure agent capabilities",
       "allure agent --goal ... -- <command>",
+      "allure agent inspect --dump <archive-or-glob>",
       "allure agent query --from <output-dir> tests",
       "allure agent select --from <output-dir>",
       "ALLURE_AGENT_STATE_DIR=<dir>",

@@ -74,6 +74,20 @@ For example:
 npx allure agent -- npm test
 ```
 
+To analyze existing Allure results or dump archives downloaded from CI without
+rerunning tests, use `agent inspect`:
+
+```bash
+npx allure agent inspect path/to/allure-results
+npx allure agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip
+npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to/allure-results
+```
+
+`agent inspect` accepts the same result inputs and configuration-style options as
+`allure generate`, including result directory globs, `--dump`, `--config`,
+`--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
+option writes the agentic output directory.
+
 `allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, accepts compact inline expectations such as `--goal`, `--expect-tests`, `--expect-test`, `--expect-label`, and `--expect-step-containing`, and can still load an expectations file with `--expectations` when needed. Configured presentation or export plugins such as Awesome or TestOps are ignored for that run.
 
 Agents and setup tools can inspect the local structured capability contract without scraping help text:

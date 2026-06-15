@@ -39,6 +39,38 @@ export const createAgentCapabilities = () =>
           "--rerun-label",
         ],
       },
+      inspect: {
+        supported: true,
+        usage: "allure agent inspect [options] [<allure-results-dir-or-glob> ...]",
+        inputs: ["allure-results-directories", "dump-archives"],
+        options: [
+          "--config",
+          "--cwd",
+          "--output",
+          "--report-name",
+          "--name",
+          "--dump",
+          "--open",
+          "--port",
+          "--history-limit",
+          "--hide-labels",
+          "--expectations",
+          "--goal",
+          "--task-id",
+          "--expect-tests",
+          "--expect-label",
+          "--expect-env",
+          "--expect-test",
+          "--expect-prefix",
+          "--expect-step-containing",
+          "--forbid-label",
+          "--expect-steps",
+          "--expect-attachments",
+          "--expect-attachment",
+          "--environment",
+          "--environment-name",
+        ],
+      },
       latest: {
         supported: true,
         usage: "allure agent latest [--cwd <dir>]",
@@ -144,6 +176,13 @@ export const AGENT_TASK_MAP_HELP = `Agent task map:
   allure agent --goal ... -- <command>
       Run a test command with runtime evidence, scope expectations, and
       agent-readable artifacts for review, debugging, smoke checks, or validation.
+
+  allure agent inspect [<allure-results-dir-or-glob> ...]
+  allure agent inspect --dump <archive-or-glob> [--dump <archive-or-glob> ...]
+      Restore one or more dump archives and/or read existing Allure results
+      directories, then produce agent-readable artifacts without executing a
+      test command. Use after downloading CI dump artifacts created by
+      allure run --dump or when local results already exist.
 
   allure agent latest
       Recover the newest agent output directory and index.md when --output was

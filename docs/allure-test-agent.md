@@ -22,8 +22,10 @@ Do not store the exact Allure version here. Version output is a runtime fact; th
 - Allure wrapper: `yarn allure`
 - Capability snapshot last checked: `2026-06-10`
 - Refresh capabilities with: `yarn allure --version`, `yarn allure agent capabilities --json`, and `yarn allure agent --help`
-- Agent execution: supported with `yarn allure agent -- <command>`
+- Agent execution: supported with `yarn allure agent -- <command>`; existing results or dump review with `yarn allure agent inspect <allure-results-dir-or-glob>` or `yarn allure agent inspect --dump <archive-or-glob>`
 - Output option: `--output <dir>` or `-o <dir>`; omitted output uses a fresh temporary directory
+- Agent inspect input: positional Allure results directory patterns plus repeated `--dump <archive-or-glob>` for multiple CI dump archives; accepts generate-style configuration options such as `--config`, `--cwd`, `--report-name`, `--history-limit`, `--hide-labels`, and `--output`
+- Agent inspect output: `--output <dir>` writes the agentic output directory
 - Expectation controls: `--goal`, `--task-id`, `--expect-tests`, `--expect-test`, `--expect-prefix`, `--expect-label`, `--expect-env`, `--forbid-label`, `--expect-step-containing`, `--expect-steps`, `--expect-attachments`, `--expect-attachment`, and advanced `--expectations <yaml|json>`
 - Latest/state directory recovery: `yarn allure agent latest`; `yarn allure agent state-dir`; `ALLURE_AGENT_STATE_DIR=<dir>` override
 - Selection/rerun support: `yarn allure agent select --latest|--from <dir>` and `yarn allure agent --rerun-latest|--rerun-from <dir> -- <command>`
@@ -86,6 +88,7 @@ Document only profiles that exist in this project. If a profile is inferred rath
 | feature/component | `yarn allure agent --goal <text> --expect-* -- yarn workspace <name> test <selector>` | Focused validation for one behavior or component | Depends on runner selector precision |
 | full | `yarn allure agent -- yarn test` | Broad workspace test signal | Cost may be high and process-tree tests may be environment-sensitive |
 | e2e | `yarn allure agent -- yarn workspace @allurereport/e2e test` or static-server e2e command | Browser workflow validation | Requires installed Playwright browsers/dependencies |
+| existing evidence review | `yarn allure agent inspect path/to/allure-results` or `yarn allure agent inspect --dump allure-results-<os>.zip` with repeated `--dump` for multiple jobs | Analyze existing local results or downloaded CI dump artifacts without rerunning tests locally | Cannot add missing live logs or evidence that was not captured in the results or dumps |
 
 ## Execution Signal And CI Trust
 
@@ -189,7 +192,7 @@ Do not create persistent output or expectation paths. Use unique temp paths for 
 - Rerun from latest/prior output: `yarn allure agent --rerun-latest -- <command>` or `yarn allure agent --rerun-from <output-dir> -- <command>`
 - Selection/test plan support: `yarn allure agent select --latest` or `--from <output-dir>` with `--preset review|failed|unsuccessful|all`
 - Parallel-run rule: output paths and expectation state must not be shared
-- CI artifact retention: CI uploads Allure result dumps, not agent output directories unless a job is changed to do so
+- CI artifact retention: CI uploads Allure result dumps, which can be analyzed with `yarn allure agent inspect --dump`; CI does not upload agent output directories unless a job is changed to do so
 
 ## Project Metadata Conventions
 

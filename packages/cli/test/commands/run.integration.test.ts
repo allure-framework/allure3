@@ -151,6 +151,7 @@ describe("run command integration", () => {
       expect(stdout).toContain("allure agent --help");
       expect(stdout).toContain("allure agent capabilities");
       expect(stdout).toContain("allure agent --goal ... -- <command>");
+      expect(stdout).toContain("allure agent inspect --dump <archive-or-glob>");
       expect(stdout).toContain("allure agent latest");
       expect(stdout).toContain("allure agent state-dir");
       expect(stdout).toContain("allure agent select --latest");
@@ -178,6 +179,10 @@ describe("run command integration", () => {
         schema: string;
         commands: {
           run: {
+            supported: boolean;
+            options: string[];
+          };
+          inspect: {
             supported: boolean;
             options: string[];
           };
@@ -219,6 +224,13 @@ describe("run command integration", () => {
       expect(stderr).toBe("");
       expect(capabilities.schema).toBe("allure-agent-capabilities/v1");
       expect(capabilities.commands.run.supported).toBe(true);
+      expect(capabilities.commands.inspect.supported).toBe(true);
+      expect(capabilities.commands.inspect.options).toContain("--dump");
+      expect(capabilities.commands.inspect.options).toContain("--config");
+      expect(capabilities.commands.inspect.options).toContain("--output");
+      expect(capabilities.commands.inspect.options).toContain("--report-name");
+      expect(capabilities.commands.inspect.options).toContain("--history-limit");
+      expect(capabilities.commands.inspect.options).toContain("--hide-labels");
       expect(capabilities.commands.run.options).toContain("--expect-test");
       expect(capabilities.commands.latest.output).toEqual(["agent output: <dir>", "agent index: <dir>/index.md"]);
       expect(capabilities.commands.select.supported).toBe(true);
