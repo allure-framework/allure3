@@ -24,6 +24,12 @@ describe("parsePullRequestNumberFromEventJson", () => {
     ).toBe("77");
   });
 
+  it("returns pull request number from top-level event payload number", () => {
+    expect(
+      parsePullRequestNumberFromEventJson(JSON.stringify({ number: 78, pull_request: { title: "Fix things" } })),
+    ).toBe("78");
+  });
+
   it("returns empty string for invalid JSON", () => {
     expect(parsePullRequestNumberFromEventJson("{not-json")).toBe("");
   });
@@ -91,6 +97,23 @@ describe("resolveGithubPullRequestNumber", () => {
 
     expect(resolveGithubPullRequestNumber()).toBe("77");
     expect(readFileSync).toHaveBeenCalledWith("/tmp/event.json", "utf-8");
+  });
+
+  it("resolves pull request id from top-level event payload number", () => {
+    (getEnv as Mock).mockImplementation((key: string) => {
+      const env: Record<string, string> = {
+        GITHUB_HEAD_REF: "feature/foo",
+        GITHUB_BASE_REF: "main",
+        GITHUB_REF: "refs/heads/main",
+        GITHUB_REF_NAME: "main",
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+      };
+
+      return env[key] ?? "";
+    });
+    (readFileSync as Mock).mockReturnValue(JSON.stringify({ number: 78, pull_request: { title: "Fix things" } }));
+
+    expect(resolveGithubPullRequestNumber()).toBe("78");
   });
 
   it("does not read event file when ref-based detection succeeds", () => {

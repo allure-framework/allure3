@@ -1,9 +1,9 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
+import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
-export const getJobRunUID = (): string => getEnv("CI_BUILD_NUMBER");
+export const getJobRunUID = (): string => getEnv("DRONE_BUILD_NUMBER");
 
 export const getJobRunURL = (): string => getEnv("DRONE_BUILD_LINK");
 
@@ -18,6 +18,59 @@ const getRepository = () => {
   const repoLink = getEnv("DRONE_REPO_LINK");
 
   return repoLink ? resolveRepositoryFromGitUrl(repoLink) : undefined;
+};
+
+const normalizeRepositoryUrl = (url: string): string =>
+  url
+    .trim()
+    .replace(/\.git\/?$/i, "")
+    .replace(/\/+$/, "");
+
+const getPullRequestNumber = (): string | undefined => {
+  const pullRequestNumber = getEnv("DRONE_PULL_REQUEST").trim();
+
+  return pullRequestNumber && pullRequestNumber !== "0" ? pullRequestNumber : undefined;
+};
+
+const getPullRequestUrlForProvider = (
+  provider: GitProvider,
+  repositoryUrl: string,
+  pullRequestNumber: string,
+): string => {
+  const normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+
+  switch (provider) {
+    case GitProvider.Github:
+      return `${normalizedRepositoryUrl}/pull/${pullRequestNumber}`;
+    case GitProvider.Gitlab:
+      return `${normalizedRepositoryUrl}/-/merge_requests/${pullRequestNumber}`;
+    case GitProvider.Bitbucket:
+      return `${normalizedRepositoryUrl}/pull-requests/${pullRequestNumber}`;
+    default:
+      return "";
+  }
+};
+
+const getSourceBranch = (): string | undefined => {
+  if (getEnv("DRONE_TAG")) {
+    return undefined;
+  }
+
+  const sourceBranch = getEnv("DRONE_SOURCE_BRANCH");
+
+  if (sourceBranch) {
+    return sourceBranch;
+  }
+
+  return getPullRequestNumber() ? undefined : getEnv("DRONE_BRANCH") || undefined;
+};
+
+const getTargetBranch = (): string | undefined => {
+  if (getEnv("DRONE_TAG")) {
+    return undefined;
+  }
+
+  return getEnv("DRONE_TARGET_BRANCH") || (getPullRequestNumber() ? getEnv("DRONE_BRANCH") : "") || undefined;
 };
 
 export const drone: CiDescriptor = {
@@ -56,18 +109,25 @@ export const drone: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("DRONE_BRANCH");
+    return getEnv("DRONE_TAG") ? "" : getEnv("DRONE_BRANCH");
   },
 
   get pullRequestUrl(): string {
-    const githubServer = getEnv("DRONE_GITHUB_SERVER") || "";
-    const gitlabServer = getEnv("DRONE_GITLAB_SERVER") || "";
-    const repoLink = getEnv("DRONE_REPO_LINK") || "";
-    const pullRequestNumber = getEnv("DRONE_PULL_REQUEST") || "";
+    const pullRequestNumber = getPullRequestNumber();
 
-    if (!pullRequestNumber || pullRequestNumber === "0") {
+    if (!pullRequestNumber) {
       return "";
     }
+
+    const repository = getRepository();
+
+    if (repository) {
+      return getPullRequestUrlForProvider(repository.provider, repository.url, pullRequestNumber);
+    }
+
+    const githubServer = normalizeRepositoryUrl(getEnv("DRONE_GITHUB_SERVER") || "");
+    const gitlabServer = normalizeRepositoryUrl(getEnv("DRONE_GITLAB_SERVER") || "");
+    const repoLink = normalizeRepositoryUrl(getEnv("DRONE_REPO_LINK") || "");
 
     if (githubServer && repoLink.startsWith(githubServer)) {
       return `${repoLink}/pull/${pullRequestNumber}`;
@@ -100,17 +160,17 @@ export const drone: CiDescriptor = {
   },
 
   get sourceBranch() {
-    return getEnv("DRONE_SOURCE_BRANCH") || getEnv("DRONE_BRANCH") || this.jobRunBranch || undefined;
+    return getSourceBranch();
   },
 
   get targetBranch() {
-    return getEnv("DRONE_TARGET_BRANCH") || undefined;
+    return getTargetBranch();
   },
 
   get pullRequest() {
-    const pullRequestNumber = getEnv("DRONE_PULL_REQUEST");
+    const pullRequestNumber = getPullRequestNumber();
 
-    return pullRequestNumber && pullRequestNumber !== "0"
+    return pullRequestNumber
       ? {
           id: pullRequestNumber,
           url: this.pullRequestUrl || undefined,

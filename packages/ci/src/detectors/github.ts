@@ -14,6 +14,32 @@ const getWorkflow = () => getEnv("GITHUB_WORKFLOW");
 
 const getRepo = () => getEnv("GITHUB_REPOSITORY");
 
+const isTagRef = (): boolean => getEnv("GITHUB_REF_TYPE") === "tag" || getEnv("GITHUB_REF").startsWith("refs/tags/");
+
+const getBranchFromRef = (): string => {
+  const ref = getEnv("GITHUB_REF");
+
+  if (ref.startsWith("refs/heads/")) {
+    return stripRefsHeads(ref);
+  }
+
+  if (ref.startsWith("refs/tags/") || ref.startsWith("refs/pull/")) {
+    return "";
+  }
+
+  return getEnv("GITHUB_REF_TYPE") === "branch" ? getEnv("GITHUB_REF_NAME") : "";
+};
+
+const getSourceBranch = (): string => {
+  const headRef = getEnv("GITHUB_HEAD_REF");
+
+  if (headRef) {
+    return headRef;
+  }
+
+  return isTagRef() ? "" : getBranchFromRef();
+};
+
 export const github: CiDescriptor = {
   type: CiType.Github,
 
@@ -57,8 +83,7 @@ export const github: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    // cut-off "refs/heads/" prefix
-    return (getEnv("GITHUB_HEAD_REF") || getEnv("GITHUB_REF")).replace("refs/heads/", "");
+    return getSourceBranch();
   },
 
   get pullRequestUrl(): string {
@@ -102,7 +127,7 @@ export const github: CiDescriptor = {
   },
 
   get sourceBranch() {
-    return getEnv("GITHUB_HEAD_REF") || stripRefsHeads(getEnv("GITHUB_REF") || "") || this.jobRunBranch || undefined;
+    return getSourceBranch() || undefined;
   },
 
   get targetBranch() {

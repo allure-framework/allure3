@@ -5,6 +5,10 @@ import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;
 const PIPELINE_REGEXP = /^(?:codepipeline\/)(.+)$/;
+const REF_PREFIX = "refs/";
+const BRANCH_REF_PREFIX = "refs/heads/";
+const TAG_REF_PREFIX = "refs/tags/";
+const GIT_SHA_REGEXP = /^[\da-f]{40}$/i;
 
 export const parseArnValues = (source: string): string[] => {
   if (!source) {
@@ -36,23 +40,78 @@ export const getPipelineName = (): string => {
   return initiator.match(PIPELINE_REGEXP)?.[1] ?? "";
 };
 
-const parseBranchFromSourceVersion = (sourceVersion?: string): string | undefined => {
-  const prefix = "refs/heads/";
-  const normalizedSourceVersion = sourceVersion ?? "";
+const stripCommitSuffix = (sourceVersion: string): string => sourceVersion.replace(/\^\{[^}]+\}$/, "");
 
-  if (normalizedSourceVersion.startsWith(prefix)) {
-    const branch = normalizedSourceVersion.slice(prefix.length).replace(/\^\{[^}]+\}$/, "");
+const parseBranchFromWebhookTrigger = (): string | undefined => {
+  const branchTrigger = getEnv("CODEBUILD_WEBHOOK_TRIGGER") || "";
+
+  if (branchTrigger.startsWith("branch/")) {
+    const branch = branchTrigger.slice("branch/".length);
 
     return branch || undefined;
   }
 
-  const branchTrigger = getEnv("CODEBUILD_WEBHOOK_TRIGGER") || "";
+  return undefined;
+};
 
-  if (branchTrigger.startsWith("branch/")) {
-    return branchTrigger.slice("branch/".length);
+const isTagWebhookTrigger = (): boolean => (getEnv("CODEBUILD_WEBHOOK_TRIGGER") || "").startsWith("tag/");
+
+const parseBranchFromSourceVersion = (sourceVersion?: string): string | undefined => {
+  const normalizedSourceVersion = stripCommitSuffix((sourceVersion ?? "").trim());
+
+  if (!normalizedSourceVersion) {
+    return undefined;
   }
 
-  return undefined;
+  if (normalizedSourceVersion.startsWith(BRANCH_REF_PREFIX)) {
+    const branch = normalizedSourceVersion.slice(BRANCH_REF_PREFIX.length);
+
+    return branch || undefined;
+  }
+
+  if (
+    normalizedSourceVersion.startsWith(TAG_REF_PREFIX) ||
+    normalizedSourceVersion.match(/^pr\/\d+$/i) ||
+    normalizedSourceVersion.match(/^refs\/pull\/\d+\//i)
+  ) {
+    return undefined;
+  }
+
+  if (normalizedSourceVersion.startsWith(REF_PREFIX)) {
+    return undefined;
+  }
+
+  const triggerBranch = parseBranchFromWebhookTrigger();
+
+  if (triggerBranch) {
+    return triggerBranch;
+  }
+
+  if (isTagWebhookTrigger() || GIT_SHA_REGEXP.test(normalizedSourceVersion)) {
+    return undefined;
+  }
+
+  return normalizedSourceVersion;
+};
+
+const parseBranchFromWebhookHeadRef = (headRef?: string): string | undefined => {
+  const normalizedHeadRef = (headRef ?? "").trim();
+
+  if (!normalizedHeadRef || normalizedHeadRef.startsWith(TAG_REF_PREFIX) || isTagWebhookTrigger()) {
+    return undefined;
+  }
+
+  if (normalizedHeadRef.startsWith(BRANCH_REF_PREFIX)) {
+    const branch = normalizedHeadRef.slice(BRANCH_REF_PREFIX.length);
+
+    return branch || undefined;
+  }
+
+  if (normalizedHeadRef.startsWith(REF_PREFIX)) {
+    return undefined;
+  }
+
+  return normalizedHeadRef;
 };
 
 const parsePullRequestFromSourceVersion = (sourceVersion?: string): string | undefined => {
@@ -222,10 +281,8 @@ export const amazon: CiDescriptor = {
   },
 
   get sourceBranch() {
-    const headRef = getEnv("CODEBUILD_WEBHOOK_HEAD_REF");
-
     return (
-      (headRef ? stripRefsHeads(headRef) : undefined) ||
+      parseBranchFromWebhookHeadRef(getEnv("CODEBUILD_WEBHOOK_HEAD_REF")) ||
       parseBranchFromSourceVersion(getEnv("CODEBUILD_SOURCE_VERSION")) ||
       this.jobRunBranch ||
       undefined

@@ -15,6 +15,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+const mockEnv = (vars: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => vars[key] ?? "");
+};
+
 describe("bitbucket", () => {
   describe("getJobURL", () => {
     it("should return the correct job URL", () => {
@@ -201,6 +205,31 @@ describe("bitbucket", () => {
       });
 
       expect(bitbucket.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("git fields", () => {
+    it("should normalize repository URLs from BITBUCKET_GIT_HTTP_ORIGIN", () => {
+      mockEnv({
+        BITBUCKET_REPO_FULL_NAME: "myorg/myrepo",
+        BITBUCKET_GIT_HTTP_ORIGIN: " https://x-token-auth:secret@bitbucket.org/myorg/myrepo.git/ ",
+        BITBUCKET_PR_ID: "123",
+      });
+
+      expect(bitbucket.repository).toEqual({
+        slug: "myorg/myrepo",
+        url: "https://bitbucket.org/myorg/myrepo",
+      });
+      expect(bitbucket.pullRequestUrl).toBe("https://bitbucket.org/myorg/myrepo/pull-requests/123");
+    });
+
+    it("should not map tag builds to branch fields", () => {
+      mockEnv({
+        BITBUCKET_TAG: "v1.0.0",
+      });
+
+      expect(bitbucket.jobRunBranch).toBe("");
+      expect(bitbucket.sourceBranch).toBeUndefined();
     });
   });
 });

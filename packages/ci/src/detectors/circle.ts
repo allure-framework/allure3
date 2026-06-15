@@ -20,6 +20,28 @@ const getRepository = () => {
   return repositoryUrl ? resolveRepositoryFromGitUrl(repositoryUrl) : undefined;
 };
 
+const getPullRequestUrl = (): string => {
+  const pullRequestUrl = getEnv("CIRCLE_PULL_REQUEST").trim();
+
+  if (pullRequestUrl) {
+    return pullRequestUrl;
+  }
+
+  return (
+    getEnv("CIRCLE_PULL_REQUESTS")
+      .split(",")
+      .map((url) => url.trim())
+      .find(Boolean) ?? ""
+  );
+};
+
+const getPullRequestNumber = (): string | undefined => {
+  const pullRequestUrl = getPullRequestUrl();
+  const pullRequestNumber = pullRequestUrl ? parsePullRequestNumberFromUrl(pullRequestUrl) : undefined;
+
+  return pullRequestNumber || getEnv("CIRCLE_PR_NUMBER") || undefined;
+};
+
 export const circle: CiDescriptor = {
   type: CiType.Circle,
 
@@ -46,7 +68,7 @@ export const circle: CiDescriptor = {
   },
 
   get jobName(): string {
-    const username = getEnv("CIRCLE_USERNAME");
+    const username = getEnv("CIRCLE_PROJECT_USERNAME") || getEnv("CIRCLE_USERNAME");
     const reponame = getEnv("CIRCLE_PROJECT_REPONAME");
 
     return `${username}/${reponame}`;
@@ -69,7 +91,7 @@ export const circle: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    return "";
+    return getPullRequestUrl();
   },
 
   get pullRequestName(): string {
@@ -96,8 +118,8 @@ export const circle: CiDescriptor = {
   },
 
   get pullRequest() {
-    const pullRequestUrl = getEnv("CIRCLE_PULL_REQUEST");
-    const pullRequestNumber = pullRequestUrl ? parsePullRequestNumberFromUrl(pullRequestUrl) : undefined;
+    const pullRequestUrl = getPullRequestUrl();
+    const pullRequestNumber = getPullRequestNumber();
 
     return pullRequestNumber
       ? {

@@ -298,7 +298,6 @@ export const projectLaunchGitContext = (
       repository,
       commit,
       branch: toBranchDto(classified.branch, providerType, repoWebUrl),
-      metadata: toStandaloneMetadata(context.localState),
     };
   }
 

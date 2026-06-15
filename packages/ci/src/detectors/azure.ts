@@ -1,7 +1,11 @@
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
-import { resolveRepositoryFromGitUrl, stripRefsHeads } from "../helpers/gitProvider.js";
+import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
+
+const REF_PREFIX = "refs/";
+const BRANCH_REF_PREFIX = "refs/heads/";
+const TAG_REF_PREFIX = "refs/tags/";
 
 export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI");
 
@@ -25,7 +29,35 @@ const mapAzureRepositoryProvider = (provider: string): GitProvider | undefined =
 const normalizeBranchRef = (branch?: string): string | undefined => {
   const trimmed = branch?.trim() ?? "";
 
-  return trimmed ? stripRefsHeads(trimmed) : undefined;
+  if (!trimmed || trimmed.startsWith(TAG_REF_PREFIX)) {
+    return undefined;
+  }
+
+  if (trimmed.startsWith(BRANCH_REF_PREFIX)) {
+    const branchName = trimmed.slice(BRANCH_REF_PREFIX.length);
+
+    return branchName || undefined;
+  }
+
+  if (trimmed.startsWith(REF_PREFIX)) {
+    return undefined;
+  }
+
+  return trimmed;
+};
+
+const getSourceBranch = (): string | undefined => {
+  const sourceBranch = getEnv("BUILD_SOURCEBRANCH");
+
+  if (sourceBranch) {
+    return normalizeBranchRef(sourceBranch);
+  }
+
+  return normalizeBranchRef(getEnv("BUILD_SOURCEBRANCHNAME"));
+};
+
+const getPullRequestId = (): string | undefined => {
+  return getEnv("SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") || getEnv("SYSTEM_PULLREQUEST_PULLREQUESTID") || undefined;
 };
 
 const getRepositoryUrl = () => getEnv("BUILD_REPOSITORY_URI") || getEnv("SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI");
@@ -74,24 +106,24 @@ export const azure: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("BUILD_SOURCEBRANCHNAME");
+    return getSourceBranch() ?? "";
   },
 
   get pullRequestUrl(): string {
     const repositoryProvider = getEnv("BUILD_REPOSITORY_PROVIDER");
     const repositoryUrl = getEnv("SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") || getEnv("BUILD_REPOSITORY_URI");
-    const pullRequestNumber = getEnv("SYSTEM_PULLREQUEST_PULLREQUESTNUMBER");
+    const pullRequestId = getPullRequestId();
 
-    if (!repositoryUrl || !pullRequestNumber) {
+    if (!repositoryUrl || !pullRequestId) {
       return "";
     }
 
     if (repositoryProvider === "GitHub") {
-      return `${repositoryUrl}/pull/${pullRequestNumber}`;
+      return `${repositoryUrl}/pull/${pullRequestId}`;
     }
 
     if (repositoryProvider === "TfsGit" || repositoryProvider === "TfsVersionControl") {
-      return `${repositoryUrl}/pullrequest/${pullRequestNumber}`;
+      return `${repositoryUrl}/pullrequest/${pullRequestId}`;
     }
 
     return "";
@@ -121,25 +153,19 @@ export const azure: CiDescriptor = {
   },
 
   get sourceBranch() {
-    return (
-      normalizeBranchRef(getEnv("SYSTEM_PULLREQUEST_SOURCEBRANCH")) ||
-      getEnv("BUILD_SOURCEBRANCHNAME") ||
-      this.jobRunBranch ||
-      undefined
-    );
+    return normalizeBranchRef(getEnv("SYSTEM_PULLREQUEST_SOURCEBRANCH")) || getSourceBranch() || undefined;
   },
 
   get targetBranch() {
     return (
       normalizeBranchRef(getEnv("SYSTEM_PULLREQUEST_TARGETBRANCH")) ||
-      getEnv("SYSTEM_PULLREQUEST_TARGETBRANCHNAME") ||
+      normalizeBranchRef(getEnv("SYSTEM_PULLREQUEST_TARGETBRANCHNAME")) ||
       undefined
     );
   },
 
   get pullRequest() {
-    const pullRequestNumber =
-      getEnv("SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") || getEnv("SYSTEM_PULLREQUEST_PULLREQUESTID");
+    const pullRequestNumber = getPullRequestId();
 
     return pullRequestNumber
       ? {

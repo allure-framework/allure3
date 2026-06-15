@@ -2,19 +2,29 @@ import { readFileSync } from "node:fs";
 
 import { getEnv } from "../utils.js";
 
-const pullRequestRefNameRe = /^(\d+)\/merge$/;
-const pullRequestMergeRefRe = /^refs\/pull\/(\d+)\/merge$/;
+const PULL_REQUEST_REF_NAME_RE = /^(\d+)\/merge$/;
+const PULL_REQUEST_MERGE_REF_RE = /^refs\/pull\/(\d+)\/merge$/;
+
+type GithubPullRequestEvent = {
+  number?: number | string;
+  pull_request?: {
+    number?: number | string;
+  };
+};
+
+const normalizePullRequestNumber = (value: number | string | undefined): string => {
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  return String(value);
+};
 
 export const parsePullRequestNumberFromEventJson = (content: string): string => {
   try {
-    const event = JSON.parse(content) as { pull_request?: { number?: number } };
-    const number = event?.pull_request?.number;
+    const event = JSON.parse(content) as GithubPullRequestEvent;
 
-    if (number === undefined || number === null) {
-      return "";
-    }
-
-    return String(number);
+    return normalizePullRequestNumber(event?.number ?? event?.pull_request?.number);
   } catch {
     return "";
   }
@@ -38,14 +48,14 @@ const readPullRequestNumberFromEventPath = (): string => {
 
 export const resolveGithubPullRequestNumber = (): string => {
   const refName = getEnv("GITHUB_REF_NAME") || "";
-  const refNameMatch = refName.match(pullRequestRefNameRe);
+  const refNameMatch = refName.match(PULL_REQUEST_REF_NAME_RE);
 
   if (refNameMatch) {
     return refNameMatch[1];
   }
 
   const githubRef = getEnv("GITHUB_REF") || "";
-  const mergeRefMatch = githubRef.match(pullRequestMergeRefRe);
+  const mergeRefMatch = githubRef.match(PULL_REQUEST_MERGE_REF_RE);
 
   if (mergeRefMatch) {
     return mergeRefMatch[1];

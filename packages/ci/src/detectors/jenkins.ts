@@ -9,6 +9,35 @@ const getRepository = () => {
   return gitUrl ? resolveRepositoryFromGitUrl(gitUrl) : undefined;
 };
 
+const isTagBuild = (): boolean => Boolean(getEnv("TAG_NAME"));
+
+const getGitPluginBranch = (): string | undefined => {
+  const localBranch = (getEnv("GIT_LOCAL_BRANCH") || "").trim();
+
+  if (localBranch) {
+    return localBranch;
+  }
+
+  const gitBranch = (getEnv("GIT_BRANCH") || "").trim();
+
+  if (!gitBranch) {
+    return undefined;
+  }
+
+  const normalizedBranch = gitBranch.replace(/^refs\/heads\//, "");
+  const remoteBranchMatch = normalizedBranch.match(/^(?:refs\/remotes\/|remotes\/)?[^/]+\/(.+)$/);
+
+  return remoteBranchMatch?.[1] ?? normalizedBranch;
+};
+
+const getBranchName = (): string | undefined => {
+  if (isTagBuild()) {
+    return undefined;
+  }
+
+  return getEnv("BRANCH_NAME") || getGitPluginBranch();
+};
+
 export const jenkins: CiDescriptor = {
   type: CiType.Jenkins,
 
@@ -51,7 +80,7 @@ export const jenkins: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("BRANCH_NAME");
+    return getBranchName() ?? "";
   },
 
   get pullRequestUrl(): string {
@@ -78,11 +107,15 @@ export const jenkins: CiDescriptor = {
   },
 
   get sourceBranch() {
-    return getEnv("CHANGE_BRANCH") || getEnv("BRANCH_NAME") || this.jobRunBranch || undefined;
+    if (isTagBuild()) {
+      return undefined;
+    }
+
+    return getEnv("CHANGE_BRANCH") || getBranchName();
   },
 
   get targetBranch() {
-    return getEnv("CHANGE_TARGET") || undefined;
+    return isTagBuild() ? undefined : getEnv("CHANGE_TARGET") || undefined;
   },
 
   get pullRequest() {

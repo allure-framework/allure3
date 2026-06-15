@@ -2,8 +2,32 @@ import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import { getEnv } from "../utils.js";
 
+const stripGitSuffix = (url: string): string => url.replace(/\.git\/?$/i, "");
+
+const getRepositoryUrl = (): string => {
+  const origin = (getEnv("BITBUCKET_GIT_HTTP_ORIGIN") || "").trim();
+
+  if (!origin) {
+    return "";
+  }
+
+  try {
+    const url = new URL(origin);
+
+    url.username = "";
+    url.password = "";
+    url.pathname = stripGitSuffix(url.pathname).replace(/\/+$/, "");
+    url.search = "";
+    url.hash = "";
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return stripGitSuffix(origin).replace(/\/+$/, "");
+  }
+};
+
 export const getJobURL = (): string => {
-  const origin = getEnv("BITBUCKET_GIT_HTTP_ORIGIN");
+  const origin = getRepositoryUrl();
 
   return `${origin}/pipelines`;
 };
@@ -54,7 +78,11 @@ export const bitbucket: CiDescriptor = {
       return "";
     }
 
-    const origin = getEnv("BITBUCKET_GIT_HTTP_ORIGIN");
+    const origin = getRepositoryUrl();
+
+    if (!origin) {
+      return "";
+    }
 
     return `${origin}/pull-requests/${prId}`;
   },
@@ -73,7 +101,7 @@ export const bitbucket: CiDescriptor = {
     return repositorySlug
       ? {
           slug: repositorySlug,
-          url: getEnv("BITBUCKET_GIT_HTTP_ORIGIN") || undefined,
+          url: getRepositoryUrl() || undefined,
         }
       : undefined;
   },

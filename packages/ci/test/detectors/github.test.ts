@@ -22,6 +22,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
+
 describe("github", () => {
   describe("detected", () => {
     it("should be true when GITHUB_ACTIONS is set", () => {
@@ -256,6 +260,27 @@ describe("github", () => {
       });
 
       expect(github.jobRunBranch).toBe("");
+    });
+
+    it("should return empty string for tag refs when ref type is tag", () => {
+      mockEnv({
+        GITHUB_REF: "refs/tags/v1.0.0",
+        GITHUB_REF_NAME: "v1.0.0",
+        GITHUB_REF_TYPE: "tag",
+      });
+
+      expect(github.jobRunBranch).toBe("");
+      expect(github.sourceBranch).toBeUndefined();
+    });
+
+    it("should return empty string for tag refs when ref type is unavailable", () => {
+      mockEnv({
+        GITHUB_REF: "refs/tags/v1.0.0",
+        GITHUB_REF_NAME: "v1.0.0",
+      });
+
+      expect(github.jobRunBranch).toBe("");
+      expect(github.sourceBranch).toBeUndefined();
     });
   });
 

@@ -70,6 +70,26 @@ describe("CI descriptor git fields", () => {
     expect(amazon.sourceBranch).toBe("feature/foo");
   });
 
+  it("maps CodeBuild unqualified branch source version", () => {
+    mockEnv({
+      CODEBUILD_SOURCE_REPO_URL: "https://github.com/myorg/myrepo.git",
+      CODEBUILD_SOURCE_VERSION: "feature/foo",
+    });
+
+    expect(amazon.sourceBranch).toBe("feature/foo");
+  });
+
+  it("does not map CodeBuild tag webhook as source branch", () => {
+    mockEnv({
+      CODEBUILD_SOURCE_REPO_URL: "https://github.com/myorg/myrepo.git",
+      CODEBUILD_SOURCE_VERSION: "v1.0.0",
+      CODEBUILD_WEBHOOK_TRIGGER: "tag/v1.0.0",
+      CODEBUILD_WEBHOOK_HEAD_REF: "refs/tags/v1.0.0",
+    });
+
+    expect(amazon.sourceBranch).toBeUndefined();
+  });
+
   it("maps github-backed Azure pipeline", () => {
     mockEnv({
       BUILD_REPOSITORY_PROVIDER: "GitHub",
@@ -91,6 +111,32 @@ describe("CI descriptor git fields", () => {
       id: "9",
       url: "https://github.com/myorg/myrepo/pull/9",
     });
+  });
+
+  it("maps Azure branch source ref with slashes", () => {
+    mockEnv({
+      BUILD_REPOSITORY_PROVIDER: "GitHub",
+      BUILD_REPOSITORY_URI: "https://github.com/myorg/myrepo",
+      BUILD_REPOSITORY_NAME: "myrepo",
+      BUILD_SOURCEBRANCH: "refs/heads/feature/foo",
+      BUILD_SOURCEBRANCHNAME: "foo",
+    });
+
+    expect(azure.sourceBranch).toBe("feature/foo");
+    expect(azure.jobRunBranch).toBe("feature/foo");
+  });
+
+  it("does not map Azure tag refs as source branch", () => {
+    mockEnv({
+      BUILD_REPOSITORY_PROVIDER: "GitHub",
+      BUILD_REPOSITORY_URI: "https://github.com/myorg/myrepo",
+      BUILD_REPOSITORY_NAME: "myrepo",
+      BUILD_SOURCEBRANCH: "refs/tags/v1.0.0",
+      BUILD_SOURCEBRANCHNAME: "v1.0.0",
+    });
+
+    expect(azure.sourceBranch).toBeUndefined();
+    expect(azure.jobRunBranch).toBe("");
   });
 
   it("omits Azure Repos git fields for unsupported host", () => {
@@ -126,6 +172,36 @@ describe("CI descriptor git fields", () => {
     });
   });
 
+  it("normalizes Bitbucket origin URLs before mapping git fields", () => {
+    mockEnv({
+      BITBUCKET_REPO_FULL_NAME: "myorg/myrepo",
+      BITBUCKET_GIT_HTTP_ORIGIN: "https://x-token-auth:secret@bitbucket.org/myorg/myrepo.git/",
+      BITBUCKET_BRANCH: "feature/foo",
+      BITBUCKET_PR_DESTINATION_BRANCH: "main",
+      BITBUCKET_PR_ID: "15",
+    });
+
+    expect(bitbucket.repository).toEqual({
+      slug: "myorg/myrepo",
+      url: "https://bitbucket.org/myorg/myrepo",
+    });
+    expect(bitbucket.pullRequest).toMatchObject({
+      id: "15",
+      url: "https://bitbucket.org/myorg/myrepo/pull-requests/15",
+    });
+  });
+
+  it("does not map Bitbucket tag builds as branch git fields", () => {
+    mockEnv({
+      BITBUCKET_REPO_FULL_NAME: "myorg/myrepo",
+      BITBUCKET_GIT_HTTP_ORIGIN: "https://bitbucket.org/myorg/myrepo",
+      BITBUCKET_TAG: "v1.0.0",
+    });
+
+    expect(bitbucket.sourceBranch).toBeUndefined();
+    expect(bitbucket.jobRunBranch).toBe("");
+  });
+
   it("maps CircleCI github repository metadata", () => {
     mockEnv({
       CIRCLE_REPOSITORY_URL: "https://github.com/myorg/myrepo",
@@ -145,12 +221,36 @@ describe("CI descriptor git fields", () => {
     });
   });
 
+  it("maps CircleCI pull request list fallback", () => {
+    mockEnv({
+      CIRCLE_REPOSITORY_URL: "https://github.com/myorg/myrepo",
+      CIRCLE_BRANCH: "feature/foo",
+      CIRCLE_PULL_REQUESTS: "https://github.com/myorg/myrepo/pull/55,https://github.com/myorg/myrepo/pull/56",
+    });
+
+    expect(circle.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/55");
+    expect(circle.pullRequest).toMatchObject({
+      id: "55",
+      url: "https://github.com/myorg/myrepo/pull/55",
+    });
+  });
+
+  it("does not map CircleCI tag builds as branch git fields", () => {
+    mockEnv({
+      CIRCLE_REPOSITORY_URL: "https://github.com/myorg/myrepo",
+      CIRCLE_TAG: "v1.0.0",
+    });
+
+    expect(circle.sourceBranch).toBeUndefined();
+    expect(circle.jobRunBranch).toBe("");
+  });
+
   it("maps Drone github pull request metadata", () => {
     mockEnv({
-      DRONE_GITHUB_SERVER: "https://github.com",
       DRONE_REPO_LINK: "https://github.com/myorg/myrepo",
       DRONE_PULL_REQUEST: "3",
-      DRONE_BRANCH: "feature/foo",
+      DRONE_SOURCE_BRANCH: "feature/foo",
+      DRONE_BRANCH: "main",
       DRONE_TARGET_BRANCH: "main",
       DRONE_PULL_REQUEST_TITLE: "Drone PR",
     });
@@ -167,6 +267,28 @@ describe("CI descriptor git fields", () => {
       url: "https://github.com/myorg/myrepo/pull/3",
       title: "Drone PR",
     });
+  });
+
+  it("does not map Drone pull request target branch as source branch", () => {
+    mockEnv({
+      DRONE_REPO_LINK: "https://github.com/myorg/myrepo",
+      DRONE_PULL_REQUEST: "3",
+      DRONE_BRANCH: "main",
+    });
+
+    expect(drone.sourceBranch).toBeUndefined();
+    expect(drone.targetBranch).toBe("main");
+  });
+
+  it("does not map Drone tag builds as branch git fields", () => {
+    mockEnv({
+      DRONE_REPO_LINK: "https://github.com/myorg/myrepo",
+      DRONE_BRANCH: "v1.0.0",
+      DRONE_TAG: "v1.0.0",
+    });
+
+    expect(drone.sourceBranch).toBeUndefined();
+    expect(drone.jobRunBranch).toBe("");
   });
 
   it("maps GitHub repository, branches, and pull request", () => {
@@ -205,6 +327,19 @@ describe("CI descriptor git fields", () => {
     expect(github.pullRequest).toBeUndefined();
   });
 
+  it("does not map GitHub tag refs as branch git fields", () => {
+    mockEnv({
+      GITHUB_REPOSITORY: "myorg/myrepo",
+      GITHUB_SERVER_URL: "https://github.com",
+      GITHUB_REF: "refs/tags/v1.0.0",
+      GITHUB_REF_NAME: "v1.0.0",
+      GITHUB_REF_TYPE: "tag",
+    });
+
+    expect(github.sourceBranch).toBeUndefined();
+    expect(github.jobRunBranch).toBe("");
+  });
+
   it("maps GitLab merge request metadata and branches", () => {
     mockEnv({
       CI_PROJECT_PATH: "myorg/myrepo",
@@ -230,6 +365,30 @@ describe("CI descriptor git fields", () => {
     });
   });
 
+  it("maps GitLab branch pipeline branch", () => {
+    mockEnv({
+      CI_PROJECT_PATH: "myorg/myrepo",
+      CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+      CI_COMMIT_BRANCH: "feature/foo",
+      CI_COMMIT_REF_NAME: "feature/foo",
+    });
+
+    expect(gitlab.sourceBranch).toBe("feature/foo");
+    expect(gitlab.jobRunBranch).toBe("feature/foo");
+  });
+
+  it("does not map GitLab tag pipelines as branch git fields", () => {
+    mockEnv({
+      CI_PROJECT_PATH: "myorg/myrepo",
+      CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
+      CI_COMMIT_REF_NAME: "v1.0.0",
+      CI_COMMIT_TAG: "v1.0.0",
+    });
+
+    expect(gitlab.sourceBranch).toBeUndefined();
+    expect(gitlab.jobRunBranch).toBe("");
+  });
+
   it("maps Jenkins github repository and pull request", () => {
     mockEnv({
       GIT_URL: "https://github.com/myorg/myrepo.git",
@@ -252,6 +411,29 @@ describe("CI descriptor git fields", () => {
       url: "https://github.com/myorg/myrepo/pull/15",
       title: "Fix things",
     });
+  });
+
+  it("maps Jenkins Git plugin branch fallback", () => {
+    mockEnv({
+      GIT_URL: "https://github.com/myorg/myrepo.git",
+      GIT_BRANCH: "origin/feature/foo",
+      GIT_LOCAL_BRANCH: "feature/foo",
+    });
+
+    expect(jenkins.sourceBranch).toBe("feature/foo");
+    expect(jenkins.jobRunBranch).toBe("feature/foo");
+  });
+
+  it("does not map Jenkins tag builds as branch git fields", () => {
+    mockEnv({
+      GIT_URL: "https://github.com/myorg/myrepo.git",
+      BRANCH_NAME: "v1.0.0",
+      GIT_BRANCH: "origin/v1.0.0",
+      TAG_NAME: "v1.0.0",
+    });
+
+    expect(jenkins.sourceBranch).toBeUndefined();
+    expect(jenkins.jobRunBranch).toBe("");
   });
 
   it("omits Jenkins git fields for unsupported host", () => {
