@@ -12,11 +12,13 @@ import {
 } from "@allurereport/plugin-agent";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   AgentCommand,
   AgentCapabilitiesCommand,
+  AgentInspectCommand,
   AgentLatestCommand,
   AgentQueryCommand,
   AgentSelectCommand,
@@ -68,6 +70,9 @@ vi.mock("../../src/commands/commons/run.js", () => ({
     testProcessResult: null,
   }),
   executeNestedAllureCommand: vi.fn().mockResolvedValue(0),
+}));
+vi.mock("glob", () => ({
+  glob: vi.fn(),
 }));
 vi.mock("@allurereport/plugin-agent", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@allurereport/plugin-agent")>();
@@ -124,6 +129,7 @@ beforeEach(async () => {
   (validateAgentExpectationsFile as Mock).mockReset();
   (writeInvalidAgentExpectationOutput as Mock).mockReset();
   (readConfig as Mock).mockReset();
+  vi.mocked(glob).mockReset();
 
   (executeAllureRun as Mock).mockResolvedValue({
     globalExitCode: {
@@ -182,6 +188,7 @@ describe("agent command", () => {
       { binaryName: "allure" },
       [
         AgentCapabilitiesCommand,
+        AgentInspectCommand,
         AgentLatestCommand,
         AgentQueryCommand,
         AgentSelectCommand,
@@ -206,6 +213,7 @@ describe("agent command", () => {
       expected: [
         "Multiple commands match your selection:",
         "allure agent capabilities",
+        "allure agent inspect",
         "allure agent latest",
         "allure agent query",
         "allure agent select",
@@ -217,6 +225,23 @@ describe("agent command", () => {
         "--expect-step-containing #0",
         "--rerun-latest",
         "Run again with -h=<index>",
+      ],
+    },
+    {
+      command: "agent inspect",
+      args: ["agent", "inspect", "--help"],
+      expected: [
+        "Inspect existing Allure results or dump archives in Allure agent mode",
+        "$ allure agent inspect",
+        "--dump #0",
+        "--report-name,--name #0",
+        "--open",
+        "--port #0",
+        "--history-limit #0",
+        "--hide-labels #0",
+        "--expect-tests #0",
+        "--expect-label #0",
+        "--expect-test #0",
       ],
     },
     {
@@ -288,6 +313,7 @@ describe("agent command", () => {
     const payload = JSON.parse(logMock.mock.calls[0][0]) as ReturnType<typeof createAgentCapabilities>;
 
     expect(payload).toEqual(createAgentCapabilities());
+    expect(payload.commands.inspect.options).toContain("--dump");
   });
 
   it("should fail with usage error when command to run is missing", async () => {
@@ -387,6 +413,162 @@ describe("agent command", () => {
       }),
     );
     expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should inspect repeated dump files and result directories into an agent-only output without running a command", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const consoleModule = await import("node:console");
+    const logMock = consoleModule.log as Mock;
+    const resolvedOutput = resolve("/cwd", "./agent-from-inspect");
+
+    vi.mocked(glob).mockResolvedValueOnce(["/cwd/allure-results-linux.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["/cwd/allure-results-macos.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["/cwd/local/allure-results/"]);
+
+    await run(AgentInspectCommand, [
+      "agent",
+      "inspect",
+      "--config",
+      "./allurerc.inspect.mjs",
+      "--output",
+      "./agent-from-inspect",
+      "--name",
+      "Agent Inspect",
+      "--open",
+      "--port",
+      "1234",
+      "--history-limit",
+      "7",
+      "--hide-labels",
+      "thread",
+      "--hide-labels",
+      "host",
+      "--dump",
+      "allure-results-linux.zip",
+      "--dump",
+      "allure-results-macos.zip",
+      "./local/allure-results",
+    ]);
+
+    expect(glob).toHaveBeenNthCalledWith(1, "allure-results-linux.zip", {
+      nodir: true,
+      dot: true,
+      absolute: true,
+      windowsPathsNoEscape: true,
+      cwd: "/cwd",
+    });
+    expect(glob).toHaveBeenNthCalledWith(2, "allure-results-macos.zip", {
+      nodir: true,
+      dot: true,
+      absolute: true,
+      windowsPathsNoEscape: true,
+      cwd: "/cwd",
+    });
+    expect(glob).toHaveBeenNthCalledWith(3, "./local/allure-results", {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: "/cwd",
+    });
+    expect(readConfig).toHaveBeenCalledWith("/cwd", "./allurerc.inspect.mjs", {
+      name: "Agent Inspect",
+      output: resolvedOutput,
+      open: true,
+      port: "1234",
+      hideLabels: ["thread", "host"],
+      historyLimit: 7,
+      plugins: {
+        agent: {
+          options: {
+            outputDir: resolvedOutput,
+            command:
+              "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
+          },
+        },
+      },
+    });
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        output: resolvedOutput,
+        open: false,
+        port: undefined,
+        qualityGate: undefined,
+        allureService: undefined,
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "agent",
+          }),
+        ]),
+      }),
+    );
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([
+      "/cwd/allure-results-linux.zip",
+      "/cwd/allure-results-macos.zip",
+    ]);
+    expect(AllureReportMock.prototype.start).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("/cwd/local/allure-results/");
+    expect(AllureReportMock.prototype.done).toHaveBeenCalledTimes(1);
+    expect(executeAllureRun).not.toHaveBeenCalled();
+    expect(logMock).toHaveBeenCalledWith(`agent output: ${resolvedOutput}`);
+    expect(logMock).toHaveBeenCalledWith(`agent index: ${join(resolvedOutput, "index.md")}`);
+    expect(logMock).toHaveBeenCalledWith(
+      "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
+    );
+    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        cwd: "/cwd",
+        outputDir: resolvedOutput,
+        expectationsPath: undefined,
+        command:
+          "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
+        startedAt: expect.any(String),
+        status: "running",
+      }),
+    );
+    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        cwd: "/cwd",
+        outputDir: resolvedOutput,
+        expectationsPath: undefined,
+        command:
+          "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
+        startedAt: expect.any(String),
+        finishedAt: expect.any(String),
+        status: "finished",
+        exitCode: 0,
+      }),
+    );
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should fail when dump patterns match no files", async () => {
+    const command = new AgentInspectCommand();
+
+    vi.mocked(glob).mockResolvedValueOnce([]);
+
+    command.dump = ["missing-dump.zip"];
+    command.resultsDir = [];
+
+    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+    expect(readConfig).not.toHaveBeenCalled();
+    expect(executeAllureRun).not.toHaveBeenCalled();
+  });
+
+  it("should reject command separators in inspect mode", async () => {
+    const command = new AgentInspectCommand();
+
+    command.dump = ["allure-results.zip"];
+    command.resultsDir = ["--", "npm", "test"];
+
+    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+    expect(readConfig).not.toHaveBeenCalled();
+    expect(executeAllureRun).not.toHaveBeenCalled();
   });
 
   it("should continue the run when latest-state persistence in the resolved state dir is not permitted", async () => {

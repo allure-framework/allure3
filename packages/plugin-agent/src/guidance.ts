@@ -217,6 +217,7 @@ Use when auditing a package, command matrix, feature area, or business behavior 
 Commands:
 
 - one scoped \`allure agent --goal <text> --expect-* -- <command>\` run per review group
+- \`allure agent inspect --goal <text> --expect-* <allure-results-dir-or-glob>\` or \`--dump <archive-or-glob>\` when the evidence already exists as local results or CI dump artifacts
 
 Done when:
 
@@ -224,6 +225,24 @@ Done when:
 - each group has expectations that describe the intended scope
 - runtime artifacts are reviewed before source-only coverage conclusions
 - uncovered behavior is recorded as follow-up test work instead of being hidden in a broad pass/fail summary
+
+### Review Existing Evidence
+
+Use when CI has already produced dump archives or local Allure results already exist and you need agent-readable review artifacts without rerunning tests locally.
+
+Commands:
+
+- \`allure agent inspect <allure-results-dir-or-glob>\`
+- \`allure agent inspect --dump <archive-or-glob>\`
+- \`allure agent inspect --dump <linux.zip> --dump <macos.zip>\`
+- \`allure agent inspect --goal <text> --expect-* --dump <archive-or-glob>\`
+
+Done when:
+
+- all intended result directories or dump artifacts were downloaded or present and matched by the command
+- \`index.md\`, \`manifest/run.json\`, \`manifest/tests.jsonl\`, and \`manifest/findings.jsonl\` were reviewed
+- the review calls out that inspect-derived output cannot add missing live process logs or rerun-time evidence unless those artifacts were captured in the results or dumps
+- any environment-specific gaps between CI jobs are explicit
 
 ### Triage Failures
 
@@ -297,6 +316,7 @@ Done when:
 export const AGENT_COMMAND_TASK_MAP = [
   "`allure --version`, `allure agent capabilities --json`, and `allure agent --help`: setup and capability-detection loop. Use when the local CLI surface is unknown, generated guidance may be stale, or you need to choose supported flags without guessing.",
   "`allure agent --goal ... -- <command>`: test review, feature delivery, smoke-check, and coverage loops. Use when a test command needs runtime evidence, scope expectations, and user-facing conclusions based on agent artifacts rather than console output alone.",
+  "`allure agent inspect <allure-results-dir-or-glob>` / `allure agent inspect --dump <archive-or-glob>`: existing evidence review loop. Use after downloading one or more dump archives or when Allure results already exist and you need agent-readable markdown and manifests without rerunning tests locally. Repeat `--dump` to merge multiple environments or jobs.",
   "`allure agent latest`: output recovery loop. Use when a previous run omitted `--output`, you need the newest output directory and `index.md` path, or a follow-up task needs prior output before selecting or rerunning tests.",
   "`allure agent state-dir`: tooling diagnosis loop. Use when `latest` cannot find a run, CI or sandbox state looks wrong, or you need to explain where project-scoped latest pointers are stored.",
   "`allure agent query --latest summary|tests|findings|test` / `allure agent query --from <output-dir> ...`: output inspection loop. Use when you need a focused JSON summary, filtered tests, filtered findings, or one test from prior agent output without manually loading raw manifests first.",
@@ -356,6 +376,7 @@ export const AGENT_INSTRUCTIONS_TEMPLATE = `## Allure Agent Mode Instructions
 - Use \`allure agent capabilities --json\` when you need structured supported-command, expectation, output, rerun, and unsupported-feature data without scraping help text.
 - Use \`allure agent state-dir\` to inspect where the current project stores its latest-agent state.
 - Use \`allure agent latest\`, \`state-dir\`, \`query\`, \`select\`, and \`--rerun-*\` according to their loop/task/problem mapping instead of treating them as interchangeable helper commands.
+- Use \`allure agent inspect <allure-results-dir-or-glob>\` or \`allure agent inspect --dump <archive-or-glob>\` when you need agent-readable markdown and manifests from existing Allure results without rerunning tests locally; repeat \`--dump\` for multiple CI jobs or environments.
 - Use \`allure agent query --latest summary|tests|findings|test\` or \`allure agent query --from <output-dir> ...\` to inspect prior output as focused JSON before manually opening raw manifests.
 - Use \`allure agent select --latest\` or \`allure agent select --from <output-dir>\` to inspect the review-targeted test plan before rerunning; add \`--output <file>\` when you want the CLI to write the plan and print a short selection summary.
 - Use \`allure agent --rerun-latest -- <command>\` or \`allure agent --rerun-from <output-dir> -- <command>\` to rerun only the selected tests.

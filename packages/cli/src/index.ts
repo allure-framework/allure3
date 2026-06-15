@@ -7,6 +7,7 @@ import {
   AgentCommand,
   AGENT_TASK_MAP_HELP,
   AgentCapabilitiesCommand,
+  AgentInspectCommand,
   AgentLatestCommand,
   AgentQueryCommand,
   AgentSelectCommand,
@@ -48,6 +49,7 @@ const cli = new Cli({
 cli.register(AwesomeCommand);
 cli.register(Allure2Command);
 cli.register(AgentCapabilitiesCommand);
+cli.register(AgentInspectCommand);
 cli.register(AgentLatestCommand);
 cli.register(AgentQueryCommand);
 cli.register(AgentSelectCommand);

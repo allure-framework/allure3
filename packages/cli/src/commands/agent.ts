@@ -45,6 +45,46 @@ const readOptionalStringArray = (value: unknown): string[] | undefined => (Array
 
 const formatAgentCommand = (args: string[]) => args.join(" ");
 
+const formatAgentInspectCommand = (params: { dumps?: string[]; resultsDir?: string[] }) =>
+  [
+    "allure",
+    "agent",
+    "inspect",
+    ...(params.dumps ?? []).flatMap((dump) => ["--dump", dump]),
+    ...(params.resultsDir ?? []),
+  ].join(" ");
+
+type AgentExpectationOptionSource = {
+  goal?: string[];
+  taskId?: string[];
+  expectTests?: string[];
+  expectLabels?: string[];
+  expectEnvironments?: string[];
+  expectFullNames?: string[];
+  expectPrefixes?: string[];
+  forbidLabels?: string[];
+  expectStepContains?: string[];
+  expectSteps?: string[];
+  expectAttachments?: string[];
+  expectAttachmentFilters?: string[];
+};
+
+const buildInlineExpectationsFromOptions = (options: AgentExpectationOptionSource) =>
+  buildAgentInlineExpectations({
+    goal: options.goal,
+    taskId: options.taskId,
+    expectTests: options.expectTests,
+    expectLabels: readOptionalStringArray(options.expectLabels),
+    expectEnvironments: readOptionalStringArray(options.expectEnvironments),
+    expectFullNames: readOptionalStringArray(options.expectFullNames),
+    expectPrefixes: readOptionalStringArray(options.expectPrefixes),
+    forbidLabels: readOptionalStringArray(options.forbidLabels),
+    expectStepContains: readOptionalStringArray(options.expectStepContains),
+    expectSteps: options.expectSteps,
+    expectAttachments: options.expectAttachments,
+    expectAttachmentFilters: readOptionalStringArray(options.expectAttachmentFilters),
+  });
+
 const printAgentOutputLinks = (outputDir: string) => {
   for (const line of formatAgentOutputLinks(outputDir)) {
     console.log(line);
@@ -214,30 +254,30 @@ export class AgentCommand extends Command {
   commandToRun = Option.Rest();
 
   async execute() {
-    const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
+    const args = this.commandToRun.filter((arg) => arg !== "--") as string[];
     const configPath = readOptionalString(this.config);
     const configuredCwd = readOptionalString(this.cwd);
     const output = readOptionalString(this.output);
     const expectations = readOptionalString(this.expectations);
 
-    if (!args || !args.length) {
+    if (!args.length) {
       throw new UsageError("expecting command to be specified after --, e.g. allure agent -- npm run test");
     }
 
     try {
-      const inlineExpectations = buildAgentInlineExpectations({
+      const inlineExpectations = buildInlineExpectationsFromOptions({
         goal: this.goal,
         taskId: this.taskId,
         expectTests: this.expectTests,
-        expectLabels: readOptionalStringArray(this.expectLabels),
-        expectEnvironments: readOptionalStringArray(this.expectEnvironments),
-        expectFullNames: readOptionalStringArray(this.expectFullNames),
-        expectPrefixes: readOptionalStringArray(this.expectPrefixes),
-        forbidLabels: readOptionalStringArray(this.forbidLabels),
-        expectStepContains: readOptionalStringArray(this.expectStepContains),
+        expectLabels: this.expectLabels,
+        expectEnvironments: this.expectEnvironments,
+        expectFullNames: this.expectFullNames,
+        expectPrefixes: this.expectPrefixes,
+        forbidLabels: this.forbidLabels,
+        expectStepContains: this.expectStepContains,
         expectSteps: this.expectSteps,
         expectAttachments: this.expectAttachments,
-        expectAttachmentFilters: readOptionalStringArray(this.expectAttachmentFilters),
+        expectAttachmentFilters: this.expectAttachmentFilters,
       });
 
       if (expectations && inlineExpectations) {
@@ -280,6 +320,224 @@ export class AgentCommand extends Command {
       const cwd = await realpath(configuredCwd ?? process.cwd());
       const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
       const commandString = formatAgentCommand(args);
+      const { generatedAt } = await writeInvalidAgentExpectationOutput({
+        outputDir,
+        command: commandString,
+        error: expectationError,
+      });
+
+      await persistLatestAgentState({
+        cwd,
+        outputDir,
+        command: commandString,
+        startedAt: generatedAt,
+        finishedAt: generatedAt,
+        status: "finished",
+        exitCode: 1,
+      });
+
+      printAgentOutputLinks(outputDir);
+      console.error(expectationError.message);
+      exit(1);
+    }
+  }
+}
+
+export class AgentInspectCommand extends Command {
+  static paths = [["agent", "inspect"]];
+
+  static usage = Command.Usage({
+    description: "Inspect existing Allure results or dump archives in Allure agent mode",
+    details:
+      "This command restores dump archives and reads existing Allure results directories, then writes agent-mode output without running a test command.",
+    examples: [
+      ["agent inspect ./allure-results", "Inspect an existing Allure results directory"],
+      ["agent inspect ./packages/*/out/allure-results", "Inspect matching Allure results directories"],
+      ["agent inspect --dump allure-results-linux.zip", "Inspect a dump archive downloaded from CI"],
+      [
+        "agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip",
+        "Inspect multiple CI dump archives together",
+      ],
+      [
+        "agent inspect --dump allure-results-linux.zip ./local/allure-results",
+        "Inspect dump archives together with local results directories",
+      ],
+      [
+        "agent inspect --config ./allurerc.mjs --output ./agent-output ./allure-results",
+        "Inspect existing results with a config file and write agent artifacts to ./agent-output",
+      ],
+    ],
+  });
+
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
+
+  config = Option.String("--config,-c", {
+    description: "The path Allure config file",
+  });
+
+  cwd = Option.String("--cwd", {
+    description: "The working directory for resolving results and dumps (default: current working directory)",
+  });
+
+  output = Option.String("--output,-o", {
+    description: "The output directory for agent artifacts. Absolute paths are accepted as well",
+  });
+
+  reportName = Option.String("--report-name,--name", {
+    description: "The report name to pass through configuration defaults (default: Allure Report)",
+  });
+
+  dump = Option.Array("--dump", {
+    description:
+      "Path or pattern that matches one or more archives created by `allure run --dump ...`. " +
+      "This option can be specified multiple times.",
+  });
+
+  open = Option.Boolean("--open", {
+    description: "Accepted for parity with generate. Agent inspect writes agent artifacts and prints their paths",
+  });
+
+  port = Option.String("--port", {
+    description: "Accepted for parity with generate. Agent inspect doesn't serve the output",
+  });
+
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
+  });
+
+  hideLabels = Option.Array("--hide-labels", {
+    description: "Hide labels by exact name in generated data. Repeat the option for multiple labels",
+  });
+
+  expectations = Option.String("--expectations", {
+    description: "The path to a YAML or JSON expectations file",
+  });
+
+  goal = Option.Array("--goal", {
+    description: "The review goal to record in inline agent expectations",
+  });
+
+  taskId = Option.Array("--task-id", {
+    description: "The task or feature id to record in inline agent expectations",
+  });
+
+  expectTests = Option.Array("--expect-tests", {
+    description: "The expected number of visible logical tests in the intended scope",
+  });
+
+  expectLabels = Option.Array("--expect-label", {
+    description: "Expected label selector in name=value form. Repeat the option for multiple selectors",
+  });
+
+  expectEnvironments = Option.Array("--expect-env", {
+    description: "Expected environment id. Repeat the option for multiple environments",
+  });
+
+  expectFullNames = Option.Array("--expect-test", {
+    description: "Expected full test name. Repeat the option for multiple tests",
+  });
+
+  expectPrefixes = Option.Array("--expect-prefix", {
+    description: "Expected full-name prefix. Repeat the option for multiple prefixes",
+  });
+
+  forbidLabels = Option.Array("--forbid-label", {
+    description: "Forbidden label selector in name=value form. Repeat the option for multiple selectors",
+  });
+
+  expectStepContains = Option.Array("--expect-step-containing", {
+    description: "Require a test-scoped step name containing this text per evidence-target logical test",
+  });
+
+  expectSteps = Option.Array("--expect-steps", {
+    description: "Require at least this many meaningful steps per expected logical test",
+  });
+
+  expectAttachments = Option.Array("--expect-attachments", {
+    description: "Require at least this many non-missing attachments per expected logical test",
+  });
+
+  expectAttachmentFilters = Option.Array("--expect-attachment", {
+    description:
+      "Require a matching non-missing attachment per expected logical test. Use a file name or name=value/content-type=value",
+  });
+
+  environment = agentEnvironmentOption();
+
+  environmentName = agentEnvironmentNameOption();
+
+  async execute() {
+    const configPath = readOptionalString(this.config);
+    const configuredCwd = readOptionalString(this.cwd);
+    const output = readOptionalString(this.output);
+    const dumps = readOptionalStringArray(this.dump) ?? [];
+    const resultsDir = this.resultsDir as string[];
+    const expectations = readOptionalString(this.expectations);
+
+    if (resultsDir.includes("--")) {
+      throw new UsageError(
+        "agent inspect does not run commands; pass result directories directly, e.g. allure agent inspect ./allure-results",
+      );
+    }
+
+    try {
+      const inlineExpectations = buildInlineExpectationsFromOptions({
+        goal: this.goal,
+        taskId: this.taskId,
+        expectTests: this.expectTests,
+        expectLabels: this.expectLabels,
+        expectEnvironments: this.expectEnvironments,
+        expectFullNames: this.expectFullNames,
+        expectPrefixes: this.expectPrefixes,
+        forbidLabels: this.forbidLabels,
+        expectStepContains: this.expectStepContains,
+        expectSteps: this.expectSteps,
+        expectAttachments: this.expectAttachments,
+        expectAttachmentFilters: this.expectAttachmentFilters,
+      });
+
+      if (expectations && inlineExpectations) {
+        throw new AgentExpectationUsageError(
+          "Use either --expectations <file> or inline expectation flags, not both",
+          "--expectations",
+        );
+      }
+
+      await validateAgentExpectationsFile({
+        cwd: await realpath(configuredCwd ?? process.cwd()),
+        output,
+        expectations,
+      });
+
+      const { executeAgentInspectMode } = await import("./agent-run.js");
+
+      await executeAgentInspectMode({
+        configPath,
+        cwd: configuredCwd,
+        output,
+        expectations,
+        inlineExpectations: inlineExpectations as AgentExpectationsInput | undefined,
+        environment: readOptionalString(this.environment),
+        environmentName: readOptionalString(this.environmentName),
+        reportName: readOptionalString(this.reportName),
+        open: readOptionalBoolean(this.open),
+        port: readOptionalString(this.port),
+        historyLimit: readOptionalString(this.historyLimit),
+        hideLabels: readOptionalStringArray(this.hideLabels),
+        dumps,
+        resultsDir,
+      });
+    } catch (error) {
+      if (!isAgentExpectationUsageError(error)) {
+        throwCliUsageError(error);
+      }
+
+      const expectationError = error as AgentExpectationUsageError;
+      const cwd = await realpath(configuredCwd ?? process.cwd());
+      const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
+      const commandString = formatAgentInspectCommand({ dumps, resultsDir });
       const { generatedAt } = await writeInvalidAgentExpectationOutput({
         outputDir,
         command: commandString,
