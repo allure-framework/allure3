@@ -24,6 +24,7 @@ import type {
   LaunchCategoryBulkItem,
   LaunchCategoryBulkResult,
   TestOpsClientParams,
+  TestOpsFixtureResult,
   TestOpsLaunch,
   TestOpsLaunchQualityGate,
   TestOpsNamedEnv,
@@ -32,7 +33,7 @@ import type {
   UploadResultsDto,
   UploadResultsResponseDto,
 } from "./model.js";
-import type { TestOpsFixtureResult } from "./model.js";
+import { normalizeTestResultsUploadConcurrency } from "./utils/index.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
 
@@ -64,7 +65,7 @@ export class TestOpsClient {
   #launch?: TestOpsLaunch;
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
-  #uploadLimit: number = 1;
+  #uploadConcurrency: number = 3;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: TestOpsClientParams) {
@@ -80,9 +81,7 @@ export class TestOpsClient {
       throw new Error("baseUrl is required");
     }
 
-    if (params.limit && params.limit > 5) {
-      throw new Error("limit can't be greater than 5");
-    }
+    const uploadConcurrency = normalizeTestResultsUploadConcurrency(params.uploadConcurrency);
 
     this.#baseUrl = params.baseUrl;
     this.#accessToken = params.accessToken;
@@ -92,9 +91,7 @@ export class TestOpsClient {
       apiToken: this.#accessToken,
     });
 
-    if (params.limit) {
-      this.#uploadLimit = params.limit;
-    }
+    this.#uploadConcurrency = uploadConcurrency;
   }
 
   isTestOpsClientError(error: unknown): error is TestOpsClientError {
@@ -385,7 +382,7 @@ export class TestOpsClient {
 
     const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, CHUNK_SIZE);
-    const uploadLimitFn = pLimit(this.#uploadLimit);
+    const uploadLimitFn = pLimit(this.#uploadConcurrency);
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 

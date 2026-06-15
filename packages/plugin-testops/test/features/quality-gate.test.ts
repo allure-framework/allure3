@@ -35,7 +35,7 @@ describe("Quality Gate upload", () => {
       launchTags: [],
       autocloseLaunch: true,
       filter: () => true,
-      limit: 10,
+      uploadConcurrency: 5,
     });
 
     const store = mockAllureStore();
@@ -122,7 +122,7 @@ describe("Quality Gate upload", () => {
       launchTags: [],
       autocloseLaunch: true,
       filter: () => true,
-      limit: 10,
+      uploadConcurrency: 5,
     });
 
     const store = {

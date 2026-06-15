@@ -14,6 +14,8 @@
 
 The plugin can create a new launch in Allure TestOps with all the tests data from the current report.
 
+Test result uploads use a concurrency of 3 by default.
+
 ## CI and local runs
 
 The plugin is intended to run in a **CI environment**. When a supported CI is detected, upload to TestOps starts automatically (as long as `accessToken`, `endpoint`, and `projectId` are configured).
@@ -77,6 +79,7 @@ The plugin accepts the following options:
 | `accessToken`      | Access token for TestOps API                                               | `string`  | `undefined`     |
 | `endpoint`         | TestOps API endpoint                                                       | `string`  | `undefined`     |
 | `projectId`        | TestOps project ID                                                         | `string`  | `undefined`     |
+| `uploadConcurrency` | Concurrent uploads for test results attachments and fixtures | `number`   | `3`             |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
 
 ### Using options from environment variables

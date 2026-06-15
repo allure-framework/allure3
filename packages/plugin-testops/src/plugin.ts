@@ -47,6 +47,7 @@ export class TestOpsPlugin implements Plugin {
       launchName,
       launchTags,
       autocloseLaunch = true,
+      uploadConcurrency,
     } = resolvePluginOptions(options);
 
     // don't initialize the client when some options are missing
@@ -56,6 +57,7 @@ export class TestOpsPlugin implements Plugin {
         baseUrl: endpoint,
         accessToken,
         projectId,
+        uploadConcurrency,
       });
       this.#launchName = launchName;
       this.#launchTags = launchTags;

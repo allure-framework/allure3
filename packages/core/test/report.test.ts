@@ -21,7 +21,7 @@ import { AllureServiceClientMock } from "./utils.js";
 const validAccessToken =
   "ars1.eyJhY2Nlc3NUb2tlbiI6IkVMekZoOFZvaENXeXRrTFlGZ0U2QzVtTS1DWTlyWnd2ZXVYMkRlbmtkTm8iLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAifQ.OEwujL5WsTP0TQ8nFxrUauKfRLslw-S2ZFnlgFPTwO8";
 const defaultUploadConfig = {
-  uploadConcurrency: 100,
+  uploadConcurrency: 10,
   uploadMaxAttempts: 5,
   uploadMaxSimultaneousFailures: 5,
 };

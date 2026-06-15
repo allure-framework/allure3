@@ -214,7 +214,8 @@ export type TestOpsClientParams = {
   baseUrl: string;
   projectId: string;
   accessToken: string;
-  limit?: number;
+  /** Concurrent uploads for test results attachments and fixtures. Defaults to 3. */
+  uploadConcurrency?: number;
 };
 
 export type AttachmentForUpload = {
@@ -234,7 +235,8 @@ export type TestOpsUploaderOptions = {
   launchTags: string[];
   autocloseLaunch?: boolean;
   filter?: (testResult: TestResult) => boolean;
-  limit?: number;
+  /** Concurrent uploads for test results attachments and fixtures. Defaults to 3. */
+  uploadConcurrency?: number;
 };
 
 export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {

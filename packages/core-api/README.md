@@ -14,6 +14,8 @@
 
 The collection of interfaces describing the core Allure Report entities.
 
+`allureService.uploadConcurrency` defaults to 10. `uploadMaxAttempts` and `uploadMaxSimultaneousFailures` keep their existing defaults.
+
 ## Install
 
 Use your favorite package manager to install the package:

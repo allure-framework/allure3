@@ -358,7 +358,7 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadConcurrency: 100,
+      uploadConcurrency: 10,
       uploadMaxAttempts: 5,
       uploadMaxSimultaneousFailures: 5,
     });
@@ -376,7 +376,7 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadConcurrency: 100,
+      uploadConcurrency: 10,
       uploadMaxAttempts: 5,
       uploadMaxSimultaneousFailures: 5,
     });

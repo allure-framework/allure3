@@ -12,6 +12,16 @@ import type {
 } from "../model.js";
 import { uploadFilenameForLink } from "./uploaderDto.js";
 
+export const normalizeTestResultsUploadConcurrency = (value?: number): number => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 3;
+  }
+
+  const normalized = Math.floor(value);
+
+  return normalized > 0 ? normalized : 3;
+};
+
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
   return steps.map((step) => {
     if (step.type === "attachment") {
@@ -41,6 +51,7 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     launchTags = ALLURE_LAUNCH_TAGS,
     launchName = ALLURE_LAUNCH_NAME,
     autocloseLaunch,
+    uploadConcurrency,
   } = options;
   const tags = !launchTags
     ? []
@@ -54,6 +65,7 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     accessToken: accessToken || "",
     endpoint: endpoint || "",
     projectId: projectId || "",
+    uploadConcurrency: normalizeTestResultsUploadConcurrency(uploadConcurrency),
     ...(autocloseLaunch !== undefined ? { autocloseLaunch } : {}),
   };
 };

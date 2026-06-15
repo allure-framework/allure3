@@ -129,15 +129,10 @@ export class AllureServiceClient implements AllureServiceApiClient {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
     }
 
-    const form = new FormData();
-
-    form.set("filename", filename);
-    form.set("file", createUploadBlob(content), filename);
-
-    return this.#client.post("/api/assets/upload", {
-      body: form,
+    return this.#client.post(`/api/assets/upload?filename=${filename}`, {
+      body: content,
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/octet-stream",
       },
       ...(signal ? { signal } : {}),
     });
@@ -169,15 +164,10 @@ export class AllureServiceClient implements AllureServiceApiClient {
       content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
     }
 
-    const form = new FormData();
-
-    form.set("filename", reportFilename);
-    form.set("file", createUploadBlob(content), reportFilename);
-
-    await this.#client.post(`/api/reports/${reportUuid}/upload`, {
-      body: form,
+    await this.#client.post(`/api/reports/${reportUuid}/upload?filename=${reportFilename}`, {
+      body: content,
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/octet-stream",
       },
       ...(signal ? { signal } : {}),
     });

@@ -301,6 +301,7 @@ export const uploadReport = async (
     await Promise.all(uploadTasks);
   } catch (error) {
     uploadAbortController.abort();
+
     await Promise.allSettled(uploadTasks);
 
     throw error;

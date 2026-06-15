@@ -151,6 +151,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -168,6 +169,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -185,6 +187,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -202,6 +205,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -218,6 +222,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -240,6 +245,7 @@ describe("resolvePluginOptions", () => {
         projectId: "option-project",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -257,6 +263,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -275,6 +282,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Environment Launch",
         launchTags: [],
+        uploadConcurrency: 3,
       });
     });
 
@@ -293,6 +301,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2", "tag3"],
+        uploadConcurrency: 3,
       });
     });
 
@@ -322,6 +331,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2"],
+        uploadConcurrency: 3,
       });
     });
 
@@ -339,6 +349,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2", "tag3"],
+        uploadConcurrency: 3,
       });
     });
 
@@ -360,6 +371,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Option Launch",
         launchTags: ["option-tag1", "option-tag2"],
+        uploadConcurrency: 3,
       });
     });
 
@@ -381,6 +393,17 @@ describe("resolvePluginOptions", () => {
       } as any);
 
       expect(result.launchTags).toEqual([]);
+    });
+
+    it("should normalize uploadConcurrency from options", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        uploadConcurrency: 4.8,
+      } as any);
+
+      expect(result.uploadConcurrency).toBe(4);
     });
   });
 });

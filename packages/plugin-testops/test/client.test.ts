@@ -106,31 +106,19 @@ describe("testops http client", () => {
       ).toThrow();
     });
 
-    it("should throw an error when limit is greater than 5", () => {
+    it("should not throw when uploadConcurrency is 5 or less", () => {
       expect(
         () =>
           new TestOpsClient({
             accessToken: fixtures.accessToken,
             projectId: fixtures.projectId,
             baseUrl: fixtures.endpoint,
-            limit: 6,
-          }),
-      ).toThrow("limit can't be greater than 5");
-    });
-
-    it("should not throw when limit is 5 or less", () => {
-      expect(
-        () =>
-          new TestOpsClient({
-            accessToken: fixtures.accessToken,
-            projectId: fixtures.projectId,
-            baseUrl: fixtures.endpoint,
-            limit: 5,
+            uploadConcurrency: 5,
           }),
       ).not.toThrow();
     });
 
-    it("should not throw when limit is not provided", () => {
+    it("should not throw when uploadConcurrency is not provided", () => {
       expect(
         () =>
           new TestOpsClient({
@@ -929,10 +917,10 @@ describe("testops http client", () => {
       expect(body.results[0].someUnknownField).toBeUndefined();
     });
 
-    it("should limit concurrent per-TR uploads to the configured limit", async () => {
+    it("should cap concurrent per-TR uploads at the configured concurrency", async () => {
       let concurrentCount = 0;
       let maxConcurrentCount = 0;
-      const limit = 2;
+      const uploadConcurrency = 2;
 
       AxiosMock.post.mockImplementation(async (url: string) => {
         if (url === "/api/uaa/oauth/token") {
@@ -964,7 +952,7 @@ describe("testops http client", () => {
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
         baseUrl: fixtures.endpoint,
-        limit,
+        uploadConcurrency,
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
@@ -983,7 +971,61 @@ describe("testops http client", () => {
         fixturesResolver: () => Promise.resolve([]),
       });
 
-      expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
+      expect(maxConcurrentCount).toBeLessThanOrEqual(uploadConcurrency);
+    });
+
+    it("should cap concurrent per-TR uploads at the default concurrency", async () => {
+      let concurrentCount = 0;
+      let maxConcurrentCount = 0;
+
+      AxiosMock.post.mockImplementation(async (url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          throw new Error("Unexpected OAuth token exchange request");
+        }
+
+        if (url === "/api/launch") {
+          return { data: fixtures.launch };
+        }
+
+        if (url === "/api/upload/session") {
+          return { data: { id: 1 } };
+        }
+
+        if (url === "/api/upload/test-result") {
+          return { data: { results: fixtures.testOpsResults } };
+        }
+
+        concurrentCount++;
+        maxConcurrentCount = Math.max(maxConcurrentCount, concurrentCount);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        concurrentCount--;
+
+        return { data: {} };
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: fixtures.testResults,
+        environments: [],
+        attachmentsResolver: () =>
+          Promise.resolve(
+            fixtures.attachments.map((attachment) => ({
+              originalFileName: attachment.originalFileName ?? "attachment.bin",
+              contentType: attachment.contentType ?? "application/octet-stream",
+              content: Buffer.from("test"),
+            })),
+          ),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(maxConcurrentCount).toBeLessThanOrEqual(3);
     });
 
     it("should create named environments for test results with environment ids and display names", async () => {

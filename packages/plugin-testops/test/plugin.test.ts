@@ -185,6 +185,7 @@ describe("testops plugin", () => {
         projectId: fixtures.projectId,
         launchName: "Allure Report",
         launchTags: [],
+        uploadConcurrency: 4,
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
@@ -194,6 +195,7 @@ describe("testops plugin", () => {
         baseUrl: fixtures.endpoint,
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
+        uploadConcurrency: 4,
       });
     });
   });
