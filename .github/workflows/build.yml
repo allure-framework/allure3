@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Build the project
-        run: yarn build
+        run: yarn build:output
       - name: Lint Project
         run: yarn lint
       - name: Check formatting
@@ -57,7 +57,7 @@ jobs:
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Build project
-        run: yarn build
+        run: yarn build:output
       - name: Test Project
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
@@ -110,7 +110,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Build project
-        run: yarn build
+        run: yarn build:output
       - name: Generate report
         env:
           ALLURE_PERF_METRICS: "1"

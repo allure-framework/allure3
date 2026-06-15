@@ -59,19 +59,21 @@ export default defineConfig([
       }),
       babel({
         babelHelpers: "bundled",
+        compact: true,
         extensions: [".js", ".jsx", ".ts", ".tsx"],
         exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
       svg(),
       postcss({
         modules: true,
-        extract: true,
+        extract: "index.css",
         minimize: true,
+        sourceMap: false,
         extensions: [".scss", ".css"],
         plugins: [postcssImport(), autoprefixer()],
         use: {
           sass: {
-            silenceDeprecations: ["legacy-js-api"],
+            silenceDeprecations: ["legacy-js-api", "import"],
           },
         },
       }),

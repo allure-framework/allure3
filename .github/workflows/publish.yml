@@ -2,7 +2,7 @@ name: Publish
 
 on:
   release:
-    types: [ published ]
+    types: [published]
 
 permissions:
   contents: read
@@ -15,12 +15,12 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
+          registry-url: "https://registry.npmjs.org"
+          cache: "yarn"
       - name: yarn install, build
         run: |
           yarn install
-          yarn build
+          yarn build:output
       - run: yarn workspaces foreach -Avv --no-private npm publish --access public
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
