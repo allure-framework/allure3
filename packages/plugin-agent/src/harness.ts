@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
+import type { AgentHumanReportStatus } from "./model.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
 export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
@@ -129,11 +130,13 @@ export type AgentRunManifest = {
     findings_manifest: string;
     test_events_manifest?: string;
     expected_manifest: string | null;
+    human_report_manifest?: string | null;
     process_logs: {
       stdout: string | null;
       stderr: string | null;
     };
   };
+  human_report?: AgentHumanReportStatus | null;
   modeling?: {
     completeness: "complete" | "partial";
     reasons: string[];
@@ -288,6 +291,7 @@ export type AgentOutputBundle = {
   tests: AgentTestManifestLine[];
   findings: AgentFindingManifestLine[];
   expected?: AgentExpectations;
+  humanReport?: AgentHumanReportStatus;
 };
 
 export type AgentEnrichmentAction = {
@@ -587,6 +591,9 @@ export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBun
     run.paths.expected_manifest && run.expectations_present
       ? await readJson<AgentExpectations>(join(absoluteOutputDir, run.paths.expected_manifest))
       : undefined;
+  const humanReport = run.paths.human_report_manifest
+    ? await readJson<AgentHumanReportStatus>(join(absoluteOutputDir, run.paths.human_report_manifest))
+    : undefined;
 
   return {
     outputDir: absoluteOutputDir,
@@ -594,6 +601,7 @@ export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBun
     tests,
     findings,
     expected,
+    humanReport,
   };
 };
 

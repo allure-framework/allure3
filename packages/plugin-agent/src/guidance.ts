@@ -315,11 +315,11 @@ Done when:
 
 export const AGENT_COMMAND_TASK_MAP = [
   "`allure --version`, `allure agent capabilities --json`, and `allure agent --help`: setup and capability-detection loop. Use when the local CLI surface is unknown, generated guidance may be stale, or you need to choose supported flags without guessing.",
-  "`allure agent --goal ... -- <command>`: test review, feature delivery, smoke-check, and coverage loops. Use when a test command needs runtime evidence, scope expectations, and user-facing conclusions based on agent artifacts rather than console output alone.",
-  "`allure agent inspect <allure-results-dir-or-glob>` / `allure agent inspect --dump <archive-or-glob>`: existing evidence review loop. Use after downloading one or more dump archives or when Allure results already exist and you need agent-readable markdown and manifests without rerunning tests locally. Repeat `--dump` to merge multiple environments or jobs.",
-  "`allure agent latest`: output recovery loop. Use when a previous run omitted `--output`, you need the newest output directory and `index.md` path, or a follow-up task needs prior output before selecting or rerunning tests.",
+  "`allure agent --goal ... -- <command>`: test review, feature delivery, smoke-check, and coverage loops. Use when a test command needs runtime evidence, scope expectations, and user-facing conclusions based on agent artifacts rather than console output alone. The default `--report auto` may also write a human-readable `awesome/index.html` for small runs.",
+  "`allure agent inspect <allure-results-dir-or-glob>` / `allure agent inspect --dump <archive-or-glob>`: existing evidence review loop. Use after downloading one or more dump archives or when Allure results already exist and you need agent-readable markdown, manifests, and optional human report output without rerunning tests locally. Repeat `--dump` to merge multiple environments or jobs.",
+  "`allure agent latest`: output recovery loop. Use when a previous run omitted `--output`, you need the newest output directory and `index.md` path, a user asks for the human-readable report from the last run, or a follow-up task needs prior output before selecting or rerunning tests.",
   "`allure agent state-dir`: tooling diagnosis loop. Use when `latest` cannot find a run, CI or sandbox state looks wrong, or you need to explain where project-scoped latest pointers are stored.",
-  "`allure agent query --latest summary|tests|findings|test` / `allure agent query --from <output-dir> ...`: output inspection loop. Use when you need a focused JSON summary, filtered tests, filtered findings, or one test from prior agent output without manually loading raw manifests first.",
+  "`allure agent query --latest summary|tests|findings|test` / `allure agent query --from <output-dir> ...`: output inspection loop. Use when you need a focused JSON summary, human-report status, filtered tests, filtered findings, or one test from prior agent output without manually loading raw manifests first.",
   "`allure agent select --latest` / `allure agent select --from <output-dir>`: rerun-planning loop. Use when you need to inspect, filter, or write the Allure test plan from prior results before executing another run. Without `--output`, stdout is raw testplan JSON; with `--output`, stdout summarizes the file path, source output, preset, and selected count.",
   "`allure agent --rerun-latest` / `allure agent --rerun-from <output-dir>`: focused retry loop. Use when prior output already identifies failed, unsuccessful, or review-targeted tests and you should rerun that slice through Allure testplan support instead of rebuilding runner-specific test names.",
   "`ALLURE_AGENT_STATE_DIR=<dir>`: CI and sandbox state-control loop. Use when multiple jobs need a deterministic state location, the default temp state is not shared, or the default state directory is not writable.",
@@ -373,10 +373,12 @@ export const AGENT_INSTRUCTIONS_TEMPLATE = `## Allure Agent Mode Instructions
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 - After each agent-mode test run, print the \`index.md\` path from that run's output directory so users can open the run overview quickly.
 - Use \`allure agent latest\` to print the newest output directory and \`index.md\` path when \`--output\` was omitted.
+- When a user asks for the human-readable report from the last run, use \`allure agent latest\` first if the output directory is unknown, then check \`manifest/human-report.json\`; when its status is \`generated\`, use the path recorded there, usually \`awesome/index.html\`.
 - Use \`allure agent capabilities --json\` when you need structured supported-command, expectation, output, rerun, and unsupported-feature data without scraping help text.
 - Use \`allure agent state-dir\` to inspect where the current project stores its latest-agent state.
 - Use \`allure agent latest\`, \`state-dir\`, \`query\`, \`select\`, and \`--rerun-*\` according to their loop/task/problem mapping instead of treating them as interchangeable helper commands.
 - Use \`allure agent inspect <allure-results-dir-or-glob>\` or \`allure agent inspect --dump <archive-or-glob>\` when you need agent-readable markdown and manifests from existing Allure results without rerunning tests locally; repeat \`--dump\` for multiple CI jobs or environments.
+- Use \`--report auto|off|awesome|config\` to control human report output. The default \`auto\` mode writes \`awesome/index.html\` for 1000 or fewer stored visible logical results and records generated, skipped, disabled, or failed status in \`manifest/human-report.json\`.
 - Use \`allure agent query --latest summary|tests|findings|test\` or \`allure agent query --from <output-dir> ...\` to inspect prior output as focused JSON before manually opening raw manifests.
 - Use \`allure agent select --latest\` or \`allure agent select --from <output-dir>\` to inspect the review-targeted test plan before rerunning; add \`--output <file>\` when you want the CLI to write the plan and print a short selection summary.
 - Use \`allure agent --rerun-latest -- <command>\` or \`allure agent --rerun-from <output-dir> -- <command>\` to rerun only the selected tests.
@@ -406,8 +408,9 @@ export const renderAgentsGuide = () =>
 1. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
 2. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 3. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
-4. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
-5. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.
+4. If a human-readable report is needed, read \`manifest/human-report.json\`; when status is \`generated\`, open the recorded path such as \`awesome/index.html\`.
+5. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
+6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.
 
 ## Directory Contract
 
@@ -417,6 +420,8 @@ export const renderAgentsGuide = () =>
 - \`manifest/tests.jsonl\` contains one logical test summary per line.
 - \`manifest/findings.jsonl\` contains one advisory finding per line.
 - \`manifest/expected.json\` contains normalized expectations from inline flags or \`--expectations <file>\` when provided.
+- \`manifest/human-report.json\` records whether a human-readable report was generated, skipped, disabled, or failed.
+- \`awesome/index.html\` is the default single-file human report path when \`--report auto\` or \`--report awesome\` generates it.
 - \`tests/<environment>/<slug>.md\` contains one logical test per file.
 - Retries from the same run are nested inside the same logical test file.
 - \`tests/<environment>/<slug>.assets/\` contains copied attachments for that logical test.

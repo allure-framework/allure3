@@ -417,6 +417,24 @@ export const readConfig = async (
   return fullConfig;
 };
 
+export const readRawConfig = async (cwd: string = process.cwd(), configPath?: string): Promise<Config> => {
+  const cfg = (await findConfig(cwd, configPath)) ?? "";
+
+  switch (extname(cfg)) {
+    case ".json":
+      return loadJsonConfig(cfg);
+    case ".yaml":
+    case ".yml":
+      return loadYamlConfig(cfg);
+    case ".js":
+    case ".cjs":
+    case ".mjs":
+      return loadJsConfig(cfg);
+    default:
+      return DEFAULT_CONFIG;
+  }
+};
+
 /**
  * Returns the plugin instance that matches the given predicate
  * If there are more than one instance that matches the predicate, returns the first one

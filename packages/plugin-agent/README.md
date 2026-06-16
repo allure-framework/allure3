@@ -120,6 +120,22 @@ npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to
 `--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
 option writes the agentic output directory.
 
+`allure agent` and `allure agent inspect` use `--report auto` by default. This
+writes the agent-readable artifacts and, when the stored visible result count is
+1000 or fewer, also writes a single-file Awesome report at `awesome/index.html`
+inside the agent output directory. Runs above that threshold skip the human
+report to avoid excessive output. Check `manifest/human-report.json`, the Human
+Report section in `index.md`, or `allure agent query --latest summary` to see
+whether a report was generated.
+
+If you need the human-readable report from the most recent agent run, first run
+`npx allure agent latest` when the output directory is unknown. Then check
+`<output>/manifest/human-report.json`; when its status is `generated`, open
+`<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
+Use `--report off` for agent-only artifacts, `--report awesome` to force the
+single-file Awesome report regardless of result count, or `--report config` to
+force the configured non-agent report plugins inside the agent output directory.
+
 You can provide compact inline expectations for the common review path:
 
 ```shell
@@ -141,7 +157,9 @@ npx allure agent \
   -- npm test
 ```
 
-That command uses an agent-only profile by default, so configured presentation and export plugins such as Awesome, Dashboard, or TestOps are ignored for that run.
+That command uses the default `--report auto` policy. Configured presentation or
+export plugins such as Dashboard or TestOps are otherwise ignored for agent runs
+unless you explicitly use `--report config`.
 
 ## Options
 

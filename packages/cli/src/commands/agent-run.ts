@@ -15,11 +15,13 @@ import {
   resolveAgentStateDir,
   writeLatestAgentState,
   type AgentExpectationsInput,
+  type AgentHumanReportMode,
 } from "@allurereport/plugin-agent";
 
 import { normalizeCommandEnvironmentOptions, resolveCommandEnvironment } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
 import { findAllureResultDirectories, findFilesByGlobs } from "../utils/fileSystem.js";
+import { createAgentHumanReportConfig } from "./agent-human-report.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export const formatAgentCommand = (args: string[]) => args.join(" ");
@@ -63,6 +65,7 @@ export type ExecuteAgentModeParams = {
   rerunPreset?: string;
   rerunEnvironments?: string[];
   rerunLabels?: string[];
+  reportMode: AgentHumanReportMode;
   args: string[];
 };
 
@@ -81,6 +84,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     rerunPreset,
     rerunEnvironments,
     rerunLabels,
+    reportMode,
     args,
   } = params;
   const command = args[0];
@@ -138,6 +142,12 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       );
     }
 
+    const humanReport = await createAgentHumanReportConfig({
+      mode: reportMode,
+      cwd,
+      configPath,
+      outputDir,
+    });
     const config = await readConfig(cwd, configPath, {
       output: outputDir,
       plugins: {
@@ -145,6 +155,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
           options: {
             outputDir,
             command: commandString,
+            humanReport: humanReport.statusProvider,
             ...(expectationsPath ? { expectationsPath } : {}),
             ...(inlineExpectations ? { expectations: inlineExpectations } : {}),
           },
@@ -189,7 +200,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       qualityGate: undefined,
       allureService: undefined,
       realTime: false,
-      plugins: config.plugins,
+      plugins: [...humanReport.plugins, ...(config.plugins ?? [])],
     });
     const knownIssues = await allureReport.store.allKnownIssues();
 
@@ -239,6 +250,7 @@ export type ExecuteAgentInspectModeParams = {
   historyLimit?: string;
   hideLabels?: string[];
   dumps?: string[];
+  reportMode: AgentHumanReportMode;
   resultsDir: string[];
 };
 
@@ -257,6 +269,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     historyLimit,
     hideLabels,
     dumps = [],
+    reportMode,
     resultsDir,
   } = params;
   const cwd = await realpath(configuredCwd ?? process.cwd());
@@ -293,18 +306,33 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     );
   }
 
+  const historyLimitValue = historyLimit ? parseInt(historyLimit, 10) : undefined;
+  const humanReport = await createAgentHumanReportConfig({
+    mode: reportMode,
+    cwd,
+    configPath,
+    outputDir,
+    configOverride: {
+      name: reportName,
+      open,
+      port,
+      hideLabels: hiddenLabels,
+      historyLimit: historyLimitValue,
+    },
+  });
   const config = await readConfig(cwd, configPath, {
     name: reportName,
     output: outputDir,
     open,
     port,
     hideLabels: hiddenLabels,
-    historyLimit: historyLimit ? parseInt(historyLimit, 10) : undefined,
+    historyLimit: historyLimitValue,
     plugins: {
       agent: {
         options: {
           outputDir,
           command: commandString,
+          humanReport: humanReport.statusProvider,
           ...(expectationsPath ? { expectationsPath } : {}),
           ...(inlineExpectations ? { expectations: inlineExpectations } : {}),
         },
@@ -349,7 +377,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     qualityGate: undefined,
     allureService: undefined,
     realTime: false,
-    plugins: config.plugins,
+    plugins: [...humanReport.plugins, ...(config.plugins ?? [])],
   });
 
   await allureReport.restoreState(Array.from(dumpFiles));

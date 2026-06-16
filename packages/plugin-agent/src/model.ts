@@ -30,6 +30,38 @@ export type AgentExpectationsInput = {
   notes?: string | string[];
 };
 
+export type AgentHumanReportMode = "auto" | "off" | "awesome" | "config";
+
+export type AgentHumanReportStatusName = "pending" | "disabled" | "skipped" | "generated" | "failed";
+
+export type AgentHumanReportEntry = {
+  plugin_id: string;
+  path: string;
+};
+
+export type AgentHumanReportError = {
+  plugin_id?: string;
+  message: string;
+};
+
+export type AgentHumanReportStatus = {
+  schema_version: "allure-agent-human-report/v1";
+  mode: AgentHumanReportMode;
+  status: AgentHumanReportStatusName;
+  result_count: number | null;
+  threshold: number;
+  path: string | null;
+  reports: AgentHumanReportEntry[];
+  reason: string | null;
+  error: string | null;
+  errors?: AgentHumanReportError[];
+  generated_at?: string;
+};
+
+export type AgentHumanReportStatusProvider =
+  | AgentHumanReportStatus
+  | (() => AgentHumanReportStatus | undefined | Promise<AgentHumanReportStatus | undefined>);
+
 export type AgentPluginOptions = {
   outputDir?: string;
   expectationsPath?: string;
@@ -39,6 +71,7 @@ export type AgentPluginOptions = {
   loopId?: string;
   taskId?: string;
   conversationId?: string;
+  humanReport?: AgentHumanReportStatusProvider;
 };
 
 export const parseAgentExpectations = (rawContent: string): AgentExpectationsInput => {

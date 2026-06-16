@@ -20,10 +20,12 @@ describe("agent capabilities", () => {
     expect(payload.commands.run.supported).toBe(true);
     expect(payload.commands.run.usage).toContain("-- <command>");
     expect(payload.commands.run.options).not.toContain("--dump");
+    expect(payload.commands.run.options).toContain("--report");
     expect(payload.commands.inspect.usage).toContain("allure agent inspect");
     expect(payload.commands.inspect.options).toContain("--dump");
     expect(payload.commands.inspect.options).toContain("--config");
     expect(payload.commands.inspect.options).toContain("--output");
+    expect(payload.commands.inspect.options).toContain("--report");
     expect(payload.commands.inspect.options).toContain("--report-name");
     expect(payload.commands.inspect.options).toContain("--history-limit");
     expect(payload.commands.inspect.options).toContain("--hide-labels");
@@ -41,6 +43,26 @@ describe("agent capabilities", () => {
     expect(payload.expectations.inline.evidence.attachmentFilters).toEqual(["name", "content-type"]);
     expect(payload.commands.run.options).not.toContain("--expect-evidence");
     expect(payload.output.files).toContain("manifest/run.json");
+    expect(payload.output.files).toContain("manifest/human-report.json");
+    expect(payload.output.files).toContain("awesome/index.html");
+    expect(payload.humanReports.option).toBe("--report <auto|off|awesome|config>");
+    expect(payload.humanReports.defaultMode).toBe("auto");
+    expect(payload.humanReports.threshold).toEqual({
+      resultCount: 1000,
+      appliesTo: "auto",
+      countSource: "Allure store visible logical test results with retries excluded",
+      generatedWhen: "<= 1000",
+      skippedWhen: "> 1000",
+    });
+    expect(payload.humanReports.statusManifest).toBe("manifest/human-report.json");
+    expect(payload.humanReports.defaultGeneratedPath).toBe("awesome/index.html");
+    expect(payload.humanReports.discovery).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("When a user asks for a human-readable report after an agent run"),
+        expect.stringContaining("Read `<output>/manifest/human-report.json`"),
+        expect.stringContaining("If the status is `generated`, use `<output>/<path>`"),
+      ]),
+    );
     expect(payload.unsupported.discovery).toBe(true);
     expect(payload.unsupported).not.toHaveProperty("query");
     expect(payload.unsupported.localAgentService).toBe(true);
@@ -65,6 +87,10 @@ describe("agent capabilities", () => {
       "allure agent inspect --dump <archive-or-glob>",
       "allure agent query --from <output-dir> tests",
       "allure agent select --from <output-dir>",
+      "Human reports:",
+      'When a user asks for "the report" after a run',
+      "<output>/manifest/human-report.json",
+      "<output>/awesome/index.html",
       "ALLURE_AGENT_STATE_DIR=<dir>",
     ]);
   });

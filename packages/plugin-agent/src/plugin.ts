@@ -30,6 +30,8 @@ import type {
   AgentEvidenceExpectationInput,
   AgentExpectationSelectorInput,
   AgentExpectationsInput,
+  AgentHumanReportStatus,
+  AgentHumanReportStatusProvider,
   AgentPluginOptions,
 } from "./model.js";
 import { parseAgentExpectations } from "./model.js";
@@ -195,6 +197,7 @@ type AgentRuntimeState = {
     taskId?: string;
     conversationId?: string;
   };
+  humanReport?: AgentHumanReportStatusProvider;
   createFinding: ReturnType<typeof createFindingFactory>;
   expectations?: LoadedExpectations;
   expectationLoadFindings: AgentFinding[];
@@ -1277,6 +1280,82 @@ const renderModelingSummary = (modeling: ModelingSummary) => {
   return lines.join("\n");
 };
 
+const cloneHumanReportStatus = (status: AgentHumanReportStatus): AgentHumanReportStatus => ({
+  ...status,
+  reports: status.reports.map((report) => ({ ...report })),
+  ...(status.errors ? { errors: status.errors.map((error) => ({ ...error })) } : {}),
+});
+
+const resolveHumanReportStatus = async (
+  provider?: AgentHumanReportStatusProvider,
+): Promise<AgentHumanReportStatus | undefined> => {
+  if (!provider) {
+    return undefined;
+  }
+
+  const status = typeof provider === "function" ? await provider() : provider;
+
+  return status ? cloneHumanReportStatus(status) : undefined;
+};
+
+const renderHumanReportSection = (humanReport?: AgentHumanReportStatus) => {
+  if (!humanReport) {
+    return undefined;
+  }
+
+  const lines = [
+    "## Human Report",
+    "",
+    `- Status: ${humanReport.status}`,
+    `- Mode: ${humanReport.mode}`,
+    `- Result Count: ${humanReport.result_count ?? "unknown"}`,
+    `- Threshold: ${humanReport.threshold}`,
+  ];
+
+  if (humanReport.path) {
+    lines.push(`- Path: [${escapeInlineMarkdown(humanReport.path)}](${normalizeMarkdownPath(humanReport.path)})`);
+  }
+
+  if (humanReport.reason) {
+    lines.push(`- Reason: ${escapeInlineMarkdown(humanReport.reason)}`);
+  }
+
+  if (humanReport.error) {
+    lines.push(`- Error: ${escapeInlineMarkdown(humanReport.error)}`);
+  }
+
+  if (humanReport.reports.length > 1) {
+    lines.push("");
+    lines.push("### Reports");
+    lines.push("");
+    lines.push(
+      humanReport.reports
+        .map(
+          (report) =>
+            `- ${escapeInlineMarkdown(report.plugin_id)}: [${escapeInlineMarkdown(report.path)}](${normalizeMarkdownPath(report.path)})`,
+        )
+        .join("\n"),
+    );
+  }
+
+  if (humanReport.errors?.length) {
+    lines.push("");
+    lines.push("### Report Errors");
+    lines.push("");
+    lines.push(
+      humanReport.errors
+        .map((error) => {
+          const prefix = error.plugin_id ? `${error.plugin_id}: ` : "";
+
+          return `- ${escapeInlineMarkdown(`${prefix}${error.message}`)}`;
+        })
+        .join("\n"),
+    );
+  }
+
+  return lines.join("\n");
+};
+
 const renderSelectorSummary = (title: string, selectors: NormalizedExpectationSelectors) => {
   if (!hasSelector(selectors) && selectors.testCount === undefined) {
     return `- ${title}: None`;
@@ -1924,6 +2003,7 @@ const renderIndex = (params: {
   globalExitCode?: { actual?: number; original: number };
   qualityGateResults: QualityGateValidationResult[];
   findings: AgentFinding[];
+  humanReport?: AgentHumanReportStatus;
 }) => {
   const {
     context,
@@ -1941,6 +2021,7 @@ const renderIndex = (params: {
     globalExitCode,
     qualityGateResults,
     findings,
+    humanReport,
   } = params;
   const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
   const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
@@ -2012,6 +2093,13 @@ const renderIndex = (params: {
 
   lines.push("");
   lines.push(renderModelingSummary(modelingSummary));
+
+  const humanReportSection = renderHumanReportSection(humanReport);
+
+  if (humanReportSection) {
+    lines.push("");
+    lines.push(humanReportSection);
+  }
 
   if (expectations) {
     lines.push("");
@@ -3624,8 +3712,9 @@ const toRunManifest = (params: {
   phase: RunPhase;
   expectations?: LoadedExpectations;
   snapshot: AgentSnapshot;
+  humanReport?: AgentHumanReportStatus;
 }) => {
-  const { context, command, agentContext, generatedAt, phase, expectations, snapshot } = params;
+  const { context, command, agentContext, generatedAt, phase, expectations, snapshot, humanReport } = params;
   const stdoutArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
   const stderrArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
   const originalExitCode = snapshot.globalExitCode?.original ?? null;
@@ -3670,11 +3759,13 @@ const toRunManifest = (params: {
       findings_manifest: "manifest/findings.jsonl",
       test_events_manifest: "manifest/test-events.jsonl",
       expected_manifest: expectations?.relativePath ?? null,
+      human_report_manifest: humanReport ? "manifest/human-report.json" : null,
       process_logs: {
         stdout: stdoutArtifact?.relativePath ?? null,
         stderr: stderrArtifact?.relativePath ?? null,
       },
     },
+    human_report: humanReport ?? null,
     expectations_present: Boolean(expectations),
     expectations: expectations ? toExpectationModel(expectations) : null,
     expectation_result: expectationResult,
@@ -3693,6 +3784,7 @@ const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot
   const { outputDir, context, command, generatedAt, expectations } = runtime;
   const nextTestPaths = new Set(snapshot.entries.map((entry) => entry.filePath));
   const nextAssetDirs = new Set(snapshot.entries.map((entry) => join(outputDir, entry.relativeAssetDir)));
+  const humanReport = await resolveHumanReportStatus(runtime.humanReport);
 
   for (const stalePath of runtime.currentTestPaths) {
     if (!nextTestPaths.has(stalePath)) {
@@ -3731,8 +3823,12 @@ const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot
         phase,
         expectations,
         snapshot,
+        humanReport,
       }),
     ),
+    ...(humanReport
+      ? [writeJson(join(outputDir, "manifest", "human-report.json"), humanReport)]
+      : [rm(join(outputDir, "manifest", "human-report.json"), { force: true })]),
     writeJsonlSnapshot(join(outputDir, "manifest", "tests.jsonl"), snapshot.entries.map(toTestsManifestLine)),
     writeJsonlSnapshot(
       join(outputDir, "manifest", "findings.jsonl"),
@@ -3756,6 +3852,7 @@ const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot
         globalExitCode: snapshot.globalExitCode,
         qualityGateResults: snapshot.qualityGateResults,
         findings: snapshot.combinedAllFindings,
+        humanReport,
       }),
     ),
     writeTextAtomic(join(outputDir, "AGENTS.md"), renderAgentsGuide()),
@@ -4057,6 +4154,7 @@ const createRuntimeState = async (params: {
       taskId: options.taskId,
       conversationId: options.conversationId,
     },
+    humanReport: options.humanReport,
     createFinding,
     expectations: expectationLoadResult.expectations,
     expectationLoadFindings: expectationLoadResult.findings,
