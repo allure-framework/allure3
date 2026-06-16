@@ -2,9 +2,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { AgentExpectationUsageError } from "./errors.js";
-
-const isFileNotFoundError = (error: unknown): error is NodeJS.ErrnoException =>
-  typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+import { isFileNotFoundError } from "./utils.js";
 
 const emptyAgentStats = () => ({
   total: 0,

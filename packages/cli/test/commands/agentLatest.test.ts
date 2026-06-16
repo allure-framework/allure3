@@ -1,3 +1,4 @@
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { readLatestAgentState, resolveAgentStateDir } from "@allurereport/plugin-agent";
@@ -6,6 +7,9 @@ import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AgentLatestCommand, AgentStateDirCommand } from "../../src/commands/agent.js";
+
+const agentOutputDir = join(tmpdir(), "allure-agent-123");
+const agentStateDir = join(tmpdir(), "allure-agent-state");
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -27,7 +31,7 @@ vi.mock("@allurereport/plugin-agent", async (importOriginal) => {
     ...actual,
     readLatestAgentState: vi.fn(),
     resolveAgentStateDir: vi.fn(),
-    writeLatestAgentState: vi.fn(),
+    writeAgentRunState: vi.fn(),
   };
 });
 
@@ -42,15 +46,17 @@ beforeEach(async () => {
 describe("agent latest command", () => {
   it("should print the latest output directory and index path for the resolved project cwd", async () => {
     const consoleModule = await import("node:console");
-    const outputDir = "/tmp/allure-agent-123";
+    const outputDir = agentOutputDir;
     const indexPath = join(outputDir, "index.md");
 
     (readLatestAgentState as Mock).mockResolvedValueOnce({
-      schema: "allure-agent-latest/v1",
+      schema: "allure-agent-run/v1",
+      runId: "run-1",
       cwd: "/cwd",
       outputDir,
+      managedOutput: true,
       command: "npm test",
-      startedAt: "2026-04-15T18:00:00.000Z",
+      startedAt: 1776276000000,
       status: "finished",
     });
 
@@ -81,11 +87,16 @@ describe("agent latest command", () => {
   it("should print the resolved state directory for the current project", async () => {
     const consoleModule = await import("node:console");
 
-    (resolveAgentStateDir as Mock).mockReturnValueOnce("/tmp/allure-agent-state-abcdef1234567890");
+    (resolveAgentStateDir as Mock).mockReturnValueOnce(agentStateDir);
 
     await run(AgentStateDirCommand, ["agent", "state-dir"]);
 
+    await attachment(
+      "state directory contract",
+      JSON.stringify({ stateDir: agentStateDir }, null, 2),
+      "application/json",
+    );
     expect(resolveAgentStateDir).toHaveBeenCalledWith("/cwd");
-    expect(consoleModule.log).toHaveBeenCalledWith("/tmp/allure-agent-state-abcdef1234567890");
+    expect(consoleModule.log).toHaveBeenCalledWith(agentStateDir);
   });
 });

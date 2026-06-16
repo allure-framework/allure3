@@ -1,121 +1,415 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { appendFile, readFile, rm } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
-export type AgentLatestState = {
-  schema: "allure-agent-latest/v1";
+import {
+  isFileNotFoundError,
+  listAgentManagedTempOutputDirs,
+  listAgentStatePaths,
+  pathExists,
+  projectStatePath,
+  readPathMtimeMs,
+  tryWithAgentStateLock,
+  withAgentStateLock,
+  writeJsonlAtomic,
+} from "./utils.js";
+
+export { ALLURE_AGENT_STATE_DIR_ENV, resolveAgentStateDir } from "./utils.js";
+
+export type AgentRunState = {
+  schema: "allure-agent-run/v1";
+  runId: string;
   cwd: string;
   outputDir: string;
+  managedOutput: boolean;
   expectationsPath?: string;
   command: string;
-  startedAt: string;
-  finishedAt?: string;
+  startedAt: number;
+  finishedAt?: number;
   status: "running" | "finished";
   exitCode?: number | null;
+  pid?: number;
 };
 
-const AGENT_STATE_SCHEMA = "allure-agent-latest/v1";
-export const ALLURE_AGENT_STATE_DIR_ENV = "ALLURE_AGENT_STATE_DIR";
+export type AgentLatestState = AgentRunState;
 
-const isFileNotFoundError = (error: unknown): error is NodeJS.ErrnoException =>
-  typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
-
-const projectHash = (cwd: string) => createHash("sha256").update(cwd).digest("hex").slice(0, 16);
-
-export const resolveAgentStateDir = (cwd: string) => {
-  const configuredDir = process.env[ALLURE_AGENT_STATE_DIR_ENV]?.trim();
-
-  if (configuredDir) {
-    return resolve(configuredDir);
-  }
-
-  return join(tmpdir(), `allure-agent-state-${projectHash(resolve(cwd))}`);
+export type AgentStateCleanupResult = {
+  deleted: AgentRunState[];
+  failed: { state: AgentRunState; error: unknown }[];
+  retained: AgentRunState[];
 };
 
-const projectStatePath = (cwd: string) => join(resolveAgentStateDir(cwd), "latest.json");
-
-const writeJsonAtomic = async (filePath: string, value: unknown) => {
-  await mkdir(dirname(filePath), { recursive: true });
-
-  const tempPath = `${filePath}.${process.pid}.tmp`;
-
-  await writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf-8");
-  await rename(tempPath, filePath);
+export type AgentOrphanOutputCleanupResult = {
+  deleted: string[];
+  failed: { outputDir: string; error: unknown }[];
+  retained: string[];
 };
 
-const isAgentLatestState = (value: unknown): value is AgentLatestState => {
+export type AgentStaleStateCleanupResult = AgentStateCleanupResult & {
+  checked: number;
+  orphaned: AgentOrphanOutputCleanupResult;
+  skipped: { cwd: string; statePath: string; reason: "locked" }[];
+};
+
+const AGENT_RUN_STATE_SCHEMA = "allure-agent-run/v1";
+const AGENT_STALE_OUTPUT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+const isAgentRunState = (value: unknown): value is AgentRunState => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
 
-  const candidate = value as Partial<AgentLatestState>;
+  const candidate = value as Partial<AgentRunState>;
 
   return (
-    candidate.schema === AGENT_STATE_SCHEMA &&
+    candidate.schema === AGENT_RUN_STATE_SCHEMA &&
+    typeof candidate.runId === "string" &&
     typeof candidate.cwd === "string" &&
     typeof candidate.outputDir === "string" &&
+    typeof candidate.managedOutput === "boolean" &&
     typeof candidate.command === "string" &&
-    typeof candidate.startedAt === "string" &&
+    typeof candidate.startedAt === "number" &&
+    Number.isSafeInteger(candidate.startedAt) &&
     (candidate.expectationsPath === undefined || typeof candidate.expectationsPath === "string") &&
-    (candidate.finishedAt === undefined || typeof candidate.finishedAt === "string") &&
+    (candidate.finishedAt === undefined ||
+      (typeof candidate.finishedAt === "number" && Number.isSafeInteger(candidate.finishedAt))) &&
     (candidate.status === "running" || candidate.status === "finished") &&
-    (candidate.exitCode === undefined || typeof candidate.exitCode === "number" || candidate.exitCode === null)
+    (candidate.exitCode === undefined || typeof candidate.exitCode === "number" || candidate.exitCode === null) &&
+    (candidate.pid === undefined || (typeof candidate.pid === "number" && Number.isSafeInteger(candidate.pid)))
   );
 };
 
-export const writeLatestAgentState = async (value: Omit<AgentLatestState, "schema">): Promise<AgentLatestState> => {
-  const normalizedState: AgentLatestState = {
-    schema: AGENT_STATE_SCHEMA,
-    cwd: resolve(value.cwd),
-    outputDir: resolve(value.outputDir),
-    expectationsPath: value.expectationsPath ? resolve(value.expectationsPath) : undefined,
-    command: value.command,
-    startedAt: value.startedAt,
-    finishedAt: value.finishedAt,
-    status: value.status,
-    exitCode: value.exitCode,
-  };
+const normalizeAgentRunState = (value: Omit<AgentRunState, "schema">): AgentRunState => ({
+  schema: AGENT_RUN_STATE_SCHEMA,
+  runId: value.runId,
+  cwd: resolve(value.cwd),
+  outputDir: resolve(value.outputDir),
+  managedOutput: value.managedOutput,
+  expectationsPath: value.expectationsPath ? resolve(value.expectationsPath) : undefined,
+  command: value.command,
+  startedAt: value.startedAt,
+  finishedAt: value.finishedAt,
+  status: value.status,
+  exitCode: value.exitCode,
+  pid: value.pid,
+});
 
-  await writeJsonAtomic(projectStatePath(normalizedState.cwd), normalizedState);
-
-  return normalizedState;
-};
-
-export const readLatestAgentState = async (cwd: string): Promise<AgentLatestState | undefined> => {
-  const normalizedCwd = resolve(cwd);
-  const statePath = projectStatePath(normalizedCwd);
+const readAgentRunStateFile = async (statePath: string, cwd?: string): Promise<AgentRunState[]> => {
+  const normalizedCwd = cwd === undefined ? undefined : resolve(cwd);
   let raw: string;
 
   try {
     raw = await readFile(statePath, "utf-8");
   } catch (error) {
     if (isFileNotFoundError(error)) {
-      return undefined;
+      return [];
     }
 
     throw error;
   }
 
-  const parsed = JSON.parse(raw) as unknown;
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      try {
+        const parsed = JSON.parse(line) as unknown;
 
-  if (!isAgentLatestState(parsed)) {
-    throw new Error(`Invalid latest agent state in ${statePath}`);
-  }
+        if (!isAgentRunState(parsed)) {
+          return [];
+        }
 
-  if (parsed.cwd !== normalizedCwd) {
-    return undefined;
-  }
+        return normalizedCwd === undefined || parsed.cwd === normalizedCwd ? [parsed] : [];
+      } catch {
+        return [];
+      }
+    });
+};
 
-  try {
-    await stat(parsed.outputDir);
-  } catch (error) {
-    if (isFileNotFoundError(error)) {
-      return undefined;
+const readAgentRunStateLines = async (cwd: string): Promise<AgentRunState[]> => {
+  const normalizedCwd = resolve(cwd);
+
+  return readAgentRunStateFile(projectStatePath(normalizedCwd), normalizedCwd);
+};
+
+const foldAgentRunStates = (states: AgentRunState[]): AgentRunState[] => {
+  const order: string[] = [];
+  const latestByRunId = new Map<string, AgentRunState>();
+
+  for (const state of states) {
+    if (!latestByRunId.has(state.runId)) {
+      order.push(state.runId);
     }
 
-    throw error;
+    latestByRunId.set(state.runId, state);
   }
 
-  return parsed;
+  return order
+    .map((runId) => latestByRunId.get(runId))
+    .filter((state): state is AgentRunState => state !== undefined)
+    .sort((a, b) => a.startedAt - b.startedAt || (a.finishedAt ?? a.startedAt) - (b.finishedAt ?? b.startedAt));
+};
+
+const getAgentRunStateAgeTimestamp = (state: AgentRunState) => state.finishedAt ?? state.startedAt;
+
+const isManagedOutputStale = (state: AgentRunState, now: number, staleOutputTtlMs: number) =>
+  state.managedOutput && now - getAgentRunStateAgeTimestamp(state) >= staleOutputTtlMs;
+
+const isAgentOutputDirectory = async (outputDir: string) =>
+  (await pathExists(join(outputDir, "manifest", "run.json"))) || (await pathExists(join(outputDir, "index.md")));
+
+const cleanupStaleAgentRunState = async (params: {
+  cwd: string;
+  now: number;
+  staleOutputTtlMs: number;
+}): Promise<AgentStateCleanupResult> => {
+  const states = foldAgentRunStates(await readAgentRunStateLines(params.cwd));
+  const retained: AgentRunState[] = [];
+  const deleted: AgentRunState[] = [];
+  const failed: AgentStateCleanupResult["failed"] = [];
+
+  for (const state of states) {
+    if (!(await pathExists(state.outputDir))) {
+      continue;
+    }
+
+    if (!isManagedOutputStale(state, params.now, params.staleOutputTtlMs)) {
+      retained.push(state);
+      continue;
+    }
+
+    try {
+      await rm(state.outputDir, { recursive: true, force: true });
+      deleted.push(state);
+    } catch (error) {
+      retained.push(state);
+      failed.push({ state, error });
+    }
+  }
+
+  await writeJsonlAtomic(projectStatePath(params.cwd), retained);
+
+  return {
+    deleted,
+    failed,
+    retained,
+  };
+};
+
+const cleanupStaleOrphanAgentOutputs = async (params: {
+  referencedOutputDirs: Set<string>;
+  now: number;
+  staleOutputTtlMs: number;
+}): Promise<AgentOrphanOutputCleanupResult> => {
+  const outputDirs = await listAgentManagedTempOutputDirs();
+  const deleted: string[] = [];
+  const failed: AgentOrphanOutputCleanupResult["failed"] = [];
+  const retained: string[] = [];
+
+  for (const outputDir of outputDirs) {
+    const normalizedOutputDir = resolve(outputDir);
+
+    if (params.referencedOutputDirs.has(normalizedOutputDir)) {
+      retained.push(normalizedOutputDir);
+      continue;
+    }
+
+    let mtimeMs: number;
+
+    try {
+      mtimeMs = await readPathMtimeMs(normalizedOutputDir);
+    } catch (error) {
+      if (!isFileNotFoundError(error)) {
+        failed.push({ outputDir: normalizedOutputDir, error });
+      }
+
+      continue;
+    }
+
+    if (params.now - mtimeMs < params.staleOutputTtlMs) {
+      retained.push(normalizedOutputDir);
+      continue;
+    }
+
+    if (!(await isAgentOutputDirectory(normalizedOutputDir))) {
+      retained.push(normalizedOutputDir);
+      continue;
+    }
+
+    try {
+      await rm(normalizedOutputDir, { recursive: true, force: true });
+      deleted.push(normalizedOutputDir);
+    } catch (error) {
+      failed.push({ outputDir: normalizedOutputDir, error });
+    }
+  }
+
+  return {
+    deleted,
+    failed,
+    retained,
+  };
+};
+
+export const writeAgentRunState = async (value: Omit<AgentRunState, "schema">): Promise<AgentRunState> => {
+  const normalizedState = normalizeAgentRunState(value);
+
+  await withAgentStateLock(normalizedState.cwd, async () => {
+    await appendFile(projectStatePath(normalizedState.cwd), `${JSON.stringify(normalizedState)}\n`, "utf-8");
+  });
+
+  return normalizedState;
+};
+
+export const writeLatestAgentState = writeAgentRunState;
+
+export const readAgentRunStates = async (cwd: string): Promise<AgentRunState[]> =>
+  foldAgentRunStates(await readAgentRunStateLines(cwd));
+
+export const readLatestAgentState = async (cwd: string): Promise<AgentLatestState | undefined> => {
+  const states = await readAgentRunStates(cwd);
+
+  for (let i = states.length - 1; i >= 0; i -= 1) {
+    const state = states[i];
+
+    if (await pathExists(state.outputDir)) {
+      return state;
+    }
+  }
+
+  return undefined;
+};
+
+export const cleanupAgentRunState = async (params: {
+  cwd: string;
+  currentRunId?: string;
+  keepManagedRuns?: number;
+}): Promise<AgentStateCleanupResult> =>
+  withAgentStateLock(params.cwd, async () => {
+    const keepManagedRuns = Math.max(0, params.keepManagedRuns ?? 1);
+    const states = foldAgentRunStates(await readAgentRunStateLines(params.cwd));
+    const existing: AgentRunState[] = [];
+
+    for (const state of states) {
+      if (await pathExists(state.outputDir)) {
+        existing.push(state);
+      }
+    }
+
+    const retainedManagedRunIds = new Set(
+      existing
+        .filter((state) => state.managedOutput && state.status === "finished")
+        .sort(
+          (a, b) =>
+            (b.finishedAt ?? b.startedAt) - (a.finishedAt ?? a.startedAt) || b.startedAt - a.startedAt,
+        )
+        .slice(0, keepManagedRuns)
+        .map((state) => state.runId),
+    );
+
+    if (params.currentRunId) {
+      retainedManagedRunIds.add(params.currentRunId);
+    }
+
+    const deleted: AgentRunState[] = [];
+    const failed: AgentStateCleanupResult["failed"] = [];
+
+    for (const state of existing) {
+      if (!state.managedOutput || state.status !== "finished" || retainedManagedRunIds.has(state.runId)) {
+        continue;
+      }
+
+      try {
+        await rm(state.outputDir, { recursive: true, force: true });
+        deleted.push(state);
+      } catch (error) {
+        failed.push({ state, error });
+      }
+    }
+
+    const deletedRunIds = new Set(deleted.map((state) => state.runId));
+    const retained = existing.filter((state) => !deletedRunIds.has(state.runId));
+
+    await writeJsonlAtomic(projectStatePath(params.cwd), retained);
+
+    return {
+      deleted,
+      failed,
+      retained,
+    };
+  });
+
+export const cleanupStaleAgentRunStates = async (params: {
+  cwd: string;
+  currentRunId?: string;
+  staleOutputTtlMs?: number;
+  now?: number;
+}): Promise<AgentStaleStateCleanupResult> => {
+  const currentCwd = resolve(params.cwd);
+  const currentStatePath = projectStatePath(currentCwd);
+  const statePaths = await listAgentStatePaths(currentCwd);
+  const staleOutputTtlMs = Math.max(0, params.staleOutputTtlMs ?? AGENT_STALE_OUTPUT_TTL_MS);
+  const now = params.now ?? Date.now();
+  const staleCwds = new Map<string, string>();
+  const referencedOutputDirs = new Set<string>();
+
+  for (const statePath of statePaths) {
+    const states = foldAgentRunStates(await readAgentRunStateFile(statePath));
+
+    for (const state of states) {
+      referencedOutputDirs.add(resolve(state.outputDir));
+
+      if (statePath === currentStatePath) {
+        continue;
+      }
+
+      if (state.cwd === currentCwd || state.runId === params.currentRunId) {
+        continue;
+      }
+
+      if (!(await pathExists(state.outputDir)) || isManagedOutputStale(state, now, staleOutputTtlMs)) {
+        staleCwds.set(state.cwd, statePath);
+        break;
+      }
+    }
+  }
+
+  const deleted: AgentRunState[] = [];
+  const failed: AgentStaleStateCleanupResult["failed"] = [];
+  const retained: AgentRunState[] = [];
+  const skipped: AgentStaleStateCleanupResult["skipped"] = [];
+
+  for (const [cwd, statePath] of staleCwds) {
+    const lockResult = await tryWithAgentStateLock(cwd, () =>
+      cleanupStaleAgentRunState({
+        cwd,
+        now,
+        staleOutputTtlMs,
+      }),
+    );
+
+    if (!lockResult.acquired) {
+      skipped.push({ cwd, statePath, reason: "locked" });
+      continue;
+    }
+
+    deleted.push(...lockResult.result.deleted);
+    failed.push(...lockResult.result.failed);
+    retained.push(...lockResult.result.retained);
+  }
+
+  const orphaned = await cleanupStaleOrphanAgentOutputs({
+    referencedOutputDirs,
+    now,
+    staleOutputTtlMs,
+  });
+
+  return {
+    checked: statePaths.length,
+    deleted,
+    failed,
+    orphaned,
+    retained,
+    skipped,
+  };
 };

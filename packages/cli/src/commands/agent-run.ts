@@ -1,4 +1,5 @@
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -12,8 +13,10 @@ import {
   isPathInside,
   normalizeAgentRerunPreset,
   parseAgentLabelFilters,
+  cleanupAgentRunState,
+  cleanupStaleAgentRunStates,
   resolveAgentStateDir,
-  writeLatestAgentState,
+  writeAgentRunState,
   type AgentExpectationsInput,
   type AgentHumanReportMode,
 } from "@allurereport/plugin-agent";
@@ -41,13 +44,49 @@ export const printAgentOutputLinks = (outputDir: string) => {
   }
 };
 
-export const persistLatestAgentState = async (value: Parameters<typeof writeLatestAgentState>[0]) => {
+export const persistAgentRunState = async (value: Parameters<typeof writeAgentRunState>[0]) => {
   try {
-    await writeLatestAgentState(value);
+    await writeAgentRunState(value);
   } catch (error) {
-    console.error(
-      `Could not update latest agent output in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`,
-    );
+    console.error(`Could not update agent state in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`);
+  }
+};
+
+const logAgentCleanupFailures = (failures: { state: { outputDir: string }; error: unknown }[]) => {
+  for (const failure of failures) {
+    console.error(`Could not clean stale agent output ${failure.state.outputDir}: ${(failure.error as Error).message}`);
+  }
+};
+
+const logAgentOrphanCleanupFailures = (failures: { outputDir: string; error: unknown }[]) => {
+  for (const failure of failures) {
+    console.error(`Could not clean stale agent output ${failure.outputDir}: ${(failure.error as Error).message}`);
+  }
+};
+
+export const cleanupManagedAgentOutputs = async (params: { cwd: string; runId: string; managedOutput: boolean }) => {
+  try {
+    const result = await cleanupAgentRunState({
+      cwd: params.cwd,
+      currentRunId: params.runId,
+      keepManagedRuns: params.managedOutput ? 1 : 0,
+    });
+
+    logAgentCleanupFailures(result.failed);
+  } catch (error) {
+    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
+  }
+
+  try {
+    const staleResult = await cleanupStaleAgentRunStates({
+      cwd: params.cwd,
+      currentRunId: params.runId,
+    });
+
+    logAgentCleanupFailures(staleResult.failed);
+    logAgentOrphanCleanupFailures(staleResult.orphaned.failed);
+  } catch (error) {
+    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
   }
 };
 
@@ -127,6 +166,8 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       return;
     }
 
+    const runId = randomUUID();
+    const managedOutput = !output;
     const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
     const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
     const environmentOptions = {
@@ -172,15 +213,18 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       }
     }
 
-    const startedAt = new Date().toISOString();
+    const startedAt = Date.now();
 
-    await persistLatestAgentState({
+    await persistAgentRunState({
+      runId,
       cwd,
       outputDir,
+      managedOutput,
       expectationsPath,
       command: commandString,
       startedAt,
       status: "running",
+      pid: process.pid,
     });
 
     printAgentOutputLinks(outputDir);
@@ -219,16 +263,20 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       logProcessExit: false,
     });
 
-    await persistLatestAgentState({
+    await persistAgentRunState({
+      runId,
       cwd,
       outputDir,
+      managedOutput,
       expectationsPath,
       command: commandString,
       startedAt,
-      finishedAt: new Date().toISOString(),
+      finishedAt: Date.now(),
       status: "finished",
       exitCode: globalExitCode.actual ?? globalExitCode.original,
+      pid: process.pid,
     });
+    await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
 
     exit(globalExitCode.actual ?? globalExitCode.original);
   } finally {
@@ -289,6 +337,8 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     throw new AgentUsageError(`No test results directories or dump files found matching pattern: ${inspectedPatterns}`);
   }
 
+  const runId = randomUUID();
+  const managedOutput = !output;
   const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
   const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
   const commandString = formatAgentInspectCommand({ dumps: dumpFiles, resultsDir: resultDirectories });
@@ -349,15 +399,18 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     }
   }
 
-  const startedAt = new Date().toISOString();
+  const startedAt = Date.now();
 
-  await persistLatestAgentState({
+  await persistAgentRunState({
+    runId,
     cwd,
     outputDir,
+    managedOutput,
     expectationsPath,
     command: commandString,
     startedAt,
     status: "running",
+    pid: process.pid,
   });
 
   printAgentOutputLinks(outputDir);
@@ -389,16 +442,20 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
 
   await allureReport.done();
 
-  await persistLatestAgentState({
+  await persistAgentRunState({
+    runId,
     cwd,
     outputDir,
+    managedOutput,
     expectationsPath,
     command: commandString,
     startedAt,
-    finishedAt: new Date().toISOString(),
+    finishedAt: Date.now(),
     status: "finished",
     exitCode: 0,
+    pid: process.pid,
   });
+  await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
 
   exit(0);
 };

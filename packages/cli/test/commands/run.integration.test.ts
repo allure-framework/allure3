@@ -1,6 +1,5 @@
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
@@ -331,11 +330,7 @@ console.log("emitted simple result");
 
     await step("prepare built agent fixture", async () => {
       await mkdir(fixtureDir, { recursive: true });
-      const resolvedFixtureDir = await realpath(fixtureDir);
-      expectedStateDir = join(
-        tmpdir(),
-        `allure-agent-state-${createHash("sha256").update(resolvedFixtureDir).digest("hex").slice(0, 16)}`,
-      );
+      expectedStateDir = join(tmpdir(), "allure-agent-state");
       await writeFile(expectationsPath, expectationsSource, "utf-8");
       await writeFile(configPath, configSource, "utf-8");
       await writeFile(emitResultsPath, emitResultsSource, "utf-8");
