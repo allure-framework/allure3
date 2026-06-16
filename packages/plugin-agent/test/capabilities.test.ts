@@ -88,7 +88,7 @@ describe("agent capabilities", () => {
       "allure agent query --from <output-dir> tests",
       "allure agent select --from <output-dir>",
       "Human reports:",
-      "When a user asks for \"the report\" after a run",
+      'When a user asks for "the report" after a run',
       "<output>/manifest/human-report.json",
       "<output>/awesome/index.html",
       "ALLURE_AGENT_STATE_DIR=<dir>",

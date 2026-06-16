@@ -161,7 +161,8 @@ export const createAgentCapabilities = () =>
         auto: "Generate a single-file Awesome report when the stored visible result count is 1000 or fewer; skip above that threshold.",
         off: "Disable human-readable reports and write agent artifacts only.",
         awesome: "Force a single-file Awesome report and ignore the auto threshold.",
-        config: "Force the configured non-agent report plugins inside the agent output directory and ignore the auto threshold.",
+        config:
+          "Force the configured non-agent report plugins inside the agent output directory and ignore the auto threshold.",
       },
       threshold: {
         resultCount: 1000,

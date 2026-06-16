@@ -15,6 +15,7 @@ import { run, UsageError } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createAgentHumanReportConfig } from "../../src/commands/agent-human-report.js";
 import {
   AgentCommand,
   AgentCapabilitiesCommand,
@@ -25,7 +26,6 @@ import {
   AgentStateDirCommand,
   createAgentCapabilities,
 } from "../../src/commands/agent.js";
-import { createAgentHumanReportConfig } from "../../src/commands/agent-human-report.js";
 import { executeAllureRun, executeNestedAllureCommand } from "../../src/commands/commons/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 

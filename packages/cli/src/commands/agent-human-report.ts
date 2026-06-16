@@ -1,24 +1,13 @@
 import * as console from "node:console";
 
-import {
-  readConfig,
-  readRawConfig,
-  type FullConfig,
-  type PluginInstance,
-} from "@allurereport/core";
-import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
-import type {
-  AllureStore,
-  Plugin,
-  PluginContext,
-  PluginSummary,
-  RealtimeSubscriber,
-} from "@allurereport/plugin-api";
+import { readConfig, readRawConfig, type FullConfig, type PluginInstance } from "@allurereport/core";
 import type {
   AgentHumanReportMode,
   AgentHumanReportStatus,
   AgentHumanReportStatusProvider,
 } from "@allurereport/plugin-agent";
+import type { AllureStore, Plugin, PluginContext, PluginSummary, RealtimeSubscriber } from "@allurereport/plugin-api";
+import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 
 export const AGENT_HUMAN_REPORT_THRESHOLD = 1000;
 

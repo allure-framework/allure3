@@ -479,7 +479,9 @@ describe("AgentPlugin", () => {
       };
       human_report: AgentHumanReportStatus | null;
     }>(join(outputDir, "manifest", "run.json"));
-    const humanReportManifest = await readJson<AgentHumanReportStatus>(join(outputDir, "manifest", "human-report.json"));
+    const humanReportManifest = await readJson<AgentHumanReportStatus>(
+      join(outputDir, "manifest", "human-report.json"),
+    );
     const indexContent = await readText(join(outputDir, "index.md"), "text/markdown");
 
     expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
