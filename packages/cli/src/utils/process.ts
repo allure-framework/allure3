@@ -19,6 +19,63 @@ const IS_WIN = platform === "win32";
 
 const PS_OUTPUT_PATTERN = /(?<ppid>\d+)\s+(?<pid>\d+)\s+(?<comm>.*)/;
 
+const quotePosixShellArg = (arg: string) => {
+  if (/^[A-Za-z0-9_/:=.,@%+-]+$/u.test(arg)) {
+    return arg;
+  }
+
+  return `'${arg.replace(/'/g, "'\\''")}'`;
+};
+
+const quoteWindowsShellArg = (arg: string) => {
+  if (arg && !/[\s"&()<>^|%]/u.test(arg)) {
+    return arg;
+  }
+
+  let quoted = '"';
+  let backslashes = 0;
+
+  for (const char of arg) {
+    if (char === "\\") {
+      backslashes += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      quoted += "\\".repeat(backslashes * 2 + 1);
+      quoted += char;
+      backslashes = 0;
+      continue;
+    }
+
+    quoted += "\\".repeat(backslashes);
+    backslashes = 0;
+    quoted += char;
+  }
+
+  quoted += "\\".repeat(backslashes * 2);
+  quoted += '"';
+
+  return quoted;
+};
+
+const quoteShellArg = IS_WIN ? quoteWindowsShellArg : quotePosixShellArg;
+
+const resolveShellInvocation = (command: string, commandArgs: string[], shell: boolean) => {
+  if (!shell || commandArgs.length === 0) {
+    return {
+      command,
+      commandArgs,
+    };
+  }
+
+  return {
+    // Node 24 warns when args are passed together with shell: true.
+    command: [command, ...commandArgs].map(quoteShellArg).join(" "),
+    commandArgs: [],
+  };
+};
+
 export const runProcess = (params: {
   command: string;
   commandArgs: string[];
@@ -45,7 +102,9 @@ export const runProcess = (params: {
     delete env.NO_COLOR;
   }
 
-  return spawn(command, commandArgs, {
+  const processInvocation = resolveShellInvocation(command, commandArgs, shell);
+
+  return spawn(processInvocation.command, processInvocation.commandArgs, {
     env,
     cwd,
     stdio: logs,

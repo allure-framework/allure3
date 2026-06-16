@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,11 +21,18 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: "20.x"
+          node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
+      - name: Cache build outputs
+        id: build-cache
+        uses: actions/cache@v5
+        with:
+          path: packages/*/dist
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build the project
+        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Lint Project
         run: yarn lint
@@ -44,9 +51,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20.x"
+          node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
@@ -56,13 +63,20 @@ jobs:
         run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
+      - name: Cache build outputs
+        id: build-cache
+        uses: actions/cache@v5
+        with:
+          path: packages/*/dist
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build project
+        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Test Project
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
-        uses: actions/upload-artifact@v5
-        if: always()
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
         with:
           name: allure-results-${{ matrix.os }}
           path: ./allure-results-${{ matrix.os }}.zip
@@ -71,7 +85,7 @@ jobs:
     needs: [lint, test]
     name: Build report
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' }}
     permissions:
       actions: read
       contents: write
@@ -87,10 +101,10 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: "20.x"
+          node-version: "24.14.x"
           cache: "yarn"
       - name: Download allure results from Ubuntu
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: allure-results-ubuntu-latest
@@ -102,25 +116,32 @@ jobs:
           name: allure-results-macos-latest
           path: ./
       - name: Download allure results from Windows
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: allure-results-windows-latest
           path: ./
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
+      - name: Cache build outputs
+        id: build-cache
+        uses: actions/cache@v5
+        with:
+          path: packages/*/dist
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build project
+        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Generate report
         env:
           ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
       - name: Write perf metrics summary
-        if: always()
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md --github-step-summary
       - name: Upload perf metrics
-        uses: actions/upload-artifact@v5
-        if: always()
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         with:
           name: allure-perf-metrics
           path: |
@@ -137,7 +158,7 @@ jobs:
     needs: report
     name: Comment perf metrics
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request'
+    if: ${{ always() && !cancelled() && needs.report.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       actions: read
       contents: read
