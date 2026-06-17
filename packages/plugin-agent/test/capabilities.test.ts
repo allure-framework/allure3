@@ -42,6 +42,9 @@ describe("agent capabilities", () => {
     expect(payload.expectations.inline.evidence.stepNameContains).toBe(true);
     expect(payload.expectations.inline.evidence.attachmentFilters).toEqual(["name", "content-type"]);
     expect(payload.commands.run.options).not.toContain("--expect-evidence");
+    expect(payload.output.explicitOutputCleanup).toContain("caller-managed");
+    expect(payload.output.explicitOutputCleanup).toContain("remove or archive");
+    expect(payload.output.explicitOutputCleanup).toContain("state compaction");
     expect(payload.output.files).toContain("manifest/run.json");
     expect(payload.output.files).toContain("manifest/human-report.json");
     expect(payload.output.files).toContain("awesome/index.html");

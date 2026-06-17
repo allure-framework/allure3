@@ -138,6 +138,8 @@ export const createAgentCapabilities = () =>
     output: {
       automaticTempDirectory: true,
       explicitOutputOption: "--output <dir>",
+      explicitOutputCleanup:
+        "When --output is provided, the output directory and its lifetime are caller-managed. Agent-mode cleanup will not remove it, so agents that pass --output should remove or archive that directory when it is no longer needed; later state compaction drops missing explicit outputs from the registry.",
       schema: "allure-agent-output/v1",
       files: [
         "index.md",
@@ -227,7 +229,7 @@ export const AGENT_TASK_MAP_HELP = `Agent task map:
       generated.
 
   allure agent state-dir
-      Show where project-scoped latest-run pointers are stored. Useful when
+      Show the shared state directory that stores per-project run registries. Useful when
       latest cannot find a run or CI/sandbox state looks wrong.
 
   allure agent select --latest
@@ -248,7 +250,7 @@ export const AGENT_TASK_MAP_HELP = `Agent task map:
 
 Environment:
   ALLURE_AGENT_STATE_DIR=<dir>
-      Override the project-scoped state directory. Useful in CI, sandboxes, or
+      Override the shared agent state directory. Useful in CI, sandboxes, or
       multi-job setups that need a deterministic shared state location.
 
 Human reports:

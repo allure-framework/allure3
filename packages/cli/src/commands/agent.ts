@@ -1,4 +1,5 @@
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -12,6 +13,8 @@ import {
   AgentExpectationUsageError,
   buildAgentInlineExpectations,
   buildAgentQueryPayload,
+  cleanupAgentRunState,
+  cleanupStaleAgentRunStates,
   createAgentCapabilities,
   formatAgentOutputLinks,
   isAgentExpectationUsageError,
@@ -29,7 +32,7 @@ import {
   resolveAgentStateDir,
   selectAgentTestPlan,
   validateAgentExpectationsFile,
-  writeLatestAgentState,
+  writeAgentRunState,
   writeInvalidAgentExpectationOutput,
   type AgentExpectationsInput,
   type AgentHumanReportMode,
@@ -93,13 +96,49 @@ const printAgentOutputLinks = (outputDir: string) => {
   }
 };
 
-const persistLatestAgentState = async (value: Parameters<typeof writeLatestAgentState>[0]) => {
+const persistAgentRunState = async (value: Parameters<typeof writeAgentRunState>[0]) => {
   try {
-    await writeLatestAgentState(value);
+    await writeAgentRunState(value);
   } catch (error) {
-    console.error(
-      `Could not update latest agent output in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`,
-    );
+    console.error(`Could not update agent state in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`);
+  }
+};
+
+const logAgentCleanupFailures = (failures: { state: { outputDir: string }; error: unknown }[]) => {
+  for (const failure of failures) {
+    console.error(`Could not clean stale agent output ${failure.state.outputDir}: ${(failure.error as Error).message}`);
+  }
+};
+
+const logAgentOrphanCleanupFailures = (failures: { outputDir: string; error: unknown }[]) => {
+  for (const failure of failures) {
+    console.error(`Could not clean stale agent output ${failure.outputDir}: ${(failure.error as Error).message}`);
+  }
+};
+
+const cleanupManagedAgentOutputs = async (params: { cwd: string; runId: string; managedOutput: boolean }) => {
+  try {
+    const result = await cleanupAgentRunState({
+      cwd: params.cwd,
+      currentRunId: params.runId,
+      keepManagedRuns: params.managedOutput ? 1 : 0,
+    });
+
+    logAgentCleanupFailures(result.failed);
+  } catch (error) {
+    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
+  }
+
+  try {
+    const staleResult = await cleanupStaleAgentRunStates({
+      cwd: params.cwd,
+      currentRunId: params.runId,
+    });
+
+    logAgentCleanupFailures(staleResult.failed);
+    logAgentOrphanCleanupFailures(staleResult.orphaned.failed);
+  } catch (error) {
+    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
   }
 };
 
@@ -183,7 +222,8 @@ export class AgentCommand extends Command {
   });
 
   output = Option.String("--output,-o", {
-    description: "The output directory for agent artifacts. Absolute paths are accepted as well",
+    description:
+      "The output directory for agent artifacts. Absolute paths are accepted. Explicit output is caller-managed; remove or archive it when no longer needed so later state compaction can drop its record",
   });
 
   report = Option.String("--report", {
@@ -341,6 +381,8 @@ export class AgentCommand extends Command {
 
       const expectationError = error as AgentExpectationUsageError;
       const cwd = await realpath(configuredCwd ?? process.cwd());
+      const runId = randomUUID();
+      const managedOutput = !output;
       const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
       const commandString = formatAgentCommand(args);
       const { generatedAt } = await writeInvalidAgentExpectationOutput({
@@ -348,16 +390,22 @@ export class AgentCommand extends Command {
         command: commandString,
         error: expectationError,
       });
+      const generatedAtMs = Date.parse(generatedAt);
+      const generatedAtTimestamp = Number.isFinite(generatedAtMs) ? generatedAtMs : Date.now();
 
-      await persistLatestAgentState({
+      await persistAgentRunState({
+        runId,
         cwd,
         outputDir,
+        managedOutput,
         command: commandString,
-        startedAt: generatedAt,
-        finishedAt: generatedAt,
+        startedAt: generatedAtTimestamp,
+        finishedAt: generatedAtTimestamp,
         status: "finished",
         exitCode: 1,
+        pid: process.pid,
       });
+      await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
 
       printAgentOutputLinks(outputDir);
       console.error(expectationError.message);
@@ -405,7 +453,8 @@ export class AgentInspectCommand extends Command {
   });
 
   output = Option.String("--output,-o", {
-    description: "The output directory for agent artifacts. Absolute paths are accepted as well",
+    description:
+      "The output directory for agent artifacts. Absolute paths are accepted. Explicit output is caller-managed; remove or archive it when no longer needed so later state compaction can drop its record",
   });
 
   report = Option.String("--report", {
@@ -566,6 +615,8 @@ export class AgentInspectCommand extends Command {
 
       const expectationError = error as AgentExpectationUsageError;
       const cwd = await realpath(configuredCwd ?? process.cwd());
+      const runId = randomUUID();
+      const managedOutput = !output;
       const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
       const commandString = formatAgentInspectCommand({ dumps, resultsDir });
       const { generatedAt } = await writeInvalidAgentExpectationOutput({
@@ -573,16 +624,22 @@ export class AgentInspectCommand extends Command {
         command: commandString,
         error: expectationError,
       });
+      const generatedAtMs = Date.parse(generatedAt);
+      const generatedAtTimestamp = Number.isFinite(generatedAtMs) ? generatedAtMs : Date.now();
 
-      await persistLatestAgentState({
+      await persistAgentRunState({
+        runId,
         cwd,
         outputDir,
+        managedOutput,
         command: commandString,
-        startedAt: generatedAt,
-        finishedAt: generatedAt,
+        startedAt: generatedAtTimestamp,
+        finishedAt: generatedAtTimestamp,
         status: "finished",
         exitCode: 1,
+        pid: process.pid,
       });
+      await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
 
       printAgentOutputLinks(outputDir);
       console.error(expectationError.message);
@@ -637,12 +694,11 @@ export class AgentStateDirCommand extends Command {
   static paths = [["agent", "state-dir"]];
 
   static usage = Command.Usage({
-    description: "Print the Allure agent state directory for the current project",
-    details:
-      "This command prints the resolved state directory used to persist latest-agent pointers for the current project cwd.",
+    description: "Print the shared Allure agent state directory",
+    details: "This command prints the resolved state directory used to persist per-project agent run registries.",
     examples: [
-      ["agent state-dir", "Print the resolved state directory for the current project"],
-      ["agent state-dir --cwd ./packages/cli", "Print the resolved state directory for a specific project cwd"],
+      ["agent state-dir", "Print the resolved shared state directory"],
+      ["agent state-dir --cwd ./packages/cli", "Print the shared state directory using a specific project cwd"],
     ],
   });
 

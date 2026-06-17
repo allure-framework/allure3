@@ -28,7 +28,7 @@ Do not store the exact Allure version here. Version output is a runtime fact; th
 - Agent inspect input: positional Allure results directory patterns plus repeated `--dump <archive-or-glob>` for multiple CI dump archives; accepts generate-style configuration options such as `--config`, `--cwd`, `--report-name`, `--history-limit`, `--hide-labels`, and `--output`
 - Agent inspect output: `--output <dir>` writes the agentic output directory
 - Expectation controls: `--goal`, `--task-id`, `--expect-tests`, `--expect-test`, `--expect-prefix`, `--expect-label`, `--expect-env`, `--forbid-label`, `--expect-step-containing`, `--expect-steps`, `--expect-attachments`, `--expect-attachment`, and advanced `--expectations <yaml|json>`
-- Latest/state directory recovery: `yarn allure agent latest`; `yarn allure agent state-dir`; `ALLURE_AGENT_STATE_DIR=<dir>` override
+- Latest/state directory recovery: `yarn allure agent latest`; `yarn allure agent state-dir`; `ALLURE_AGENT_STATE_DIR=<dir>` override for the shared state root
 - Selection/rerun support: `yarn allure agent select --latest|--from <dir>` and `yarn allure agent --rerun-latest|--rerun-from <dir> -- <command>`
 - Discovery/configuration commands: unsupported by this local CLI
 - Local agent test service: unsupported or unknown; use `yarn allure agent` directly
@@ -187,9 +187,9 @@ After each agent-mode run:
 
 Do not create persistent output or expectation paths. Use unique temp paths for every run.
 
-- Agent output policy: use omitted output for fresh temp output or an explicit unique temp dir; do not reuse output directories across runs
+- Agent output policy: use omitted output for fresh managed temp output or an explicit unique temp dir; do not reuse output directories across runs. Managed temp outputs are pruned through the agent state registry; explicit `--output` directories are not removed by registry cleanup.
 - Latest output recovery: `yarn allure agent latest`
-- State directory override: `ALLURE_AGENT_STATE_DIR=<dir>`
+- State directory override: `ALLURE_AGENT_STATE_DIR=<dir>` changes the shared state root that stores per-project run registries
 - Rerun from latest/prior output: `yarn allure agent --rerun-latest -- <command>` or `yarn allure agent --rerun-from <output-dir> -- <command>`
 - Selection/test plan support: `yarn allure agent select --latest` or `--from <output-dir>` with `--preset review|failed|unsuccessful|all`
 - Parallel-run rule: output paths and expectation state must not be shared

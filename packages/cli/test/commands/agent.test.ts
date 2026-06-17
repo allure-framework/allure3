@@ -1,3 +1,4 @@
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { readConfig, readRawConfig } from "@allurereport/core";
@@ -5,12 +6,15 @@ import {
   AgentExpectationUsageError,
   AgentUsageError,
   buildAgentInlineExpectations,
+  cleanupAgentRunState,
+  cleanupStaleAgentRunStates,
   createAgentTestPlanContext,
+  resolveAgentStateDir,
   validateAgentExpectationsFile,
   writeInvalidAgentExpectationOutput,
-  writeLatestAgentState,
+  writeAgentRunState,
 } from "@allurereport/plugin-agent";
-import { epic, feature, label, story } from "allure-js-commons";
+import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -29,11 +33,16 @@ import {
 import { executeAllureRun, executeNestedAllureCommand } from "../../src/commands/commons/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
-const { exitMock } = vi.hoisted(() => {
-  return {
-    exitMock: vi.fn(),
-  };
-});
+const { exitMock } = vi.hoisted(() => ({
+  exitMock: vi.fn(),
+}));
+
+const agentOutputDir = join(tmpdir(), "allure-agent-123");
+const agentStateDir = join(tmpdir(), "allure-agent-state");
+const latestAgentOutputDir = join(tmpdir(), "latest-agent");
+const latestTestPlanPath = join(tmpdir(), "latest-testplan.json");
+const previousAgentOutputDir = join(tmpdir(), "previous-agent");
+const testPlanPath = join(tmpdir(), "testplan.json");
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -48,7 +57,7 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   ...(await importOriginal()),
   realpath: vi.fn().mockResolvedValue("/cwd"),
   readFile: vi.fn().mockResolvedValue("goal: valid file expectations\n"),
-  mkdtemp: vi.fn().mockResolvedValue("/tmp/allure-agent-123"),
+  mkdtemp: vi.fn(),
   rm: vi.fn().mockResolvedValue(undefined),
   mkdir: vi.fn().mockResolvedValue(undefined),
   writeFile: vi.fn().mockResolvedValue(undefined),
@@ -89,8 +98,17 @@ vi.mock("@allurereport/plugin-agent", async (importOriginal) => {
 
   return {
     ...actual,
-    resolveAgentStateDir: vi.fn().mockReturnValue("/tmp/allure-agent-state-0f0810f05e3f7d8f"),
-    writeLatestAgentState: vi.fn().mockResolvedValue(undefined),
+    resolveAgentStateDir: vi.fn(),
+    writeAgentRunState: vi.fn().mockResolvedValue(undefined),
+    cleanupAgentRunState: vi.fn().mockResolvedValue({ deleted: [], failed: [], retained: [] }),
+    cleanupStaleAgentRunStates: vi.fn().mockResolvedValue({
+      checked: 0,
+      deleted: [],
+      failed: [],
+      orphaned: { deleted: [], failed: [], retained: [] },
+      retained: [],
+      skipped: [],
+    }),
     readLatestAgentState: vi.fn().mockResolvedValue(undefined),
     normalizeAgentRerunPreset: vi.fn((value?: string) => value ?? "review"),
     parseAgentLabelFilters: vi.fn((values?: string[]) =>
@@ -114,10 +132,7 @@ vi.mock("@allurereport/plugin-agent", async (importOriginal) => {
         : undefined,
     ),
     validateAgentExpectationsFile: vi.fn().mockResolvedValue(undefined),
-    writeInvalidAgentExpectationOutput: vi.fn().mockResolvedValue({
-      outputDir: "/tmp/allure-agent-123",
-      generatedAt: "2026-06-10T16:00:00.000Z",
-    }),
+    writeInvalidAgentExpectationOutput: vi.fn(),
   };
 });
 
@@ -129,11 +144,16 @@ beforeEach(async () => {
   vi.clearAllMocks();
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 
+  const fsModule = await import("node:fs/promises");
   const { AllureReportMock } = await import("../utils.js");
 
+  (fsModule.mkdtemp as Mock).mockReset();
   (executeAllureRun as Mock).mockReset();
   (executeNestedAllureCommand as Mock).mockReset();
-  (writeLatestAgentState as Mock).mockReset();
+  (resolveAgentStateDir as Mock).mockReset();
+  (writeAgentRunState as Mock).mockReset();
+  (cleanupAgentRunState as Mock).mockReset();
+  (cleanupStaleAgentRunStates as Mock).mockReset();
   (createAgentTestPlanContext as Mock).mockReset();
   (buildAgentInlineExpectations as Mock).mockReset();
   (validateAgentExpectationsFile as Mock).mockReset();
@@ -142,6 +162,7 @@ beforeEach(async () => {
   (readRawConfig as Mock).mockReset();
   vi.mocked(glob).mockReset();
 
+  (fsModule.mkdtemp as Mock).mockResolvedValue(agentOutputDir);
   (executeAllureRun as Mock).mockResolvedValue({
     globalExitCode: {
       original: 0,
@@ -150,7 +171,17 @@ beforeEach(async () => {
     testProcessResult: null,
   });
   (executeNestedAllureCommand as Mock).mockResolvedValue(0);
-  (writeLatestAgentState as Mock).mockResolvedValue(undefined);
+  (resolveAgentStateDir as Mock).mockReturnValue(agentStateDir);
+  (writeAgentRunState as Mock).mockResolvedValue(undefined);
+  (cleanupAgentRunState as Mock).mockResolvedValue({ deleted: [], failed: [], retained: [] });
+  (cleanupStaleAgentRunStates as Mock).mockResolvedValue({
+    checked: 0,
+    deleted: [],
+    failed: [],
+    orphaned: { deleted: [], failed: [], retained: [] },
+    retained: [],
+    skipped: [],
+  });
   (createAgentTestPlanContext as Mock).mockResolvedValue(undefined);
   (buildAgentInlineExpectations as Mock).mockImplementation((options: Record<string, unknown>) =>
     Object.values(options).some((value) =>
@@ -161,7 +192,7 @@ beforeEach(async () => {
   );
   (validateAgentExpectationsFile as Mock).mockResolvedValue(undefined);
   (writeInvalidAgentExpectationOutput as Mock).mockResolvedValue({
-    outputDir: "/tmp/allure-agent-123",
+    outputDir: agentOutputDir,
     generatedAt: "2026-06-10T16:00:00.000Z",
   });
   (readRawConfig as Mock).mockResolvedValue({ plugins: {} });
@@ -182,7 +213,7 @@ beforeEach(async () => {
         id: "agent",
         enabled: true,
         options: {
-          outputDir: "/tmp/allure-agent-123",
+          outputDir: agentOutputDir,
         },
         plugin: { name: "agent-plugin" },
       },
@@ -250,6 +281,7 @@ describe("agent command", () => {
         "human-report manifest before regenerating anything",
         "$ allure agent inspect",
         "--dump #0",
+        "Explicit output is caller-managed",
         "--report #0",
         "--report-name,--name #0",
         "--open",
@@ -308,11 +340,7 @@ describe("agent command", () => {
     {
       command: "agent state-dir",
       args: ["agent", "state-dir", "--help"],
-      expected: [
-        "Print the Allure agent state directory for the current project",
-        "$ allure agent state-dir",
-        "--cwd #0",
-      ],
+      expected: ["Print the shared Allure agent state directory", "$ allure agent state-dir", "--cwd #0"],
     },
   ])("should expose $command help for local capability detection", async ({ args, expected }) => {
     const output = await captureAgentHelp(args);
@@ -320,6 +348,20 @@ describe("agent command", () => {
     expected.forEach((line) => {
       expect(output).toContain(line);
     });
+  });
+
+  it("should expose agent run output cleanup guidance in detailed help", async () => {
+    const summary = await captureAgentHelp(["agent", "--help"]);
+    const runHelpIndex = summary.match(/^\s*(\d+)\. allure agent \[/mu)?.[1];
+
+    expect(runHelpIndex).toBeDefined();
+
+    const output = await captureAgentHelp(["agent", `-h=${runHelpIndex!}`]);
+
+    expect(output).toContain("Run specified command in Allure agent mode");
+    expect(output).toContain("--output,-o #0");
+    expect(output).toContain("Explicit output is caller-managed");
+    expect(output).toContain("state compaction can drop its record");
   });
 
   it("should print structured agent capabilities as JSON", async () => {
@@ -380,11 +422,11 @@ describe("agent command", () => {
     await run(AgentCommand, ["agent", "--", "npm", "test"]);
 
     expect(readConfig).toHaveBeenCalledWith("/cwd", undefined, {
-      output: "/tmp/allure-agent-123",
+      output: agentOutputDir,
       plugins: {
         agent: {
           options: {
-            outputDir: "/tmp/allure-agent-123",
+            outputDir: agentOutputDir,
             command: "npm test",
             humanReport: expect.any(Function),
           },
@@ -393,7 +435,7 @@ describe("agent command", () => {
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        output: "/tmp/allure-agent-123",
+        output: agentOutputDir,
         open: false,
         port: undefined,
         qualityGate: undefined,
@@ -422,34 +464,63 @@ describe("agent command", () => {
         logProcessExit: false,
       }),
     );
-    expect(logMock).toHaveBeenNthCalledWith(1, "agent output: /tmp/allure-agent-123");
-    expect(logMock).toHaveBeenNthCalledWith(2, `agent index: ${join("/tmp/allure-agent-123", "index.md")}`);
+    expect(logMock).toHaveBeenNthCalledWith(1, `agent output: ${agentOutputDir}`);
+    expect(logMock).toHaveBeenNthCalledWith(2, `agent index: ${join(agentOutputDir, "index.md")}`);
     expect(logMock).toHaveBeenNthCalledWith(3, "npm test");
     expect(logMock.mock.invocationCallOrder[0]).toBeLessThan((executeAllureRun as Mock).mock.invocationCallOrder[0]);
-    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+    expect(writeAgentRunState).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
+        runId: expect.any(String),
         cwd: "/cwd",
-        outputDir: "/tmp/allure-agent-123",
+        outputDir: agentOutputDir,
+        managedOutput: true,
         expectationsPath: undefined,
         command: "npm test",
-        startedAt: expect.any(String),
+        startedAt: expect.any(Number),
         status: "running",
+        pid: expect.any(Number),
       }),
     );
-    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+    expect(writeAgentRunState).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
+        runId: expect.any(String),
         cwd: "/cwd",
-        outputDir: "/tmp/allure-agent-123",
+        outputDir: agentOutputDir,
+        managedOutput: true,
         expectationsPath: undefined,
         command: "npm test",
-        startedAt: expect.any(String),
-        finishedAt: expect.any(String),
+        startedAt: expect.any(Number),
+        finishedAt: expect.any(Number),
         status: "finished",
         exitCode: 0,
+        pid: expect.any(Number),
       }),
     );
+    expect(cleanupAgentRunState).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+      keepManagedRuns: 1,
+    });
+    await attachment(
+      "agent run state contract",
+      JSON.stringify(
+        {
+          started: (writeAgentRunState as Mock).mock.calls[0][0],
+          finished: (writeAgentRunState as Mock).mock.calls[1][0],
+          cleanupCurrent: (cleanupAgentRunState as Mock).mock.calls[0][0],
+          cleanupStale: (cleanupStaleAgentRunStates as Mock).mock.calls[0]?.[0],
+        },
+        null,
+        2,
+      ),
+      "application/json",
+    );
+    expect(cleanupStaleAgentRunStates).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+    });
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
@@ -512,7 +583,7 @@ describe("agent command", () => {
             id: "agent",
             enabled: true,
             options: {
-              outputDir: "/tmp/allure-agent-123",
+              outputDir: agentOutputDir,
             },
             plugin: { name: "agent-plugin" },
           },
@@ -522,7 +593,7 @@ describe("agent command", () => {
     await run(AgentCommand, ["agent", "--report", "config", "--", "npm", "test"]);
 
     expect(readConfig).toHaveBeenNthCalledWith(1, "/cwd", undefined, {
-      output: "/tmp/allure-agent-123",
+      output: agentOutputDir,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -542,7 +613,7 @@ describe("agent command", () => {
     const humanReport = await createAgentHumanReportConfig({
       mode: "auto",
       cwd: "/cwd",
-      outputDir: "/tmp/allure-agent-123",
+      outputDir: agentOutputDir,
     });
     const store = {
       allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1000 }, (_, index) => ({ id: `tr-${index}` }))),
@@ -562,7 +633,7 @@ describe("agent command", () => {
     const humanReport = await createAgentHumanReportConfig({
       mode: "auto",
       cwd: "/cwd",
-      outputDir: "/tmp/allure-agent-123",
+      outputDir: agentOutputDir,
     });
     const store = {
       allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
@@ -582,7 +653,7 @@ describe("agent command", () => {
     const humanReport = await createAgentHumanReportConfig({
       mode: "awesome",
       cwd: "/cwd",
-      outputDir: "/tmp/allure-agent-123",
+      outputDir: agentOutputDir,
     });
     const store = {
       allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
@@ -615,7 +686,7 @@ describe("agent command", () => {
     const humanReport = await createAgentHumanReportConfig({
       mode: "config",
       cwd: "/cwd",
-      outputDir: "/tmp/allure-agent-123",
+      outputDir: agentOutputDir,
     });
     const store = {
       allTestResults: vi.fn().mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `tr-${index}` }))),
@@ -736,32 +807,61 @@ describe("agent command", () => {
     expect(logMock).toHaveBeenCalledWith(
       "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
     );
-    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+    expect(writeAgentRunState).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
+        runId: expect.any(String),
         cwd: "/cwd",
         outputDir: resolvedOutput,
+        managedOutput: false,
         expectationsPath: undefined,
         command:
           "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
-        startedAt: expect.any(String),
+        startedAt: expect.any(Number),
         status: "running",
+        pid: expect.any(Number),
       }),
     );
-    expect(writeLatestAgentState).toHaveBeenNthCalledWith(
+    expect(writeAgentRunState).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
+        runId: expect.any(String),
         cwd: "/cwd",
         outputDir: resolvedOutput,
+        managedOutput: false,
         expectationsPath: undefined,
         command:
           "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
-        startedAt: expect.any(String),
-        finishedAt: expect.any(String),
+        startedAt: expect.any(Number),
+        finishedAt: expect.any(Number),
         status: "finished",
         exitCode: 0,
+        pid: expect.any(Number),
       }),
     );
+    expect(cleanupAgentRunState).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+      keepManagedRuns: 0,
+    });
+    await attachment(
+      "agent inspect state contract",
+      JSON.stringify(
+        {
+          started: (writeAgentRunState as Mock).mock.calls[0][0],
+          finished: (writeAgentRunState as Mock).mock.calls[1][0],
+          cleanupCurrent: (cleanupAgentRunState as Mock).mock.calls[0][0],
+          cleanupStale: (cleanupStaleAgentRunStates as Mock).mock.calls[0]?.[0],
+        },
+        null,
+        2,
+      ),
+      "application/json",
+    );
+    expect(cleanupStaleAgentRunStates).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+    });
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
@@ -793,9 +893,9 @@ describe("agent command", () => {
 
   it("should continue the run when latest-state persistence in the resolved state dir is not permitted", async () => {
     const consoleModule = await import("node:console");
-    const stateDir = "/tmp/allure-agent-state-0f0810f05e3f7d8f";
+    const stateDir = agentStateDir;
 
-    (writeLatestAgentState as Mock)
+    (writeAgentRunState as Mock)
       .mockRejectedValueOnce(
         Object.assign(new Error(`EACCES: permission denied, mkdir '${stateDir}'`), { code: "EACCES" }),
       )
@@ -804,7 +904,20 @@ describe("agent command", () => {
     await run(AgentCommand, ["agent", "--", "npm", "test"]);
 
     expect(consoleModule.error).toHaveBeenCalledWith(
-      `Could not update latest agent output in ${stateDir}: EACCES: permission denied, mkdir '${stateDir}'`,
+      `Could not update agent state in ${stateDir}: EACCES: permission denied, mkdir '${stateDir}'`,
+    );
+    await attachment(
+      "state persistence failure contract",
+      JSON.stringify(
+        {
+          stateDir,
+          stateWriteAttempts: (writeAgentRunState as Mock).mock.calls.length,
+          commandContinued: (executeAllureRun as Mock).mock.calls.length > 0,
+        },
+        null,
+        2,
+      ),
+      "application/json",
     );
     expect(executeAllureRun).toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(0);
@@ -922,7 +1035,7 @@ describe("agent command", () => {
     await command.execute();
 
     expect(writeInvalidAgentExpectationOutput).toHaveBeenCalledWith({
-      outputDir: "/tmp/allure-agent-123",
+      outputDir: agentOutputDir,
       command: "npm test",
       error: expect.any(AgentExpectationUsageError),
     });
@@ -1003,10 +1116,10 @@ describe("agent command", () => {
     const cleanupMock = vi.fn().mockResolvedValue(undefined);
 
     (createAgentTestPlanContext as Mock).mockResolvedValueOnce({
-      outputDir: "/tmp/previous-agent",
+      outputDir: previousAgentOutputDir,
       preset: "review",
       selectedCount: 1,
-      testPlanPath: "/tmp/testplan.json",
+      testPlanPath,
       cleanup: cleanupMock,
     });
 
@@ -1024,7 +1137,7 @@ describe("agent command", () => {
       expect.objectContaining({
         environmentVariables: {
           ALLURE_CLI_ACTIVE_COMMAND: "agent",
-          ALLURE_TESTPLAN_PATH: "/tmp/testplan.json",
+          ALLURE_TESTPLAN_PATH: testPlanPath,
         },
       }),
     );
@@ -1035,10 +1148,10 @@ describe("agent command", () => {
     const cleanupMock = vi.fn().mockResolvedValue(undefined);
 
     (createAgentTestPlanContext as Mock).mockResolvedValueOnce({
-      outputDir: "/tmp/latest-agent",
+      outputDir: latestAgentOutputDir,
       preset: "review",
       selectedCount: 1,
-      testPlanPath: "/tmp/latest-testplan.json",
+      testPlanPath: latestTestPlanPath,
       cleanup: cleanupMock,
     });
 
@@ -1056,7 +1169,7 @@ describe("agent command", () => {
       expect.objectContaining({
         environmentVariables: {
           ALLURE_CLI_ACTIVE_COMMAND: "agent",
-          ALLURE_TESTPLAN_PATH: "/tmp/latest-testplan.json",
+          ALLURE_TESTPLAN_PATH: latestTestPlanPath,
         },
       }),
     );
