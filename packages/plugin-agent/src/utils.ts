@@ -117,11 +117,7 @@ const openAgentStateLock = async (lockPath: string) => {
   }
 };
 
-const runWithAgentStateLock = async <T>(
-  lockPath: string,
-  lockHandle: FileHandle,
-  operation: () => Promise<T>,
-) => {
+const runWithAgentStateLock = async <T>(lockPath: string, lockHandle: FileHandle, operation: () => Promise<T>) => {
   try {
     return await operation();
   } finally {

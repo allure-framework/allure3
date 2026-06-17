@@ -340,11 +340,7 @@ describe("agent command", () => {
     {
       command: "agent state-dir",
       args: ["agent", "state-dir", "--help"],
-      expected: [
-        "Print the shared Allure agent state directory",
-        "$ allure agent state-dir",
-        "--cwd #0",
-      ],
+      expected: ["Print the shared Allure agent state directory", "$ allure agent state-dir", "--cwd #0"],
     },
   ])("should expose $command help for local capability detection", async ({ args, expected }) => {
     const output = await captureAgentHelp(args);

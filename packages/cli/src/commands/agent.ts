@@ -695,8 +695,7 @@ export class AgentStateDirCommand extends Command {
 
   static usage = Command.Usage({
     description: "Print the shared Allure agent state directory",
-    details:
-      "This command prints the resolved state directory used to persist per-project agent run registries.",
+    details: "This command prints the resolved state directory used to persist per-project agent run registries.",
     examples: [
       ["agent state-dir", "Print the resolved shared state directory"],
       ["agent state-dir --cwd ./packages/cli", "Print the shared state directory using a specific project cwd"],

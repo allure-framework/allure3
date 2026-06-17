@@ -299,10 +299,7 @@ export const cleanupAgentRunState = async (params: {
     const retainedManagedRunIds = new Set(
       existing
         .filter((state) => state.managedOutput && state.status === "finished")
-        .sort(
-          (a, b) =>
-            (b.finishedAt ?? b.startedAt) - (a.finishedAt ?? a.startedAt) || b.startedAt - a.startedAt,
-        )
+        .sort((a, b) => (b.finishedAt ?? b.startedAt) - (a.finishedAt ?? a.startedAt) || b.startedAt - a.startedAt)
         .slice(0, keepManagedRuns)
         .map((state) => state.runId),
     );
