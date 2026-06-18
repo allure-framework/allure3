@@ -111,7 +111,8 @@
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
     "no-test-case-results": "Keine Testergebnisse verfügbar",
     "no-environments-results": "Keine Umgebungsinformationen verfügbar",
-    "no-categories-results": "Keine Kategorien verfügbar"
+    "no-categories-results": "Keine Kategorien verfügbar",
+    "no-metrics-results": "Keine Metriken verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Graphen",
-    "timeline": "Zeitleiste"
+    "timeline": "Zeitleiste",
+    "metrics": "Metriken"
   },
   "timeline": {
     "empty": "Keine Daten",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Leistungsmetriken",
+      "phaseSummary": "Metrikübersicht",
+      "currentValues": "Aktuelle Werte",
+      "historyTitle": "Metrikverlauf",
+      "noHistory": "Für diese Metrik gibt es noch keinen Verlauf",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrik",
+        "phase": "Metriksatz",
+        "count": "Anzahl",
+        "total": "Gesamt",
+        "avg": "Durchschn.",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Wert",
+        "delta": "Änderung",
+        "trend": "Trend",
+        "source": "Quelle",
+        "report": "Bericht",
+        "date": "Datum"
+      },
+      "summary": "{{groups}} Übersichtszeilen / {{metrics}} Metriken",
+      "groups": {
+        "other": "Sonstige"
       }
     }
   },

@@ -1,0 +1,124 @@
+.metrics {
+  padding: 24px 24px 0;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.summaryItem {
+  min-width: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 0 0 12px;
+}
+
+.summaryMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.summaryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.metricName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricGroup {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.metricValue {
+  color: var(--color-text-primary);
+  direction: ltr;
+  font-size: 20px;
+  font-weight: 700;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+
+.delta {
+  color: var(--color-text-secondary);
+  direction: ltr;
+  font-weight: 600;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+
+  &[data-direction="good"] {
+    color: var(--color-status-passed-chart);
+  }
+
+  &[data-direction="bad"] {
+    color: var(--color-status-failed-chart);
+  }
+}
+
+.sparkline {
+  width: 72px;
+  height: 32px;
+  color: var(--color-icon-secondary);
+  flex: 0 0 auto;
+
+  polyline {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text-primary);
+  font-size: 13px;
+
+  th,
+  td {
+    border-top: 1px solid var(--color-border-subtle);
+    padding: 10px 8px;
+    text-align: left;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  th {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  td:first-child {
+    min-width: 220px;
+    white-space: normal;
+  }
+
+  td:nth-child(2),
+  td:nth-child(3) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}

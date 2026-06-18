@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "מדדי ביצועים",
+      "table": {
+        "metric": "מדד",
+        "value": "ערך",
+        "delta": "שינוי",
+        "source": "מקור"
+      }
     }
   },
   "transitions": {

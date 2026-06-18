@@ -111,7 +111,8 @@
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
     "no-test-case-results": "אין תוצאות של מקרי בדיקה",
     "no-environments-results": "לא נמצא מידע על סביבות",
-    "no-categories-results": "אין קטגוריות זמינות"
+    "no-categories-results": "אין קטגוריות זמינות",
+    "no-metrics-results": "אין מדדים זמינים"
   },
   "severity": {
     "blocker": "חוסם",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "גרפים",
-    "timeline": "ציר זמן"
+    "timeline": "ציר זמן",
+    "metrics": "מדדים"
   },
   "timeline": {
     "empty": "אין נתונים",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "מדדי ביצועים",
+      "phaseSummary": "סיכום מדדים",
+      "currentValues": "ערכים נוכחיים",
+      "historyTitle": "היסטוריית מדד",
+      "noHistory": "אין עדיין היסטוריה למדד זה",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "מדד",
+        "phase": "ערכת מדדים",
+        "count": "ספירה",
+        "total": "סה״כ",
+        "avg": "ממוצע",
+        "min": "מינימום",
+        "max": "מקסימום",
+        "value": "ערך",
+        "delta": "שינוי",
+        "trend": "מגמה",
+        "source": "מקור",
+        "report": "דוח",
+        "date": "תאריך"
+      },
+      "summary": "{{groups}} שורות סיכום / {{metrics}} מדדים",
+      "groups": {
+        "other": "אחר"
       }
     }
   },

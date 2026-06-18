@@ -6,6 +6,7 @@ import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
+import DashboardPlugin from "@allurereport/plugin-dashboard";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
@@ -239,6 +240,65 @@ describe("report", () => {
         process.env.ALLURE_READ_CONCURRENCY = previousConcurrency;
       }
     }
+  });
+
+  it("should generate dashboard metrics widget from perf.json", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-dashboard-"));
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-perf-results-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    await writeFile(
+      join(resultsDir, "perf.json"),
+      JSON.stringify({
+        version: 1,
+        name: "Report generation",
+        display: {
+          historyMetricKey: "generate.total.avgMs",
+        },
+        metrics: [
+          {
+            key: "generate.total.avgMs",
+            value: 123.45,
+            unit: "ms",
+            better: "lower",
+          },
+        ],
+      }),
+    );
+
+    config.plugins = [
+      {
+        id: "dashboard",
+        enabled: true,
+        options: {},
+        plugin: new DashboardPlugin({}),
+      },
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.readDirectory(resultsDir);
+    await allureReport.done();
+
+    const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
+
+    expect(widget.current).toEqual([
+      {
+        key: "generate.total.avgMs",
+        value: 123.45,
+        unit: "ms",
+        group: "Report generation",
+        source: "perf.json",
+        better: "lower",
+        display: { history: true },
+      },
+    ]);
+    expect(widget.display).toEqual({ historyMetricKey: "generate.total.avgMs" });
+    expect(widget.history).toEqual([]);
   });
 
   it("should call plugins in specified order on start()", async () => {

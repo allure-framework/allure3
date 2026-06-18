@@ -11,6 +11,7 @@ import {
   generateAllCharts,
   generateAttachmentsFiles,
   generateGlobals,
+  generateMetricsWidget,
   generateSearchIndex,
   getRunSummary,
 } from "../src/generators.js";
@@ -126,6 +127,7 @@ describe("generateAllCharts", () => {
       allVariables: vi.fn().mockResolvedValue([]),
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allMetrics: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -218,6 +220,7 @@ describe("generateAllCharts", () => {
       allVariables: vi.fn().mockResolvedValue([]),
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allMetrics: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -252,6 +255,104 @@ describe("generateAllCharts", () => {
       failed: 1,
       total: 1,
     });
+  });
+});
+
+describe("generateMetricsWidget", () => {
+  it("should write current metrics and history metrics when current metrics exist", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allMetrics: vi.fn().mockResolvedValue([
+        {
+          key: "generate.total.avgMs",
+          value: 200,
+          unit: "ms",
+          source: "allure-perf-metrics.json",
+          better: "lower",
+          display: { history: true },
+        },
+      ]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          url: "https://example.com/report",
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+        {
+          uuid: "history-empty",
+          name: "Empty report",
+          timestamp: 1_700_000_001_000,
+          metrics: {},
+        },
+      ]),
+    } as unknown as AllureStore;
+
+    await expect(generateMetricsWidget(writer, store)).resolves.toBe(true);
+
+    expect(writtenWidgets.get("metrics.json")).toEqual({
+      current: [
+        {
+          key: "generate.total.avgMs",
+          value: 200,
+          unit: "ms",
+          source: "allure-perf-metrics.json",
+          better: "lower",
+          display: { history: true },
+        },
+      ],
+      display: {
+        historyMetricKey: "generate.total.avgMs",
+      },
+      history: [
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          url: "https://example.com/report",
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+      ],
+    });
+  });
+
+  it("should not write metrics widget when current metrics are absent", async () => {
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allMetrics: vi.fn().mockResolvedValue([]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+      ]),
+    } as unknown as AllureStore;
+
+    await expect(generateMetricsWidget(writer, store)).resolves.toBe(false);
+
+    expect(writer.writeWidget).not.toHaveBeenCalled();
   });
 });
 

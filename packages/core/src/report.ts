@@ -29,7 +29,7 @@ import {
   type ReportFiles,
   type ResultFile,
 } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
+import { allure1, allure2, attachments, cucumberjson, junitXml, perf, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
@@ -133,7 +133,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, junitXml, perf, attachments],
       plugins = [],
       known,
       reportFiles,
@@ -249,7 +249,14 @@ export class AllureReport {
       const allTrs = await this.#store.allTestResults();
       const allTcs = await this.#store.allTestCases();
 
-      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      historyPoint = createHistory(
+        this.reportUuid,
+        this.reportName,
+        allTcs,
+        allTrs,
+        this.reportUrl,
+        await this.#store.allMetrics(),
+      );
       this.#historyDataPoint = historyPoint;
     }
 
@@ -601,6 +608,7 @@ export class AllureReport {
       indexKnownByHistoryId = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
+      metrics = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
       [AllureStoreDumpFiles.TestResults, testResults],
       [AllureStoreDumpFiles.TestCases, testCases],
@@ -619,6 +627,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
+      [AllureStoreDumpFiles.Metrics, metrics],
     ];
     let dumpError: unknown;
 
@@ -780,6 +789,7 @@ export class AllureReport {
               const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
+              const metricsEntry = await optionalEntryData(AllureStoreDumpFiles.Metrics);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
               const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
@@ -801,6 +811,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexKnownByHistoryId:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
+                  case AllureStoreDumpFiles.Metrics:
                     return acc;
                   default:
                     if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
@@ -832,6 +843,7 @@ export class AllureReport {
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
                   : [],
+                metrics: metricsEntry ? JSON.parse(metricsEntry.toString("utf8")) : [],
               };
               const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
               const resultsAttachments: Record<string, ResultFile> = {};
@@ -998,7 +1010,15 @@ export class AllureReport {
     try {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
-      this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
+      const metrics = await this.#store.allMetrics();
+      this.#historyDataPoint = createHistory(
+        this.reportUuid,
+        this.reportName,
+        testCases,
+        testResults,
+        this.reportUrl,
+        metrics,
+      );
 
       this.#realtimeChannel.close();
       try {

@@ -1,0 +1,286 @@
+.metrics {
+  padding: 24px;
+  min-height: 320px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.meta,
+.detailsMetric {
+  color: var(--color-text-secondary);
+}
+
+.phaseLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 30vw);
+  gap: 20px;
+  align-items: start;
+}
+
+.phaseGroup {
+  &:not(:first-of-type) {
+    margin-top: 18px;
+  }
+}
+
+.groupTitle {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.metricName {
+  display: block;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.metricValue,
+.delta,
+.table td:not(:first-child) {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricValue {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.metricGroup {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.delta {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+
+  &[data-direction="good"] {
+    color: var(--color-status-passed-chart);
+  }
+
+  &[data-direction="bad"] {
+    color: var(--color-status-failed-chart);
+  }
+}
+
+.sparkline {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 32px;
+
+  polyline {
+    fill: none;
+    stroke: var(--color-intent-primary-text);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+}
+
+.section {
+  &:not(:first-child) {
+    margin-top: 20px;
+  }
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+summary.sectionTitle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 720px;
+  border-spacing: 0;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 9px 8px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    vertical-align: top;
+    text-align: left;
+  }
+
+  th {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  tbody tr {
+    transition: background-color var(--color-change-transition-duration);
+
+    &:hover,
+    &[data-selected="true"] {
+      background: var(--color-row-bg-hover);
+    }
+  }
+
+  td:not(:first-child) {
+    white-space: nowrap;
+  }
+}
+
+.metricButton,
+.valueButton {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.valueButton {
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+
+  &:hover,
+  &[aria-pressed="true"] {
+    background: var(--color-row-bg-hover);
+  }
+}
+
+.detailsPanel {
+  position: sticky;
+  top: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-bg-primary);
+
+  .section {
+    margin: 0;
+  }
+
+  .table {
+    min-width: 0;
+  }
+}
+
+.historyTable {
+  table-layout: fixed;
+
+  th:first-child {
+    width: 26%;
+  }
+
+  th:nth-child(2) {
+    width: 32%;
+  }
+
+  th:nth-child(3),
+  th:nth-child(4) {
+    width: 21%;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    white-space: normal;
+  }
+}
+
+.detailsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.detailsMetric,
+.metricName {
+  overflow-wrap: anywhere;
+}
+
+.detailsValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 4px 0 10px;
+}
+
+.empty,
+.emptyInline,
+.loader {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.empty,
+.loader {
+  padding: 48px 0;
+}
+
+.emptyInline {
+  justify-content: flex-start;
+  padding: 12px 0;
+  color: var(--color-text-secondary);
+}
+
+[dir="rtl"] {
+  .table th,
+  .table td,
+  .metricButton,
+  .valueButton {
+    text-align: right;
+  }
+}
+
+@media (max-width: 960px) {
+  .metrics {
+    padding: 16px;
+  }
+
+  .phaseLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detailsPanel {
+    position: static;
+  }
+}

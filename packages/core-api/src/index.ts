@@ -6,6 +6,7 @@ export type * from "./environment.js";
 export type * from "./history.js";
 export type * from "./known.js";
 export type * from "./metadata.js";
+export type * from "./metrics.js";
 export type * from "./model.js";
 export type * from "./testCase.js";
 export type * from "./testPlan.js";

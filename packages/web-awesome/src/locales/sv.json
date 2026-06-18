@@ -111,7 +111,8 @@
     "no-test-steps-results": "Ingen information om teststeg tillgänglig",
     "no-test-case-results": "Inga testfallresultat",
     "no-environments-results": "Ingen miljöinformation tillgänglig",
-    "no-categories-results": "Inga kategoriresultat tillgängliga"
+    "no-categories-results": "Inga kategoriresultat tillgängliga",
+    "no-metrics-results": "Inga mått tillgängliga"
   },
   "severity": {
     "blocker": "blockerare",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafer",
-    "timeline": "Tidslinje"
+    "timeline": "Tidslinje",
+    "metrics": "Mått"
   },
   "timeline": {
     "empty": "Inga data",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Prestandamått",
+      "phaseSummary": "Måttsammanfattning",
+      "currentValues": "Aktuella värden",
+      "historyTitle": "Måtthistorik",
+      "noHistory": "Ingen historik för detta mått ännu",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Mått",
+        "phase": "Måttuppsättning",
+        "count": "Antal",
+        "total": "Totalt",
+        "avg": "Snitt",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Värde",
+        "delta": "Förändring",
+        "trend": "Trend",
+        "source": "Källa",
+        "report": "Rapport",
+        "date": "Datum"
+      },
+      "summary": "{{groups}} sammanfattningsrader / {{metrics}} mått",
+      "groups": {
+        "other": "Övrigt"
       }
     }
   },

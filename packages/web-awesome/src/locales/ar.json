@@ -111,7 +111,8 @@
     "no-test-steps-results": "لا تتوفر معلومات عن خطوات الاختبار",
     "no-test-case-results": "لا توجد نتائج حالات اختبار",
     "no-environments-results": "لا تتوفر معلومات عن البيئات",
-    "no-categories-results": "لا تتوفر نتائج الفئات"
+    "no-categories-results": "لا تتوفر نتائج الفئات",
+    "no-metrics-results": "لا توجد مقاييس متاحة"
   },
   "severity": {
     "blocker": "مانع",
@@ -191,7 +192,8 @@
   "sections": {
     "report": "التقرير",
     "charts": "الرسوم البيانية",
-    "timeline": "الخط الزمني"
+    "timeline": "الخط الزمني",
+    "metrics": "المقاييس"
   },
   "timeline": {
     "empty": "لا توجد بيانات",
@@ -386,6 +388,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "مقاييس الأداء",
+      "phaseSummary": "ملخص المقاييس",
+      "currentValues": "القيم الحالية",
+      "historyTitle": "سجل المقياس",
+      "noHistory": "لا يوجد سجل لهذا المقياس بعد",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "المقياس",
+        "phase": "مجموعة المقاييس",
+        "count": "العدد",
+        "total": "الإجمالي",
+        "avg": "المتوسط",
+        "min": "الحد الأدنى",
+        "max": "الحد الأقصى",
+        "value": "القيمة",
+        "delta": "التغيير",
+        "trend": "الاتجاه",
+        "source": "المصدر",
+        "report": "التقرير",
+        "date": "التاريخ"
+      },
+      "summary": "{{groups}} صفوف ملخص / {{metrics}} مقاييس",
+      "groups": {
+        "other": "أخرى"
       }
     }
   },

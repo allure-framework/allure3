@@ -25,6 +25,9 @@ export type PerfMetricsPayload = {
   timeOriginMs: number;
   spans: PerfMetricSpan[];
   summary: PerfMetricSummary[];
+  display?: {
+    historyMetricKey: string;
+  };
 };
 
 const MARK_PREFIX = "allure:perf:";
@@ -38,6 +41,7 @@ let sequence = 0;
 const round = (value: number) => Number(value.toFixed(3));
 
 export const PERF_METRIC_NAMES = {
+  allureTotal: "allure.total",
   restoreStateTotal: "restoreState.total",
   restoreStateDump: "restoreState.dump",
   restoreStateAttachments: "restoreState.attachments",
@@ -53,6 +57,39 @@ export const PERF_METRIC_PREFIXES = {
   generatePluginDone: "generate.plugin.done.",
   publishUploadPlugin: "publish.upload.plugin.",
 } as const;
+
+const summarizeSpanGroup = (name: string, group: PerfMetricSpan[]): PerfMetricSummary => {
+  const durations = group.map(({ durationMs }) => durationMs);
+  const totalMs = durations.reduce((acc, duration) => acc + duration, 0);
+
+  return {
+    name,
+    count: group.length,
+    totalMs: round(totalMs),
+    minMs: round(Math.min(...durations)),
+    maxMs: round(Math.max(...durations)),
+    avgMs: round(totalMs / group.length),
+  };
+};
+
+const getCoveredDurationSummary = (): PerfMetricSummary | undefined => {
+  if (SPANS.length === 0) {
+    return undefined;
+  }
+
+  const startTimeMs = Math.min(...SPANS.map(({ startTimeMs }) => startTimeMs));
+  const endTimeMs = Math.max(...SPANS.map(({ startTimeMs, durationMs }) => startTimeMs + durationMs));
+  const durationMs = round(endTimeMs - startTimeMs);
+
+  return {
+    name: PERF_METRIC_NAMES.allureTotal,
+    count: 1,
+    totalMs: durationMs,
+    minMs: durationMs,
+    maxMs: durationMs,
+    avgMs: durationMs,
+  };
+};
 
 export const isPerfMetricsEnabled = () => ENABLED_VALUES.has((process.env.ALLURE_PERF_METRICS ?? "").toLowerCase());
 
@@ -123,24 +160,16 @@ export const getPerfMetricsPayload = (): PerfMetricsPayload => {
     byName.set(span.name, current);
   }
 
+  const totalSummary = getCoveredDurationSummary();
+  const summary = [...byName.entries()].map(([name, group]) => summarizeSpanGroup(name, group));
+
   return {
     version: 1,
     generatedAt: new Date().toISOString(),
     timeOriginMs: round(performance.timeOrigin),
     spans: [...SPANS],
-    summary: [...byName.entries()].map(([name, group]) => {
-      const durations = group.map(({ durationMs }) => durationMs);
-      const totalMs = durations.reduce((acc, duration) => acc + duration, 0);
-
-      return {
-        name,
-        count: group.length,
-        totalMs: round(totalMs),
-        minMs: round(Math.min(...durations)),
-        maxMs: round(Math.max(...durations)),
-        avgMs: round(totalMs / group.length),
-      };
-    }),
+    summary: totalSummary ? [totalSummary, ...summary] : summary,
+    ...(totalSummary ? { display: { historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` } } : {}),
   };
 };
 

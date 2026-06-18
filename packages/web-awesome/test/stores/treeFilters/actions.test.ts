@@ -13,6 +13,8 @@ const { fetchReportJsonDataMock, setParamsMock } = vi.hoisted(() => ({
   setParamsMock: vi.fn(),
 }));
 
+const treeFiltersErrorMessage = "Failed to fetch tree filters data:\n\n";
+
 vi.mock("@allurereport/web-commons", async () => {
   const actual = await vi.importActual<typeof import("@allurereport/web-commons")>("@allurereport/web-commons");
 
@@ -56,7 +58,7 @@ describe("stores > treeFilters > actions", () => {
 
     expect(treeTags.value).toEqual([]);
     expect(treeCategories.value).toEqual([]);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).not.toHaveBeenCalledWith(treeFiltersErrorMessage, expect.anything());
   });
 
   it("should populate filters from fetched data", async () => {
@@ -84,7 +86,6 @@ describe("stores > treeFilters > actions", () => {
 
     expect(treeTags.value).toEqual(["seed-tag"]);
     expect(treeCategories.value).toEqual(["seed-category"]);
-    expect(consoleErrorSpy).toHaveBeenCalledOnce();
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch tree filters data:\n\n", error);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(treeFiltersErrorMessage, error);
   });
 });

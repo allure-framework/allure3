@@ -2,11 +2,11 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
 import type { AwesomeReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
+import { navigateToRoot, navigateToSection, sectionRoute, type SectionRouteName } from "./router";
 
 const DEFAULT_SECTION = "default";
 
-type Section = "timeline" | "charts" | "default";
+type Section = SectionRouteName | "default";
 
 const reportOptions = getReportOptions<AwesomeReportOptions>();
 const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
@@ -48,6 +48,6 @@ export const setSection = (chosenSection: Section | string): void => {
   }
 
   if (isSectionChanged && isValidSection) {
-    navigateToSection({ section: chosenSection as "timeline" | "charts" });
+    navigateToSection({ section: chosenSection as SectionRouteName });
   }
 };

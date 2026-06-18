@@ -15,6 +15,7 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
+  type MetricSample,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -155,6 +156,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
+  #metrics: MetricSample[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
 
@@ -697,6 +699,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
+  async visitMetrics(metrics: MetricSample[]): Promise<void> {
+    this.#metrics.push(...metrics);
+  }
+
   /**
    * Process a raw test result into the store.
    *
@@ -1017,6 +1023,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
     return this.#known;
+  }
+
+  async allMetrics(): Promise<MetricSample[]> {
+    return [...this.#metrics];
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1473,6 +1483,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
       qualityGateResults: this.#qualityGateResults,
+      metrics: this.#metrics,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
 
@@ -1516,6 +1527,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
+      metrics = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
     const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
@@ -1749,5 +1761,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
+    this.#metrics.push(...metrics);
   }
 }

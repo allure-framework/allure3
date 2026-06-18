@@ -111,7 +111,8 @@
     "no-test-steps-results": "테스트 단계 정보가 없습니다",
     "no-test-case-results": "테스트 케이스 결과가 없습니다",
     "no-environments-results": "환경 정보를 사용할 수 없습니다",
-    "no-categories-results": "사용 가능한 카테고리가 없습니다"
+    "no-categories-results": "사용 가능한 카테고리가 없습니다",
+    "no-metrics-results": "사용 가능한 메트릭이 없습니다"
   },
   "severity": {
     "blocker": "차단자",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "그래프",
-    "timeline": "타임라인"
+    "timeline": "타임라인",
+    "metrics": "메트릭"
   },
   "timeline": {
     "empty": "데이터 없음",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "성능 메트릭",
+      "phaseSummary": "메트릭 요약",
+      "currentValues": "현재 값",
+      "historyTitle": "메트릭 기록",
+      "noHistory": "이 메트릭의 기록이 아직 없습니다",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "메트릭",
+        "phase": "메트릭 세트",
+        "count": "개수",
+        "total": "합계",
+        "avg": "평균",
+        "min": "최소",
+        "max": "최대",
+        "value": "값",
+        "delta": "변화",
+        "trend": "추세",
+        "source": "소스",
+        "report": "리포트",
+        "date": "날짜"
+      },
+      "summary": "요약 행 {{groups}}개 / 메트릭 {{metrics}}개",
+      "groups": {
+        "other": "기타"
       }
     }
   },
