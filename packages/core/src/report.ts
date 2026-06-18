@@ -31,7 +31,7 @@ import {
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, perf, readXcResultBundle } from "@allurereport/reader";
-import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
   AllureServiceClient,
@@ -54,7 +54,16 @@ import { writeKnownIssues } from "./resolutions.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-import { measurePerf, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, startPerfSpan, writePerfMetrics } from "./utils/perf.js";
+import {
+  getPerfMetricsPayload,
+  isPerfMetricsEnabled,
+  measurePerf,
+  PERF_METRICS_FILE,
+  PERF_METRIC_NAMES,
+  PERF_METRIC_PREFIXES,
+  startPerfSpan,
+  writePerfMetrics,
+} from "./utils/perf.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
@@ -243,6 +252,45 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
+  #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
+    const allTrs = await this.#store.allTestResults();
+    const allTcs = await this.#store.allTestCases();
+
+    return createHistory(
+      this.reportUuid,
+      this.reportName,
+      allTcs,
+      allTrs,
+      this.reportUrl,
+      await this.#store.allMetrics(),
+    );
+  };
+
+  #ingestSelfPerfMetrics = async (): Promise<boolean> => {
+    if (!isPerfMetricsEnabled()) {
+      return false;
+    }
+
+    const payload = getPerfMetricsPayload();
+
+    if (payload.summary.length === 0) {
+      return false;
+    }
+
+    const resultFile = new BufferResultFile(
+      Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8"),
+      PERF_METRICS_FILE,
+    );
+
+    return perf.read(this.#store, resultFile);
+  };
+
+  #refreshPlugins = async (): Promise<void> => {
+    await this.#eachPlugin(false, async (plugin, context) => {
+      await plugin.refresh?.(context, this.#store);
+    });
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -255,17 +303,7 @@ export class AllureReport {
     let historyPoint = this.#historyDataPoint;
 
     if (!historyPoint) {
-      const allTrs = await this.#store.allTestResults();
-      const allTcs = await this.#store.allTestCases();
-
-      historyPoint = createHistory(
-        this.reportUuid,
-        this.reportName,
-        allTcs,
-        allTrs,
-        this.reportUrl,
-        await this.#store.allMetrics(),
-      );
+      historyPoint = await this.#createHistoryDataPoint();
       this.#historyDataPoint = historyPoint;
     }
 
@@ -1058,18 +1096,6 @@ export class AllureReport {
     }
 
     try {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const metrics = await this.#store.allMetrics();
-      this.#historyDataPoint = createHistory(
-        this.reportUuid,
-        this.reportName,
-        testCases,
-        testResults,
-        this.reportUrl,
-        metrics,
-      );
-
       this.#realtimeChannel.close();
       try {
         await this.#realtimeUpdateScheduler.close();
@@ -1094,6 +1120,13 @@ export class AllureReport {
         });
       });
       this.#finishGeneratePerfSpan();
+
+      if (await this.#ingestSelfPerfMetrics()) {
+        await this.#refreshPlugins();
+      }
+
+      this.#historyDataPoint = await this.#createHistoryDataPoint();
+
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
 

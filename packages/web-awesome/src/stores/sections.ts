@@ -2,7 +2,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
 import type { AwesomeReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, sectionRoute, type SectionRouteName } from "./router";
+import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, type SectionRouteName } from "./router";
 
 const DEFAULT_SECTION = "default";
 
@@ -10,12 +10,15 @@ type Section = SectionRouteName | "default";
 
 const reportOptions = getReportOptions<AwesomeReportOptions>();
 
-export const availableSections = (reportOptions?.sections ?? []) as Section[];
+const isKnownSection = (value: unknown): value is SectionRouteName =>
+  SECTION_ROUTE_NAMES.includes(value as SectionRouteName);
+
+const configuredSections = Array.isArray(reportOptions?.sections) ? reportOptions.sections : [];
+
+export const availableSections = configuredSections.filter(isKnownSection);
 
 const normalizeSection = (value: unknown): Section =>
-  value === DEFAULT_SECTION || availableSections.includes(value as SectionRouteName)
-    ? (value as Section)
-    : DEFAULT_SECTION;
+  value === DEFAULT_SECTION || (isKnownSection(value) && availableSections.includes(value)) ? value : DEFAULT_SECTION;
 
 const defaultSectionFromReportOptions = normalizeSection(reportOptions?.defaultSection);
 
