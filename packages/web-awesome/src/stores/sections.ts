@@ -2,16 +2,22 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
 import type { AwesomeReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, sectionRoute, type SectionRouteName } from "./router";
+import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, type SectionRouteName } from "./router";
 
 const DEFAULT_SECTION = "default";
 
 type Section = SectionRouteName | "default";
 
 const reportOptions = getReportOptions<AwesomeReportOptions>();
-const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
+const isKnownSection = (value: unknown): value is SectionRouteName =>
+  SECTION_ROUTE_NAMES.includes(value as SectionRouteName);
+const resolveDefaultSection = (value: unknown): Section =>
+  value === DEFAULT_SECTION || isKnownSection(value) ? value : DEFAULT_SECTION;
 
-export const availableSections = (reportOptions?.sections ?? []) as Section[];
+const configuredSections = Array.isArray(reportOptions?.sections) ? reportOptions.sections : [];
+const defaultSectionFromReportOptions = resolveDefaultSection(reportOptions?.defaultSection);
+
+export const availableSections = configuredSections.filter(isKnownSection);
 
 const onInit = () => {
   const isSectionRoute = sectionRoute.peek().matches;
@@ -39,7 +45,7 @@ effect(() => {
 
 export const setSection = (chosenSection: Section | string): void => {
   const isDefaultSection = chosenSection === DEFAULT_SECTION;
-  const isValidSection = availableSections.includes(chosenSection as Section);
+  const isValidSection = isKnownSection(chosenSection) && availableSections.includes(chosenSection);
   const isSectionChanged = currentSection.peek() !== chosenSection;
 
   if (isDefaultSection) {
@@ -48,6 +54,6 @@ export const setSection = (chosenSection: Section | string): void => {
   }
 
   if (isSectionChanged && isValidSection) {
-    navigateToSection({ section: chosenSection as SectionRouteName });
+    navigateToSection({ section: chosenSection });
   }
 };

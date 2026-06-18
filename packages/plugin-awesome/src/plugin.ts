@@ -70,6 +70,14 @@ export class AwesomePlugin implements Plugin {
 
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
+  #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
+    if (!this.#writer) {
+      throw new Error("call start first");
+    }
+
+    await this.#generate(context, store);
+  };
+
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
     const hideLabels = context.hideLabels;
@@ -226,19 +234,15 @@ export class AwesomePlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   done = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
+    await this.#generateAfterStart(context, store);
+  };
 
-    await this.#generate(context, store);
+  refresh = async (context: PluginContext, store: AllureStore) => {
+    await this.#generateAfterStart(context, store);
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
