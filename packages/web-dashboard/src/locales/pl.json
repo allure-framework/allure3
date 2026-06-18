@@ -216,6 +216,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Metryki wydajności",
+      "table": {
+        "metric": "Metryka",
+        "value": "Wartość",
+        "delta": "Zmiana",
+        "source": "Źródło"
+      }
     }
   },
   "transitions": {

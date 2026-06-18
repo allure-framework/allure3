@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Արտադրողականության մետրիկաներ",
+      "table": {
+        "metric": "Մետրիկա",
+        "value": "Արժեք",
+        "delta": "Փոփոխություն",
+        "source": "Աղբյուր"
+      }
     }
   },
   "transitions": {

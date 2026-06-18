@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Metriche delle prestazioni",
+      "table": {
+        "metric": "Metrica",
+        "value": "Valore",
+        "delta": "Variazione",
+        "source": "Origine"
+      }
     }
   },
   "transitions": {

@@ -6,6 +6,7 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   ResolutionIssue,
+  MetricSample,
   ReportVariables,
   Statistic,
   TestCase,
@@ -41,6 +42,7 @@ export interface AllureStore {
   allResolutionIssues: () => Promise<ResolutionIssue[]>;
   resolutionIssueByTestResultId: (trId: string) => Promise<ResolutionIssue | undefined>;
   testResultsByResolutionIssueId: (resolutionIssueId: string) => Promise<TestResult[]>;
+  allMetrics: () => Promise<MetricSample[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // check data
   addCheckResult: (result: AllureCheckResult) => Promise<void>;
@@ -102,6 +104,7 @@ export interface AllureStoreDump {
   reportVariables: ReportVariables;
   resolutionIssues: Record<string, ResolutionIssue>;
   qualityGateResults: QualityGateValidationResult[];
+  metrics?: MetricSample[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
@@ -132,4 +135,5 @@ export enum AllureStoreDumpFiles {
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   QualityGateResults = "quality-gate-results.json",
   TestResultIngestOrder = "test-result-ingest-order.json",
+  Metrics = "metrics.json",
 }

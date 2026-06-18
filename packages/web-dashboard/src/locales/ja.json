@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "パフォーマンスメトリクス",
+      "table": {
+        "metric": "メトリクス",
+        "value": "値",
+        "delta": "差分",
+        "source": "ソース"
+      }
     }
   },
   "transitions": {

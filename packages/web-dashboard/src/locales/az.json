@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Performans metrikləri",
+      "table": {
+        "metric": "Metrika",
+        "value": "Dəyər",
+        "delta": "Fərq",
+        "source": "Mənbə"
+      }
     }
   },
   "transitions": {

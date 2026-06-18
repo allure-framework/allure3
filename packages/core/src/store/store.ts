@@ -17,6 +17,7 @@ import {
   type HistoryTestResult,
   type ResolutionIssue,
   type ResolutionsConfig,
+  type MetricSample,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -159,6 +160,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
+  #metrics: MetricSample[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
 
@@ -754,6 +756,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
+  async visitMetrics(metrics: MetricSample[]): Promise<void> {
+    this.#metrics.push(...metrics);
+  }
+
   /**
    * Process a raw test result into the store.
    *
@@ -1095,6 +1101,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return [...testResultIds]
       .map((testResultId) => this.#testResults.get(testResultId))
       .filter(Boolean) as TestResult[];
+  }
+
+  async allMetrics(): Promise<MetricSample[]> {
+    return [...this.#metrics];
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1548,6 +1558,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult: {},
       resolutionIssues: mapToObject(this.#resolutionIssues),
       qualityGateResults: this.#qualityGateResults,
+      metrics: this.#metrics,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
 
@@ -1591,6 +1602,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult = {},
       resolutionIssues = {},
       qualityGateResults = [],
+      metrics = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
     const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
@@ -1841,5 +1853,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
+    this.#metrics.push(...metrics);
   }
 }

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
-import type { TestResult } from "@allurereport/core-api";
+import type { MetricSample, TestResult } from "@allurereport/core-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
@@ -87,6 +87,46 @@ export const generateEnvirontmentsList = async (writer: DashboardDataWriter, sto
   const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("environments.json", environments);
+};
+
+export type DashboardMetricsWidget = {
+  current: MetricSample[];
+  display?: {
+    historyMetricKey: string;
+  };
+  history: {
+    uuid: string;
+    name: string;
+    timestamp: number;
+    url?: string;
+    metrics: Record<string, number>;
+  }[];
+};
+
+export const generateMetricsWidget = async (writer: DashboardDataWriter, store: AllureStore) => {
+  const current = await store.allMetrics();
+
+  if (current.length === 0) {
+    return;
+  }
+
+  const historyMetricKey = current.find(({ display }) => display?.history)?.key;
+
+  const history = (await store.allHistoryDataPoints())
+    .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
+    .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
+      uuid,
+      name,
+      timestamp,
+      ...(url ? { url } : {}),
+      metrics,
+    }));
+
+  await writer.writeWidget<DashboardMetricsWidget>("metrics.json", {
+    current,
+    ...(historyMetricKey ? { display: { historyMetricKey } } : {}),
+    history,
+  });
 };
 
 export const generateStaticFiles = async (

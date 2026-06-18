@@ -216,6 +216,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Метрики продуктивності",
+      "table": {
+        "metric": "Метрика",
+        "value": "Значення",
+        "delta": "Зміна",
+        "source": "Джерело"
+      }
     }
   },
   "transitions": {

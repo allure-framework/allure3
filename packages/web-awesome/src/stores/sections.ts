@@ -1,25 +1,30 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
-import type { ReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
+import type { AwesomeReportOptions } from "../../types.js";
+import { navigateToRoot, navigateToSection, sectionRoute, type SectionRouteName } from "./router";
 
 const DEFAULT_SECTION = "default";
 
-type Section = "timeline" | "charts" | "default";
+type Section = SectionRouteName | "default";
 
-const reportOptions = getReportOptions<ReportOptions>();
-const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
+const reportOptions = getReportOptions<AwesomeReportOptions>();
 
 export const availableSections = (reportOptions?.sections ?? []) as Section[];
 
+const normalizeSection = (value: unknown): Section =>
+  value === DEFAULT_SECTION || availableSections.includes(value as SectionRouteName)
+    ? (value as Section)
+    : DEFAULT_SECTION;
+
+const defaultSectionFromReportOptions = normalizeSection(reportOptions?.defaultSection);
+
 const onInit = () => {
   const isSectionRoute = sectionRoute.peek().matches;
-  const isDefaultSection = defaultSectionFromReportOptions === DEFAULT_SECTION;
-  const isValidSection = availableSections.includes(defaultSectionFromReportOptions);
+  const section = normalizeSection(defaultSectionFromReportOptions);
 
-  if (!isSectionRoute && !isDefaultSection && isValidSection) {
-    navigateToSection({ section: defaultSectionFromReportOptions });
+  if (!isSectionRoute && section !== DEFAULT_SECTION) {
+    navigateToSection({ section });
   }
 };
 
@@ -38,16 +43,15 @@ effect(() => {
 });
 
 export const setSection = (chosenSection: Section | string): void => {
-  const isDefaultSection = chosenSection === DEFAULT_SECTION;
-  const isValidSection = availableSections.includes(chosenSection as Section);
-  const isSectionChanged = currentSection.peek() !== chosenSection;
+  const section = normalizeSection(chosenSection);
+  const isSectionChanged = currentSection.peek() !== section;
 
-  if (isDefaultSection) {
+  if (section === DEFAULT_SECTION) {
     navigateToRoot();
     return;
   }
 
-  if (isSectionChanged && isValidSection) {
-    navigateToSection({ section: chosenSection as "timeline" | "charts" });
+  if (isSectionChanged) {
+    navigateToSection({ section });
   }
 };

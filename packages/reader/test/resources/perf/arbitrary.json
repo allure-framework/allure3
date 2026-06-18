@@ -1,0 +1,13 @@
+{
+  "browser": {
+    "coldLoadMs": 550.4,
+    "heap": {
+      "usedMb": 42
+    }
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 3
+  },
+  "ignored": "text"
+}
