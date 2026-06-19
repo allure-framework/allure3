@@ -41,16 +41,14 @@ export class TestOpsPlugin implements Plugin {
   // @ts-expect-error - if gitFlow is not initialized it will not be used
   #gitFlow: LaunchGitFlow;
   #enabledByConfig: boolean = false;
-  #disabledByConfig: boolean = false;
 
   constructor(
     readonly options: TestOpsPluginOptions,
     context: PluginConstructorContext = {},
   ) {
     this.#enabledByConfig = context.enabled === true;
-    this.#disabledByConfig = context.enabled === false;
 
-    if (this.#disabledByConfig) {
+    if (context.enabled === false) {
       return;
     }
 
