@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
-import type { Config } from "@allurereport/plugin-api";
+import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -606,6 +606,35 @@ describe("resolveConfig", () => {
       },
       plugin: expect.any(PluginFixture),
     });
+  });
+
+  it("should pass resolved plugin enabled state to plugin constructor", async () => {
+    const constructorMock = vi.fn();
+
+    class PluginWithConstructorFixture {
+      constructor(options?: Record<string, any>, context?: PluginConstructorContext) {
+        constructorMock(options, context);
+      }
+    }
+
+    (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginWithConstructorFixture });
+
+    await resolveConfig({
+      plugins: {
+        custom: {
+          import: "custom-plugin",
+          options: {
+            foo: "bar",
+          },
+        },
+        disabled: {
+          enabled: false,
+        },
+      },
+    });
+
+    expect(constructorMock).toHaveBeenCalledWith({ foo: "bar" }, { enabled: true });
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: false });
   });
 
   it("should throw an error when config contains unsupported fields", async () => {
