@@ -252,7 +252,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/mime-types", "npm:2.1.4"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -334,7 +334,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/core-api/",\
         "packageDependencies": [\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
@@ -494,7 +494,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -520,7 +520,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
           ["@allurereport/web-classic", "workspace:packages/web-classic"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -564,7 +564,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-dashboard", "workspace:packages/plugin-dashboard"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-dashboard", "workspace:packages/web-dashboard"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
@@ -686,7 +686,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/progress", "npm:2.0.7"],\
@@ -856,7 +856,7 @@ const RAW_RUNTIME_STATE =
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
           ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
@@ -918,7 +918,7 @@ const RAW_RUNTIME_STATE =
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
@@ -976,7 +976,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/signals-core", "npm:1.12.2"],\
           ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:3.9.0"],\
@@ -1057,7 +1057,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
           ["@types/d3-selection", "npm:3.0.11"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/d3-tip", "npm:0.0.1"],\
           ["@types/d3-transition", "npm:3.0.9"],\
           ["@types/lodash", "npm:4.17.20"],\
@@ -1144,7 +1144,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/diff", "npm:7.0.1"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -10921,6 +10921,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@types/d3-path", "npm:3.1.0"],\
           ["@types/d3-shape", "npm:3.1.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:3.1.8", {\
+        "packageLocation": "./.yarn/cache/@types-d3-shape-npm-3.1.8-55eab2bb5c-ebc161d491.zip/node_modules/@types/d3-shape/",\
+        "packageDependencies": [\
+          ["@types/d3-path", "npm:3.1.0"],\
+          ["@types/d3-shape", "npm:3.1.8"]\
         ],\
         "linkType": "HARD"\
       }]\
