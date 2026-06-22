@@ -492,7 +492,11 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
     const enabled = pluginConfig.enabled ?? true;
-    const constructorContext: PluginConstructorContext = { enabled };
+    const constructorContext: PluginConstructorContext = {};
+
+    if ("enabled" in pluginConfig) {
+      constructorContext.enabled = pluginConfig.enabled;
+    }
 
     pluginInstances.push({
       id: pluginId,

@@ -608,7 +608,7 @@ describe("resolveConfig", () => {
     });
   });
 
-  it("should pass resolved plugin enabled state to plugin constructor", async () => {
+  it("should pass explicit plugin enabled state to plugin constructor", async () => {
     const constructorMock = vi.fn();
 
     class PluginWithConstructorFixture {
@@ -627,13 +627,17 @@ describe("resolveConfig", () => {
             foo: "bar",
           },
         },
+        enabled: {
+          enabled: true,
+        },
         disabled: {
           enabled: false,
         },
       },
     });
 
-    expect(constructorMock).toHaveBeenCalledWith({ foo: "bar" }, { enabled: true });
+    expect(constructorMock).toHaveBeenCalledWith({ foo: "bar" }, {});
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: true });
     expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: false });
   });
 
