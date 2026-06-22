@@ -20,6 +20,10 @@ export interface PluginDescriptor {
   options?: Record<string, any>;
 }
 
+export interface PluginConstructorContext {
+  enabled?: boolean;
+}
+
 export interface ReportFiles {
   addFile(path: string, data: Buffer): Promise<string>;
 }

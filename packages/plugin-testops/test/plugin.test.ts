@@ -272,6 +272,38 @@ describe("testops plugin", () => {
         expect(plugin.enabled).toBe(false);
       });
 
+      it("should return true from enabled getter when enabled in config and ci is local", () => {
+        (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: fixtures.launchTags,
+        });
+
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions, { enabled: true });
+
+        expect(plugin.enabled).toBe(true);
+      });
+
+      it("should return false from enabled getter when disabled in config and ci is detected", () => {
+        (detect as unknown as Mock).mockReturnValue({ type: "github" } as CiDescriptor);
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: fixtures.launchTags,
+        });
+        TestOpsClientMock.mockClear();
+
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions, { enabled: false });
+
+        expect(plugin.enabled).toBe(false);
+        expect(TestOpsClientMock).not.toHaveBeenCalled();
+      });
+
       it("should not start upload when ci is local", async () => {
         (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({

@@ -3,7 +3,13 @@ import { env } from "node:process";
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginConstructorContext,
+  type PluginContext,
+  createPluginSummary,
+} from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
@@ -34,9 +40,19 @@ export class TestOpsPlugin implements Plugin {
   #autocloseLaunch: boolean = false;
   // @ts-expect-error - if gitFlow is not initialized it will not be used
   #gitFlow: LaunchGitFlow;
+  #enabledByConfig: boolean = false;
 
-  constructor(readonly options: TestOpsPluginOptions) {
-    if (isLocalCiDescriptor(this.#ci) && !this.isOverridenByEnv) {
+  constructor(
+    readonly options: TestOpsPluginOptions,
+    context: PluginConstructorContext = {},
+  ) {
+    this.#enabledByConfig = context.enabled === true;
+
+    if (context.enabled === false) {
+      return;
+    }
+
+    if (isLocalCiDescriptor(this.#ci) && !this.isManuallyEnabled) {
       this.#logger.info(
         `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
       );
@@ -105,12 +121,16 @@ export class TestOpsPlugin implements Plugin {
     return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
   }
 
+  get isManuallyEnabled(): boolean {
+    return this.#enabledByConfig || this.isOverridenByEnv;
+  }
+
   get enabled(): boolean {
     if (!(this.#client instanceof TestOpsClient)) {
       return false;
     }
 
-    if (this.isOverridenByEnv) {
+    if (this.isManuallyEnabled) {
       return true;
     }
 
