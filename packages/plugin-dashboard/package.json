@@ -41,7 +41,7 @@
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.8",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",

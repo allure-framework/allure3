@@ -46,7 +46,7 @@
     "yoctocolors": "^2"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.8",
     "@types/lodash-es": "^4",
     "@types/node": "^20",
     "@types/progress": "^2",

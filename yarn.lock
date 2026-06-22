@@ -34,7 +34,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/mime-types": "npm:^2.1.4"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
@@ -67,7 +67,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/core-api@workspace:packages/core-api"
   dependencies:
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -254,7 +254,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/markdown-it": "npm:^14.1.2"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
@@ -278,7 +278,7 @@ __metadata:
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/markdown-it": "npm:^14.1.2"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
@@ -318,7 +318,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
@@ -428,7 +428,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20"
     "@types/progress": "npm:^2"
@@ -584,7 +584,7 @@ __metadata:
     "@testing-library/preact": "npm:^3.2.3"
     "@testing-library/user-event": "npm:^14.5.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
@@ -644,7 +644,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.6.12"
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
@@ -700,7 +700,7 @@ __metadata:
     "@preact/signals-core": "npm:^1.12.2"
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -779,7 +779,7 @@ __metadata:
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/d3-selection": "npm:^3"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/d3-tip": "npm:^0"
     "@types/d3-transition": "npm:^3"
     "@types/lodash": "npm:^4"
@@ -858,7 +858,7 @@ __metadata:
     "@preact/compat": "npm:^18.3.1"
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/d3-shape": "npm:^3.1.6"
+    "@types/d3-shape": "npm:^3.1.8"
     "@types/diff": "npm:^7"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
@@ -7042,6 +7042,15 @@ __metadata:
   dependencies:
     "@types/d3-path": "npm:*"
   checksum: 10/75abf403ec5b8c11e761256aa6b3546533d61e2e12f15c82bed6b606e963dcdfb9868a2038c46099173c8830423b35ddaf14d1162f96ad9da18a2e90b0fa7d25
+  languageName: node
+  linkType: hard
+
+"@types/d3-shape@npm:^3.1.8":
+  version: 3.1.8
+  resolution: "@types/d3-shape@npm:3.1.8"
+  dependencies:
+    "@types/d3-path": "npm:*"
+  checksum: 10/ebc161d49101d84409829fea516ba7ec71ad51a1e97438ca0fafc1c30b56b3feae802d220375323632723a338dda7237c652e831e0b53527a6222ab0d1bb7809
   languageName: node
   linkType: hard
 
