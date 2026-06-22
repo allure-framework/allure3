@@ -9,16 +9,39 @@ export type CollectGitFactsOptions = {
   ancestorLimit?: number;
 };
 
+const stripRemotePrefix = (upstreamRef: string): string => {
+  const slashIndex = upstreamRef.indexOf("/");
+
+  return slashIndex >= 0 ? upstreamRef.slice(slashIndex + 1) : upstreamRef;
+};
+
+const resolveBranch = (cwd?: string): string | undefined => {
+  const branchRaw = runGit(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
+
+  if (!branchRaw || branchRaw === "HEAD") {
+    return undefined;
+  }
+
+  const upstreamBranch = runGit(["rev-parse", "--abbrev-ref", "@{u}"], cwd);
+
+  if (upstreamBranch) {
+    return stripRemotePrefix(upstreamBranch);
+  }
+
+  return branchRaw;
+};
+
 const collectLocalState = (cwd?: string): GitLocalState => {
   const statusPorcelain = runGit(["status", "--porcelain"], cwd) ?? "";
   const branchRaw = runGit(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
   const detachedHead = branchRaw === "HEAD";
+  const headCommit = runGit(["rev-parse", "--verify", "HEAD"], cwd);
   const upstreamCommit = runGit(["rev-parse", "--verify", "@{u}"], cwd);
   const upstreamBranch = runGit(["rev-parse", "--abbrev-ref", "@{u}"], cwd);
 
   return {
     uncommittedChanges: statusPorcelain.length > 0,
-    unpublishedCommit: !upstreamCommit,
+    unpublishedCommit: !upstreamCommit || headCommit !== upstreamCommit,
     unpublishedBranch: !upstreamBranch,
     detachedHead,
   };
@@ -37,8 +60,7 @@ export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts 
     return undefined;
   }
 
-  const branchRaw = runGit(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
-  const branch = branchRaw && branchRaw !== "HEAD" ? branchRaw : undefined;
+  const branch = resolveBranch(cwd);
 
   const revList = runGit(["rev-list", "--first-parent", commit, `--max-count=${ancestorLimit + 1}`], cwd);
 
@@ -50,7 +72,7 @@ export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts 
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .filter((hash) => hash !== commit);
+    .slice(1);
 
   return {
     commit,

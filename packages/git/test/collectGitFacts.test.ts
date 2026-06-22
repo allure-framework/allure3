@@ -94,7 +94,7 @@ describe("collectGitFacts", () => {
       firstParentAncestors: [COMMIT_B, COMMIT_A],
       localState: {
         uncommittedChanges: false,
-        unpublishedCommit: false,
+        unpublishedCommit: true,
         unpublishedBranch: false,
         detachedHead: false,
       },
@@ -167,6 +167,92 @@ describe("collectGitFacts", () => {
     });
 
     expect(collectGitFacts()?.localState?.uncommittedChanges).toBe(true);
+  });
+
+  it("marks unpublished commit when HEAD is ahead of upstream", () => {
+    mockHappyGit();
+
+    expect(collectGitFacts()?.localState?.unpublishedCommit).toBe(true);
+  });
+
+  it("marks published commit when HEAD matches upstream", () => {
+    mockHappyGit();
+
+    runGit.mockImplementation((args: string[]) => {
+      const key = args.join(" ");
+
+      if (key === "rev-parse --verify @{u}") {
+        return COMMIT_C;
+      }
+
+      if (key === "rev-parse --is-inside-work-tree") {
+        return "true";
+      }
+
+      if (key === "rev-parse HEAD" || key === "rev-parse --verify HEAD") {
+        return COMMIT_C;
+      }
+
+      if (key === "rev-parse --abbrev-ref HEAD") {
+        return "main";
+      }
+
+      if (key.startsWith("rev-list --first-parent")) {
+        return [COMMIT_C, COMMIT_B].join("\n");
+      }
+
+      if (key === "status --porcelain") {
+        return "";
+      }
+
+      if (key === "rev-parse --abbrev-ref @{u}") {
+        return "origin/main";
+      }
+
+      return undefined;
+    });
+
+    expect(collectGitFacts()?.localState?.unpublishedCommit).toBe(false);
+  });
+
+  it("prefers upstream branch name over local branch name", () => {
+    mockHappyGit();
+
+    runGit.mockImplementation((args: string[]) => {
+      const key = args.join(" ");
+
+      if (key === "rev-parse --abbrev-ref HEAD") {
+        return "local-feature";
+      }
+
+      if (key === "rev-parse --abbrev-ref @{u}") {
+        return "origin/feature/foo";
+      }
+
+      if (key === "rev-parse --is-inside-work-tree") {
+        return "true";
+      }
+
+      if (key === "rev-parse HEAD" || key === "rev-parse --verify HEAD") {
+        return COMMIT_C;
+      }
+
+      if (key.startsWith("rev-list --first-parent")) {
+        return [COMMIT_C, COMMIT_B].join("\n");
+      }
+
+      if (key === "status --porcelain") {
+        return "";
+      }
+
+      if (key === "rev-parse --verify @{u}") {
+        return COMMIT_B;
+      }
+
+      return undefined;
+    });
+
+    expect(collectGitFacts()?.branch).toBe("feature/foo");
   });
 
   it("marks unpublished commit and branch when upstream is missing", () => {
