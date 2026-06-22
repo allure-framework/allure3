@@ -78,6 +78,8 @@ The plugin accepts the following options:
 | `endpoint`         | TestOps API endpoint                                                       | `string`  | `undefined`     |
 | `projectId`        | TestOps project ID                                                         | `string`  | `undefined`     |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
+| `gitFlow`          | When `true`, collect Git metadata for TestOps Git Flow on CI uploads (opt-in)                                 | `boolean` | `false`         |
+| `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in TestOps | `number`  | `100`           |
 
 ### Using options from environment variables
 
@@ -90,5 +92,7 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_ENDPOINT` | `endpoint` |
 | `ALLURE_LAUNCH_NAME` | `launchName` |
 | `ALLURE_LAUNCH_TAGS` | `launchTags` |
+| `ALLURE_GIT_FLOW` | `gitFlow` |
+| `ALLURE_GIT_ANCESTOR_LIMIT` | `ancestorLimit` |
 
 `ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).

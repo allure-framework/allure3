@@ -1,6 +1,23 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
+import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
 import { getEnv } from "../utils.js";
+
+const getMergeRequestProjectUrl = (): string => getEnv("CI_MERGE_REQUEST_PROJECT_URL") || getEnv("CI_PROJECT_URL");
+
+const isTagPipeline = (): boolean => Boolean(getEnv("CI_COMMIT_TAG"));
+
+const getSourceBranch = (): string | undefined => {
+  if (isTagPipeline()) {
+    return undefined;
+  }
+
+  return (
+    getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_NAME") ||
+    getEnv("CI_COMMIT_BRANCH") ||
+    getEnv("CI_COMMIT_REF_NAME") ||
+    undefined
+  );
+};
 
 export const gitlab: CiDescriptor = {
   type: CiType.Gitlab,
@@ -38,7 +55,7 @@ export const gitlab: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("CI_COMMIT_REF_NAME");
+    return getSourceBranch() || "";
   },
 
   get pullRequestUrl(): string {
@@ -48,12 +65,47 @@ export const gitlab: CiDescriptor = {
       return "";
     }
 
-    const projectUrl = getEnv("CI_PROJECT_URL");
+    const projectUrl = getMergeRequestProjectUrl().replace(/\/+$/, "");
 
-    return `${projectUrl}/-/merge_requests/${mergeRequestIID}`;
+    return projectUrl ? `${projectUrl}/-/merge_requests/${mergeRequestIID}` : "";
   },
 
   get pullRequestName(): string {
     return getEnv("CI_MERGE_REQUEST_TITLE");
+  },
+
+  get provider() {
+    return GitProvider.Gitlab;
+  },
+
+  get repository() {
+    const projectPath = getEnv("CI_PROJECT_PATH");
+
+    return projectPath
+      ? {
+          slug: projectPath,
+          url: getEnv("CI_PROJECT_URL") || undefined,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return getSourceBranch();
+  },
+
+  get targetBranch() {
+    return getEnv("CI_MERGE_REQUEST_TARGET_BRANCH_NAME") || undefined;
+  },
+
+  get pullRequest() {
+    const mergeRequestIid = getEnv("CI_MERGE_REQUEST_IID");
+
+    return mergeRequestIid
+      ? {
+          id: mergeRequestIid,
+          url: this.pullRequestUrl || undefined,
+          title: getEnv("CI_MERGE_REQUEST_TITLE") || this.pullRequestName || undefined,
+        }
+      : undefined;
   },
 };

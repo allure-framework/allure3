@@ -16,6 +16,7 @@ import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import type { LaunchGitContextDto } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
@@ -220,7 +221,7 @@ export class TestOpsClient {
     this.#logger.verbose(`CI upload stopped (status: ${status})`);
   }
 
-  async createLaunch(launchName: string, launchTags: string[]) {
+  async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto) {
     this.#logger.verbose("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
@@ -229,6 +230,7 @@ export class TestOpsClient {
         autoclose: true,
         external: true,
         tags: launchTags.map((tag) => ({ name: tag })),
+        ...(gitContext ? { gitContext } : {}),
       },
     });
 
