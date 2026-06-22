@@ -502,7 +502,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["d3-shape", "npm:3.2.0"],\
           ["handlebars", "npm:4.7.9"],\
-          ["markdown-it", "npm:14.1.1"],\
+          ["markdown-it", "npm:14.2.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -528,7 +528,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["d3-shape", "npm:3.2.0"],\
           ["handlebars", "npm:4.7.9"],\
-          ["markdown-it", "npm:14.1.1"],\
+          ["markdown-it", "npm:14.2.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -1090,7 +1090,7 @@ const RAW_RUNTIME_STATE =
           ["html-webpack-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.6.3"],\
           ["jsdom", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:26.0.0"],\
           ["lodash", "npm:4.18.1"],\
-          ["markdown-it", "npm:14.1.1"],\
+          ["markdown-it", "npm:14.2.0"],\
           ["mini-css-extract-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.15"],\
@@ -18624,10 +18624,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["linkify-it", [\
-      ["npm:5.0.0", {\
-        "packageLocation": "./.yarn/cache/linkify-it-npm-5.0.0-adb5f9c96f-ef3b7609dd.zip/node_modules/linkify-it/",\
+      ["npm:5.0.1", {\
+        "packageLocation": "./.yarn/cache/linkify-it-npm-5.0.1-2f4cee8ece-47933d11cd.zip/node_modules/linkify-it/",\
         "packageDependencies": [\
-          ["linkify-it", "npm:5.0.0"],\
+          ["linkify-it", "npm:5.0.1"],\
           ["uc.micro", "npm:2.1.0"]\
         ],\
         "linkType": "HARD"\
@@ -18915,13 +18915,13 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["markdown-it", [\
-      ["npm:14.1.1", {\
-        "packageLocation": "./.yarn/cache/markdown-it-npm-14.1.1-45c173274d-088822c8aa.zip/node_modules/markdown-it/",\
+      ["npm:14.2.0", {\
+        "packageLocation": "./.yarn/cache/markdown-it-npm-14.2.0-af981e87c0-f5cdb7ca9c.zip/node_modules/markdown-it/",\
         "packageDependencies": [\
           ["argparse", "npm:2.0.1"],\
           ["entities", "npm:4.5.0"],\
-          ["linkify-it", "npm:5.0.0"],\
-          ["markdown-it", "npm:14.1.1"],\
+          ["linkify-it", "npm:5.0.1"],\
+          ["markdown-it", "npm:14.2.0"],\
           ["mdurl", "npm:2.0.0"],\
           ["punycode.js", "npm:2.3.1"],\
           ["uc.micro", "npm:2.1.0"]\
