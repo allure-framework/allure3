@@ -1026,7 +1026,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/preset-vite", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.10.0"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@react-spring/web", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.0.3"],\
-          ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1"],\
+          ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.0"],\
           ["@rollup/plugin-babel", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.4"],\
           ["@rollup/plugin-commonjs", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:28.0.2"],\
           ["@rollup/plugin-inject", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.0.5"],\
@@ -8403,17 +8403,17 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@rollup/plugin-alias", [\
-      ["npm:5.1.1", {\
-        "packageLocation": "./.yarn/cache/@rollup-plugin-alias-npm-5.1.1-a9087c434d-1f1ab178aa.zip/node_modules/@rollup/plugin-alias/",\
+      ["npm:6.0.0", {\
+        "packageLocation": "./.yarn/cache/@rollup-plugin-alias-npm-6.0.0-2b1d35f7ba-9c968a85c2.zip/node_modules/@rollup/plugin-alias/",\
         "packageDependencies": [\
-          ["@rollup/plugin-alias", "npm:5.1.1"]\
+          ["@rollup/plugin-alias", "npm:6.0.0"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1", {\
-        "packageLocation": "./.yarn/__virtual__/@rollup-plugin-alias-virtual-3152caea10/0/cache/@rollup-plugin-alias-npm-5.1.1-a9087c434d-1f1ab178aa.zip/node_modules/@rollup/plugin-alias/",\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.0", {\
+        "packageLocation": "./.yarn/__virtual__/@rollup-plugin-alias-virtual-8d0f5dd88e/0/cache/@rollup-plugin-alias-npm-6.0.0-2b1d35f7ba-9c968a85c2.zip/node_modules/@rollup/plugin-alias/",\
         "packageDependencies": [\
-          ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1"],\
+          ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.0"],\
           ["@types/rollup", null],\
           ["rollup", "npm:4.59.0"]\
         ],\
