@@ -1,6 +1,7 @@
 import type {
   AllureHistory,
   AttachmentLink,
+  AllureCheckResult,
   CategoryDefinition,
   CiDescriptor,
   HistoryDataPoint,
@@ -54,9 +55,14 @@ export interface PluginContext {
 }
 
 /**
- * Reduced test result information that can be used in summary
+ * Reduced test result information that can be used in the summary
  */
 export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+
+/**
+ * Reduced check result information that can be used in the summary
+ */
+export type SummaryCheckResult = Pick<AllureCheckResult, "name" | "status">;
 
 export interface PluginSummary {
   href?: string;
@@ -72,6 +78,7 @@ export interface PluginSummary {
   newTests?: SummaryTestResult[];
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
+  checks?: SummaryCheckResult[];
   createdAt?: number;
   /**
    * May contain useful information provided by plugins (for example it's id, single file mode, etc.)

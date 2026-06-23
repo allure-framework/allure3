@@ -94,7 +94,7 @@ const fixtures = {
     status: "failed",
     duration: 2000,
     createdAt: 1000,
-    plugin: "Awesome",
+    plugin: "TestOps",
     newTests: [],
     flakyTests: [],
     retryTests: [],
