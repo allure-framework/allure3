@@ -7,6 +7,7 @@ import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plug
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AllureCheckResult } from "../../core-api/src/model.js";
 import AwesomePlugin from "../src/index.js";
 
 beforeEach(async () => {
@@ -67,6 +68,16 @@ const fixtures: any = {
       status: "skipped",
     },
   },
+  checkResults: [
+    {
+      name: "foo",
+      status: "passed",
+    },
+    {
+      name: "bar",
+      status: "failed",
+    },
+  ] as AllureCheckResult[],
   context: {
     reportUuid: "report-uuid",
   } as PluginContext,
@@ -84,6 +95,7 @@ const fixtures: any = {
       return trs;
     },
     allNewTestResults: () => Promise.resolve([]),
+    allCheckResults: () => Promise.resolve([]),
     testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
 
@@ -115,6 +127,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        checks: [],
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,
@@ -143,6 +156,49 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        checks: [],
+        meta: {
+          reportId: fixtures.context.reportUuid,
+          singleFile: false,
+          withTestResultsLinks: true,
+        },
+      });
+    });
+
+    it("should returns info for all check results in the store", async () => {
+      const plugin = new AwesomePlugin({ reportName: "Sample report" });
+      const info = await plugin.info(fixtures.context, {
+        ...fixtures.store,
+        allCheckResults: () => Promise.resolve(fixtures.checkResults),
+      });
+
+      expect(info).toEqual({
+        createdAt: 0,
+        duration: 0,
+        name: "Sample report",
+        plugin: "Awesome",
+        status: "failed",
+        stats: {
+          passed: 1,
+          failed: 1,
+          broken: 1,
+          skipped: 1,
+          unknown: 1,
+          total: 5,
+        },
+        newTests: [],
+        flakyTests: [],
+        retryTests: [],
+        checks: [
+          {
+            name: fixtures.checkResults[0].name,
+            status: fixtures.checkResults[0].status,
+          },
+          {
+            name: fixtures.checkResults[1].name,
+            status: fixtures.checkResults[1].status,
+          },
+        ],
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,
@@ -272,7 +328,7 @@ describe("plugin", () => {
           status: "passed",
           labels: [],
         },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
 
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -364,7 +420,7 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [stagingTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -470,7 +526,7 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const qaBTestResult = {
         id: "tr-qa-b",
         name: "qa b test",
@@ -482,7 +538,7 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -590,7 +646,7 @@ describe("plugin", () => {
         start: 1,
         stop: 11,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const qaBTestResult = {
         id: "tr-qa-b",
         name: "qa b test",
@@ -607,7 +663,7 @@ describe("plugin", () => {
         start: 2,
         stop: 22,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -777,7 +833,7 @@ describe("plugin", () => {
       };
       const testResults = [
         { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
       const plugin = new AwesomePlugin();
       const multiDist = dirname(require.resolve("@allurereport/web-awesome/dist/multi/manifest.json"));
       const expectedAssets = (await readdir(multiDist)).filter((fileName) => fileName !== "manifest.json");
@@ -896,7 +952,7 @@ describe("plugin", () => {
           stop: 2500,
           labels: [],
         },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
       const executor = {
         name: "TeamCity",
         type: "teamcity",
