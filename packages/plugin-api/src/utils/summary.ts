@@ -1,6 +1,12 @@
-import { type AllureHistory, type CiDescriptor, type TestResult, getWorstStatus } from "@allurereport/core-api";
+import {
+  AllureCheckResult,
+  type AllureHistory,
+  type CiDescriptor,
+  type TestResult,
+  getWorstStatus,
+} from "@allurereport/core-api";
 
-import type { PluginSummary, SummaryTestResult } from "../plugin.js";
+import type { PluginSummary, SummaryCheckResult, SummaryTestResult } from "../plugin.js";
 import type { AllureStore } from "../store.js";
 
 export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult => ({
@@ -8,6 +14,11 @@ export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult =>
   name: tr.name,
   status: tr.status,
   duration: tr.duration,
+});
+
+export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCheckResult => ({
+  name: check.name,
+  status: check.status,
 });
 
 export const createPluginSummary = async (params: {
@@ -20,6 +31,7 @@ export const createPluginSummary = async (params: {
   meta: Record<string, any>;
 }): Promise<PluginSummary> => {
   const { name, filter, plugin, store, history, meta } = params;
+  const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
@@ -35,6 +47,7 @@ export const createPluginSummary = async (params: {
     newTests: newTrs.map(convertToSummaryTestResult),
     flakyTests: flakyTrs.map(convertToSummaryTestResult),
     retryTests: retryTrs.map(convertToSummaryTestResult),
+    checks: allChecks.map(convertToSummaryCheckResult),
     name,
     duration,
     createdAt,
