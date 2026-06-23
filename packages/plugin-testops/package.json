@@ -35,6 +35,7 @@
     "@allurereport/ci": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/git": "workspace:*",
+    "@allurereport/logger": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",

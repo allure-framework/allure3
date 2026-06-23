@@ -1,19 +1,17 @@
 {
-  "name": "@allurereport/service",
-  "version": "3.13.2",
-  "description": "Allure Service API",
+  "name": "@allurereport/logger",
+  "version": "3.12.0",
+  "description": "Allure structured logger",
   "keywords": [
     "allure",
-    "html",
-    "plugin",
-    "report",
-    "testing"
+    "logger",
+    "logging"
   ],
   "license": "Apache-2.0",
   "author": "Qameta Software",
   "repository": "https://github.com/allure-framework/allure3",
   "files": [
-    "./dist"
+    "dist"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -26,20 +24,12 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
-  },
-  "dependencies": {
-    "@allurereport/core-api": "workspace:*",
-    "@allurereport/logger": "workspace:*",
-    "@allurereport/plugin-api": "workspace:*",
-    "axios": "^1.18.1",
-    "open": "^11.0.0"
+    "lint": "oxlint --import-plugin src test",
+    "lint:fix": "oxlint --import-plugin --fix src test"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
+    "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",

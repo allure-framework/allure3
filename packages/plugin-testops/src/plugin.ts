@@ -152,7 +152,7 @@ export class TestOpsPlugin implements Plugin {
     );
 
     if (uniqueResults.length === 0) {
-      this.#logger.verbose("No quality gate results to upload");
+      this.#logger.trace("No quality gate results to upload");
       return;
     }
 
@@ -183,7 +183,7 @@ export class TestOpsPlugin implements Plugin {
     const results = await store.allGlobalErrors();
 
     if (results.length === 0) {
-      this.#logger.verbose("No global errors to upload");
+      this.#logger.trace("No global errors to upload");
       return;
     }
 
@@ -486,7 +486,7 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    this.#logger.verbose("Starting upload…");
+    this.#logger.trace("Starting upload…");
 
     await this.#startUpload();
     await this.#upload(store, { context, stage: "start" });
@@ -499,7 +499,7 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    this.#logger.verbose("Updating (uploading new results)…");
+    this.#logger.trace("Updating (uploading new results)…");
 
     await this.#upload(store, { context, stage: "update" });
   }
@@ -516,7 +516,7 @@ export class TestOpsPlugin implements Plugin {
 
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
-    this.#logger.verbose("Finalizing upload…");
+    this.#logger.trace("Finalizing upload…");
 
     await this.#upload(store, { context, stage: "done" });
     await this.#stopUpload(worstStatus || "unknown");

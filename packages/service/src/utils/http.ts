@@ -1,10 +1,11 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
 
+import { log } from "../logger.js";
 import type { UploadReportConfig, UploadReportPayload, UploadReportResult } from "../model.js";
 import { isReportDataFile } from "./files.js";
 
 /**
- * The error that was explicitly thrown by the service. We can print the error's message as is to the user
+ * The error that was explicitly thrown by the service
  */
 export class KnownError extends Error {
   status?: number;
@@ -17,20 +18,22 @@ export class KnownError extends Error {
 }
 
 /**
- * Unknown error (such as internal server error or error that was not explicitly thrown by the service)
- * We can't print the error's message directly to the user, so we need to add additionaly logic to handle it
+ * Internal Service Error
  */
-export class UnknownError extends Error {
+export class InternalError extends Error {
   stack?: string;
+  name = "InternalError";
 
   constructor(message: string, stack?: string) {
     super(message);
-    this.name = "UnknownError";
     this.stack = stack;
   }
 }
 
 const ERROR_MESSAGE_FIELDS = ["message", "error_description", "error", "detail", "title", "description"];
+
+/** Keys masked in `AxiosError#toJSON()` serialized config. See axios request `redact` option. */
+export const AXIOS_REDACT_KEYS = ["authorization", "password", "secret", "token", "apitoken", "accesstoken"];
 
 const stringifyErrorObject = (value: Record<string, unknown>) => {
   try {
@@ -94,6 +97,30 @@ export const formatServiceHttpErrorMessage = (payload: {
   return `Allure service request failed: ${request}${statusMessage}${details ? `: ${details}` : ""}`;
 };
 
+type ServiceRequestPayload = AxiosRequestConfig & { params?: Record<string, unknown>; body?: unknown };
+
+const buildFailedRequestDebugContext = (axiosError: AxiosError) => {
+  const { data, status, statusText } = axiosError.response ?? {};
+  const serialized = axiosError.toJSON() as {
+    message: AxiosError["message"];
+    name: AxiosError["name"];
+    stack: AxiosError["stack"];
+    config: AxiosError["config"];
+    code: AxiosError["code"];
+    status: AxiosError["status"];
+  };
+
+  return {
+    method: serialized.config?.method,
+    path: serialized.config?.url,
+    body: serialized.config?.data,
+    responseData: data,
+    params: serialized.config?.params,
+    status: status ?? serialized.status,
+    statusText: statusText ?? serialized.code,
+  };
+};
+
 export const createServiceHttpClient = (
   serviceUrl: string,
   params?: {
@@ -104,10 +131,11 @@ export const createServiceHttpClient = (
   const client = axios.create({
     baseURL: serviceUrl,
     validateStatus: (status) => status < 400,
+    redact: AXIOS_REDACT_KEYS,
   });
   const sendRequest =
     (method: "get" | "post" | "put" | "delete") =>
-    async <T>(endpoint: string, payload?: AxiosRequestConfig & { params?: Record<string, any>; body?: any }) => {
+    async <T>(endpoint: string, payload?: ServiceRequestPayload) => {
       const headers = {
         ...(payload?.headers ?? {}),
       };
@@ -143,8 +171,12 @@ export const createServiceHttpClient = (
           throw err;
         }
 
+        log.debug(buildFailedRequestDebugContext(err as AxiosError), "service HTTP request failed");
+
         const { data, status, statusText } = (err as AxiosError).response ?? {};
+
         const responseStatus = status ?? 500;
+
         const errorMessage = formatServiceHttpErrorMessage({
           method,
           endpoint,
@@ -158,7 +190,7 @@ export const createServiceHttpClient = (
           throw new KnownError(errorMessage, responseStatus);
         }
 
-        throw new UnknownError(errorMessage, err.stack);
+        throw new InternalError(errorMessage, err.stack);
       }
     };
 
