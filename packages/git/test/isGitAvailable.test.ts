@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-import { type Mock, describe, expect, it, vi } from "vitest";
+import { type Mock, describe, it, vi, expect } from "vitest";
 
 import { isGitAvailable } from "../src/isGitAvailable.js";
 
@@ -14,13 +14,23 @@ describe("isGitAvailable", () => {
   it("returns true when git --version succeeds", () => {
     spawnSyncMock.mockReturnValue({ error: undefined, status: 0 });
 
-    expect(isGitAvailable()).toBe(true);
-    expect(spawnSyncMock).toHaveBeenCalledWith("git", ["--version"], { encoding: "utf-8" });
+    const available = isGitAvailable();
+
+    expect(
+      {
+        available,
+        command: spawnSyncMock.mock.calls[0],
+      },
+      "detects git CLI availability from a successful git --version call",
+    ).toEqual({
+      available: true,
+      command: ["git", ["--version"], { encoding: "utf-8" }],
+    });
   });
 
   it("returns false when git is missing or fails", () => {
     spawnSyncMock.mockReturnValue({ error: new Error("ENOENT"), status: 1 });
 
-    expect(isGitAvailable()).toBe(false);
+    expect(isGitAvailable(), "returns false when git --version fails or git is missing").toBe(false);
   });
 });

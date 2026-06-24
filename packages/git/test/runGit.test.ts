@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, it, vi, expect } from "vitest";
 
 import { runGit } from "../src/runGit.js";
 
@@ -30,26 +30,55 @@ describe("runGit", () => {
       error: undefined,
     } as ReturnType<typeof spawnSync>);
 
-    expect(runGit(["rev-parse", "HEAD"])).toBeUndefined();
-    expect(writeSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[allurereport/git] git rev-parse HEAD failed (status=128): fatal: not a git repository"),
-    );
+    const result = runGit(["rev-parse", "HEAD"]);
+
+    expect(
+      {
+        result,
+        stderr: writeSpy.mock.calls[0]?.[0],
+      },
+      "returns undefined and logs a debug hint when git command fails",
+    ).toEqual({
+      result: undefined,
+      stderr: expect.stringContaining(
+        "[allurereport/git] git rev-parse HEAD failed (status=128): fatal: not a git repository",
+      ),
+    });
   });
 
   it("blocks --upload-pack and does not spawn git", () => {
-    expect(runGit(["ls-remote", "--upload-pack=evil"])).toBeUndefined();
-    expect(spawnSyncMock).not.toHaveBeenCalled();
+    const result = runGit(["ls-remote", "--upload-pack=evil"]);
+
+    expect(
+      {
+        result,
+        spawned: spawnSyncMock.mock.calls,
+      },
+      "blocks unsafe --upload-pack arguments without spawning git",
+    ).toEqual({
+      result: undefined,
+      spawned: [],
+    });
   });
 
   it("writes stderr hint when ALLURE_DEBUG is set and unsafe args are blocked", () => {
     vi.stubEnv("ALLURE_DEBUG", "true");
     const writeSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
-    expect(runGit(["--upload-pack"])).toBeUndefined();
-    expect(spawnSyncMock).not.toHaveBeenCalled();
-    expect(writeSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[allurereport/git] blocked unsafe git arguments: --upload-pack"),
-    );
+    const result = runGit(["--upload-pack"]);
+
+    expect(
+      {
+        result,
+        spawned: spawnSyncMock.mock.calls,
+        stderr: writeSpy.mock.calls.map((call) => call[0]),
+      },
+      "blocks unsafe arguments, avoids spawning git, and logs a debug hint",
+    ).toEqual({
+      result: undefined,
+      spawned: [],
+      stderr: [expect.stringContaining("[allurereport/git] blocked unsafe git arguments: --upload-pack")],
+    });
   });
 
   it("does not write stderr hint when ALLURE_DEBUG is unset", () => {
@@ -65,7 +94,17 @@ describe("runGit", () => {
       error: undefined,
     } as ReturnType<typeof spawnSync>);
 
-    expect(runGit(["status"])).toBeUndefined();
-    expect(writeSpy).not.toHaveBeenCalled();
+    const result = runGit(["status"]);
+
+    expect(
+      {
+        result,
+        stderrWrites: writeSpy.mock.calls,
+      },
+      "returns undefined without debug stderr output when ALLURE_DEBUG is unset",
+    ).toEqual({
+      result: undefined,
+      stderrWrites: [],
+    });
   });
 });

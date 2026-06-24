@@ -9,6 +9,24 @@ export type CollectGitFactsOptions = {
   ancestorLimit?: number;
 };
 
+const normalizeAncestorLimit = (value: unknown): number => {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+
+  return DEFAULT_ANCESTOR_LIMIT;
+};
+
+const normalizePositiveInteger = (value: unknown): number | undefined => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return undefined;
+  }
+
+  const normalized = Math.floor(value);
+
+  return normalized > 0 ? normalized : undefined;
+};
+
 const stripRemotePrefix = (upstreamRef: string): string => {
   const slashIndex = upstreamRef.indexOf("/");
 
@@ -31,6 +49,28 @@ const resolveBranch = (cwd?: string): string | undefined => {
   return branchRaw;
 };
 
+const ensureAncestorHistory = (ancestorLimit: number, cwd?: string): void => {
+  if (runGit(["rev-parse", "--is-shallow-repository"], cwd) !== "true") {
+    return;
+  }
+
+  const needed = ancestorLimit + 1;
+  const availableRaw = runGit(["rev-list", "--first-parent", "--count", "HEAD"], cwd);
+  const available = normalizePositiveInteger(Number(availableRaw)) ?? 0;
+
+  if (available >= needed) {
+    return;
+  }
+
+  const deepenBy = normalizePositiveInteger(available > 0 ? needed - available : ancestorLimit);
+
+  if (!deepenBy) {
+    return;
+  }
+
+  runGit(["fetch", "--deepen", String(deepenBy), "origin"], cwd);
+};
+
 const collectLocalState = (cwd?: string): GitLocalState => {
   const statusPorcelain = runGit(["status", "--porcelain"], cwd) ?? "";
   const branchRaw = runGit(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
@@ -48,7 +88,8 @@ const collectLocalState = (cwd?: string): GitLocalState => {
 };
 
 export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts | undefined => {
-  const { cwd, ancestorLimit = DEFAULT_ANCESTOR_LIMIT } = options;
+  const { cwd } = options;
+  const ancestorLimit = normalizeAncestorLimit(options.ancestorLimit);
 
   if (runGit(["rev-parse", "--is-inside-work-tree"], cwd) !== "true") {
     return undefined;
@@ -61,6 +102,8 @@ export const collectGitFacts = (options: CollectGitFactsOptions = {}): GitFacts 
   }
 
   const branch = resolveBranch(cwd);
+
+  ensureAncestorHistory(ancestorLimit, cwd);
 
   const revList = runGit(["rev-list", "--first-parent", commit, `--max-count=${ancestorLimit + 1}`], cwd);
 

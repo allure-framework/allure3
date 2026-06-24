@@ -124,12 +124,12 @@ export const createServiceHttpClient = (
         let res: AxiosResponse<T>;
 
         if (method === "get" || method === "delete") {
-          res = await client[method](endpoint, {
+          res = await client[method]<T>(endpoint, {
             ...payload,
             headers,
           });
         } else {
-          res = await client[method](endpoint, payload?.body, {
+          res = await client[method]<T>(endpoint, payload?.body, {
             ...payload,
             headers,
           });
@@ -167,7 +167,7 @@ export const createServiceHttpClient = (
     post: sendRequest("post"),
     put: sendRequest("put"),
     delete: sendRequest("delete"),
-  };
+  } as const;
 };
 
 export type HttpClient = ReturnType<typeof createServiceHttpClient>;
