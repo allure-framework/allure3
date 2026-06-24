@@ -35,6 +35,7 @@ describe("allure2 reader", () => {
     expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);
     expect(visitor.visitTestResult).not.toHaveBeenCalled();
     expect(visitor.visitCheckResult.mock.calls[0][0]).toEqual({
+      id: "0-0-0-0",
       name: "Lint",
       status: "passed",
       tags: ["ci", "linux"],
