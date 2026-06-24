@@ -49,6 +49,23 @@ const resolveBranch = (cwd?: string): string | undefined => {
   return branchRaw;
 };
 
+const DEEPEN_FETCH_FILTERS = ["--filter=tree:0", "--filter=blob:none"] as const;
+
+const deepenFetch = (deepenBy: number, cwd?: string): void => {
+  const deepen = String(deepenBy);
+  const strategies: string[][] = [
+    ["fetch", "--deepen", deepen, DEEPEN_FETCH_FILTERS[0]],
+    ["fetch", "--deepen", deepen, DEEPEN_FETCH_FILTERS[1]],
+    ["fetch", "--deepen", deepen],
+  ];
+
+  for (const args of strategies) {
+    if (runGit(args, cwd) !== undefined) {
+      return;
+    }
+  }
+};
+
 const ensureAncestorHistory = (ancestorLimit: number, cwd?: string): void => {
   if (runGit(["rev-parse", "--is-shallow-repository"], cwd) !== "true") {
     return;
@@ -68,7 +85,7 @@ const ensureAncestorHistory = (ancestorLimit: number, cwd?: string): void => {
     return;
   }
 
-  runGit(["fetch", "--deepen", String(deepenBy), "origin"], cwd);
+  deepenFetch(deepenBy, cwd);
 };
 
 const collectLocalState = (cwd?: string): GitLocalState => {

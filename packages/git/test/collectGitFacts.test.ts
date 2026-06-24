@@ -359,7 +359,7 @@ describe("collectGitFacts", () => {
         return "2";
       }
 
-      if (key === "fetch --deepen 41 origin") {
+      if (key.startsWith("fetch --deepen")) {
         return "";
       }
 
@@ -399,7 +399,7 @@ describe("collectGitFacts", () => {
     expect(runGit.mock.calls, "counts first-parent history, deepens shallow clone, and lists ancestors").toEqual(
       expect.arrayContaining([
         [["rev-list", "--first-parent", "--count", "HEAD"], undefined],
-        [["fetch", "--deepen", "41", "origin"], undefined],
+        [["fetch", "--deepen", "41", "--filter=tree:0"], undefined],
         [["rev-list", "--first-parent", COMMIT_C, "--max-count=43"], undefined],
       ]),
     );
@@ -476,7 +476,7 @@ describe("collectGitFacts", () => {
         return "50";
       }
 
-      if (key === "fetch --deepen 51 origin") {
+      if (key.startsWith("fetch --deepen")) {
         return "";
       }
 
@@ -514,7 +514,7 @@ describe("collectGitFacts", () => {
     collectGitFacts({ ancestorLimit: 100 });
 
     expect(runGit.mock.calls, "deepens shallow history only by the missing first-parent commits").toEqual(
-      expect.arrayContaining([[["fetch", "--deepen", "51", "origin"], undefined]]),
+      expect.arrayContaining([[["fetch", "--deepen", "51", "--filter=tree:0"], undefined]]),
     );
   });
 
@@ -543,7 +543,7 @@ describe("collectGitFacts", () => {
         return "2";
       }
 
-      if (key === "fetch --deepen 99 origin") {
+      if (key.startsWith("fetch --deepen")) {
         return undefined;
       }
 
@@ -597,7 +597,7 @@ describe("collectGitFacts", () => {
         return undefined;
       }
 
-      if (key === "fetch --deepen 100 origin") {
+      if (key.startsWith("fetch --deepen")) {
         return "";
       }
 
@@ -635,7 +635,7 @@ describe("collectGitFacts", () => {
     collectGitFacts({ ancestorLimit: 100 });
 
     expect(runGit.mock.calls, "falls back to ancestorLimit deepen when first-parent count is unavailable").toEqual(
-      expect.arrayContaining([[["fetch", "--deepen", "100", "origin"], undefined]]),
+      expect.arrayContaining([[["fetch", "--deepen", "100", "--filter=tree:0"], undefined]]),
     );
   });
 
@@ -693,6 +693,135 @@ describe("collectGitFacts", () => {
     expect(
       runGit.mock.calls.filter((call) => call[0][0] === "fetch"),
       "uses default ancestor limit instead of unsafe git option strings",
-    ).toEqual([[["fetch", "--deepen", "100", "origin"], undefined]]);
+    ).toEqual([[["fetch", "--deepen", "100", "--filter=tree:0"], undefined]]);
+  });
+
+  it("falls back to blob:none deepen fetch when tree:0 is unsupported", () => {
+    mockHappyGit();
+
+    runGit.mockImplementation((args: string[]) => {
+      const key = args.join(" ");
+
+      if (key === "rev-parse --is-shallow-repository") {
+        return "true";
+      }
+
+      if (key === "rev-list --first-parent --count HEAD") {
+        return "1";
+      }
+
+      if (key === "fetch --deepen 100 --filter=tree:0") {
+        return undefined;
+      }
+
+      if (key === "fetch --deepen 100 --filter=blob:none") {
+        return "";
+      }
+
+      if (key === "rev-parse --is-inside-work-tree") {
+        return "true";
+      }
+
+      if (key === "rev-parse HEAD") {
+        return COMMIT_C;
+      }
+
+      if (key === "rev-parse --abbrev-ref HEAD") {
+        return "main";
+      }
+
+      if (key.startsWith("rev-list --first-parent")) {
+        return [COMMIT_C, COMMIT_B].join("\n");
+      }
+
+      if (key === "status --porcelain") {
+        return "";
+      }
+
+      if (key === "rev-parse --verify @{u}") {
+        return COMMIT_B;
+      }
+
+      if (key === "rev-parse --abbrev-ref @{u}") {
+        return "origin/main";
+      }
+
+      return undefined;
+    });
+
+    collectGitFacts({ ancestorLimit: 100 });
+
+    expect(
+      runGit.mock.calls.filter((call) => call[0][0] === "fetch"),
+      "falls back to blob:none deepen fetch when tree:0 is unsupported",
+    ).toEqual([
+      [["fetch", "--deepen", "100", "--filter=tree:0"], undefined],
+      [["fetch", "--deepen", "100", "--filter=blob:none"], undefined],
+    ]);
+  });
+
+  it("falls back to full deepen fetch when partial filters are unsupported", () => {
+    mockHappyGit();
+
+    runGit.mockImplementation((args: string[]) => {
+      const key = args.join(" ");
+
+      if (key === "rev-parse --is-shallow-repository") {
+        return "true";
+      }
+
+      if (key === "rev-list --first-parent --count HEAD") {
+        return "1";
+      }
+
+      if (key === "fetch --deepen 100 --filter=tree:0" || key === "fetch --deepen 100 --filter=blob:none") {
+        return undefined;
+      }
+
+      if (key === "fetch --deepen 100") {
+        return "";
+      }
+
+      if (key === "rev-parse --is-inside-work-tree") {
+        return "true";
+      }
+
+      if (key === "rev-parse HEAD") {
+        return COMMIT_C;
+      }
+
+      if (key === "rev-parse --abbrev-ref HEAD") {
+        return "main";
+      }
+
+      if (key.startsWith("rev-list --first-parent")) {
+        return [COMMIT_C, COMMIT_B].join("\n");
+      }
+
+      if (key === "status --porcelain") {
+        return "";
+      }
+
+      if (key === "rev-parse --verify @{u}") {
+        return COMMIT_B;
+      }
+
+      if (key === "rev-parse --abbrev-ref @{u}") {
+        return "origin/main";
+      }
+
+      return undefined;
+    });
+
+    collectGitFacts({ ancestorLimit: 100 });
+
+    expect(
+      runGit.mock.calls.filter((call) => call[0][0] === "fetch"),
+      "falls back to full deepen fetch when partial filters are unsupported",
+    ).toEqual([
+      [["fetch", "--deepen", "100", "--filter=tree:0"], undefined],
+      [["fetch", "--deepen", "100", "--filter=blob:none"], undefined],
+      [["fetch", "--deepen", "100"], undefined],
+    ]);
   });
 });
