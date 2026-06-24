@@ -79,7 +79,7 @@
     "prismjs": "^1.30.0",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
-    "sortablejs": "^1.15.6",
+    "sortablejs": "^1.15.7",
     "use-debounce": "^10.0.6"
   },
   "devDependencies": {
