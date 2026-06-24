@@ -17,6 +17,7 @@ export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult =>
 });
 
 export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCheckResult => ({
+  id: check.id,
   name: check.name,
   status: check.status,
 });

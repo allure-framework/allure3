@@ -2326,6 +2326,7 @@ describe("environments", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3105,6 +3106,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3178,6 +3180,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {
         "test-result-id": [attachmentId],
@@ -3265,6 +3268,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [dumpAttachment.id],
       globalErrors: [dumpError],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3303,6 +3307,7 @@ describe("dump state", () => {
       indexTestResultByHistoryId: {},
       environments: ["default"],
       reportVariables: {},
+      checkResults: {},
     };
 
     const store = new DefaultAllureStore();
@@ -3338,6 +3343,7 @@ describe("dump state", () => {
       fixtures: {},
       globalAttachments: [],
       globalErrors: [],
+      checkResults: {},
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       // Missing new index properties to test graceful handling
@@ -3437,6 +3443,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {
@@ -3553,6 +3560,7 @@ describe("dump state", () => {
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
+      checkResults: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3632,6 +3640,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {
@@ -3742,6 +3751,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [dumpResult],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3763,6 +3773,7 @@ describe("dump state", () => {
   it("should add, dump, and restore check results", async () => {
     const store = new DefaultAllureStore();
     const checkResult = {
+      id: "check-result-id",
       name: "Lint",
       status: "passed" as const,
       tags: ["ci", "linux"],
@@ -3774,15 +3785,31 @@ describe("dump state", () => {
 
     await store.addCheckResult(checkResult);
 
+    const [initialResult] = await store.allCheckResults();
+
+    expect(initialResult).toEqual(checkResult);
+
+    initialResult.tags?.push("mutated");
+    initialResult.details.message = "changed";
+
     expect(await store.allCheckResults()).toEqual([checkResult]);
 
     const dump = store.dumpState();
 
-    expect(dump.checkResults).toEqual([checkResult]);
+    expect(dump.checkResults).toEqual({
+      [checkResult.id]: checkResult,
+    });
 
     const newStore = new DefaultAllureStore();
 
     await newStore.restoreState(dump, {});
+
+    const [restoredResult] = await newStore.allCheckResults();
+
+    expect(restoredResult).toEqual(checkResult);
+
+    restoredResult.tags?.push("mutated");
+    restoredResult.details.message = "changed";
 
     expect(await newStore.allCheckResults()).toEqual([checkResult]);
   });
@@ -3817,6 +3844,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3854,6 +3882,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [{ message: "prod global error", environment: "Prod" }],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3891,6 +3920,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [{ rule: "maxFailures", success: false, message: "prod qg", environment: "Prod" }],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3918,6 +3948,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -3953,6 +3984,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -4005,6 +4037,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [
         {
           rule: "maxFailures",

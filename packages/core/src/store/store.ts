@@ -153,7 +153,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalErrors: PluginGlobalError[] = [];
   #globalErrorsByEnv: Map<string, PluginGlobalError[]> = new Map();
   #globalExitCode: ExitCode | undefined;
-  #checkResults: AllureCheckResult[] = [];
+  #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
@@ -562,9 +562,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // check data
 
   async addCheckResult(result: AllureCheckResult): Promise<void> {
-    this.#checkResults.push({
-      name: result.name,
-      status: result.status,
+    this.#checkResultsById.set(result.id, {
+      ...result,
       ...(result.tags?.length ? { tags: [...result.tags] } : {}),
       details: {
         command: result.details.command,
@@ -575,9 +574,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allCheckResults(): Promise<AllureCheckResult[]> {
-    return this.#checkResults.map((result) => ({
+    return Array.from(this.#checkResultsById.values()).map((result) => ({
       ...result,
       ...(result.tags ? { tags: [...result.tags] } : {}),
+      details: {
+        command: result.details.command,
+        ...(result.details.message ? { message: result.details.message } : {}),
+        ...(result.details.error ? { error: result.details.error } : {}),
+      },
     }));
   }
 
@@ -1461,10 +1465,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables: this.#reportVariables,
       globalAttachmentIds: this.#globalAttachmentIds,
       globalErrors: this.#globalErrors,
-      checkResults: this.#checkResults.map((result) => ({
-        ...result,
-        ...(result.tags ? { tags: [...result.tags] } : {}),
-      })),
+      checkResults: mapToObject(this.#checkResultsById),
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -1507,7 +1508,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environments,
       globalAttachmentIds = [],
       globalErrors = [],
-      checkResults = [],
+      checkResults,
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
@@ -1577,6 +1578,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#addEnvironments([...storedEnvironmentAliases, ...normalizedEnvironments]);
 
     const envNameToId = new Map<string, string>();
+
     for (const { id, name } of this.#environments) {
       envNameToId.set(name, id);
       envNameToId.set(id, id);
@@ -1599,6 +1601,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#testResultIdsByEnvironmentId.set(envId, new Set(trs.map((tr) => tr.id)));
     });
 
+    updateMapWithRecord(this.#checkResultsById, checkResults);
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
@@ -1638,18 +1641,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         },
       );
       this.#globalErrors.push(this.#indexGlobalError(error));
-    });
-    checkResults.forEach((result) => {
-      this.#checkResults.push({
-        name: result.name,
-        status: result.status,
-        ...(result.tags?.length ? { tags: [...result.tags] } : {}),
-        details: {
-          command: result.details?.command ?? "",
-          ...(result.details?.message ? { message: result.details.message } : {}),
-          ...(result.details?.error ? { error: result.details.error } : {}),
-        },
-      });
     });
 
     Object.assign(this.#reportVariables, reportVariables);

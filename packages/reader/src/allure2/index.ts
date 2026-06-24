@@ -251,6 +251,7 @@ const processCheckResult = async (
 
   await visitor.visitCheckResult(
     {
+      id: ensureString(result.id, ""),
       name: ensureString(result.name, originalFileName.replace(/-check\.json$/, "")),
       status: convertCheckStatus(result.status),
       ...(tags.length ? { tags } : {}),

@@ -91,7 +91,7 @@ export interface AllureStoreDump {
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
   globalErrors: PluginGlobalError[];
-  checkResults: AllureCheckResult[];
+  checkResults: Record<string, AllureCheckResult>;
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
