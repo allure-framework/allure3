@@ -782,7 +782,7 @@ const RAW_RUNTIME_STATE =
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["axios", "npm:1.16.0"],\
-          ["open", "npm:10.1.0"],\
+          ["open", "npm:11.0.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -806,7 +806,7 @@ const RAW_RUNTIME_STATE =
           ["axios", "npm:1.16.0"],\
           ["get-port", "npm:7.1.0"],\
           ["npm-run-all2", "npm:7.0.1"],\
-          ["open", "npm:10.1.0"],\
+          ["open", "npm:11.0.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -15040,6 +15040,15 @@ const RAW_RUNTIME_STATE =
           ["default-browser-id", "npm:5.0.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:5.5.0", {\
+        "packageLocation": "./.yarn/cache/default-browser-npm-5.5.0-318b15cbba-c5c5d84a4a.zip/node_modules/default-browser/",\
+        "packageDependencies": [\
+          ["bundle-name", "npm:4.1.0"],\
+          ["default-browser", "npm:5.5.0"],\
+          ["default-browser-id", "npm:5.0.0"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["default-browser-id", [\
@@ -17795,6 +17804,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["is-in-ssh", [\
+      ["npm:1.0.0", {\
+        "packageLocation": "./.yarn/cache/is-in-ssh-npm-1.0.0-d72be5b7c8-d55cb39afd.zip/node_modules/is-in-ssh/",\
+        "packageDependencies": [\
+          ["is-in-ssh", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["is-inside-container", [\
       ["npm:1.0.0", {\
         "packageLocation": "./.yarn/cache/is-inside-container-npm-1.0.0-f2c9e9bb96-c50b75a2ab.zip/node_modules/is-inside-container/",\
@@ -19778,6 +19796,19 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
+      ["npm:11.0.0", {\
+        "packageLocation": "./.yarn/unplugged/open-npm-11.0.0-f702975017/node_modules/open/",\
+        "packageDependencies": [\
+          ["default-browser", "npm:5.5.0"],\
+          ["define-lazy-prop", "npm:3.0.0"],\
+          ["is-in-ssh", "npm:1.0.0"],\
+          ["is-inside-container", "npm:1.0.0"],\
+          ["open", "npm:11.0.0"],\
+          ["powershell-utils", "npm:0.1.0"],\
+          ["wsl-utils", "npm:0.3.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:8.4.2", {\
         "packageLocation": "./.yarn/unplugged/open-npm-8.4.2-1f763e8b75/node_modules/open/",\
         "packageDependencies": [\
@@ -21365,6 +21396,15 @@ const RAW_RUNTIME_STATE =
           ["posthtml-parser", "npm:0.2.1"],\
           ["posthtml-render", "npm:1.4.0"],\
           ["posthtml-svg-mode", "npm:1.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["powershell-utils", [\
+      ["npm:0.1.0", {\
+        "packageLocation": "./.yarn/cache/powershell-utils-npm-0.1.0-bce5e820f1-4cc0846bc9.zip/node_modules/powershell-utils/",\
+        "packageDependencies": [\
+          ["powershell-utils", "npm:0.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -26640,6 +26680,17 @@ const RAW_RUNTIME_STATE =
           "@types/utf-8-validate",\
           "bufferutil",\
           "utf-8-validate"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["wsl-utils", [\
+      ["npm:0.3.1", {\
+        "packageLocation": "./.yarn/cache/wsl-utils-npm-0.3.1-a4942ec282-46800b92fa.zip/node_modules/wsl-utils/",\
+        "packageDependencies": [\
+          ["is-wsl", "npm:3.1.0"],\
+          ["powershell-utils", "npm:0.1.0"],\
+          ["wsl-utils", "npm:0.3.1"]\
         ],\
         "linkType": "HARD"\
       }]\
