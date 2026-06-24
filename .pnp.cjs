@@ -1114,7 +1114,7 @@ const RAW_RUNTIME_STATE =
           ["rollup-plugin-svg-sprites", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.2.5"],\
           ["sass", "npm:1.83.1"],\
           ["sass-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.0.4"],\
-          ["sortablejs", "npm:1.15.6"],\
+          ["sortablejs", "npm:1.15.7"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.17"],\
           ["style-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:4.0.0"],\
           ["svg-sprite-loader", "npm:6.0.11"],\
@@ -22946,10 +22946,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["sortablejs", [\
-      ["npm:1.15.6", {\
-        "packageLocation": "./.yarn/cache/sortablejs-npm-1.15.6-37322850a4-3179071352.zip/node_modules/sortablejs/",\
+      ["npm:1.15.7", {\
+        "packageLocation": "./.yarn/cache/sortablejs-npm-1.15.7-f610431e96-4ef195ec85.zip/node_modules/sortablejs/",\
         "packageDependencies": [\
-          ["sortablejs", "npm:1.15.6"]\
+          ["sortablejs", "npm:1.15.7"]\
         ],\
         "linkType": "HARD"\
       }]\

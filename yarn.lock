@@ -830,7 +830,7 @@ __metadata:
     rollup-plugin-svg-sprites: "npm:^1.2.5"
     sass: "npm:^1.83.1"
     sass-loader: "npm:^16.0.4"
-    sortablejs: "npm:^1.15.6"
+    sortablejs: "npm:^1.15.7"
     storybook: "npm:^8.6.17"
     style-loader: "npm:^4.0.0"
     svg-sprite-loader: "npm:^6.0.11"
@@ -16868,10 +16868,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sortablejs@npm:^1.15.6":
-  version: 1.15.6
-  resolution: "sortablejs@npm:1.15.6"
-  checksum: 10/3179071352662e6cff20d7d10792a934fc892a83a01ae09c7e604d2dd51daaf07283b00a8f2b13025f27959ff68a1469959bc94ef2a7049723d4c381a368a5ac
+"sortablejs@npm:^1.15.7":
+  version: 1.15.7
+  resolution: "sortablejs@npm:1.15.7"
+  checksum: 10/4ef195ec8512c48ba536c65fc8ab8ecf0bd05a918dc79d64213428edf12c8d5a6c18ff40f822d69d4716b764d860e0fdf8a467cf7ab6386f613aa4ea99ac5d42
   languageName: node
   linkType: hard
 
