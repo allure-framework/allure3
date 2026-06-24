@@ -32,7 +32,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "axios": "^1.15.2",
+    "axios": "^1.18.1",
     "open": "^11.0.0"
   },
   "devDependencies": {
