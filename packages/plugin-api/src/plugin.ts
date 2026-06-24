@@ -62,7 +62,7 @@ export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "dur
 /**
  * Reduced check result information that can be used in the summary
  */
-export type SummaryCheckResult = Pick<AllureCheckResult, "name" | "status">;
+export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status">;
 
 export interface PluginSummary {
   href?: string;

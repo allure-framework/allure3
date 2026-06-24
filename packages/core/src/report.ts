@@ -590,7 +590,7 @@ export class AllureReport {
       attachments,
       environments,
       reportVariables,
-      checkResults = [],
+      checkResults = {},
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},

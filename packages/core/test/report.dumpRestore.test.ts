@@ -208,6 +208,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const consoleInfoSpy = vi.spyOn(nodeConsole, "info").mockImplementation(() => {});
     const checkResults = [
       {
+        id: "check-result-id-1",
         name: "Lint",
         status: "passed",
         details: {
@@ -223,7 +224,9 @@ describe("AllureReport.restoreState (dump zip)", () => {
       },
     ]);
     await writeDumpZip(validZipPath, [], {
-      [AllureStoreDumpFiles.CheckResults]: JSON.stringify(checkResults),
+      [AllureStoreDumpFiles.CheckResults]: JSON.stringify({
+        [checkResults[0].id]: checkResults[0],
+      }),
     });
 
     const config = await resolveConfig({ name: "Allure Report" });
@@ -247,6 +250,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const zipPath = tempZipPath();
     const checkResults = [
       {
+        id: "check-result-id-2",
         name: "Lint",
         status: "passed",
         tags: ["ci"],
@@ -258,7 +262,9 @@ describe("AllureReport.restoreState (dump zip)", () => {
     ];
 
     await writeDumpZip(zipPath, [], {
-      [AllureStoreDumpFiles.CheckResults]: JSON.stringify(checkResults),
+      [AllureStoreDumpFiles.CheckResults]: JSON.stringify({
+        [checkResults[0].id]: checkResults[0],
+      }),
     });
 
     const config = await resolveConfig({ name: "Allure Report" });
@@ -266,6 +272,13 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     await step("restore check results from a dump archive", async () => {
       await report.restoreState([zipPath]);
+
+      const [restoredResult] = await report.store.allCheckResults();
+
+      expect(restoredResult).toEqual(checkResults[0]);
+
+      restoredResult.tags?.push("mutated");
+      restoredResult.details.message = "changed";
 
       await expect(report.store.allCheckResults()).resolves.toEqual(checkResults);
     });
@@ -598,6 +611,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const dumpPath = join(tmpdir(), `allure-check-dump-${randomBytes(8).toString("hex")}`);
     const zipPath = `${dumpPath}.zip`;
     const checkResult = {
+      id: "check-result-id-3",
       name: "Lint",
       status: "passed" as const,
       tags: ["ci"],
@@ -627,7 +641,9 @@ describe("AllureReport.restoreState (dump zip)", () => {
     try {
       const checkResultsEntry = await archive.entryData(AllureStoreDumpFiles.CheckResults);
 
-      expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual([checkResult]);
+      expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual({
+        [checkResult.id]: checkResult,
+      });
     } finally {
       await archive.close();
     }

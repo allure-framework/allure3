@@ -7,6 +7,7 @@ export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "ne
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
 export interface AllureCheckResult {
+  id: string;
   name: string;
   status: AllureCheckStatus;
   tags?: string[];
