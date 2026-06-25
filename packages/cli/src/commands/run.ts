@@ -6,7 +6,6 @@ import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/cor
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
-import { red } from "yoctocolors";
 
 import {
   environmentNameOption,
@@ -58,7 +57,8 @@ export class RunCommand extends Command {
   });
 
   rerun = Option.String("--rerun", {
-    description: "The number of reruns for failed tests (default: 0)",
+    description:
+      "The number of reruns for failed tests. Quality gate validation is skipped when rerun is greater than 0 (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -147,13 +147,11 @@ export class RunCommand extends Command {
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
-    const withRerun = !!this.rerun;
+    const withRerun = maxRerun > 0;
+    const withQualityGate = !!config.qualityGate && !withRerun;
 
-    if (withQualityGate && withRerun) {
-      console.error(red("At this moment, quality gate and rerun can't be used at the same time!"));
-      console.error(red("Consider using --rerun=0 or disable quality gate in the config to run tests"));
-      exit(-1);
+    if (config.qualityGate && withRerun) {
+      console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
     }
 
     try {
@@ -166,6 +164,7 @@ export class RunCommand extends Command {
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,
+      qualityGate: withQualityGate ? config.qualityGate : undefined,
       dump: this.dump,
       realTime: false,
       plugins: [
