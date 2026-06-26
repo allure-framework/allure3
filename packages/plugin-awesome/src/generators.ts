@@ -626,7 +626,8 @@ export const generateStaticFiles = async (
     id: string;
     allureVersion: string;
     reportFiles: ReportFiles;
-    sharedReportFiles?: ReportFiles;
+    sharedAssetsFiles?: ReportFiles;
+    unifiedStorage?: boolean;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -643,7 +644,7 @@ export const generateStaticFiles = async (
     theme = "auto",
     groupBy,
     reportFiles,
-    sharedReportFiles,
+    sharedAssetsFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -659,8 +660,8 @@ export const generateStaticFiles = async (
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = ["charts", "timeline"];
-  const assetsTarget = sharedReportFiles ?? reportFiles;
-  const assetsPrefix = sharedReportFiles ? "../_shared/" : "";
+  const assetsTarget = sharedAssetsFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
 
   if (!payload.singleFile) {
     const manifestPath = require.resolve(
@@ -703,7 +704,7 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const attachmentsBasePath = sharedReportFiles ? "../_shared/data/attachments" : undefined;
+  const attachmentsBasePath = payload.unifiedStorage ? "../_shared/data/attachments" : undefined;
   const reportOptions: AwesomeReportOptions & { id: string } = {
     id,
     reportName,

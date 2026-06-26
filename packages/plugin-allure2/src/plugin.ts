@@ -99,7 +99,7 @@ export class Allure2Plugin implements Plugin {
       reportLanguage,
       singleFile,
       reportFiles: context.reportFiles,
-      sharedReportFiles: context.sharedReportFiles,
+      sharedAssetsFiles: context.sharedAssetsFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,
     });
