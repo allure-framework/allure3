@@ -91,10 +91,13 @@ export const generateEnvirontmentsList = async (writer: DashboardDataWriter, sto
   await writer.writeWidget("environments.json", environments);
 };
 
+const SINGLE_FILE_SIZE_WARNING_THRESHOLD = 50 * 1024 * 1024;
+
 export const generateStaticFiles = async (
   payload: DashboardOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
+    sharedReportFiles?: ReportFiles;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -107,6 +110,7 @@ export const generateStaticFiles = async (
     logo = "",
     theme = "light",
     reportFiles,
+    sharedReportFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -115,6 +119,8 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedReportFiles ? "../_shared/" : "";
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -124,24 +130,23 @@ export const generateStaticFiles = async (
       );
 
       if (key.includes(".woff")) {
-        headTags.push(createFontLinkTag(fileName));
+        headTags.push(createFontLinkTag(`${assetsPrefix}${fileName}`));
       }
 
       if (key === "main.css") {
-        headTags.push(createStylesLinkTag(fileName));
+        headTags.push(createStylesLinkTag(`${assetsPrefix}${fileName}`));
       }
       if (key === "main.js") {
-        bodyTags.push(createScriptTag(fileName));
+        bodyTags.push(createScriptTag(`${assetsPrefix}${fileName}`));
       }
 
-      // we don't need to handle another files in single file mode
       if (singleFile) {
         continue;
       }
 
       const fileContent = await readFile(filePath);
 
-      await reportFiles.addFile(basename(filePath), fileContent);
+      await assetsTarget.addFile(basename(filePath), fileContent);
     }
   } else {
     const mainJs = manifest["main.js"];
@@ -174,7 +179,21 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    const htmlBuffer = Buffer.from(html, "utf8");
+
+    if (payload.singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
+      const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);
+      const thresholdMb = SINGLE_FILE_SIZE_WARNING_THRESHOLD / (1024 * 1024);
+
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Warning: the generated single-file report is ${sizeMb} MB. ` +
+          `Reports larger than ${thresholdMb} MB may be slow to open in a browser. ` +
+          `Consider using multi-file mode instead.`,
+      );
+    }
+
+    await reportFiles.addFile("index.html", htmlBuffer);
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console
