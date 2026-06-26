@@ -119,20 +119,34 @@ export const readManifestEntry = async (options: {
   return inserter(fileName);
 };
 
+const SINGLE_FILE_SIZE_WARNING_THRESHOLD = 50 * 1024 * 1024;
+
 export const generateStaticFiles = async (payload: {
   allureVersion: string;
   reportName: string;
   reportLanguage: string;
   singleFile: boolean;
   reportFiles: ReportFiles;
+  sharedReportFiles?: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
   const packageRoot = await getPackageRoot();
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    reportFiles,
+    sharedReportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+  } = payload;
   const manifest = await readTemplateManifest(packageRoot, singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedReportFiles ? "../_shared/" : "";
 
   for (const key in manifest) {
     const fileName = manifest[key];
@@ -141,8 +155,8 @@ export const generateStaticFiles = async (payload: {
       const tag = await readManifestEntry({
         fileName,
         singleFile,
-        reportFiles,
-        inserter: createFaviconLinkTag,
+        reportFiles: assetsTarget,
+        inserter: (src) => createFaviconLinkTag(`${assetsPrefix}${src}`),
         mimeType: "image/x-icon",
         packageRoot,
       });
@@ -155,8 +169,8 @@ export const generateStaticFiles = async (payload: {
       const tag = await readManifestEntry({
         fileName,
         singleFile,
-        reportFiles,
-        inserter: createStylesLinkTag,
+        reportFiles: assetsTarget,
+        inserter: (src) => createStylesLinkTag(`${assetsPrefix}${src}`),
         mimeType: "text/css",
         packageRoot,
       });
@@ -169,8 +183,8 @@ export const generateStaticFiles = async (payload: {
       const tag = await readManifestEntry({
         fileName,
         singleFile,
-        reportFiles,
-        inserter: createScriptTag,
+        reportFiles: assetsTarget,
+        inserter: (src) => createScriptTag(`${assetsPrefix}${src}`),
         mimeType: "text/javascript",
         packageRoot,
       });
@@ -179,7 +193,6 @@ export const generateStaticFiles = async (payload: {
       continue;
     }
 
-    // we don't need to handle another files in single file mode
     if (singleFile) {
       continue;
     }
@@ -187,7 +200,7 @@ export const generateStaticFiles = async (payload: {
     const filePath = join(packageRoot, "static", singleFile ? "single" : "multi", fileName);
     const fileContent = await readFile(filePath);
 
-    await reportFiles.addFile(basename(filePath), fileContent);
+    await assetsTarget.addFile(basename(filePath), fileContent);
   }
 
   const reportOptions: Allure2Options = {
@@ -210,7 +223,21 @@ export const generateStaticFiles = async (payload: {
       singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    const htmlBuffer = Buffer.from(html, "utf8");
+
+    if (singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
+      const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);
+      const thresholdMb = SINGLE_FILE_SIZE_WARNING_THRESHOLD / (1024 * 1024);
+
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Warning: the generated single-file report is ${sizeMb} MB. ` +
+          `Reports larger than ${thresholdMb} MB may be slow to open in a browser. ` +
+          `Consider using multi-file mode instead.`,
+      );
+    }
+
+    await reportFiles.addFile("index.html", htmlBuffer);
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console
