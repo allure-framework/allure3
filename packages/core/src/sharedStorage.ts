@@ -1,6 +1,5 @@
-import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
-import { basename, dirname, extname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
 import type { ReportFiles } from "@allurereport/plugin-api";
@@ -19,19 +18,15 @@ export class SharedReportFiles implements ReportFiles {
   }
 
   addFile = async (path: string, data: Buffer): Promise<string> => {
-    const hash = createHash("sha256").update(data).digest("hex");
-    const ext = extname(path);
-    const casKey = `${hash}${ext}`;
-
-    if (!this.#written.has(casKey)) {
-      this.#written.set(casKey, this.#writeFile(casKey, data));
+    if (!this.#written.has(path)) {
+      this.#written.set(path, this.#writeFile(path, data));
     }
 
-    return this.#written.get(casKey)!;
+    return this.#written.get(path)!;
   };
 
-  #writeFile = async (key: string, data: Buffer): Promise<string> => {
-    const relativePath = joinPosix(SHARED_DIR, key);
+  #writeFile = async (path: string, data: Buffer): Promise<string> => {
+    const relativePath = joinPosix(SHARED_DIR, path);
     const targetPath = resolvePathUnderOutputRoot(this.#output, relativePath);
     const targetDirPath = dirname(targetPath);
 
@@ -47,10 +42,6 @@ export class SharedReportFiles implements ReportFiles {
 
     return targetPath;
   };
-
-  static sharedAttachmentsBasePath(_pluginId: string): string {
-    return joinPosix("..", SHARED_DIR);
-  }
 }
 
 export class SharedAssetsReportFiles implements ReportFiles {
