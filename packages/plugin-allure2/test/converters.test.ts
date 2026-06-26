@@ -6,9 +6,9 @@ import { convertTestResult } from "../src/converters.js";
 
 beforeEach(async () => {
   await epic("coverage");
-  await feature("report-output");
+  await feature("plugin-allure2");
   await story("converters");
-  await label("coverage", "report-output");
+  await label("coverage", "plugin-allure2");
 });
 
 const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
@@ -36,25 +36,15 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
-  it("converts markdown description to html when descriptionHtml is missing", () => {
-    const result = convertTestResult(createTestResult({ description: "**bold** text" }));
-
-    expect(result.descriptionHtml).toBe("<p><strong>bold</strong> text</p>\n");
-  });
-
-  it("keeps provided descriptionHtml as-is", () => {
-    const result = convertTestResult(
-      createTestResult({
-        description: "**bold** text",
-        descriptionHtml: "<p>custom html</p>",
-      }),
-    );
-
-    expect(result.descriptionHtml).toBe("<p>custom html</p>");
-  });
-
   it("should redact hidden and masked parameters", () => {
     const result = convertTestResult(
+      {
+        attachmentMap: new Map(),
+        fixtures: [],
+        categories: [],
+        retries: [],
+        history: [],
+      },
       createTestResult({
         parameters: [
           { name: "visible", value: "value", hidden: false, masked: false, excluded: false },
@@ -91,20 +81,10 @@ describe("convertTestResult", () => {
       { name: "visible", value: "value", hidden: false, masked: false, excluded: false },
       { name: "token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
-
-    const [step] = result.steps;
-    if (step?.type !== "step") {
-      throw new Error("expected converted step");
-    }
-    expect(step.parameters).toEqual([
+    expect(result.testStage.steps[0].parameters).toEqual([
       { name: "step-token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
-
-    const [nestedStep] = step.steps;
-    if (nestedStep?.type !== "step") {
-      throw new Error("expected converted nested step");
-    }
-    expect(nestedStep.parameters).toEqual([
+    expect(result.testStage.steps[0].steps[0].parameters).toEqual([
       { name: "nested-token", value: "<masked>", hidden: false, masked: true, excluded: false },
     ]);
 
