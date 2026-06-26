@@ -48,7 +48,7 @@ export class SharedReportFiles implements ReportFiles {
     return targetPath;
   };
 
-  static sharedAttachmentsBasePath(pluginId: string): string {
+  static sharedAttachmentsBasePath(_pluginId: string): string {
     return joinPosix("..", SHARED_DIR);
   }
 }
