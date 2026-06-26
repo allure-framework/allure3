@@ -238,6 +238,17 @@ export class TestOpsClient {
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
   }
 
+  async checkLaunchProgress(): Promise<boolean> {
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    this.#logger.verbose("Retrieving launch progress status…");
+    const data = await this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch.id}/progress`);
+
+    return data.ready;
+  }
+
   async createSession(environment: Record<string, unknown> = {}) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");

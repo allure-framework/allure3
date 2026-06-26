@@ -26,20 +26,21 @@ import {
 import { toUploadCategory } from "./utils/uploadCategory.js";
 import { uploadFilenameForLink } from "./utils/uploaderDto.js";
 
+const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
+const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
+
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
 
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
   #ci = detect();
-  // @ts-expect-error - if client is not initialized it will not be used
-  #client: TestOpsClient;
+  #client!: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
-  // @ts-expect-error - if gitFlow is not initialized it will not be used
-  #gitFlow: LaunchGitFlow;
+  #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
 
   constructor(
@@ -531,13 +532,29 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    try {
-      await this.#client.closeLaunch(launchId);
-    } catch (err) {
-      if (err instanceof Error) {
-        this.#logger.debug(`Failed to close launch: ${err.message}`);
-      } else {
-        this.#logger.debug("Failed to close launch");
+    let launchIsReady = false;
+
+    for (let attempt = 0; attempt < LAUNCH_PROGRESS_ATTEMPTS_LIMIT; attempt += 1) {
+      launchIsReady = await this.#client.checkLaunchProgress();
+
+      if (launchIsReady) {
+        break;
+      }
+
+      if (attempt < LAUNCH_PROGRESS_ATTEMPTS_LIMIT - 1) {
+        await new Promise((resolve) => setTimeout(resolve, LAUNCH_PROGRESS_POLL_DELAY_MS));
+      }
+    }
+
+    if (launchIsReady) {
+      try {
+        await this.#client.closeLaunch(launchId);
+      } catch (err) {
+        if (err instanceof Error) {
+          this.#logger.debug(`Failed to close launch: ${err.message}`);
+        } else {
+          this.#logger.debug("Failed to close launch");
+        }
       }
     }
 
