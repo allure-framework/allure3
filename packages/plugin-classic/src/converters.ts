@@ -1,4 +1,11 @@
-import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
+import {
+  type TestFixtureResult,
+  type TestLabel,
+  type TestResult,
+  type TestStepResult,
+  isStep,
+  redactParameters,
+} from "@allurereport/core-api";
 import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/web-classic";
 import MarkdownIt from "markdown-it";
 
@@ -33,9 +40,9 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     isRetry: tr.isRetry,
     labels: tr.labels,
     groupedLabels: mapLabelsByName(tr.labels),
-    parameters: tr.parameters,
+    parameters: redactParameters(tr.parameters),
     links: tr.links,
-    steps: tr.steps,
+    steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
@@ -50,6 +57,14 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
 };
 
 export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResult => {
+  if (isStep(tsr)) {
+    return {
+      ...tsr,
+      parameters: redactParameters(tsr.parameters),
+      steps: (tsr.steps ?? []).map(convertTestStepResult),
+    };
+  }
+
   return tsr;
 };
 
