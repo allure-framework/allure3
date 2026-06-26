@@ -14,6 +14,7 @@ TestOpsClientMock.prototype = {
   uploadGlobalAttachments: vi.fn(),
   uploadGlobalErrors: vi.fn(),
   isTestOpsClientError: vi.fn().mockReturnValue(false),
+  checkLaunchProgress: vi.fn().mockResolvedValue(true),
   launchUrl: undefined,
   launchId: 123,
   namedEnvs: [],

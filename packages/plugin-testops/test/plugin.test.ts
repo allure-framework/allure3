@@ -102,6 +102,10 @@ const fixtures = {
   },
 };
 
+function assertDefined<T>(value: T): asserts value is NonNullable<T> {
+  expect(value).toBeDefined();
+}
+
 beforeEach(async () => {
   await epic("coverage");
   await feature("testops-integration");
@@ -1253,7 +1257,67 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
+      expect(TestOpsClientMock.prototype.checkLaunchProgress).toHaveBeenCalledTimes(1);
+      const checkLaunchProgressOrder = TestOpsClientMock.prototype.checkLaunchProgress.mock.invocationCallOrder[0];
+      const closeLaunchOrder = TestOpsClientMock.prototype.closeLaunch.mock.invocationCallOrder[0];
+
+      assertDefined(checkLaunchProgressOrder);
+      assertDefined(closeLaunchOrder);
+
+      expect(checkLaunchProgressOrder).toBeLessThan(closeLaunchOrder);
       expect(TestOpsClientMock.prototype.closeLaunch).toHaveBeenCalledWith(123);
+    });
+
+    it("should retry launch progress polling before closing", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout").mockImplementation(((
+        callback: Parameters<typeof globalThis.setTimeout>[0],
+      ) => {
+        if (typeof callback === "function") {
+          callback();
+        }
+
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      }) as typeof globalThis.setTimeout);
+
+      try {
+        TestOpsClientMock.prototype.checkLaunchProgress.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.checkLaunchProgress).toHaveBeenCalledTimes(2);
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 500);
+        expect(TestOpsClientMock.prototype.closeLaunch).toHaveBeenCalledTimes(1);
+      } finally {
+        setTimeoutSpy.mockRestore();
+      }
+    });
+
+    it("should not check progress or close when autocloseLaunch is false", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        autocloseLaunch: false,
+      });
+
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+      await plugin.done({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.checkLaunchProgress).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
     });
 
     it("should apply filter when uploading test results", async () => {
