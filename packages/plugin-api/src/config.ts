@@ -74,6 +74,11 @@ export interface Config {
    * Empty string / empty array are treated as unset.
    */
   resultsDir?: string | string[];
+  /**
+   * Enable unified content-addressable storage for attachments and static assets across plugins.
+   * When enabled, shared files are stored once in a `_shared/` directory and referenced by all plugins.
+   */
+  unifiedStorage?: boolean;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

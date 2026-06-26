@@ -10,6 +10,7 @@ import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
+import { SharedReportFiles } from "./sharedStorage.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -178,6 +179,7 @@ export const validateConfig = (config: Config) => {
     "categories",
     "globalAttachments",
     "resultsDir",
+    "unifiedStorage",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -375,6 +377,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     historyLimit,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     reportFiles: new FileSystemReportFiles(output),
+    sharedReportFiles: config.unifiedStorage ? new SharedReportFiles(output) : undefined,
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,

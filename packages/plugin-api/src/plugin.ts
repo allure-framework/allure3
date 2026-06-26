@@ -46,6 +46,8 @@ export interface PluginContext {
   reportName: string;
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
+  sharedReportFiles?: ReportFiles;
+  unifiedStorage?: boolean;
   reportUrl?: string;
   realTime?: boolean;
   output: string;
