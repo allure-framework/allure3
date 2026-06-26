@@ -97,7 +97,7 @@ export const generateStaticFiles = async (
   payload: DashboardOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
-    sharedReportFiles?: ReportFiles;
+    sharedAssetsFiles?: ReportFiles;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -110,7 +110,7 @@ export const generateStaticFiles = async (
     logo = "",
     theme = "light",
     reportFiles,
-    sharedReportFiles,
+    sharedAssetsFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -119,8 +119,8 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const assetsTarget = sharedReportFiles ?? reportFiles;
-  const assetsPrefix = sharedReportFiles ? "../_shared/" : "";
+  const assetsTarget = sharedAssetsFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
 
   if (!payload.singleFile) {
     for (const key in manifest) {

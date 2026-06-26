@@ -10,7 +10,7 @@ import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
-import { SharedReportFiles } from "./sharedStorage.js";
+import { SharedAssetsReportFiles, SharedReportFiles } from "./sharedStorage.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -378,6 +378,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     historyPath: historyPath ? resolve(historyPath) : undefined,
     reportFiles: new FileSystemReportFiles(output),
     sharedReportFiles: config.unifiedStorage ? new SharedReportFiles(output) : undefined,
+    sharedAssetsFiles: config.unifiedStorage ? new SharedAssetsReportFiles(output) : undefined,
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,

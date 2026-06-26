@@ -107,6 +107,7 @@ export class AllureReport {
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #sharedReportFiles: ReportFiles | undefined;
+  readonly #sharedAssetsFiles: ReportFiles | undefined;
   readonly #realtimeChannel: RealtimeChannel;
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
@@ -145,6 +146,7 @@ export class AllureReport {
       resolutions,
       reportFiles,
       sharedReportFiles,
+      sharedAssetsFiles,
       realTime,
       historyPath,
       historyLimit,
@@ -227,6 +229,7 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#sharedReportFiles = sharedReportFiles;
+    this.#sharedAssetsFiles = sharedAssetsFiles;
     this.#output = output;
   }
 
@@ -1241,6 +1244,7 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         sharedReportFiles: this.#sharedReportFiles,
+        sharedAssetsFiles: this.#sharedAssetsFiles,
         unifiedStorage: !!this.#sharedReportFiles,
         reportUrl: this.reportUrl,
         realTime: !!this.#realTime,

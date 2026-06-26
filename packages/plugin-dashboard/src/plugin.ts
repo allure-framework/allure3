@@ -25,7 +25,7 @@ export class DashboardPlugin implements Plugin {
       ...this.options,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
-      sharedReportFiles: context.sharedReportFiles,
+      sharedAssetsFiles: context.sharedAssetsFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,

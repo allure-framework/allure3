@@ -288,7 +288,8 @@ export const generateStaticFiles = async (
   payload: ClassicOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
-    sharedReportFiles?: ReportFiles;
+    sharedAssetsFiles?: ReportFiles;
+    unifiedStorage?: boolean;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -302,7 +303,7 @@ export const generateStaticFiles = async (
     theme = "auto",
     groupBy,
     reportFiles,
-    sharedReportFiles,
+    sharedAssetsFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -310,8 +311,8 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const assetsTarget = sharedReportFiles ?? reportFiles;
-  const assetsPrefix = sharedReportFiles ? "../_shared/" : "";
+  const assetsTarget = sharedAssetsFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -348,7 +349,7 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const attachmentsBasePath = sharedReportFiles ? "../_shared/data/attachments" : undefined;
+  const attachmentsBasePath = payload.unifiedStorage ? "../_shared/data/attachments" : undefined;
   const reportOptions: ClassicReportOptions = {
     reportName,
     logo,
