@@ -695,7 +695,7 @@ const RAW_RUNTIME_STATE =
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["axios", "npm:1.18.1"],\
-          ["form-data", "npm:4.0.5"],\
+          ["form-data", "npm:4.0.6"],\
           ["lodash-es", "npm:4.18.1"],\
           ["p-limit", "npm:7.3.0"],\
           ["progress", "npm:2.0.3"],\
@@ -12865,7 +12865,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["axios", "npm:1.18.1"],\
           ["follow-redirects", "virtual:a313c479c5c7e54d9ec8fbeeea69ff640f56b8989ea2dff42351a3fa5c4061fb80a52d8ede0f0826a181a216820c2d2c3f15da881e7fdf31cef1c446e42f0c45#npm:1.16.0"],\
-          ["form-data", "npm:4.0.5"],\
+          ["form-data", "npm:4.0.6"],\
           ["https-proxy-agent", "npm:5.0.1"],\
           ["proxy-from-env", "npm:2.1.0"]\
         ],\
@@ -16520,26 +16520,14 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["form-data", [\
-      ["npm:4.0.4", {\
-        "packageLocation": "./.yarn/cache/form-data-npm-4.0.4-10eb4ef9c3-a4b62e2193.zip/node_modules/form-data/",\
+      ["npm:4.0.6", {\
+        "packageLocation": "./.yarn/cache/form-data-npm-4.0.6-fb3ea14cf3-de6614c853.zip/node_modules/form-data/",\
         "packageDependencies": [\
           ["asynckit", "npm:0.4.0"],\
           ["combined-stream", "npm:1.0.8"],\
           ["es-set-tostringtag", "npm:2.1.0"],\
-          ["form-data", "npm:4.0.4"],\
-          ["hasown", "npm:2.0.2"],\
-          ["mime-types", "npm:2.1.35"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:4.0.5", {\
-        "packageLocation": "./.yarn/cache/form-data-npm-4.0.5-c35fce815a-52ecd6e927.zip/node_modules/form-data/",\
-        "packageDependencies": [\
-          ["asynckit", "npm:0.4.0"],\
-          ["combined-stream", "npm:1.0.8"],\
-          ["es-set-tostringtag", "npm:2.1.0"],\
-          ["form-data", "npm:4.0.5"],\
-          ["hasown", "npm:2.0.2"],\
+          ["form-data", "npm:4.0.6"],\
+          ["hasown", "npm:2.0.4"],\
           ["mime-types", "npm:2.1.35"]\
         ],\
         "linkType": "HARD"\
@@ -17060,6 +17048,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["function-bind", "npm:1.1.2"],\
           ["hasown", "npm:2.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.0.4", {\
+        "packageLocation": "./.yarn/cache/hasown-npm-2.0.4-75e16c9c2a-13823863ae.zip/node_modules/hasown/",\
+        "packageDependencies": [\
+          ["function-bind", "npm:1.1.2"],\
+          ["hasown", "npm:2.0.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -18277,7 +18273,7 @@ const RAW_RUNTIME_STATE =
           ["cssstyle", "npm:4.2.1"],\
           ["data-urls", "npm:5.0.0"],\
           ["decimal.js", "npm:10.4.3"],\
-          ["form-data", "npm:4.0.4"],\
+          ["form-data", "npm:4.0.6"],\
           ["html-encoding-sniffer", "npm:4.0.0"],\
           ["http-proxy-agent", "npm:7.0.2"],\
           ["https-proxy-agent", "npm:7.0.6"],\
