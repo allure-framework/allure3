@@ -987,7 +987,7 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
-        generateSummary(this.#output, summaries),
+        generateSummary(this.#output, summaries, this.reportName),
       );
     } else {
       this.#summaryPath = undefined;
