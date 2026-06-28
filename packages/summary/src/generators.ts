@@ -38,7 +38,7 @@ export const readTemplateManifest = async (): Promise<TemplateManifest> => {
   return JSON.parse(templateManifest);
 };
 
-export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[] }) => {
+export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[]; reportName?: string }) => {
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest();
   const bodyTags: string[] = [];
@@ -52,6 +52,7 @@ export const generateSummaryStaticFiles = async (payload: { summaries: PluginSum
   return compile({
     bodyTags: bodyTags.join("\n"),
     analyticsEnable: true,
+    reportName: payload.reportName ?? "Allure Report",
     reportSummaries: stringifyForInlineScript(payload.summaries),
   });
 };
