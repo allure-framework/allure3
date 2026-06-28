@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
@@ -1121,28 +1121,38 @@ export class AllureReport {
         return;
       }
 
-      const outputEntries = await Promise.all(
-        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
-      );
-      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
+      const pluginDirectories = outputDirFiles.filter((name) => name !== "_shared");
+      const pluginDirStats = await Promise.all(pluginDirectories.map((file) => lstat(join(this.#output, file))));
+      const pluginDirCount = pluginDirStats.filter((entry) => entry.isDirectory()).length;
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-      if (outputDirectoryEntries.length === 1) {
-        const reportPath = join(this.#output, outputDirectoryEntries[0].file);
-        const reportContent = await readdir(reportPath);
+      if (pluginDirCount === 1) {
+        const pluginDirName = pluginDirectories[pluginDirStats.findIndex((entry) => entry.isDirectory())];
+        const pluginDirPath = join(this.#output, pluginDirName);
+        const reportContent = await readdir(pluginDirPath);
 
         for (const entry of reportContent) {
           if (entry === TEST_RESULTS_REGISTRY_FILENAME) {
             continue;
           }
 
-          const currentFilePath = join(reportPath, entry);
+          const currentFilePath = join(pluginDirPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 
           await rename(currentFilePath, newFilePath);
         }
 
-        await rm(reportPath, { recursive: true });
+        await rm(pluginDirPath, { recursive: true });
+
+        if (this.#sharedReportFiles) {
+          const indexPath = join(this.#output, "index.html");
+
+          try {
+            const html = await readFile(indexPath, "utf-8");
+
+            await writeFile(indexPath, html.replaceAll("../_shared/", "_shared/"), "utf-8");
+          } catch {}
+        }
       }
 
       // remove all dump temp dirs
