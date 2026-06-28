@@ -1067,11 +1067,6 @@ export class AllureReport {
         return;
       }
 
-      const reportPath = join(this.#output, outputDirFiles[0]);
-      const reportStats = await lstat(reportPath);
-      const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
-      const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
-
       const pluginDirectories = outputDirFiles.filter((name) => name !== "_shared");
       const pluginDirStats = await Promise.all(pluginDirectories.map((file) => lstat(join(this.#output, file))));
       const pluginDirCount = pluginDirStats.filter((entry) => entry.isDirectory()).length;
