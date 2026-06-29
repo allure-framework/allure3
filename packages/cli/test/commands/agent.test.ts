@@ -10,6 +10,8 @@ import {
   cleanupAgentRunState,
   cleanupStaleAgentRunStates,
   createAgentTestPlanContext,
+  formatAgentRunSummary,
+  loadAgentOutput,
   resolveAgentStateDir,
   validateAgentExpectationsFile,
   writeInvalidAgentExpectationOutput,
@@ -125,6 +127,8 @@ vi.mock("@allurereport/plugin-agent", async (importOriginal) => {
     resolveAgentSelectionOutputDir: vi.fn(),
     selectAgentTestPlan: vi.fn(),
     createAgentTestPlanContext: vi.fn().mockResolvedValue(undefined),
+    loadAgentOutput: vi.fn().mockResolvedValue({ outputDir: "", run: {}, tests: [], findings: [], humanReport: null }),
+    formatAgentRunSummary: vi.fn((params: { outputDir: string }) => [`agent summary: ${params.outputDir}`]),
     buildAgentInlineExpectations: vi.fn((options: Record<string, unknown>) =>
       Object.values(options).some((value) =>
         Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.length > 0,
@@ -156,6 +160,8 @@ beforeEach(async () => {
   (cleanupAgentRunState as Mock).mockReset();
   (cleanupStaleAgentRunStates as Mock).mockReset();
   (createAgentTestPlanContext as Mock).mockReset();
+  (loadAgentOutput as Mock).mockReset();
+  (formatAgentRunSummary as Mock).mockReset();
   (buildAgentInlineExpectations as Mock).mockReset();
   (validateAgentExpectationsFile as Mock).mockReset();
   (writeInvalidAgentExpectationOutput as Mock).mockReset();
@@ -184,6 +190,10 @@ beforeEach(async () => {
     skipped: [],
   });
   (createAgentTestPlanContext as Mock).mockResolvedValue(undefined);
+  (loadAgentOutput as Mock).mockResolvedValue({ outputDir: "", run: {}, tests: [], findings: [], humanReport: null });
+  (formatAgentRunSummary as Mock).mockImplementation((params: { outputDir: string }) => [
+    `agent summary: ${params.outputDir}`,
+  ]);
   (buildAgentInlineExpectations as Mock).mockImplementation((options: Record<string, unknown>) =>
     Object.values(options).some((value) =>
       Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.length > 0,
@@ -530,14 +540,24 @@ describe("agent command", () => {
         },
         withQualityGate: false,
         logs: "pipe",
+        // Agent runs capture the test output instead of streaming it to the terminal.
+        silent: true,
         ignoreLogs: false,
         logProcessExit: false,
       }),
     );
+    // Before the run, the output dir is announced first so an agent can watch the live state; the
+    // command is echoed but its own output is not streamed.
     expect(logMock).toHaveBeenNthCalledWith(1, `agent output: ${agentOutputDir}`);
-    expect(logMock).toHaveBeenNthCalledWith(2, `agent index: ${join(agentOutputDir, "index.md")}`);
-    expect(logMock).toHaveBeenNthCalledWith(3, "npm test");
+    expect(logMock).toHaveBeenNthCalledWith(2, "npm test");
+    expect(logMock).toHaveBeenCalledWith(expect.stringContaining("manifest/test-events.jsonl"));
     expect(logMock.mock.invocationCallOrder[0]).toBeLessThan((executeAllureRun as Mock).mock.invocationCallOrder[0]);
+    // After the run, a compact summary is printed (built from the agent output) instead of test logs,
+    // with the wall-clock duration and a rerun-failed command derived from the test command.
+    expect(formatAgentRunSummary).toHaveBeenCalledWith(
+      expect.objectContaining({ outputDir: agentOutputDir, rerunCommand: "npm test", durationMs: expect.any(Number) }),
+    );
+    expect(logMock).toHaveBeenCalledWith(`agent summary: ${agentOutputDir}`);
     expect(writeAgentRunState).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -872,11 +892,11 @@ describe("agent command", () => {
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("/cwd/local/allure-results/");
     expect(AllureReportMock.prototype.done).toHaveBeenCalledTimes(1);
     expect(executeAllureRun).not.toHaveBeenCalled();
-    expect(logMock).toHaveBeenCalledWith(`agent output: ${resolvedOutput}`);
-    expect(logMock).toHaveBeenCalledWith(`agent index: ${join(resolvedOutput, "index.md")}`);
     expect(logMock).toHaveBeenCalledWith(
       "allure agent inspect --dump /cwd/allure-results-linux.zip --dump /cwd/allure-results-macos.zip /cwd/local/allure-results/",
     );
+    expect(formatAgentRunSummary).toHaveBeenCalledWith(expect.objectContaining({ outputDir: resolvedOutput }));
+    expect(logMock).toHaveBeenCalledWith(`agent summary: ${resolvedOutput}`);
     expect(writeAgentRunState).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -1022,14 +1042,11 @@ describe("agent command", () => {
         },
       },
     });
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${resolvedOutput}`);
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${join(resolvedOutput, "index.md")}`);
-    expect(consoleModule.log).toHaveBeenCalledWith(`agent expectations: ${resolvedExpectations}`);
+    expect(formatAgentRunSummary).toHaveBeenCalledWith(expect.objectContaining({ outputDir: resolvedOutput }));
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent summary: ${resolvedOutput}`);
   });
 
   it("should pass inline expectation options to plugin-agent and readConfig", async () => {
-    const consoleModule = await import("node:console");
-
     await run(AgentCommand, [
       "agent",
       "--goal",
@@ -1090,7 +1107,6 @@ describe("agent command", () => {
         },
       }),
     );
-    expect(consoleModule.log).toHaveBeenCalledWith("agent expectations: CLI options");
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 

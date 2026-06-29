@@ -21,4 +21,5 @@ export * from "./paths.js";
 export * from "./query.js";
 export * from "./selection.js";
 export * from "./state.js";
+export * from "./summary.js";
 export { AgentPlugin as default } from "./plugin.js";
