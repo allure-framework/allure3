@@ -240,6 +240,67 @@ describe("agent-state utils", () => {
     expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), statePath);
   });
 
+  it("should keep recently finished managed outputs so concurrent runs do not delete them", async () => {
+    const fsModule = await import("node:fs/promises");
+    const cwd = resolve("/repo");
+    const now = 1778000000000;
+    const oldSibling = {
+      schema: "allure-agent-run/v1",
+      runId: "old-sibling",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-old-sibling"),
+      managedOutput: true,
+      command: "npm test old",
+      startedAt: now - 2 * 60 * 60 * 1000 - 1000,
+      status: "finished",
+      finishedAt: now - 2 * 60 * 60 * 1000,
+      exitCode: 0,
+    };
+    const recentSibling = {
+      schema: "allure-agent-run/v1",
+      runId: "recent-sibling",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-recent-sibling"),
+      managedOutput: true,
+      command: "npm test recent",
+      startedAt: now - 70_000,
+      status: "finished",
+      finishedAt: now - 60_000,
+      exitCode: 0,
+    };
+    const currentRun = {
+      schema: "allure-agent-run/v1",
+      runId: "current",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-current"),
+      managedOutput: true,
+      command: "npm test current",
+      startedAt: now - 10_000,
+      status: "finished",
+      finishedAt: now,
+      exitCode: 0,
+    };
+
+    (fsModule.readFile as Mock).mockResolvedValueOnce(
+      [oldSibling, recentSibling, currentRun].map((state) => JSON.stringify(state)).join("\n") + "\n",
+    );
+
+    const result = await cleanupAgentRunState({
+      cwd,
+      currentRunId: "current",
+      keepManagedRuns: 1,
+      managedOutputGraceMs: 60 * 60 * 1000,
+      now,
+    });
+
+    // Only the sibling finished beyond the grace window is removed; the recently finished sibling and
+    // the current run survive so concurrent agents can still read their output.
+    expect(result.deleted).toEqual([oldSibling]);
+    expect(result.retained).toEqual([recentSibling, currentRun]);
+    expect(fsModule.rm).toHaveBeenCalledWith(oldSibling.outputDir, { recursive: true, force: true });
+    expect(fsModule.rm).not.toHaveBeenCalledWith(recentSibling.outputDir, { recursive: true, force: true });
+  });
+
   it("should remove all managed finished outputs when retention is zero", async () => {
     const fsModule = await import("node:fs/promises");
     const cwd = resolve("/repo");

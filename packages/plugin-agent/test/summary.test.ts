@@ -123,7 +123,9 @@ describe("agent run summary", () => {
 
     expect(lines.length).toBeLessThanOrEqual(20);
     expect(text).toContain("1m 15s");
-    expect(text).toContain("rerun failed: allure agent --rerun-latest --rerun-preset failed -- npm test");
+    // Reruns target this run's output explicitly (concurrency-safe), not the cwd-global latest.
+    expect(text).toContain(`rerun failed: allure agent --rerun-from ${outputDir} --rerun-preset failed -- npm test`);
+    expect(text).not.toContain("--rerun-latest");
     expect(text).toContain("(reruns 1 failed test)");
   });
 

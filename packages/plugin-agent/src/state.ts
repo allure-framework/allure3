@@ -53,6 +53,9 @@ export type AgentStaleStateCleanupResult = AgentStateCleanupResult & {
 
 const AGENT_RUN_STATE_SCHEMA = "allure-agent-run/v1";
 const AGENT_STALE_OUTPUT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// Recently finished managed outputs are kept past the keep-newest limit so that concurrent agent
+// runs in the same project do not delete output another run may still be reading.
+const AGENT_MANAGED_OUTPUT_GRACE_MS = 60 * 60 * 1000;
 
 const isAgentRunState = (value: unknown): value is AgentRunState => {
   if (typeof value !== "object" || value === null) {
@@ -304,9 +307,13 @@ export const cleanupAgentRunState = async (params: {
   cwd: string;
   currentRunId?: string;
   keepManagedRuns?: number;
+  managedOutputGraceMs?: number;
+  now?: number;
 }): Promise<AgentStateCleanupResult> =>
   withAgentStateLock(params.cwd, async () => {
     const keepManagedRuns = Math.max(0, params.keepManagedRuns ?? 1);
+    const managedOutputGraceMs = Math.max(0, params.managedOutputGraceMs ?? AGENT_MANAGED_OUTPUT_GRACE_MS);
+    const now = params.now ?? Date.now();
     const states = foldAgentRunStates(await readAgentRunStateLines(params.cwd));
     const existing: AgentRunState[] = [];
 
@@ -333,6 +340,12 @@ export const cleanupAgentRunState = async (params: {
 
     for (const state of existing) {
       if (!state.managedOutput || state.status !== "finished" || retainedManagedRunIds.has(state.runId)) {
+        continue;
+      }
+
+      // Keep recently finished managed outputs so a concurrent run does not delete output that
+      // another agent run in the same project may still be reading.
+      if (now - (state.finishedAt ?? state.startedAt) <= managedOutputGraceMs) {
         continue;
       }
 

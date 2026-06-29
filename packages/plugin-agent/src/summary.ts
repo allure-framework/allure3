@@ -88,8 +88,10 @@ export const formatAgentRunSummary = (params: {
   }
 
   if (params.rerunCommand && failedCount > 0) {
+    // Use --rerun-from <this run's dir>, not --rerun-latest: under concurrent agent runs "latest" is
+    // cwd-global and may resolve to a sibling run, while --from targets exactly this output.
     lines.push(
-      `  rerun failed: allure agent --rerun-latest --rerun-preset failed -- ${params.rerunCommand}` +
+      `  rerun failed: allure agent --rerun-from ${outputDir} --rerun-preset failed -- ${params.rerunCommand}` +
         `  (reruns ${failedCount} failed test${failedCount === 1 ? "" : "s"})`,
     );
   }
