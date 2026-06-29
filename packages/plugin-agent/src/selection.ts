@@ -163,7 +163,10 @@ export const resolveAgentSelectionOutputDir = async (params: {
   const latestState = await readLatestAgentState(cwd);
 
   if (!latestState) {
-    throw new AgentUsageError(`No latest agent output found for ${cwd}`);
+    throw new AgentUsageError(
+      `No recorded Allure agent output for ${JSON.stringify(cwd)}. ` +
+        "Run `allure agent <command>` first to create one, or pass --from <agent-output-dir>.",
+    );
   }
 
   return latestState.outputDir;

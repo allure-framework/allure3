@@ -243,6 +243,18 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
   const test = matched[0];
   const markdownPath = resolveAgentOutputPath(output, test.markdown_path);
   const findings = output.findings.filter((finding) => agentFindingSubjectRef(finding) === test.markdown_path);
+  let markdown: string | undefined;
+
+  if (filters.includeMarkdown && markdownPath) {
+    try {
+      markdown = await readFile(markdownPath, "utf-8");
+    } catch {
+      throw new AgentUsageError(
+        `Could not read the per-test markdown for ${JSON.stringify(test.full_name)} at ${JSON.stringify(markdownPath)}; ` +
+          "the agent output is incomplete. Re-run `allure agent` to regenerate it, or omit --include-markdown.",
+      );
+    }
+  }
 
   return {
     schema: AGENT_QUERY_SCHEMA,
@@ -251,7 +263,7 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
     markdown_path: markdownPath,
     test,
     findings,
-    ...(filters.includeMarkdown && markdownPath ? { markdown: await readFile(markdownPath, "utf-8") } : {}),
+    ...(markdown !== undefined ? { markdown } : {}),
   };
 };
 

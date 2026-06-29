@@ -2664,7 +2664,8 @@ const computeScopeEvaluation = (params: {
       scopeMatch: "forbidden",
       reasons: forbidden.reasons,
       expectedReferences: forbidden.references,
-      metadataMismatches,
+      // A forbidden match is reported on its own; expected-label mismatches are not relevant here.
+      metadataMismatches: [],
     } satisfies ScopeEvaluation;
   }
 
@@ -2701,7 +2702,9 @@ const buildDurationSummary = (entries: TestEntry[]) => {
   return {
     total,
     average: durations.length ? Math.round(total / durations.length) : 0,
-    max: durations.length ? Math.max(...durations) : 0,
+    // Reduce instead of Math.max(...durations): the spread overflows the call-stack/argument
+    // limit (RangeError) on very large runs.
+    max: durations.reduce((acc, value) => (value > acc ? value : acc), 0),
   };
 };
 

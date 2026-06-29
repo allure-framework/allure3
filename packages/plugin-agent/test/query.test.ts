@@ -329,6 +329,25 @@ describe("agent query payloads", () => {
     }
   });
 
+  it("fails with a recovery hint when requested per-test markdown is missing", async () => {
+    // The fixture only writes suite-should-fail.md, so suite-should-pass.md is absent on disk.
+    await expect(
+      buildAgentQueryPayload(createAgentOutput(tempDir!), "test", {
+        labelFilters: [],
+        test: "suite should pass",
+        includeMarkdown: true,
+      }),
+    ).rejects.toThrow(AgentUsageError);
+
+    await expect(
+      buildAgentQueryPayload(createAgentOutput(tempDir!), "test", {
+        labelFilters: [],
+        test: "suite should pass",
+        includeMarkdown: true,
+      }),
+    ).rejects.toThrow(/include-markdown/);
+  });
+
   it("should reject ambiguous single-test queries and unsupported enum values", async () => {
     await attachJsonEvidence("invalid query option cases", [
       { view: "test", reason: "missing exact test selector" },

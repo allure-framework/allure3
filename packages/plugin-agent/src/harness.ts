@@ -3,9 +3,11 @@ import { join, resolve } from "node:path";
 
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
+import { AgentUsageError } from "./errors.js";
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 import type { AgentHumanReportStatus } from "./model.js";
 import { isPathInside } from "./paths.js";
+import { isFileNotFoundError } from "./utils.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
 export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
@@ -591,11 +593,51 @@ const resolveContainedOutputPath = (outputDir: string, relativePath: string) => 
   return isPathInside(outputDir, resolved) ? resolved : undefined;
 };
 
+const readAgentRunManifest = async (outputDir: string): Promise<AgentRunManifest> => {
+  const runManifestPath = join(outputDir, "manifest", "run.json");
+  let raw: string;
+
+  try {
+    raw = await readFile(runManifestPath, "utf-8");
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      throw new AgentUsageError(
+        `No Allure agent output found at ${JSON.stringify(outputDir)} (missing manifest/run.json). ` +
+          "It must be a directory created by a previous `allure agent` run. " +
+          "Run `allure agent latest` to find the most recent output, pass a valid --from <agent-output-dir> or --latest, " +
+          "or run `allure agent <command>` to create one.",
+      );
+    }
+
+    throw error;
+  }
+
+  try {
+    return JSON.parse(raw) as AgentRunManifest;
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(outputDir)} is corrupted: manifest/run.json is not valid JSON. ` +
+        "Re-run `allure agent` to regenerate the output.",
+    );
+  }
+};
+
 export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBundle> => {
   const absoluteOutputDir = resolve(outputDir);
-  const run = await readJson<AgentRunManifest>(join(absoluteOutputDir, "manifest", "run.json"));
-  const tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
-  const findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
+  const run = await readAgentRunManifest(absoluteOutputDir);
+  let tests: AgentTestManifestLine[];
+  let findings: AgentFindingManifestLine[];
+
+  try {
+    tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
+    findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(absoluteOutputDir)} is incomplete or corrupted: ` +
+        "its test/finding manifests could not be read. Re-run `allure agent` to regenerate the output.",
+    );
+  }
+
   const expectedManifestPath =
     run.paths.expected_manifest && run.expectations_present
       ? resolveContainedOutputPath(absoluteOutputDir, run.paths.expected_manifest)

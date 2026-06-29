@@ -675,13 +675,18 @@ export class AgentLatestCommand extends Command {
     try {
       latestState = await readLatestAgentState(cwd);
     } catch (error) {
-      console.error(`Could not read the latest agent output for ${cwd}: ${(error as Error).message}`);
+      console.error(
+        `Could not read the latest Allure agent output for ${cwd}: ${(error as Error).message}. ` +
+          "Check the state directory printed by `allure agent state-dir`, or set ALLURE_AGENT_STATE_DIR to a writable path.",
+      );
       exit(1);
       return;
     }
 
     if (!latestState) {
-      console.error(`No latest agent output found for ${cwd}`);
+      console.error(
+        `No recorded Allure agent output for ${cwd}. Run \`allure agent <command>\` first to create one.`,
+      );
       exit(1);
       return;
     }
@@ -886,7 +891,11 @@ export class AgentSelectCommand extends Command {
       });
 
       if (!selection.testPlan.tests.length) {
-        console.error(`No tests matched selection in ${selection.outputDir}`);
+        console.error(
+          `No tests matched selection in ${selection.outputDir}. ` +
+            "Adjust --preset (review|failed|unsuccessful|all), --label, or --environment, " +
+            "or pick a different run with --from/--latest.",
+        );
         exit(1);
         return;
       }

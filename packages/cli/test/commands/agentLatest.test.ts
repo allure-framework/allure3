@@ -80,7 +80,9 @@ describe("agent latest command", () => {
 
     await run(AgentLatestCommand, ["agent", "latest"]);
 
-    expect(consoleModule.error).toHaveBeenCalledWith("No latest agent output found for /cwd");
+    expect(consoleModule.error).toHaveBeenCalledWith(
+      "No recorded Allure agent output for /cwd. Run `allure agent <command>` first to create one.",
+    );
     expect(processModule.exit).toHaveBeenCalledWith(1);
   });
 

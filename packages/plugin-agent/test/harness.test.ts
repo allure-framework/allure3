@@ -13,6 +13,7 @@ import AgentPlugin, {
   type AgentExpectationsInput,
   type AgentOutputBundle,
   AGENT_ENRICHMENT_ACTIONS,
+  AgentUsageError,
   buildAgentExpectations,
   loadAgentOutput,
   mapFindingToEnrichmentAction,
@@ -861,6 +862,22 @@ describe("agent enrichment harness", () => {
     expect(bundle.expected).toBeUndefined();
   });
 
+  it("fails with a recovery hint when the output directory has no run manifest", async () => {
+    const outputDir = join(tempDir, "missing-output");
+    await mkdir(outputDir, { recursive: true });
+
+    await expect(loadAgentOutput(outputDir)).rejects.toBeInstanceOf(AgentUsageError);
+    await expect(loadAgentOutput(outputDir)).rejects.toThrow(/allure agent latest/);
+  });
+
+  it("fails with a corruption hint when the run manifest is not valid JSON", async () => {
+    const outputDir = join(tempDir, "corrupt-output");
+    await mkdir(join(outputDir, "manifest"), { recursive: true });
+    await writeFile(join(outputDir, "manifest", "run.json"), "{ not valid json", "utf-8");
+
+    await expect(loadAgentOutput(outputDir)).rejects.toThrow(/corrupted/i);
+  });
+
   it("should reject scope drift from a real agent output directory", async () => {
     const outputDir = join(tempDir, "scope-drift-output");
     const expectationsPath = join(tempDir, "expected-scope.json");
@@ -931,6 +948,50 @@ describe("agent enrichment harness", () => {
         }),
       ]),
     );
+  });
+
+  it("does not emit a metadata-mismatch finding for a forbidden-scope test", async () => {
+    const outputDir = join(tempDir, "forbidden-metadata-output");
+    const expectationsPath = join(tempDir, "expected-forbidden-metadata.json");
+    // This test matches the expected full-name prefix but carries the forbidden label, so before the
+    // fix it produced both a forbidden finding and a spurious expected-label metadata mismatch.
+    const forbidden = createTestResult({
+      id: "tr-forbidden-meta",
+      historyId: "forbidden-meta-history",
+      name: "feature checkout should not run",
+      fullName: "feature checkout should not run",
+      labels: [{ name: "feature", value: "legacy" }],
+    });
+
+    await writeFile(
+      expectationsPath,
+      JSON.stringify({
+        goal: "Verify checkout",
+        task_id: "checkout",
+        expected: {
+          full_name_prefixes: ["feature checkout"],
+          label_values: { feature: "checkout" },
+        },
+        forbidden: {
+          label_values: { feature: "legacy" },
+        },
+      }),
+      "utf-8",
+    );
+
+    await new AgentPlugin({ outputDir, expectationsPath }).done(
+      createContext(),
+      createStore({
+        allTestResults: vi.fn().mockResolvedValue([forbidden]),
+        testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      }),
+    );
+
+    const bundle = await loadAgentOutput(outputDir);
+    const checkNames = bundle.findings.map((finding) => finding.check_name);
+
+    expect(checkNames).toContain("forbidden-label-observed");
+    expect(checkNames).not.toContain("metadata-mismatch");
   });
 
   it("should iterate when a failed test needs real steps and attachments", async () => {
