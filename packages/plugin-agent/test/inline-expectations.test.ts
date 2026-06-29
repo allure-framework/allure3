@@ -107,6 +107,16 @@ describe("inline agent expectations", () => {
       input: { expectAttachmentFilters: ["type=image/png"] },
       expected: { evidence: { attachments: [{ content_type: "image/png" }] } },
     },
+    {
+      option: "--expect-attachment content-type with parameters",
+      input: { expectAttachmentFilters: ["content-type=text/html;charset=utf-8"] },
+      expected: { evidence: { attachments: [{ content_type: "text/html;charset=utf-8" }] } },
+    },
+    {
+      option: "--expect-label value containing =",
+      input: { expectLabels: ["config=a=b"] },
+      expected: { expected: { label_values: { config: ["a=b"] } } },
+    },
   ])("should parse $option", ({ input, expected }) => {
     expect(buildAgentInlineExpectations(input)).toEqual(expected);
   });
