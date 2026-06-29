@@ -1246,6 +1246,25 @@ describe("agent command", () => {
     expect(cleanupMock).toHaveBeenCalledTimes(1);
   });
 
+  it("cleans up the rerun test-plan context before exiting", async () => {
+    const cleanupMock = vi.fn().mockResolvedValue(undefined);
+
+    (createAgentTestPlanContext as Mock).mockResolvedValueOnce({
+      outputDir: previousAgentOutputDir,
+      preset: "review",
+      selectedCount: 1,
+      testPlanPath,
+      cleanup: cleanupMock,
+    });
+
+    await run(AgentCommand, ["agent", "--rerun-from", "./previous-agent", "--", "npm", "test"]);
+
+    expect(cleanupMock).toHaveBeenCalledTimes(1);
+    expect(exitMock).toHaveBeenCalled();
+    // process.exit() skips pending finally blocks, so cleanup must run before exit().
+    expect(cleanupMock.mock.invocationCallOrder[0]).toBeLessThan(exitMock.mock.invocationCallOrder[0]);
+  });
+
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
     process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV] = "run";
     const consoleModule = await import("node:console");

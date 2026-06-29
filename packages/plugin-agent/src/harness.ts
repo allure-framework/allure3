@@ -5,6 +5,7 @@ import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 import type { AgentHumanReportStatus } from "./model.js";
+import { isPathInside } from "./paths.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
 export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
@@ -582,17 +583,29 @@ export const mapFindingToEnrichmentAction = (finding: AgentFindingManifestLine |
   return mapped ?? { ...FALLBACK_ACTION, checkName };
 };
 
+// Manifest-supplied paths are untrusted (the output directory may be an attacker-supplied bundle),
+// so never read a path that resolves outside the output directory.
+const resolveContainedOutputPath = (outputDir: string, relativePath: string) => {
+  const resolved = join(outputDir, relativePath);
+
+  return isPathInside(outputDir, resolved) ? resolved : undefined;
+};
+
 export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBundle> => {
   const absoluteOutputDir = resolve(outputDir);
   const run = await readJson<AgentRunManifest>(join(absoluteOutputDir, "manifest", "run.json"));
   const tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
   const findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
-  const expected =
+  const expectedManifestPath =
     run.paths.expected_manifest && run.expectations_present
-      ? await readJson<AgentExpectations>(join(absoluteOutputDir, run.paths.expected_manifest))
+      ? resolveContainedOutputPath(absoluteOutputDir, run.paths.expected_manifest)
       : undefined;
-  const humanReport = run.paths.human_report_manifest
-    ? await readJson<AgentHumanReportStatus>(join(absoluteOutputDir, run.paths.human_report_manifest))
+  const expected = expectedManifestPath ? await readJson<AgentExpectations>(expectedManifestPath) : undefined;
+  const humanReportManifestPath = run.paths.human_report_manifest
+    ? resolveContainedOutputPath(absoluteOutputDir, run.paths.human_report_manifest)
+    : undefined;
+  const humanReport = humanReportManifestPath
+    ? await readJson<AgentHumanReportStatus>(humanReportManifestPath)
     : undefined;
 
   return {

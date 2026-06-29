@@ -184,6 +184,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     ...(rerunContext ? { ALLURE_TESTPLAN_PATH: rerunContext.testPlanPath } : {}),
   };
 
+  let resolvedExitCode = -1;
+  let runCompleted = false;
+
   try {
     if (getActiveAllureCliCommand()) {
       console.log(commandString);
@@ -196,7 +199,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
         silent,
       });
 
-      exit(exitCode ?? -1);
+      resolvedExitCode = exitCode ?? -1;
+      runCompleted = true;
+
       return;
     }
 
@@ -316,9 +321,17 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     });
     await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
 
-    exit(globalExitCode.actual ?? globalExitCode.original);
+    resolvedExitCode = globalExitCode.actual ?? globalExitCode.original;
+    runCompleted = true;
   } finally {
     await rerunContext?.cleanup();
+
+    // Defer exit() until after cleanup: process.exit() skips pending finally blocks, so calling it
+    // inside the try would leak the rerun test-plan temp dir. On the error path runCompleted stays
+    // false, so the original error propagates instead of being masked by an exit.
+    if (runCompleted) {
+      exit(resolvedExitCode);
+    }
   }
 };
 

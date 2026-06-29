@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -14,6 +14,7 @@ import AgentPlugin, {
   type AgentOutputBundle,
   AGENT_ENRICHMENT_ACTIONS,
   buildAgentExpectations,
+  loadAgentOutput,
   mapFindingToEnrichmentAction,
   planAgentEnrichmentReview,
   reviewAgentOutput,
@@ -836,6 +837,28 @@ describe("agent enrichment harness", () => {
     expect(review.status).toBe("accept");
     expect(review.plan).toEqual([]);
     expect(review.rerun.useExistingExpectations).toBe(true);
+  });
+
+  it("does not read an expected_manifest path that escapes the output directory", async () => {
+    const outputDir = join(tempDir, "tampered-output");
+    const secretPath = join(tempDir, "outside-expected.json");
+
+    await mkdir(join(outputDir, "manifest"), { recursive: true });
+    await writeFile(secretPath, JSON.stringify({ goal: "SECRET" }), "utf-8");
+    await writeFile(
+      join(outputDir, "manifest", "run.json"),
+      JSON.stringify({
+        paths: { expected_manifest: "../outside-expected.json", human_report_manifest: null },
+        expectations_present: true,
+      }),
+      "utf-8",
+    );
+    await writeFile(join(outputDir, "manifest", "tests.jsonl"), "", "utf-8");
+    await writeFile(join(outputDir, "manifest", "findings.jsonl"), "", "utf-8");
+
+    const bundle = await loadAgentOutput(outputDir);
+
+    expect(bundle.expected).toBeUndefined();
   });
 
   it("should reject scope drift from a real agent output directory", async () => {

@@ -365,6 +365,73 @@ describe("agent-state utils", () => {
     expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), otherStatePath);
   });
 
+  it("should keep a still-running managed run whose process is alive but reap a crashed one", async () => {
+    const fsModule = await import("node:fs/promises");
+    const cwd = resolve("/repo");
+    const otherCwd = resolve("/running-repo");
+    const otherStatePath = repoStatePath(otherCwd);
+    const currentManaged = {
+      schema: "allure-agent-run/v1",
+      runId: "current-managed",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-current"),
+      managedOutput: true,
+      command: "npm test current",
+      startedAt: 1777999999000,
+      status: "finished",
+      finishedAt: 1777999999000,
+      exitCode: 0,
+    };
+    // status "running" with a live pid: the run is genuinely in progress and must not be deleted.
+    const runningAlive = {
+      schema: "allure-agent-run/v1",
+      runId: "running-alive",
+      cwd: otherCwd,
+      outputDir: tempOutputPath("allure-agent-running-alive"),
+      managedOutput: true,
+      command: "npm test running",
+      startedAt: 1776276000000,
+      status: "running",
+      pid: process.pid,
+    };
+    // status "running" with a dead pid: the run crashed without writing finishedAt and may be reaped.
+    const runningCrashed = {
+      schema: "allure-agent-run/v1",
+      runId: "running-crashed",
+      cwd: otherCwd,
+      outputDir: tempOutputPath("allure-agent-running-crashed"),
+      managedOutput: true,
+      command: "npm test crashed",
+      startedAt: 1776276000000,
+      status: "running",
+      pid: 2147483646,
+    };
+    const now = 1778000000000;
+
+    (fsModule.readdir as Mock).mockResolvedValueOnce([repoStateEntry(cwd), repoStateEntry(otherCwd)]);
+    (fsModule.readFile as Mock)
+      .mockResolvedValueOnce(`${JSON.stringify(currentManaged)}\n`)
+      .mockResolvedValueOnce([runningAlive, runningCrashed].map((state) => JSON.stringify(state)).join("\n") + "\n")
+      .mockResolvedValueOnce([runningAlive, runningCrashed].map((state) => JSON.stringify(state)).join("\n") + "\n");
+
+    const result = await cleanupStaleAgentRunStates({
+      cwd,
+      now,
+      staleOutputTtlMs: 1,
+    });
+
+    expect(result.deleted).toEqual([runningCrashed]);
+    expect(result.retained).toEqual([runningAlive]);
+    expect(fsModule.rm).toHaveBeenCalledWith(runningCrashed.outputDir, { recursive: true, force: true });
+    expect(fsModule.rm).not.toHaveBeenCalledWith(runningAlive.outputDir, { recursive: true, force: true });
+    expect(fsModule.writeFile).toHaveBeenCalledWith(
+      expect.stringMatching(/\.tmp$/),
+      `${JSON.stringify(runningAlive)}\n`,
+      "utf-8",
+    );
+    expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), otherStatePath);
+  });
+
   it("should skip locked stale registries unless the lock itself is stale", async () => {
     const fsModule = await import("node:fs/promises");
     const cwd = resolve("/repo");

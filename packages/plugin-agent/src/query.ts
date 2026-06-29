@@ -10,6 +10,7 @@ import type {
   AgentOutputBundle,
   AgentTestManifestLine,
 } from "./harness.js";
+import { isPathInside } from "./paths.js";
 import type { AgentLabelFilter } from "./selection.js";
 
 export const AGENT_QUERY_SCHEMA = "allure-agent-query/v1";
@@ -152,8 +153,16 @@ const filterAgentQueryFindings = (output: AgentOutputBundle, filters: AgentQuery
 const applyAgentQueryLimit = <T>(items: T[], limit: number | undefined): T[] =>
   limit === undefined ? items : items.slice(0, limit);
 
-const resolveAgentOutputPath = (output: AgentOutputBundle, relativePath: string | null | undefined) =>
-  relativePath ? join(output.outputDir, relativePath) : null;
+const resolveAgentOutputPath = (output: AgentOutputBundle, relativePath: string | null | undefined) => {
+  if (!relativePath) {
+    return null;
+  }
+
+  const resolved = join(output.outputDir, relativePath);
+
+  // Manifest-supplied paths are untrusted; never resolve (or read) outside the output directory.
+  return isPathInside(output.outputDir, resolved) ? resolved : null;
+};
 
 const buildAgentQuerySummaryPayload = (output: AgentOutputBundle) => ({
   schema: AGENT_QUERY_SCHEMA,
