@@ -1,3 +1,4 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -412,6 +413,75 @@ describe("agent command", () => {
 
     expect(readConfig).not.toHaveBeenCalled();
     expect(executeAllureRun).not.toHaveBeenCalled();
+  });
+
+  it("refuses to delete a non-empty, non-agent --output directory before a run", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-output-guard-"));
+    writeFileSync(join(dir, "important.txt"), "keep me");
+
+    try {
+      const command = new AgentCommand();
+
+      command.output = dir;
+      command.commandToRun = ["--", "npm", "test"];
+
+      await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+      expect(readConfig).not.toHaveBeenCalled();
+      expect(executeAllureRun).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("allows an empty --output directory", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-output-empty-"));
+
+    try {
+      await run(AgentCommand, ["agent", "--output", dir, "--", "npm", "test"]);
+
+      expect(executeAllureRun).toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a non-empty --output directory even when it looks like a previous agent output", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-output-prev-"));
+    writeFileSync(join(dir, "index.md"), "# previous agent run");
+
+    try {
+      const command = new AgentCommand();
+
+      command.output = dir;
+      command.commandToRun = ["--", "npm", "test"];
+
+      await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+      expect(readConfig).not.toHaveBeenCalled();
+      expect(executeAllureRun).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses an inspect --output that points at a non-empty results directory", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-inspect-output-"));
+    writeFileSync(join(dir, "0a1b2c3d-result.json"), "{}");
+    vi.mocked(glob).mockResolvedValueOnce([`${dir}/`]);
+
+    try {
+      const command = new AgentInspectCommand();
+
+      command.output = dir;
+      command.resultsDir = [dir];
+
+      await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+      expect(readConfig).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("should use an auto-created agent output dir and pass agent-mode overrides to readConfig", async () => {
