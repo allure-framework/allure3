@@ -68,6 +68,7 @@ import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+
 const initRequired = "report is not initialised. Call the start() method first.";
 const defaultReadConcurrency = 64;
 const maxReadConcurrency = 256;
