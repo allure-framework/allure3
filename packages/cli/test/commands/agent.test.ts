@@ -494,6 +494,46 @@ describe("agent command", () => {
     }
   });
 
+  it("refuses a non-empty --output before the invalid-expectation fallback can delete it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-invalid-output-guard-"));
+    writeFileSync(join(dir, "important.txt"), "keep me");
+    // An expectation error is queued so that, without the guard, the flow would reach
+    // writeInvalidAgentExpectationOutput (which rm -rf's the dir).
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(new AgentExpectationUsageError("invalid expectation"));
+
+    try {
+      const command = new AgentCommand();
+
+      command.output = dir;
+      command.commandToRun = ["--", "npm", "test"];
+
+      await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+      expect(writeInvalidAgentExpectationOutput).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a non-empty inspect --output before the invalid-expectation fallback can delete it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "allure-agent-invalid-inspect-guard-"));
+    writeFileSync(join(dir, "important.txt"), "keep me");
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(new AgentExpectationUsageError("invalid expectation"));
+
+    try {
+      const command = new AgentInspectCommand();
+
+      command.output = dir;
+      command.resultsDir = ["./allure-results"];
+
+      await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+
+      expect(writeInvalidAgentExpectationOutput).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("should use an auto-created agent output dir and pass agent-mode overrides to readConfig", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const consoleModule = await import("node:console");

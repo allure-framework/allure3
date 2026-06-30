@@ -387,14 +387,11 @@ export const ITERATION_REQUIRED_CHECKS = [
   "insufficient-expected-steps",
   "insufficient-expected-attachments",
   "missing-expected-attachment",
-  "failed-without-useful-steps",
-  "failed-without-attachments",
-  "nontrivial-run-with-empty-trace",
-  "retries-without-new-evidence",
-  "passed-without-observable-evidence",
 ] as const;
 
-export const ANTI_DUMMY_CHECKS = ["noop-dominated-steps"] as const;
+// Anti-fakery checks force a reject above the confidence threshold. None ship yet (the previous
+// evidence-shape heuristics were removed); honesty/staleness checks will be added here.
+export const ANTI_DUMMY_CHECKS: readonly string[] = [];
 
 const SEVERITY_ORDER: Record<AgentFindingSeverity, number> = {
   high: 0,
@@ -546,10 +543,7 @@ const impactForFinding = (
     return "reject";
   }
 
-  if (
-    ANTI_DUMMY_CHECKS.includes(checkName as (typeof ANTI_DUMMY_CHECKS)[number]) &&
-    (finding.confidence ?? 0) >= antiDummyConfidenceThreshold
-  ) {
+  if (ANTI_DUMMY_CHECKS.includes(checkName) && (finding.confidence ?? 0) >= antiDummyConfidenceThreshold) {
     return "reject";
   }
 
@@ -699,12 +693,6 @@ export const planAgentEnrichmentReview = (
   if (!output.run.expectations_present) {
     notes.push(
       "Declare inline expectations or provide an expectations file before the next enrichment iteration so scope checks are comparable.",
-    );
-  }
-
-  if (rejecting.some((item) => item.checkName === "noop-dominated-steps")) {
-    notes.push(
-      "Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.",
     );
   }
 

@@ -11,6 +11,7 @@ import {
   AGENT_TASK_MAP_HELP,
   AGENT_TEST_STATUSES,
   AgentExpectationUsageError,
+  assertExplicitAgentOutputDirIsSafe,
   buildAgentInlineExpectations,
   buildAgentQueryPayload,
   cleanupAgentRunState,
@@ -327,6 +328,12 @@ export class AgentCommand extends Command {
     }
 
     try {
+      // Reject an unsafe explicit --output before any code path (including the invalid-expectation
+      // fallback) recursively deletes it.
+      if (output) {
+        await assertExplicitAgentOutputDirIsSafe(resolve(await realpath(configuredCwd ?? process.cwd()), output));
+      }
+
       const inlineExpectations = buildInlineExpectationsFromOptions({
         goal: this.goal,
         taskId: this.taskId,
@@ -561,6 +568,12 @@ export class AgentInspectCommand extends Command {
     }
 
     try {
+      // Reject an unsafe explicit --output before any code path (including the invalid-expectation
+      // fallback) recursively deletes it.
+      if (output) {
+        await assertExplicitAgentOutputDirIsSafe(resolve(await realpath(configuredCwd ?? process.cwd()), output));
+      }
+
       const inlineExpectations = buildInlineExpectationsFromOptions({
         goal: this.goal,
         taskId: this.taskId,

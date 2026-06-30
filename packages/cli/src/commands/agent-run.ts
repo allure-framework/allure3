@@ -1,6 +1,6 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readdir, realpath, rm, stat } from "node:fs/promises";
+import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process, { exit } from "node:process";
@@ -9,6 +9,7 @@ import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/cor
 import {
   createAgentTestPlanContext,
   AgentUsageError,
+  assertExplicitAgentOutputDirIsSafe,
   formatAgentOutputLinks,
   formatAgentRunSummary,
   isPathInside,
@@ -92,40 +93,6 @@ export const persistAgentRunState = async (value: Parameters<typeof writeAgentRu
     await writeAgentRunState(value);
   } catch (error) {
     console.error(`Could not update agent state in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`);
-  }
-};
-
-const isMissingPathError = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && (error as NodeJS.ErrnoException).code === "ENOENT";
-
-/**
- * An explicit, caller-provided `--output` directory is recursively deleted at the start of a run.
- * Only allow a directory that is absent or empty, so a mistyped `--output` (e.g. `--output .` or
- * `--output ./src`) cannot destroy unrelated files. Managed temp outputs are created by `mkdtemp`
- * and are always safe, so they skip this check.
- */
-const assertExplicitOutputDirIsSafe = async (outputDir: string) => {
-  let stats;
-
-  try {
-    stats = await stat(outputDir);
-  } catch (error) {
-    if (isMissingPathError(error)) {
-      return;
-    }
-
-    throw error;
-  }
-
-  if (!stats.isDirectory()) {
-    throw new AgentUsageError(`--output ${JSON.stringify(outputDir)} is not a directory; use a new or empty directory`);
-  }
-
-  if ((await readdir(outputDir)).length > 0) {
-    throw new AgentUsageError(
-      `refusing to use --output ${JSON.stringify(outputDir)}: the agent recursively deletes its output directory, ` +
-        `so it must be a new or empty directory.`,
-    );
   }
 };
 
@@ -266,7 +233,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     }
 
     if (!managedOutput) {
-      await assertExplicitOutputDirIsSafe(outputDir);
+      await assertExplicitAgentOutputDirIsSafe(outputDir);
     }
 
     const humanReport = await createAgentHumanReportConfig({
@@ -448,7 +415,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
   }
 
   if (!managedOutput) {
-    await assertExplicitOutputDirIsSafe(outputDir);
+    await assertExplicitAgentOutputDirIsSafe(outputDir);
   }
 
   const historyLimitValue = historyLimit ? parseInt(historyLimit, 10) : undefined;

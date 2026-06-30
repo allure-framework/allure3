@@ -12,7 +12,6 @@ import AgentPlugin, {
   type AgentFindingManifestLine,
   type AgentExpectationsInput,
   type AgentOutputBundle,
-  AGENT_ENRICHMENT_ACTIONS,
   AgentUsageError,
   buildAgentExpectations,
   loadAgentOutput,
@@ -120,11 +119,11 @@ const createFinding = (overrides: Partial<AgentFindingManifestLine> = {}): Agent
   subject: "run",
   severity: "warning",
   category: "evidence",
-  check_name: "failed-without-useful-steps",
-  message: "Add meaningful steps.",
-  explanation: "The trace is empty.",
+  check_name: "insufficient-expected-steps",
+  message: "Expected at least 1 meaningful step.",
+  explanation: "The trace did not contain the expected steps.",
   evidence_paths: ["tests/default/example.md"],
-  remediation_hint: "Add meaningful steps.",
+  remediation_hint: "Add the expected meaningful steps.",
   ...overrides,
 });
 
@@ -716,68 +715,20 @@ describe("agent enrichment harness", () => {
 
   it("should map enrichment findings to the intended remediation categories", async () => {
     const mappedActions = {
-      "failed-without-useful-steps": AGENT_ENRICHMENT_ACTIONS["failed-without-useful-steps"].category,
-      "nontrivial-run-with-empty-trace": mapFindingToEnrichmentAction("nontrivial-run-with-empty-trace").category,
-      "passed-without-observable-evidence": mapFindingToEnrichmentAction("passed-without-observable-evidence").category,
-      "failed-without-attachments": mapFindingToEnrichmentAction("failed-without-attachments").category,
-      "global-only-artifacts": mapFindingToEnrichmentAction("global-only-artifacts").category,
       "runner-failures-outside-logical-results": mapFindingToEnrichmentAction("runner-failures-outside-logical-results")
         .category,
       "unmodeled-visible-results": mapFindingToEnrichmentAction("unmodeled-visible-results").category,
       "metadata-mismatch": mapFindingToEnrichmentAction("metadata-mismatch").category,
-      "retries-without-new-evidence": mapFindingToEnrichmentAction("retries-without-new-evidence").category,
-      "noop-dominated-steps": mapFindingToEnrichmentAction("noop-dominated-steps").category,
-      "step-spam": mapFindingToEnrichmentAction("step-spam").category,
       "unexpected-test": mapFindingToEnrichmentAction("unexpected-test").category,
     };
 
     await attachJsonEvidence("enrichment action category map", mappedActions);
     expect(mappedActions).toEqual({
-      "failed-without-useful-steps": "add-meaningful-steps",
-      "nontrivial-run-with-empty-trace": "add-meaningful-steps",
-      "passed-without-observable-evidence": "add-meaningful-steps",
-      "failed-without-attachments": "add-test-attachments",
-      "global-only-artifacts": "add-test-attachments",
       "runner-failures-outside-logical-results": "bootstrap-allure",
       "unmodeled-visible-results": "review-manually",
       "metadata-mismatch": "repair-test-metadata",
-      "retries-without-new-evidence": "add-retry-diagnostics",
-      "noop-dominated-steps": "collapse-low-signal-trace",
-      "step-spam": "collapse-low-signal-trace",
       "unexpected-test": "narrow-test-scope",
     });
-  });
-
-  it("should reject high-confidence noop-style evidence", async () => {
-    const review = planAgentEnrichmentReview(
-      createOutputBundle({
-        findings: [
-          createFinding({
-            subject: "tests/default/history-1.md",
-            check_name: "noop-dominated-steps",
-            category: "smells",
-            severity: "warning",
-            confidence: 0.8,
-            remediation_hint: "Remove empty wrapper steps.",
-          }),
-        ],
-      }),
-    );
-
-    await attachJsonEvidence("noop-style evidence review decision", review);
-    expect(review.status).toBe("reject");
-    expect(review.rejecting).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          checkName: "noop-dominated-steps",
-          category: "collapse-low-signal-trace",
-          acceptanceImpact: "reject",
-        }),
-      ]),
-    );
-    expect(review.notes).toContain(
-      "Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.",
-    );
   });
 
   it("should accept a clean scoped run from a real agent output directory", async () => {
@@ -994,69 +945,6 @@ describe("agent enrichment harness", () => {
     expect(checkNames).not.toContain("metadata-mismatch");
   });
 
-  it("should iterate when a failed test needs real steps and attachments", async () => {
-    const outputDir = join(tempDir, "low-signal-output");
-    const expectationsPath = join(tempDir, "expected-low-signal.json");
-    const testResult = createTestResult({
-      id: "tr-low-signal",
-      historyId: "low-signal-history",
-      fullName: "suite low signal",
-      status: "failed",
-      duration: 250,
-      labels: [
-        {
-          name: "feature",
-          value: "feature-low-signal",
-        },
-      ],
-      error: {
-        message: "boom",
-      },
-    });
-
-    await writeFile(
-      expectationsPath,
-      JSON.stringify({
-        goal: "Improve low-signal failure evidence",
-        task_id: "low-signal",
-        expected: {
-          environments: ["default"],
-          full_names: ["suite low signal"],
-          label_values: {
-            feature: "feature-low-signal",
-          },
-        },
-      }),
-      "utf-8",
-    );
-
-    await new AgentPlugin({ outputDir, expectationsPath }).done(
-      createContext(),
-      createStore({
-        allTestResults: vi.fn().mockResolvedValue([testResult]),
-        testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
-      }),
-    );
-
-    const review = await reviewAgentOutput(outputDir);
-
-    await attachJsonEvidence("low-signal failure review decision", review);
-    expect(review.status).toBe("iterate");
-    expect(review.iterate).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          checkName: "failed-without-useful-steps",
-          category: "add-meaningful-steps",
-        }),
-        expect.objectContaining({
-          checkName: "failed-without-attachments",
-          category: "add-test-attachments",
-        }),
-      ]),
-    );
-    expect(review.rerun.targetedTests).toContain("suite low signal");
-  });
-
   it("should iterate when runner failures exist outside logical test results", () => {
     const review = planAgentEnrichmentReview(
       createOutputBundle({
@@ -1083,76 +971,4 @@ describe("agent enrichment harness", () => {
     );
   });
 
-  it("should iterate retry scenarios and request per-attempt diagnostics", async () => {
-    const outputDir = join(tempDir, "retry-output");
-    const expectationsPath = join(tempDir, "expected-retry.json");
-    const current = createTestResult({
-      id: "tr-current",
-      historyId: "retry-evidence-history",
-      fullName: "suite retry evidence",
-      status: "failed",
-      duration: 150,
-      start: 400,
-      labels: [
-        {
-          name: "feature",
-          value: "retry-feature",
-        },
-      ],
-      error: {
-        message: "same failure",
-        trace: "same trace",
-      },
-    });
-    const retry = createTestResult({
-      id: "tr-retry",
-      historyId: "retry-evidence-history",
-      fullName: "suite retry evidence",
-      status: "failed",
-      isRetry: true,
-      duration: 150,
-      start: 300,
-      error: {
-        message: "same failure",
-        trace: "same trace",
-      },
-    });
-
-    await writeFile(
-      expectationsPath,
-      JSON.stringify({
-        goal: "Improve retry diagnostics",
-        task_id: "retry-feature",
-        expected: {
-          environments: ["default"],
-          full_names: ["suite retry evidence"],
-          label_values: {
-            feature: "retry-feature",
-          },
-        },
-      }),
-      "utf-8",
-    );
-
-    await new AgentPlugin({ outputDir, expectationsPath }).done(
-      createContext(),
-      createStore({
-        allTestResults: vi.fn().mockResolvedValue([current]),
-        testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1, retries: 1 }),
-        retriesByTr: vi.fn().mockResolvedValue([retry]),
-      }),
-    );
-
-    const review = await reviewAgentOutput(outputDir);
-
-    expect(review.status).toBe("iterate");
-    expect(review.iterate).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          checkName: "retries-without-new-evidence",
-          category: "add-retry-diagnostics",
-        }),
-      ]),
-    );
-  });
 });

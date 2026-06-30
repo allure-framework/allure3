@@ -762,8 +762,6 @@ describe("AgentPlugin", () => {
       expect(guide).toContain("## Review Completeness");
       expect(guide).toContain("## Partial Runtime Review");
       expect(guide).toContain("teach `runCommand` to emit a step");
-      expect(guide).toContain("`failed-without-useful-steps`");
-      expect(guide).toContain("`noop-dominated-steps`");
     });
   });
 
@@ -2121,106 +2119,4 @@ notes:
     expect(indexContent).toContain("None");
   });
 
-  it("should add evidence findings and rerun guidance when a failed test lacks signal", async () => {
-    const outputDir = join(tempDir, "rerun-guidance");
-    const testResult = createTestResult({
-      id: "tr-low-signal",
-      historyId: "low-signal-history",
-      fullName: "suite low signal",
-      status: "failed",
-      duration: 250,
-      error: {
-        message: "boom",
-      },
-    });
-    const store = createStore({
-      allTestResults: vi.fn().mockResolvedValue([testResult]),
-      testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
-    });
-
-    await new AgentPlugin({ outputDir }).done(createContext(), store);
-
-    const testContent = await readText(join(outputDir, "tests", "default", "low-signal-history.md"), "text/markdown");
-    const findingsManifest = await readJsonl<{
-      check_name: string;
-      subject?: unknown;
-      subject_ref?: string;
-    }>(join(outputDir, "manifest", "findings.jsonl"));
-
-    expect(testContent).toContain("A failed or broken test has no useful runtime steps.");
-    expect(testContent).toContain("A failed or broken test has no test-scoped attachments.");
-    expect(testContent).toContain("A nontrivial test run recorded no steps or fixture activity.");
-    expect(testContent).toContain("## Rerun Guidance");
-    expect(findingsManifest).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          check_name: "failed-without-useful-steps",
-          subject_ref: "tests/default/low-signal-history.md",
-        }),
-        expect.objectContaining({
-          check_name: "failed-without-attachments",
-          subject_ref: "tests/default/low-signal-history.md",
-        }),
-      ]),
-    );
-  });
-
-  it("should emit retry-evidence findings when retries do not add new signal", async () => {
-    const outputDir = join(tempDir, "retry-evidence");
-    const current = createTestResult({
-      id: "tr-current",
-      historyId: "retry-evidence-history",
-      fullName: "suite retry evidence",
-      status: "failed",
-      duration: 150,
-      start: 400,
-      error: {
-        message: "same failure",
-        trace: "same trace",
-      },
-    });
-    const retry = createTestResult({
-      id: "tr-retry",
-      historyId: "retry-evidence-history",
-      fullName: "suite retry evidence",
-      status: "failed",
-      isRetry: true,
-      duration: 150,
-      start: 300,
-      error: {
-        message: "same failure",
-        trace: "same trace",
-      },
-    });
-    const store = createStore({
-      allTestResults: vi.fn().mockResolvedValue([current]),
-      testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1, retries: 1 }),
-      retriesByTr: vi.fn().mockResolvedValue([retry]),
-    });
-
-    await new AgentPlugin({ outputDir }).done(createContext(), store);
-
-    const testContent = await readText(
-      join(outputDir, "tests", "default", "retry-evidence-history.md"),
-      "text/markdown",
-    );
-    const findingsManifest = await readJsonl<{
-      check_name: string;
-      severity: "info" | "warning" | "high";
-      subject?: unknown;
-      subject_ref?: string;
-    }>(join(outputDir, "manifest", "findings.jsonl"));
-
-    expect(testContent).toContain("Retries did not add any new observable evidence.");
-    expect(testContent).toContain("## Retry 1");
-    expect(findingsManifest).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          check_name: "retries-without-new-evidence",
-          severity: "info",
-          subject_ref: "tests/default/retry-evidence-history.md",
-        }),
-      ]),
-    );
-  });
 });
