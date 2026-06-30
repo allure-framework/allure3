@@ -80,17 +80,19 @@ const readSingleStringOption = (value: SingleStringOptionValue, optionName: stri
 };
 
 const parseNameValue = (value: string, optionName: string, example: string) => {
-  const parts = value.split("=");
+  const separatorIndex = value.indexOf("=");
 
-  if (parts.length !== 2) {
+  if (separatorIndex === -1) {
     throw new AgentExpectationUsageError(
       `Invalid ${optionName} ${JSON.stringify(value)}. Expected ${example}`,
       optionName,
     );
   }
 
-  const name = parts[0].trim();
-  const filterValue = parts[1].trim();
+  // Split on the first "=" only so values may themselves contain "="
+  // (e.g. content-type=text/html;charset=utf-8 or a label value with "=").
+  const name = value.slice(0, separatorIndex).trim();
+  const filterValue = value.slice(separatorIndex + 1).trim();
 
   if (!name || !filterValue) {
     throw new AgentExpectationUsageError(

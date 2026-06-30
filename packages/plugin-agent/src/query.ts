@@ -10,6 +10,7 @@ import type {
   AgentOutputBundle,
   AgentTestManifestLine,
 } from "./harness.js";
+import { isPathInside } from "./paths.js";
 import type { AgentLabelFilter } from "./selection.js";
 
 export const AGENT_QUERY_SCHEMA = "allure-agent-query/v1";
@@ -152,8 +153,16 @@ const filterAgentQueryFindings = (output: AgentOutputBundle, filters: AgentQuery
 const applyAgentQueryLimit = <T>(items: T[], limit: number | undefined): T[] =>
   limit === undefined ? items : items.slice(0, limit);
 
-const resolveAgentOutputPath = (output: AgentOutputBundle, relativePath: string | null | undefined) =>
-  relativePath ? join(output.outputDir, relativePath) : null;
+const resolveAgentOutputPath = (output: AgentOutputBundle, relativePath: string | null | undefined) => {
+  if (!relativePath) {
+    return null;
+  }
+
+  const resolved = join(output.outputDir, relativePath);
+
+  // Manifest-supplied paths are untrusted; never resolve (or read) outside the output directory.
+  return isPathInside(output.outputDir, resolved) ? resolved : null;
+};
 
 const buildAgentQuerySummaryPayload = (output: AgentOutputBundle) => ({
   schema: AGENT_QUERY_SCHEMA,
@@ -234,6 +243,18 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
   const test = matched[0];
   const markdownPath = resolveAgentOutputPath(output, test.markdown_path);
   const findings = output.findings.filter((finding) => agentFindingSubjectRef(finding) === test.markdown_path);
+  let markdown: string | undefined;
+
+  if (filters.includeMarkdown && markdownPath) {
+    try {
+      markdown = await readFile(markdownPath, "utf-8");
+    } catch {
+      throw new AgentUsageError(
+        `Could not read the per-test markdown for ${JSON.stringify(test.full_name)} at ${JSON.stringify(markdownPath)}; ` +
+          "the agent output is incomplete. Re-run `allure agent` to regenerate it, or omit --include-markdown.",
+      );
+    }
+  }
 
   return {
     schema: AGENT_QUERY_SCHEMA,
@@ -242,7 +263,7 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
     markdown_path: markdownPath,
     test,
     findings,
-    ...(filters.includeMarkdown && markdownPath ? { markdown: await readFile(markdownPath, "utf-8") } : {}),
+    ...(markdown !== undefined ? { markdown } : {}),
   };
 };
 

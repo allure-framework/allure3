@@ -3,8 +3,11 @@ import { join, resolve } from "node:path";
 
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
+import { AgentUsageError } from "./errors.js";
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 import type { AgentHumanReportStatus } from "./model.js";
+import { isPathInside } from "./paths.js";
+import { isFileNotFoundError } from "./utils.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
 export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
@@ -384,14 +387,11 @@ export const ITERATION_REQUIRED_CHECKS = [
   "insufficient-expected-steps",
   "insufficient-expected-attachments",
   "missing-expected-attachment",
-  "failed-without-useful-steps",
-  "failed-without-attachments",
-  "nontrivial-run-with-empty-trace",
-  "retries-without-new-evidence",
-  "passed-without-observable-evidence",
 ] as const;
 
-export const ANTI_DUMMY_CHECKS = ["noop-dominated-steps"] as const;
+// Anti-fakery checks force a reject above the confidence threshold. None ship yet (the previous
+// evidence-shape heuristics were removed); honesty/staleness checks will be added here.
+export const ANTI_DUMMY_CHECKS: readonly string[] = [];
 
 const SEVERITY_ORDER: Record<AgentFindingSeverity, number> = {
   high: 0,
@@ -543,10 +543,7 @@ const impactForFinding = (
     return "reject";
   }
 
-  if (
-    ANTI_DUMMY_CHECKS.includes(checkName as (typeof ANTI_DUMMY_CHECKS)[number]) &&
-    (finding.confidence ?? 0) >= antiDummyConfidenceThreshold
-  ) {
+  if (ANTI_DUMMY_CHECKS.includes(checkName) && (finding.confidence ?? 0) >= antiDummyConfidenceThreshold) {
     return "reject";
   }
 
@@ -582,17 +579,69 @@ export const mapFindingToEnrichmentAction = (finding: AgentFindingManifestLine |
   return mapped ?? { ...FALLBACK_ACTION, checkName };
 };
 
+// Manifest-supplied paths are untrusted (the output directory may be an attacker-supplied bundle),
+// so never read a path that resolves outside the output directory.
+const resolveContainedOutputPath = (outputDir: string, relativePath: string) => {
+  const resolved = join(outputDir, relativePath);
+
+  return isPathInside(outputDir, resolved) ? resolved : undefined;
+};
+
+const readAgentRunManifest = async (outputDir: string): Promise<AgentRunManifest> => {
+  const runManifestPath = join(outputDir, "manifest", "run.json");
+  let raw: string;
+
+  try {
+    raw = await readFile(runManifestPath, "utf-8");
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      throw new AgentUsageError(
+        `No Allure agent output found at ${JSON.stringify(outputDir)} (missing manifest/run.json). ` +
+          "It must be a directory created by a previous `allure agent` run. " +
+          "Run `allure agent latest` to find the most recent output, pass a valid --from <agent-output-dir> or --latest, " +
+          "or run `allure agent <command>` to create one.",
+      );
+    }
+
+    throw error;
+  }
+
+  try {
+    return JSON.parse(raw) as AgentRunManifest;
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(outputDir)} is corrupted: manifest/run.json is not valid JSON. ` +
+        "Re-run `allure agent` to regenerate the output.",
+    );
+  }
+};
+
 export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBundle> => {
   const absoluteOutputDir = resolve(outputDir);
-  const run = await readJson<AgentRunManifest>(join(absoluteOutputDir, "manifest", "run.json"));
-  const tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
-  const findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
-  const expected =
+  const run = await readAgentRunManifest(absoluteOutputDir);
+  let tests: AgentTestManifestLine[];
+  let findings: AgentFindingManifestLine[];
+
+  try {
+    tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
+    findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(absoluteOutputDir)} is incomplete or corrupted: ` +
+        "its test/finding manifests could not be read. Re-run `allure agent` to regenerate the output.",
+    );
+  }
+
+  const expectedManifestPath =
     run.paths.expected_manifest && run.expectations_present
-      ? await readJson<AgentExpectations>(join(absoluteOutputDir, run.paths.expected_manifest))
+      ? resolveContainedOutputPath(absoluteOutputDir, run.paths.expected_manifest)
       : undefined;
-  const humanReport = run.paths.human_report_manifest
-    ? await readJson<AgentHumanReportStatus>(join(absoluteOutputDir, run.paths.human_report_manifest))
+  const expected = expectedManifestPath ? await readJson<AgentExpectations>(expectedManifestPath) : undefined;
+  const humanReportManifestPath = run.paths.human_report_manifest
+    ? resolveContainedOutputPath(absoluteOutputDir, run.paths.human_report_manifest)
+    : undefined;
+  const humanReport = humanReportManifestPath
+    ? await readJson<AgentHumanReportStatus>(humanReportManifestPath)
     : undefined;
 
   return {
@@ -644,12 +693,6 @@ export const planAgentEnrichmentReview = (
   if (!output.run.expectations_present) {
     notes.push(
       "Declare inline expectations or provide an expectations file before the next enrichment iteration so scope checks are comparable.",
-    );
-  }
-
-  if (rejecting.some((item) => item.checkName === "noop-dominated-steps")) {
-    notes.push(
-      "Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.",
     );
   }
 

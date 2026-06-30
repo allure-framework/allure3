@@ -113,11 +113,6 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
     title: "Repair logical test identity",
     guidance: "Use stable, unique history IDs so distinct logical tests do not collapse into one file.",
   },
-  "failed-without-useful-steps": {
-    category: "add-meaningful-steps",
-    title: "Add meaningful setup, action, and assertion steps",
-    guidance: "Wrap only real actions, state transitions, and checks in Allure steps before rerunning.",
-  },
   "expected-step-containing-missing": {
     category: "add-meaningful-steps",
     title: "Add or correct the expected step text",
@@ -137,44 +132,6 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
     category: "add-test-attachments",
     title: "Add the required attachment",
     guidance: "Attach the requested runtime artifact near the relevant action or assertion.",
-  },
-  "failed-without-attachments": {
-    category: "add-test-attachments",
-    title: "Attach focused runtime evidence near the failure",
-    guidance: "Add real payloads, responses, screenshots, DOM snapshots, diffs, or logs near the failing point.",
-  },
-  "nontrivial-run-with-empty-trace": {
-    category: "add-meaningful-steps",
-    title: "Make the execution path observable",
-    guidance: "Expose the real setup, action, and verification path with steps or attachments on the next run.",
-  },
-  "retries-without-new-evidence": {
-    category: "add-retry-diagnostics",
-    title: "Capture what changes between retries",
-    guidance: "Add per-attempt diagnostics so retries show new evidence instead of repeating the same trace.",
-  },
-  "noop-dominated-steps": {
-    category: "collapse-low-signal-trace",
-    title: "Replace noop-style steps with real evidence",
-    guidance:
-      "Keep only steps tied to real actions or checks, and replace bulk event spam with a compact artifact when needed.",
-  },
-  "step-spam": {
-    category: "collapse-low-signal-trace",
-    title: "Reduce low-signal step spam",
-    guidance:
-      "Prefer a smaller set of meaningful steps plus one compact text attachment when the trace is mostly event logs.",
-  },
-  "global-only-artifacts": {
-    category: "add-test-attachments",
-    title: "Move evidence closer to the failing test",
-    guidance:
-      "Use step-scoped or test-scoped attachments near the relevant failing action instead of relying only on global logs.",
-  },
-  "passed-without-observable-evidence": {
-    category: "add-meaningful-steps",
-    title: "Make the success path reviewable",
-    guidance: "Add a few real verification steps or attachments so the passing test shows what it proved.",
   },
 };
 
@@ -334,7 +291,7 @@ export const AGENT_VERIFICATION_RULES = [
 ] as const;
 
 export const AGENT_TEST_ENRICHMENT_BEST_PRACTICES = [
-  "Steps must wrap real actions, state transitions, or assertions. Prefer a small setup/action/assertion narrative over event-by-event step spam.",
+  "Steps should wrap real actions, state transitions, or assertions; let the test's nature decide how granular they are.",
   "Attachments must capture real runtime evidence from that execution: payloads, responses, screenshots, DOM snapshots, diffs, logs, or traces.",
   "Add metadata only when it improves scope review, debugging, or downstream policy. Keep labels and parameters intentionally minimal.",
   "If multiple call sites need the same evidence, instrument the helper once. Example: teach `runCommand` to emit a step instead of wrapping every `runCommand(...)` call site with identical step blocks.",
@@ -350,7 +307,6 @@ export const AGENT_ACCEPTANCE_CHECKLIST = [
   "The rerun matches the intended scope and does not trigger forbidden or unexpected-test findings.",
   "Each touched test shows enough evidence to explain what happened and what was verified.",
   "Retries include per-attempt diagnostics when the same test reruns.",
-  "No high-confidence anti-dummy findings remain, especially `noop-dominated-steps` or low-signal `step-spam` traces.",
 ] as const;
 
 export const AGENT_REVIEW_COMPLETENESS_CHECKLIST = [
@@ -391,7 +347,7 @@ export const AGENT_INSTRUCTIONS_TEMPLATE = `## Allure Agent Mode Instructions
 - Attach only real runtime evidence such as payloads, responses, screenshots, DOM snapshots, diffs, logs, or traces.
 - Keep metadata minimal. Add labels or severity only when scope review, debugging, or quality policy uses them.
 - Instrument stable helpers when several call sites need the same evidence. For example, teach \`runCommand\` to emit a step instead of wrapping every caller.
-- Reject the rerun if scope drifts, evidence stays weak, or high-confidence noop-style findings remain.`;
+- Reject the rerun if scope drifts or evidence stays weak.`;
 
 const renderBullets = (items: readonly string[]) => items.map((item) => `- ${item}`).join("\n");
 

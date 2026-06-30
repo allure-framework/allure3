@@ -303,6 +303,51 @@ describe("agent query payloads", () => {
     );
   });
 
+  it("does not read a per-test markdown_path that escapes the output directory", async () => {
+    const outsideName = `allure-agent-query-outside-${process.pid}.md`;
+    const outsidePath = join(tmpdir(), outsideName);
+    await writeFile(outsidePath, "OUTSIDE SECRET", "utf-8");
+
+    try {
+      const output = createAgentOutput(tempDir!);
+      const tampered: AgentOutputBundle = {
+        ...output,
+        findings: [],
+        tests: [{ ...output.tests[0], full_name: "evil test", markdown_path: `../${outsideName}` }],
+      };
+
+      const payload = await buildAgentQueryPayload(tampered, "test", {
+        labelFilters: [],
+        test: "evil test",
+        includeMarkdown: true,
+      });
+
+      expect(payload).toEqual(expect.objectContaining({ view: "test", markdown_path: null }));
+      expect(payload).not.toHaveProperty("markdown");
+    } finally {
+      await rm(outsidePath, { force: true });
+    }
+  });
+
+  it("fails with a recovery hint when requested per-test markdown is missing", async () => {
+    // The fixture only writes suite-should-fail.md, so suite-should-pass.md is absent on disk.
+    await expect(
+      buildAgentQueryPayload(createAgentOutput(tempDir!), "test", {
+        labelFilters: [],
+        test: "suite should pass",
+        includeMarkdown: true,
+      }),
+    ).rejects.toThrow(AgentUsageError);
+
+    await expect(
+      buildAgentQueryPayload(createAgentOutput(tempDir!), "test", {
+        labelFilters: [],
+        test: "suite should pass",
+        includeMarkdown: true,
+      }),
+    ).rejects.toThrow(/include-markdown/);
+  });
+
   it("should reject ambiguous single-test queries and unsupported enum values", async () => {
     await attachJsonEvidence("invalid query option cases", [
       { view: "test", reason: "missing exact test selector" },
