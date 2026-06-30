@@ -499,7 +499,9 @@ describe("agent command", () => {
     writeFileSync(join(dir, "important.txt"), "keep me");
     // An expectation error is queued so that, without the guard, the flow would reach
     // writeInvalidAgentExpectationOutput (which rm -rf's the dir).
-    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(new AgentExpectationUsageError("invalid expectation"));
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(
+      new AgentExpectationUsageError("invalid expectation"),
+    );
 
     try {
       const command = new AgentCommand();
@@ -518,7 +520,9 @@ describe("agent command", () => {
   it("refuses a non-empty inspect --output before the invalid-expectation fallback can delete it", async () => {
     const dir = mkdtempSync(join(tmpdir(), "allure-agent-invalid-inspect-guard-"));
     writeFileSync(join(dir, "important.txt"), "keep me");
-    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(new AgentExpectationUsageError("invalid expectation"));
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(
+      new AgentExpectationUsageError("invalid expectation"),
+    );
 
     try {
       const command = new AgentInspectCommand();

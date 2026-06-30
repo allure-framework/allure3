@@ -102,7 +102,11 @@ describe("agent run summary", () => {
   it("omits optional sections for a clean pass with no findings or expectations", () => {
     const lines = formatAgentRunSummary({
       outputDir,
-      run: createRun({ actual_exit_code: 0, original_exit_code: 0, summary: { stats: { total: 3, passed: 3 } } as AgentRunManifest["summary"] }),
+      run: createRun({
+        actual_exit_code: 0,
+        original_exit_code: 0,
+        summary: { stats: { total: 3, passed: 3 } } as AgentRunManifest["summary"],
+      }),
     });
     const text = lines.join("\n");
 

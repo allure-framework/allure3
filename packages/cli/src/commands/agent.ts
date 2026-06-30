@@ -697,9 +697,7 @@ export class AgentLatestCommand extends Command {
     }
 
     if (!latestState) {
-      console.error(
-        `No recorded Allure agent output for ${cwd}. Run \`allure agent <command>\` first to create one.`,
-      );
+      console.error(`No recorded Allure agent output for ${cwd}. Run \`allure agent <command>\` first to create one.`);
       exit(1);
       return;
     }

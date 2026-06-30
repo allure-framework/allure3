@@ -2118,5 +2118,4 @@ notes:
     expect(indexContent).toContain("## Needs Attention First");
     expect(indexContent).toContain("None");
   });
-
 });

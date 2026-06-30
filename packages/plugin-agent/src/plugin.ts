@@ -3283,7 +3283,6 @@ const buildRunAndTestFindings = (params: {
         }),
       );
     });
-
   }
 
   return {

@@ -970,5 +970,4 @@ describe("agent enrichment harness", () => {
       ]),
     );
   });
-
 });

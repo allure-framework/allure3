@@ -174,9 +174,7 @@ const isAgentRunActive = (state: AgentRunState) =>
   state.status === "running" && state.pid !== undefined && isProcessAlive(state.pid);
 
 const isManagedOutputStale = (state: AgentRunState, now: number, staleOutputTtlMs: number) =>
-  state.managedOutput &&
-  !isAgentRunActive(state) &&
-  now - getAgentRunStateAgeTimestamp(state) >= staleOutputTtlMs;
+  state.managedOutput && !isAgentRunActive(state) && now - getAgentRunStateAgeTimestamp(state) >= staleOutputTtlMs;
 
 const isAgentOutputDirectory = async (outputDir: string) =>
   (await pathExists(join(outputDir, "manifest", "run.json"))) || (await pathExists(join(outputDir, "index.md")));
