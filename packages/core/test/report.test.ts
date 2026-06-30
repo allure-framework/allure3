@@ -350,6 +350,77 @@ describe("report", () => {
     );
   });
 
+  it("should expose previous self perf metrics from local history in the next awesome report", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const historyDir = await mkdtemp(join(tmpdir(), "allure3-self-perf-history-"));
+    const historyPath = join(historyDir, "history.jsonl");
+    const firstOutput = await mkdtemp(join(tmpdir(), "allure3-self-perf-first-"));
+    const firstConfig = await resolveConfig({
+      name: "Allure Report",
+      output: firstOutput,
+      historyPath,
+    });
+
+    firstConfig.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const firstReport = new AllureReport(firstConfig);
+
+    await firstReport.start();
+    await firstReport.done();
+
+    const firstWidget = JSON.parse(await readFile(join(firstOutput, "widgets", "metrics.json"), "utf8"));
+
+    expect(firstWidget.history).toEqual([]);
+
+    const secondOutput = await mkdtemp(join(tmpdir(), "allure3-self-perf-second-"));
+    const secondConfig = await resolveConfig({
+      name: "Allure Report",
+      output: secondOutput,
+      historyPath,
+    });
+
+    secondConfig.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const secondReport = new AllureReport(secondConfig);
+
+    await secondReport.start();
+    await secondReport.done();
+
+    const secondWidget = JSON.parse(await readFile(join(secondOutput, "widgets", "metrics.json"), "utf8"));
+
+    expect(secondWidget.history).toEqual([
+      expect.objectContaining({
+        uuid: firstReport.reportUuid,
+        name: "Allure Report",
+        metrics: expect.objectContaining({
+          [`${PERF_METRIC_NAMES.allureTotal}.avgMs`]: expect.any(Number),
+        }),
+      }),
+    ]);
+    expect(secondWidget.current).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.allureTotal}.avgMs`,
+        }),
+      ]),
+    );
+  });
+
   it("should not expose self perf metrics in awesome report files when disabled", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-no-self-perf-awesome-"));
     const config = await resolveConfig({
