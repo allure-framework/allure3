@@ -1,9 +1,13 @@
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { basename } from "node:path";
 
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
 import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
+
+const LOCAL_JOB_UID = "local";
+const LOCAL_JOB_RUN_UID = randomUUID();
 
 const readGitRemoteUrl = (): string => {
   const output = spawnSync("git", ["remote", "get-url", "origin"]);
@@ -39,7 +43,7 @@ export const local: CiDescriptor = {
   },
 
   get jobUid(): string {
-    return "";
+    return LOCAL_JOB_UID;
   },
 
   get jobUrl(): string {
@@ -51,7 +55,7 @@ export const local: CiDescriptor = {
   },
 
   get jobRunUid(): string {
-    return "";
+    return LOCAL_JOB_RUN_UID;
   },
 
   get jobRunUrl(): string {
