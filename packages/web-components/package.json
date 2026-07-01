@@ -114,7 +114,7 @@
     "@storybook/theming": "^8.6.17",
     "@storybook/types": "^8.6.17",
     "@svgr/rollup": "^8.1.0",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/preact": "^3.2.4",
     "@types/babel__core": "^7.20.5",
     "@types/d3-array": "^3.2.2",
