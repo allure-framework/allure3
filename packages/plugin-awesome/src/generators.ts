@@ -348,11 +348,12 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     }
   }
 
-  const treeByTitlePath = collapseTreeGroups(
-    createTreeByTitlePath<AwesomeTestResult>(testsWithTitlePath, leafFactory, undefined, (group, leaf) =>
-      incrementStatistic(group.statistic, leaf.status),
-    ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>,
-  );
+  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
+    testsWithTitlePath,
+    leafFactory,
+    undefined,
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
   if (!testsWithoutTitlePath.length) {
     return treeByTitlePath;
