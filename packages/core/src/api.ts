@@ -18,6 +18,8 @@ export interface FullConfig
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
   reportFiles: ReportFiles;
+  sharedReportFiles?: ReportFiles;
+  sharedAssetsFiles?: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
   known?: KnownTestFailure[];

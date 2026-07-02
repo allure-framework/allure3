@@ -9,6 +9,7 @@ import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
+import { SharedAssetsReportFiles, SharedReportFiles } from "./sharedStorage.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -172,6 +173,7 @@ export const validateConfig = (config: Config) => {
     "allureService",
     "categories",
     "globalAttachments",
+    "unifiedStorage",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -351,6 +353,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     historyLimit,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     reportFiles: new FileSystemReportFiles(output),
+    sharedReportFiles: config.unifiedStorage ? new SharedReportFiles(output) : undefined,
+    sharedAssetsFiles: config.unifiedStorage ? new SharedAssetsReportFiles(output) : undefined,
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,

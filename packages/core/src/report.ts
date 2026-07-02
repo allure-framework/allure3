@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
@@ -103,6 +103,8 @@ export class AllureReport {
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
+  readonly #sharedReportFiles: ReportFiles | undefined;
+  readonly #sharedAssetsFiles: ReportFiles | undefined;
   readonly #realtimeChannel: RealtimeChannel;
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
@@ -137,6 +139,8 @@ export class AllureReport {
       plugins = [],
       known,
       reportFiles,
+      sharedReportFiles,
+      sharedAssetsFiles,
       realTime,
       historyPath,
       historyLimit,
@@ -215,6 +219,8 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
+    this.#sharedReportFiles = sharedReportFiles;
+    this.#sharedAssetsFiles = sharedAssetsFiles;
     this.#output = output;
   }
 
@@ -981,7 +987,7 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
-        generateSummary(this.#output, summaries),
+        generateSummary(this.#output, summaries, this.reportName),
       );
     } else {
       this.#summaryPath = undefined;
@@ -1061,23 +1067,34 @@ export class AllureReport {
         return;
       }
 
-      const reportPath = join(this.#output, outputDirFiles[0]);
-      const reportStats = await lstat(reportPath);
-      const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
-      const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
+      const pluginDirectories = outputDirFiles.filter((name) => name !== "_shared");
+      const pluginDirStats = await Promise.all(pluginDirectories.map((file) => lstat(join(this.#output, file))));
+      const pluginDirCount = pluginDirStats.filter((entry) => entry.isDirectory()).length;
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-      if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
-        const reportContent = await readdir(reportPath);
+      if (pluginDirCount === 1) {
+        const pluginDirName = pluginDirectories[pluginDirStats.findIndex((entry) => entry.isDirectory())];
+        const pluginDirPath = join(this.#output, pluginDirName);
+        const reportContent = await readdir(pluginDirPath);
 
         for (const entry of reportContent) {
-          const currentFilePath = join(reportPath, entry);
+          const currentFilePath = join(pluginDirPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 
           await rename(currentFilePath, newFilePath);
         }
 
-        await rm(reportPath, { recursive: true });
+        await rm(pluginDirPath, { recursive: true });
+
+        if (this.#sharedReportFiles) {
+          const indexPath = join(this.#output, "index.html");
+
+          try {
+            const html = await readFile(indexPath, "utf-8");
+
+            await writeFile(indexPath, html.replaceAll("../_shared/", "_shared/"), "utf-8");
+          } catch {}
+        }
       }
 
       // remove all dump temp dirs
@@ -1178,6 +1195,9 @@ export class AllureReport {
         hideLabels: this.#hideLabels,
         state: pluginState,
         reportFiles: pluginFiles,
+        sharedReportFiles: this.#sharedReportFiles,
+        sharedAssetsFiles: this.#sharedAssetsFiles,
+        unifiedStorage: !!this.#sharedReportFiles,
         reportUrl: this.reportUrl,
         realTime: !!this.#realTime,
         output: this.#output,
