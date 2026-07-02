@@ -377,6 +377,60 @@ export const transformTree = <L, G>(
   return processTree(tree, { transform: transformer });
 };
 
+const DEFAULT_GROUP_PATH_SEPARATOR = " > ";
+
+/**
+ * Mutates the given tree by merging chains of groups that have no leaves of their own
+ * and exactly one child group into a single group, e.g. `folder1 > folderEmpty > folder3`.
+ * Mirrors how GitHub collapses directories that only contain a single subdirectory.
+ * Returns the link to the same tree.
+ */
+export const collapseTreeGroups = <L, G extends DefaultTreeGroup>(
+  tree: TreeData<L, G>,
+  separator: string = DEFAULT_GROUP_PATH_SEPARATOR,
+): TreeData<L, G> => {
+  const { root } = tree;
+  const groupsById = tree.groupsById as unknown as Record<string, TreeGroup<DefaultTreeGroup>>;
+  const visited = new Set<string>();
+
+  const collapseChildren = (node: WithChildren) => {
+    node.groups?.forEach((groupId) => {
+      if (visited.has(groupId)) {
+        return;
+      }
+      visited.add(groupId);
+
+      const group = groupsById[groupId];
+
+      if (!group) {
+        return;
+      }
+
+      while (!group.leaves?.length && group.groups?.length === 1) {
+        const child = groupsById[group.groups[0] as string];
+
+        if (!child) {
+          break;
+        }
+
+        group.name = `${group.name}${separator}${child.name}`;
+        group.groups = child.groups;
+        group.leaves = child.leaves;
+        group.statistic = child.statistic;
+
+        delete groupsById[child.nodeId];
+        visited.delete(child.nodeId);
+      }
+
+      collapseChildren(group);
+    });
+  };
+
+  collapseChildren(root);
+
+  return tree;
+};
+
 export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
   data: T[],
   leafFactory?: (item: T) => TreeLeaf<L>,
