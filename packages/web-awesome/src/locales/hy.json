@@ -111,7 +111,8 @@
     "no-test-steps-results": "Թեստի քայլերի մասին տեղեկատվությունը հասանելի չէ։",
     "no-test-case-results": "Թեստի դեպքերի արդյունքներ չկան։",
     "no-environments-results": "Համակարգչային միջավայրի մասին տեղեկություններ չկան",
-    "no-categories-results": "Կատեգորիաներ հասանելի չեն"
+    "no-categories-results": "Կատեգորիաներ հասանելի չեն",
+    "no-metrics-results": "Մետրիկաներ չկան"
   },
   "severity": {
     "blocker": "արգելափակում",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Գրաֆիկներ",
-    "timeline": "Ժամանակային գիծ"
+    "timeline": "Ժամանակային գիծ",
+    "metrics": "Մետրիկաներ"
   },
   "timeline": {
     "empty": "Տվյալներ չկան",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Արտադրողականության մետրիկաներ",
+      "phaseSummary": "Մետրիկաների ամփոփում",
+      "currentValues": "Ընթացիկ արժեքներ",
+      "historyTitle": "Մետրիկայի պատմություն",
+      "noHistory": "Այս մետրիկայի համար պատմություն դեռ չկա",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Մետրիկա",
+        "phase": "Մետրիկաների հավաքածու",
+        "count": "Քանակ",
+        "total": "Ընդամենը",
+        "avg": "Միջին",
+        "min": "Նվազ.",
+        "max": "Առավ.",
+        "value": "Արժեք",
+        "delta": "Փոփոխություն",
+        "trend": "Միտում",
+        "source": "Աղբյուր",
+        "report": "Հաշվետվություն",
+        "date": "Ամսաթիվ"
+      },
+      "summary": "{{groups}} ամփոփ տող / {{metrics}} մետրիկա",
+      "groups": {
+        "other": "Այլ"
       }
     }
   },

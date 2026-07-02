@@ -111,7 +111,8 @@
     "no-test-steps-results": "Нет информации о шагах тестирования",
     "no-test-case-results": "Нет результатов тест-кейсов",
     "no-environments-results": "Информация об окружениях отсутствует",
-    "no-categories-results": "Нет доступных результатов по категориям"
+    "no-categories-results": "Нет доступных результатов по категориям",
+    "no-metrics-results": "Метрики отсутствуют"
   },
   "severity": {
     "blocker": "блокер",
@@ -256,7 +257,8 @@
   "sections": {
     "report": "Отчет",
     "charts": "Графики",
-    "timeline": "Таймлайн"
+    "timeline": "Таймлайн",
+    "metrics": "Метрики"
   },
   "timeline": {
     "empty": "Нет данных",
@@ -459,6 +461,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Метрики производительности",
+      "phaseSummary": "Сводка метрик",
+      "currentValues": "Текущие значения",
+      "historyTitle": "История метрики",
+      "noHistory": "Для этой метрики пока нет истории",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Метрика",
+        "phase": "Набор метрик",
+        "count": "Количество",
+        "total": "Итого",
+        "avg": "Среднее",
+        "min": "Мин.",
+        "max": "Макс.",
+        "value": "Значение",
+        "delta": "Изменение",
+        "trend": "Тренд",
+        "source": "Источник",
+        "report": "Отчёт",
+        "date": "Дата"
+      },
+      "summary": "{{groups}} строк сводки / {{metrics}} метрик",
+      "groups": {
+        "other": "Прочее"
       }
     }
   },

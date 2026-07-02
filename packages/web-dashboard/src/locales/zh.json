@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "性能指标",
+      "table": {
+        "metric": "指标",
+        "value": "值",
+        "delta": "变化",
+        "source": "来源"
+      }
     }
   },
   "transitions": {

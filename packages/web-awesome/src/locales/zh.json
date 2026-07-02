@@ -111,7 +111,8 @@
     "no-test-steps-results": "没有可用的测试步骤信息",
     "no-test-case-results": "没有测试用例结果",
     "no-environments-results": "没有环境信息",
-    "no-categories-results": "暂无可用的分类结果"
+    "no-categories-results": "暂无可用的分类结果",
+    "no-metrics-results": "没有可用指标"
   },
   "severity": {
     "blocker": "阻断",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "图形",
-    "timeline": "时间轴"
+    "timeline": "时间轴",
+    "metrics": "指标"
   },
   "timeline": {
     "empty": "无数据",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "性能指标",
+      "phaseSummary": "指标摘要",
+      "currentValues": "当前值",
+      "historyTitle": "指标历史",
+      "noHistory": "此指标暂无历史记录",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "指标",
+        "phase": "指标集",
+        "count": "数量",
+        "total": "总计",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "value": "值",
+        "delta": "变化",
+        "trend": "趋势",
+        "source": "来源",
+        "report": "报告",
+        "date": "日期"
+      },
+      "summary": "{{groups}} 个摘要行 / {{metrics}} 个指标",
+      "groups": {
+        "other": "其他"
       }
     }
   },

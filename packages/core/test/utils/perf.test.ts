@@ -56,10 +56,12 @@ describe("perf metrics", () => {
 
     expect(payload.summary).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
         expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 }),
         expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
       ]),
     );
+    expect(payload.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
   });
 
   it("records spans when the measured function fails", async () => {
@@ -71,9 +73,12 @@ describe("perf metrics", () => {
       }),
     ).rejects.toThrow("generation failed");
 
-    expect(getPerfMetricsPayload().summary).toEqual([
-      expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
-    ]);
+    expect(getPerfMetricsPayload().summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
+      ]),
+    );
   });
 
   it("clears perf_hooks marks and measures after each span", async () => {
@@ -103,7 +108,13 @@ describe("perf metrics", () => {
         durationMs: expect.any(Number),
       }),
     ]);
-    expect(payload.summary).toEqual([expect.objectContaining({ name: PERF_METRIC_NAMES.summaryGenerate, count: 1 })]);
+    expect(payload.summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
+        expect.objectContaining({ name: PERF_METRIC_NAMES.summaryGenerate, count: 1 }),
+      ]),
+    );
+    expect(payload.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
     expect(getPerfMetricsPayload().spans).toEqual([]);
   });
 });

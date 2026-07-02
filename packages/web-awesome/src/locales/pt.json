@@ -111,7 +111,8 @@
     "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
     "no-test-case-results": "Nenhum resultado de caso de teste",
     "no-environments-results": "Nenhuma informação de ambiente disponível",
-    "no-categories-results": "Nenhum resultado de categorias disponível"
+    "no-categories-results": "Nenhum resultado de categorias disponível",
+    "no-metrics-results": "Nenhuma métrica disponível"
   },
   "severity": {
     "blocker": "bloqueador",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Gráficos",
-    "timeline": "Linha do tempo"
+    "timeline": "Linha do tempo",
+    "metrics": "Métricas"
   },
   "timeline": {
     "empty": "Sem dados",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Métricas de desempenho",
+      "phaseSummary": "Resumo de métricas",
+      "currentValues": "Valores atuais",
+      "historyTitle": "Histórico da métrica",
+      "noHistory": "Ainda não há histórico para esta métrica",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Métrica",
+        "phase": "Conjunto de métricas",
+        "count": "Contagem",
+        "total": "Total",
+        "avg": "Média",
+        "min": "Mín.",
+        "max": "Máx.",
+        "value": "Valor",
+        "delta": "Variação",
+        "trend": "Tendência",
+        "source": "Origem",
+        "report": "Relatório",
+        "date": "Data"
+      },
+      "summary": "{{groups}} linhas de resumo / {{metrics}} métricas",
+      "groups": {
+        "other": "Outro"
       }
     }
   },

@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "წარმადობის მეტრიკები",
+      "table": {
+        "metric": "მეტრიკა",
+        "value": "მნიშვნელობა",
+        "delta": "ცვლილება",
+        "source": "წყარო"
+      }
     }
   },
   "transitions": {

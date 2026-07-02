@@ -648,6 +648,65 @@ describe("AllureReport.restoreState (dump zip)", () => {
       await archive.close();
     }
   });
+
+  it("writes and restores metrics from a dump", async () => {
+    const dumpPath = join(tmpdir(), `allure-metrics-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const metrics = [
+      {
+        key: "generate.total.avgMs",
+        value: 128.5,
+        unit: "ms",
+        source: "perf.json",
+        better: "lower" as const,
+      },
+      {
+        key: "browser.coldLoadMs",
+        value: 640,
+        unit: "ms",
+        source: "perf.json",
+        better: "lower" as const,
+      },
+    ];
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await step("write metrics to a dump archive", async () => {
+      await report.start();
+      await report.store.visitMetrics(metrics);
+      await report.done();
+    });
+
+    const archive = new ZipReadStream.async({
+      file: zipPath,
+    });
+
+    try {
+      const metricsEntry = await archive.entryData(AllureStoreDumpFiles.Metrics);
+
+      await attachment("dump metrics entry", metricsEntry.toString("utf8"), "application/json");
+      expect(JSON.parse(metricsEntry.toString("utf8"))).toEqual(metrics);
+    } finally {
+      await archive.close();
+    }
+
+    const restoredReport = new AllureReport({
+      ...config,
+      plugins: [],
+    });
+
+    await step("restore metrics from the dump archive", async () => {
+      await expect(restoredReport.restoreState([zipPath])).resolves.toBeUndefined();
+      await expect(restoredReport.store.allMetrics()).resolves.toEqual(metrics);
+    });
+  });
 });
 
 describe("AllureReport.restoreState (zip path validation layers)", () => {

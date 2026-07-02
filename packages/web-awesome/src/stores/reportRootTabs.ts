@@ -1,6 +1,4 @@
 import { categoriesStore } from "@/stores/categories";
-import { currentEnvironment } from "@/stores/env";
-import { globalsStore } from "@/stores/globals";
 import {
   navigateToPlainTestResult,
   navigateToRoot,
@@ -36,7 +34,9 @@ export const getAvailableReportRootTabs = (): ReportRootTabId[] => {
     tabs.push(REPORT_ROOT_TAB.Categories);
   }
 
-  tabs.push(REPORT_ROOT_TAB.QualityGate, REPORT_ROOT_TAB.GlobalAttachments, REPORT_ROOT_TAB.GlobalErrors);
+  tabs.push(REPORT_ROOT_TAB.QualityGate);
+
+  tabs.push(REPORT_ROOT_TAB.GlobalAttachments, REPORT_ROOT_TAB.GlobalErrors);
 
   return tabs;
 };

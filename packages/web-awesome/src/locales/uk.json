@@ -111,7 +111,8 @@
     "no-test-steps-results": "Немає інформації про кроки тестування",
     "no-test-case-results": "Немає результатів тест-кейсів",
     "no-environments-results": "Інформація про оточення відсутня",
-    "no-categories-results": "Немає доступних результатів за категоріями"
+    "no-categories-results": "Немає доступних результатів за категоріями",
+    "no-metrics-results": "Немає доступних метрик"
   },
   "severity": {
     "blocker": "блокер",
@@ -195,7 +196,8 @@
   },
   "sections": {
     "report": "Звіт",
-    "charts": "Графіки"
+    "charts": "Графіки",
+    "metrics": "Метрики"
   },
   "charts": {
     "trend": {
@@ -342,6 +344,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Метрики продуктивності",
+      "phaseSummary": "Зведення метрик",
+      "currentValues": "Поточні значення",
+      "historyTitle": "Історія метрики",
+      "noHistory": "Для цієї метрики ще немає історії",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Метрика",
+        "phase": "Набір метрик",
+        "count": "Кількість",
+        "total": "Усього",
+        "avg": "Середнє",
+        "min": "Мін.",
+        "max": "Макс.",
+        "value": "Значення",
+        "delta": "Зміна",
+        "trend": "Тренд",
+        "source": "Джерело",
+        "report": "Звіт",
+        "date": "Дата"
+      },
+      "summary": "{{groups}} рядків зведення / {{metrics}} метрик",
+      "groups": {
+        "other": "Інше"
       }
     }
   },

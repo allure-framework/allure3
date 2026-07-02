@@ -111,7 +111,8 @@
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
     "no-test-case-results": "Nessun risultato dei casi di test",
     "no-environments-results": "Nessuna informazione sugli ambienti disponibile",
-    "no-categories-results": "Nessuna categoria disponibile"
+    "no-categories-results": "Nessuna categoria disponibile",
+    "no-metrics-results": "Nessuna metrica disponibile"
   },
   "severity": {
     "blocker": "bloccante",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafici",
-    "timeline": "Cronologia"
+    "timeline": "Cronologia",
+    "metrics": "Metriche"
   },
   "timeline": {
     "empty": "Nessun dato",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Metriche delle prestazioni",
+      "phaseSummary": "Riepilogo metriche",
+      "currentValues": "Valori attuali",
+      "historyTitle": "Storico della metrica",
+      "noHistory": "Nessuno storico ancora per questa metrica",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrica",
+        "phase": "Set di metriche",
+        "count": "Conteggio",
+        "total": "Totale",
+        "avg": "Media",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Valore",
+        "delta": "Variazione",
+        "trend": "Tendenza",
+        "source": "Origine",
+        "report": "Report",
+        "date": "Data"
+      },
+      "summary": "{{groups}} righe di riepilogo / {{metrics}} metriche",
+      "groups": {
+        "other": "Altro"
       }
     }
   },

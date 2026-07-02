@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Performans metrikleri",
+      "table": {
+        "metric": "Metrik",
+        "value": "Değer",
+        "delta": "Değişim",
+        "source": "Kaynak"
+      }
     }
   },
   "transitions": {

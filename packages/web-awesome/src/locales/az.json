@@ -111,7 +111,8 @@
     "no-test-steps-results": "Test addımları haqqında məlumat yoxdur",
     "no-test-case-results": "Test halları üzrə nəticə yoxdur",
     "no-environments-results": "Mühitlər haqqında məlumat yoxdur",
-    "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur"
+    "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur",
+    "no-metrics-results": "Metrik yoxdur"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Hesabat",
     "charts": "Qrafiklər",
-    "timeline": "Zaman xətti"
+    "timeline": "Zaman xətti",
+    "metrics": "Metriklər"
   },
   "timeline": {
     "empty": "Məlumat yoxdur",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Performans metrikləri",
+      "phaseSummary": "Metrik xülasəsi",
+      "currentValues": "Cari dəyərlər",
+      "historyTitle": "Metrik tarixçəsi",
+      "noHistory": "Bu metrik üçün hələ tarixçə yoxdur",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrika",
+        "phase": "Metrik dəsti",
+        "count": "Say",
+        "total": "Cəmi",
+        "avg": "Orta",
+        "min": "Min.",
+        "max": "Maks.",
+        "value": "Dəyər",
+        "delta": "Fərq",
+        "trend": "Trend",
+        "source": "Mənbə",
+        "report": "Hesabat",
+        "date": "Tarix"
+      },
+      "summary": "{{groups}} xülasə sətri / {{metrics}} metrik",
+      "groups": {
+        "other": "Digər"
       }
     }
   },

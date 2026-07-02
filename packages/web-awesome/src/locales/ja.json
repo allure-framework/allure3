@@ -111,7 +111,8 @@
     "no-test-steps-results": "テスト手順の情報は利用できません",
     "no-test-case-results": "テストケースの結果がありません",
     "no-environments-results": "環境情報が利用できません",
-    "no-categories-results": "利用可能なカテゴリはありません"
+    "no-categories-results": "利用可能なカテゴリはありません",
+    "no-metrics-results": "利用できるメトリクスはありません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "グラフ",
-    "timeline": "タイムライン"
+    "timeline": "タイムライン",
+    "metrics": "メトリクス"
   },
   "timeline": {
     "empty": "データなし",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "パフォーマンスメトリクス",
+      "phaseSummary": "メトリクス概要",
+      "currentValues": "現在の値",
+      "historyTitle": "メトリクス履歴",
+      "noHistory": "このメトリクスの履歴はまだありません",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "メトリクス",
+        "phase": "メトリクスセット",
+        "count": "件数",
+        "total": "合計",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "value": "値",
+        "delta": "差分",
+        "trend": "傾向",
+        "source": "ソース",
+        "report": "レポート",
+        "date": "日付"
+      },
+      "summary": "概要行 {{groups}} 件 / メトリクス {{metrics}} 件",
+      "groups": {
+        "other": "その他"
       }
     }
   },

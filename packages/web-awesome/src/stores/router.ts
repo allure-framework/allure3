@@ -48,11 +48,14 @@ export const navigateToRootTabTestResult = (params: { rootTab: string; testResul
   routerNavigateTo({ path: "/:rootTab/:testResultId/:tab?", params: normalized, keepSearchParams: true });
 };
 
-export const navigateToSection = (params: { section: "timeline" | "charts" }) => {
+export const SECTION_ROUTE_NAMES = ["charts", "timeline", "metrics"] as const;
+
+export type SectionRouteName = (typeof SECTION_ROUTE_NAMES)[number];
+
+export const navigateToSection = (params: { section: SectionRouteName }) => {
   routerNavigateTo({ path: "/:section", params, keepSearchParams: true, replace: false });
 };
 
-const sections = ["charts", "timeline"];
 const rootTabs = ["categories", "qualityGate", "globalAttachments", "globalErrors"];
 
 export const rootTabRoute = computed(() =>
@@ -71,7 +74,7 @@ export const testResultRoute = computed(() =>
     return (
       params.testResultId &&
       params.testResultId !== "categories" &&
-      !sections.includes(params.testResultId) &&
+      !SECTION_ROUTE_NAMES.includes(params.testResultId as SectionRouteName) &&
       !rootTabs.includes(params.testResultId)
     );
   }),
@@ -80,8 +83,8 @@ export const testResultRoute = computed(() =>
 export const rootRoute = computed(() => createRoute<{}>("/"));
 
 export const sectionRoute = computed(() =>
-  createRoute<{ section: "timeline" | "charts" }>("/:section", ({ params }) => {
-    return sections.includes(params.section);
+  createRoute<{ section: SectionRouteName }>("/:section", ({ params }) => {
+    return SECTION_ROUTE_NAMES.includes(params.section);
   }),
 );
 

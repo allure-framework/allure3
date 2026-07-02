@@ -21,6 +21,7 @@ import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stor
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchGlobals } from "@/stores/globals";
 import { isLayoutLoading, layoutStore } from "@/stores/layout";
+import { fetchMetricsData } from "@/stores/metrics";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
@@ -61,6 +62,7 @@ const App = () => {
       fetchGlobals,
       fetchQualityGateResults,
       fetchCategoriesData,
+      fetchMetricsData,
     ];
 
     if (globalThis) {

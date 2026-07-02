@@ -6,7 +6,12 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 
-import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
+import {
+  generateAllCharts,
+  generateEnvirontmentsList,
+  generateMetricsWidget,
+  generateStaticFiles,
+} from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
@@ -15,9 +20,18 @@ export class DashboardPlugin implements Plugin {
 
   constructor(readonly options: DashboardPluginOptions = {}) {}
 
+  #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
+    if (!this.#writer) {
+      throw new Error("call start first");
+    }
+
+    await this.#generate(context, store);
+  };
+
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context, this.options.filter);
     await generateEnvirontmentsList(this.#writer!, store);
+    await generateMetricsWidget(this.#writer!, store);
 
     const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles() : [];
 
@@ -40,19 +54,15 @@ export class DashboardPlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   done = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
+    await this.#generateAfterStart(context, store);
+  };
 
-    await this.#generate(context, store);
+  refresh = async (context: PluginContext, store: AllureStore) => {
+    await this.#generateAfterStart(context, store);
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
