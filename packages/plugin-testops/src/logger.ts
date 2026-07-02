@@ -1,53 +1,115 @@
 import console from "node:console";
-import { env } from "node:process";
-import { inspect } from "node:util";
 
+import {
+  createLogger,
+  Logger as CoreLogger,
+  type LogLevel,
+  type LogRecord,
+  type Transport,
+} from "@allurereport/logger";
 import ProgressBar from "progress";
 import { blue, bold, cyan, dim, gray, red, yellow } from "yoctocolors";
 
-type LogLevel = "silent" | "verbose" | "debug" | "info" | "warn" | "error";
+type LogMessage = string | Record<string, unknown> | Array<unknown>;
 
-type JSONMessage = Record<string, unknown> | Array<unknown>;
+const TESTOPS_REDACT_PATHS = [
+  "password",
+  "secret",
+  "authorization",
+  "accessToken",
+  "apiToken",
+  "*.token",
+  "*.password",
+  "*.secret",
+  "req.headers.authorization",
+] as const;
 
-const logLevelsPriority = {
-  silent: Number.MAX_SAFE_INTEGER,
-  verbose: 0,
-  debug: 1,
-  info: 2,
-  warn: 3,
-  error: 4,
-} as const;
+const formatMessage = (record: LogRecord): string => {
+  const { msg, name: _name, level: _level, time: _time, ...rest } = record;
+  const keys = Object.keys(rest);
 
-function getLogLevelFromEnv(): LogLevel {
-  if (env.LOG_LEVEL) {
-    return env.LOG_LEVEL as LogLevel;
+  if (keys.length === 0) {
+    return msg ?? "";
   }
 
-  if (env.ALLURE_LOG_LEVEL) {
-    return env.ALLURE_LOG_LEVEL as LogLevel;
+  const payload = JSON.stringify(rest, null, 2);
+
+  return msg ? `${msg}\n${payload}` : payload;
+};
+
+const styleByLevel = (level: LogLevel, message: string): string => {
+  switch (level) {
+    case "trace":
+      return dim(gray(message));
+    case "debug":
+      return gray(message);
+    case "info":
+      return blue(message);
+    case "warn":
+      return yellow(message);
+    case "error":
+    case "fatal":
+      return red(message);
+    default:
+      return message;
+  }
+};
+
+const writeByLevel = (level: LogLevel, message: string): void => {
+  switch (level) {
+    case "debug":
+    case "trace":
+      console.debug(message);
+      break;
+    case "info":
+      console.info(message);
+      break;
+    case "warn":
+      console.warn(message);
+      break;
+    case "error":
+    case "fatal":
+      console.error(message);
+      break;
+    default:
+      console.log(message);
+  }
+};
+
+type LogPayload = string | Record<string, unknown>;
+type WritableLevel = Exclude<LogLevel, "silent">;
+
+const normalizeMessage = (message: LogMessage): LogPayload => {
+  if (Array.isArray(message)) {
+    return JSON.stringify(message, null, 2);
   }
 
-  if (env.NODE_ENV === "development") {
-    return "debug";
-  }
-
-  return "info";
-}
+  return message;
+};
 
 export class Logger {
-  #level: LogLevel = getLogLevelFromEnv();
-  #prefix: string;
+  readonly #log: CoreLogger;
+  readonly #prefix;
 
-  constructor(private readonly loggerName: string) {
-    this.#prefix = cyan(bold(`[${this.loggerName}]:`));
+  constructor(readonly name: string) {
+    this.#prefix = cyan(bold(`[${name}]:`));
+    this.#log = createLogger({
+      name,
+      redact: [...TESTOPS_REDACT_PATHS],
+      transports: [this.#createTransport()],
+    });
   }
 
-  #isLogLevel(level: LogLevel) {
-    return logLevelsPriority[this.#level] <= logLevelsPriority[level];
+  #createTransport(): Transport {
+    return (_line: string, record: LogRecord) => {
+      const message = styleByLevel(record.level, formatMessage(record));
+
+      writeByLevel(record.level, `${this.#prefix} ${message}`);
+    };
   }
 
   #isSilent() {
-    return this.#level === "silent";
+    return !this.#log.isLevelEnabled("fatal");
   }
 
   progressBarCounter(message: string, total: number) {
@@ -59,13 +121,12 @@ export class Logger {
       };
     }
 
-    const progressBar = new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :current/:total`, {
+    return new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :current/:total`, {
       total,
       width: 20,
     });
-
-    return progressBar;
   }
+
   progressBar(message: string) {
     if (this.#isSilent()) {
       return {
@@ -74,88 +135,49 @@ export class Logger {
       };
     }
 
-    const progressBar = new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :percent`, {
+    return new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :percent`, {
       total: 100,
       width: 20,
     });
-    return progressBar;
   }
 
-  verbose(message: string | JSONMessage) {
-    if (!this.#isLogLevel("verbose")) {
-      return;
-    }
-
-    if (typeof message === "string") {
-      console.log(`${this.#prefix} ${dim(gray(message))}`);
-      return;
-    }
-
-    console.log(`${this.#prefix} ${dim(gray(JSON.stringify(message, null, 2)))}`);
+  #write(level: WritableLevel, message: LogMessage) {
+    this.#log[level](normalizeMessage(message));
   }
 
-  debug(message: string | JSONMessage) {
-    if (!this.#isLogLevel("debug")) {
-      return;
-    }
+  trace(message: LogMessage) {
+    this.#write("trace", message);
+  }
 
-    if (typeof message === "string") {
-      console.debug(`${this.#prefix} ${gray(message)}`);
-      return;
-    }
-
-    console.debug(`${this.#prefix} ${gray(JSON.stringify(message, null, 2))}`);
+  debug(message: LogMessage) {
+    this.#write("debug", message);
   }
 
   newLine() {
     console.log("\n");
   }
 
-  info(message: string | JSONMessage) {
-    if (!this.#isLogLevel("info")) {
-      return;
-    }
-
-    if (typeof message === "string") {
-      console.info(`${this.#prefix} ${blue(message)}`);
-      return;
-    }
-
-    console.info(`${this.#prefix} ${blue(JSON.stringify(message, null, 2))}`);
+  info(message: LogMessage) {
+    this.#write("info", message);
   }
 
-  warn(message: string | JSONMessage) {
-    if (!this.#isLogLevel("warn")) {
-      return;
-    }
-
-    if (typeof message === "string") {
-      console.warn(`${this.#prefix} ${yellow(message)}`);
-      return;
-    }
-
-    console.warn(`${this.#prefix} ${yellow(JSON.stringify(message, null, 2))}`);
+  warn(message: LogMessage) {
+    this.#write("warn", message);
   }
 
-  error(message: string | JSONMessage) {
-    if (!this.#isLogLevel("error")) {
-      return;
-    }
+  error(message: LogMessage) {
+    this.#write("error", message);
+  }
 
-    if (typeof message === "string") {
-      console.error(`${this.#prefix} ${red(message)}`);
-      return;
-    }
-
-    console.error(`${this.#prefix} ${red(JSON.stringify(message, null, 2))}`);
+  fatal(message: LogMessage) {
+    this.#write("fatal", message);
   }
 
   inspect(value: unknown) {
-    if (!this.#isLogLevel("debug")) {
+    if (!this.#log.isLevelEnabled("debug")) {
       return;
     }
 
-    console.log(`${this.#prefix} inspect`);
-    inspect(value);
+    this.#log.debug({ value }, "inspect");
   }
 }
