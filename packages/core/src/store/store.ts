@@ -534,12 +534,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   // history state
 
-  async readHistory(): Promise<HistoryDataPoint[]> {
+  async readHistory(options?: { force?: boolean }): Promise<HistoryDataPoint[]> {
+    const { force = false } = options ?? {};
     if (!this.#history) {
       return [];
     }
 
-    this.#historyPoints = ((await this.#history.readHistory()) ?? [])
+    this.#historyPoints = ((await this.#history.readHistory({ force })) ?? [])
       .filter(
         (historyPoint): historyPoint is HistoryDataPoint => typeof historyPoint === "object" && historyPoint !== null,
       )
@@ -756,12 +757,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         : calculateParametersHash(testResult.parameters);
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
-    const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
-
-    if (trHistory !== undefined) {
-      testResult.transition = getStatusTransition(testResult, trHistory);
-      testResult.flaky = isFlaky(testResult, trHistory);
-    }
+    this.#applyHistoryStatuses(testResult);
 
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
@@ -1148,6 +1144,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const tr = this.#testResults.get(trId);
 
     return this.#retriesByTr(tr);
+  }
+
+  #reapplyHistoryStatuses(): void {
+    for (const testResult of this.#testResults.values()) {
+      this.#applyHistoryStatuses(testResult);
+    }
+  }
+
+  #applyHistoryStatuses(testResult: TestResult): void {
+    if (!this.#history) {
+      return;
+    }
+
+    if (this.#historyPoints.length > 0) {
+      const trHistory = this.#historyByTr(testResult) ?? [];
+
+      testResult.flaky = isFlaky(testResult, trHistory);
+      testResult.transition = getStatusTransition(testResult, trHistory);
+    }
   }
 
   #historyByTr(tr: TestResult): HistoryTestResult[] | undefined {
@@ -1749,5 +1764,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
+
+    if (this.#history) {
+      await this.readHistory();
+      this.#reapplyHistoryStatuses();
+    }
   }
 }

@@ -17,8 +17,32 @@ import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
 
-  async readHistory(): Promise<HistoryDataPoint[]> {
+  async readHistory(_params?: { force?: boolean }): Promise<HistoryDataPoint[]> {
     return this.history;
+  }
+
+  async appendHistory(): Promise<void> {}
+}
+
+class CachingAllureTestHistory implements AllureHistory {
+  private cached: HistoryDataPoint[] | null = null;
+  private loadCount = 0;
+
+  readonly readCalls: Array<{ force?: boolean } | undefined> = [];
+
+  constructor(private readonly versions: HistoryDataPoint[][]) {}
+
+  async readHistory(params?: { force?: boolean }): Promise<HistoryDataPoint[]> {
+    this.readCalls.push(params);
+
+    if (!params?.force && this.cached) {
+      return this.cached;
+    }
+
+    this.cached = this.versions[Math.min(this.loadCount, this.versions.length - 1)];
+    this.loadCount++;
+
+    return this.cached;
   }
 
   async appendHistory(): Promise<void> {}
@@ -2147,6 +2171,255 @@ describe("history", () => {
         status: "broken",
       }),
     ]);
+  });
+
+  describe("readHistory force option", () => {
+    const createHistoryDataPoint = (uuid: string): HistoryDataPoint => ({
+      uuid,
+      name: "Allure Report",
+      timestamp: 1,
+      testResults: {},
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    });
+
+    it("should pass force to history source and reload history points", async () => {
+      const history = new CachingAllureTestHistory([
+        [createHistoryDataPoint("hp-1")],
+        [createHistoryDataPoint("hp-2")],
+      ]);
+      const store = new DefaultAllureStore({ history });
+
+      const first = await store.readHistory();
+
+      expect(first.map((point) => point.uuid)).toEqual(["hp-1"]);
+      expect(history.readCalls).toEqual([{ force: false }]);
+
+      const cached = await store.readHistory();
+
+      expect(cached.map((point) => point.uuid)).toEqual(["hp-1"]);
+      expect(history.readCalls).toEqual([{ force: false }, { force: false }]);
+
+      const forced = await store.readHistory({ force: true });
+
+      expect(forced.map((point) => point.uuid)).toEqual(["hp-2"]);
+      expect(history.readCalls).toEqual([{ force: false }, { force: false }, { force: true }]);
+    });
+
+    it("should read history without force when restoring dump state", async () => {
+      const history = new CachingAllureTestHistory([[createHistoryDataPoint("hp-1")]]);
+      const source = new DefaultAllureStore({ history });
+
+      await source.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+      const dump = source.dumpState();
+      const target = new DefaultAllureStore({ history });
+
+      await target.restoreState(dump);
+
+      expect(history.readCalls).toEqual([{ force: false }]);
+    });
+  });
+
+  describe("transition and flaky", () => {
+    const createHistoryDataPoint = (
+      testResults: HistoryDataPoint["testResults"],
+      timestamp = 123,
+    ): HistoryDataPoint => ({
+      uuid: `hp-${timestamp}`,
+      name: "Allure Report",
+      timestamp,
+      testResults,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    });
+
+    it("should not set transition when no history source is configured", async () => {
+      const store = new DefaultAllureStore();
+
+      await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.transition).toBeUndefined();
+      expect(tr.flaky).toBe(false);
+    });
+
+    it("should not set transition when history data points are empty", async () => {
+      const store = new DefaultAllureStore({ history: new AllureTestHistory([]) });
+
+      await store.readHistory();
+      await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.transition).toBeUndefined();
+      expect(tr.flaky).toBe(false);
+    });
+
+    it("should mark transition as new when history exists but test has no prior runs", async () => {
+      const store = new DefaultAllureStore({
+        history: new AllureTestHistory([
+          createHistoryDataPoint({
+            "other-history-id": {
+              id: "other-id",
+              name: "other-name",
+              status: "passed",
+              url: "",
+              historyId: "other-history-id",
+            },
+          }),
+        ]),
+      });
+
+      await store.readHistory();
+      await store.visitTestResult({ name: "tr1", testId: "test1", status: "passed" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.transition).toBe("new");
+      expect(tr.flaky).toBe(false);
+    });
+
+    it("should set regressed transition when test status changed from passed to failed", async () => {
+      const testId = "some-test-id";
+      const historyId = `${md5(testId)}.${md5("")}`;
+      const store = new DefaultAllureStore({
+        history: new AllureTestHistory([
+          createHistoryDataPoint({
+            [historyId]: {
+              id: "history-id",
+              name: "history-name",
+              status: "passed",
+              url: "",
+              historyId,
+            },
+          }),
+        ]),
+      });
+
+      await store.readHistory();
+      await store.visitTestResult({ name: "tr1", testId, status: "failed" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.transition).toBe("regressed");
+      expect(tr.flaky).toBe(false);
+    });
+
+    it("should set fixed transition when test status changed from failed to passed", async () => {
+      const testId = "some-test-id";
+      const historyId = `${md5(testId)}.${md5("")}`;
+      const store = new DefaultAllureStore({
+        history: new AllureTestHistory([
+          createHistoryDataPoint({
+            [historyId]: {
+              id: "history-id",
+              name: "history-name",
+              status: "failed",
+              url: "",
+              historyId,
+            },
+          }),
+        ]),
+      });
+
+      await store.readHistory();
+      await store.visitTestResult({ name: "tr1", testId, status: "passed" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.transition).toBe("fixed");
+      expect(tr.flaky).toBe(false);
+    });
+
+    it("should detect flaky test from alternating passed and failed history", async () => {
+      const testId = "some-test-id";
+      const historyId = `${md5(testId)}.${md5("")}`;
+      const now = Date.now();
+      const store = new DefaultAllureStore({
+        history: new AllureTestHistory([
+          createHistoryDataPoint(
+            {
+              [historyId]: {
+                id: "history-passed",
+                name: "history-name",
+                status: "passed",
+                url: "",
+                historyId,
+              },
+            },
+            now,
+          ),
+          createHistoryDataPoint(
+            {
+              [historyId]: {
+                id: "history-failed",
+                name: "history-name",
+                status: "failed",
+                url: "",
+                historyId,
+              },
+            },
+            now - 1000,
+          ),
+        ]),
+      });
+
+      await store.readHistory();
+      await store.visitTestResult({ name: "tr1", testId, status: "failed" }, { readerId });
+
+      const [tr] = await store.allTestResults();
+
+      expect(tr.flaky).toBe(true);
+      expect(tr.transition).toBe("regressed");
+    });
+
+    it("should reapply transition and flaky after restore when history is read", async () => {
+      const knownTestId = "known-test-id";
+      const knownHistoryId = `${md5(knownTestId)}.${md5("")}`;
+      const history = [
+        createHistoryDataPoint({
+          [knownHistoryId]: {
+            id: "history-id",
+            name: "history-name",
+            status: "passed",
+            url: "",
+            historyId: knownHistoryId,
+          },
+        }),
+      ];
+      const source = new DefaultAllureStore({
+        history: new AllureTestHistory(history),
+      });
+
+      await source.readHistory();
+      await source.visitTestResult({ name: "known test", testId: knownTestId, status: "failed" }, { readerId });
+      await source.visitTestResult({ name: "new test", testId: "new-test-id", status: "passed" }, { readerId });
+
+      const dump = source.dumpState();
+
+      for (const tr of Object.values(dump.testResults)) {
+        delete tr.transition;
+        tr.flaky = false;
+      }
+
+      const target = new DefaultAllureStore({
+        history: new AllureTestHistory(history),
+      });
+
+      await target.restoreState(dump);
+
+      const results = await target.allTestResults();
+      const knownTest = results.find((tr) => tr.name === "known test");
+      const newTest = results.find((tr) => tr.name === "new test");
+
+      expect(knownTest?.transition).toBe("regressed");
+      expect(newTest?.transition).toBe("new");
+      expect(newTest?.flaky).toBe(false);
+    });
   });
 });
 

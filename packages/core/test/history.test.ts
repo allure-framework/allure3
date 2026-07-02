@@ -511,6 +511,25 @@ describe("AllureLocalHistory", () => {
       expect(secondRead).toEqual([expect.objectContaining({ name: "Entry 1" })]);
     });
 
+    it("should re-read the file when force is true", async () => {
+      await writeFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+
+      const history = new AllureLocalHistory({ historyPath });
+      const firstRead = await history.readHistory();
+
+      await writeFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 2" })}\n`, "utf-8");
+
+      const cachedRead = await history.readHistory();
+
+      expect(cachedRead).toBe(firstRead);
+      expect(cachedRead).toEqual([expect.objectContaining({ name: "Entry 1" })]);
+
+      const forcedRead = await history.readHistory({ force: true });
+
+      expect(forcedRead).not.toBe(firstRead);
+      expect(forcedRead).toEqual([expect.objectContaining({ name: "Entry 2" })]);
+    });
+
     it("should be set once the history file is read", async () => {
       await writeFile(
         historyPath,
