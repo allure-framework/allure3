@@ -37,6 +37,7 @@ import type {
   ResultFile,
 } from "@allurereport/plugin-api";
 import {
+  collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -347,12 +348,11 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     }
   }
 
-  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
-    testsWithTitlePath,
-    leafFactory,
-    undefined,
-    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
-  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+  const treeByTitlePath = collapseTreeGroups(
+    createTreeByTitlePath<AwesomeTestResult>(testsWithTitlePath, leafFactory, undefined, (group, leaf) =>
+      incrementStatistic(group.statistic, leaf.status),
+    ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>,
+  );
 
   if (!testsWithoutTitlePath.length) {
     return treeByTitlePath;
@@ -419,12 +419,14 @@ const buildTreeByLabelsAndTitlePathCombined = (
   tests: AwesomeTestResult[],
   labels: string[],
 ): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
-  createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    tests,
-    labels,
-    leafFactory,
-    undefined,
-    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+  collapseTreeGroups(
+    createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+      tests,
+      labels,
+      leafFactory,
+      undefined,
+      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+    ),
   );
 
 const leafFactory = ({
