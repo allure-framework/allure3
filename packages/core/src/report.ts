@@ -97,6 +97,9 @@ const closeReadStream = async (stream: ReadStream): Promise<void> => {
   await closed.catch(() => undefined);
 };
 
+const createUploadBatches = (files: Record<string, string>): Record<string, string>[] =>
+  Object.keys(files).length > 0 ? [files] : [];
+
 export class AllureReport {
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
@@ -298,7 +301,9 @@ export class AllureReport {
           client.uploadReport({
             reportUuid: this.reportUuid,
             pluginId: report.pluginId,
-            files: Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
+            files: createUploadBatches(
+              Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
+            ),
             onProgress: () => uploadProgressBar.tick(),
           }),
         );
@@ -333,7 +338,7 @@ export class AllureReport {
         await client.uploadReport({
           reportUuid: this.reportUuid,
           pluginId: updatedReport.pluginId,
-          files: { "summary.json": summaryFilepath },
+          files: createUploadBatches({ "summary.json": summaryFilepath }),
           onProgress: () => uploadProgressBar.tick(),
         });
       }
@@ -344,7 +349,7 @@ export class AllureReport {
         ? (
             await client.uploadReport({
               reportUuid: this.reportUuid,
-              files: { "index.html": this.#summaryPath },
+              files: createUploadBatches({ "index.html": this.#summaryPath }),
             })
           ).indexHref
         : undefined;
