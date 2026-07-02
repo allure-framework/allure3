@@ -190,3 +190,43 @@ export const filteredTree = computed(() => {
 export const noTestsFound = computed(
   () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
 );
+
+/**
+ * Collect all expandable node IDs from a recursive tree
+ */
+const collectAllExpandableNodeIds = (tree: RecursiveTree): string[] => {
+  const nodeIds: string[] = [];
+  
+  if (tree.nodeId) {
+    nodeIds.push(tree.nodeId as string);
+  }
+  
+  for (const subtree of tree.trees) {
+    nodeIds.push(...collectAllExpandableNodeIds(subtree));
+  }
+  
+  return nodeIds;
+};
+
+/**
+ * Collapse all tree nodes in the current filtered tree
+ */
+export const collapseAllTrees = () => {
+  const allNodeIds = Object.values(filteredTree.value).flatMap(collectAllExpandableNodeIds);
+  const nextCollapsedTrees = new Set(collapsedTrees.value);
+  
+  allNodeIds.forEach((nodeId) => {
+    nextCollapsedTrees.add(nodeId);
+  });
+  
+  collapsedTrees.value = nextCollapsedTrees;
+  expandedTrees.value = new Set();
+};
+
+/**
+ * Expand all tree nodes in the current filtered tree
+ */
+export const expandAllTrees = () => {
+  collapsedTrees.value = new Set();
+  expandedTrees.value = new Set();
+};
