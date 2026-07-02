@@ -90,8 +90,10 @@ export class AllureLocalHistory implements AllureHistory {
     },
   ) {}
 
-  async readHistory() {
-    if (this.#cachedHistory.length > 0) {
+  async readHistory(params?: { force?: boolean }) {
+    const { force = false } = params ?? {};
+
+    if (this.#cachedHistory.length > 0 && !force) {
       return this.#cachedHistory;
     }
 

@@ -470,7 +470,7 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    await this.#store.readHistory();
+    await this.#store.readHistory({ force: true });
 
     if (this.#executionStage === "running") {
       throw new Error("the report is already started");
