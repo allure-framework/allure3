@@ -27,8 +27,22 @@ export type AllureServiceApiClientConfig = UploadReportConfig & {
 export type UploadReportPayload = {
   reportUuid: string;
   pluginId?: string;
-  files: Record<string, string>;
+  files: Record<string, string> | Record<string, string>[];
   onProgress?: () => void;
+};
+
+export type UploadReportFilePayload = {
+  filename: string;
+  file?: Buffer;
+  filepath?: string;
+  signal?: AbortSignal;
+};
+
+export type UploadReportFilesPayload = {
+  reportUuid: string;
+  pluginId?: string;
+  files: UploadReportFilePayload[];
+  signal?: AbortSignal;
 };
 
 export type UploadReportResult = {
@@ -41,19 +55,9 @@ export interface AllureServiceApiClient {
   createReport(payload: { reportName: string; reportUuid?: string; repo?: string; branch?: string }): Promise<URL>;
   completeReport(payload: { reportUuid: string; historyPoint?: HistoryDataPoint }): Promise<unknown>;
   deleteReport(payload: { reportUuid: string; pluginId?: string }): Promise<unknown>;
-  addReportAsset(payload: {
-    filename: string;
-    file?: Buffer;
-    filepath?: string;
-    signal?: AbortSignal;
-  }): Promise<unknown>;
-  addReportFile(payload: {
-    reportUuid: string;
-    pluginId?: string;
-    filename: string;
-    file?: Buffer;
-    filepath?: string;
-    signal?: AbortSignal;
-  }): Promise<string>;
+  addReportAsset(payload: UploadReportFilePayload): Promise<unknown>;
+  addReportAssets?(payload: { files: UploadReportFilePayload[]; signal?: AbortSignal }): Promise<unknown>;
+  addReportFile(payload: UploadReportFilePayload & { reportUuid: string; pluginId?: string }): Promise<string>;
+  addReportFiles?(payload: UploadReportFilesPayload): Promise<Record<string, string>>;
   uploadReport(payload: UploadReportPayload): Promise<UploadReportResult>;
 }
