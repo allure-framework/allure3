@@ -1,6 +1,12 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
 
-import type { UploadReportConfig, UploadReportPayload, UploadReportResult } from "../model.js";
+import type {
+  UploadReportConfig,
+  UploadReportFilePayload,
+  UploadReportFilesPayload,
+  UploadReportPayload,
+  UploadReportResult,
+} from "../model.js";
 import { isReportDataFile } from "./files.js";
 
 /**
@@ -40,6 +46,40 @@ const stringifyErrorObject = (value: Record<string, unknown>) => {
 
     return entries.length > 0 ? `{ ${entries.join(", ")} }` : undefined;
   }
+};
+
+const MAX_UPLOAD_BATCH_FILES = 32;
+
+const createUploadFileBatches = (files: Record<string, string>): Record<string, string>[] => {
+  const entries = Object.entries(files);
+
+  const batches: Record<string, string>[] = [];
+  let batch: Record<string, string> = {};
+  let batchFiles = 0;
+
+  const flushBatch = () => {
+    if (batchFiles === 0) {
+      return;
+    }
+
+    batches.push(batch);
+
+    batch = {};
+    batchFiles = 0;
+  };
+
+  for (const [filename, filepath] of entries) {
+    if (batchFiles >= MAX_UPLOAD_BATCH_FILES) {
+      flushBatch();
+    }
+
+    batch[filename] = filepath;
+    batchFiles += 1;
+  }
+
+  flushBatch();
+
+  return batches;
 };
 
 export const formatResponseErrorData = (data: unknown): string | undefined => {
@@ -173,7 +213,7 @@ export const createServiceHttpClient = (
 export type HttpClient = ReturnType<typeof createServiceHttpClient>;
 
 const uploadWithRetry = async (
-  filename: string,
+  batchId: string,
   uploadAbortController: AbortController,
   failedUploads: Set<string>,
   maxAttempts: number,
@@ -188,7 +228,7 @@ const uploadWithRetry = async (
     try {
       await uploadFn();
 
-      failedUploads.delete(filename);
+      failedUploads.delete(batchId);
 
       return true;
     } catch (error) {
@@ -196,7 +236,7 @@ const uploadWithRetry = async (
         return false;
       }
 
-      failedUploads.add(filename);
+      failedUploads.add(batchId);
 
       if (failedUploads.size > maxSimultaneousFailures || attempt >= maxAttempts) {
         throw error;
@@ -210,14 +250,10 @@ const uploadWithRetry = async (
 export const uploadReport = async (
   payload: UploadReportPayload &
     UploadReportConfig & {
-      addReportAsset: (payload: { filename: string; filepath: string; signal?: AbortSignal }) => Promise<unknown>;
-      addReportFile: (payload: {
-        reportUuid: string;
-        pluginId?: string;
-        filename: string;
-        filepath: string;
-        signal?: AbortSignal;
-      }) => Promise<string>;
+      addReportAsset: (payload: UploadReportFilePayload) => Promise<unknown>;
+      addReportAssets?: (payload: { files: UploadReportFilePayload[]; signal?: AbortSignal }) => Promise<unknown>;
+      addReportFile: (payload: UploadReportFilePayload & { reportUuid: string; pluginId?: string }) => Promise<string>;
+      addReportFiles?: (payload: UploadReportFilesPayload) => Promise<Record<string, string>>;
     },
 ): Promise<UploadReportResult> => {
   const {
@@ -231,9 +267,9 @@ export const uploadReport = async (
     uploadMaxAttempts,
     uploadMaxSimultaneousFailures,
   } = payload;
-  const fileEntries = Object.entries(files);
+  const fileBatches = Array.isArray(files) ? files.flatMap(createUploadFileBatches) : createUploadFileBatches(files);
 
-  if (fileEntries.length === 0) {
+  if (fileBatches.length === 0) {
     return {
       hrefs: {},
     };
@@ -243,59 +279,145 @@ export const uploadReport = async (
   const failedUploads = new Set<string>();
   const hrefs: Record<string, string> = {};
   let indexHref: string | undefined;
-  let nextFileIndex = 0;
+  let nextBatchIndex = 0;
+
+  type UploadBatch = {
+    batchId: string;
+    kind: "report" | "asset";
+    files: UploadReportFilePayload[];
+  };
+
+  const uploadBatches: UploadBatch[] = [];
+  const canUploadReportFilesInBatch = !!payload.addReportFiles;
+  const canUploadAssetsInBatch = !!payload.addReportAssets;
+
+  for (const [batchIndex, batchFiles] of fileBatches.entries()) {
+    const reportDataFiles: UploadReportFilePayload[] = [];
+    const assetFiles: UploadReportFilePayload[] = [];
+
+    for (const [filename, filepath] of Object.entries(batchFiles)) {
+      const filePayload = { filename, filepath, signal: uploadAbortController.signal };
+
+      if (isReportDataFile(filename)) {
+        reportDataFiles.push(filePayload);
+      } else {
+        assetFiles.push(filePayload);
+      }
+    }
+
+    if (reportDataFiles.length > 0) {
+      if (canUploadReportFilesInBatch) {
+        uploadBatches.push({
+          batchId: `batch-${batchIndex}-report`,
+          kind: "report",
+          files: reportDataFiles,
+        });
+      } else {
+        reportDataFiles.forEach((filePayload, fileIndex) => {
+          uploadBatches.push({
+            batchId: `batch-${batchIndex}-report-${fileIndex}`,
+            kind: "report",
+            files: [filePayload],
+          });
+        });
+      }
+    }
+
+    if (assetFiles.length > 0) {
+      if (canUploadAssetsInBatch) {
+        uploadBatches.push({
+          batchId: `batch-${batchIndex}-asset`,
+          kind: "asset",
+          files: assetFiles,
+        });
+      } else {
+        assetFiles.forEach((filePayload, fileIndex) => {
+          uploadBatches.push({
+            batchId: `batch-${batchIndex}-asset-${fileIndex}`,
+            kind: "asset",
+            files: [filePayload],
+          });
+        });
+      }
+    }
+  }
+
+  const uploadFileBatch = async ({ kind, files: batchFiles }: UploadBatch): Promise<void> => {
+    if (batchFiles.length === 0 || uploadAbortController.signal.aborted) {
+      return;
+    }
+
+    if (kind === "report") {
+      if (payload.addReportFiles) {
+        const batchResult = await payload.addReportFiles({
+          reportUuid,
+          pluginId,
+          files: batchFiles,
+          signal: uploadAbortController.signal,
+        });
+
+        for (const [filename, fileUrl] of Object.entries(batchResult)) {
+          hrefs[filename] = fileUrl;
+
+          if (filename === "index.html") {
+            indexHref = fileUrl;
+          }
+        }
+      } else {
+        for (const filePayload of batchFiles) {
+          const fileUrl = await payload.addReportFile({
+            reportUuid,
+            pluginId,
+            ...filePayload,
+          });
+
+          hrefs[filePayload.filename] = fileUrl;
+
+          if (filePayload.filename === "index.html") {
+            indexHref = fileUrl;
+          }
+        }
+      }
+    } else if (payload.addReportAssets) {
+      await payload.addReportAssets({
+        files: batchFiles,
+        signal: uploadAbortController.signal,
+      });
+    } else {
+      for (const filePayload of batchFiles) {
+        await payload.addReportAsset(filePayload);
+      }
+    }
+
+    onProgress?.(batchFiles.length);
+  };
+
   const uploadNext = async (): Promise<void> => {
     while (!uploadAbortController.signal.aborted) {
-      const fileIndex = nextFileIndex++;
+      const batchIndex = nextBatchIndex++;
 
-      if (fileIndex >= fileEntries.length) {
+      if (batchIndex >= uploadBatches.length) {
         return;
       }
 
-      const [filename, filepath] = fileEntries[fileIndex];
-      let fileUrl: string | undefined;
+      const batch = uploadBatches[batchIndex];
+
       const uploaded = await uploadWithRetry(
-        filename,
+        batch.batchId,
         uploadAbortController,
         failedUploads,
         uploadMaxAttempts,
         uploadMaxSimultaneousFailures,
-        async () => {
-          if (isReportDataFile(filename)) {
-            fileUrl = await addReportFile({
-              reportUuid,
-              pluginId,
-              filename,
-              filepath,
-              signal: uploadAbortController.signal,
-            });
-          } else {
-            await addReportAsset({
-              filename,
-              filepath,
-              signal: uploadAbortController.signal,
-            });
-          }
-        },
+        async () => uploadFileBatch(batch),
       );
 
       if (!uploaded || uploadAbortController.signal.aborted) {
         return;
       }
-
-      if (fileUrl) {
-        hrefs[filename] = fileUrl;
-
-        if (filename === "index.html") {
-          indexHref = fileUrl;
-        }
-      }
-
-      onProgress?.();
     }
   };
 
-  const uploadTasks = Array.from({ length: Math.min(uploadConcurrency, fileEntries.length) }, () => uploadNext());
+  const uploadTasks = Array.from({ length: Math.min(uploadConcurrency, uploadBatches.length) }, () => uploadNext());
 
   try {
     await Promise.all(uploadTasks);

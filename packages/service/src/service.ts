@@ -7,6 +7,8 @@ import {
   ALLURE_SERVICE_STORAGE_PREFIX,
   type AllureServiceApiClient,
   type AllureServiceApiClientConfig,
+  type UploadReportFilePayload,
+  type UploadReportFilesPayload,
   type UploadReportPayload,
 } from "./model.js";
 import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
@@ -20,6 +22,20 @@ const createReportUrl = (baseUrl: string, reportUuid: string) => `${baseUrl}/${r
 
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
+
+const readUploadContent = async (payload: UploadReportFilePayload) => {
+  const { file, filepath, signal } = payload;
+
+  if (file) {
+    return file;
+  }
+
+  if (!filepath) {
+    throw new Error("File or filepath is required");
+  }
+
+  return signal ? readFile(filepath, { signal }) : readFile(filepath);
+};
 
 export class AllureServiceClient implements AllureServiceApiClient {
   readonly #client: HttpClient;
@@ -116,23 +132,26 @@ export class AllureServiceClient implements AllureServiceApiClient {
    * Uploads report asset which can be shared between multiple reports at once
    * @param payload
    */
-  async addReportAsset(payload: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }) {
-    const { filename, file, filepath, signal } = payload;
+  async addReportAssets(payload: { files: UploadReportFilePayload[]; signal?: AbortSignal }) {
+    const { files, signal } = payload;
 
-    if (!file && !filepath) {
-      throw new Error("File or filepath is required");
+    if (files.length === 0) {
+      return undefined;
     }
 
-    let content = file;
-
-    if (!content) {
-      content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
+    const entries = await Promise.all(
+      files.map(async ({ filename, ...filePayload }) => ({
+        filename,
+        content: await readUploadContent({ filename, ...filePayload, signal: signal ?? filePayload.signal }),
+      })),
+    );
 
     const form = new FormData();
 
-    form.set("filename", filename);
-    form.set("file", createUploadBlob(content), filename);
+    for (const { filename, content } of entries) {
+      form.append("filename", filename);
+      form.append("file", createUploadBlob(content), filename);
+    }
 
     return this.#client.post("/api/assets/upload", {
       body: form,
@@ -143,36 +162,40 @@ export class AllureServiceClient implements AllureServiceApiClient {
     });
   }
 
+  async addReportAsset(payload: UploadReportFilePayload) {
+    return this.addReportAssets({ files: [payload], ...(payload.signal ? { signal: payload.signal } : {}) });
+  }
+
   /**
    * Adds a file to an existing report
    * If the report doesn't exist, it will be created
    * @param payload
    */
-  async addReportFile(payload: {
-    reportUuid: string;
-    pluginId?: string;
-    filename: string;
-    file?: Buffer;
-    filepath?: string;
-    signal?: AbortSignal;
-  }) {
-    const { reportUuid, filename, file, filepath, pluginId, signal } = payload;
-    const reportFilename = pluginId ? joinPosix(pluginId, filename) : filename;
+  async addReportFiles(payload: UploadReportFilesPayload) {
+    const { reportUuid, pluginId, files, signal } = payload;
 
-    if (!file && !filepath) {
-      throw new Error("File or filepath is required");
+    if (files.length === 0) {
+      return {};
     }
 
-    let content = file;
+    const entries = await Promise.all(
+      files.map(async ({ filename, ...filePayload }) => {
+        const reportFilename = pluginId ? joinPosix(pluginId, filename) : filename;
 
-    if (!content) {
-      content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
+        return {
+          filename,
+          reportFilename,
+          content: await readUploadContent({ filename, ...filePayload, signal: signal ?? filePayload.signal }),
+        };
+      }),
+    );
 
     const form = new FormData();
 
-    form.set("filename", reportFilename);
-    form.set("file", createUploadBlob(content), reportFilename);
+    for (const { reportFilename, content } of entries) {
+      form.append("filename", reportFilename);
+      form.append("file", createUploadBlob(content), reportFilename);
+    }
 
     await this.#client.post(`/api/reports/${reportUuid}/upload`, {
       body: form,
@@ -182,7 +205,23 @@ export class AllureServiceClient implements AllureServiceApiClient {
       ...(signal ? { signal } : {}),
     });
 
-    return createReportFileUrl(this.#url, reportUuid, reportFilename);
+    return Object.fromEntries(
+      entries.map(({ filename, reportFilename }) => [
+        filename,
+        createReportFileUrl(this.#url, reportUuid, reportFilename),
+      ]),
+    );
+  }
+
+  async addReportFile(payload: UploadReportFilePayload & { reportUuid: string; pluginId?: string }) {
+    const result = await this.addReportFiles({
+      reportUuid: payload.reportUuid,
+      pluginId: payload.pluginId,
+      files: [payload],
+      ...(payload.signal ? { signal: payload.signal } : {}),
+    });
+
+    return result[payload.filename];
   }
 
   async uploadReport(payload: UploadReportPayload) {
@@ -192,7 +231,9 @@ export class AllureServiceClient implements AllureServiceApiClient {
       uploadMaxAttempts: this.config.uploadMaxAttempts,
       uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
       addReportAsset: this.addReportAsset.bind(this),
+      addReportAssets: this.addReportAssets.bind(this),
       addReportFile: this.addReportFile.bind(this),
+      addReportFiles: this.addReportFiles.bind(this),
     });
   }
 }
