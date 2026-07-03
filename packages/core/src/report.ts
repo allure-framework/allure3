@@ -50,7 +50,6 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
-import { createUploadProgressBarCounter } from "./utils/cli.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import { measurePerf, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, startPerfSpan, writePerfMetrics } from "./utils/perf.js";
@@ -59,21 +58,24 @@ import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-const initRequired = "report is not initialised. Call the start() method first.";
-const defaultReadConcurrency = 64;
-const maxReadConcurrency = 256;
+const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
+const DEFAULT_READ_CONCURRENCY = 64;
+const MAX_READ_CONCURRENCY = 256;
+const MAX_UPLOAD_BATCH_FILES = 32;
+const MAX_UPLOAD_BATCH_BYTES = 8 * 1024 * 1024;
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
 
   if (!Number.isFinite(parsed)) {
-    return defaultReadConcurrency;
+    return DEFAULT_READ_CONCURRENCY;
   }
 
-  return Math.min(maxReadConcurrency, Math.max(1, parsed));
+  return Math.min(MAX_READ_CONCURRENCY, Math.max(1, parsed));
 };
 
 const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
+
 const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
   const repo = ci?.repoName;
   const branch = ci?.jobRunBranch;
@@ -97,8 +99,49 @@ const closeReadStream = async (stream: ReadStream): Promise<void> => {
   await closed.catch(() => undefined);
 };
 
-const createUploadBatches = (files: Record<string, string>): Record<string, string>[] =>
-  Object.keys(files).length > 0 ? [files] : [];
+const createUploadBatches = async (files: Record<string, string>): Promise<Record<string, string>[]> => {
+  const entries = await Promise.all(
+    Object.entries(files).map(async ([filename, filepath]) => ({
+      filename,
+      filepath,
+      size: filepath ? (await lstat(filepath)).size : 0,
+    })),
+  );
+
+  const batches: Record<string, string>[] = [];
+  let batch: Record<string, string> = {};
+  let batchFiles = 0;
+  let batchBytes = 0;
+
+  const flushBatch = () => {
+    if (batchFiles === 0) {
+      return;
+    }
+
+    batches.push(batch);
+
+    batch = {};
+    batchFiles = 0;
+    batchBytes = 0;
+  };
+
+  for (const { filename, filepath, size } of entries) {
+    const wouldOverflow =
+      batchFiles > 0 && (batchFiles >= MAX_UPLOAD_BATCH_FILES || batchBytes + size > MAX_UPLOAD_BATCH_BYTES);
+
+    if (wouldOverflow) {
+      flushBatch();
+    }
+
+    batch[filename] = filepath;
+    batchFiles += 1;
+    batchBytes += size;
+  }
+
+  flushBatch();
+
+  return batches;
+};
 
 export class AllureReport {
   readonly #ci: CiDescriptor | undefined;
@@ -276,16 +319,45 @@ export class AllureReport {
     const client = this.#allureServiceClient;
     const linksByPluginId: Record<string, string> = {};
     const summariesSnapshot = this.#cloneSummariesByPluginId();
-    const uploadProgressBar = createUploadProgressBarCounter(
-      reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports",
-      reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0),
-    );
+    const uploadProgressMessage =
+      reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
+    const totalFilesToUpload = reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0);
+    const progressStep = Math.max(1, Math.ceil(totalFilesToUpload / 20));
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
+    let uploadedFiles = 0;
+    let nextProgressLogAt = 0;
+    let lastProgressLog = -1;
     const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
 
+    const logUploadProgress = (force = false) => {
+      if (force && uploadedFiles === lastProgressLog) {
+        return;
+      }
+
+      if (!force && uploadedFiles < nextProgressLogAt && uploadedFiles !== totalFilesToUpload) {
+        return;
+      }
+
+      if (!force && uploadedFiles === lastProgressLog) {
+        return;
+      }
+
+      console.info(`[AllureReport]: ${uploadProgressMessage}: ${uploadedFiles}/${totalFilesToUpload} files uploaded`);
+
+      lastProgressLog = uploadedFiles;
+      nextProgressLogAt = Math.min(totalFilesToUpload, uploadedFiles + progressStep);
+    };
+
+    const incrementUploadProgress = (delta = 1) => {
+      uploadedFiles = Math.min(totalFilesToUpload, uploadedFiles + delta);
+      logUploadProgress();
+    };
+
     try {
+      logUploadProgress(true);
+
       await client.createReport({
         reportUuid: this.reportUuid,
         reportName: this.reportName,
@@ -297,14 +369,16 @@ export class AllureReport {
       for (const report of reportsToPublish) {
         publishErrorMessage = `Plugin "${report.pluginId}" upload has failed, the plugin won't be published`;
 
+        const reportFiles = await createUploadBatches(
+          Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
+        );
+
         const uploadResult = await measurePerf(`${PERF_METRIC_PREFIXES.publishUploadPlugin}${report.pluginId}`, () =>
           client.uploadReport({
             reportUuid: this.reportUuid,
             pluginId: report.pluginId,
-            files: createUploadBatches(
-              Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
-            ),
-            onProgress: () => uploadProgressBar.tick(),
+            files: reportFiles,
+            onProgress: incrementUploadProgress,
           }),
         );
 
@@ -334,24 +408,21 @@ export class AllureReport {
         }
 
         publishErrorMessage = `Plugin "${report.pluginId}" summary upload has failed, the plugin won't be published`;
+        const summaryFiles = await createUploadBatches({ "summary.json": summaryFilepath });
 
         await client.uploadReport({
           reportUuid: this.reportUuid,
           pluginId: updatedReport.pluginId,
-          files: createUploadBatches({ "summary.json": summaryFilepath }),
-          onProgress: () => uploadProgressBar.tick(),
+          files: summaryFiles,
+          onProgress: incrementUploadProgress,
         });
       }
 
       publishErrorMessage = "Report summary upload has failed, the report won't be published";
 
+      const summaryHrefFiles = this.#summaryPath ? await createUploadBatches({ "index.html": this.#summaryPath }) : [];
       const summaryHref = this.#summaryPath
-        ? (
-            await client.uploadReport({
-              reportUuid: this.reportUuid,
-              files: createUploadBatches({ "index.html": this.#summaryPath }),
-            })
-          ).indexHref
+        ? (await client.uploadReport({ reportUuid: this.reportUuid, files: summaryHrefFiles })).indexHref
         : undefined;
 
       publishErrorMessage = "Report completion has failed, the report won't be published";
@@ -370,6 +441,7 @@ export class AllureReport {
       }
 
       this.#published = true;
+      logUploadProgress(true);
     } catch (err) {
       if (reportCreated) {
         await this.#cleanupFailedRemoteReport(client);
@@ -384,14 +456,13 @@ export class AllureReport {
       this.#logPublishError(publishErrorMessage, err);
     } finally {
       endPublishPerfSpan();
-      uploadProgressBar.terminate();
     }
   };
 
   readDirectory = async (resultsDir: string) =>
     measurePerf(PERF_METRIC_NAMES.generateReadResults, async () => {
       if (this.#executionStage !== "running") {
-        throw new Error(initRequired);
+        throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
       }
 
       const resultsDirPath = resolve(resultsDir);
@@ -427,14 +498,14 @@ export class AllureReport {
   readFile = async (resultsFile: string) =>
     measurePerf(PERF_METRIC_NAMES.generateReadResults, async () => {
       if (this.#executionStage !== "running") {
-        throw new Error(initRequired);
+        throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
       }
       await this.readResult(new PathResultFile(resultsFile));
     });
 
   readResult = async (data: ResultFile) => {
     if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
+      throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
     }
 
     for (const reader of this.#readers) {
@@ -997,7 +1068,7 @@ export class AllureReport {
     const summaries: PluginSummary[] = [];
 
     if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
+      throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
     }
 
     try {

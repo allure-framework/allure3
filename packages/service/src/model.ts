@@ -28,7 +28,7 @@ export type UploadReportPayload = {
   reportUuid: string;
   pluginId?: string;
   files: Record<string, string> | Record<string, string>[];
-  onProgress?: () => void;
+  onProgress?: (uploadedFilesDelta?: number) => void;
 };
 
 export type UploadReportFilePayload = {

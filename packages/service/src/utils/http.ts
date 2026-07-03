@@ -247,17 +247,21 @@ export const uploadReport = async (
   let indexHref: string | undefined;
   let nextBatchIndex = 0;
 
-  const uploadFileBatch = async (batchFiles: Record<string, string>): Promise<void> => {
-    const fileEntries = Object.entries(batchFiles);
+  type UploadBatch = {
+    batchId: string;
+    kind: "report" | "asset";
+    files: UploadReportFilePayload[];
+  };
 
-    if (fileEntries.length === 0 || uploadAbortController.signal.aborted) {
-      return;
-    }
+  const uploadBatches: UploadBatch[] = [];
+  const canUploadReportFilesInBatch = !!payload.addReportFiles;
+  const canUploadAssetsInBatch = !!payload.addReportAssets;
 
+  for (const [batchIndex, batchFiles] of fileBatches.entries()) {
     const reportDataFiles: UploadReportFilePayload[] = [];
     const assetFiles: UploadReportFilePayload[] = [];
 
-    for (const [filename, filepath] of fileEntries) {
+    for (const [filename, filepath] of Object.entries(batchFiles)) {
       const filePayload = { filename, filepath, signal: uploadAbortController.signal };
 
       if (isReportDataFile(filename)) {
@@ -267,75 +271,105 @@ export const uploadReport = async (
       }
     }
 
-    const uploadReportFiles = async () => {
-      if (reportDataFiles.length > 0) {
-        if (payload.addReportFiles) {
-          const batchResult = await payload.addReportFiles({
+    if (reportDataFiles.length > 0) {
+      if (canUploadReportFilesInBatch) {
+        uploadBatches.push({
+          batchId: `batch-${batchIndex}-report`,
+          kind: "report",
+          files: reportDataFiles,
+        });
+      } else {
+        reportDataFiles.forEach((filePayload, fileIndex) => {
+          uploadBatches.push({
+            batchId: `batch-${batchIndex}-report-${fileIndex}`,
+            kind: "report",
+            files: [filePayload],
+          });
+        });
+      }
+    }
+
+    if (assetFiles.length > 0) {
+      if (canUploadAssetsInBatch) {
+        uploadBatches.push({
+          batchId: `batch-${batchIndex}-asset`,
+          kind: "asset",
+          files: assetFiles,
+        });
+      } else {
+        assetFiles.forEach((filePayload, fileIndex) => {
+          uploadBatches.push({
+            batchId: `batch-${batchIndex}-asset-${fileIndex}`,
+            kind: "asset",
+            files: [filePayload],
+          });
+        });
+      }
+    }
+  }
+
+  const uploadFileBatch = async ({ kind, files: batchFiles }: UploadBatch): Promise<void> => {
+    if (batchFiles.length === 0 || uploadAbortController.signal.aborted) {
+      return;
+    }
+
+    if (kind === "report") {
+      if (payload.addReportFiles) {
+        const batchResult = await payload.addReportFiles({
+          reportUuid,
+          pluginId,
+          files: batchFiles,
+          signal: uploadAbortController.signal,
+        });
+
+        for (const [filename, fileUrl] of Object.entries(batchResult)) {
+          hrefs[filename] = fileUrl;
+
+          if (filename === "index.html") {
+            indexHref = fileUrl;
+          }
+        }
+      } else {
+        for (const filePayload of batchFiles) {
+          const fileUrl = await payload.addReportFile({
             reportUuid,
             pluginId,
-            files: reportDataFiles,
-            signal: uploadAbortController.signal,
+            ...filePayload,
           });
 
-          for (const [filename, fileUrl] of Object.entries(batchResult)) {
-            hrefs[filename] = fileUrl;
+          hrefs[filePayload.filename] = fileUrl;
 
-            if (filename === "index.html") {
-              indexHref = fileUrl;
-            }
-          }
-        } else {
-          for (const filePayload of reportDataFiles) {
-            const fileUrl = await payload.addReportFile({
-              reportUuid,
-              pluginId,
-              ...filePayload,
-            });
-
-            hrefs[filePayload.filename] = fileUrl;
-
-            if (filePayload.filename === "index.html") {
-              indexHref = fileUrl;
-            }
+          if (filePayload.filename === "index.html") {
+            indexHref = fileUrl;
           }
         }
       }
-    };
-
-    const uploadAssets = async () => {
-      if (assetFiles.length > 0) {
-        if (payload.addReportAssets) {
-          await payload.addReportAssets({
-            files: assetFiles,
-            signal: uploadAbortController.signal,
-          });
-        } else {
-          for (const filePayload of assetFiles) {
-            await payload.addReportAsset(filePayload);
-          }
-        }
+    } else if (payload.addReportAssets) {
+      await payload.addReportAssets({
+        files: batchFiles,
+        signal: uploadAbortController.signal,
+      });
+    } else {
+      for (const filePayload of batchFiles) {
+        await payload.addReportAsset(filePayload);
       }
-    };
+    }
 
-    await uploadReportFiles();
-    await uploadAssets();
-
-    fileEntries.forEach(() => onProgress?.());
+    onProgress?.(batchFiles.length);
   };
 
   const uploadNext = async (): Promise<void> => {
     while (!uploadAbortController.signal.aborted) {
       const batchIndex = nextBatchIndex++;
 
-      if (batchIndex >= fileBatches.length) {
+      if (batchIndex >= uploadBatches.length) {
         return;
       }
 
-      const batch = fileBatches[batchIndex];
-      const batchId = `batch-${batchIndex}`;
+      const batch = uploadBatches[batchIndex];
 
       const uploaded = await uploadWithRetry(
-        batchId,
+        batch.batchId,
         uploadAbortController,
         failedUploads,
         uploadMaxAttempts,
@@ -349,7 +383,7 @@ export const uploadReport = async (
     }
   };
 
-  const uploadTasks = Array.from({ length: Math.min(uploadConcurrency, fileBatches.length) }, () => uploadNext());
+  const uploadTasks = Array.from({ length: Math.min(uploadConcurrency, uploadBatches.length) }, () => uploadNext());
 
   try {
     await Promise.all(uploadTasks);
