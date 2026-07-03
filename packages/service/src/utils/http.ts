@@ -48,6 +48,40 @@ const stringifyErrorObject = (value: Record<string, unknown>) => {
   }
 };
 
+const MAX_UPLOAD_BATCH_FILES = 32;
+
+const createUploadFileBatches = (files: Record<string, string>): Record<string, string>[] => {
+  const entries = Object.entries(files);
+
+  const batches: Record<string, string>[] = [];
+  let batch: Record<string, string> = {};
+  let batchFiles = 0;
+
+  const flushBatch = () => {
+    if (batchFiles === 0) {
+      return;
+    }
+
+    batches.push(batch);
+
+    batch = {};
+    batchFiles = 0;
+  };
+
+  for (const [filename, filepath] of entries) {
+    if (batchFiles >= MAX_UPLOAD_BATCH_FILES) {
+      flushBatch();
+    }
+
+    batch[filename] = filepath;
+    batchFiles += 1;
+  }
+
+  flushBatch();
+
+  return batches;
+};
+
 export const formatResponseErrorData = (data: unknown): string | undefined => {
   if (data === undefined || data === null || data === "") {
     return undefined;
@@ -233,7 +267,7 @@ export const uploadReport = async (
     uploadMaxAttempts,
     uploadMaxSimultaneousFailures,
   } = payload;
-  const fileBatches = Array.isArray(files) ? files : [files];
+  const fileBatches = Array.isArray(files) ? files.flatMap(createUploadFileBatches) : createUploadFileBatches(files);
 
   if (fileBatches.length === 0) {
     return {

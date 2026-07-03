@@ -61,8 +61,6 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
-const MAX_UPLOAD_BATCH_FILES = 32;
-const MAX_UPLOAD_BATCH_BYTES = 8 * 1024 * 1024;
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -97,50 +95,6 @@ const closeReadStream = async (stream: ReadStream): Promise<void> => {
   }
 
   await closed.catch(() => undefined);
-};
-
-const createUploadBatches = async (files: Record<string, string>): Promise<Record<string, string>[]> => {
-  const entries = await Promise.all(
-    Object.entries(files).map(async ([filename, filepath]) => ({
-      filename,
-      filepath,
-      size: filepath ? (await lstat(filepath)).size : 0,
-    })),
-  );
-
-  const batches: Record<string, string>[] = [];
-  let batch: Record<string, string> = {};
-  let batchFiles = 0;
-  let batchBytes = 0;
-
-  const flushBatch = () => {
-    if (batchFiles === 0) {
-      return;
-    }
-
-    batches.push(batch);
-
-    batch = {};
-    batchFiles = 0;
-    batchBytes = 0;
-  };
-
-  for (const { filename, filepath, size } of entries) {
-    const wouldOverflow =
-      batchFiles > 0 && (batchFiles >= MAX_UPLOAD_BATCH_FILES || batchBytes + size > MAX_UPLOAD_BATCH_BYTES);
-
-    if (wouldOverflow) {
-      flushBatch();
-    }
-
-    batch[filename] = filepath;
-    batchFiles += 1;
-    batchBytes += size;
-  }
-
-  flushBatch();
-
-  return batches;
 };
 
 export class AllureReport {
@@ -368,10 +322,9 @@ export class AllureReport {
 
       for (const report of reportsToPublish) {
         publishErrorMessage = `Plugin "${report.pluginId}" upload has failed, the plugin won't be published`;
-
-        const reportFiles = await createUploadBatches(
-          Object.fromEntries(Object.entries(report.files).filter(([filename]) => filename !== "summary.json")),
-        );
+        const reportFiles = Object.fromEntries(
+          Object.entries(report.files).filter(([filename]) => filename !== "summary.json"),
+        ) as Record<string, string>;
 
         const uploadResult = await measurePerf(`${PERF_METRIC_PREFIXES.publishUploadPlugin}${report.pluginId}`, () =>
           client.uploadReport({
@@ -408,21 +361,20 @@ export class AllureReport {
         }
 
         publishErrorMessage = `Plugin "${report.pluginId}" summary upload has failed, the plugin won't be published`;
-        const summaryFiles = await createUploadBatches({ "summary.json": summaryFilepath });
 
         await client.uploadReport({
           reportUuid: this.reportUuid,
           pluginId: updatedReport.pluginId,
-          files: summaryFiles,
+          files: { "summary.json": summaryFilepath },
           onProgress: incrementUploadProgress,
         });
       }
 
       publishErrorMessage = "Report summary upload has failed, the report won't be published";
 
-      const summaryHrefFiles = this.#summaryPath ? await createUploadBatches({ "index.html": this.#summaryPath }) : [];
       const summaryHref = this.#summaryPath
-        ? (await client.uploadReport({ reportUuid: this.reportUuid, files: summaryHrefFiles })).indexHref
+        ? (await client.uploadReport({ reportUuid: this.reportUuid, files: { "index.html": this.#summaryPath } }))
+            .indexHref
         : undefined;
 
       publishErrorMessage = "Report completion has failed, the report won't be published";
