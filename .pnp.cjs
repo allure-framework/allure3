@@ -51,6 +51,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/git"\
     },\
     {\
+      "name": "@allurereport/logger",\
+      "reference": "workspace:packages/logger"\
+    },\
+    {\
       "name": "@allurereport/plugin-agent",\
       "reference": "workspace:packages/plugin-agent"\
     },\
@@ -167,6 +171,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/directory-watcher", ["workspace:packages/directory-watcher"]],\
     ["@allurereport/e2e", ["workspace:packages/e2e"]],\
     ["@allurereport/git", ["workspace:packages/git"]],\
+    ["@allurereport/logger", ["workspace:packages/logger"]],\
     ["@allurereport/monorepo", ["workspace:."]],\
     ["@allurereport/plugin-agent", ["workspace:packages/plugin-agent"]],\
     ["@allurereport/plugin-allure2", ["workspace:packages/plugin-allure2"]],\
@@ -399,6 +404,22 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
+          ["rimraf", "npm:6.1.2"],\
+          ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/logger", [\
+      ["workspace:packages/logger", {\
+        "packageLocation": "./packages/logger/",\
+        "packageDependencies": [\
+          ["@allurereport/logger", "workspace:packages/logger"],\
+          ["@types/node", "npm:20.19.41"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
@@ -682,6 +703,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/git", "workspace:packages/git"],\
+          ["@allurereport/logger", "workspace:packages/logger"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
@@ -774,6 +796,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/service/",\
         "packageDependencies": [\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/logger", "workspace:packages/logger"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
           ["@types/node", "npm:20.19.41"],\

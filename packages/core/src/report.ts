@@ -37,7 +37,7 @@ import {
   AllureTestOpsClient,
   type AllureServiceApiClient,
   KnownError,
-  UnknownError,
+  InternalError,
 } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import { glob } from "glob";
@@ -1093,7 +1093,7 @@ export class AllureReport {
         } catch (err) {
           if (err instanceof KnownError) {
             console.error("Failed to append history", err.message);
-          } else if (err instanceof UnknownError) {
+          } else if (err instanceof InternalError) {
             // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
             console.error("Failed to append history due to unexpected error", err.message);
           } else {

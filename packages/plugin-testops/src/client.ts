@@ -119,9 +119,9 @@ export class TestOpsClient {
   }
 
   async closeLaunch(launchId: number): Promise<void> {
-    this.#logger.verbose("Closing launch…");
+    this.#logger.trace("Closing launch…");
     await this.#client.post(`/api/launch/${launchId}/close`);
-    this.#logger.verbose("Launch closed");
+    this.#logger.trace("Launch closed");
   }
 
   async createLaunchCategoriesBulk(
@@ -158,11 +158,11 @@ export class TestOpsClient {
     };
 
     if (items.length <= BULK_UPLOAD_CHUNK_SIZE) {
-      this.#logger.verbose(`Creating ${bold(items.length.toString())} launch categories…`);
+      this.#logger.trace(`Creating ${bold(items.length.toString())} launch categories…`);
       await uploadChunk(items, 0, 1);
     } else {
       const chunks = chunk(items, BULK_UPLOAD_CHUNK_SIZE);
-      this.#logger.verbose(
+      this.#logger.trace(
         `Creating ${bold(items.length.toString())} launch categories in ${bold(chunks.length.toString())} request(s)…`,
       );
 
@@ -179,7 +179,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    this.#logger.verbose(`Starting CI upload (${ci.type})…`);
+    this.#logger.trace(`Starting CI upload (${ci.type})…`);
     await this.#client.post<unknown>("/api/upload/start", {
       body: {
         projectId: this.#projectId,
@@ -200,7 +200,7 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = true;
-    this.#logger.verbose("CI upload started");
+    this.#logger.trace("CI upload started");
   }
 
   async stopUpload(ci: CiDescriptor, status: TestStatus) {
@@ -218,11 +218,11 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = false;
-    this.#logger.verbose(`CI upload stopped (status: ${status})`);
+    this.#logger.trace(`CI upload stopped (status: ${status})`);
   }
 
   async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto) {
-    this.#logger.verbose("Creating launch…");
+    this.#logger.trace("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
         name: launchName,
@@ -243,7 +243,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    this.#logger.verbose("Retrieving launch progress status…");
+    this.#logger.trace("Retrieving launch progress status…");
     const data = await this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch.id}/progress`);
 
     return data.ready;
@@ -435,7 +435,7 @@ export class TestOpsClient {
         uploadedTrs.push(...trsChunk);
       }
 
-      this.#logger.verbose("Test results upload completed");
+      this.#logger.trace("Test results upload completed");
     } catch (error) {
       if (this.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload test results: ${error.response?.data.message}`);

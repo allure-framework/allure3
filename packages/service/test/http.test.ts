@@ -8,6 +8,10 @@ const axiosMock = vi.hoisted(() => ({
   put: vi.fn(),
 }));
 
+const logMock = vi.hoisted(() => ({
+  debug: vi.fn(),
+}));
+
 vi.mock("axios", () => ({
   default: {
     create: axiosMock.create,
@@ -15,7 +19,11 @@ vi.mock("axios", () => ({
   isAxiosError: (err: unknown) => !!(err as { isAxiosError?: boolean })?.isAxiosError,
 }));
 
-const { KnownError, UnknownError, createServiceHttpClient, formatResponseErrorData, uploadReport } =
+vi.mock("../src/logger.js", () => ({
+  log: logMock,
+}));
+
+const { KnownError, InternalError, AXIOS_REDACT_KEYS, createServiceHttpClient, formatResponseErrorData, uploadReport } =
   await import("../src/utils/http.js");
 
 const uploadConfig = {
@@ -121,7 +129,7 @@ describe("createServiceHttpClient", () => {
       caught = err;
     }
 
-    expect(caught).toBeInstanceOf(UnknownError);
+    expect(caught).toBeInstanceOf(InternalError);
     expect((caught as Error).message).toBe("Allure service request failed: GET /api/test-report failed: Network Error");
   });
 
@@ -151,6 +159,64 @@ describe("createServiceHttpClient", () => {
         Authorization: "Bearer token",
       },
     });
+  });
+
+  it("should emit debug details when a service request fails", async () => {
+    axiosMock.post.mockRejectedValue({
+      ...createAxiosError({
+        status: 400,
+        statusText: "Bad Request",
+        data: { message: "bad request" },
+      }),
+      toJSON() {
+        return {
+          config: {
+            method: "post",
+            url: "/api/test-report",
+            params: { page: 1 },
+            data: '{"projectId":1}',
+          },
+        };
+      },
+    });
+
+    const client = createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
+
+    await expect(
+      client.post("/api/test-report", { body: { projectId: 1 }, params: { page: 1 } }),
+    ).rejects.toBeInstanceOf(KnownError);
+
+    expect(logMock.debug, "failed requests should log request context at debug level").toHaveBeenCalledWith(
+      {
+        method: "post",
+        endpoint: "/api/test-report",
+        params: { page: 1 },
+        body: { projectId: 1 },
+        status: 400,
+        statusText: "Bad Request",
+        responseData: { message: "bad request" },
+        request: {
+          method: "post",
+          url: "/api/test-report",
+          params: { page: 1 },
+          data: '{"projectId":1}',
+        },
+      },
+      "service HTTP request failed",
+    );
+  });
+
+  it("should configure axios redact keys for error serialization", () => {
+    createServiceHttpClient("https://testops.example.com", { apiToken: "token" });
+
+    expect(
+      axiosMock.create,
+      "axios client should mask sensitive config keys in AxiosError#toJSON()",
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redact: AXIOS_REDACT_KEYS,
+      }),
+    );
   });
 });
 
