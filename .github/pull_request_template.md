@@ -1,21 +1,26 @@
-## Summary
+<!---
+Thank you so much for sending us a pull request!
 
-<!-- What changed, and why? -->
+Make sure you have a clear name for your pull request.
+The name should start with a capital letter and no dot is required in the end of the sentence.
+To link the request with issues use the following notation: (fixes #123, fixes #321\)
 
-## Validation
+An example of good pull request names:
+* Add Cucumber integration (fixes #123\)
+* Add an ability to disable default plugins
+* Support emoji in test descriptions
+-->
 
-<!-- List commands you ran, or explain why validation was not needed. -->
+### Context
 
-## Release notes
+<!---
+Describe the problem or feature in addition to a link to the issues
+-->
 
-Select exactly one `pr:*` label before this PR is ready to merge:
+#### Checklist
 
-- `pr:bug`
-- `pr:dependencies`
-- `pr:documentation`
-- `pr:improvement`
-- `pr:internal`
-- `pr:invalid`
-- `pr:new feature`
-- `pr:security`
-- `pr:tests`
+- [ ] [Sign Allure CLA][cla]
+- [ ] Provide unit tests
+- [ ] Select exactly one release-note label (`pr:*`; `type:*` is accepted only during the label migration)
+
+[cla]: https://cla-assistant.io/accept/allure-framework/allure3
