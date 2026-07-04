@@ -26,7 +26,11 @@ const areNodesCollapsed = (envId: string): boolean => {
     return false;
   }
 
-  return collapsedTrees.value.has(rootId);
+  // Apply same scoping logic as Tree component
+  const needsPrefix = Object.keys(filteredTree.value).length > 1 && !currentEnvironment.value;
+  const scopedId = needsPrefix ? `${envId}:${rootId}` : rootId;
+
+  return collapsedTrees.value.has(scopedId);
 };
 
 /**

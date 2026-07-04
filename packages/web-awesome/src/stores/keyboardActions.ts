@@ -10,7 +10,7 @@ import {
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
-import { computed } from "@preact/signals";
+import { batch, computed } from "@preact/signals";
 
 import { getBodyItems } from "@/components/TestResult/bodyItems";
 import {
@@ -775,25 +775,28 @@ export const handleTestResultEscape = () => {
 export const toggleAllTreeNodes = (envId: string | undefined, shouldExpand: boolean) => {
   const envsToProcess = envId ? [envId] : Object.keys(filteredTree.value);
 
-  envsToProcess.forEach((env) => {
-    const envTree = filteredTree.value[env];
-    if (!envTree) {
-      return;
-    }
+  // Batch all signal updates to prevent N sequential Set copies
+  batch(() => {
+    envsToProcess.forEach((env) => {
+      const envTree = filteredTree.value[env];
+      if (!envTree) {
+        return;
+      }
 
-    // Get the focus ID prefix used by Tree component for this env
-    const focusIdPrefix = environmentsStore.value.data.length > 1 && !currentEnvironment.value ? `${env}:` : undefined;
-    const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
+      // Get the focus ID prefix used by Tree component for this env
+      const focusIdPrefix = environmentsStore.value.data.length > 1 && !currentEnvironment.value ? `${env}:` : undefined;
+      const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
 
-    // Collect all expandable nodes in this environment's tree
-    const expandableNodes = collectExpandableSubtreeNodes(envTree);
+      // Collect all expandable nodes in this environment's tree
+      const expandableNodes = collectExpandableSubtreeNodes(envTree);
 
-    // Apply expand or collapse to all nodes
-    const targetState = shouldExpand ? "all" : "none";
-    applySubtreeToggleState(expandableNodes, targetState, {
-      toScopedId,
-      isOpened: (scopedId, openedByDefault) => isTreeOpened(scopedId, openedByDefault),
-      setOpened: (scopedId, shouldOpen, openedByDefault) => setTreeOpened(scopedId, shouldOpen, openedByDefault),
+      // Apply expand or collapse to all nodes
+      const targetState = shouldExpand ? "all" : "none";
+      applySubtreeToggleState(expandableNodes, targetState, {
+        toScopedId,
+        isOpened: (scopedId, openedByDefault) => isTreeOpened(scopedId, openedByDefault),
+        setOpened: (scopedId, shouldOpen, openedByDefault) => setTreeOpened(scopedId, shouldOpen, openedByDefault),
+      });
     });
   });
 };
