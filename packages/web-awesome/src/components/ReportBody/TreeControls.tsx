@@ -2,12 +2,33 @@ import { IconButton, allureIcons } from "@allurereport/web-components";
 import { memo } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
 
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentsStore } from "@/stores/env";
 import { collapseAllTreeNodes, expandAllTreeNodes } from "@/stores/keyboardActions";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, filteredTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
+
+/**
+ * Determines if environment prefix is needed for node IDs.
+ * Must match the exact logic Tree component uses to decide focusIdPrefix.
+ * 
+ * Prefix is used ONLY when:
+ * - Multiple environments exist (environmentsStore.value.data.length > 1)
+ * - AND no specific environment is selected (currentEnvironment.value is undefined)
+ * 
+ * This is the "All environments" view where trees from different envs are shown together.
+ */
+const shouldUseEnvPrefix = (): boolean => {
+  return environmentsStore.value.data.length > 1 && !currentEnvironment.value;
+};
+
+/**
+ * Creates a scoped ID for a node, applying environment prefix if needed.
+ */
+const getScopedNodeId = (envId: string, nodeId: string): string => {
+  return shouldUseEnvPrefix() ? `${envId}:${nodeId}` : nodeId;
+};
 
 /**
  * Check if most nodes in a specific environment's tree are collapsed.
@@ -26,9 +47,8 @@ const areNodesCollapsed = (envId: string): boolean => {
     return false;
   }
 
-  // Apply same scoping logic as Tree component
-  const needsPrefix = Object.keys(filteredTree.value).length > 1 && !currentEnvironment.value;
-  const scopedId = needsPrefix ? `${envId}:${rootId}` : rootId;
+  // Use consistent scoping logic
+  const scopedId = getScopedNodeId(envId, rootId);
 
   return collapsedTrees.value.has(scopedId);
 };

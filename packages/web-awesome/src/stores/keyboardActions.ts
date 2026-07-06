@@ -783,7 +783,8 @@ export const toggleAllTreeNodes = (envId: string | undefined, shouldExpand: bool
         return;
       }
 
-      // Get the focus ID prefix used by Tree component for this env
+      // Get the focus ID prefix using the EXACT same logic as Tree component:
+      // Prefix is used ONLY when multiple envs exist AND no specific env is selected
       const focusIdPrefix = environmentsStore.value.data.length > 1 && !currentEnvironment.value ? `${env}:` : undefined;
       const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
 
