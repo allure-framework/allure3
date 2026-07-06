@@ -8,6 +8,7 @@ export * from "./utils/environment.js";
 export * from "./history.js";
 export * from "./known.js";
 export { resolveConfig, readConfig, readRawConfig, getPluginInstance } from "./config.js";
+export { registerBuiltinPlugin, getBuiltinPlugin, type PluginConstructor } from "./pluginRegistry.js";
 export * from "./report.js";
 export * from "./plugin.js";
 export {

@@ -9,6 +9,7 @@ import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
+import { getBuiltinPlugin } from "./pluginRegistry.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -459,6 +460,14 @@ const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE
 };
 
 export const resolvePlugin = async (path: string): Promise<PluginConstructor> => {
+  // plugins registered statically (e.g. in bundled/SEA distributions) take precedence
+  // over dynamic module resolution
+  const builtinPlugin = getBuiltinPlugin(path) ?? getBuiltinPlugin(`@allurereport/plugin-${path}`);
+
+  if (builtinPlugin) {
+    return builtinPlugin;
+  }
+
   // try to append @allurereport/plugin- scope
   if (!path.startsWith("@allurereport/plugin-")) {
     try {

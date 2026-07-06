@@ -181,12 +181,15 @@ __metadata:
   resolution: "@allurereport/monorepo@workspace:."
   dependencies:
     "@types/node": "npm:^20"
+    "@yarnpkg/esbuild-plugin-pnp": "npm:^3.0.0-rc.15"
     allure: "workspace:*"
     babel-plugin-prismjs: "npm:^2.1.0"
+    esbuild: "npm:^0.25.0"
     lefthook: "npm:^2.1.4"
     oxfmt: "npm:^0.52.0"
     oxlint: "npm:^1.67.0"
     oxlint-tsgolint: "npm:^0.23.0"
+    postject: "npm:^1.0.0-alpha.6"
     rimraf: "npm:^6"
     tslib: "npm:^2.7.0"
     typescript: "npm:^5"
@@ -8057,6 +8060,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yarnpkg/esbuild-plugin-pnp@npm:^3.0.0-rc.15":
+  version: 3.0.0-rc.15
+  resolution: "@yarnpkg/esbuild-plugin-pnp@npm:3.0.0-rc.15"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    esbuild: ">=0.10.0"
+  checksum: 10/454f521088c1fa24fda51f83ca4a50ba6e3bd147e5dee8c899e6bf24a7196186532c3abb18480e83395708ffb7238c9cac5b82595c3985ce93593b5afbd0a9f0
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^2.0.0":
   version: 2.0.0
   resolution: "abbrev@npm:2.0.0"
@@ -9375,6 +9389,13 @@ __metadata:
   version: 8.3.0
   resolution: "commander@npm:8.3.0"
   checksum: 10/6b7b5d334483ce24bd73c5dac2eab901a7dbb25fd983ea24a1eeac6e7166bb1967f641546e8abf1920afbde86a45fbfe5812fbc69d0dc451bb45ca416a12a3a3
+  languageName: node
+  linkType: hard
+
+"commander@npm:^9.4.0":
+  version: 9.5.0
+  resolution: "commander@npm:9.5.0"
+  checksum: 10/41c49b3d0f94a1fbeb0463c85b13f15aa15a9e0b4d5e10a49c0a1d58d4489b549d62262b052ae0aa6cfda53299bee487bfe337825df15e342114dde543f82906
   languageName: node
   linkType: hard
 
@@ -15506,6 +15527,17 @@ __metadata:
     posthtml-parser: "npm:^0.2.0"
     posthtml-render: "npm:^1.0.5"
   checksum: 10/3a0dd2d7c242eb457ecdfb4254ade7829c3a77e415b02bf70523456585fcc9fbe74329bb52d8e2974cda835870c21b3904b531d7b0513cfd929fa615467c5e8a
+  languageName: node
+  linkType: hard
+
+"postject@npm:^1.0.0-alpha.6":
+  version: 1.0.0-alpha.6
+  resolution: "postject@npm:1.0.0-alpha.6"
+  dependencies:
+    commander: "npm:^9.4.0"
+  bin:
+    postject: dist/cli.js
+  checksum: 10/deda89e3cb623332f477a7d9ab75c5aebf3338cb305adb9420f37fc50930f3eb46782fe3b2ab2dc22a59da91ea1a011c7edfe2b3d2e225a9cd6b0e745c51061d
   languageName: node
   linkType: hard
 
