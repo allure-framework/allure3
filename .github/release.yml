@@ -4,6 +4,7 @@ changelog:
   exclude:
     labels:
       - 'pr:invalid'
+      - 'pr:tests'
   categories:
     - title: '🚀 New Features'
       labels:
@@ -23,9 +24,6 @@ changelog:
     - title: '⛔️ Security'
       labels:
         - 'pr:security'
-    - title: '✅ Tests'
-      labels:
-        - 'pr:tests'
     - title: '👻 Internal changes'
       labels:
         - 'pr:internal'
