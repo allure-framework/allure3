@@ -15,6 +15,7 @@
     "audit": "yarn npm audit --all --recursive",
     "build": "yarn workspaces foreach -Avvpt run build",
     "build:sea": "node ./scripts/sea/build-sea.mjs",
+    "build:sea:linux": "node ./scripts/sea/build-sea.mjs --platform linux --arch x64",
     "clean": "yarn workspaces foreach -Avvpt run clean",
     "format": "yarn format:write",
     "report": "yarn allure generate --config=./allurerc.mjs",
