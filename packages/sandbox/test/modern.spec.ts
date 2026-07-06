@@ -13,11 +13,14 @@ import {
   Status,
   description,
   descriptionHtml,
+  epic,
+  feature,
   globalAttachment,
   globalError,
   label,
   logStep,
   step,
+  story,
 } from "allure-js-commons";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
