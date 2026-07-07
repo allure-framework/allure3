@@ -1,48 +1,171 @@
-import type { TestLabel } from "./metadata.js";
-import type { TestError, TestStatus } from "./model.js";
+import { createHash } from "node:crypto";
+
+import { fallbackTestCaseIdLabelName } from "../constants.js";
+import type { HistoryDataPoint, HistoryTestResult } from "../history.js";
+import type { TestParameter } from "../metadata.js";
+import type { TestResult } from "../model.js";
+import { DEFAULT_ENVIRONMENT } from "./environment.js";
+import { findLastByLabelName } from "./label.js";
+
+const md5 = (data: string) => createHash("md5").update(data).digest("hex");
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const normalizeHistoryTestResults = (testResults: unknown): Record<string, HistoryTestResult> => {
+  if (!isRecord(testResults)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(testResults).filter(([, value]) => isRecord(value))) as Record<
+    string,
+    HistoryTestResult
+  >;
+};
+
+const parametersCompare = (a: TestParameter, b: TestParameter) => {
+  return (a.name ?? "").localeCompare(b.name ?? "") || (a.value ?? "").localeCompare(b.value ?? "");
+};
+
+export const stringifyHistoryParams = (parameters: TestParameter[] = []): string => {
+  return [...parameters]
+    .filter((parameter) => !parameter?.excluded)
+    .sort(parametersCompare)
+    .map((parameter) => `${parameter.name}:${parameter.value}`)
+    .join(",");
+};
 
 /**
- * Stores basic history information for particular test result.
+ * @description Composes the key under which a test result is stored in a history data point.
+ * The same test executed in different environments shares the historyId, so the environment
+ * is included into the key to keep one entry per environment.
+ * The default environment keeps the plain historyId for backward compatibility with
+ * history files written by previous versions.
  */
-export interface HistoryTestResult {
-  id: string;
-  name: string;
-  fullName?: string;
+export const composeHistoryTestResultKey = (historyId: string, environment?: string): string =>
+  !environment || environment === DEFAULT_ENVIRONMENT ? historyId : `${historyId}::${environment}`;
 
-  environment?: string;
+export const getFallbackHistoryId = (tr: Pick<TestResult, "labels" | "parameters">): string | undefined => {
+  const fallbackTestCaseId = findLastByLabelName(tr.labels ?? [], fallbackTestCaseIdLabelName);
 
-  status: TestStatus;
-  error?: TestError;
+  if (!fallbackTestCaseId) {
+    return undefined;
+  }
 
-  start?: number;
-  stop?: number;
-  duration?: number;
+  return `${fallbackTestCaseId}.${md5(stringifyHistoryParams(tr.parameters ?? []))}`;
+};
 
-  labels?: TestLabel[];
+export const getHistoryIdCandidates = (tr: Pick<TestResult, "historyId" | "labels" | "parameters">): string[] => {
+  const result: string[] = [];
 
-  url: string;
+  if (tr.historyId) {
+    result.push(tr.historyId);
+  }
 
-  historyId?: string; // TODO: double check the necessity to have historyId in the history test result
-  reportLinks?: any[]; // TODO: add the correct type for previously missing report links
-}
+  const fallbackHistoryId = getFallbackHistoryId(tr);
+
+  if (fallbackHistoryId && !result.includes(fallbackHistoryId)) {
+    result.push(fallbackHistoryId);
+  }
+
+  return result;
+};
+
+export const filterUnknownByKnownIssues = (
+  trs: TestResult[],
+  knownIssueHistoryIds: ReadonlySet<string>,
+): TestResult[] => {
+  return trs.filter((tr) => {
+    const historyIdCandidates = getHistoryIdCandidates(tr);
+
+    if (historyIdCandidates.length === 0) {
+      return true;
+    }
+
+    return historyIdCandidates.every((historyId) => !knownIssueHistoryIds.has(historyId));
+  });
+};
+
+export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => ({
+  ...historyDataPoint,
+  knownTestCaseIds: Array.isArray(historyDataPoint.knownTestCaseIds) ? historyDataPoint.knownTestCaseIds : [],
+  testResults: normalizeHistoryTestResults(historyDataPoint.testResults),
+  metrics: isRecord(historyDataPoint.metrics) ? (historyDataPoint.metrics as Record<string, number>) : {},
+  url: historyDataPoint.url ?? "",
+});
+
+export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => {
+  const normalizedHistoryDataPoint = normalizeHistoryDataPoint(historyDataPoint);
+  const { url } = normalizedHistoryDataPoint;
+
+  if (!url) {
+    return normalizedHistoryDataPoint;
+  }
+
+  let testResults = normalizedHistoryDataPoint.testResults;
+
+  for (const [historyId, historyTestResult] of Object.entries(normalizedHistoryDataPoint.testResults)) {
+    if (historyTestResult.url) {
+      continue;
+    }
+
+    if (testResults === normalizedHistoryDataPoint.testResults) {
+      testResults = { ...normalizedHistoryDataPoint.testResults };
+    }
+
+    testResults[historyId] = {
+      ...historyTestResult,
+      url,
+    };
+  }
+
+  if (testResults === normalizedHistoryDataPoint.testResults) {
+    return normalizedHistoryDataPoint;
+  }
+
+  return {
+    ...normalizedHistoryDataPoint,
+    testResults,
+  };
+};
+
+export const selectHistoryTestResults = (
+  historyDataPoints: HistoryDataPoint[],
+  historyIdCandidates: readonly string[],
+): HistoryTestResult[] => {
+  if (historyIdCandidates.length === 0) {
+    return [];
+  }
+
+  return historyDataPoints.reduce((acc, historyDataPoint) => {
+    for (const historyId of historyIdCandidates) {
+      const historyTestResult = historyDataPoint.testResults?.[historyId];
+
+      if (!historyTestResult) {
+        continue;
+      }
+
+      acc.push(historyTestResult);
+      break;
+    }
+
+    return acc;
+  }, [] as HistoryTestResult[]);
+};
 
 /**
- * Stores all the historical information for the single test run.
+ * @description Gets the historical test results for the test result.
+ * @param hdps - The history data points.
+ * @param tr - The test result or history test result.
+ * @returns The history test results array.
  */
-export interface HistoryDataPoint {
-  uuid: string;
-  name: string;
-  timestamp: number;
-  knownTestCaseIds: string[];
-  testResults: Record<string, HistoryTestResult>;
-  metrics: Record<string, number>;
-  url: string;
-}
+export const htrsByTr = (hdps: HistoryDataPoint[], tr: TestResult | HistoryTestResult): HistoryTestResult[] => {
+  if (!tr?.historyId) {
+    return [];
+  }
 
-/**
- * Provides ability to load and update report history
- */
-export interface AllureHistory {
-  readHistory(params?: { repo?: string; branch?: string }): Promise<HistoryDataPoint[]>;
-  appendHistory(history: HistoryDataPoint): Promise<void>;
-}
+  return selectHistoryTestResults(hdps, [
+    composeHistoryTestResultKey(tr.historyId, tr.environment),
+    tr.historyId,
+  ]);
+};

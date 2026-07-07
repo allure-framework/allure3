@@ -5,6 +5,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import { composeHistoryTestResultKey } from "@allurereport/core-api";
 
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
@@ -112,8 +113,9 @@ export const generateStatusAgePyramid = (props: {
         continue;
       }
 
+      const historyKey = composeHistoryTestResultKey(cTr.historyId!, cTr.environment);
       const historyAfterTrsStatuses: (TestStatus | undefined)[] = historyAfter.map(
-        (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
+        (hdp) => (hdp.testResults[historyKey] ?? hdp.testResults[cTr.historyId!])?.status ?? undefined,
       );
 
       // If the test status changed in a later run, skip it

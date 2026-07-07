@@ -24,6 +24,7 @@ import {
   type TestResult,
   type TestStepResult,
   compareBy,
+  composeHistoryTestResultKey,
   createDictionary,
   getHistoryIdCandidates,
   getWorstStatus,
@@ -1032,7 +1033,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return Array.from(this.#testResults.values());
     }
 
-    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults ?? {})));
+    // history test results are keyed by historyId composed with the environment,
+    // so collect the plain historyIds from the values (falling back to the key for legacy entries)
+    const historicalIds = new Set(
+      allHistoryDps.flatMap((dp) => Object.entries(dp.testResults ?? {}).map(([key, htr]) => htr.historyId ?? key)),
+    );
     const newTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
@@ -1161,7 +1166,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    return selectHistoryTestResults(this.#historyPoints, historyIdCandidates);
+    // prefer environment-specific entries, falling back to plain historyIds
+    // for history points written by previous versions
+    const keyCandidates = [
+      ...historyIdCandidates.map((historyId) => composeHistoryTestResultKey(historyId, tr.environment)),
+      ...historyIdCandidates,
+    ].filter((key, index, keys) => keys.indexOf(key) === index);
+
+    return selectHistoryTestResults(this.#historyPoints, keyCandidates);
   }
 
   /**

@@ -5,6 +5,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import { composeHistoryTestResultKey } from "@allurereport/core-api";
 
 import { createHashStorage, createMapWithDefault } from "./utils.js";
 
@@ -164,9 +165,10 @@ export const getStabilityScore = (
  */
 const getStatusSequence = (historyDataPoints: HistoryDataPoint[], tr: TestResult): TestStatus[] => {
   let block: TestStatus[] = [];
+  const historyKey = composeHistoryTestResultKey(tr.historyId!, tr.environment);
 
   for (const hdp of historyDataPoints) {
-    const htr = hdp.testResults[tr.historyId!];
+    const htr = hdp.testResults[historyKey] ?? hdp.testResults[tr.historyId!];
 
     if (!htr) {
       // Gap: test was not in this run — keep only statuses after this point

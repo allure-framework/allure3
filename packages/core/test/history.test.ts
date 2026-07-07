@@ -571,4 +571,44 @@ describe("createHistory", () => {
     expect(history.url).toBe(remoteUrl);
     expect(history.testResults["history-id"].url).toBe(remoteUrl);
   });
+
+  it("should keep a separate entry for each environment sharing the same historyId", () => {
+    const testCases = [{ id: "test-case-id" }] as TestCase[];
+    const testResults = [
+      {
+        id: "test-result-1",
+        name: "test result",
+        historyId: "history-id",
+        status: "passed",
+        labels: [],
+      } as TestResult,
+      {
+        id: "test-result-2",
+        name: "test result",
+        historyId: "history-id",
+        environment: "chrome",
+        status: "failed",
+        labels: [],
+      } as TestResult,
+      {
+        id: "test-result-3",
+        name: "test result",
+        historyId: "history-id",
+        environment: "firefox",
+        status: "passed",
+        labels: [],
+      } as TestResult,
+    ];
+
+    const history = createHistory("report-id", "Report", testCases, testResults);
+
+    expect(Object.keys(history.testResults)).toHaveLength(3);
+    expect(history.testResults["history-id"]).toEqual(expect.objectContaining({ id: "test-result-1" }));
+    expect(history.testResults["history-id::chrome"]).toEqual(
+      expect.objectContaining({ id: "test-result-2", environment: "chrome", status: "failed" }),
+    );
+    expect(history.testResults["history-id::firefox"]).toEqual(
+      expect.objectContaining({ id: "test-result-3", environment: "firefox", status: "passed" }),
+    );
+  });
 });
