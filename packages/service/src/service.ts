@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
 import { type HistoryDataPoint } from "@allurereport/core-api";
@@ -13,6 +12,7 @@ import {
 } from "./model.js";
 import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
 import { parseServiceToken } from "./utils/token.js";
+import { createUploadForm } from "./utils/upload.js";
 
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
 
@@ -22,20 +22,6 @@ const createReportUrl = (baseUrl: string, reportUuid: string) => `${baseUrl}/${r
 
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
-
-const readUploadContent = async (payload: UploadReportFilePayload) => {
-  const { file, filepath, signal } = payload;
-
-  if (file) {
-    return file;
-  }
-
-  if (!filepath) {
-    throw new Error("File or filepath is required");
-  }
-
-  return signal ? readFile(filepath, { signal }) : readFile(filepath);
-};
 
 export class AllureServiceClient implements AllureServiceApiClient {
   readonly #client: HttpClient;
@@ -139,19 +125,7 @@ export class AllureServiceClient implements AllureServiceApiClient {
       return undefined;
     }
 
-    const entries = await Promise.all(
-      files.map(async ({ filename, ...filePayload }) => ({
-        filename,
-        content: await readUploadContent({ filename, ...filePayload, signal: signal ?? filePayload.signal }),
-      })),
-    );
-
-    const form = new FormData();
-
-    for (const { filename, content } of entries) {
-      form.append("filename", filename);
-      form.append("file", createUploadBlob(content), filename);
-    }
+    const { form } = await createUploadForm(files, createUploadBlob, signal);
 
     return this.#client.post("/api/assets/upload", {
       body: form,
@@ -178,24 +152,9 @@ export class AllureServiceClient implements AllureServiceApiClient {
       return {};
     }
 
-    const entries = await Promise.all(
-      files.map(async ({ filename, ...filePayload }) => {
-        const reportFilename = pluginId ? joinPosix(pluginId, filename) : filename;
-
-        return {
-          filename,
-          reportFilename,
-          content: await readUploadContent({ filename, ...filePayload, signal: signal ?? filePayload.signal }),
-        };
-      }),
+    const { entries, form } = await createUploadForm(files, createUploadBlob, signal, (filename) =>
+      pluginId ? joinPosix(pluginId, filename) : filename,
     );
-
-    const form = new FormData();
-
-    for (const { reportFilename, content } of entries) {
-      form.append("filename", reportFilename);
-      form.append("file", createUploadBlob(content), reportFilename);
-    }
 
     await this.#client.post(`/api/reports/${reportUuid}/upload`, {
       body: form,
