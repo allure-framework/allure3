@@ -225,8 +225,10 @@ export class AllureServiceClient implements AllureServiceApiClient {
   }
 
   async uploadReport(payload: UploadReportPayload) {
+    const { uploadBatchMaxBytes: _uploadBatchMaxBytes, ...uploadPayload } = payload;
+
     return uploadReport({
-      ...payload,
+      ...uploadPayload,
       uploadConcurrency: this.config.uploadConcurrency,
       uploadMaxAttempts: this.config.uploadMaxAttempts,
       uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
