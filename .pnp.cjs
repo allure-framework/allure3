@@ -377,7 +377,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
-          ["@faker-js/faker", "npm:9.8.0"],\
+          ["@faker-js/faker", "npm:10.5.0"],\
           ["@playwright/test", "npm:1.56.1"],\
           ["@types/lodash.times", "npm:4.3.9"],\
           ["@types/node", "npm:20.19.41"],\
@@ -585,7 +585,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-jira", "workspace:packages/plugin-jira"],\
-          ["@faker-js/faker", "npm:9.8.0"],\
+          ["@faker-js/faker", "npm:10.5.0"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
@@ -6015,10 +6015,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@faker-js/faker", [\
-      ["npm:9.8.0", {\
-        "packageLocation": "./.yarn/cache/@faker-js-faker-npm-9.8.0-3ee3932567-d7d7940ba7.zip/node_modules/@faker-js/faker/",\
+      ["npm:10.5.0", {\
+        "packageLocation": "./.yarn/cache/@faker-js-faker-npm-10.5.0-7ac60a3300-1f83f46bf4.zip/node_modules/@faker-js/faker/",\
         "packageDependencies": [\
-          ["@faker-js/faker", "npm:9.8.0"]\
+          ["@faker-js/faker", "npm:10.5.0"]\
         ],\
         "linkType": "HARD"\
       }]\
