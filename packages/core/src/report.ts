@@ -48,9 +48,10 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
-import { DefaultPluginState, PluginFiles } from "./plugin.js";
+import { DefaultPluginState, PluginFiles, TrackedReportFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
+import { SHARED_DIR } from "./sharedStorage.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
@@ -131,6 +132,7 @@ export class AllureReport {
   #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
+  #sharedFiles: Record<string, string> = {};
   #published = false;
   #endGeneratePerfSpan?: () => void;
 
@@ -228,8 +230,16 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
-    this.#sharedReportFiles = sharedReportFiles;
-    this.#sharedAssetsFiles = sharedAssetsFiles;
+    this.#sharedReportFiles = sharedReportFiles
+      ? new TrackedReportFiles(sharedReportFiles, (key, filepath) => {
+          this.#sharedFiles[key] = filepath;
+        })
+      : undefined;
+    this.#sharedAssetsFiles = sharedAssetsFiles
+      ? new TrackedReportFiles(sharedAssetsFiles, (key, filepath) => {
+          this.#sharedFiles[key] = filepath;
+        })
+      : undefined;
     this.#output = output;
   }
 
@@ -284,6 +294,14 @@ export class AllureReport {
     if (reportsToPublish.length === 0) {
       this.#published = true;
       return;
+    }
+
+    if (Object.keys(this.#sharedFiles).length > 0) {
+      reportsToPublish.push({
+        pluginId: SHARED_DIR,
+        publish: true,
+        files: { ...this.#sharedFiles },
+      });
     }
 
     const client = this.#allureServiceClient;

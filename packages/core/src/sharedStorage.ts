@@ -6,7 +6,7 @@ import type { ReportFiles } from "@allurereport/plugin-api";
 
 import { resolvePathUnderOutputRoot } from "./utils/safeOutputPath.js";
 
-const SHARED_DIR = "_shared";
+export const SHARED_DIR = "_shared";
 
 const writeSharedFile = async (
   output: string,
