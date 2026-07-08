@@ -1065,7 +1065,7 @@ const RAW_RUNTIME_STATE =
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
-          ["@types/sortablejs", "npm:1.15.8"],\
+          ["@types/sortablejs", "npm:1.15.9"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
@@ -11528,10 +11528,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/sortablejs", [\
-      ["npm:1.15.8", {\
-        "packageLocation": "./.yarn/cache/@types-sortablejs-npm-1.15.8-72981d09e4-aea58b08cf.zip/node_modules/@types/sortablejs/",\
+      ["npm:1.15.9", {\
+        "packageLocation": "./.yarn/cache/@types-sortablejs-npm-1.15.9-385fa0a2d4-9e0d6ef1cd.zip/node_modules/@types/sortablejs/",\
         "packageDependencies": [\
-          ["@types/sortablejs", "npm:1.15.8"]\
+          ["@types/sortablejs", "npm:1.15.9"]\
         ],\
         "linkType": "HARD"\
       }]\
