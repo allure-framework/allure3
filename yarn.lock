@@ -787,7 +787,7 @@ __metadata:
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
-    "@types/sortablejs": "npm:^1.15.8"
+    "@types/sortablejs": "npm:^1.15.9"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3.9.0"
@@ -7874,10 +7874,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sortablejs@npm:^1.15.8":
-  version: 1.15.8
-  resolution: "@types/sortablejs@npm:1.15.8"
-  checksum: 10/aea58b08cf45f5e9633707a8df0df1212595c731bbdfd29805487138fdd0d8c51fa5c741999738a645c1e801d43a92ba0d3fb5b45625b52e247c56588aef6c55
+"@types/sortablejs@npm:^1.15.9":
+  version: 1.15.9
+  resolution: "@types/sortablejs@npm:1.15.9"
+  checksum: 10/9e0d6ef1cdcd30acab7af74cab5cbf56685e2de47c6f254357f7dde2626e9b49b8668c43f92761202cf4e10f2e3fd3d7baa6a83a39c3d342fc45ce66e87bd5aa
   languageName: node
   linkType: hard
 
