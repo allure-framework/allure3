@@ -118,7 +118,7 @@ __metadata:
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
     yaml: "npm:^2.8.3"
-    yoctocolors: "npm:^2.1.1"
+    yoctocolors: "npm:^2.1.2"
     zip-stream: "npm:^7.0.5"
   languageName: unknown
   linkType: soft
@@ -363,7 +363,7 @@ __metadata:
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.1"
+    yoctocolors: "npm:^2.1.2"
   languageName: unknown
   linkType: soft
 
@@ -381,7 +381,7 @@ __metadata:
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.1"
+    yoctocolors: "npm:^2.1.2"
   languageName: unknown
   linkType: soft
 
@@ -8617,7 +8617,7 @@ __metadata:
     typanion: "npm:^3.14.0"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.1"
+    yoctocolors: "npm:^2.1.2"
   bin:
     allure: ./cli.js
   languageName: unknown
@@ -19329,17 +19329,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yoctocolors@npm:^2":
+"yoctocolors@npm:^2, yoctocolors@npm:^2.1.2":
   version: 2.1.2
   resolution: "yoctocolors@npm:2.1.2"
   checksum: 10/6ee42d665a4cc161c7de3f015b2a65d6c65d2808bfe3b99e228bd2b1b784ef1e54d1907415c025fc12b400f26f372bfc1b71966c6c738d998325ca422eb39363
-  languageName: node
-  linkType: hard
-
-"yoctocolors@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "yoctocolors@npm:2.1.1"
-  checksum: 10/563fbec88bce9716d1044bc98c96c329e1d7a7c503e6f1af68f1ff914adc3ba55ce953c871395e2efecad329f85f1632f51a99c362032940321ff80c42a6f74d
   languageName: node
   linkType: hard
 
