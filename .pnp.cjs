@@ -324,7 +324,7 @@ const RAW_RUNTIME_STATE =
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
           ["yaml", "npm:2.8.3"],\
           ["yoctocolors", "npm:2.1.1"],\
-          ["zip-stream", "npm:7.0.2"]\
+          ["zip-stream", "npm:7.0.5"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -27089,13 +27089,13 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:7.0.2", {\
-        "packageLocation": "./.yarn/cache/zip-stream-npm-7.0.2-bc3ea5f648-058493b1bb.zip/node_modules/zip-stream/",\
+      ["npm:7.0.5", {\
+        "packageLocation": "./.yarn/cache/zip-stream-npm-7.0.5-e1173e5059-6c9d870fca.zip/node_modules/zip-stream/",\
         "packageDependencies": [\
           ["compress-commons", "npm:7.0.0"],\
           ["normalize-path", "npm:3.0.0"],\
           ["readable-stream", "npm:4.7.0"],\
-          ["zip-stream", "npm:7.0.2"]\
+          ["zip-stream", "npm:7.0.5"]\
         ],\
         "linkType": "HARD"\
       }]\
