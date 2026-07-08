@@ -284,7 +284,6 @@ export class AllureReport {
     let nextProgressLogAt = 0;
     let lastProgressLog = -1;
     const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
-
     const logUploadProgress = (force = false) => {
       if (force && uploadedFiles === lastProgressLog) {
         return;
@@ -303,7 +302,6 @@ export class AllureReport {
       lastProgressLog = uploadedFiles;
       nextProgressLogAt = Math.min(totalFilesToUpload, uploadedFiles + progressStep);
     };
-
     const incrementUploadProgress = (delta = 1) => {
       uploadedFiles = Math.min(totalFilesToUpload, uploadedFiles + delta);
       logUploadProgress();

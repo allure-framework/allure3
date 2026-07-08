@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const fsMock = vi.hoisted(() => ({
+  stat: vi.fn(),
+}));
+
 const axiosMock = vi.hoisted(() => ({
   create: vi.fn(),
   delete: vi.fn(),
@@ -13,6 +17,9 @@ vi.mock("axios", () => ({
     create: axiosMock.create,
   },
   isAxiosError: (err: unknown) => !!(err as { isAxiosError?: boolean })?.isAxiosError,
+}));
+vi.mock("node:fs/promises", () => ({
+  stat: fsMock.stat,
 }));
 
 const { KnownError, UnknownError, createServiceHttpClient, formatResponseErrorData, uploadReport } =
@@ -175,6 +182,11 @@ describe("formatResponseErrorData", () => {
 });
 
 describe("uploadReport", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fsMock.stat.mockReset();
+  });
+
   it("routes data files to addReportFile and assets to addReportAsset", async () => {
     const addReportFile = vi.fn().mockResolvedValue("https://example.org/report/index.html");
     const addReportAsset = vi.fn().mockResolvedValue(undefined);
@@ -195,6 +207,59 @@ describe("uploadReport", () => {
     expect(addReportFile).toHaveBeenCalledTimes(2);
     expect(addReportAsset).toHaveBeenCalledTimes(1);
     expect(result.indexHref).toBe("https://example.org/report/index.html");
+  });
+
+  it("chunks files by byte cap without stat overhead when cap is unset", async () => {
+    const addReportFiles = vi.fn().mockResolvedValue({});
+
+    await uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      files: {
+        "index.html": "/tmp/index.html",
+        "widgets/summary.json": "/tmp/summary.json",
+      },
+      addReportFiles,
+      addReportFile: vi.fn(),
+      addReportAsset: vi.fn(),
+    });
+
+    expect(fsMock.stat).not.toHaveBeenCalled();
+    expect(addReportFiles).toHaveBeenCalledTimes(1);
+  });
+
+  it("chunks files by byte cap", async () => {
+    const addReportFiles = vi.fn().mockResolvedValue({});
+    fsMock.stat.mockImplementation((filepath: string) => {
+      const sizes: Record<string, number> = {
+        "/tmp/index.html": 6,
+        "/tmp/summary.json": 5,
+        "/tmp/widgets-summary.json": 4,
+      };
+
+      return Promise.resolve({ size: sizes[filepath] } as never);
+    });
+
+    await uploadReport({
+      ...uploadConfig,
+      reportUuid: "report-uuid",
+      files: {
+        "index.html": "/tmp/index.html",
+        "summary.json": "/tmp/summary.json",
+        "widgets/summary.json": "/tmp/widgets-summary.json",
+      },
+      uploadBatchMaxBytes: 10,
+      addReportFiles,
+      addReportFile: vi.fn(),
+      addReportAsset: vi.fn(),
+    });
+
+    expect(fsMock.stat).toHaveBeenCalledTimes(3);
+    expect(addReportFiles).toHaveBeenCalledTimes(2);
+    expect(addReportFiles.mock.calls.map(([payload]) => payload.files.map(({ filename }) => filename))).toEqual([
+      ["index.html"],
+      ["summary.json", "widgets/summary.json"],
+    ]);
   });
 
   it("uses configured concurrency", async () => {
