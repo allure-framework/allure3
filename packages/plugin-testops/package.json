@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-testops",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "description": "Allure Plugin TestOps",
   "keywords": [
     "allure",

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/git",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "description": "Git metadata collection for Allure Git Flow",
   "keywords": [
     "allure",
