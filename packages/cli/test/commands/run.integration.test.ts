@@ -449,9 +449,13 @@ console.log("emitted simple result");
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
-      expect(stdout).toContain(`agent index: ${join(outputDir, "index.md")}`);
-      expect(stdout).toContain(`agent expectations: ${expectationsPath}`);
-      expect(stdout).toContain("emitted simple result");
+      // The post-run summary links the index and reports expectation status (no streamed test output).
+      expect(stdout).toContain(join(outputDir, "index.md"));
+      expect(stdout).toContain("expectations: matched");
+      // The test command's own stdout is captured into the agent artifacts, not echoed to the terminal.
+      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
+      expect(capturedStdout).toContain("emitted simple result");
+      expect(stdout).not.toContain("emitted simple result");
       expect(stdout).not.toContain("process finished with code");
       expect(stdout).not.toContain("exit code ");
       expect(stdout).not.toContain("[DEP0190]");
@@ -588,8 +592,9 @@ console.log("emitted newly added test result");
       ]);
       expect(findingsContent).toBe("");
       expect(indexMarkdown).toContain(expectedFullName);
-      expect(stdout).toContain("agent expectations: CLI options");
-      expect(stdout).toContain("emitted newly added test result");
+      expect(stdout).toContain("expectations: matched");
+      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
+      expect(capturedStdout).toContain("emitted newly added test result");
       expect(stderr).toBe("");
     });
   }, 240_000);
@@ -817,7 +822,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
           subject: "tests/default/feature-a.md",
           severity: "high",
           category: "evidence",
-          check_name: "failed-without-useful-steps",
+          check_name: "insufficient-expected-steps",
           message: "Feature A needs focused rerun coverage",
           explanation: "Feature A should be the only review-targeted rerun candidate.",
           evidence_paths: [],
@@ -920,7 +925,11 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(selectFileStdout).toContain("agent selection preset: review");
       expect(selectFileStdout).toContain("agent selection tests: 1");
       expect(selectFileStderr).toBe("");
-      expect(stdout).toContain("selected selectors: suite feature A");
+      // The rerun prints its summary to the terminal, but the command's own stdout is captured into
+      // the agent artifacts rather than echoed.
+      expect(stdout).toContain("Allure agent:");
+      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
+      expect(capturedStdout).toContain("selected selectors: suite feature A");
       expect(stderr).toBe("");
 
       const selectedTests = (await readFile(join(outputDir, "manifest", "tests.jsonl"), "utf-8"))

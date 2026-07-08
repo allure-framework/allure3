@@ -13,7 +13,7 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "knownIssuesPath" | "plugins" | "port" | "allureService">,
+    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];

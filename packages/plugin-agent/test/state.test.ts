@@ -240,6 +240,67 @@ describe("agent-state utils", () => {
     expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), statePath);
   });
 
+  it("should keep recently finished managed outputs so concurrent runs do not delete them", async () => {
+    const fsModule = await import("node:fs/promises");
+    const cwd = resolve("/repo");
+    const now = 1778000000000;
+    const oldSibling = {
+      schema: "allure-agent-run/v1",
+      runId: "old-sibling",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-old-sibling"),
+      managedOutput: true,
+      command: "npm test old",
+      startedAt: now - 2 * 60 * 60 * 1000 - 1000,
+      status: "finished",
+      finishedAt: now - 2 * 60 * 60 * 1000,
+      exitCode: 0,
+    };
+    const recentSibling = {
+      schema: "allure-agent-run/v1",
+      runId: "recent-sibling",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-recent-sibling"),
+      managedOutput: true,
+      command: "npm test recent",
+      startedAt: now - 70_000,
+      status: "finished",
+      finishedAt: now - 60_000,
+      exitCode: 0,
+    };
+    const currentRun = {
+      schema: "allure-agent-run/v1",
+      runId: "current",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-current"),
+      managedOutput: true,
+      command: "npm test current",
+      startedAt: now - 10_000,
+      status: "finished",
+      finishedAt: now,
+      exitCode: 0,
+    };
+
+    (fsModule.readFile as Mock).mockResolvedValueOnce(
+      [oldSibling, recentSibling, currentRun].map((state) => JSON.stringify(state)).join("\n") + "\n",
+    );
+
+    const result = await cleanupAgentRunState({
+      cwd,
+      currentRunId: "current",
+      keepManagedRuns: 1,
+      managedOutputGraceMs: 60 * 60 * 1000,
+      now,
+    });
+
+    // Only the sibling finished beyond the grace window is removed; the recently finished sibling and
+    // the current run survive so concurrent agents can still read their output.
+    expect(result.deleted).toEqual([oldSibling]);
+    expect(result.retained).toEqual([recentSibling, currentRun]);
+    expect(fsModule.rm).toHaveBeenCalledWith(oldSibling.outputDir, { recursive: true, force: true });
+    expect(fsModule.rm).not.toHaveBeenCalledWith(recentSibling.outputDir, { recursive: true, force: true });
+  });
+
   it("should remove all managed finished outputs when retention is zero", async () => {
     const fsModule = await import("node:fs/promises");
     const cwd = resolve("/repo");
@@ -360,6 +421,73 @@ describe("agent-state utils", () => {
     expect(fsModule.writeFile).toHaveBeenCalledWith(
       expect.stringMatching(/\.tmp$/),
       `${JSON.stringify(explicitOutput)}\n`,
+      "utf-8",
+    );
+    expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), otherStatePath);
+  });
+
+  it("should keep a still-running managed run whose process is alive but reap a crashed one", async () => {
+    const fsModule = await import("node:fs/promises");
+    const cwd = resolve("/repo");
+    const otherCwd = resolve("/running-repo");
+    const otherStatePath = repoStatePath(otherCwd);
+    const currentManaged = {
+      schema: "allure-agent-run/v1",
+      runId: "current-managed",
+      cwd,
+      outputDir: tempOutputPath("allure-agent-current"),
+      managedOutput: true,
+      command: "npm test current",
+      startedAt: 1777999999000,
+      status: "finished",
+      finishedAt: 1777999999000,
+      exitCode: 0,
+    };
+    // status "running" with a live pid: the run is genuinely in progress and must not be deleted.
+    const runningAlive = {
+      schema: "allure-agent-run/v1",
+      runId: "running-alive",
+      cwd: otherCwd,
+      outputDir: tempOutputPath("allure-agent-running-alive"),
+      managedOutput: true,
+      command: "npm test running",
+      startedAt: 1776276000000,
+      status: "running",
+      pid: process.pid,
+    };
+    // status "running" with a dead pid: the run crashed without writing finishedAt and may be reaped.
+    const runningCrashed = {
+      schema: "allure-agent-run/v1",
+      runId: "running-crashed",
+      cwd: otherCwd,
+      outputDir: tempOutputPath("allure-agent-running-crashed"),
+      managedOutput: true,
+      command: "npm test crashed",
+      startedAt: 1776276000000,
+      status: "running",
+      pid: 2147483646,
+    };
+    const now = 1778000000000;
+
+    (fsModule.readdir as Mock).mockResolvedValueOnce([repoStateEntry(cwd), repoStateEntry(otherCwd)]);
+    (fsModule.readFile as Mock)
+      .mockResolvedValueOnce(`${JSON.stringify(currentManaged)}\n`)
+      .mockResolvedValueOnce([runningAlive, runningCrashed].map((state) => JSON.stringify(state)).join("\n") + "\n")
+      .mockResolvedValueOnce([runningAlive, runningCrashed].map((state) => JSON.stringify(state)).join("\n") + "\n");
+
+    const result = await cleanupStaleAgentRunStates({
+      cwd,
+      now,
+      staleOutputTtlMs: 1,
+    });
+
+    expect(result.deleted).toEqual([runningCrashed]);
+    expect(result.retained).toEqual([runningAlive]);
+    expect(fsModule.rm).toHaveBeenCalledWith(runningCrashed.outputDir, { recursive: true, force: true });
+    expect(fsModule.rm).not.toHaveBeenCalledWith(runningAlive.outputDir, { recursive: true, force: true });
+    expect(fsModule.writeFile).toHaveBeenCalledWith(
+      expect.stringMatching(/\.tmp$/),
+      `${JSON.stringify(runningAlive)}\n`,
       "utf-8",
     );
     expect(fsModule.rename).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), otherStatePath);

@@ -51,8 +51,6 @@ const FINDING_SEVERITY_ORDER = {
   info: 2,
 } as const;
 const NONTRIVIAL_DURATION_MS = 100;
-const STEP_SPAM_THRESHOLD = 25;
-const NOOP_RATIO_THRESHOLD = 0.8;
 const ASSERTION_STEP_PATTERN = /\b(assert|expect|check|verify|validate|should)\b/i;
 const LOW_VALUE_STDERR_WARNING_PATTERNS = [
   /\bNO_COLOR\b/i,
@@ -374,8 +372,6 @@ const formatDurationValue = (value?: number) => formatDuration(value);
 
 const escapeJsonPointerSegment = (value: string) => value.replace(/~/g, "~0").replace(/\//g, "~1");
 
-const isFailedLikeStatus = (status: TestStatus) => status === "failed" || status === "broken";
-
 const normalizeStringArray = (value: unknown) => {
   if (!Array.isArray(value)) {
     return [];
@@ -586,11 +582,18 @@ const analyzeStepTree = (steps: TestStepResult[]): StepTreeSummary => {
         summary.nestedSteps += 1;
       }
 
-      if (ASSERTION_STEP_PATTERN.test(node.name)) {
+      const isAssertionLike = ASSERTION_STEP_PATTERN.test(node.name);
+      const isNonTrivialDuration = (node.duration ?? 0) >= NONTRIVIAL_DURATION_MS;
+
+      if (isAssertionLike) {
         summary.assertionLikeSteps += 1;
       }
 
-      if (hasEvidence) {
+      // A leaf step is low-signal only when it carries no signal at all. The step name and duration
+      // are signal too: an assertion step states its check in the name, and a step that did real work
+      // (non-trivial duration) is not a noop. Without this, assertion DSLs and setup narratives that
+      // record one named leaf per check or action are wrongly flagged as noop-dominated.
+      if (hasEvidence || isAssertionLike || isNonTrivialDuration) {
         summary.meaningfulSteps += 1;
       } else {
         summary.noopSteps += 1;
@@ -656,19 +659,6 @@ const testStepContainsText = (entry: TestEntry, expectedText: string) => {
 
   return collectStepNames(entry.attempts[0].tr.steps).some(({ name }) => normalizeStepText(name).includes(expected));
 };
-
-const buildAttemptSignature = (attempt: AttemptRecord) =>
-  JSON.stringify({
-    status: attempt.tr.status,
-    errorMessage: attempt.tr.error?.message,
-    errorTrace: attempt.tr.error?.trace,
-    stepSummary: attempt.stepSummary,
-    fixtureSummary: attempt.fixtureStepSummary,
-    artifactNames: attempt.artifacts.map((artifact) => ({
-      name: artifact.displayName,
-      missing: artifact.missing,
-    })),
-  });
 
 const getPackageName = (tr: TestResult) => tr.labels.find(({ name }) => name === "package")?.value;
 
@@ -1600,10 +1590,6 @@ const defaultImpactForFinding = (finding: AgentFinding): FindingImpact => {
     return "reject";
   }
 
-  if (finding.checkName === "noop-dominated-steps" && (finding.confidence ?? 0) >= 0.75) {
-    return "reject";
-  }
-
   if (
     [
       "expectations-invalid",
@@ -1617,11 +1603,6 @@ const defaultImpactForFinding = (finding: AgentFinding): FindingImpact => {
       "runner-failures-outside-logical-results",
       "metadata-mismatch",
       "history-id-collision",
-      "failed-without-useful-steps",
-      "failed-without-attachments",
-      "nontrivial-run-with-empty-trace",
-      "retries-without-new-evidence",
-      "passed-without-observable-evidence",
     ].includes(finding.checkName)
   ) {
     return "iterate";
@@ -1875,9 +1856,7 @@ const renderExpectationResultSection = (params: {
 };
 
 const renderRerunGuidance = (findings: AgentFinding[]) => {
-  const relevant = findings.filter(
-    ({ category }) => category === "evidence" || category === "smells" || category === "metadata",
-  );
+  const relevant = findings.filter(({ category }) => category === "evidence" || category === "metadata");
 
   if (!relevant.length) {
     return undefined;
@@ -1892,10 +1871,6 @@ const renderRerunGuidance = (findings: AgentFinding[]) => {
 
   if (relevant.some(({ category }) => category === "metadata")) {
     lines.push("- Add or repair the labels and parameters needed to identify the intended scope.");
-  }
-
-  if (relevant.some(({ checkName }) => checkName === "noop-dominated-steps")) {
-    lines.push("- Replace repetitive event-style steps with a compact text attachment when the signal is mostly logs.");
   }
 
   lines.push("- Rerun only the relevant tests with the same expectations so the next review is scoped and comparable.");
@@ -2664,7 +2639,8 @@ const computeScopeEvaluation = (params: {
       scopeMatch: "forbidden",
       reasons: forbidden.reasons,
       expectedReferences: forbidden.references,
-      metadataMismatches,
+      // A forbidden match is reported on its own; expected-label mismatches are not relevant here.
+      metadataMismatches: [],
     } satisfies ScopeEvaluation;
   }
 
@@ -2701,20 +2677,10 @@ const buildDurationSummary = (entries: TestEntry[]) => {
   return {
     total,
     average: durations.length ? Math.round(total / durations.length) : 0,
-    max: durations.length ? Math.max(...durations) : 0,
+    // Reduce instead of Math.max(...durations): the spread overflows the call-stack/argument
+    // limit (RangeError) on very large runs.
+    max: durations.reduce((acc, value) => (value > acc ? value : acc), 0),
   };
-};
-
-const collectTestEvidencePaths = (entry: TestEntry) => {
-  const paths = [entry.relativePath];
-
-  for (const artifact of entry.allArtifacts) {
-    if (artifact.relativePath) {
-      paths.push(artifact.relativePath);
-    }
-  }
-
-  return uniqueValues(paths);
 };
 
 const getExpectationTargetEntries = (entries: TestEntry[], expectations: LoadedExpectations) => {
@@ -3079,21 +3045,11 @@ const buildRunAndTestFindings = (params: {
     : new Set<string>();
 
   for (const entry of entries) {
-    const currentAttempt = entry.attempts[0];
-    const attemptSignatures = uniqueValues(entry.attempts.map(buildAttemptSignature));
-    const testEvidencePaths = collectTestEvidencePaths(entry);
-    const allStepSummary = mergeStepSummaries(
-      entry.attempts.map((attempt) => mergeStepSummaries([attempt.stepSummary, attempt.fixtureStepSummary])),
-    );
     const expectedEvidenceApplies = expectations ? evidenceTargetKeys.has(entry.key) : false;
     const expectedEvidence = expectations?.evidence;
     const currentStepSummary = currentAttemptStepSummary(entry);
     const currentMeaningfulSteps = currentStepSummary.meaningfulSteps;
     const currentAttachments = nonMissingArtifacts(entry);
-    const hasUsefulSteps =
-      currentAttempt.stepSummary.meaningfulSteps + currentAttempt.fixtureStepSummary.meaningfulSteps > 0;
-    const hasAnyAttachments = entry.allArtifacts.some((artifact) => !artifact.missing);
-    const noopRatio = allStepSummary.totalSteps > 0 ? allStepSummary.noopSteps / allStepSummary.totalSteps : 0;
 
     if (entry.scope.scopeMatch === "forbidden") {
       const forbiddenLabelReference = entry.scope.expectedReferences.find((reference) =>
@@ -3327,163 +3283,6 @@ const buildRunAndTestFindings = (params: {
         }),
       );
     });
-
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasUsefulSteps) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "evidence",
-          checkName: "failed-without-useful-steps",
-          message: "A failed or broken test has no useful runtime steps.",
-          explanation:
-            "The failure is recorded, but the step tree does not explain the state transitions that led to it.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add meaningful steps around the important actions and checks before rerunning.",
-          confidence: 0.92,
-        }),
-      );
-    }
-
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasAnyAttachments) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "evidence",
-          checkName: "failed-without-attachments",
-          message: "A failed or broken test has no test-scoped attachments.",
-          explanation: "Attachments often provide the fastest route to understanding why the test failed.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Attach targeted logs, payloads, screenshots, or DOM snapshots around the failing point.",
-          confidence: 0.88,
-        }),
-      );
-    }
-
-    if (
-      (currentAttempt.tr.duration ?? 0) >= NONTRIVIAL_DURATION_MS &&
-      currentAttempt.stepSummary.totalSteps === 0 &&
-      currentAttempt.fixtureStepSummary.totalSteps === 0
-    ) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "evidence",
-          checkName: "nontrivial-run-with-empty-trace",
-          message: "A nontrivial test run recorded no steps or fixture activity.",
-          explanation: "The duration suggests real work happened, but the trace contains no step-level evidence.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add runtime steps or attachments so the execution path is observable on the next run.",
-          confidence: 0.8,
-        }),
-      );
-    }
-
-    if (entry.attempts.length > 1 && attemptSignatures.length === 1) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "evidence",
-          checkName: "retries-without-new-evidence",
-          message: "Retries did not add any new observable evidence.",
-          explanation:
-            "The recorded status, error, steps, and attachments stayed effectively unchanged across retries.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add retry-specific diagnostics or targeted attachments so reruns can show what changed.",
-          confidence: 0.7,
-        }),
-      );
-    }
-
-    if (allStepSummary.totalSteps >= 3 && noopRatio >= NOOP_RATIO_THRESHOLD && !hasAnyAttachments) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "smells",
-          checkName: "noop-dominated-steps",
-          message: "The step tree is dominated by low-signal steps.",
-          explanation:
-            "Most recorded steps are leaf steps without parameters, nested actions, attachments, or error context.",
-          evidencePaths: testEvidencePaths,
-          remediationHint:
-            "Collapse repetitive event-style steps into a smaller set of meaningful steps or attach a text log instead.",
-          confidence: 0.75,
-        }),
-      );
-    }
-
-    if (allStepSummary.totalSteps >= STEP_SPAM_THRESHOLD && !hasAnyAttachments) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "step-spam",
-          message: "The trace records many steps but no compact artifact.",
-          explanation: "A large number of small steps can be harder to review than a focused log attachment.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Consider attaching a structured text log when the trace is mostly event reporting.",
-          confidence: 0.7,
-        }),
-      );
-    }
-
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasAnyAttachments && globalArtifacts.length > 0) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "global-only-artifacts",
-          message: "Only run-level artifacts are available for this failed test.",
-          explanation:
-            "The run captured global logs, but the failed test has no test-scoped attachments to pinpoint the failure.",
-          evidencePaths: uniqueValues(
-            testEvidencePaths.concat(
-              globalArtifacts.flatMap((artifact) => (artifact.relativePath ? [artifact.relativePath] : [])),
-            ),
-          ),
-          remediationHint:
-            "Prefer step-scoped or test-scoped attachments near the failing action when debugging targeted failures.",
-          confidence: 0.78,
-        }),
-      );
-    }
-
-    if (
-      currentAttempt.tr.status === "passed" &&
-      (currentAttempt.tr.duration ?? 0) >= NONTRIVIAL_DURATION_MS &&
-      currentAttempt.stepSummary.totalSteps === 0 &&
-      currentAttempt.fixtureStepSummary.totalSteps === 0 &&
-      !hasAnyAttachments
-    ) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "passed-without-observable-evidence",
-          message: "A nontrivial passing test recorded no observable evidence.",
-          explanation:
-            "The test passed, but the agentic output contains no steps, fixture activity, or attachments showing what was verified.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add a few meaningful verification steps or attachments so the success path is reviewable.",
-          confidence: 0.65,
-        }),
-      );
-    }
   }
 
   return {

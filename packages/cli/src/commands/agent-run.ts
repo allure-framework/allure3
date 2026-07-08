@@ -9,8 +9,11 @@ import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/cor
 import {
   createAgentTestPlanContext,
   AgentUsageError,
+  assertExplicitAgentOutputDirIsSafe,
   formatAgentOutputLinks,
+  formatAgentRunSummary,
   isPathInside,
+  loadAgentOutput,
   normalizeAgentRerunPreset,
   parseAgentLabelFilters,
   cleanupAgentRunState,
@@ -41,6 +44,47 @@ export const formatAgentInspectCommand = (params: { dumps?: string[]; resultsDir
 export const printAgentOutputLinks = (outputDir: string) => {
   for (const line of formatAgentOutputLinks(outputDir)) {
     console.log(line);
+  }
+};
+
+/**
+ * Before an agent run starts, print where the output goes and how to watch it. The agent plugin
+ * appends manifest/test-events.jsonl per test and rewrites index.md live, so an agent can inspect
+ * progress mid-run without waiting for the final summary.
+ */
+export const printAgentRunStart = (outputDir: string, commandString: string) => {
+  console.log(`agent output: ${outputDir}`);
+  console.log(commandString);
+  console.log(
+    "live: read manifest/test-events.jsonl (appended per test) in that directory to watch progress before the run finishes",
+  );
+};
+
+/**
+ * After an agent run, print a compact summary (status, links, and what to read where) instead of the
+ * test command's own console output, which is captured into the agent output rather than echoed.
+ */
+export const printAgentRunSummary = async (
+  outputDir: string,
+  options: { durationMs?: number; rerunCommand?: string } = {},
+) => {
+  try {
+    const bundle = await loadAgentOutput(outputDir);
+
+    const summary = formatAgentRunSummary({
+      outputDir,
+      run: bundle.run,
+      humanReport: bundle.humanReport,
+      durationMs: options.durationMs,
+      rerunCommand: options.rerunCommand,
+    });
+
+    for (const line of summary) {
+      console.log(line);
+    }
+  } catch {
+    // Best effort: fall back to the basic output links if the summary cannot be built.
+    printAgentOutputLinks(outputDir);
   }
 };
 
@@ -150,6 +194,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     ...(rerunContext ? { ALLURE_TESTPLAN_PATH: rerunContext.testPlanPath } : {}),
   };
 
+  let resolvedExitCode = -1;
+  let runCompleted = false;
+
   try {
     if (getActiveAllureCliCommand()) {
       console.log(commandString);
@@ -162,7 +209,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
         silent,
       });
 
-      exit(exitCode ?? -1);
+      resolvedExitCode = exitCode ?? -1;
+      runCompleted = true;
+
       return;
     }
 
@@ -181,6 +230,10 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       throw new AgentUsageError(
         `--expectations path ${JSON.stringify(expectationsPath)} must not be inside the agent output directory ${JSON.stringify(outputDir)}`,
       );
+    }
+
+    if (!managedOutput) {
+      await assertExplicitAgentOutputDirIsSafe(outputDir);
     }
 
     const humanReport = await createAgentHumanReportConfig({
@@ -227,13 +280,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       pid: process.pid,
     });
 
-    printAgentOutputLinks(outputDir);
-    if (expectationsPath) {
-      console.log(`agent expectations: ${expectationsPath}`);
-    } else if (inlineExpectations) {
-      console.log("agent expectations: CLI options");
-    }
-    console.log(commandString);
+    printAgentRunStart(outputDir, commandString);
 
     const allureReport = new AllureReport({
       ...config,
@@ -258,7 +305,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       environment: resolvedEnvironment?.id,
       withQualityGate: false,
       logs: "pipe",
-      silent,
+      // Capture the test command's output into the agent artifacts instead of echoing it to the
+      // terminal; the post-run summary points at the captured logs.
+      silent: true,
       ignoreLogs: false,
       logProcessExit: false,
     });
@@ -277,10 +326,19 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       pid: process.pid,
     });
     await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
+    await printAgentRunSummary(outputDir, { durationMs: Date.now() - startedAt, rerunCommand: commandString });
 
-    exit(globalExitCode.actual ?? globalExitCode.original);
+    resolvedExitCode = globalExitCode.actual ?? globalExitCode.original;
+    runCompleted = true;
   } finally {
     await rerunContext?.cleanup();
+
+    // Defer exit() until after cleanup: process.exit() skips pending finally blocks, so calling it
+    // inside the try would leak the rerun test-plan temp dir. On the error path runCompleted stays
+    // false, so the original error propagates instead of being masked by an exit.
+    if (runCompleted) {
+      exit(resolvedExitCode);
+    }
   }
 };
 
@@ -356,6 +414,10 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     );
   }
 
+  if (!managedOutput) {
+    await assertExplicitAgentOutputDirIsSafe(outputDir);
+  }
+
   const historyLimitValue = historyLimit ? parseInt(historyLimit, 10) : undefined;
   const humanReport = await createAgentHumanReportConfig({
     mode: reportMode,
@@ -413,12 +475,6 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     pid: process.pid,
   });
 
-  printAgentOutputLinks(outputDir);
-  if (expectationsPath) {
-    console.log(`agent expectations: ${expectationsPath}`);
-  } else if (inlineExpectations) {
-    console.log("agent expectations: CLI options");
-  }
   console.log(commandString);
 
   const allureReport = new AllureReport({
@@ -456,6 +512,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
     pid: process.pid,
   });
   await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
+  await printAgentRunSummary(outputDir, { durationMs: Date.now() - startedAt });
 
   exit(0);
 };

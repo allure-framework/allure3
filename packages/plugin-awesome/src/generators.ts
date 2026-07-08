@@ -37,6 +37,7 @@ import type {
   ResultFile,
 } from "@allurereport/plugin-api";
 import {
+  collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -419,12 +420,14 @@ const buildTreeByLabelsAndTitlePathCombined = (
   tests: AwesomeTestResult[],
   labels: string[],
 ): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
-  createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    tests,
-    labels,
-    leafFactory,
-    undefined,
-    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+  collapseTreeGroups(
+    createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+      tests,
+      labels,
+      leafFactory,
+      undefined,
+      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+    ),
   );
 
 const leafFactory = ({
