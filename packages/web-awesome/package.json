@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.14.0",
+  "version": "3.14.2",
   "description": "The static files for Allure Awesome Report",
   "keywords": [
     "allure",
@@ -47,12 +47,12 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
-    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^7.27.1",
     "@floating-ui/dom": "^1.6.12",
     "@preact/compat": "^18.3.1",
     "@preact/preset-vite": "^2.10.2",
-    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/preact": "^3.2.3",
     "@testing-library/user-event": "^14.5.1",
     "@types/babel__core": "^7.20.5",
@@ -65,7 +65,7 @@
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
-    "babel-loader": "^9.2.1",
+    "babel-loader": "^10.1.1",
     "babel-plugin-prismjs": "^2.1.0",
     "css-loader": "^7.1.4",
     "diff": "^8.0.3",

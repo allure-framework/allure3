@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-summary",
-  "version": "3.14.0",
+  "version": "3.14.2",
   "description": "The static files for Allure Report Summary",
   "keywords": [
     "allure",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
-    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^7.27.1",
     "@floating-ui/dom": "^1.6.12",
     "@preact/compat": "^18.3.1",
@@ -42,7 +42,7 @@
     "@types/md5": "^2.3.5",
     "@types/node": "^20",
     "autoprefixer": "^10.4.20",
-    "babel-loader": "^9.2.1",
+    "babel-loader": "^10.1.1",
     "css-loader": "^7.1.4",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "globals": "^15.9.0",

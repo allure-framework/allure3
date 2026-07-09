@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.14.0",
+  "version": "3.14.2",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -50,7 +50,7 @@
     "p-limit": "^7.3.0",
     "yaml": "^2.8.3",
     "yoctocolors": "^2.1.1",
-    "zip-stream": "^7.0.2"
+    "zip-stream": "^7.0.5"
   },
   "devDependencies": {
     "@types/node": "^20",

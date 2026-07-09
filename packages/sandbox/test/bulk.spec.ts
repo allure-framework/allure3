@@ -116,6 +116,37 @@ for (const suite of suites) {
   }
 }
 
+for (let i = 0; i < 100; i += 1) {
+  const seed = index + i * 17;
+  const suite = pick(suites, seed);
+  const env = pick(envs, seed + 1);
+  const owner = pick(owners, seed + 2);
+  const severity = pick(severities, seed + 3);
+  const layer = pick(layers, seed + 4);
+  const tag = pick(tags, seed + 5);
+
+  it(`always passed/${suite}/${env} — case ${i + 1}`, async () => {
+    await label("coverage", "always-passed");
+    await label("env", env);
+    await label("owner", owner);
+    await label("severity", severity);
+    await label("layer", layer);
+    await label("tag", tag);
+    await label("epic", pick(epics, seed + 6));
+    await label("feature", pick(features, seed + 7));
+    await label("story", pick(stories, seed + 8));
+    await label("component", suite);
+    await label("thread", `worker-${seed % 8}`);
+    await label("host", `host-${seed % 5}`);
+
+    await step("setup always-passed case", () => {});
+    await step("execute always-passed case", () => {});
+    await attachment("payload", JSON.stringify({ suite, env, owner, severity, layer, tag, seed }), "application/json");
+
+    expect(true).toBe(true);
+  });
+}
+
 const sharedCases = [
   { name: "shared case A", envs: ["foo", "bar"], history: "shared-case-a" },
   { name: "shared case B", envs: ["foo", "bar", "default"], history: "shared-case-b" },

@@ -87,6 +87,7 @@ const { AllureServiceClient: AllureServiceClientClass } = await import("../src/s
 
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
+  stat: vi.fn(),
 }));
 vi.mock("../src/utils/http.js", async (importOriginal) => ({
   ...(await importOriginal()),
