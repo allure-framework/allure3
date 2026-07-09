@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   require-pr-label:
-    name: Require exactly one release-note label
+    name: Require exactly one pr label
     runs-on: ubuntu-latest
     steps:
       - name: Validate release notes label
@@ -28,39 +28,25 @@ jobs:
         shell: bash
         run: |
           labels="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" --jq '.[].name')"
-          pr_label_options="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/labels?per_page=100" --jq '.[].name | select(startswith("pr:"))')"
+          pr_labels="$(printf '%s\n' "${labels}" | grep '^pr:' || true)"
 
-          if [ -n "${pr_label_options}" ]; then
-            label_prefix="pr:"
-            release_note_labels="$(printf '%s\n' "${labels}" | grep '^pr:' || true)"
-          else
-            label_prefix="type:"
-            release_note_labels="$(printf '%s\n' "${labels}" | grep '^type:' || true)"
-            echo "::warning title=Using legacy release-note labels::No pr: labels exist in this repository yet. Accepting type: labels for this bootstrap run."
-          fi
-
-          if [ -z "${release_note_labels}" ]; then
+          if [ -z "${pr_labels}" ]; then
             count=0
           else
-            count="$(printf '%s\n' "${release_note_labels}" | wc -l | tr -d ' ')"
+            count="$(printf '%s\n' "${pr_labels}" | wc -l | tr -d ' ')"
           fi
 
           if [ "${count}" -eq 1 ]; then
-            echo "Found release-note label: ${release_note_labels}"
+            echo "Found PR release-note label: ${pr_labels}"
             exit 0
           fi
 
           {
-            echo "Pull requests must have exactly one release-note label with the ${label_prefix} prefix."
-            echo "Found ${count} ${label_prefix} labels."
-            if [ "${label_prefix}" = "type:" ]; then
-              echo
-              echo "This repository does not have pr: labels yet, so this bootstrap run accepts legacy type: labels."
-              echo "Create the pr: labels in the repository to make this workflow enforce the new label taxonomy."
-            fi
+            echo "Pull requests must have exactly one label with the pr: prefix."
+            echo "Found ${count} pr: labels."
             if [ "${count}" -gt 0 ]; then
               printf 'Matching labels:\n'
-              printf '%s\n' "${release_note_labels}" | sed 's/^/- /'
+              printf '%s\n' "${pr_labels}" | sed 's/^/- /'
             fi
             echo
             echo "Available labels on this PR:"
@@ -71,5 +57,5 @@ jobs:
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
 
-          echo "::error title=Invalid release-note label count::Pull requests must have exactly one release-note label with the ${label_prefix} prefix. Found ${count}."
+          echo "::error title=Invalid pr: label count::Pull requests must have exactly one label with the pr: prefix. Found ${count}."
           exit 1
