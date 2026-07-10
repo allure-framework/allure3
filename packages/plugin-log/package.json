@@ -33,7 +33,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "yoctocolors": "^2.1.1"
+    "yoctocolors": "^2.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",
