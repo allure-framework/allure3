@@ -1,9 +1,9 @@
 import type {
   AllureHistory,
-  AttachmentLink,
   AllureCheckResult,
   CategoryDefinition,
   CiDescriptor,
+  GlobalAttachmentLink,
   HistoryDataPoint,
   Statistic,
   TestError,
@@ -63,6 +63,8 @@ export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "dur
  * Reduced check result information that can be used in the summary
  */
 export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status">;
+
+export type { GlobalAttachmentLink } from "@allurereport/core-api";
 
 export interface PluginSummary {
   href?: string;
@@ -125,9 +127,7 @@ export type PluginGlobalError = TestError & {
   environment?: string;
 };
 
-export type PluginGlobalAttachment = AttachmentLink & {
-  environment?: string;
-};
+export type PluginGlobalAttachment = GlobalAttachmentLink;
 
 export interface PluginGlobals {
   exitCode?: ExitCode;

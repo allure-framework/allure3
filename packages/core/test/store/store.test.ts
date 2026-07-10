@@ -3068,6 +3068,7 @@ describe("dump state", () => {
       used: false,
       missed: false,
       contentLength: 100,
+      environment: "default",
     };
     const globalAttachment2 = {
       id: "global-attachment-2",
@@ -3077,6 +3078,7 @@ describe("dump state", () => {
       used: false,
       missed: false,
       contentLength: 2048,
+      environment: "default",
     };
     const globalError1 = {
       message: "Global setup error",

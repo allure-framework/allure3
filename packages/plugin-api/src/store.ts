@@ -2,6 +2,7 @@ import type {
   AllureCheckResult,
   AttachmentLink,
   EnvironmentIdentity,
+  GlobalAttachmentLink,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
@@ -14,7 +15,7 @@ import type {
   TestResult,
 } from "@allurereport/core-api";
 
-import type { ExitCode, PluginGlobalAttachment, PluginGlobalError } from "./plugin.js";
+import type { ExitCode, PluginGlobalError } from "./plugin.js";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
@@ -50,8 +51,8 @@ export interface AllureStore {
   globalExitCode: () => Promise<ExitCode | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
   allGlobalErrorsByEnv: () => Promise<Record<string, PluginGlobalError[]>>;
-  allGlobalAttachments: () => Promise<AttachmentLink[]>;
-  allGlobalAttachmentsByEnv: () => Promise<Record<string, PluginGlobalAttachment[]>>;
+  allGlobalAttachments: () => Promise<GlobalAttachmentLink[]>;
+  allGlobalAttachmentsByEnv: () => Promise<Record<string, GlobalAttachmentLink[]>>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;
