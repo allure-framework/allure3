@@ -102,6 +102,31 @@ describe("AllureRemoteHistory", () => {
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
+    it("should return cached data without re-downloading", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const firstRead = await history.readHistory();
+      const secondRead = await history.readHistory();
+
+      expect(secondRead).toBe(firstRead);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledTimes(1);
+    });
+
+    it("should re-download history when force is true", async () => {
+      const updatedHistoryPoint = { ...fixtures.historyDataPoint, name: "updated" };
+
+      HttpClientMock.prototype.get
+        .mockResolvedValueOnce({ history: [fixtures.historyDataPoint] })
+        .mockResolvedValueOnce({ history: [updatedHistoryPoint] });
+
+      const firstRead = await history.readHistory();
+      const forcedRead = await history.readHistory({ force: true });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledTimes(2);
+      expect(forcedRead).not.toBe(firstRead);
+      expect(forcedRead).toEqual([updatedHistoryPoint]);
+    });
+
     it("should normalize nested history test result url from datapoint url", async () => {
       HttpClientMock.prototype.get.mockResolvedValue({
         history: [
