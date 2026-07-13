@@ -384,7 +384,7 @@ export const executeAllureRun = async (params: {
 
     stdoutResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, "stdout.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, `${command}-stdout.txt`);
   }
 
   if (!ignoreLogs && testProcessResult?.stderr) {
@@ -393,7 +393,7 @@ export const executeAllureRun = async (params: {
 
     stderrResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, `${command}-stderr.txt`);
 
     if (processFailed) {
       allureReport.realtimeDispatcher.sendGlobalError({

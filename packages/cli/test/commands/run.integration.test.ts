@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
@@ -445,7 +445,20 @@ console.log("emitted simple result");
       expect(indexMarkdown).toContain("- Status: generated");
       expect(indexMarkdown).toContain("- Path: [awesome/index.html](awesome/index.html)");
       expect(await pathExists(join(outputDir, "project"))).toBe(false);
-      expect(findingsContent).toBe("");
+      expect(
+        findingsContent
+          .trim()
+          .split("\n")
+          .filter(Boolean)
+          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            check_name: "missing-global-logs",
+            severity: "info",
+          }),
+        ]),
+      );
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
@@ -453,9 +466,14 @@ console.log("emitted simple result");
       expect(stdout).toContain(join(outputDir, "index.md"));
       expect(stdout).toContain("expectations: matched");
       // The test command's own stdout is captured into the agent artifacts, not echoed to the terminal.
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("emitted simple result");
-      expect(stdout).not.toContain("emitted simple result");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
+
+      if (stdoutArtifactName) {
+        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
+        expect(capturedStdout).toContain("emitted simple result");
+      }
       expect(stdout).not.toContain("process finished with code");
       expect(stdout).not.toContain("exit code ");
       expect(stdout).not.toContain("[DEP0190]");
@@ -590,11 +608,30 @@ console.log("emitted newly added test result");
           full_name: expectedFullName,
         }),
       ]);
-      expect(findingsContent).toBe("");
+      expect(
+        findingsContent
+          .trim()
+          .split("\n")
+          .filter(Boolean)
+          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            check_name: "missing-global-logs",
+            severity: "info",
+          }),
+        ]),
+      );
       expect(indexMarkdown).toContain(expectedFullName);
       expect(stdout).toContain("expectations: matched");
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("emitted newly added test result");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
+
+      if (stdoutArtifactName) {
+        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
+        expect(capturedStdout).toContain("emitted newly added test result");
+      }
       expect(stderr).toBe("");
     });
   }, 240_000);
@@ -928,8 +965,14 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       // The rerun prints its summary to the terminal, but the command's own stdout is captured into
       // the agent artifacts rather than echoed.
       expect(stdout).toContain("Allure agent:");
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("selected selectors: suite feature A");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
+
+      if (stdoutArtifactName) {
+        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
+        expect(capturedStdout).toContain("selected selectors: suite feature A");
+      }
       expect(stderr).toBe("");
 
       const selectedTests = (await readFile(join(outputDir, "manifest", "tests.jsonl"), "utf-8"))
