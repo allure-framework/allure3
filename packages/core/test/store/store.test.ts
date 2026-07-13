@@ -2963,10 +2963,12 @@ describe("dump state", () => {
     const globalError1 = {
       message: "Global setup error",
       trace: "Error stack trace 1",
+      environment: "default",
     };
     const globalError2 = {
       message: "Global teardown error",
       trace: "Error stack trace 2",
+      environment: "default",
     };
     const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
 
@@ -3233,6 +3235,7 @@ describe("dump state", () => {
     const initialError = {
       message: "Initial error",
       trace: "Initial stack trace",
+      environment: "default",
     };
     const mockInitialAttachmentFile = {
       getOriginalFileName: () => "initial.log",
@@ -3258,6 +3261,7 @@ describe("dump state", () => {
     const dumpError = {
       message: "Dump error",
       trace: "Dump stack trace",
+      environment: "default",
     };
     const dump = {
       testResults: {},
@@ -3289,8 +3293,10 @@ describe("dump state", () => {
     expect(allGlobalAttachments.some((att) => att.name === "initial.log")).toBe(true);
     expect(allGlobalAttachments.some((att) => att.originalFileName === "dump.log")).toBe(true);
     expect(allGlobalErrors).toHaveLength(2);
-    expect(allGlobalErrors).toContain(initialError);
-    expect(allGlobalErrors).toContain(dumpError);
+    expect(allGlobalErrors).toContainEqual(initialError);
+    expect(allGlobalErrors).toContainEqual(dumpError);
+    expect(allGlobalErrors.find((error) => error.message === "Initial error")).toEqual(initialError);
+    expect(allGlobalErrors.find((error) => error.message === "Dump error")).toEqual(dumpError);
   });
 
   it("should handle restoreState with missing globalAttachments and globalErrors gracefully", async () => {
