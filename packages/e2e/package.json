@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.14.2",
+  "version": "3.14.3",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
