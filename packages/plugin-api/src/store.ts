@@ -6,6 +6,7 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  MetricSample,
   ReportVariables,
   Statistic,
   TestCase,
@@ -39,6 +40,7 @@ export interface AllureStore {
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
+  allMetrics: () => Promise<MetricSample[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // check data
   addCheckResult: (result: AllureCheckResult) => Promise<void>;
@@ -98,6 +100,7 @@ export interface AllureStoreDump {
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
   qualityGateResults: QualityGateValidationResult[];
+  metrics?: MetricSample[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
@@ -126,4 +129,5 @@ export enum AllureStoreDumpFiles {
   IndexKnownByHistoryId = "index-known-by-history-id.json",
   QualityGateResults = "quality-gate-results.json",
   TestResultIngestOrder = "test-result-ingest-order.json",
+  Metrics = "metrics.json",
 }

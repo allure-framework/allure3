@@ -111,7 +111,8 @@
     "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
     "no-test-case-results": "Test vakası sonuçları yok",
     "no-environments-results": "Ortam bilgisi mevcut değil",
-    "no-categories-results": "Kategoriler için sonuç bulunamadı"
+    "no-categories-results": "Kategoriler için sonuç bulunamadı",
+    "no-metrics-results": "Kullanılabilir metrik yok"
   },
   "severity": {
     "blocker": "engelleyici",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafikler",
-    "timeline": "Zaman çizelgesi"
+    "timeline": "Zaman çizelgesi",
+    "metrics": "Metrikler"
   },
   "timeline": {
     "empty": "Veri yok",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Performans metrikleri",
+      "phaseSummary": "Metrik özeti",
+      "currentValues": "Geçerli değerler",
+      "historyTitle": "Metrik geçmişi",
+      "noHistory": "Bu metrik için henüz geçmiş yok",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrik",
+        "phase": "Metrik seti",
+        "count": "Sayı",
+        "total": "Toplam",
+        "avg": "Ort.",
+        "min": "Min.",
+        "max": "Maks.",
+        "value": "Değer",
+        "delta": "Değişim",
+        "trend": "Eğilim",
+        "source": "Kaynak",
+        "report": "Rapor",
+        "date": "Tarih"
+      },
+      "summary": "{{groups}} özet satırı / {{metrics}} metrik",
+      "groups": {
+        "other": "Diğer"
       }
     }
   },

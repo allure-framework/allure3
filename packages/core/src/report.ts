@@ -29,8 +29,8 @@ import {
   type ReportFiles,
   type ResultFile,
 } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
-import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { allure1, allure2, attachments, cucumberjson, junitXml, perf, readXcResultBundle } from "@allurereport/reader";
+import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
   AllureServiceClient,
@@ -52,12 +52,22 @@ import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-import { measurePerf, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, startPerfSpan, writePerfMetrics } from "./utils/perf.js";
+import {
+  getPerfMetricsPayload,
+  isPerfMetricsEnabled,
+  measurePerf,
+  PERF_METRICS_FILE,
+  PERF_METRIC_NAMES,
+  PERF_METRIC_PREFIXES,
+  startPerfSpan,
+  writePerfMetrics,
+} from "./utils/perf.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
@@ -133,7 +143,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, junitXml, perf, attachments],
       plugins = [],
       known,
       reportFiles,
@@ -234,6 +244,45 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
+  #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
+    const allTrs = await this.#store.allTestResults();
+    const allTcs = await this.#store.allTestCases();
+
+    return createHistory(
+      this.reportUuid,
+      this.reportName,
+      allTcs,
+      allTrs,
+      this.reportUrl,
+      await this.#store.allMetrics(),
+    );
+  };
+
+  #ingestSelfPerfMetrics = async (): Promise<boolean> => {
+    if (!isPerfMetricsEnabled()) {
+      return false;
+    }
+
+    const payload = getPerfMetricsPayload();
+
+    if (payload.summary.length === 0) {
+      return false;
+    }
+
+    const resultFile = new BufferResultFile(
+      Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8"),
+      PERF_METRICS_FILE,
+    );
+
+    return perf.read(this.#store, resultFile);
+  };
+
+  #refreshPlugins = async (): Promise<void> => {
+    await this.#eachPlugin(false, async (plugin, context) => {
+      await plugin.refresh?.(context, this.#store);
+    });
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -246,10 +295,7 @@ export class AllureReport {
     let historyPoint = this.#historyDataPoint;
 
     if (!historyPoint) {
-      const allTrs = await this.#store.allTestResults();
-      const allTcs = await this.#store.allTestCases();
-
-      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      historyPoint = await this.#createHistoryDataPoint();
       this.#historyDataPoint = historyPoint;
     }
 
@@ -627,6 +673,7 @@ export class AllureReport {
       indexKnownByHistoryId = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
+      metrics = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
       [AllureStoreDumpFiles.TestResults, testResults],
       [AllureStoreDumpFiles.TestCases, testCases],
@@ -645,6 +692,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
+      [AllureStoreDumpFiles.Metrics, metrics],
     ];
     let dumpError: unknown;
 
@@ -806,6 +854,7 @@ export class AllureReport {
               const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
+              const metricsEntry = await optionalEntryData(AllureStoreDumpFiles.Metrics);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
               const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
@@ -827,6 +876,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexKnownByHistoryId:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
+                  case AllureStoreDumpFiles.Metrics:
                     return acc;
                   default:
                     if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
@@ -858,6 +908,7 @@ export class AllureReport {
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
                   : [],
+                metrics: metricsEntry ? JSON.parse(metricsEntry.toString("utf8")) : [],
               };
               const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
               const resultsAttachments: Record<string, ResultFile> = {};
@@ -1022,10 +1073,6 @@ export class AllureReport {
     }
 
     try {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
-
       this.#realtimeChannel.close();
       try {
         await this.#realtimeUpdateScheduler.close();
@@ -1050,6 +1097,13 @@ export class AllureReport {
         });
       });
       this.#finishGeneratePerfSpan();
+
+      if (await this.#ingestSelfPerfMetrics()) {
+        await this.#refreshPlugins();
+      }
+
+      this.#historyDataPoint = await this.#createHistoryDataPoint();
+
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
 

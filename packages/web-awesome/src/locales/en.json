@@ -111,7 +111,8 @@
     "no-test-steps-results": "No test steps information available",
     "no-test-case-results": "No test case results",
     "no-environments-results": "No environments information available",
-    "no-categories-results": "No categories results available"
+    "no-categories-results": "No categories results available",
+    "no-metrics-results": "No metrics available"
   },
   "severity": {
     "blocker": "blocker",
@@ -256,7 +257,8 @@
   "sections": {
     "report": "Report",
     "charts": "Graphs",
-    "timeline": "Timeline"
+    "timeline": "Timeline",
+    "metrics": "Metrics"
   },
   "timeline": {
     "empty": "No data",
@@ -451,6 +453,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Performance metrics",
+      "phaseSummary": "Metric summary",
+      "currentValues": "Current values",
+      "historyTitle": "Metric history",
+      "noHistory": "No history for this metric yet",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metric",
+        "phase": "Metric set",
+        "count": "Count",
+        "total": "Total",
+        "avg": "Avg",
+        "min": "Min",
+        "max": "Max",
+        "value": "Value",
+        "delta": "Delta",
+        "trend": "Trend",
+        "source": "Source",
+        "report": "Report",
+        "date": "Date"
+      },
+      "summary": "{{groups}} summary rows / {{metrics}} metrics",
+      "groups": {
+        "other": "Other"
       }
     }
   },

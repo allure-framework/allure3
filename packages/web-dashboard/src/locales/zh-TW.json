@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "效能指標",
+      "table": {
+        "metric": "指標",
+        "value": "值",
+        "delta": "變化",
+        "source": "來源"
+      }
     }
   },
   "transitions": {

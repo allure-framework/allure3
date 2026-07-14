@@ -22,6 +22,17 @@ const normalizeHistoryTestResults = (testResults: unknown): Record<string, Histo
   >;
 };
 
+const normalizeHistoryMetrics = (metrics: unknown): Record<string, number> => {
+  if (!isRecord(metrics)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(metrics).filter(([, value]) => Number.isFinite(value))) as Record<
+    string,
+    number
+  >;
+};
+
 const parametersCompare = (a: TestParameter, b: TestParameter) => {
   return (a.name ?? "").localeCompare(b.name ?? "") || (a.value ?? "").localeCompare(b.value ?? "");
 };
@@ -79,7 +90,7 @@ export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): H
   ...historyDataPoint,
   knownTestCaseIds: Array.isArray(historyDataPoint.knownTestCaseIds) ? historyDataPoint.knownTestCaseIds : [],
   testResults: normalizeHistoryTestResults(historyDataPoint.testResults),
-  metrics: isRecord(historyDataPoint.metrics) ? (historyDataPoint.metrics as Record<string, number>) : {},
+  metrics: normalizeHistoryMetrics(historyDataPoint.metrics),
   url: historyDataPoint.url ?? "",
 });
 

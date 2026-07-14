@@ -111,7 +111,8 @@
     "no-test-steps-results": "沒有可用的測試步驟資訊",
     "no-test-case-results": "沒有測試案例結果",
     "no-environments-results": "沒有環境資訊",
-    "no-categories-results": "暫無可用的分類結果"
+    "no-categories-results": "暫無可用的分類結果",
+    "no-metrics-results": "沒有可用指標"
   },
   "severity": {
     "blocker": "阻礙",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "報告",
     "charts": "統計圖表",
-    "timeline": "時間軸"
+    "timeline": "時間軸",
+    "metrics": "指標"
   },
   "timeline": {
     "empty": "無資料",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "效能指標",
+      "phaseSummary": "指標摘要",
+      "currentValues": "目前值",
+      "historyTitle": "指標歷史",
+      "noHistory": "此指標尚無歷史記錄",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "指標",
+        "phase": "指標集",
+        "count": "數量",
+        "total": "總計",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "value": "值",
+        "delta": "變化",
+        "trend": "趨勢",
+        "source": "來源",
+        "report": "報告",
+        "date": "日期"
+      },
+      "summary": "{{groups}} 個摘要列 / {{metrics}} 個指標",
+      "groups": {
+        "other": "其他"
       }
     }
   },

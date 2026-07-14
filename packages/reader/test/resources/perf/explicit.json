@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "name": "Report generation",
+  "display": {
+    "historyMetricKey": "generate.total.avgMs"
+  },
+  "metrics": [
+    {
+      "key": "generate.total.avgMs",
+      "value": 123.45,
+      "unit": "ms",
+      "better": "lower"
+    },
+    {
+      "key": "ignored.nonNumeric",
+      "value": "123"
+    },
+    {
+      "key": "assets.jsMb",
+      "value": 3.5
+    }
+  ]
+}

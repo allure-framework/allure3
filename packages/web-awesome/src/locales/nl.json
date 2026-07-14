@@ -111,7 +111,8 @@
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
     "no-test-case-results": "Geen testresultaten",
     "no-environments-results": "Geen informatie over omgevingen beschikbaar",
-    "no-categories-results": "Geen categorieresultaten beschikbaar"
+    "no-categories-results": "Geen categorieresultaten beschikbaar",
+    "no-metrics-results": "Geen metrieken beschikbaar"
   },
   "severity": {
     "blocker": "blokkerend",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafieken",
-    "timeline": "Tijdlijn"
+    "timeline": "Tijdlijn",
+    "metrics": "Metrieken"
   },
   "timeline": {
     "empty": "Geen gegevens",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Prestatiestatistieken",
+      "phaseSummary": "Metriekoverzicht",
+      "currentValues": "Huidige waarden",
+      "historyTitle": "Metriekgeschiedenis",
+      "noHistory": "Nog geen geschiedenis voor deze metriek",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metriek",
+        "phase": "Metriekset",
+        "count": "Aantal",
+        "total": "Totaal",
+        "avg": "Gem.",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Waarde",
+        "delta": "Wijziging",
+        "trend": "Trend",
+        "source": "Bron",
+        "report": "Rapport",
+        "date": "Datum"
+      },
+      "summary": "{{groups}} overzichtsrijen / {{metrics}} metrieken",
+      "groups": {
+        "other": "Overig"
       }
     }
   },

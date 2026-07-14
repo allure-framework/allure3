@@ -111,7 +111,8 @@
     "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
     "no-test-case-results": "Brak wyników przypadków testowych",
     "no-environments-results": "Brak dostępnych informacji o środowiskach",
-    "no-categories-results": "Brak dostępnych wyników kategorii"
+    "no-categories-results": "Brak dostępnych wyników kategorii",
+    "no-metrics-results": "Brak dostępnych metryk"
   },
   "severity": {
     "blocker": "bloker",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Wykresy",
-    "timeline": "Oś czasu"
+    "timeline": "Oś czasu",
+    "metrics": "Metryki"
   },
   "timeline": {
     "empty": "Brak danych",
@@ -399,6 +401,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Metryki wydajności",
+      "phaseSummary": "Podsumowanie metryk",
+      "currentValues": "Bieżące wartości",
+      "historyTitle": "Historia metryki",
+      "noHistory": "Brak historii dla tej metryki",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metryka",
+        "phase": "Zestaw metryk",
+        "count": "Liczba",
+        "total": "Razem",
+        "avg": "Średnia",
+        "min": "Min.",
+        "max": "Maks.",
+        "value": "Wartość",
+        "delta": "Zmiana",
+        "trend": "Trend",
+        "source": "Źródło",
+        "report": "Raport",
+        "date": "Data"
+      },
+      "summary": "{{groups}} wierszy podsumowania / {{metrics}} metryk",
+      "groups": {
+        "other": "Inne"
       }
     }
   },

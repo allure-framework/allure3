@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Prestandamått",
+      "table": {
+        "metric": "Mått",
+        "value": "Värde",
+        "delta": "Förändring",
+        "source": "Källa"
+      }
     }
   },
   "transitions": {

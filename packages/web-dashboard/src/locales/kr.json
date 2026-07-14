@@ -210,6 +210,15 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "성능 메트릭",
+      "table": {
+        "metric": "메트릭",
+        "value": "값",
+        "delta": "변화",
+        "source": "소스"
+      }
     }
   },
   "transitions": {

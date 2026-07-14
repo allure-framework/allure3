@@ -6,6 +6,8 @@ import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
+import AwesomePlugin from "@allurereport/plugin-awesome";
+import DashboardPlugin from "@allurereport/plugin-dashboard";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
@@ -51,6 +53,7 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     start: vi.fn<Required<Plugin>["start"]>(),
     update: vi.fn<Required<Plugin>["update"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
+    refresh: vi.fn<Required<Plugin>["refresh"]>(),
     info: vi.fn<Required<Plugin>["info"]>(),
   };
 
@@ -239,6 +242,212 @@ describe("report", () => {
         process.env.ALLURE_READ_CONCURRENCY = previousConcurrency;
       }
     }
+  });
+
+  it("should generate dashboard metrics widget from perf.json", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-dashboard-"));
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-perf-results-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    await writeFile(
+      join(resultsDir, "perf.json"),
+      JSON.stringify({
+        version: 1,
+        name: "Report generation",
+        display: {
+          historyMetricKey: "generate.total.avgMs",
+        },
+        metrics: [
+          {
+            key: "generate.total.avgMs",
+            value: 123.45,
+            unit: "ms",
+            better: "lower",
+          },
+        ],
+      }),
+    );
+
+    config.plugins = [
+      {
+        id: "dashboard",
+        enabled: true,
+        options: {},
+        plugin: new DashboardPlugin({}),
+      },
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.readDirectory(resultsDir);
+    await allureReport.done();
+
+    const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
+
+    expect(widget.current).toEqual([
+      {
+        key: "generate.total.avgMs",
+        value: 123.45,
+        unit: "ms",
+        group: "Report generation",
+        source: "perf.json",
+        better: "lower",
+        display: { history: true },
+      },
+    ]);
+    expect(widget.display).toEqual({ historyMetricKey: "generate.total.avgMs" });
+    expect(widget.history).toEqual([]);
+  });
+
+  it("should expose opt-in self perf metrics in awesome report files", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const output = await mkdtemp(join(tmpdir(), "allure3-self-perf-awesome-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    config.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const indexHtml = await readFile(join(output, "index.html"), "utf8");
+    const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
+
+    expect(indexHtml).toContain('"sections":["charts","timeline","metrics"]');
+    expect(widget.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
+    expect(widget.current).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.allureTotal}.avgMs`,
+          source: PERF_METRICS_FILE,
+          display: { history: true },
+        }),
+      ]),
+    );
+    expect(await allureReport.store.allGlobalAttachments()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: PERF_METRICS_FILE,
+          originalFileName: PERF_METRICS_FILE,
+        }),
+      ]),
+    );
+  });
+
+  it("should expose previous self perf metrics from local history in the next awesome report", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const historyDir = await mkdtemp(join(tmpdir(), "allure3-self-perf-history-"));
+    const historyPath = join(historyDir, "history.jsonl");
+    const firstOutput = await mkdtemp(join(tmpdir(), "allure3-self-perf-first-"));
+    const firstConfig = await resolveConfig({
+      name: "Allure Report",
+      output: firstOutput,
+      historyPath,
+    });
+
+    firstConfig.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const firstReport = new AllureReport(firstConfig);
+
+    await firstReport.start();
+    await firstReport.done();
+
+    const firstWidget = JSON.parse(await readFile(join(firstOutput, "widgets", "metrics.json"), "utf8"));
+
+    expect(firstWidget.history).toEqual([]);
+
+    const secondOutput = await mkdtemp(join(tmpdir(), "allure3-self-perf-second-"));
+    const secondConfig = await resolveConfig({
+      name: "Allure Report",
+      output: secondOutput,
+      historyPath,
+    });
+
+    secondConfig.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const secondReport = new AllureReport(secondConfig);
+
+    await secondReport.start();
+    await secondReport.done();
+
+    const secondWidget = JSON.parse(await readFile(join(secondOutput, "widgets", "metrics.json"), "utf8"));
+
+    expect(secondWidget.history).toEqual([
+      expect.objectContaining({
+        uuid: firstReport.reportUuid,
+        name: "Allure Report",
+        metrics: expect.objectContaining({
+          [`${PERF_METRIC_NAMES.allureTotal}.avgMs`]: expect.any(Number),
+        }),
+      }),
+    ]);
+    expect(secondWidget.current).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.allureTotal}.avgMs`,
+        }),
+      ]),
+    );
+  });
+
+  it("should not expose self perf metrics in awesome report files when disabled", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-no-self-perf-awesome-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+
+    config.plugins = [
+      {
+        id: "awesome",
+        enabled: true,
+        options: {},
+        plugin: new AwesomePlugin({}),
+      },
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const indexHtml = await readFile(join(output, "index.html"), "utf8");
+
+    expect(indexHtml).toContain('"sections":["charts","timeline"]');
+    await expect(readFile(join(output, "widgets", "metrics.json"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 
   it("should call plugins in specified order on start()", async () => {
@@ -455,6 +664,68 @@ describe("report", () => {
       ]),
     );
     expect(generateTotal.startTimeMs + generateTotal.durationMs).toBeLessThanOrEqual(publishUploadTotal.startTimeMs);
+  });
+
+  it("should publish refreshed plugin files after self perf metrics are added", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-refresh-publish-"));
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+    let uploadedIndexContent = "";
+
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("before metrics"));
+    });
+    (p1.plugin.refresh as Mock).mockImplementation(async (context, store) => {
+      const metrics = await store.allMetrics();
+      const hasSelfMetrics = metrics.some(({ key }) => key === `${PERF_METRIC_NAMES.allureTotal}.avgMs`);
+
+      await context.reportFiles.addFile(
+        "index.html",
+        Buffer.from(hasSelfMetrics ? "after metrics" : "missing metrics"),
+      );
+    });
+    (AllureServiceClientMock.prototype.uploadReport as Mock).mockImplementation(
+      async ({ pluginId, files }: { pluginId?: string; files: Record<string, string> }) => {
+        if (pluginId === "p1" && files["index.html"]) {
+          uploadedIndexContent = await readFile(files["index.html"], "utf8");
+        }
+
+        return {
+          indexHref:
+            pluginId && files["index.html"]
+              ? `https://example.org/${pluginId}/index.html`
+              : files["index.html"]
+                ? "https://example.org/index.html"
+                : undefined,
+          hrefs: {},
+        };
+      },
+    );
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const completeReportCall = (AllureServiceClientMock.prototype.completeReport as Mock).mock.calls.at(-1);
+
+    expect(p1.plugin.done).toHaveBeenCalledTimes(1);
+    expect(p1.plugin.refresh).toHaveBeenCalledTimes(1);
+    expect(uploadedIndexContent).toBe("after metrics");
+    expect(completeReportCall?.[0].historyPoint.metrics).toEqual(
+      expect.objectContaining({
+        [`${PERF_METRIC_NAMES.allureTotal}.avgMs`]: expect.any(Number),
+      }),
+    );
   });
 
   it("should upload report files only for plugins with options.publish", async () => {

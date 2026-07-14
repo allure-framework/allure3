@@ -8,6 +8,7 @@ import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type MetricSample,
   type Statistic,
   type TestEnvGroup,
   type TestLabel,
@@ -657,7 +658,7 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const sections: string[] = ["charts", "timeline"];
+  const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
 
   if (!payload.singleFile) {
     const manifestPath = require.resolve(
@@ -759,6 +760,47 @@ export const generateAllCharts = async (
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
   }
+};
+
+export type AwesomeMetricsWidget = {
+  current: MetricSample[];
+  display?: {
+    historyMetricKey: string;
+  };
+  history: {
+    uuid: string;
+    name: string;
+    timestamp: number;
+    url?: string;
+    metrics: Record<string, number>;
+  }[];
+};
+
+export const generateMetricsWidget = async (writer: AwesomeDataWriter, store: AllureStore): Promise<boolean> => {
+  const current = await store.allMetrics();
+
+  if (current.length === 0) {
+    return false;
+  }
+
+  const historyMetricKey = current.find(({ display }) => display?.history)?.key;
+
+  const history = (await store.allHistoryDataPoints())
+    .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
+    .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
+      uuid,
+      name,
+      timestamp,
+      ...(url ? { url } : {}),
+      metrics,
+    }));
+
+  await writer.writeWidget("metrics.json", {
+    current,
+    ...(historyMetricKey ? { display: { historyMetricKey } } : {}),
+    history,
+  } satisfies AwesomeMetricsWidget);
+  return true;
 };
 
 export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: AwesomeTestResult[]) => {

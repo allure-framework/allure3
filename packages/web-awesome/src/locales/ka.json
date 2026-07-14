@@ -111,7 +111,8 @@
     "no-test-steps-results": "ტესტის ნაბიჯების ინფორმაცია ხელმისაწვდომი არ არის",
     "no-test-case-results": "ტესტის შემთხვევის შედეგები არ არის",
     "no-environments-results": "გარემობის ინფორმაცია არ არის ხელმისაწვდომი",
-    "no-categories-results": "კატეგორიები ხელმისაწვდომი არ არის"
+    "no-categories-results": "კატეგორიები ხელმისაწვდომი არ არის",
+    "no-metrics-results": "მეტრიკები ხელმისაწვდომი არ არის"
   },
   "severity": {
     "blocker": "ბლოკერი",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "გრაფიკები",
-    "timeline": "დროის ხაზი"
+    "timeline": "დროის ხაზი",
+    "metrics": "მეტრიკები"
   },
   "timeline": {
     "empty": "მონაცემები არ არის",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "წარმადობის მეტრიკები",
+      "phaseSummary": "მეტრიკების შეჯამება",
+      "currentValues": "მიმდინარე მნიშვნელობები",
+      "historyTitle": "მეტრიკის ისტორია",
+      "noHistory": "ამ მეტრიკის ისტორია ჯერ არ არის",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "მეტრიკა",
+        "phase": "მეტრიკების ნაკრები",
+        "count": "რაოდენობა",
+        "total": "სულ",
+        "avg": "საშ.",
+        "min": "მინ.",
+        "max": "მაქს.",
+        "value": "მნიშვნელობა",
+        "delta": "ცვლილება",
+        "trend": "ტრენდი",
+        "source": "წყარო",
+        "report": "ანგარიში",
+        "date": "თარიღი"
+      },
+      "summary": "{{groups}} შეჯამების ხაზი / {{metrics}} მეტრიკა",
+      "groups": {
+        "other": "სხვა"
       }
     }
   },

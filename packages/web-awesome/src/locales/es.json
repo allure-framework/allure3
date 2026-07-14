@@ -111,7 +111,8 @@
     "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",
     "no-test-case-results": "No hay resultados de casos de prueba",
     "no-environments-results": "No hay información de entornos disponible",
-    "no-categories-results": "No hay categorías disponibles"
+    "no-categories-results": "No hay categorías disponibles",
+    "no-metrics-results": "No hay métricas disponibles"
   },
   "severity": {
     "blocker": "bloqueante",
@@ -196,7 +197,8 @@
   "sections": {
     "report": "Report",
     "charts": "Gráficas",
-    "timeline": "Línea de tiempo"
+    "timeline": "Línea de tiempo",
+    "metrics": "Métricas"
   },
   "timeline": {
     "empty": "Sin datos",
@@ -391,6 +393,33 @@
       "legend": {
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
+      }
+    },
+    "metrics": {
+      "title": "Métricas de rendimiento",
+      "phaseSummary": "Resumen de métricas",
+      "currentValues": "Valores actuales",
+      "historyTitle": "Historial de la métrica",
+      "noHistory": "Aún no hay historial para esta métrica",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Métrica",
+        "phase": "Conjunto de métricas",
+        "count": "Cantidad",
+        "total": "Total",
+        "avg": "Prom.",
+        "min": "Mín.",
+        "max": "Máx.",
+        "value": "Valor",
+        "delta": "Variación",
+        "trend": "Tendencia",
+        "source": "Fuente",
+        "report": "Informe",
+        "date": "Fecha"
+      },
+      "summary": "{{groups}} filas de resumen / {{metrics}} métricas",
+      "groups": {
+        "other": "Otro"
       }
     }
   },
