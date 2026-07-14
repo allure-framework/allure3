@@ -316,6 +316,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["glob", "npm:13.0.6"],\
           ["handlebars", "npm:4.7.9"],\
+          ["jiti", "npm:2.6.1"],\
           ["node-stream-zip", "npm:1.15.0"],\
           ["p-limit", "npm:7.3.0"],\
           ["rimraf", "npm:6.1.2"],\

@@ -111,6 +111,7 @@ __metadata:
     allure-vitest: "npm:^3"
     glob: "npm:^13.0.6"
     handlebars: "npm:^4.7.9"
+    jiti: "npm:^2.5.1"
     node-stream-zip: "npm:^1.15.0"
     p-limit: "npm:^7.3.0"
     rimraf: "npm:^6"
