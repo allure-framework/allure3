@@ -176,7 +176,11 @@ const processAttachmentLink = (
   // (AttachmentLinkExpected/AttachmentLinkLinked) or from an indexed result file
   // (AttachmentLinkFile); AttachmentLinkInvalid is never stored, since it's only produced
   // above for attachments without an originalFileName.
-  const previous = attachments.get(id) as AttachmentLinkFile | AttachmentLinkExpected | AttachmentLinkLinked | undefined;
+  const previous = attachments.get(id) as
+    | AttachmentLinkFile
+    | AttachmentLinkExpected
+    | AttachmentLinkLinked
+    | undefined;
 
   if (!previous) {
     const contentType: string | undefined = attach.contentType ?? lookupContentType(attach.originalFileName);
