@@ -1250,7 +1250,7 @@ describe("attachments", () => {
     expect(a1Content).toEqual(rf2);
   });
 
-  it("should ignore duplicate attachment links", async () => {
+  it("should allow reusing the same attachment across multiple test results", async () => {
     const store = new DefaultAllureStore();
 
     const tr1: RawTestResult = {
@@ -1286,8 +1286,8 @@ describe("attachments", () => {
     const [a1] = await store.allAttachments({ includeUnused: true, includeMissed: true });
     expect(a1).toEqual(
       expect.objectContaining({
-        name: "attachment 1",
-        contentType: "application/vnd.allure.test",
+        name: "other attachment",
+        contentType: "application/vnd.allure.x-test",
         contentLength: rf1.getContentLength(),
         originalFileName: "tr1-source1.txt",
         used: true,
@@ -1305,13 +1305,13 @@ describe("attachments", () => {
         {
           type: "attachment",
           link: expect.objectContaining({
-            id: expect.any(String),
+            id: a1.id,
             used: true,
-            missed: true,
+            missed: false,
             contentType: "application/vnd.allure.x-test",
             name: "other attachment",
-            originalFileName: undefined,
-            ext: "",
+            originalFileName: "tr1-source1.txt",
+            ext: ".txt",
           }),
         },
       ]),

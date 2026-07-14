@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type {
   AttachmentLink,
   AttachmentLinkExpected,
+  AttachmentLinkFile,
   AttachmentLinkInvalid,
   AttachmentLinkLinked,
   AttachmentTestStepResult,
@@ -171,7 +172,11 @@ const processAttachmentLink = (
 
   const id = md5(attach.originalFileName);
 
-  const previous: AttachmentLink | undefined = attachments.get(id);
+  // an entry in the map always originates either from an already-referenced attachment
+  // (AttachmentLinkExpected/AttachmentLinkLinked) or from an indexed result file
+  // (AttachmentLinkFile); AttachmentLinkInvalid is never stored, since it's only produced
+  // above for attachments without an originalFileName.
+  const previous = attachments.get(id) as AttachmentLinkFile | AttachmentLinkExpected | AttachmentLinkLinked | undefined;
 
   if (!previous) {
     const contentType: string | undefined = attach.contentType ?? lookupContentType(attach.originalFileName);
@@ -190,18 +195,24 @@ const processAttachmentLink = (
     return createAttachmentStep(linkExpected);
   }
 
-  // deny reusing same file multiple times
-  if (previous.used) {
-    return createAttachmentStep({
-      // random id to prevent collisions
-      id: randomUUID(),
-      originalFileName: undefined,
-      ext: "",
-      name: attach.name ?? attach.originalFileName ?? __unknown,
-      contentType: attach.contentType,
-      missed: true,
+  // the same physical file can legitimately be attached to multiple steps/test results
+  // (e.g. a shared report attached to every test case), so reuse the existing link
+  // instead of treating repeated references as invalid.
+  if (previous.missed) {
+    const link: AttachmentLinkExpected = {
+      ...previous,
+      id,
+      name: attach.name ?? previous.originalFileName,
+      contentType: attach.contentType ?? previous.contentType,
+      // if no extension is specified for originalFileName, we should use provided
+      // contentType in the link first, and only then rely on detected content type.
+      ext: extension(previous.originalFileName, attach.contentType) ?? previous.ext ?? "",
       used: true,
-    });
+      missed: true,
+    };
+    attachments.set(id, link);
+    visitAttachmentLink(link);
+    return createAttachmentStep(link);
   }
 
   const link: AttachmentLinkLinked = {
