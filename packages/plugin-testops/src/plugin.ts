@@ -17,14 +17,11 @@ import { TestOpsClient } from "./client.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import {
-  attachmentsResolverFactory,
-  fixturesResolverFactory,
-  resolvePluginOptions,
-  unwrapStepsAttachments,
-} from "./utils/index.js";
-import { toUploadCategory } from "./utils/uploadCategory.js";
-import { uploadFilenameForLink } from "./utils/uploaderDto.js";
+import { uploadFilenameForLink } from "./utils/attachments.js";
+import { toUploadCategory } from "./utils/categories.js";
+import { resolvePluginOptions } from "./utils/options.js";
+import { attachmentsResolverFactory, fixturesResolverFactory, unwrapStepsAttachments } from "./utils/resolvers.js";
+import { validateExecutableName } from "./utils/validation.js";
 
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
 const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
@@ -329,14 +326,13 @@ export class TestOpsPlugin implements Plugin {
     const environments = await store.allEnvironmentIdentities();
     const contextCategories = context?.categories ?? [];
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
 
   async #trsToUpload(store: AllureStore) {
     const filter = this.options.filter ?? stubTrue;
-
     const filteredTrs = await store.allTestResults({
       filter: (tr) => {
         const uploaded = this.#uploadedTestResultsIds.has(tr.id);
@@ -345,7 +341,7 @@ export class TestOpsPlugin implements Plugin {
           return false;
         }
 
-        return filter(tr);
+        return validateExecutableName(tr.name) && filter(tr);
       },
       includeRetries: false,
     });

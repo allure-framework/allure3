@@ -1,8 +1,9 @@
 import type { TestStepResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils/index.js";
+import { resolvePluginOptions } from "../src/utils/options.js";
+import { attachmentsResolverFactory, unwrapStepsAttachments } from "../src/utils/resolvers.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -93,6 +94,102 @@ describe("unwrapStepsAttachments", () => {
 
     expect(parentStep.steps).toHaveLength(2);
     expect(parentStep.steps[1]).toHaveProperty("attachment", link);
+  });
+});
+
+describe("attachmentsResolverFactory", () => {
+  it("does not read attachments from removed step subtrees", async () => {
+    const attachmentContentById = vi.fn().mockResolvedValue({
+      readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+    });
+    const resolver = attachmentsResolverFactory({
+      attachmentsByTrId: vi.fn().mockResolvedValue([
+        { id: "removed", originalFileName: "removed.txt" },
+        { id: "kept", originalFileName: "kept.txt" },
+      ]),
+      attachmentById: vi.fn().mockResolvedValue(undefined),
+      fixturesByTrId: vi.fn().mockResolvedValue([
+        {
+          name: "fixture",
+          steps: [
+            { type: "step", name: "bad\u0000step", steps: [{ type: "attachment", link: { id: "removed" } }] },
+            { type: "attachment", link: { id: "kept" } },
+          ],
+        },
+      ]),
+      attachmentContentById,
+    } as any);
+
+    await resolver({
+      id: "result",
+      steps: [],
+    } as any);
+
+    expect(attachmentContentById).toHaveBeenCalledTimes(1);
+    expect(attachmentContentById).toHaveBeenCalledWith("kept");
+  });
+
+  it("excludes attachments from invalid fixture trees", async () => {
+    const attachmentContentById = vi.fn().mockResolvedValue({
+      readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+    });
+    const resolver = attachmentsResolverFactory({
+      attachmentsByTrId: vi.fn().mockResolvedValue([{ id: "invalid", originalFileName: "invalid.txt" }]),
+      attachmentById: vi.fn().mockResolvedValue({ id: "invalid", originalFileName: "invalid.txt" }),
+      fixturesByTrId: vi.fn().mockResolvedValue([
+        {
+          name: "bad\u0000fixture",
+          steps: [{ type: "attachment", link: { id: "invalid" } }],
+        },
+      ]),
+      attachmentContentById,
+    } as any);
+
+    await expect(resolver({ id: "result", steps: [] } as any)).resolves.toEqual([]);
+    expect(attachmentContentById).not.toHaveBeenCalled();
+  });
+
+  it("retains attachments referenced only by valid fixtures", async () => {
+    const attachmentContentById = vi.fn().mockResolvedValue({
+      readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+    });
+    const resolver = attachmentsResolverFactory({
+      attachmentsByTrId: vi.fn().mockResolvedValue([]),
+      attachmentById: vi.fn().mockResolvedValue({
+        id: "fixture-only",
+        originalFileName: "fixture.txt",
+        contentType: "text/plain",
+      }),
+      fixturesByTrId: vi.fn().mockResolvedValue([
+        {
+          name: "setup",
+          steps: [{ type: "attachment", link: { id: "fixture-only" } }],
+        },
+      ]),
+      attachmentContentById,
+    } as any);
+
+    await expect(resolver({ id: "result", steps: [] } as any)).resolves.toEqual([
+      expect.objectContaining({ originalFileName: "fixture.txt" }),
+    ]);
+    expect(attachmentContentById).toHaveBeenCalledWith("fixture-only");
+  });
+
+  it("retains attachments listed directly on test results", async () => {
+    const attachmentContentById = vi.fn().mockResolvedValue({
+      readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+    });
+    const resolver = attachmentsResolverFactory({
+      attachmentsByTrId: vi.fn().mockResolvedValue([]),
+      attachmentById: vi.fn().mockResolvedValue({ id: "result-only", originalFileName: "result.txt" }),
+      fixturesByTrId: vi.fn().mockResolvedValue([]),
+      attachmentContentById,
+    } as any);
+
+    await expect(resolver({ id: "result", steps: [], attachments: [{ id: "result-only" }] } as any)).resolves.toEqual([
+      expect.objectContaining({ originalFileName: "result.txt" }),
+    ]);
+    expect(attachmentContentById).toHaveBeenCalledWith("result-only");
   });
 });
 

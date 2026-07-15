@@ -34,8 +34,10 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
+import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
-import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
+import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
+import { validateExecutableName } from "./utils/validation.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;
@@ -397,7 +399,11 @@ export class TestOpsClient {
     }
 
     const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
-    const trsChunks = chunk(trs, CHUNK_SIZE);
+    const projectedTrs = trs.map((tr) => ({
+      ...tr,
+      ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
+    }));
+    const trsChunks = chunk(projectedTrs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
@@ -423,6 +429,8 @@ export class TestOpsClient {
 
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
+        uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+
         await this.#uploadChunkAttachmentsAndFixtures(
           trsChunk,
           reportIdsToTestOpsIds,
@@ -431,8 +439,6 @@ export class TestOpsClient {
           uploadLimitFn,
           onProgress,
         );
-
-        uploadedTrs.push(...trsChunk);
       }
 
       this.#logger.verbose("Test results upload completed");
@@ -508,8 +514,18 @@ export class TestOpsClient {
       trsChunk.map((tr) =>
         uploadLimitFn(async () => {
           const testOpsId = reportIdsToTestOpsIds[tr.id];
+
+          if (typeof testOpsId !== "number") {
+            return;
+          }
+
           const attachments = await attachmentsResolver(tr);
-          const fixtures = await fixturesResolver(tr);
+          const fixtures = (await fixturesResolver(tr))
+            .filter((fixture) => validateExecutableName(fixture.name))
+            .map((fixture) => ({
+              ...fixture,
+              ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
+            }));
 
           await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
           await this.#uploadFixturesForResult(testOpsId, fixtures);
