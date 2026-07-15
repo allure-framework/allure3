@@ -1007,7 +1007,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@chromatic-com/storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.3"],\
+          ["@chromatic-com/storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.2.1"],\
           ["@floating-ui/dom", "npm:1.7.4"],\
           ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
           ["@nivo/bar", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
@@ -5876,22 +5876,21 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@chromatic-com/storybook", [\
-      ["npm:3.2.3", {\
-        "packageLocation": "./.yarn/cache/@chromatic-com-storybook-npm-3.2.3-abf8fb3846-6aa32ff8a2.zip/node_modules/@chromatic-com/storybook/",\
+      ["npm:5.2.1", {\
+        "packageLocation": "./.yarn/cache/@chromatic-com-storybook-npm-5.2.1-6648462ddc-cb0e50221c.zip/node_modules/@chromatic-com/storybook/",\
         "packageDependencies": [\
-          ["@chromatic-com/storybook", "npm:3.2.3"]\
+          ["@chromatic-com/storybook", "npm:5.2.1"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.3", {\
-        "packageLocation": "./.yarn/__virtual__/@chromatic-com-storybook-virtual-7419a55d0b/0/cache/@chromatic-com-storybook-npm-3.2.3-abf8fb3846-6aa32ff8a2.zip/node_modules/@chromatic-com/storybook/",\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.2.1", {\
+        "packageLocation": "./.yarn/__virtual__/@chromatic-com-storybook-virtual-3b7a43ce31/0/cache/@chromatic-com-storybook-npm-5.2.1-6648462ddc-cb0e50221c.zip/node_modules/@chromatic-com/storybook/",\
         "packageDependencies": [\
-          ["@chromatic-com/storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.3"],\
+          ["@chromatic-com/storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.2.1"],\
+          ["@neoconfetti/react", "npm:1.0.0"],\
           ["@types/storybook", null],\
-          ["chromatic", "virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:11.20.2"],\
-          ["filesize", "npm:10.1.6"],\
+          ["chromatic", "virtual:3b7a43ce31061890004e6108410089e10604240e5d8d78c220c10521234b8645cda1ba5e2c56fc7588452c802a5a8886e252d79cc80de6728d6cac26f59240d4#npm:16.10.0"],\
           ["jsonfile", "npm:6.1.0"],\
-          ["react-confetti", "virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:6.1.0"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.17"],\
           ["strip-ansi", "npm:7.1.0"]\
         ],\
@@ -6668,6 +6667,15 @@ const RAW_RUNTIME_STATE =
           "@emnapi/runtime",\
           "@types/emnapi__core",\
           "@types/emnapi__runtime"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@neoconfetti/react", [\
+      ["npm:1.0.0", {\
+        "packageLocation": "./.yarn/cache/@neoconfetti-react-npm-1.0.0-8a66cf2932-71a623f2df.zip/node_modules/@neoconfetti/react/",\
+        "packageDependencies": [\
+          ["@neoconfetti/react", "npm:1.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -13998,27 +14006,32 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["chromatic", [\
-      ["npm:11.20.2", {\
-        "packageLocation": "./.yarn/cache/chromatic-npm-11.20.2-c74e994d30-74adb89978.zip/node_modules/chromatic/",\
+      ["npm:16.10.0", {\
+        "packageLocation": "./.yarn/cache/chromatic-npm-16.10.0-f4c583680e-8c69384f70.zip/node_modules/chromatic/",\
         "packageDependencies": [\
-          ["chromatic", "npm:11.20.2"]\
+          ["chromatic", "npm:16.10.0"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:11.20.2", {\
-        "packageLocation": "./.yarn/__virtual__/chromatic-virtual-097b65a920/0/cache/chromatic-npm-11.20.2-c74e994d30-74adb89978.zip/node_modules/chromatic/",\
+      ["virtual:3b7a43ce31061890004e6108410089e10604240e5d8d78c220c10521234b8645cda1ba5e2c56fc7588452c802a5a8886e252d79cc80de6728d6cac26f59240d4#npm:16.10.0", {\
+        "packageLocation": "./.yarn/__virtual__/chromatic-virtual-7dd1255153/0/cache/chromatic-npm-16.10.0-f4c583680e-8c69384f70.zip/node_modules/chromatic/",\
         "packageDependencies": [\
           ["@chromatic-com/cypress", null],\
           ["@chromatic-com/playwright", null],\
+          ["@chromatic-com/vitest", null],\
           ["@types/chromatic-com__cypress", null],\
           ["@types/chromatic-com__playwright", null],\
-          ["chromatic", "virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:11.20.2"]\
+          ["@types/chromatic-com__vitest", null],\
+          ["chromatic", "virtual:3b7a43ce31061890004e6108410089e10604240e5d8d78c220c10521234b8645cda1ba5e2c56fc7588452c802a5a8886e252d79cc80de6728d6cac26f59240d4#npm:16.10.0"],\
+          ["semver", "npm:7.7.2"]\
         ],\
         "packagePeers": [\
           "@chromatic-com/cypress",\
           "@chromatic-com/playwright",\
+          "@chromatic-com/vitest",\
           "@types/chromatic-com__cypress",\
-          "@types/chromatic-com__playwright"\
+          "@types/chromatic-com__playwright",\
+          "@types/chromatic-com__vitest"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -21989,29 +22002,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["react-confetti", [\
-      ["npm:6.1.0", {\
-        "packageLocation": "./.yarn/cache/react-confetti-npm-6.1.0-9b9e19a3c8-33423767c4.zip/node_modules/react-confetti/",\
-        "packageDependencies": [\
-          ["react-confetti", "npm:6.1.0"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:6.1.0", {\
-        "packageLocation": "./.yarn/__virtual__/react-confetti-virtual-d5b5d1b5a7/0/cache/react-confetti-npm-6.1.0-9b9e19a3c8-33423767c4.zip/node_modules/react-confetti/",\
-        "packageDependencies": [\
-          ["@types/react", null],\
-          ["react", null],\
-          ["react-confetti", "virtual:7419a55d0bba5c7ce26b4dc09b0c7b1ef7163dfc850660989a18330488eb02a22447c3fdbdefc474c15c3c992d820ea0e9dededc84c971113e967b0262898b0b#npm:6.1.0"],\
-          ["tween-functions", "npm:1.2.0"]\
-        ],\
-        "packagePeers": [\
-          "@types/react",\
-          "react"\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["react-is", [\
       ["npm:17.0.2", {\
         "packageLocation": "./.yarn/cache/react-is-npm-17.0.2-091bbb8db6-73b36281e5.zip/node_modules/react-is/",\
@@ -24822,15 +24812,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["tslib", "npm:1.14.1"],\
           ["tsyringe", "npm:4.10.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["tween-functions", [\
-      ["npm:1.2.0", {\
-        "packageLocation": "./.yarn/cache/tween-functions-npm-1.2.0-4c24ac77a5-f145f39187.zip/node_modules/tween-functions/",\
-        "packageDependencies": [\
-          ["tween-functions", "npm:1.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
