@@ -65,7 +65,7 @@ export type UploadLabelDto = {
 
 export type UploadTestResultBodyStepDto = {
   type: "body";
-  body?: string;
+  body: string;
   bodyJson?: unknown;
   status?: UploadTestStatus;
   start?: number;
@@ -112,7 +112,7 @@ export type UploadTestResultDto = {
   uuid?: string;
   historyId?: string;
   testCaseId?: string;
-  name?: string;
+  name: string;
   fullName?: string;
   description?: string;
   descriptionHtml?: string;
@@ -157,7 +157,7 @@ export type UploadTestFixtureType = "BEFORE" | "AFTER";
 export type UploadTestFixtureResultDto = {
   type?: UploadTestFixtureType;
   uuid?: string;
-  name?: string;
+  name: string;
   start?: number;
   stop?: number;
   duration?: number;
