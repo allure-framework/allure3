@@ -26,6 +26,7 @@ import {
   createTreeByCategories,
   createTreeByLabels,
   filterTree,
+  isAnalyticsEnabled,
   sortTree,
   transformTree,
 } from "@allurereport/plugin-api";
@@ -337,7 +338,7 @@ export const generateStaticFiles = async (
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: isAnalyticsEnabled(payload.analyticsEnable),
       allureVersion,
       reportUuid,
       reportName,

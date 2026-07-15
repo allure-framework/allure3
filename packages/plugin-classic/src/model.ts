@@ -6,6 +6,12 @@ export type ClassicOptions = {
   logo?: string;
   theme?: "light" | "dark" | "auto";
   reportLanguage?: string;
+  /**
+   * When false, omit Google Analytics from the report HTML.
+   * Also disabled when `ALLURE_NO_ANALYTICS=true` (Allure 2 parity).
+   * @default true
+   */
+  analyticsEnable?: boolean;
   groupBy?: string[];
   ci?: {
     type: "github" | "jenkins";
