@@ -12494,10 +12494,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["adm-zip", [\
-      ["npm:0.5.16", {\
-        "packageLocation": "./.yarn/cache/adm-zip-npm-0.5.16-4556fea098-e167d1b9e6.zip/node_modules/adm-zip/",\
+      ["npm:0.6.0", {\
+        "packageLocation": "./.yarn/cache/adm-zip-npm-0.6.0-545e4e34af-6a49ab3905.zip/node_modules/adm-zip/",\
         "packageDependencies": [\
-          ["adm-zip", "npm:0.5.16"]\
+          ["adm-zip", "npm:0.6.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -12657,7 +12657,7 @@ const RAW_RUNTIME_STATE =
           ["@types/prompts", "npm:2.4.9"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
-          ["adm-zip", "npm:0.5.16"],\
+          ["adm-zip", "npm:0.6.0"],\
           ["allure", "workspace:packages/cli"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
