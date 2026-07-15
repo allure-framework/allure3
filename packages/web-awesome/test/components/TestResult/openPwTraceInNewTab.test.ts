@@ -29,7 +29,7 @@ describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
     expect(result).toBe(false);
   });
 
-  it("sends trace message immediately and retries once", async () => {
+  it("sends trace message after the trace viewer has time to bootstrap", async () => {
     const { openPlaywrightTraceInNewTab } = await import("@/components/TestResult/TrPwTraces/openPwTraceInNewTab");
     const postMessage = vi.fn();
     const popup = {
@@ -43,16 +43,19 @@ describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
     const result = openPlaywrightTraceInNewTab(new Blob(["trace"]));
 
     expect(result).toBe(true);
+    expect(postMessage).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(999);
+    expect(postMessage).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
     expect(postMessage).toHaveBeenCalledTimes(1);
 
-    vi.advanceTimersByTime(300);
-    expect(postMessage).toHaveBeenCalledTimes(2);
-
     vi.advanceTimersByTime(30_000);
-    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(postMessage).toHaveBeenCalledTimes(1);
   });
 
-  it("does not send delayed retry when popup is already closed", async () => {
+  it("does not send trace when popup is already closed", async () => {
     const { openPlaywrightTraceInNewTab } = await import("@/components/TestResult/TrPwTraces/openPwTraceInNewTab");
     const postMessage = vi.fn();
     const popup = {
@@ -64,10 +67,10 @@ describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
     vi.spyOn(window, "open").mockReturnValue(popup);
 
     openPlaywrightTraceInNewTab(new Blob(["trace"]));
-    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).not.toHaveBeenCalled();
 
     popup.closed = true;
-    vi.advanceTimersByTime(300);
-    expect(postMessage).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1_000);
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });

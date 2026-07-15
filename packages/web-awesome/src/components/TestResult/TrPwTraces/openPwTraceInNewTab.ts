@@ -1,6 +1,7 @@
 const PLAYWRIGHT_TRACE_ORIGIN = "https://trace.playwright.dev";
 const PLAYWRIGHT_TRACE_VIEWER_URL = `${PLAYWRIGHT_TRACE_ORIGIN}/`;
-const RETRY_DELAY_MS = 300;
+// Give the hosted trace viewer time to bootstrap its postMessage listener on cold loads.
+const TRACE_LOAD_DELAY_MS = 1_000;
 
 export const openPlaywrightTraceInNewTab = (blob: Blob) => {
   const newWindow = window.open("", "_blank");
@@ -20,10 +21,9 @@ export const openPlaywrightTraceInNewTab = (blob: Blob) => {
   newWindow.location.href = PLAYWRIGHT_TRACE_VIEWER_URL;
   newWindow.focus();
 
-  sendTraceMessage();
   globalThis.setTimeout(() => {
     sendTraceMessage();
-  }, RETRY_DELAY_MS);
+  }, TRACE_LOAD_DELAY_MS);
 
   return true;
 };
