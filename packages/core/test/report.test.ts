@@ -192,6 +192,53 @@ describe("report", () => {
     expect(acceptedReader.read).toHaveBeenCalledWith(allureReport.store, resultFile);
   });
 
+  it("should not touch the history file when appendHistory is false", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-append-history-"));
+    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-append-history-data-")), "history.jsonl");
+    const initialHistoryContent = `${JSON.stringify({ uuid: "existing", name: "Existing run", timestamp: 1, knownTestCaseIds: [], metrics: {}, testResults: {} })}\n`;
+
+    await writeFile(historyPath, initialHistoryContent, "utf-8");
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      historyPath,
+      appendHistory: false,
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(await readFile(historyPath, "utf-8")).toEqual(initialHistoryContent);
+  });
+
+  it("should append to the history file when appendHistory is true", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-append-history-"));
+    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-append-history-data-")), "history.jsonl");
+    const initialHistoryContent = `${JSON.stringify({ uuid: "existing", name: "Existing run", timestamp: 1, knownTestCaseIds: [], metrics: {}, testResults: {} })}\n`;
+
+    await writeFile(historyPath, initialHistoryContent, "utf-8");
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      historyPath,
+      appendHistory: true,
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const historyContent = await readFile(historyPath, "utf-8");
+
+    expect(historyContent).not.toEqual(initialHistoryContent);
+    expect(historyContent.startsWith(initialHistoryContent)).toBe(true);
+  });
+
   it("should read result directory files with bounded concurrency", async () => {
     const previousConcurrency = process.env.ALLURE_READ_CONCURRENCY;
     const resultsDir = await mkdtemp(join(tmpdir(), "allure3-read-directory-"));
