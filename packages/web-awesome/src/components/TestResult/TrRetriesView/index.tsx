@@ -21,7 +21,7 @@ export const TrRetriesView: FunctionalComponent<{
             testResultItem={item as unknown as AwesomeTestResult}
             key={key}
             attempt={retries.length - key}
-            totalAttempts={retries.length + 1}
+            totalAttempts={retries.length}
           />
         ))
       ) : (

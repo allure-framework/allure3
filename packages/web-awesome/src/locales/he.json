@@ -150,6 +150,7 @@
     "copy": "העתק",
     "copy-email": "העתק אימייל",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
+    "retry": "ניסיון חוזר {{attempt}} מתוך {{total}}",
     "at": "ב-",
     "generated": "נוצר",
     "variables": "משתנים",
