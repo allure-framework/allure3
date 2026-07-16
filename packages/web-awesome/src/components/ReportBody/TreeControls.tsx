@@ -2,37 +2,17 @@ import { IconButton, allureIcons } from "@allurereport/web-components";
 import { memo } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
 
-import { currentEnvironment, environmentsStore } from "@/stores/env";
-import { collapseAllTreeNodes, expandAllTreeNodes } from "@/stores/keyboardActions";
+import { currentEnvironment } from "@/stores/env";
+import { collapseAllTreeNodes, expandAllTreeNodes, getTreeFocusIdPrefix } from "@/stores/keyboardActions";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, filteredTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
 /**
- * Determines if environment prefix is needed for node IDs.
- * Must match the exact logic Tree component uses to decide focusIdPrefix.
- * 
- * Prefix is used ONLY when:
- * - Multiple environments exist (environmentsStore.value.data.length > 1)
- * - AND no specific environment is selected (currentEnvironment.value is undefined)
- * 
- * This is the "All environments" view where trees from different envs are shown together.
- */
-const shouldUseEnvPrefix = (): boolean => {
-  return environmentsStore.value.data.length > 1 && !currentEnvironment.value;
-};
-
-/**
- * Creates a scoped ID for a node, applying environment prefix if needed.
- */
-const getScopedNodeId = (envId: string, nodeId: string): string => {
-  return shouldUseEnvPrefix() ? `${envId}:${nodeId}` : nodeId;
-};
-
-/**
- * Check if most nodes in a specific environment's tree are collapsed.
- * This is a simple heuristic - doesn't need to be perfect, just gives visual feedback.
+ * Check if the tree for a specific environment is currently in a collapsed state.
+ * Uses a simple heuristic: checks if ANY nodes in the tree are collapsed.
+ * This doesn't need to be perfect - just provides visual feedback for the button.
  */
 const areNodesCollapsed = (envId: string): boolean => {
   const tree = filteredTree.value[envId];
@@ -40,17 +20,34 @@ const areNodesCollapsed = (envId: string): boolean => {
     return false;
   }
 
-  // Simple heuristic: if the root node itself is collapsed, consider it "collapsed"
-  // This avoids walking the entire tree on every render
-  const rootId = tree.nodeId as string;
-  if (!rootId) {
+  // Get the scoped ID prefix for this environment
+  const prefix = getTreeFocusIdPrefix(envId);
+  
+  // Collect a few node IDs from the tree to check
+  const nodeIds: string[] = [];
+  
+  // Check root if it has an ID
+  if (tree.nodeId) {
+    const scopedId = prefix ? `${prefix}${tree.nodeId}` : tree.nodeId;
+    nodeIds.push(scopedId);
+  }
+  
+  // Check first-level groups
+  for (const subtree of tree.trees.slice(0, 3)) {
+    if (subtree.nodeId) {
+      const scopedId = prefix ? `${prefix}${subtree.nodeId}` : (subtree.nodeId as string);
+      nodeIds.push(scopedId);
+    }
+  }
+  
+  // If we found no nodes with IDs, assume not collapsed
+  if (nodeIds.length === 0) {
     return false;
   }
-
-  // Use consistent scoping logic
-  const scopedId = getScopedNodeId(envId, rootId);
-
-  return collapsedTrees.value.has(scopedId);
+  
+  // Consider collapsed if majority of checked nodes are collapsed
+  const collapsedCount = nodeIds.filter(id => collapsedTrees.value.has(id)).length;
+  return collapsedCount > nodeIds.length / 2;
 };
 
 /**

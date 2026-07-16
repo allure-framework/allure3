@@ -315,7 +315,7 @@ const resolveTreeEnvId = (focusId: string): string | undefined => {
   return Object.keys(filteredTree.value).find((envId) => envIds.has(envId));
 };
 
-const getTreeFocusIdPrefix = (envId: string): string | undefined => {
+export const getTreeFocusIdPrefix = (envId: string): string | undefined => {
   if (environmentsStore.value.data.length <= 1) {
     return undefined;
   }
@@ -783,9 +783,8 @@ export const toggleAllTreeNodes = (envId: string | undefined, shouldExpand: bool
         return;
       }
 
-      // Get the focus ID prefix using the EXACT same logic as Tree component:
-      // Prefix is used ONLY when multiple envs exist AND no specific env is selected
-      const focusIdPrefix = environmentsStore.value.data.length > 1 && !currentEnvironment.value ? `${env}:` : undefined;
+      // Reuse existing helper for consistent prefix logic
+      const focusIdPrefix = getTreeFocusIdPrefix(env);
       const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
 
       // Collect all expandable nodes in this environment's tree
