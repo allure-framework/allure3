@@ -22,16 +22,16 @@ const areNodesCollapsed = (envId: string): boolean => {
 
   // Get the scoped ID prefix for this environment
   const prefix = getTreeFocusIdPrefix(envId);
-  
+
   // Collect a few node IDs from the tree to check
   const nodeIds: string[] = [];
-  
+
   // Check root if it has an ID
   if (tree.nodeId) {
     const scopedId = prefix ? `${prefix}${tree.nodeId}` : tree.nodeId;
     nodeIds.push(scopedId);
   }
-  
+
   // Check first-level groups
   for (const subtree of tree.trees.slice(0, 3)) {
     if (subtree.nodeId) {
@@ -39,26 +39,26 @@ const areNodesCollapsed = (envId: string): boolean => {
       nodeIds.push(scopedId);
     }
   }
-  
+
   // If we found no nodes with IDs, assume not collapsed
   if (nodeIds.length === 0) {
     return false;
   }
-  
+
   // Consider collapsed if majority of checked nodes are collapsed
-  const collapsedCount = nodeIds.filter(id => collapsedTrees.value.has(id)).length;
+  const collapsedCount = nodeIds.filter((id) => collapsedTrees.value.has(id)).length;
   return collapsedCount > nodeIds.length / 2;
 };
 
 /**
  * TreeControls component - provides expand/collapse all button for the suites tree.
- * 
+ *
  * Scoped to current environment if one is selected, otherwise affects all environments.
  * Memoized to prevent unnecessary re-renders.
  */
 const TreeControlsComponent = () => {
   const { t } = useI18n("controls");
-  
+
   // Get the target environment (current or first available)
   const targetEnv = useMemo(() => {
     const current = currentEnvironment.value;
@@ -80,7 +80,7 @@ const TreeControlsComponent = () => {
 
   const handleToggle = useCallback(() => {
     const envToToggle = currentEnvironment.value; // undefined means all envs
-    
+
     if (isCollapsed) {
       expandAllTreeNodes(envToToggle);
     } else {
