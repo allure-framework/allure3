@@ -11,16 +11,17 @@ export const TrRetriesView: FunctionalComponent<{
   testResult: AwesomeTestResult;
 }> = ({ testResult }) => {
   const retries = testResult?.retries ?? [];
+  const retryAttempts = [...retries].reverse();
   const { t } = useI18n("empty");
 
   return (
     <div className={styles["test-result-retries"]}>
-      {retries.length ? (
-        retries.map((item, key) => (
+      {retryAttempts.length ? (
+        retryAttempts.map((item, key) => (
           <TrRetriesItem
             testResultItem={item as unknown as AwesomeTestResult}
-            key={key}
-            attempt={retries.length - key}
+            key={item.id}
+            attempt={key + 1}
             totalAttempts={retries.length + 1}
           />
         ))

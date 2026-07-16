@@ -441,6 +441,53 @@ describe("test results", () => {
     expect(retries.map(({ name }) => name)).toEqual([retrySecond.name, retryFirst.name]);
   });
 
+  it("keeps retry attempts with the same uuid from different result files", async () => {
+    const store = new DefaultAllureStore();
+    const latest: RawTestResult = {
+      uuid: "same-raw-uuid",
+      name: "latest broken attempt",
+      fullName: "sample test",
+      status: "broken",
+      start: 2000,
+    };
+    const retry: RawTestResult = {
+      uuid: "same-raw-uuid",
+      name: "older passed attempt",
+      fullName: "sample test",
+      status: "passed",
+      start: 1000,
+    };
+
+    await store.visitTestResult(latest, { readerId, metadata: { originalFileName: "latest-result.json" } });
+    await store.visitTestResult(retry, { readerId, metadata: { originalFileName: "retry-result.json" } });
+
+    const visibleResults = await store.allTestResults();
+    const allResults = await store.allTestResults({ includeRetries: true });
+    const retries = await store.retriesByTrId(visibleResults[0].id);
+    const statistic = await store.testsStatistic();
+
+    expect(allResults).toHaveLength(2);
+    expect(visibleResults).toEqual([
+      expect.objectContaining({
+        name: latest.name,
+        status: "broken",
+        isRetry: false,
+      }),
+    ]);
+    expect(retries).toEqual([
+      expect.objectContaining({
+        name: retry.name,
+        status: "passed",
+        isRetry: true,
+      }),
+    ]);
+    expect(statistic).toMatchObject({
+      total: 1,
+      retries: 1,
+      broken: 1,
+    });
+  });
+
   it("should return retries only for the same retryHash and environment", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
