@@ -728,7 +728,12 @@ export class AllureReport {
     await rename(dumpTempPath, dumpPath);
   };
 
-  restoreState = async (dumps: string[]): Promise<void> =>
+  restoreState = async (dumps: string[]): Promise<void> => {
+    this.#store.resetIngestOrder();
+    await this.#restoreStateDumps(dumps);
+  };
+
+  #restoreStateDumps = async (dumps: string[]): Promise<void> =>
     measurePerf(PERF_METRIC_NAMES.restoreStateTotal, async () => {
       for (const dump of dumps) {
         await measurePerf(PERF_METRIC_NAMES.restoreStateDump, async () => {
@@ -779,7 +784,7 @@ export class AllureReport {
                     nestedDumpPaths.push(nestedDumpPath);
                   }
 
-                  await this.restoreState(nestedDumpPaths);
+                  await this.#restoreStateDumps(nestedDumpPaths);
                   return;
                 }
               }
