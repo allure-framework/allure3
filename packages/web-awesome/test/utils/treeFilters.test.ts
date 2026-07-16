@@ -371,6 +371,33 @@ describe("utils > treeFilters", () => {
       expect(result.trees.map((t) => t.name)).toEqual(["groupB", "groupA", "groupC"]);
     });
 
+    it("uses earliest descendant start as a tie-breaker for groups with the same leaf groupOrder", () => {
+      const group = {
+        leaves: [],
+        groups: ["groupA", "groupB"],
+      };
+      const leavesById = {
+        late: { name: "late", status: "passed", groupOrder: 1, start: 5000 } as AwesomeTestResult,
+        early: { name: "early", status: "passed", groupOrder: 1, start: 1000 } as AwesomeTestResult,
+      };
+      const groupsById = {
+        groupA: { name: "groupA", leaves: [], groups: ["groupALeaves"] },
+        groupB: { name: "groupB", leaves: [], groups: ["groupBLeaves"] },
+        groupALeaves: { name: "groupALeaves", leaves: ["late"], groups: [] as string[] },
+        groupBLeaves: { name: "groupBLeaves", leaves: ["early"], groups: [] as string[] },
+      };
+
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "order,asc",
+      });
+
+      expect(result.trees.map((t) => t.name)).toEqual(["groupB", "groupA"]);
+    });
+
     it("sorts groups by earliest leaf groupOrder when sorting by order descending", () => {
       const group = {
         leaves: [],
