@@ -112,6 +112,7 @@ export const Menu = (props: {
     updatePosition();
     // @ts-ignore
     return autoUpdate(triggerRef.current, menuRef.current, updatePosition);
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [menuRef.current, triggerRef.current]);
 
   return (

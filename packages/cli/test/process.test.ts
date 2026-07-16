@@ -8,7 +8,7 @@ import { platform } from "node:process";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { stopProcessTree } from "../src/utils/process.js";
+import { runProcess, stopProcessTree, terminationOf } from "../src/utils/process.js";
 
 const spinProcessTreeScript = `
   import { fork } from "node:child_process";
@@ -167,6 +167,47 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
     exitCodes: parentExitCodePromise.then((code) => ({ code, children: childExitCodes })),
   };
 };
+
+describe("runProcess", () => {
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-run");
+    await story("process");
+    await label("coverage", "cli-run");
+  });
+
+  it("runs shell commands with args without Node DEP0190 warning", async () => {
+    const workingDirectory = await mkdtemp(path.join(tmpdir(), "cli-test-run-process-"));
+    const scriptPath = path.join(workingDirectory, "argv.mjs");
+
+    await writeFile(scriptPath, "console.log(JSON.stringify(process.argv.slice(2)));\n", "utf-8");
+
+    try {
+      const childProcess = runProcess({
+        command: process.execPath,
+        commandArgs: [scriptPath, "value with spaces"],
+        cwd: workingDirectory,
+        logs: "pipe",
+        shell: true,
+      });
+      let stdout = "";
+      let stderr = "";
+
+      childProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
+        stdout += data;
+      });
+      childProcess.stderr?.setEncoding("utf8").on?.("data", (data: string) => {
+        stderr += data;
+      });
+
+      await expect(terminationOf(childProcess)).resolves.toBe(0);
+      expect(JSON.parse(stdout.trim())).toEqual(["value with spaces"]);
+      expect(stderr).not.toContain("[DEP0190]");
+    } finally {
+      rmSync(workingDirectory, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("stopProcessTree", () => {
   beforeEach(async () => {

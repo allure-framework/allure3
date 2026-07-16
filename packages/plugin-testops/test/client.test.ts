@@ -19,6 +19,7 @@ beforeEach(async () => {
 
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
+import { attachmentsResolverFactory } from "../src/utils/resolvers.js";
 import { AxiosCreateMock, AxiosMock } from "./utils.js";
 
 const fixtures = {
@@ -37,8 +38,12 @@ const fixtures = {
     jobUid: "job-uid",
     jobRunUid: "job-run-uid",
   } as unknown as CiDescriptor,
-  uploadStatus: "passed" as TestStatus,
-  testResults: [{ id: "0-0-0-0" } as TestResult, { id: "1-1-1-1" } as TestResult, { id: "2-2-2-2" } as TestResult],
+  uploadStatus: "broken" as TestStatus,
+  testResults: [
+    { id: "0-0-0-0", name: "Test 0" } as TestResult,
+    { id: "1-1-1-1", name: "Test 1" } as TestResult,
+    { id: "2-2-2-2", name: "Test 2" } as TestResult,
+  ],
   testOpsResults: [
     { id: 1, uuid: "0-0-0-0" },
     { id: 2, uuid: "1-1-1-1" },
@@ -181,10 +186,6 @@ describe("testops http client", () => {
 
     it("should return launch url when launch is created", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -207,10 +208,6 @@ describe("testops http client", () => {
   describe("startUpload", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         return Promise.resolve({ data: {} });
       });
 
@@ -226,10 +223,6 @@ describe("testops http client", () => {
 
     it("should call /api/upload/start with ci metadata", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -269,9 +262,6 @@ describe("testops http client", () => {
   describe("stopUpload", () => {
     it("should throw an error when upload hasn't been started before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
         return Promise.resolve({ data: {} });
       });
 
@@ -286,10 +276,6 @@ describe("testops http client", () => {
 
     it("should call /api/upload/stop after startUpload", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -321,7 +307,7 @@ describe("testops http client", () => {
           jobRunUid: fixtures.ci.jobRunUid,
           jobUid: fixtures.ci.jobUid,
           projectId: fixtures.projectId,
-          status: fixtures.uploadStatus,
+          status: "failed",
         },
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
@@ -333,10 +319,6 @@ describe("testops http client", () => {
   describe("createLaunch", () => {
     it("should create launch using direct access token auth", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -368,6 +350,45 @@ describe("testops http client", () => {
         }),
       );
     });
+
+    it("should include gitContext on /api/launch when provided", async () => {
+      const gitContext = {
+        contextType: "standalone" as const,
+        repository: { providerType: "github" as const, name: "org/repo" },
+        commit: { hash: "a".repeat(40) },
+      };
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags, gitContext);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch",
+        expect.objectContaining({
+          name: fixtures.launchName,
+          projectId: fixtures.projectId,
+          autoclose: true,
+          external: true,
+          tags: fixtures.launchTags.map((tag) => ({ name: tag })),
+          gitContext,
+        }),
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+    });
   });
 
   describe("createSession", () => {
@@ -384,10 +405,6 @@ describe("testops http client", () => {
 
     it("should create a session for a current launch with empty environment by default", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -424,10 +441,6 @@ describe("testops http client", () => {
 
     it("should pass environment variables as key-value pairs to the session", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -481,10 +494,6 @@ describe("testops http client", () => {
 
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         return Promise.resolve({ data: {} });
       });
 
@@ -510,10 +519,6 @@ describe("testops http client", () => {
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -581,10 +586,6 @@ describe("testops http client", () => {
 
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         return Promise.resolve({ data: {} });
       });
 
@@ -605,10 +606,6 @@ describe("testops http client", () => {
 
     it("should upload attachments to /api/launch/attachment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -650,10 +647,6 @@ describe("testops http client", () => {
 
     it("should skip attachments when resolver returns null", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -704,10 +697,6 @@ describe("testops http client", () => {
 
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         return Promise.resolve({ data: {} });
       });
 
@@ -722,10 +711,6 @@ describe("testops http client", () => {
 
     it("should post errors to /api/launch/error/bulk", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -783,10 +768,6 @@ describe("testops http client", () => {
 
     it("should resolve attachments and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -835,12 +816,8 @@ describe("testops http client", () => {
       );
     });
 
-    it("should post test results using uploader DTO shape (with environment, normalized category externalId)", async () => {
+    it("should omit non-string step names from JSON and upload linked attachments as multipart", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -869,6 +846,8 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
 
+      const pngBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0x10, 0x80]);
+      const malformedPngString = pngBytes.toString("utf8");
       const tr = {
         id: "tr-1",
         name: "Test",
@@ -888,6 +867,13 @@ describe("testops http client", () => {
             parameters: [],
             steps: [],
           },
+          {
+            type: "step",
+            name: malformedPngString,
+            status: "passed",
+            parameters: [],
+            steps: [],
+          },
         ] as TestStepResult[],
         someUnknownField: "nope",
       } as any as TestResult;
@@ -895,7 +881,14 @@ describe("testops http client", () => {
       await client.uploadTestResults({
         trs: [tr],
         environments: [{ id: "chrome", name: "Chrome" }],
-        attachmentsResolver: () => Promise.resolve([]),
+        attachmentsResolver: () =>
+          Promise.resolve([
+            {
+              originalFileName: "screenshot.png",
+              contentType: "image/png",
+              content: pngBytes,
+            },
+          ]),
         fixturesResolver: () => Promise.resolve([]),
       });
 
@@ -927,6 +920,23 @@ describe("testops http client", () => {
 
       expect(body.results[0].id).toBeUndefined();
       expect(body.results[0].someUnknownField).toBeUndefined();
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/test-result/1/attachment",
+        expect.any(FormData),
+        expect.anything(),
+      );
+
+      const attachmentUploadCall = AxiosMock.post.mock.calls.find(
+        (call: any[]) => call[0] === "/api/upload/test-result/1/attachment",
+      );
+      const multipartBody = (attachmentUploadCall?.[1] as FormData).getBuffer();
+      const multipartText = multipartBody.toString("latin1");
+      const contentStart = multipartBody.indexOf(Buffer.from("\r\n\r\n")) + 4;
+      const contentEnd = multipartBody.indexOf(Buffer.from("\r\n--"), contentStart);
+
+      expect(multipartText).toContain('filename="screenshot.png"');
+      expect(multipartText).toContain("Content-Type: image/png");
+      expect(multipartBody.subarray(contentStart, contentEnd)).toEqual(pngBytes);
     });
 
     it("should limit concurrent per-TR uploads to the configured limit", async () => {
@@ -935,10 +945,6 @@ describe("testops http client", () => {
       const limit = 2;
 
       AxiosMock.post.mockImplementation(async (url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return { data: fixtures.launch };
         }
@@ -986,6 +992,199 @@ describe("testops http client", () => {
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
     });
 
+    it("should leave results without remote ids retryable and avoid undefined requests", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+        if (url === "/api/upload/test-result") return Promise.resolve({ data: { results: [] } });
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const attachmentsResolver = vi.fn().mockResolvedValue([]);
+      const fixturesResolver = vi.fn().mockResolvedValue([]);
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      const params = {
+        trs: [{ id: "valid", name: "Valid" } as TestResult],
+        environments: [],
+        attachmentsResolver,
+        fixturesResolver,
+      };
+
+      expect(await client.uploadTestResults(params)).toEqual([]);
+      expect(await client.uploadTestResults(params)).toEqual([]);
+
+      const resultCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+      expect(resultCalls).toHaveLength(2);
+      expect(resultCalls[0][1].results).toEqual([expect.objectContaining({ uuid: "valid", name: "Valid" })]);
+      expect(attachmentsResolver).not.toHaveBeenCalled();
+      expect(fixturesResolver).not.toHaveBeenCalled();
+      expect(AxiosMock.post.mock.calls.some((call: any[]) => String(call[0]).includes("undefined"))).toBe(false);
+    });
+
+    it("should exclude invalid fixtures before fixture upload", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+        if (url === "/api/upload/test-result")
+          return Promise.resolve({ data: { results: [{ uuid: "valid", id: 1 }] } });
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "valid", name: "Valid" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () =>
+          Promise.resolve([
+            { id: "invalid", type: "BEFORE", name: "bad\u0000name" },
+            { id: "fixture", type: "AFTER", name: "Fixture" },
+          ] as any),
+      });
+
+      const fixtureCall = AxiosMock.post.mock.calls.find((call: any[]) =>
+        String(call[0]).includes("test-fixture-result"),
+      );
+      expect(fixtureCall?.[1].fixtures).toEqual([expect.objectContaining({ uuid: "fixture", name: "Fixture" })]);
+    });
+
+    it("should project nested fixture steps before fixture upload", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+        if (url === "/api/upload/test-result")
+          return Promise.resolve({ data: { results: [{ uuid: "valid", id: 1 }] } });
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "valid", name: "Valid" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () =>
+          Promise.resolve([
+            {
+              id: "fixture",
+              type: "BEFORE",
+              name: "Fixture",
+              steps: [
+                { type: "step", name: "bad\u0000step", steps: [{ type: "attachment", link: { id: "removed" } }] },
+                { type: "step", name: "valid step" },
+              ],
+            },
+          ] as any),
+      });
+
+      const fixtureCall = AxiosMock.post.mock.calls.find((call: any[]) =>
+        String(call[0]).includes("test-fixture-result"),
+      );
+      expect(fixtureCall?.[1].fixtures[0].steps).toEqual([
+        expect.objectContaining({ type: "body", body: "valid step" }),
+      ]);
+    });
+
+    it("should resolve attachments from projected client results", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [{ uuid: "valid", id: 1 }] } });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      const attachmentContentById = vi.fn().mockResolvedValue({
+        readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+      });
+      const attachmentsResolver = attachmentsResolverFactory({
+        attachmentsByTrId: vi.fn().mockResolvedValue([
+          { id: "removed", originalFileName: "removed.txt" },
+          { id: "kept", originalFileName: "kept.txt" },
+        ]),
+        attachmentById: vi.fn().mockResolvedValue(undefined),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentContentById,
+      } as any);
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [
+          {
+            id: "valid",
+            name: "Valid",
+            steps: [
+              { type: "step", name: "bad\u0000step", steps: [{ type: "attachment", link: { id: "removed" } }] },
+              { type: "attachment", link: { id: "kept", originalFileName: "kept.txt" } },
+            ],
+          } as any,
+        ],
+        environments: [],
+        attachmentsResolver,
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(attachmentContentById).toHaveBeenCalledTimes(1);
+      expect(attachmentContentById).toHaveBeenCalledWith("kept");
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/test-result/1/attachment",
+        expect.any(FormData),
+        expect.anything(),
+      );
+    });
+
+    it("should keep acknowledged result uploaded after subordinate fixture failure", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+        if (url === "/api/upload/test-result")
+          return Promise.resolve({ data: { results: [{ uuid: "valid", id: 1 }] } });
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      const params = {
+        trs: [{ id: "valid", name: "Valid" } as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.reject(new Error("fixture failure")),
+      };
+
+      expect(await client.uploadTestResults(params)).toEqual([expect.objectContaining({ id: "valid", name: "Valid" })]);
+      expect(AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result")).toHaveLength(1);
+    });
+
     it("should create named environments for test results with environment ids and display names", async () => {
       const namedEnvs: TestOpsNamedEnv[] = [
         { id: 10, name: "Chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
@@ -999,10 +1198,6 @@ describe("testops http client", () => {
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -1094,10 +1289,6 @@ describe("testops http client", () => {
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -1175,10 +1366,6 @@ describe("testops http client", () => {
 
     it("should not create named environments when test results have no environment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -1220,10 +1407,6 @@ describe("testops http client", () => {
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -1282,10 +1465,6 @@ describe("testops http client", () => {
 
     it("should resolve fixtures and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/uaa/oauth/token") {
-          throw new Error("Unexpected OAuth token exchange request");
-        }
-
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }

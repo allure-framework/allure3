@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/charts-api",
-  "version": "3.10.0",
+  "version": "3.14.3",
   "description": "Allure Charts API",
   "keywords": [
     "allure",
@@ -32,7 +32,7 @@
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.8",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^20",
     "@vitest/runner": "^2",

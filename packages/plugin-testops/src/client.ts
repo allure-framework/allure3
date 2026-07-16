@@ -10,12 +10,13 @@ import type {
 } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { createServiceHttpClient } from "@allurereport/service";
-import { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
+import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import type { LaunchGitContextDto } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
@@ -33,7 +34,10 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
-import { toUploadFixturesResultsDto, toUploadResultsDto } from "./utils/uploaderDto.js";
+import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
+import { testStatusToLaunchStatus } from "./utils/launches.js";
+import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
+import { validateExecutableName } from "./utils/validation.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;
@@ -211,7 +215,7 @@ export class TestOpsClient {
         jobRunUid: ci.jobRunUid,
         jobUid: ci.jobUid,
         projectId: this.#projectId,
-        status,
+        status: testStatusToLaunchStatus(status),
       },
     });
 
@@ -219,7 +223,7 @@ export class TestOpsClient {
     this.#logger.verbose(`CI upload stopped (status: ${status})`);
   }
 
-  async createLaunch(launchName: string, launchTags: string[]) {
+  async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto) {
     this.#logger.verbose("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
@@ -228,11 +232,23 @@ export class TestOpsClient {
         autoclose: true,
         external: true,
         tags: launchTags.map((tag) => ({ name: tag })),
+        ...(gitContext ? { gitContext } : {}),
       },
     });
 
     this.#launch = data;
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
+  }
+
+  async checkLaunchProgress(): Promise<boolean> {
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    this.#logger.verbose("Retrieving launch progress status…");
+    const data = await this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch.id}/progress`);
+
+    return data.ready;
   }
 
   async createSession(environment: Record<string, unknown> = {}) {
@@ -383,7 +399,11 @@ export class TestOpsClient {
     }
 
     const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
-    const trsChunks = chunk(trs, CHUNK_SIZE);
+    const projectedTrs = trs.map((tr) => ({
+      ...tr,
+      ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
+    }));
+    const trsChunks = chunk(projectedTrs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
@@ -409,6 +429,8 @@ export class TestOpsClient {
 
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
+        uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+
         await this.#uploadChunkAttachmentsAndFixtures(
           trsChunk,
           reportIdsToTestOpsIds,
@@ -417,8 +439,6 @@ export class TestOpsClient {
           uploadLimitFn,
           onProgress,
         );
-
-        uploadedTrs.push(...trsChunk);
       }
 
       this.#logger.verbose("Test results upload completed");
@@ -494,8 +514,18 @@ export class TestOpsClient {
       trsChunk.map((tr) =>
         uploadLimitFn(async () => {
           const testOpsId = reportIdsToTestOpsIds[tr.id];
+
+          if (typeof testOpsId !== "number") {
+            return;
+          }
+
           const attachments = await attachmentsResolver(tr);
-          const fixtures = await fixturesResolver(tr);
+          const fixtures = (await fixturesResolver(tr))
+            .filter((fixture) => validateExecutableName(fixture.name))
+            .map((fixture) => ({
+              ...fixture,
+              ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
+            }));
 
           await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
           await this.#uploadFixturesForResult(testOpsId, fixtures);

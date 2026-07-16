@@ -89,13 +89,7 @@
 .empty-split-pane {
   position: relative;
   background: var(--color-bg-raised);
-  border-radius: 12px;
   overflow: auto;
-  @include paneActive.split-pane-indicator;
-
-  &.pane-active {
-    @include paneActive.split-pane-indicator-active;
-  }
 }
 
 .header {

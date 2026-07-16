@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-jira",
-  "version": "3.10.0",
+  "version": "3.14.3",
   "description": "Allure Plugin to Report results to Jira",
   "keywords": [
     "allure",
@@ -32,10 +32,10 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "axios": "^1.15.2"
+    "axios": "^1.18.1"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.8.0",
+    "@faker-js/faker": "^10.5.0",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",

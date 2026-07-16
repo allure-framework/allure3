@@ -13,7 +13,7 @@ import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
-import { activePane, focusTreePane } from "@/stores/keyboard";
+import { focusTreePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
 import {
@@ -129,15 +129,9 @@ const MainReport = () => {
     return null;
   };
 
-  const treePaneActive = isSplitMode.value && activePane.value === "tree";
-
   return (
     <div
-      className={clsx(
-        styles.content,
-        isSplitMode.value && styles["scroll-inside"],
-        treePaneActive && styles["pane-active"],
-      )}
+      className={clsx(styles.content, isSplitMode.value && styles["scroll-inside"])}
       onMouseDown={() => focusTreePane()}
     >
       <div className={styles["main-report-header"]}>
@@ -146,7 +140,7 @@ const MainReport = () => {
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
           <RootTabRouteSync />
-          <div className={styles["main-report-tabs-layout"]}>
+          <div>
             <div className={styles["main-report-tabs-nav"]}>
               <NavTabsList>
                 <Loadable

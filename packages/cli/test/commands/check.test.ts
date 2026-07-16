@@ -134,9 +134,12 @@ describe("check command", () => {
       logs: "pipe",
       shell: false,
     });
+    const writtenCheckResult = readWrittenCheckResult();
+
     expect(mkdir).toHaveBeenCalledWith("/report-output", { recursive: true });
-    expect(vi.mocked(writeFile).mock.calls[0][0]).toMatch(/report-output(\/|\\).+-check\.json$/);
-    expect(readWrittenCheckResult()).toEqual({
+    expect(vi.mocked(writeFile).mock.calls[0][0]).toContain(`${writtenCheckResult.id}-check.json`);
+    expect(writtenCheckResult).toEqual({
+      id: expect.any(String),
       name: "Lint",
       status: "passed",
       details: {
@@ -157,6 +160,7 @@ describe("check command", () => {
       shell: true,
     });
     expect(readWrittenCheckResult()).toEqual({
+      id: expect.any(String),
       name: "List",
       status: "passed",
       details: {
@@ -177,6 +181,7 @@ describe("check command", () => {
     await run(CheckCommand, ["check", "--name", "Lint", "--", "npm", "run", "lint"]);
 
     expect(readWrittenCheckResult()).toEqual({
+      id: expect.any(String),
       name: "Lint",
       status: "failed",
       details: {
@@ -207,6 +212,7 @@ describe("check command", () => {
 
     expect(runProcess).not.toHaveBeenCalled();
     expect(readWrittenCheckResult()).toEqual({
+      id: expect.any(String),
       name: "Manual approval",
       status: "passed",
       tags: ["release", "linux"],
@@ -233,6 +239,7 @@ describe("check command", () => {
     );
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.store.addCheckResult).toHaveBeenCalledWith({
+      id: expect.any(String),
       name: "Manual approval",
       status: "passed",
       details: {

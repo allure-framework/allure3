@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-log",
-  "version": "3.10.0",
+  "version": "3.14.3",
   "description": "Allure Plugin to write report in stdout",
   "keywords": [
     "allure",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "yoctocolors": "^2.1.1"
+    "yoctocolors": "^2.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",

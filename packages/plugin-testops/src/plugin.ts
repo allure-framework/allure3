@@ -3,21 +3,28 @@ import { env } from "node:process";
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginConstructorContext,
+  type PluginContext,
+  createPluginSummary,
+} from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
+import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import {
-  attachmentsResolverFactory,
-  fixturesResolverFactory,
-  resolvePluginOptions,
-  unwrapStepsAttachments,
-} from "./utils/index.js";
-import { toUploadCategory } from "./utils/uploadCategory.js";
-import { uploadFilenameForLink } from "./utils/uploaderDto.js";
+import { uploadFilenameForLink } from "./utils/attachments.js";
+import { toUploadCategory } from "./utils/categories.js";
+import { resolvePluginOptions } from "./utils/options.js";
+import { attachmentsResolverFactory, fixturesResolverFactory, unwrapStepsAttachments } from "./utils/resolvers.js";
+import { validateExecutableName } from "./utils/validation.js";
+
+const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
+const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
@@ -25,15 +32,25 @@ const categoryDisplayName = (cat: UploadCategory): string =>
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
   #ci = detect();
-  // @ts-expect-error - if client is not initialized it will not be used
-  #client: TestOpsClient;
+  #client!: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
+  #gitFlow!: LaunchGitFlow;
+  #enabledByConfig: boolean = false;
 
-  constructor(readonly options: TestOpsPluginOptions) {
-    if (isLocalCiDescriptor(this.#ci) && !this.isOverridenByEnv) {
+  constructor(
+    readonly options: TestOpsPluginOptions,
+    context: PluginConstructorContext = {},
+  ) {
+    this.#enabledByConfig = context.enabled === true;
+
+    if (context.enabled === false) {
+      return;
+    }
+
+    if (isLocalCiDescriptor(this.#ci) && !this.isManuallyEnabled) {
       this.#logger.info(
         `plugin is disabled - no CI environment detected. To enable, set ${bold("ALLURE_TESTOPS_ENABLED")}=true or ${bold("CI")}=true.`,
       );
@@ -62,6 +79,14 @@ export class TestOpsPlugin implements Plugin {
     }
 
     this.#autocloseLaunch = autocloseLaunch;
+    const gitFlowOptions = resolveGitFlowOptions(options);
+
+    this.#gitFlow = new LaunchGitFlow({
+      ci: this.#ci,
+      gitFlow: gitFlowOptions.gitFlow,
+      ancestorLimit: gitFlowOptions.ancestorLimit,
+      logger: this.#logger,
+    });
 
     if (!accessToken) {
       this.#logger.warn(
@@ -94,12 +119,16 @@ export class TestOpsPlugin implements Plugin {
     return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
   }
 
+  get isManuallyEnabled(): boolean {
+    return this.#enabledByConfig || this.isOverridenByEnv;
+  }
+
   get enabled(): boolean {
     if (!(this.#client instanceof TestOpsClient)) {
       return false;
     }
 
-    if (this.isOverridenByEnv) {
+    if (this.isManuallyEnabled) {
       return true;
     }
 
@@ -297,14 +326,13 @@ export class TestOpsPlugin implements Plugin {
     const environments = await store.allEnvironmentIdentities();
     const contextCategories = context?.categories ?? [];
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
 
   async #trsToUpload(store: AllureStore) {
     const filter = this.options.filter ?? stubTrue;
-
     const filteredTrs = await store.allTestResults({
       filter: (tr) => {
         const uploaded = this.#uploadedTestResultsIds.has(tr.id);
@@ -313,7 +341,7 @@ export class TestOpsPlugin implements Plugin {
           return false;
         }
 
-        return filter(tr);
+        return validateExecutableName(tr.name) && filter(tr);
       },
       includeRetries: false,
     });
@@ -438,7 +466,9 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #startUpload() {
-    await this.#client.createLaunch(this.#launchName, this.#launchTags);
+    const launchGitContext = this.#gitFlow.resolve();
+
+    await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext);
 
     await this.#client.startUpload(this.#ci!);
   }
@@ -498,13 +528,29 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    try {
-      await this.#client.closeLaunch(launchId);
-    } catch (err) {
-      if (err instanceof Error) {
-        this.#logger.debug(`Failed to close launch: ${err.message}`);
-      } else {
-        this.#logger.debug("Failed to close launch");
+    let launchIsReady = false;
+
+    for (let attempt = 0; attempt < LAUNCH_PROGRESS_ATTEMPTS_LIMIT; attempt += 1) {
+      launchIsReady = await this.#client.checkLaunchProgress();
+
+      if (launchIsReady) {
+        break;
+      }
+
+      if (attempt < LAUNCH_PROGRESS_ATTEMPTS_LIMIT - 1) {
+        await new Promise((resolve) => setTimeout(resolve, LAUNCH_PROGRESS_POLL_DELAY_MS));
+      }
+    }
+
+    if (launchIsReady) {
+      try {
+        await this.#client.closeLaunch(launchId);
+      } catch (err) {
+        if (err instanceof Error) {
+          this.#logger.debug(`Failed to close launch: ${err.message}`);
+        } else {
+          this.#logger.debug("Failed to close launch");
+        }
       }
     }
 

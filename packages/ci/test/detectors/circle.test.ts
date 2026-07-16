@@ -16,6 +16,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
+
 describe("circle", () => {
   describe("getBuildNumber", () => {
     it("should return the correct build number", () => {
@@ -169,16 +173,22 @@ describe("circle", () => {
 
   describe("jobName", () => {
     it("should return the correct job name", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CIRCLE_USERNAME") {
-          return "myorg";
-        }
-        if (key === "CIRCLE_PROJECT_REPONAME") {
-          return "myrepo";
-        }
+      mockEnv({
+        CIRCLE_PROJECT_USERNAME: "myorg",
+        CIRCLE_USERNAME: "trigger-user",
+        CIRCLE_PROJECT_REPONAME: "myrepo",
       });
 
       expect(circle.jobName).toBe("myorg/myrepo");
+    });
+
+    it("should fall back to trigger username when project username is not set", () => {
+      mockEnv({
+        CIRCLE_USERNAME: "trigger-user",
+        CIRCLE_PROJECT_REPONAME: "myrepo",
+      });
+
+      expect(circle.jobName).toBe("trigger-user/myrepo");
     });
   });
 
@@ -220,13 +230,54 @@ describe("circle", () => {
 
   describe("jobRunBranch", () => {
     it("should return the correct job run branch", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CIRCLE_BRANCH") {
-          return "main";
-        }
+      mockEnv({
+        CIRCLE_BRANCH: "main",
       });
 
       expect(circle.jobRunBranch).toBe("main");
+    });
+
+    it("should not map tag builds as branch runs", () => {
+      mockEnv({
+        CIRCLE_TAG: "v1.0.0",
+      });
+
+      expect(circle.jobRunBranch).toBe("");
+      expect(circle.sourceBranch).toBeUndefined();
+    });
+  });
+
+  describe("pullRequestUrl", () => {
+    it("should return the associated pull request URL", () => {
+      mockEnv({
+        CIRCLE_PULL_REQUEST: "https://github.com/myorg/myrepo/pull/123",
+      });
+
+      expect(circle.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+    });
+
+    it("should fall back to the first associated pull request URL", () => {
+      mockEnv({
+        CIRCLE_PULL_REQUESTS: "https://github.com/myorg/myrepo/pull/123, https://github.com/myorg/myrepo/pull/124",
+      });
+
+      expect(circle.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+      expect(circle.pullRequest).toMatchObject({
+        id: "123",
+        url: "https://github.com/myorg/myrepo/pull/123",
+      });
+    });
+  });
+
+  describe("pullRequest", () => {
+    it("should fall back to fork pull request number", () => {
+      mockEnv({
+        CIRCLE_PR_NUMBER: "123",
+      });
+
+      expect(circle.pullRequest).toMatchObject({
+        id: "123",
+      });
     });
   });
 });

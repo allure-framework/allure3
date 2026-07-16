@@ -74,7 +74,33 @@ For example:
 npx allure agent -- npm test
 ```
 
-`allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, can load an expectations file with `--expectations`, and ignores configured presentation or export plugins such as Awesome or TestOps unless you explicitly fall back to the lower-level `ALLURE_AGENT_*` plus `allure run` flow.
+To analyze existing Allure results or dump archives downloaded from CI without
+rerunning tests, use `agent inspect`:
+
+```bash
+npx allure agent inspect path/to/allure-results
+npx allure agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip
+npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to/allure-results
+```
+
+`agent inspect` accepts the same result inputs and configuration-style options as
+`allure generate`, including result directory globs, `--dump`, `--config`,
+`--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
+option writes the agentic output directory.
+
+`allure agent` and `allure agent inspect` use `--report auto` by default. This writes the agent-readable artifacts and, when the stored visible result count is 1000 or fewer, also writes a single-file Awesome report at `awesome/index.html` inside the agent output directory. Runs above that threshold skip the human report to avoid excessive output, and the status is recorded in `index.md`, `manifest/run.json`, and `manifest/human-report.json`.
+
+Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or TestOps are otherwise ignored for agent runs.
+
+If you need the human-readable report from the most recent agent run, first run `npx allure agent latest` when the output directory is unknown. Then check `<output>/manifest/human-report.json`; when its status is `generated`, open `<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
+
+`allure agent` creates a fresh output directory automatically, accepts compact inline expectations such as `--goal`, `--expect-tests`, `--expect-test`, `--expect-label`, and `--expect-step-containing`, and can load an expectations file with `--expectations`.
+
+Agents and setup tools can inspect the local structured capability contract without scraping help text:
+
+```bash
+npx allure agent capabilities --json
+```
 
 ### Generating Reports Manually
 
@@ -122,6 +148,7 @@ The Allure CLI includes several helpful global options. Use `--help` to explore 
 
 ```bash
 npx allure run --help
+npx allure agent capabilities --json
 npx allure agent --help
 npx allure watch --help
 ```

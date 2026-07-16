@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-classic",
-  "version": "3.10.0",
+  "version": "3.14.3",
   "description": "The classic version of Allure HTML report",
   "keywords": [
     "allure",
@@ -37,10 +37,10 @@
     "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "^4.7.9",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.2.0"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.8",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
     "@vitest/runner": "^2",

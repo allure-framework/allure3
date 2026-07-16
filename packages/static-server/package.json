@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.10.0",
+  "version": "3.14.3",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@allurereport/directory-watcher": "workspace:*",
-    "open": "^10.1.0"
+    "open": "^11.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
@@ -43,7 +43,7 @@
     "allure-js-commons": "^3",
     "allure-playwright": "^3.9.0",
     "allure-vitest": "^3",
-    "axios": "^1.15.2",
+    "axios": "^1.18.1",
     "get-port": "^7.1.0",
     "npm-run-all2": "^7.0.1",
     "rimraf": "^6",

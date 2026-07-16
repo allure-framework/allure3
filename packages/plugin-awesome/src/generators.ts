@@ -27,9 +27,9 @@ import {
 } from "@allurereport/core-api";
 import type {
   AllureStore,
+  GlobalAttachmentLink,
   ExitCode,
   PluginContext,
-  PluginGlobalAttachment,
   PluginGlobalError,
   PluginGlobals,
   QualityGateValidationResult,
@@ -37,6 +37,7 @@ import type {
   ResultFile,
 } from "@allurereport/plugin-api";
 import {
+  collapseTreeGroups,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -419,12 +420,14 @@ const buildTreeByLabelsAndTitlePathCombined = (
   tests: AwesomeTestResult[],
   labels: string[],
 ): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
-  createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    tests,
-    labels,
-    leafFactory,
-    undefined,
-    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+  collapseTreeGroups(
+    createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+      tests,
+      labels,
+      leafFactory,
+      undefined,
+      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+    ),
   );
 
 const leafFactory = ({
@@ -552,8 +555,8 @@ export const generateGlobals = async (
   writer: AwesomeDataWriter,
   payload: {
     globalExitCode?: ExitCode;
-    globalAttachments?: PluginGlobalAttachment[];
-    globalAttachmentsByEnv?: Record<string, PluginGlobalAttachment[]>;
+    globalAttachments?: GlobalAttachmentLink[];
+    globalAttachmentsByEnv?: Record<string, GlobalAttachmentLink[]>;
     globalErrors?: PluginGlobalError[];
     globalErrorsByEnv?: Record<string, PluginGlobalError[]>;
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
@@ -571,7 +574,7 @@ export const generateGlobals = async (
     errors: globalErrors,
     attachments: [],
   };
-  const attachmentsByEnv: Record<string, PluginGlobalAttachment[]> = {};
+  const attachmentsByEnv: Record<string, GlobalAttachmentLink[]> = {};
 
   if (globalExitCode) {
     globals.exitCode = globalExitCode;

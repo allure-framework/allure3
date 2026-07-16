@@ -1,14 +1,12 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import clsx from "clsx";
-import type { JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useMemo, useRef } from "preact/hooks";
 
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { activePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
@@ -41,10 +39,11 @@ const isTestResultRoute = computed(
 
 export const SplitLayout = () => {
   const testResultId = currentTrId.value;
-  const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
   const { t } = useI18n("controls");
-  const leftSide = (
-    <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
+
+  const leftSide = useMemo(
+    () => <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />,
+    [],
   );
 
   const TrView = () => {
@@ -62,27 +61,15 @@ export const SplitLayout = () => {
         }}
       />
     ) : (
-      <div
-        className={clsx(
-          styles.empty,
-          isSplitMode.value && styles["empty-split-pane"],
-          isSplitMode.value && activePane.value === "testResult" && styles["pane-active"],
-        )}
-      >
+      <div className={clsx(styles.empty, isSplitMode.value && styles["empty-split-pane"])}>
         <Text>{t("noSelectedTR")}</Text>
       </div>
     );
   };
 
-  useEffect(() => {
-    if (!cachedMain) {
-      setCachedMain(leftSide);
-    }
-  }, [cachedMain]);
-
   return (
     <div className={styles["side-by-side"]} data-testId={"split-layout"}>
-      <SideBySide left={cachedMain} right={<TrView />} />
+      <SideBySide left={leftSide} right={<TrView />} />
     </div>
   );
 };

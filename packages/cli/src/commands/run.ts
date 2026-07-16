@@ -1,13 +1,11 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
-import { red } from "yoctocolors";
 
 import {
   environmentNameOption,
@@ -16,7 +14,6 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAgentMode } from "./agent.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
@@ -60,7 +57,8 @@ export class RunCommand extends Command {
   });
 
   rerun = Option.String("--rerun", {
-    description: "The number of reruns for failed tests (default: 0)",
+    description:
+      "The number of reruns for failed tests. Quality gate validation is skipped when rerun is greater than 0 (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -103,24 +101,6 @@ export class RunCommand extends Command {
 
     if (!args || !args.length) {
       throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
-    }
-
-    const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
-
-    if (legacyAgentOutput) {
-      await executeAgentMode({
-        configPath: this.config,
-        cwd: this.cwd,
-        output: resolve(process.cwd(), legacyAgentOutput),
-        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
-          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
-          : undefined,
-        environment: this.environment,
-        environmentName: this.environmentName,
-        silent: this.silent,
-        args,
-      });
-      return;
     }
 
     const before = new Date().getTime();
@@ -167,13 +147,11 @@ export class RunCommand extends Command {
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
-    const withRerun = !!this.rerun;
+    const withRerun = maxRerun > 0;
+    const withQualityGate = !!config.qualityGate && !withRerun;
 
-    if (withQualityGate && withRerun) {
-      console.error(red("At this moment, quality gate and rerun can't be used at the same time!"));
-      console.error(red("Consider using --rerun=0 or disable quality gate in the config to run tests"));
-      exit(-1);
+    if (config.qualityGate && withRerun) {
+      console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
     }
 
     try {
@@ -186,6 +164,7 @@ export class RunCommand extends Command {
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,
+      qualityGate: withQualityGate ? config.qualityGate : undefined,
       dump: this.dump,
       realTime: false,
       plugins: [

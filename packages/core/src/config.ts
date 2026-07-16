@@ -3,7 +3,7 @@ import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
 import { validateEnvironmentName } from "@allurereport/core-api";
-import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
+import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -19,6 +19,8 @@ import {
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
+
+type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
   name?: Config["name"];
@@ -417,6 +419,24 @@ export const readConfig = async (
   return fullConfig;
 };
 
+export const readRawConfig = async (cwd: string = process.cwd(), configPath?: string): Promise<Config> => {
+  const cfg = (await findConfig(cwd, configPath)) ?? "";
+
+  switch (extname(cfg)) {
+    case ".json":
+      return loadJsonConfig(cfg);
+    case ".yaml":
+    case ".yml":
+      return loadYamlConfig(cfg);
+    case ".js":
+    case ".cjs":
+    case ".mjs":
+      return loadJsConfig(cfg);
+    default:
+      return DEFAULT_CONFIG;
+  }
+};
+
 /**
  * Returns the plugin instance that matches the given predicate
  * If there are more than one instance that matches the predicate, returns the first one
@@ -438,7 +458,7 @@ const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE
   );
 };
 
-export const resolvePlugin = async (path: string) => {
+export const resolvePlugin = async (path: string): Promise<PluginConstructor> => {
   // try to append @allurereport/plugin- scope
   if (!path.startsWith("@allurereport/plugin-")) {
     try {
@@ -471,12 +491,18 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    const enabled = pluginConfig.enabled ?? true;
+    const constructorContext: PluginConstructorContext = {};
+
+    if ("enabled" in pluginConfig) {
+      constructorContext.enabled = pluginConfig.enabled;
+    }
 
     pluginInstances.push({
       id: pluginId,
-      enabled: pluginConfig.enabled ?? true,
+      enabled,
       options: pluginConfig.options ?? {},
-      plugin: new Plugin(pluginConfig.options),
+      plugin: new Plugin(pluginConfig.options, constructorContext),
     });
   }
 
