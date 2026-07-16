@@ -1,3 +1,5 @@
+import { stat } from "node:fs/promises";
+
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
 
 import type {
@@ -75,6 +77,44 @@ const createUploadFileBatches = (files: Record<string, string>): Record<string, 
 
     batch[filename] = filepath;
     batchFiles += 1;
+  }
+
+  flushBatch();
+
+  return batches;
+};
+
+const createUploadFileBatchesBySize = async (
+  files: Record<string, string>,
+  maxBytes: number,
+): Promise<Record<string, string>[]> => {
+  const entries = Object.entries(files);
+  const batches: Record<string, string>[] = [];
+  let batch: Record<string, string> = {};
+  let batchFiles = 0;
+  let batchBytes = 0;
+  const flushBatch = () => {
+    if (batchFiles === 0) {
+      return;
+    }
+
+    batches.push(batch);
+
+    batch = {};
+    batchFiles = 0;
+    batchBytes = 0;
+  };
+
+  for (const [filename, filepath] of entries) {
+    const fileBytes = (await stat(filepath)).size;
+
+    if (batchFiles >= MAX_UPLOAD_BATCH_FILES || (batchBytes > 0 && batchBytes + fileBytes > maxBytes)) {
+      flushBatch();
+    }
+
+    batch[filename] = filepath;
+    batchFiles += 1;
+    batchBytes += fileBytes;
   }
 
   flushBatch();
@@ -261,13 +301,22 @@ export const uploadReport = async (
     pluginId,
     files,
     onProgress,
-    addReportAsset,
-    addReportFile,
+    uploadBatchMaxBytes,
     uploadConcurrency,
     uploadMaxAttempts,
     uploadMaxSimultaneousFailures,
   } = payload;
-  const fileBatches = Array.isArray(files) ? files.flatMap(createUploadFileBatches) : createUploadFileBatches(files);
+  let fileBatches: Record<string, string>[];
+
+  if (uploadBatchMaxBytes === undefined) {
+    fileBatches = Array.isArray(files) ? files.flatMap(createUploadFileBatches) : createUploadFileBatches(files);
+  } else if (Array.isArray(files)) {
+    fileBatches = (
+      await Promise.all(files.map((fileBatch) => createUploadFileBatchesBySize(fileBatch, uploadBatchMaxBytes)))
+    ).flat();
+  } else {
+    fileBatches = await createUploadFileBatchesBySize(files, uploadBatchMaxBytes);
+  }
 
   if (fileBatches.length === 0) {
     return {
@@ -391,7 +440,6 @@ export const uploadReport = async (
 
     onProgress?.(batchFiles.length);
   };
-
   const uploadNext = async (): Promise<void> => {
     while (!uploadAbortController.signal.aborted) {
       const batchIndex = nextBatchIndex++;
@@ -401,7 +449,6 @@ export const uploadReport = async (
       }
 
       const batch = uploadBatches[batchIndex];
-
       const uploaded = await uploadWithRetry(
         batch.batchId,
         uploadAbortController,
@@ -423,6 +470,7 @@ export const uploadReport = async (
     await Promise.all(uploadTasks);
   } catch (error) {
     uploadAbortController.abort();
+
     await Promise.allSettled(uploadTasks);
 
     throw error;

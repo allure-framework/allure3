@@ -109,6 +109,7 @@ export class AllureReport {
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
+  readonly #appendHistory: boolean;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
@@ -140,6 +141,7 @@ export class AllureReport {
       realTime,
       historyPath,
       historyLimit,
+      appendHistory,
       defaultLabels = {},
       variables = {},
       environment,
@@ -181,6 +183,7 @@ export class AllureReport {
     this.#hideLabels = hideLabels;
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
+    this.#appendHistory = appendHistory ?? true;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -284,7 +287,6 @@ export class AllureReport {
     let nextProgressLogAt = 0;
     let lastProgressLog = -1;
     const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
-
     const logUploadProgress = (force = false) => {
       if (force && uploadedFiles === lastProgressLog) {
         return;
@@ -303,7 +305,6 @@ export class AllureReport {
       lastProgressLog = uploadedFiles;
       nextProgressLogAt = Math.min(totalFilesToUpload, uploadedFiles + progressStep);
     };
-
     const incrementUploadProgress = (delta = 1) => {
       uploadedFiles = Math.min(totalFilesToUpload, uploadedFiles + delta);
       logUploadProgress();
@@ -1115,7 +1116,7 @@ export class AllureReport {
         } catch {}
       }
 
-      if (this.#history) {
+      if (this.#history && this.#appendHistory) {
         try {
           await this.#store.appendHistory(this.#historyDataPoint!);
         } catch (err) {

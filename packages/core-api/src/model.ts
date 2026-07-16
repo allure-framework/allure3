@@ -177,6 +177,11 @@ export type AttachmentLinkInvalid = Omit<AttachmentLinkExpected, "originalFileNa
 
 export type AttachmentLink = AttachmentLinkFile | AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
 
+export type GlobalAttachmentLink = AttachmentLink & {
+  name: string;
+  environment?: string;
+};
+
 export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
   type: "attachment";
