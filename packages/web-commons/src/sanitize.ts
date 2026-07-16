@@ -32,4 +32,10 @@ const HTML_DOCUMENT_SANITIZE_CONFIG = {
  * Sanitize a full HTML document (doctype/head/body) for rendering in a preview iframe,
  * preserving `<head>` content such as `<style>` and `<meta charset>`.
  */
-export const sanitizeHtmlDocument = (html: string) => sanitize(html, HTML_DOCUMENT_SANITIZE_CONFIG);
+export const sanitizeHtmlDocument = (html: string) => {
+  const sanitized = sanitize(html, HTML_DOCUMENT_SANITIZE_CONFIG);
+  // DOMPurify has no concept of a doctype node, so WHOLE_DOCUMENT always drops it. Re-add it
+  // unconditionally: without it the iframe renders in quirks mode, which affects box sizing and
+  // other layout rules regardless of what the original attachment declared.
+  return sanitized ? `<!DOCTYPE html>${sanitized}` : sanitized;
+};

@@ -22,6 +22,16 @@ describe("sanitizeHtmlDocument", () => {
     expect(result).toContain("你好世界");
   });
 
+  it("always adds a doctype, so the iframe renders in standards mode", () => {
+    const withoutDoctype = sanitizeHtmlDocument(`<html><head></head><body>hi</body></html>`);
+    const withDoctype = sanitizeHtmlDocument(`<!DOCTYPE html><html><head></head><body>hi</body></html>`);
+
+    expect(withoutDoctype.toLowerCase()).toMatch(/^<!doctype html>/);
+    expect(withDoctype.toLowerCase()).toMatch(/^<!doctype html>/);
+    // DOMPurify has no doctype node, so it must not appear twice regardless of the input.
+    expect(withDoctype.toLowerCase().match(/<!doctype/g)).toHaveLength(1);
+  });
+
   it("preserves linked stylesheets", () => {
     const html = `<html><head><link rel="stylesheet" href="https://example.com/style.css"></head><body>hi</body></html>`;
 
