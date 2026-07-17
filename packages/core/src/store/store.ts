@@ -80,6 +80,12 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
   }
 };
 
+const originalFileNameFromMetadata = (metadata: ReaderContext["metadata"]): string | undefined => {
+  const { originalFileName } = metadata ?? {};
+
+  return typeof originalFileName === "string" && originalFileName.length > 0 ? originalFileName : undefined;
+};
+
 export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
   const result: Record<string | number | symbol, T> = {};
 
@@ -493,6 +499,23 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return md5(environmentId ? `${environmentId}:${originalFileName}` : originalFileName);
   }
 
+  #deduplicateTestResultId(testResult: TestResult, raw: RawTestResult, context: ReaderContext) {
+    const existing = this.#testResults.get(testResult.id);
+
+    if (!existing || !raw.uuid) {
+      return;
+    }
+
+    const incomingFileName = originalFileNameFromMetadata(context.metadata);
+    const existingFileName = originalFileNameFromMetadata(existing.sourceMetadata.metadata);
+
+    if (!incomingFileName || incomingFileName === existingFileName) {
+      return;
+    }
+
+    testResult.id = md5(`${raw.uuid}:${incomingFileName}`);
+  }
+
   #indexGlobalError(error: PluginGlobalError) {
     const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(error.environment);
 
@@ -750,6 +773,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = environmentIdentity.name;
     this.#addEnvironments([environmentIdentity]);
+    this.#deduplicateTestResultId(testResult, raw, context);
     const parametersHash =
       typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
         ? raw.parametersHash
