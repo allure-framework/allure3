@@ -150,6 +150,7 @@
     "copy": "コピー",
     "copy-email": "メールをコピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
+    "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
     "generated": "生成日時",
     "variables": "変数",

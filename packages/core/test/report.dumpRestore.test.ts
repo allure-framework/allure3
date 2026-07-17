@@ -648,6 +648,68 @@ describe("AllureReport.restoreState (dump zip)", () => {
       await archive.close();
     }
   });
+
+  it("keeps ingest order across multiple dumps when resolving which retry attempt is primary", async () => {
+    const makeTr = (id: string, status: "passed" | "failed", testCaseId: string) => ({
+      id,
+      name: "flaky test",
+      status,
+      flaky: false,
+      muted: false,
+      known: false,
+      isRetry: false,
+      labels: [],
+      parameters: [],
+      links: [],
+      steps: [],
+      sourceMetadata: { readerId: "system", metadata: {} },
+      testCase: { id: testCaseId },
+    });
+    const firstAttempt = makeTr("yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy", "failed", "tc-shared");
+    const secondAttempt = makeTr("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "passed", "tc-shared");
+    const unrelated = makeTr("wwwwwwww-wwww-wwww-wwww-wwwwwwwwwwww", "passed", "tc-unrelated");
+
+    const flakyDumpPath = tempZipPath();
+    const unrelatedDumpPath = tempZipPath();
+
+    // firstAttempt is ingested (and listed) before secondAttempt within the same dump,
+    // so secondAttempt is the later/primary attempt and firstAttempt is its retry.
+    await writeDumpZip(flakyDumpPath, [], {
+      [AllureStoreDumpFiles.TestResults]: JSON.stringify({
+        [firstAttempt.id]: firstAttempt,
+        [secondAttempt.id]: secondAttempt,
+      }),
+      [AllureStoreDumpFiles.TestResultIngestOrder]: JSON.stringify([firstAttempt.id, secondAttempt.id]),
+    });
+    await writeDumpZip(unrelatedDumpPath, [], {
+      [AllureStoreDumpFiles.TestResults]: JSON.stringify({
+        [unrelated.id]: unrelated,
+      }),
+      [AllureStoreDumpFiles.TestResultIngestOrder]: JSON.stringify([unrelated.id]),
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await step("restore the flaky-test dump followed by an unrelated dump", async () => {
+      await report.restoreState([flakyDumpPath, unrelatedDumpPath]);
+    });
+
+    await step("secondAttempt (ingested later) stays primary regardless of the later unrelated dump", async () => {
+      const allTrs = await report.store.allTestResults({ includeRetries: true });
+      const primary = allTrs.find((tr) => tr.id === secondAttempt.id)!;
+      const retry = allTrs.find((tr) => tr.id === firstAttempt.id)!;
+
+      expect(primary.isRetry).toBe(false);
+      expect(retry.isRetry).toBe(true);
+      await expect(report.store.retriesByTr(primary)).resolves.toEqual([expect.objectContaining({ id: retry.id })]);
+
+      const statistic = await report.store.testsStatistic();
+
+      expect(statistic).toEqual(expect.objectContaining({ passed: 2, retries: 1 }));
+      expect(statistic.failed).toBeUndefined();
+    });
+  });
 });
 
 describe("AllureReport.restoreState (zip path validation layers)", () => {

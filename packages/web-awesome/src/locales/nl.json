@@ -150,6 +150,7 @@
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
+    "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",
     "generated": "Gegenereerd",
     "variables": "Variabelen",
