@@ -64,6 +64,18 @@ describe("process log attachment names", () => {
     expect(sanitizeProcessCommand(spacedCommand)).toBe(sanitizeProcessCommand(spacedCommand));
   });
 
+  it("trims leading and trailing underscores after sanitizing", () => {
+    expect(sanitizeProcessCommand("___foo___")).toBe("foo");
+  });
+
+  it("preserves internal underscores", () => {
+    expect(sanitizeProcessCommand("foo__bar")).toBe("foo__bar");
+  });
+
+  it("falls back to process when command has no readable chars", () => {
+    expect(sanitizeProcessCommand("###")).toBe("process");
+  });
+
   it("recognizes new and legacy process log names", () => {
     const command = "yarn test --watch";
 
