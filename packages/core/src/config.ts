@@ -47,7 +47,6 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const jiti = createJiti(import.meta.url);
 const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
 const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
 const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
@@ -241,6 +240,8 @@ export const loadJsConfig = async (configPath: string): Promise<Config> => {
  * @param configPath
  */
 export const loadTsConfig = async (configPath: string): Promise<Config> => {
+  const jiti = createJiti(import.meta.url);
+
   return await jiti.import<Config>(resolve(configPath), { default: true });
 };
 
