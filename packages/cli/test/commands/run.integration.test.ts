@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -407,6 +408,10 @@ console.log("emitted simple result");
         paths: {
           expected_manifest: string | null;
           human_report_manifest: string | null;
+          process_logs: {
+            stdout: string | null;
+            stderr: string | null;
+          };
         };
         human_report: {
           mode: string;
@@ -428,6 +433,10 @@ console.log("emitted simple result");
       expect(runManifest.expectations_present).toBe(true);
       expect(runManifest.paths.expected_manifest).toBe("manifest/expected.json");
       expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
+      expect(runManifest.paths.process_logs).toEqual({
+        stdout: `artifacts/global/${formatProcessLogAttachmentName(`node ${emitResultsPath} ${simpleResultFixture}`, "stdout")}`,
+        stderr: null,
+      });
       expect(runManifest.human_report).toEqual(humanReportManifest);
       expect(humanReportManifest).toEqual(
         expect.objectContaining({
@@ -445,20 +454,7 @@ console.log("emitted simple result");
       expect(indexMarkdown).toContain("- Status: generated");
       expect(indexMarkdown).toContain("- Path: [awesome/index.html](awesome/index.html)");
       expect(await pathExists(join(outputDir, "project"))).toBe(false);
-      expect(
-        findingsContent
-          .trim()
-          .split("\n")
-          .filter(Boolean)
-          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            check_name: "missing-global-logs",
-            severity: "info",
-          }),
-        ]),
-      );
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
@@ -468,12 +464,12 @@ console.log("emitted simple result");
       // The test command's own stdout is captured into the agent artifacts, not echoed to the terminal.
       const globalArtifactsDir = join(outputDir, "artifacts", "global");
       const globalArtifactNames = await readdir(globalArtifactsDir);
-      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
-
-      if (stdoutArtifactName) {
-        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
-        expect(capturedStdout).toContain("emitted simple result");
-      }
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${simpleResultFixture}`,
+        "stdout",
+      );
+      expect(globalArtifactNames).toContain(stdoutArtifactName);
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain("emitted simple result");
       expect(stdout).not.toContain("process finished with code");
       expect(stdout).not.toContain("exit code ");
       expect(stdout).not.toContain("[DEP0190]");
@@ -515,6 +511,7 @@ const outDir = join(process.cwd(), "allure-results");
 await mkdir(outDir, { recursive: true });
 await cp(fixture, join(outDir, \`\${randomUUID()}-result.json\`));
 console.log("emitted newly added test result");
+console.error("emitted newly added test diagnostic");
 `.trimStart();
 
     let stdout = "";
@@ -608,30 +605,26 @@ console.log("emitted newly added test result");
           full_name: expectedFullName,
         }),
       ]);
-      expect(
-        findingsContent
-          .trim()
-          .split("\n")
-          .filter(Boolean)
-          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            check_name: "missing-global-logs",
-            severity: "info",
-          }),
-        ]),
-      );
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(indexMarkdown).toContain(expectedFullName);
       expect(stdout).toContain("expectations: matched");
       const globalArtifactsDir = join(outputDir, "artifacts", "global");
       const globalArtifactNames = await readdir(globalArtifactsDir);
-      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
-
-      if (stdoutArtifactName) {
-        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
-        expect(capturedStdout).toContain("emitted newly added test result");
-      }
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stdout",
+      );
+      const stderrArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stderr",
+      );
+      expect(globalArtifactNames).toEqual(expect.arrayContaining([stdoutArtifactName, stderrArtifactName]));
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain(
+        "emitted newly added test result",
+      );
+      expect(await readFile(join(globalArtifactsDir, stderrArtifactName), "utf-8")).toContain(
+        "emitted newly added test diagnostic",
+      );
       expect(stderr).toBe("");
     });
   }, 240_000);
