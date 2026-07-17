@@ -150,6 +150,7 @@
     "copy": "복사",
     "copy-email": "이메일 복사",
     "attempt": "시도 {{attempt}}/{{total}}",
+    "retry": "재시도 {{attempt}}/{{total}}",
     "at": "에서",
     "generated": "생성됨",
     "variables": "변수",
