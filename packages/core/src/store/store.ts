@@ -1150,6 +1150,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#retriesByTr(tr);
   }
 
+  resetIngestOrder() {
+    this.#retrySubstore.resetIngestOrder();
+  }
+
   #historyByTr(tr: TestResult): HistoryTestResult[] | undefined {
     if (!this.#history) {
       return undefined;

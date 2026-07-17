@@ -41,9 +41,11 @@ export class RetrySubstore {
     this.#testResultIngestIndexById.set(testResultId, this.#testResultIngestIndexById.size);
   }
 
-  restoreIngestOrder(restoredIds: string[] | undefined, hasTestResult: (testResultId: string) => boolean) {
+  resetIngestOrder() {
     this.#testResultIngestIndexById.clear();
+  }
 
+  restoreIngestOrder(restoredIds: string[] | undefined, hasTestResult: (testResultId: string) => boolean) {
     for (const id of restoredIds ?? []) {
       if (!hasTestResult(id) || this.#testResultIngestIndexById.has(id)) {
         continue;
