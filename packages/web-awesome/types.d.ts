@@ -144,6 +144,7 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
   trees: AwesomeRecursiveTree[];
   duration: number;
   groupOrder: number;
+  minStart?: number;
 };
 
 // TODO: maybe it should call `TestCase` instead of Group
