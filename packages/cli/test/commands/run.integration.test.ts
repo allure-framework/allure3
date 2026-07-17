@@ -271,6 +271,53 @@ describe("run command integration", () => {
     });
   }, 240_000);
 
+  it("runs the built generate command with a TypeScript config", async () => {
+    const fixtureDir = join(tempDir, "typescript-config-generate");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "typed-report");
+    const configPath = join(fixtureDir, "allurerc.ts");
+    const resultPath = join(resultsDir, "simple-result.json");
+    const configSource = `
+import type { AllureConfig } from "allure";
+
+const config = {
+  name: "Typed CLI Report",
+  output: ${JSON.stringify(outputDir)},
+} satisfies AllureConfig;
+
+export default config;
+`.trimStart();
+
+    let stderr = "";
+
+    await step("prepare TypeScript config fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(resultPath, await readFile(simpleResultFixture, "utf-8"), "utf-8");
+      await attachment("typescript config", configSource, "text/plain");
+    });
+
+    await step("run built generate command with TypeScript config", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        resultsDir,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("generate with TypeScript config", result);
+    });
+
+    await step("verify generated report uses TypeScript config", async () => {
+      await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
+      expect(stderr).toBe("");
+    });
+  }, 240_000);
+
   it("runs the built agent command with default human report output", async () => {
     const fixtureDir = join(tempDir, "built-agent");
     const homeDir = join(fixtureDir, "home");
