@@ -146,6 +146,7 @@ export const validateConfig = (config: Config) => {
     "open",
     "port",
     "hideLabels",
+    "analyticsEnable",
     "historyPath",
     "historyLimit",
     "knownIssuesPath",
@@ -291,6 +292,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const hideLabels = override.hideLabels ?? config.hideLabels;
+  const analyticsEnable = config.analyticsEnable;
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
@@ -323,6 +325,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     open,
     port,
     hideLabels,
+    analyticsEnable,
     knownIssuesPath,
     known,
     environment,

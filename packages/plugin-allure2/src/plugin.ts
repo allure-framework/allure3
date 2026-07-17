@@ -31,12 +31,7 @@ export class Allure2Plugin implements Plugin {
   constructor(readonly options: Allure2PluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const {
-      reportName = "Allure Report",
-      singleFile = false,
-      reportLanguage = "en",
-      analyticsEnable,
-    } = this.options ?? {};
+    const { reportName = "Allure Report", singleFile = false, reportLanguage = "en" } = this.options ?? {};
     const writer = singleFile ? new InMemoryReportDataWriter() : new ReportFileDataWriter(context.reportFiles);
     const attachmentLinks = await store.allAttachments();
     const attachmentMap = await generateAttachmentsData(writer, attachmentLinks, (id) =>
@@ -100,7 +95,7 @@ export class Allure2Plugin implements Plugin {
       reportName,
       reportLanguage,
       singleFile,
-      analyticsEnable,
+      analyticsEnable: context.analyticsEnable,
       reportFiles: context.reportFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,

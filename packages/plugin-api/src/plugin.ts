@@ -39,6 +39,10 @@ export interface PluginContext {
   reportUuid: string;
   reportName: string;
   hideLabels?: (string | RegExp)[];
+  /**
+   * Resolved Google Analytics flag for this report (config + `ALLURE_NO_ANALYTICS`).
+   */
+  analyticsEnable: boolean;
   reportFiles: ReportFiles;
   reportUrl?: string;
   output: string;

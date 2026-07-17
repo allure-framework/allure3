@@ -541,6 +541,11 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    /**
+     * Core-resolved analytics flag; also re-checked against `ALLURE_NO_ANALYTICS`.
+     * @default true
+     */
+    analyticsEnable?: boolean;
   },
 ) => {
   const {

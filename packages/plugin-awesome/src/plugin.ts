@@ -190,6 +190,7 @@ export class AwesomePlugin implements Plugin {
       reportName: context.reportName,
       ci: context.ci,
       reportDataFiles,
+      analyticsEnable: context.analyticsEnable,
     });
   };
 

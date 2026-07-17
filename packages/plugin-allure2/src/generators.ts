@@ -117,6 +117,10 @@ export const generateStaticFiles = async (payload: {
   reportName: string;
   reportLanguage: string;
   singleFile: boolean;
+  /**
+   * Core-resolved analytics flag; also re-checked against `ALLURE_NO_ANALYTICS`.
+   * @default true
+   */
   analyticsEnable?: boolean;
   reportFiles: ReportFiles;
   reportDataFiles: ReportFile[];

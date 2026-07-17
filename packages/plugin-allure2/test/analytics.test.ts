@@ -6,9 +6,7 @@ import { generateStaticFiles } from "../src/generators.js";
 
 const GTAG_SNIPPET = "googletagmanager.com/gtag/js?id=G-LNDJ3J7WT0";
 
-const captureIndexHtml = async (options: {
-  analyticsEnable?: boolean;
-}): Promise<string> => {
+const captureIndexHtml = async (options: { analyticsEnable?: boolean }): Promise<string> => {
   const files = new Map<string, Buffer>();
   const reportFiles: ReportFiles = {
     addFile: async (name, content) => {
@@ -51,13 +49,13 @@ describe("allure2 analytics embedding (#476)", () => {
     expect(html).toContain(GTAG_SNIPPET);
   });
 
-  it("omits Google Analytics when analyticsEnable is false", async () => {
+  it("omits Google Analytics when core analyticsEnable is false", async () => {
     delete process.env[ALLURE_NO_ANALYTICS_ENV];
     const html = await captureIndexHtml({ analyticsEnable: false });
     expect(html).not.toContain(GTAG_SNIPPET);
   });
 
-  it("omits Google Analytics when ALLURE_NO_ANALYTICS=true even if option is true", async () => {
+  it("omits Google Analytics when ALLURE_NO_ANALYTICS=true even if core flag is true", async () => {
     process.env[ALLURE_NO_ANALYTICS_ENV] = "true";
     const html = await captureIndexHtml({ analyticsEnable: true });
     expect(html).not.toContain(GTAG_SNIPPET);

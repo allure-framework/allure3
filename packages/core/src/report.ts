@@ -27,6 +27,7 @@ import {
   type PluginSummary,
   type ReportFiles,
   type ResultFile,
+  isAnalyticsEnabled,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -63,6 +64,7 @@ export class AllureReport {
   readonly #realtimeDispatcher: RealtimeEventsDispatcher;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
+  readonly #analyticsEnable: boolean;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
@@ -96,6 +98,7 @@ export class AllureReport {
       environments,
       output,
       hideLabels,
+      analyticsEnable,
       qualityGate,
       dump,
       categories,
@@ -119,6 +122,7 @@ export class AllureReport {
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
+    this.#analyticsEnable = isAnalyticsEnabled(analyticsEnable);
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
 
@@ -783,6 +787,7 @@ export class AllureReport {
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
         hideLabels: this.#hideLabels,
+        analyticsEnable: this.#analyticsEnable,
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,

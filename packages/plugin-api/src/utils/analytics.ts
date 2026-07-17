@@ -6,7 +6,7 @@ export const ALLURE_NO_ANALYTICS_ENV = "ALLURE_NO_ANALYTICS";
 
 /**
  * Resolves whether report HTML should embed Google Analytics.
- * Environment opt-out always wins; otherwise the plugin option defaults to enabled.
+ * Environment opt-out always wins; otherwise the core `analyticsEnable` config defaults to enabled.
  */
 export const isAnalyticsEnabled = (option?: boolean): boolean => {
   const envValue = process.env[ALLURE_NO_ANALYTICS_ENV]?.trim().toLowerCase();
