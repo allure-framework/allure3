@@ -931,6 +931,79 @@ describe("plugin", () => {
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
     });
 
+    it("should write heavy single-file attachments as sibling files instead of embedding them", async () => {
+      const heavyBytes = Buffer.alloc(2 * 1024 * 1024, 7);
+      const lightBytes = Buffer.from("tiny-log");
+      const heavyContent = {
+        getContentLength: () => heavyBytes.byteLength,
+        asBuffer: async () => heavyBytes,
+        writeTo: vi.fn(),
+      };
+      const lightContent = {
+        getContentLength: () => lightBytes.byteLength,
+        asBuffer: async () => lightBytes,
+        writeTo: vi.fn(),
+      };
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          environment: "default",
+          labels: [],
+        },
+      ] as TestResult[];
+      const store = makeSingleFileStore(testResults);
+
+      store.allAttachments = vi.fn().mockResolvedValue([
+        {
+          id: "heavy",
+          ext: ".bin",
+          originalFileName: "heavy.bin",
+          name: "heavy",
+          missed: false,
+          used: true,
+          contentLength: heavyBytes.byteLength,
+        },
+        {
+          id: "light",
+          ext: ".txt",
+          originalFileName: "light.txt",
+          name: "light",
+          missed: false,
+          used: true,
+          contentLength: lightBytes.byteLength,
+        },
+      ]);
+      store.attachmentContentById = vi.fn(async (id: string) => (id === "heavy" ? heavyContent : lightContent));
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      try {
+        await plugin.start(makeSingleFileContext(reportFiles));
+        await plugin.done(makeSingleFileContext(reportFiles), store);
+
+        const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+        const embeddedData = extractEmbeddedData(indexHtml);
+
+        expect(addedFiles.has("data/attachments/heavy.bin")).toBe(true);
+        expect(addedFiles.get("data/attachments/heavy.bin")?.equals(heavyBytes)).toBe(true);
+        expect(embeddedData["data/attachments/heavy.bin"]).toBeUndefined();
+        expect(embeddedData["data/attachments/light.txt"]).toBe(lightBytes.toString("base64"));
+        expect(warnSpy.mock.calls.some((call) => String(call[0]).includes("heavy attachment"))).toBe(true);
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
+
     it("should include launch timing and allure2 executor metadata in report options", async () => {
       const testResults: TestResult[] = [
         {

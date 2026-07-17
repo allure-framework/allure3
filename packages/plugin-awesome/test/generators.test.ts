@@ -445,6 +445,67 @@ describe("generateAttachmentsFiles", () => {
 
     expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
     expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
-    expect(result).toEqual(new Map([["written", "written.txt"]]));
+    expect(result.byId).toEqual(new Map([["written", "written.txt"]]));
+    expect(result.externalCount).toBe(0);
+    expect(result.externalBytes).toBe(0);
+  });
+
+  it("writes heavy attachments to the external writer when provided", async () => {
+    const heavyContent = {
+      kind: "attachment",
+      getContentLength: () => 2 * 1024 * 1024,
+      asBuffer: async () => Buffer.alloc(2 * 1024 * 1024, 1),
+    } as unknown as ResultFile;
+    const lightContent = {
+      kind: "attachment",
+      getContentLength: () => 100,
+      asBuffer: async () => Buffer.from("small"),
+    } as unknown as ResultFile;
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const externalWriter: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const attachmentLinks: AttachmentLink[] = [
+      {
+        id: "heavy",
+        ext: ".bin",
+        originalFileName: "heavy.bin",
+        name: "heavy",
+        missed: false,
+        used: true,
+        contentLength: 2 * 1024 * 1024,
+      },
+      {
+        id: "light",
+        ext: ".txt",
+        originalFileName: "light.txt",
+        name: "light",
+        missed: false,
+        used: true,
+        contentLength: 100,
+      },
+    ];
+
+    const result = await generateAttachmentsFiles(
+      writer,
+      attachmentLinks,
+      vi.fn(async (id: string) => (id === "heavy" ? heavyContent : lightContent)),
+      { externalWriter },
+    );
+
+    expect(externalWriter.writeAttachment).toHaveBeenCalledTimes(1);
+    expect(externalWriter.writeAttachment).toHaveBeenCalledWith("heavy.bin", heavyContent);
+    expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
+    expect(writer.writeAttachment).toHaveBeenCalledWith("light.txt", lightContent);
+    expect(result.externalCount).toBe(1);
+    expect(result.externalBytes).toBe(2 * 1024 * 1024);
   });
 });

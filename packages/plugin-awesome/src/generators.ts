@@ -20,10 +20,13 @@ import {
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
+  HEAVY_ATTACHMENT_BYTES,
   incrementStatistic,
+  isHeavyAttachment,
   joinPosixPath,
   nullsLast,
   ordinal,
+  warnIfLargeSingleFileReport,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -518,12 +521,37 @@ export const generateStatistic = async (
   }
 };
 
+export type GenerateAttachmentsFilesOptions = {
+  /**
+   * When set, attachments at or above the heavy threshold are written here
+   * (sibling files) instead of into the in-memory single-file embed map.
+   */
+  externalWriter?: AwesomeDataWriter;
+  /**
+   * Raw size threshold for hybrid single-file externalization.
+   * @default HEAVY_ATTACHMENT_BYTES (1 MiB)
+   */
+  heavyAttachmentBytes?: number;
+};
+
+export type GenerateAttachmentsFilesResult = {
+  byId: Map<string, string>;
+  /** Attachments written next to the report instead of embedded in index.html */
+  externalCount: number;
+  externalBytes: number;
+};
+
 export const generateAttachmentsFiles = async (
   writer: AwesomeDataWriter,
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
-) => {
+  options: GenerateAttachmentsFilesOptions = {},
+): Promise<GenerateAttachmentsFilesResult> => {
+  const { externalWriter, heavyAttachmentBytes = HEAVY_ATTACHMENT_BYTES } = options;
   const result = new Map<string, string>();
+  let externalCount = 0;
+  let externalBytes = 0;
+
   for (const { id, ext, ...link } of attachmentLinks) {
     if (link.missed) {
       continue;
@@ -534,10 +562,31 @@ export const generateAttachmentsFiles = async (
       continue;
     }
     const src = `${id}${ext}`;
-    await writer.writeAttachment(src, content);
+    let targetWriter = writer;
+
+    if (externalWriter) {
+      const sizeFromMeta =
+        "contentLength" in link && typeof link.contentLength === "number" ? link.contentLength : undefined;
+      let size = sizeFromMeta ?? content.getContentLength?.();
+
+      // Metadata can be missing or wrong; verify against the buffer when needed.
+      if (!isHeavyAttachment(size, heavyAttachmentBytes)) {
+        const buffer = await content.asBuffer();
+        size = buffer?.byteLength ?? size;
+      }
+
+      if (isHeavyAttachment(size, heavyAttachmentBytes)) {
+        targetWriter = externalWriter;
+        externalCount += 1;
+        externalBytes += size ?? 0;
+      }
+    }
+
+    await targetWriter.writeAttachment(src, content);
     result.set(id, src);
   }
-  return result;
+
+  return { byId: result, externalCount, externalBytes };
 };
 
 export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
@@ -560,6 +609,11 @@ export const generateGlobals = async (
     globalErrors?: PluginGlobalError[];
     globalErrorsByEnv?: Record<string, PluginGlobalError[]>;
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
+    /**
+     * When set, heavy global attachments are written here instead of the in-memory embed map.
+     */
+    externalWriter?: AwesomeDataWriter;
+    heavyAttachmentBytes?: number;
   },
 ) => {
   const {
@@ -580,6 +634,8 @@ export const generateGlobals = async (
     globals.exitCode = globalExitCode;
   }
 
+  const { externalWriter, heavyAttachmentBytes = HEAVY_ATTACHMENT_BYTES } = payload;
+
   for (const attachment of globalAttachments) {
     const src = `${attachment.id}${attachment.ext}`;
     const content = await contentFunction(attachment.id);
@@ -588,7 +644,25 @@ export const generateGlobals = async (
       continue;
     }
 
-    await writer.writeAttachment(src, content);
+    let targetWriter = writer;
+
+    if (externalWriter) {
+      let size =
+        "contentLength" in attachment && typeof attachment.contentLength === "number"
+          ? attachment.contentLength
+          : content.getContentLength();
+
+      if (!isHeavyAttachment(size, heavyAttachmentBytes)) {
+        const buffer = await content.asBuffer();
+        size = buffer?.byteLength ?? size;
+      }
+
+      if (isHeavyAttachment(size, heavyAttachmentBytes)) {
+        targetWriter = externalWriter;
+      }
+    }
+
+    await targetWriter.writeAttachment(src, content);
 
     globals.attachments.push(attachment);
   }
@@ -734,7 +808,13 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    const htmlBuffer = Buffer.from(html, "utf8");
+
+    if (payload.singleFile) {
+      warnIfLargeSingleFileReport(htmlBuffer.byteLength);
+    }
+
+    await reportFiles.addFile("index.html", htmlBuffer);
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console

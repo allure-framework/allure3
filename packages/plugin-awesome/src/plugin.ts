@@ -1,4 +1,10 @@
-import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
+import {
+  formatByteSize,
+  incrementStatistic,
+  type EnvironmentItem,
+  type Statistic,
+  joinPosixPath,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -66,6 +72,8 @@ const statisticByTestResults = async (
 
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
+  /** Sibling-file writer used for heavy attachments in single-file hybrid mode. */
+  #externalWriter: AwesomeDataWriter | undefined;
 
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
@@ -178,7 +186,23 @@ export class AwesomePlugin implements Plugin {
     await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
     if (attachments?.length) {
-      await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
+      const attachmentResult = await generateAttachmentsFiles(
+        this.#writer!,
+        attachments,
+        (id) => store.attachmentContentById(id),
+        {
+          externalWriter: this.#externalWriter,
+        },
+      );
+
+      if (singleFile && attachmentResult.externalCount > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Single-file report wrote ${attachmentResult.externalCount} heavy attachment(s) as external files ` +
+            `(${formatByteSize(attachmentResult.externalBytes)} raw). Serve the report over HTTP (e.g. \`allure open\`) ` +
+            "so attachments can be fetched next to index.html.",
+        );
+      }
     }
 
     await generateQualityGateResults(this.#writer!, qualityGateResults);
@@ -189,6 +213,7 @@ export class AwesomePlugin implements Plugin {
       globalErrorsByEnv,
       globalExitCode,
       contentFunction: (id) => store.attachmentContentById(id),
+      externalWriter: this.#externalWriter,
     });
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
@@ -212,10 +237,13 @@ export class AwesomePlugin implements Plugin {
 
     if (singleFile) {
       this.#writer = new InMemoryReportDataWriter();
+      // Heavy attachments are written beside index.html so the HTML stays lean.
+      this.#externalWriter = new ReportFileDataWriter(context.reportFiles);
       return;
     }
 
     this.#writer = new ReportFileDataWriter(context.reportFiles);
+    this.#externalWriter = undefined;
 
     await Promise.resolve();
   };
