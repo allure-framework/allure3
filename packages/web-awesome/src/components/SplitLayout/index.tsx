@@ -1,12 +1,13 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
-import type { JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import clsx from "clsx";
+import { useMemo, useRef } from "preact/hooks";
 
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
+import { isSplitMode } from "@/stores/layout";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
@@ -18,7 +19,7 @@ const MainReportWrapper = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.wrapper} ref={containerRef}>
+    <div className={styles.wrapper} ref={containerRef} data-tree-scroll-container>
       <MainReport />
     </div>
   );
@@ -38,10 +39,11 @@ const isTestResultRoute = computed(
 
 export const SplitLayout = () => {
   const testResultId = currentTrId.value;
-  const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
   const { t } = useI18n("controls");
-  const leftSide = (
-    <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
+
+  const leftSide = useMemo(
+    () => <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />,
+    [],
   );
 
   const TrView = () => {
@@ -59,21 +61,15 @@ export const SplitLayout = () => {
         }}
       />
     ) : (
-      <div className={styles.empty}>
+      <div className={clsx(styles.empty, isSplitMode.value && styles["empty-split-pane"])}>
         <Text>{t("noSelectedTR")}</Text>
       </div>
     );
   };
 
-  useEffect(() => {
-    if (!cachedMain) {
-      setCachedMain(leftSide);
-    }
-  }, [cachedMain]);
-
   return (
     <div className={styles["side-by-side"]} data-testId={"split-layout"}>
-      <SideBySide left={cachedMain} right={<TrView />} />
+      <SideBySide left={leftSide} right={<TrView />} />
     </div>
   );
 };

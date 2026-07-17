@@ -1,8 +1,12 @@
+import { story } from "allure-js-commons";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { Link } from "./index";
 
+beforeEach(async () => {
+  await story("Link");
+});
 describe("Link component", () => {
   let container: HTMLElement;
 

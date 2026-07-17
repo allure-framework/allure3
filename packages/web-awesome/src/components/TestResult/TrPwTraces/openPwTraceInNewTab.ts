@@ -1,5 +1,5 @@
 const PLAYWRIGHT_TRACE_ORIGIN = "https://trace.playwright.dev";
-const PLAYWRIGHT_TRACE_URL = `${PLAYWRIGHT_TRACE_ORIGIN}/next/`;
+const PLAYWRIGHT_TRACE_VIEWER_URL = `${PLAYWRIGHT_TRACE_ORIGIN}/`;
 const RETRY_DELAY_MS = 300;
 
 export const openPlaywrightTraceInNewTab = (blob: Blob) => {
@@ -17,7 +17,7 @@ export const openPlaywrightTraceInNewTab = (blob: Blob) => {
     newWindow.postMessage(payload, PLAYWRIGHT_TRACE_ORIGIN);
   };
 
-  newWindow.location.href = PLAYWRIGHT_TRACE_URL;
+  newWindow.location.href = PLAYWRIGHT_TRACE_VIEWER_URL;
   newWindow.focus();
 
   sendTraceMessage();

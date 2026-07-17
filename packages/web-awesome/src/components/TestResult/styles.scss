@@ -1,6 +1,9 @@
+@use "../../styles/pane-active" as paneActive;
+
 .content {
+  position: relative;
   box-shadow: var(--shadow-small);
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   border-radius: 12px;
   width: 100%;
 }
@@ -11,3 +14,4 @@
   border-radius: 0;
   scrollbar-width: thin;
 }
+

@@ -2,8 +2,21 @@ import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
+export type AllureCheckStatus = "passed" | "failed";
 export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "new";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
+
+export interface AllureCheckResult {
+  id: string;
+  name: string;
+  status: AllureCheckStatus;
+  tags?: string[];
+  details: {
+    message?: string;
+    error?: string;
+    command: string;
+  };
+}
 
 /**
  * Stores source-specific metadata.
@@ -50,7 +63,8 @@ export interface TestResult {
 
   transition?: TestStatusTransition;
 
-  hidden: boolean;
+  retryHash?: string;
+  isRetry: boolean;
 
   hostId?: string;
   threadId?: string;
@@ -162,6 +176,11 @@ export type AttachmentLinkInvalid = Omit<AttachmentLinkExpected, "originalFileNa
 };
 
 export type AttachmentLink = AttachmentLinkFile | AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
+
+export type GlobalAttachmentLink = AttachmentLink & {
+  name: string;
+  environment?: string;
+};
 
 export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;

@@ -2,6 +2,7 @@ import { Loadable, PageLoader } from "@allurereport/web-components";
 
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
+import { focusTestResultPane, focusTreePane } from "@/stores/keyboard";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -20,7 +21,13 @@ export const BaseLayout = () => {
 
   if (matches) {
     return (
-      <div className={styles.layout} data-testid="base-layout">
+      <div
+        className={styles.layout}
+        data-testid="base-layout"
+        data-tree-scroll-container
+        data-tr-scroll-container
+        onMouseDown={() => focusTestResultPane()}
+      >
         <Loadable
           source={testResultStore}
           renderLoader={() => <PageLoader />}
@@ -38,7 +45,12 @@ export const BaseLayout = () => {
   }
 
   return (
-    <div className={styles.layout} data-testid="base-layout">
+    <div
+      className={styles.layout}
+      data-testid="base-layout"
+      data-tree-scroll-container
+      onMouseDown={() => focusTreePane()}
+    >
       <div className={styles.wrapper}>
         <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReport />} />
       </div>

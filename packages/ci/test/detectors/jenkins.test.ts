@@ -1,8 +1,12 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { jenkins } from "../../src/detectors/jenkins.js";
 import { getEnv } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("jenkins");
+});
 vi.mock("../../src/utils.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/utils.js")>();
 
@@ -15,6 +19,10 @@ vi.mock("../../src/utils.js", async (importOriginal) => {
 beforeEach(() => {
   vi.clearAllMocks();
 });
+
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
 
 describe("jenkins", () => {
   describe("detected", () => {
@@ -222,6 +230,72 @@ describe("jenkins", () => {
       });
 
       expect(jenkins.jobRunBranch).toBe("");
+    });
+
+    it("should fall back to GIT_LOCAL_BRANCH", () => {
+      mockEnv({
+        GIT_BRANCH: "origin/feature/my-branch",
+        GIT_LOCAL_BRANCH: "feature/my-branch",
+      });
+
+      expect(jenkins.jobRunBranch).toBe("feature/my-branch");
+    });
+
+    it("should normalize remote-prefixed GIT_BRANCH", () => {
+      mockEnv({
+        GIT_BRANCH: "origin/feature/my-branch",
+      });
+
+      expect(jenkins.jobRunBranch).toBe("feature/my-branch");
+    });
+
+    it("should return empty string for tag builds", () => {
+      mockEnv({
+        BRANCH_NAME: "v1.0.0",
+        TAG_NAME: "v1.0.0",
+      });
+
+      expect(jenkins.jobRunBranch).toBe("");
+    });
+  });
+
+  describe("sourceBranch", () => {
+    it("should prefer pull request source branch", () => {
+      mockEnv({
+        BRANCH_NAME: "PR-123",
+        CHANGE_BRANCH: "feature/my-branch",
+      });
+
+      expect(jenkins.sourceBranch).toBe("feature/my-branch");
+    });
+
+    it("should fall back to Git plugin branch", () => {
+      mockEnv({
+        GIT_BRANCH: "origin/feature/my-branch",
+      });
+
+      expect(jenkins.sourceBranch).toBe("feature/my-branch");
+    });
+
+    it("should return undefined for tag builds", () => {
+      mockEnv({
+        BRANCH_NAME: "v1.0.0",
+        GIT_BRANCH: "origin/v1.0.0",
+        TAG_NAME: "v1.0.0",
+      });
+
+      expect(jenkins.sourceBranch).toBeUndefined();
+    });
+  });
+
+  describe("targetBranch", () => {
+    it("should return undefined for tag builds", () => {
+      mockEnv({
+        CHANGE_TARGET: "main",
+        TAG_NAME: "v1.0.0",
+      });
+
+      expect(jenkins.targetBranch).toBeUndefined();
     });
   });
 

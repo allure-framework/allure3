@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/directory-watcher",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "description": "File system watcher for directories",
   "keywords": [
     "allure",
@@ -30,15 +30,16 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "chokidar": "^4.0.3"
+    "chokidar": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.17.9",
-    "@vitest/runner": "^2.1.9",
-    "allure-vitest": "^3.3.3",
-    "rimraf": "^6.0.1",
+    "@types/node": "^20",
+    "@vitest/runner": "^2",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.9"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }

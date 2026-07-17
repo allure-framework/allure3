@@ -1,6 +1,6 @@
 {
   "name": "sandbox",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "private": true,
   "description": "A package to test another Allure Report packages in action",
   "keywords": [],
@@ -20,14 +20,14 @@
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
-    "@types/node": "^20.17.9",
+    "@types/node": "^20",
     "@vitest/runner": "^4.0.18",
     "allure": "workspace:*",
-    "allure-js-commons": "^3.6.0",
-    "allure-vitest": "^3.6.0",
-    "rimraf": "^6.0.1",
-    "vite": "^8.0.8",
-    "vitest": "^4.0.18"
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
+    "vite": "^8.0.9",
+    "vitest": "^4.1.0"
   },
   "packageManager": "yarn@4.3.1"
 }

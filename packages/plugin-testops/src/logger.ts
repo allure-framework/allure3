@@ -36,16 +36,22 @@ function getLogLevelFromEnv(): LogLevel {
 
 export class Logger {
   #level: LogLevel = getLogLevelFromEnv();
-  constructor(readonly name: string) {}
+  #prefix: string;
+
+  constructor(private readonly loggerName: string) {
+    this.#prefix = cyan(bold(`[${this.loggerName}]:`));
+  }
 
   #isLogLevel(level: LogLevel) {
     return logLevelsPriority[this.#level] <= logLevelsPriority[level];
   }
 
-  #prefix = cyan(bold(`[${this.name}]:`));
+  #isSilent() {
+    return this.#level === "silent";
+  }
 
   progressBarCounter(message: string, total: number) {
-    if (this.#isLogLevel("silent")) {
+    if (this.#isSilent()) {
       return {
         tick: () => {},
         update: () => {},
@@ -61,7 +67,7 @@ export class Logger {
     return progressBar;
   }
   progressBar(message: string) {
-    if (this.#isLogLevel("silent")) {
+    if (this.#isSilent()) {
       return {
         update: () => {},
         terminate: () => {},

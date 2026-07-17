@@ -1,8 +1,12 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { azure, getBuildID, getDefinitionID, getProjectID, getRootURL } from "../../src/detectors/azure.js";
 import { getEnv } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("azure");
+});
 vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
 }));
@@ -256,6 +260,34 @@ describe("azure", () => {
 
       expect(azure.jobRunBranch).toBe("main");
     });
+
+    it("should return the full branch path from Build.SourceBranch", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_SOURCEBRANCH") {
+          return "refs/heads/feature/tools";
+        }
+
+        if (key === "BUILD_SOURCEBRANCHNAME") {
+          return "tools";
+        }
+      });
+
+      expect(azure.jobRunBranch).toBe("feature/tools");
+    });
+
+    it("should not return tag refs as a job run branch", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_SOURCEBRANCH") {
+          return "refs/tags/v1.0.0";
+        }
+
+        if (key === "BUILD_SOURCEBRANCHNAME") {
+          return "v1.0.0";
+        }
+      });
+
+      expect(azure.jobRunBranch).toBe("");
+    });
   });
 
   describe("pullRequestUrl", () => {
@@ -293,6 +325,24 @@ describe("azure", () => {
       });
 
       expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/456");
+    });
+
+    it("should return the correct pull request URL for TfsGit using pull request ID", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "TfsGit";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://dev.azure.com/organization/project/_git/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTID") {
+          return "457";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/457");
     });
 
     it("should return the correct pull request URL for TfsVersionControl", () => {

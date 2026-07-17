@@ -5,11 +5,11 @@
   overflow-y: auto;
 
   --timeline-font-family: var(--font-family);
-  --timeline-grid: var(--on-border-control);
-  --timeline-border-primary: var(--on-border-primary);
-  --timeline-axis-text: var(--on-text-secondary);
-  --timeline-bg: var(--bg-base-primary);
-  --timeline-selection-bg: var(--bg-control-flat-medium);
+  --timeline-grid: var(--color-border-control);
+  --timeline-border-primary: var(--color-border-default);
+  --timeline-axis-text: var(--color-text-secondary);
+  --timeline-bg: var(--color-bg-primary);
+  --timeline-selection-bg: var(--color-control-bg-ghost-hover);
 }
 
 .overview-grid {
@@ -41,5 +41,5 @@
   align-items: center;
   width: 100%;
   min-height: 320px;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
 }

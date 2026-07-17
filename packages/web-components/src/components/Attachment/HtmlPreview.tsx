@@ -40,7 +40,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
           wrapped = DARK_STYLE + sanitizedText;
         }
       }
-      const blob = new Blob([wrapped], { type: "text/html" });
+      const blob = new Blob([wrapped], { type: "text/html; charset=utf-8" });
       const url = URL.createObjectURL(blob);
       setBlobUrl(url);
 

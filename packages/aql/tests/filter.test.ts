@@ -1,7 +1,12 @@
-import { describe, expect, test } from "vitest";
-import { parseAql } from "../src/parser/index.js";
-import { filterByAql } from "../src/filter/index.js";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
 
+import { filterByAql } from "../src/filter/index.js";
+import { parseAql } from "../src/parser/index.js";
+
+beforeEach(async () => {
+  await story("filter");
+});
 interface TestItem {
   id: number;
   name: string;
@@ -404,8 +409,20 @@ describe("Filter Edge Cases - Arrays", () => {
   describe("Nested arrays", () => {
     test("should handle nested arrays (not directly supported)", () => {
       const items = [
-        { id: 1, matrix: [[1, 2], [3, 4]] },
-        { id: 2, matrix: [[5, 6], [7, 8]] },
+        {
+          id: 1,
+          matrix: [
+            [1, 2],
+            [3, 4],
+          ],
+        },
+        {
+          id: 2,
+          matrix: [
+            [5, 6],
+            [7, 8],
+          ],
+        },
       ];
 
       // Nested array access like matrix[0][0] is not supported in AQL
@@ -492,9 +509,7 @@ describe("Filter Edge Cases - Arrays", () => {
 
   describe("Array edge cases", () => {
     test("should handle sparse arrays", () => {
-      const items = [
-        { id: 1, sparse: [] },
-      ];
+      const items = [{ id: 1, sparse: [] }];
       items[0].sparse[5] = "value";
 
       const result = filterByAql(items, 'sparse[5] = "value"');
@@ -512,9 +527,7 @@ describe("Filter Edge Cases - Arrays", () => {
     });
 
     test("should handle very large array indices", () => {
-      const items = [
-        { id: 1, large: [] },
-      ];
+      const items = [{ id: 1, large: [] }];
       items[0].large[1000] = "test";
 
       const result = filterByAql(items, 'large[1000] = "test"');

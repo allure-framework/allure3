@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { test } from "@playwright/test";
-import { layer } from "allure-js-commons";
+import { epic, feature, label, layer, story } from "allure-js-commons";
 import getPort from "get-port";
 
 import { type AllureStaticServer, serve } from "../../src/index.js";
@@ -23,6 +23,10 @@ let url: string;
 
 test.beforeEach(async () => {
   await layer("e2e");
+  await epic("coverage");
+  await feature("static-server");
+  await story("live");
+  await label("coverage", "static-server");
 
   port = await getPort();
   url = `http://localhost:${port}`;
@@ -61,14 +65,10 @@ test("reloads the page when a file changes", async ({ page }) => {
 
   const prevContent = await page.$("#content").then((el) => el?.textContent());
 
-  await page.pause();
-
   test.expect(prevContent).not.toEqual(fixtures.json.content);
 
   await writeFile(sampleFilePath, JSON.stringify(fixtures.json), "utf8");
   await page.waitForTimeout(200);
-
-  await page.pause();
 
   const actualContent = await page.$("#content").then((el) => el?.textContent());
 

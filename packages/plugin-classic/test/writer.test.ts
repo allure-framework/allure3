@@ -1,7 +1,15 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InMemoryReportDataWriter } from "../src/writer.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-output");
+  await story("writer");
+  await label("coverage", "report-output");
+});
 
 describe("InMemoryReportDataWriter", () => {
   it("should store normalized POSIX keys for report data", async () => {

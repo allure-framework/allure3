@@ -25,10 +25,8 @@ import {
   type ResultFile,
   createTreeByCategories,
   createTreeByLabels,
-  filterTree,
   isAnalyticsEnabled,
-  sortTree,
-  transformTree,
+  processTree,
 } from "@allurereport/plugin-api";
 import type {
   ClassicFixtureResult,
@@ -84,6 +82,14 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
+const compiledTemplate = Handlebars.compile(template);
+
+const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
+  for (let i = 0; i < items.length; i += concurrency) {
+    await Promise.all(items.slice(i, i + concurrency).map(write));
+  }
+};
+
 export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
   const templateManifestSource = require.resolve(
     `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
@@ -123,15 +129,16 @@ const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
 };
 
 export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
-  const allTr = await store.allTestResults({ includeHidden: true });
+  const allTr = await store.allTestResults({ includeRetries: true });
+  const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
+  const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
   let convertedTrs: ClassicTestResult[] = [];
 
   for (const tr of allTr) {
-    const trFixtures = await store.fixturesByTrId(tr.id);
+    const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
     const convertedTrFixtures: ClassicFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: ClassicTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
-    const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
     const matchedCategories = matchCategories(categories, {
       message: error?.message,
       trace: error?.trace,
@@ -140,14 +147,15 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
     });
 
     convertedTr.categories = matchedCategories;
-    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
-    convertedTr.retries = await store.retriesByTrId(tr.id);
+    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retry = convertedTr.retries.length > 0;
+    convertedTr.isRetry = tr.isRetry;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
     // @ts-ignore
-    convertedTr.attachments = (await store.attachmentsByTrId(tr.id)).map((attachment) => ({
+    convertedTr.attachments = (related.attachmentsByTrId.get(tr.id) ?? []).map((attachment) => ({
       link: attachment,
       type: "attachment",
     }));
@@ -161,13 +169,11 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
     order: idx + 1,
   }));
 
-  for (const convertedTr of convertedTrs) {
-    await writer.writeTestCase(convertedTr);
-  }
+  await writeConcurrently(convertedTrs, (convertedTr) => writer.writeTestCase(convertedTr));
 
   await writer.writeWidget(
     "nav.json",
-    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+    convertedTrs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
   );
 
   return convertedTrs;
@@ -179,7 +185,7 @@ export const generateTree = async (
   labels: string[],
   tests: ClassicTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.isRetry);
   const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
     labels,
@@ -204,10 +210,10 @@ export const generateTree = async (
     },
   );
 
-  // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.hidden);
-  sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+  processTree(tree, {
+    sort: nullsLast(compareBy("start", ordinal())),
+    transform: (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }),
+  });
 
   await writer.writeWidget(`${treeName}.json`, tree);
 };
@@ -234,7 +240,7 @@ export const generateAttachmentsFiles = async (
   const result = new Map<string, string>();
   for (const { id, ext, ...link } of attachmentLinks) {
     if (link.missed) {
-      return;
+      continue;
     }
     const content = await contentFunction(id);
     if (!content) {
@@ -284,7 +290,6 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
   } = payload;
-  const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
@@ -338,7 +343,7 @@ export const generateStaticFiles = async (
   };
 
   try {
-    const html = compile({
+    const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
@@ -367,7 +372,7 @@ export const generateTreeByCategories = async (
   treeName: string,
   tests: ClassicTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.isRetry);
 
   const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
@@ -392,13 +397,13 @@ export const generateTreeByCategories = async (
     },
   );
 
-  // @ts-ignore
-  filterTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>) => !leaf.hidden);
-  sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
-    ...leaf,
-    groupOrder: idx + 1,
-  }));
+  processTree(tree, {
+    sort: nullsLast(compareBy("start", ordinal())),
+    transform: (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
+      ...leaf,
+      groupOrder: idx + 1,
+    }),
+  });
 
   await writer.writeWidget(`${treeName}.json`, tree);
 };

@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "بحث",
-    "search-placeholder": "الاسم أو المُعرِّف"
+    "search-placeholder": "البحث في الاختبارات"
   },
   "filters": {
     "flaky": "غير مستقر",
@@ -151,6 +151,7 @@
     "copy-email": "نسخ البريد الإلكتروني",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "at": "في",
+    "generated": "تم الإنشاء",
     "variables": "المتغيرات",
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
@@ -422,6 +423,66 @@
         "actual": "الفعلي",
         "expected": "المتوقع"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "اختصارات لوحة المفاتيح",
+    "groups": {
+      "global": "عام",
+      "tree": "الشجرة",
+      "testResult": "نتيجة الاختبار"
+    },
+    "items": {
+      "toggleHelp": "إظهار أو إخفاء الاختصارات",
+      "focusSearch": "التركيز على البحث",
+      "blurSearch": "مغادرة البحث",
+      "focusTree": "التركيز على لوحة الشجرة",
+      "focusTestResult": "التركيز على لوحة نتيجة الاختبار",
+      "toggleLayout": "تبديل العرض المنقسم (Shift+L)",
+      "toggleLayoutAlt": "تبديل العرض المنقسم (Ctrl/Cmd+\\)",
+      "moveUp": "التحرك للأعلى",
+      "moveDown": "التحرك للأسفل",
+      "collapse": "طي / الانتقال إلى الأصل",
+      "expand": "توسيع / الابن الأول",
+      "parent": "الانتقال إلى الأصل (p)",
+      "parentAlt": "الانتقال إلى الأصل (u)",
+      "openNode": "فتح الاختبار / تبديل المجموعة (o)",
+      "collapseNode": "طي العقدة (-)",
+      "expandNode": "توسيع العقدة (+)",
+      "collapseAll": "طي جميع الأبناء (C)",
+      "expandAll": "توسيع جميع الأبناء (A)",
+      "subtreeCycle": "دورة طي/توسيع الشجرة الفرعية — كزر السهم (>)",
+      "subtreeCollapse": "طي الشجرة الفرعية بأكملها (Shift+C)",
+      "subtreeExpand": "توسيع الشجرة الفرعية بأكملها (Shift+A)",
+      "subtreeFirstLevel": "توسيع المستوى الأول فقط (f)",
+      "toggleNode": "تبديل المجموعة أو البيئة",
+      "openTest": "فتح نتيجة الاختبار",
+      "firstTest": "الانتقال إلى أول اختبار (g g)، التمرير إلى الأعلى",
+      "lastTest": "الانتقال إلى آخر اختبار",
+      "treeTop": "أول صف + التمرير إلى الأعلى (Home)",
+      "scrollTreeTop": "التمرير إلى الأعلى — إظهار المتغيرات والمرشحات (z t)",
+      "toggleReportVariables": "إظهار/إخفاء المتغيرات",
+      "toggleReportMetadata": "إظهار/إخفاء البيانات الوصفية",
+      "reportTabResults": "تبويب التقرير: النتائج",
+      "reportTabCategories": "تبويب التقرير: الفئات",
+      "reportTabQualityGate": "تبويب التقرير: بوابة الجودة",
+      "reportTabGlobalAttachments": "تبويب التقرير: المرفقات العامة",
+      "reportTabGlobalErrors": "تبويب التقرير: الأخطاء العامة",
+      "reportTabNext": "التبويب التالي للتقرير",
+      "reportTabPrev": "التبويب السابق للتقرير",
+      "nextTest": "نتيجة الاختبار التالية",
+      "prevTest": "نتيجة الاختبار السابقة",
+      "testTabNext": "تبويب الاختبار التالي",
+      "testTabPrev": "تبويب الاختبار السابق",
+      "tabOverview": "تبويب النظرة العامة",
+      "tabHistory": "تبويب السجل",
+      "tabRetries": "تبويب إعادة المحاولات",
+      "tabAttachments": "تبويب المرفقات",
+      "tabEnvironments": "تبويب البيئات",
+      "toggleLabels": "إظهار/إخفاء التسميات",
+      "toggleParameters": "إظهار/إخفاء المعاملات",
+      "toggleLinks": "إظهار/إخفاء الروابط",
+      "backToTree": "العودة إلى الشجرة"
     }
   }
 }

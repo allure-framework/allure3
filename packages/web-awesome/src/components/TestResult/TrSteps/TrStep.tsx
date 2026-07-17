@@ -1,3 +1,9 @@
+import {
+  getNextSubtreeToggleState,
+  getSubtreeToggleIcon,
+  isSubtreeFirstLevelOnlyOpened,
+  type SubtreeToggleState,
+} from "@allurereport/web-commons";
 import { IconButton, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -10,17 +16,15 @@ import {
   collectExpandableStepNodes,
   hasStepContent,
   getStepTreeExpansionPolicy,
-  getNextSubtreeToggleState,
-  getSubtreeToggleIcon,
-  isSubtreeFirstLevelOnlyOpened,
+  isOpenByDefaultForPolicy,
   isStepOpenedByDefault,
   type SubtreeNode,
-  type SubtreeToggleState,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { TrStepHeader } from "@/components/TestResult/TrSteps/TrStepHeader";
 import { TrStepInfo } from "@/components/TestResult/TrSteps/TrStepInfo";
 import { isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
+import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -67,7 +71,8 @@ export const TrStepsContent = (props: { item: TrStepItem }) => {
 export const TrStep: FunctionComponent<{
   item: TrStepItem;
   stepIndex?: number;
-}> = ({ item, stepIndex }) => {
+  isTopLevel?: boolean;
+}> = ({ item, stepIndex, isTopLevel }) => {
   const { item: stepData, bodyItems, suppressInlineError } = item;
   const inlineError = {
     message: stepData.message ?? stepData.error?.message,
@@ -82,7 +87,9 @@ export const TrStep: FunctionComponent<{
   );
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
-  const openedByDefault = isStepOpenedByDefault(policy, stepData.status, bodyItems);
+  const openedByDefault = isTopLevel
+    ? isOpenByDefaultForPolicy(policy, true)
+    : isStepOpenedByDefault(policy, stepData.status, bodyItems);
   const isOpened = isTreeOpened(stepData.stepId, openedByDefault);
   const expandableDescendantNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasExpandableDescendants = expandableDescendantNodes.length > 0;
@@ -143,6 +150,8 @@ export const TrStep: FunctionComponent<{
   return (
     <div data-testid={"test-result-step"} className={styles["test-result-step"]}>
       <TrStepHeader
+        className={trOverviewHeaderFocusClass(stepData.stepId)}
+        {...trOverviewFocusAttrs(stepData.stepId)}
         title={stepData.name}
         status={stepData.status}
         stepIndex={stepIndex}

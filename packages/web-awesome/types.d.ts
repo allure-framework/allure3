@@ -14,6 +14,23 @@ import type {
 export type Layout = "base" | "split";
 export type StepTreeExpansion = "collapsed" | "expand_failed_only" | "expanded";
 
+export type AwesomeRunSummary = {
+  start: number;
+  stop: number;
+  duration: number;
+};
+
+export type AwesomeExecutorInfo = {
+  name?: string;
+  type?: string;
+  url?: string;
+  buildOrder?: number;
+  buildName?: string;
+  buildUrl?: string;
+  reportName?: string;
+  reportUrl?: string;
+};
+
 export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
@@ -28,7 +45,10 @@ export type AwesomeReportOptions = {
   sections?: string[];
   cacheKey: string;
   ci?: CiDescriptor;
+  executor?: AwesomeExecutorInfo;
+  runSummary?: AwesomeRunSummary;
   stepTreeExpansion?: StepTreeExpansion;
+  defaultSortBy?: string;
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -67,6 +87,7 @@ export type AwesomeTestResult = Omit<
   | "steps"
   | "environment"
 > & {
+  isRetry: boolean;
   setup: AwesomeFixtureResult[];
   teardown: AwesomeFixtureResult[];
   steps: AwesomeTestStepResult[];
@@ -98,6 +119,22 @@ export type AwesomeTreeLeaf = Pick<
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
 export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+
+export type AwesomeSearchDocument = {
+  id: string;
+  nodeId: string;
+  name: string;
+  fullName?: string;
+  historyId?: string;
+  labels?: string;
+  owner?: string;
+  tags?: string;
+  parameters?: string;
+  categories?: string;
+  statusMessage?: string;
+  links?: string;
+};
+
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */
@@ -105,6 +142,8 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
   leaves: AwesomeTreeLeaf[];
   trees: AwesomeRecursiveTree[];
+  duration: number;
+  groupOrder: number;
 };
 
 // TODO: maybe it should call `TestCase` instead of Group

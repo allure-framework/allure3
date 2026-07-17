@@ -1,14 +1,63 @@
 import { randomUUID } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { BufferResultFile } from "@allurereport/reader-api";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
+const generateCheckResultName = () => `${randomUUID()}-check.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
+const SIMPLE_ATTACHMENT_JSON = {
+  name: "Passed test",
+  fullName: "Simple Tests > Passed test",
+  status: "passed",
+  start: 1566219149481,
+  stop: 1566219149485,
+};
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("allure2");
+  await label("coverage", "reading");
+});
+
 describe("allure2 reader", () => {
+  it("should parse check result", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/check.json": generateCheckResultName(),
+    });
+
+    expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);
+    expect(visitor.visitTestResult).not.toHaveBeenCalled();
+    expect(visitor.visitCheckResult.mock.calls[0][0]).toEqual({
+      id: "0-0-0-0",
+      name: "Lint",
+      status: "passed",
+      tags: ["ci", "linux"],
+      details: {
+        command: "npm run lint",
+        message: "lint ok",
+      },
+    });
+  });
+
+  it("should match attachment files so they keep the allure2 reader context", async () => {
+    const attachment = new BufferResultFile(Buffer.from("content"), `${randomUUID()}-attachment.txt`);
+
+    expect(await allure2.matches?.(attachment)).toBe(true);
+  });
+
+  it("should match check result files", async () => {
+    const checkResult = new BufferResultFile(Buffer.from("{}"), `${randomUUID()}-check.json`);
+
+    expect(await allure2.matches?.(checkResult)).toBe(true);
+  });
+
   it("should parse simple result", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": generateTestResultName(),
@@ -118,8 +167,8 @@ describe("allure2 reader", () => {
 
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
-    expect(tr).toMatchObject({
-      labels: expect.arrayContaining([
+    expect(tr.labels).toEqual(
+      expect.arrayContaining([
         {
           name: "first",
           value: "first value",
@@ -139,7 +188,7 @@ describe("allure2 reader", () => {
           value: "only value",
         },
       ]),
-    });
+    );
   });
 
   it("should parse links", async () => {
@@ -149,8 +198,8 @@ describe("allure2 reader", () => {
 
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
-    expect(tr).toMatchObject({
-      links: expect.arrayContaining([
+    expect(tr.links).toEqual(
+      expect.arrayContaining([
         {
           name: "Default link",
           url: "https://example.org/",
@@ -177,7 +226,7 @@ describe("allure2 reader", () => {
           name: "https://example.org/name-as-url",
         },
       ]),
-    });
+    );
   });
 
   it("should parse parameters", async () => {
@@ -188,8 +237,8 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    expect(tr).toMatchObject({
-      parameters: expect.arrayContaining([
+    expect(tr.parameters).toEqual(
+      expect.arrayContaining([
         {
           name: "param 1",
           value: "value 1",
@@ -236,7 +285,7 @@ describe("allure2 reader", () => {
           masked: true,
         },
       ]),
-    });
+    );
   });
 
   it("should parse steps", async () => {
@@ -406,60 +455,57 @@ describe("allure2 reader", () => {
     expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
     const tr = visitor.visitTestResult.mock.calls[0][0];
 
-    expect(tr).toMatchObject({
-      steps: expect.arrayContaining([
-        expect.objectContaining({
-          name: "Some step with parameters",
-          parameters: expect.arrayContaining([
-            {
-              name: "param 1",
-              value: "value 1",
-              hidden: true,
-              masked: false,
-              excluded: true,
-            },
-            {
-              name: "param 2",
-              value: "value 2",
-              hidden: true,
-              masked: false,
-              excluded: false,
-            },
-            {
-              name: "param 3",
-              value: "value 3",
-              hidden: false,
-              masked: false,
-            },
-            {
-              name: "param 4",
-              value: "value 4",
-              hidden: true,
-              masked: false,
-            },
-            {
-              name: "param 5",
-              value: "value 5",
-              hidden: false,
-              masked: false,
-              excluded: true,
-            },
-            {
-              name: "param 6",
-              value: "value 6",
-              hidden: false,
-              masked: false,
-            },
-            {
-              name: "param 7",
-              value: "value 7",
-              hidden: false,
-              masked: true,
-            },
-          ]),
-        }),
+    const step = tr.steps.find((item) => item.name === "Some step with parameters");
+
+    expect(step?.parameters).toEqual(
+      expect.arrayContaining([
+        {
+          name: "param 1",
+          value: "value 1",
+          hidden: true,
+          masked: false,
+          excluded: true,
+        },
+        {
+          name: "param 2",
+          value: "value 2",
+          hidden: true,
+          masked: false,
+          excluded: false,
+        },
+        {
+          name: "param 3",
+          value: "value 3",
+          hidden: false,
+          masked: false,
+        },
+        {
+          name: "param 4",
+          value: "value 4",
+          hidden: true,
+          masked: false,
+        },
+        {
+          name: "param 5",
+          value: "value 5",
+          hidden: false,
+          masked: false,
+          excluded: true,
+        },
+        {
+          name: "param 6",
+          value: "value 6",
+          hidden: false,
+          masked: false,
+        },
+        {
+          name: "param 7",
+          value: "value 7",
+          hidden: false,
+          masked: true,
+        },
       ]),
-    });
+    );
   });
 
   it("should parse step attachments", async () => {
@@ -723,15 +769,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should add attachments without extension", async () => {
@@ -744,15 +782,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should add attachments with complex extension", async () => {
@@ -765,15 +795,7 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
-  "name": "Passed test",
-  "fullName": "Simple Tests > Passed test",
-  "status": "passed",
-  "start": 1566219149481,
-  "stop": 1566219149485
-}
-"
-`);
+    expect(JSON.parse((await file.asUtf8String()) as string)).toEqual(SIMPLE_ATTACHMENT_JSON);
   });
 
   it("should parse environment.properties", async () => {

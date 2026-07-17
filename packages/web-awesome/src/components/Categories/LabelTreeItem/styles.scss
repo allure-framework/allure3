@@ -1,6 +1,6 @@
 .tree-item-label {
   padding: 0;
-  border-top: 1px solid var(--on-border-muted);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .tree-item-label-status {
@@ -73,7 +73,7 @@
 }
 
 .tree-item-label-bubble {
-  background: var(--on-border-primary);
+  background: var(--color-border-default);
   border-radius: 4px;
   padding: 2px 4px;
   line-height: 16px;

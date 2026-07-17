@@ -1,5 +1,6 @@
 import type { DefaultTestStepResult, TestResult } from "@allurereport/core-api";
-import { type MockedFunction, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type MockedFunction, vi } from "vitest";
 
 import {
   hasResultFailedSteps,
@@ -10,6 +11,9 @@ import {
   stringifyTestResultTitle,
 } from "../src/utils.js";
 
+beforeEach(async () => {
+  await story("utils");
+});
 const glueConsoleCalls = (calls: any[]) => calls.flatMap((args: any[]) => args[0]).join("\n");
 
 describe("utils", () => {

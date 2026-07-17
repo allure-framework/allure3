@@ -20,7 +20,7 @@ const Header = () => {
   const { t } = useI18n("statuses");
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-tree-sticky-header>
       <HeaderActions />
       <div className={styles.headerRow}>
         <ReportTabsList>

@@ -2,29 +2,29 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-severity-text {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .severity-blocker {
-  color: var(--on-support-capella);
+  color: var(--color-intent-danger-text);
 }
 
 .severity-critical {
-  color: var(--on-support-atlas);
+  color: var(--color-intent-warning-text);
 }
 
 .severity-normal {
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }
 
 .severity-minor {
-  color: var(--on-support-aldebaran);
+  color: var(--color-intent-primary-text);
 }
 
 .severity-trivial {
-  color: var(--on-support-castor);
+  color: var(--color-intent-success-text);
 }

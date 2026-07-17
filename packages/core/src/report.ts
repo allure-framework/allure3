@@ -1,8 +1,8 @@
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { EventEmitter } from "node:events";
-import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
-import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { once } from "node:events";
+import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
+import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
@@ -13,8 +13,8 @@ import type {
   AllureHistory,
   CategoryDefinition,
   CiDescriptor,
+  HistoryDataPoint,
   KnownTestFailure,
-  ReportVariables,
   TestResult,
 } from "@allurereport/core-api";
 import { normalizeCategoriesConfig } from "@allurereport/core-api";
@@ -23,6 +23,7 @@ import {
   AllureStoreDumpFiles,
   type Plugin,
   type PluginContext,
+  type PluginReportFile,
   type PluginState,
   type PluginSummary,
   type ReportFiles,
@@ -31,12 +32,18 @@ import {
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import {
+  AllureRemoteHistory,
+  AllureServiceClient,
+  AllureTestOpsClient,
+  type AllureServiceApiClient,
+  KnownError,
+  UnknownError,
+} from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
 import pLimit from "p-limit";
-import ProgressBar from "progress";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -45,29 +52,67 @@ import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
-import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { measurePerf, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, startPerfSpan, writePerfMetrics } from "./utils/perf.js";
+import { RealtimeChannel } from "./utils/realtimeChannel.js";
+import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-const initRequired = "report is not initialised. Call the start() method first.";
+const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
+const DEFAULT_READ_CONCURRENCY = 64;
+const MAX_READ_CONCURRENCY = 256;
+
+const readConcurrency = () => {
+  const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
+
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_READ_CONCURRENCY;
+  }
+
+  return Math.min(MAX_READ_CONCURRENCY, Math.max(1, parsed));
+};
+
+const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
+
+const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
+  const repo = ci?.repoName;
+  const branch = ci?.jobRunBranch;
+
+  return repo && branch ? { repo, branch } : {};
+};
+
+const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
+
+const closeReadStream = async (stream: ReadStream): Promise<void> => {
+  if (stream.closed) {
+    return;
+  }
+
+  const closed = once(stream, "close").then(() => undefined);
+
+  if (!stream.destroyed) {
+    stream.destroy();
+  }
+
+  await closed.catch(() => undefined);
+};
 
 export class AllureReport {
-  readonly #reportName: string;
-  readonly #reportVariables: ReportVariables;
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
-  readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
-  readonly #realtimeSubscriber: RealtimeSubscriber;
-  readonly #realtimeDispatcher: RealtimeEventsDispatcher;
+  readonly #realtimeChannel: RealtimeChannel;
+  readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #analyticsEnable: boolean;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
-  readonly #allureServiceClient: AllureServiceClient | undefined;
+  readonly #appendHistory: boolean;
+  readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
@@ -77,8 +122,15 @@ export class AllureReport {
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
   #executionStage: "init" | "running" | "done" = "init";
+  #historyDataPoint?: HistoryDataPoint;
+  #summaryPath?: string;
+  #summariesByPluginId: Map<string, PluginSummary> = new Map();
+  #publishedRemoteHrefs: Set<string> = new Set();
+  #published = false;
+  #endGeneratePerfSpan?: () => void;
 
   readonly reportUuid: string;
+  readonly reportName: string;
   reportUrl?: string;
 
   constructor(opts: FullConfig) {
@@ -91,6 +143,7 @@ export class AllureReport {
       realTime,
       historyPath,
       historyLimit,
+      appendHistory,
       defaultLabels = {},
       variables = {},
       environment,
@@ -102,39 +155,50 @@ export class AllureReport {
       qualityGate,
       dump,
       categories,
-      allureService: allureServiceConfig,
+      allureService,
       globalAttachments,
     } = opts;
+    const allureServiceAccessToken = allureService?.accessToken;
 
-    this.#allureServiceClient = allureServiceConfig?.accessToken
-      ? new AllureServiceClient(allureServiceConfig)
-      : undefined;
+    if (allureServiceAccessToken) {
+      const allureServiceClientConfig = {
+        ...allureService,
+        accessToken: allureServiceAccessToken,
+      };
+
+      this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")
+        ? new AllureTestOpsClient(allureServiceClientConfig)
+        : allureServiceAccessToken.startsWith("ars1.")
+          ? new AllureServiceClient(allureServiceClientConfig)
+          : undefined;
+    }
+
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
-    this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
-    this.#reportVariables = variables;
-    this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
-    this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
-    this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
+    this.reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
+    this.#realtimeChannel = new RealtimeChannel();
+    this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
     this.#analyticsEnable = isAnalyticsEnabled(analyticsEnable);
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
+    this.#appendHistory = appendHistory ?? true;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
     }
+
     this.#categories = normalizeCategoriesConfig(categories);
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
-        branch: this.#ci?.jobRunBranch,
+        ...remoteReportParams(this.#ci),
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
@@ -145,8 +209,8 @@ export class AllureReport {
     }
 
     this.#store = new DefaultAllureStore({
-      realtimeSubscriber: this.#realtimeSubscriber,
-      realtimeDispatcher: this.#realtimeDispatcher,
+      realtimeSubscriber: this.#realtimeChannel.subscriber,
+      realtimeDispatcher: this.#realtimeChannel.dispatcher,
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
@@ -170,57 +234,243 @@ export class AllureReport {
   }
 
   get realtimeSubscriber(): RealtimeSubscriber {
-    return this.#realtimeSubscriber;
+    return this.#realtimeChannel.subscriber;
   }
 
   get realtimeDispatcher(): RealtimeEventsDispatcher {
-    return this.#realtimeDispatcher;
+    return this.#realtimeChannel.dispatcher;
   }
 
-  get #publish() {
-    return this.#plugins.some(({ enabled, options }) => enabled && options.publish);
-  }
-
-  readDirectory = async (resultsDir: string) => {
-    if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
-    }
-
-    const resultsDirPath = resolve(resultsDir);
-
-    if (await readXcResultBundle(this.#store, resultsDirPath)) {
+  #publish = async (): Promise<void> => {
+    if (this.#published) {
       return;
     }
 
-    const dir = await opendir(resultsDirPath);
+    if (this.#executionStage !== "done") {
+      throw new Error("report is not completed. Call the done() method first.");
+    }
+
+    let historyPoint = this.#historyDataPoint;
+
+    if (!historyPoint) {
+      const allTrs = await this.#store.allTestResults();
+      const allTcs = await this.#store.allTestCases();
+
+      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      this.#historyDataPoint = historyPoint;
+    }
+
+    await this.#writeSummaryFiles();
+    await this.#generateRootSummary();
+
+    if (this.#realTime || !this.#allureServiceClient) {
+      this.#published = true;
+      return;
+    }
+
+    const reportsToPublish = (await this.#getReportsToPublish()).filter(
+      (report) => report.publish && Object.keys(report.files).length > 0,
+    );
+
+    if (reportsToPublish.length === 0) {
+      this.#published = true;
+      return;
+    }
+
+    const client = this.#allureServiceClient;
+    const linksByPluginId: Record<string, string> = {};
+    const summariesSnapshot = this.#cloneSummariesByPluginId();
+    const uploadProgressMessage =
+      reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
+    const totalFilesToUpload = reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0);
+    const progressStep = Math.max(1, Math.ceil(totalFilesToUpload / 20));
+    let summariesMutated = false;
+    let reportCreated = false;
+    let publishErrorMessage = "Report upload has failed, the report won't be published";
+    let uploadedFiles = 0;
+    let nextProgressLogAt = 0;
+    let lastProgressLog = -1;
+    const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
+    const logUploadProgress = (force = false) => {
+      if (force && uploadedFiles === lastProgressLog) {
+        return;
+      }
+
+      if (!force && uploadedFiles < nextProgressLogAt && uploadedFiles !== totalFilesToUpload) {
+        return;
+      }
+
+      if (!force && uploadedFiles === lastProgressLog) {
+        return;
+      }
+
+      console.info(`[AllureReport]: ${uploadProgressMessage}: ${uploadedFiles}/${totalFilesToUpload} files uploaded`);
+
+      lastProgressLog = uploadedFiles;
+      nextProgressLogAt = Math.min(totalFilesToUpload, uploadedFiles + progressStep);
+    };
+    const incrementUploadProgress = (delta = 1) => {
+      uploadedFiles = Math.min(totalFilesToUpload, uploadedFiles + delta);
+      logUploadProgress();
+    };
 
     try {
-      for await (const dirent of dir) {
-        if (dirent.isFile()) {
-          const path = await realpath(join(dirent.parentPath ?? dirent.path, dirent.name));
+      logUploadProgress(true);
 
-          await this.readResult(new PathResultFile(path, dirent.name));
+      await client.createReport({
+        reportUuid: this.reportUuid,
+        reportName: this.reportName,
+        ...remoteReportParams(this.#ci),
+      });
+
+      reportCreated = true;
+
+      for (const report of reportsToPublish) {
+        publishErrorMessage = `Plugin "${report.pluginId}" upload has failed, the plugin won't be published`;
+        const reportFiles = Object.fromEntries(
+          Object.entries(report.files).filter(([filename]) => filename !== "summary.json"),
+        ) as Record<string, string>;
+
+        const uploadResult = await measurePerf(`${PERF_METRIC_PREFIXES.publishUploadPlugin}${report.pluginId}`, () =>
+          client.uploadReport({
+            reportUuid: this.reportUuid,
+            pluginId: report.pluginId,
+            files: reportFiles,
+            onProgress: incrementUploadProgress,
+          }),
+        );
+
+        if (uploadResult.indexHref) {
+          linksByPluginId[report.pluginId] = uploadResult.indexHref;
         }
       }
-    } catch (e) {
-      console.error("can't read directory", e);
+
+      const changedPluginIds = this.#applyPublishLinksToSummaries(linksByPluginId);
+
+      summariesMutated = changedPluginIds.size > 0;
+
+      if (changedPluginIds.size > 0) {
+        await this.#writeSummaryFiles();
+        await this.#generateRootSummary();
+      }
+
+      const updatedReports = await this.#getReportsToPublish();
+      const updatedReportsByPluginId = new Map(updatedReports.map((report) => [report.pluginId, report]));
+
+      for (const report of reportsToPublish) {
+        const updatedReport = updatedReportsByPluginId.get(report.pluginId) ?? report;
+        const summaryFilepath = updatedReport.files["summary.json"];
+
+        if (!summaryFilepath) {
+          continue;
+        }
+
+        publishErrorMessage = `Plugin "${report.pluginId}" summary upload has failed, the plugin won't be published`;
+
+        await client.uploadReport({
+          reportUuid: this.reportUuid,
+          pluginId: updatedReport.pluginId,
+          files: { "summary.json": summaryFilepath },
+          onProgress: incrementUploadProgress,
+        });
+      }
+
+      publishErrorMessage = "Report summary upload has failed, the report won't be published";
+
+      const summaryHref = this.#summaryPath
+        ? (await client.uploadReport({ reportUuid: this.reportUuid, files: { "index.html": this.#summaryPath } }))
+            .indexHref
+        : undefined;
+
+      publishErrorMessage = "Report completion has failed, the report won't be published";
+
+      await client.completeReport({
+        reportUuid: this.reportUuid,
+        historyPoint,
+      });
+
+      Object.values(linksByPluginId)
+        .filter(Boolean)
+        .forEach((href) => this.#publishedRemoteHrefs.add(href));
+
+      if (summaryHref) {
+        this.#publishedRemoteHrefs.add(summaryHref);
+      }
+
+      this.#published = true;
+      logUploadProgress(true);
+    } catch (err) {
+      if (reportCreated) {
+        await this.#cleanupFailedRemoteReport(client);
+      }
+
+      if (summariesMutated) {
+        this.#summariesByPluginId = summariesSnapshot;
+        await this.#writeSummaryFiles();
+        await this.#generateRootSummary();
+      }
+
+      this.#logPublishError(publishErrorMessage, err);
+    } finally {
+      endPublishPerfSpan();
     }
   };
 
-  readFile = async (resultsFile: string) => {
-    if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
-    }
-    await this.readResult(new PathResultFile(resultsFile));
-  };
+  readDirectory = async (resultsDir: string) =>
+    measurePerf(PERF_METRIC_NAMES.generateReadResults, async () => {
+      if (this.#executionStage !== "running") {
+        throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
+      }
+
+      const resultsDirPath = resolve(resultsDir);
+
+      if (await readXcResultBundle(this.#store, resultsDirPath)) {
+        return;
+      }
+
+      try {
+        const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
+          .filter((dirent) => dirent.isFile())
+          .sort((a, b) => a.name.localeCompare(b.name));
+        const limit = pLimit(readConcurrency());
+
+        await Promise.all(
+          entries.map((dirent) =>
+            limit(async () => {
+              try {
+                const path = await realpath(join(resultsDirPath, dirent.name));
+
+                await this.readResult(new PathResultFile(path, dirent.name));
+              } catch (e) {
+                console.error(`can't read result file ${dirent.name}`, e);
+              }
+            }),
+          ),
+        );
+      } catch (e) {
+        console.error("can't read directory", e);
+      }
+    });
+
+  readFile = async (resultsFile: string) =>
+    measurePerf(PERF_METRIC_NAMES.generateReadResults, async () => {
+      if (this.#executionStage !== "running") {
+        throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
+      }
+      await this.readResult(new PathResultFile(resultsFile));
+    });
 
   readResult = async (data: ResultFile) => {
     if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
+      throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
     }
 
     for (const reader of this.#readers) {
       try {
+        if (reader.matches && !(await reader.matches(data))) {
+          continue;
+        }
+
         const processed = await reader.read(this.#store, data);
 
         if (processed) {
@@ -253,8 +503,6 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    const branch = this.#ci?.jobRunBranch;
-
     await this.#store.readHistory();
 
     if (this.#executionStage === "running") {
@@ -266,6 +514,7 @@ export class AllureReport {
     }
 
     this.#executionStage = "running";
+    this.#endGeneratePerfSpan = startPerfSpan(PERF_METRIC_NAMES.generateTotal);
 
     const cwd = resolve(process.cwd());
     const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
@@ -289,463 +538,636 @@ export class AllureReport {
 
         const originalFileName = basename(absoluteFilePath);
 
-        this.#realtimeDispatcher.sendGlobalAttachment(
+        this.#realtimeChannel.dispatcher.sendGlobalAttachment(
           new PathResultFile(absoluteFilePath, originalFileName),
           originalFileName,
         );
       }
     }
 
-    // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish && branch) {
-      const { url } = await this.#allureServiceClient.createReport({
-        reportUuid: this.reportUuid,
-        reportName: this.#reportName,
-        branch,
-      });
-
-      this.reportUrl = url;
-    }
-
     await this.#eachPlugin(true, async (plugin, context) => {
-      await plugin.start?.(context, this.#store, this.#realtimeSubscriber);
+      await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
     });
 
     if (this.#realTime) {
-      await this.#update();
+      await this.#runRealtimeUpdate();
 
-      this.#realtimeSubscriber.onAll(async () => {
-        await this.#update();
+      this.#realtimeChannel.onResultLikeChanged(() => {
+        this.#realtimeUpdateScheduler.request();
       });
     }
   };
 
-  #update = async (): Promise<void> => {
+  #runRealtimeUpdate = async (): Promise<void> => {
     if (this.#executionStage !== "running") {
       return;
     }
+
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.update?.(context, this.#store);
     });
   };
 
   dumpState = async (): Promise<void> => {
-    const {
+    const dumpArchive = new ZipWriteStream({
+      zlib: { level: 5 },
+    });
+    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
+    const dumpPath = `${this.#dump}.zip`;
+    const dumpTempPath = `${dumpPath}.${randomUUID()}.tmp`;
+    const dumpArchiveWriteStream = createWriteStream(dumpTempPath);
+    let dumpArchiveError: unknown;
+    let dumpArchiveFinished = false;
+    let resolveDumpArchivePromise: (() => void) | undefined;
+    const finishDumpArchive = (err?: unknown) => {
+      dumpArchiveError ??= err;
+
+      if (!dumpArchiveFinished) {
+        dumpArchiveFinished = true;
+        resolveDumpArchivePromise?.();
+      }
+    };
+    const dumpArchivePromise = new Promise<void>((res) => {
+      resolveDumpArchivePromise = res;
+
+      dumpArchive.on("error", (err) => {
+        dumpArchiveWriteStream.destroy();
+        finishDumpArchive(err);
+      });
+      dumpArchiveWriteStream.on("finish", () => finishDumpArchive());
+      dumpArchiveWriteStream.on("error", (err) => finishDumpArchive(err));
+    });
+    const errMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
+    const addDumpEntry = async (data: Buffer | ReadStream, entryName: string): Promise<unknown | undefined> => {
+      try {
+        await addEntry(data, { name: entryName });
+        return undefined;
+      } catch (err) {
+        return err;
+      }
+    };
+    const addRequiredDumpEntry = async (data: Buffer, entryName: string) => {
+      const err = await addDumpEntry(data, entryName);
+
+      if (err) {
+        throw new Error(`Failed to write dump entry "${entryName}": ${errMessage(err)}`);
+      }
+    };
+    const addJsonDumpEntry = async (entryName: AllureStoreDumpFiles, value: unknown) => {
+      await addRequiredDumpEntry(Buffer.from(JSON.stringify(value)), entryName);
+    };
+    const dumpJsonEntries = ({
       testResults,
       testCases,
       fixtures,
-      attachments: attachmentsLinks,
+      attachments,
       environments,
+      reportVariables,
+      checkResults = {},
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
-      indexLatestEnvTestResultByHistoryId = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
-    } = this.#store.dumpState();
-    const allAttachments = await this.#store.allAttachments();
-    const dumpArchive = new ZipWriteStream({
-      zlib: { level: 5 },
-    });
-    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
-    const dumpArchiveWriteStream = createWriteStream(`${this.#dump}.zip`);
-    const promise = new Promise((res, rej) => {
-      dumpArchive.on("error", (err) => rej(err));
-      dumpArchiveWriteStream.on("finish", () => res(void 0));
-      dumpArchiveWriteStream.on("error", (err) => rej(err));
-    });
+      testResultIdsIngestOrder = [],
+    }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
+      [AllureStoreDumpFiles.TestResults, testResults],
+      [AllureStoreDumpFiles.TestCases, testCases],
+      [AllureStoreDumpFiles.Fixtures, fixtures],
+      [AllureStoreDumpFiles.Attachments, attachments],
+      [AllureStoreDumpFiles.CheckResults, checkResults],
+      [AllureStoreDumpFiles.Environments, environments],
+      [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
+      [AllureStoreDumpFiles.GlobalErrors, globalErrors],
+      [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
+      [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
+      [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
+      [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
+      [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
+      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
+      [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
+      [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
+    ];
+    let dumpError: unknown;
 
     dumpArchive.pipe(dumpArchiveWriteStream);
 
-    await addEntry(Buffer.from(JSON.stringify(testResults)), {
-      name: AllureStoreDumpFiles.TestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(testCases)), {
-      name: AllureStoreDumpFiles.TestCases,
-    });
-    await addEntry(Buffer.from(JSON.stringify(fixtures)), {
-      name: AllureStoreDumpFiles.Fixtures,
-    });
-    await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
-      name: AllureStoreDumpFiles.Attachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(environments)), {
-      name: AllureStoreDumpFiles.Environments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
-      name: AllureStoreDumpFiles.ReportVariables,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalAttachmentIds)), {
-      name: AllureStoreDumpFiles.GlobalAttachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
-      name: AllureStoreDumpFiles.GlobalErrors,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByTestCase)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByTestCase,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexLatestEnvTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByFixture)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByFixture,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexFixturesByTestResult)), {
-      name: AllureStoreDumpFiles.IndexFixturesByTestResult,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexKnownByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(qualityGateResults)), {
-      name: AllureStoreDumpFiles.QualityGateResults,
-    });
+    try {
+      const allAttachments = await this.#store.allAttachments();
 
-    for (const attachment of allAttachments) {
-      const content = await this.#store.attachmentContentById(attachment.id);
+      for (const attachment of allAttachments) {
+        const skipAttachment = (message: string) => {
+          const originalFileName = attachment.originalFileName ? ` (${attachment.originalFileName})` : "";
 
-      if (!content) {
-        continue;
-      }
+          this.#store.markAttachmentMissed(attachment.id);
+          console.warn(`Skipping attachment while writing dump: ${attachment.id}${originalFileName}. ${message}`);
+        };
 
-      if (content instanceof PathResultFile) {
-        await addEntry(createReadStream(content.path), {
-          name: attachment.id,
-        });
-      } else {
-        await addEntry(await content.asBuffer(), {
-          name: attachment.id,
-        });
-      }
-    }
+        try {
+          const content = await this.#store.attachmentContentById(attachment.id);
 
-    dumpArchive.finalize();
+          if (!content) {
+            skipAttachment("attachment content is missing");
+            continue;
+          }
 
-    return promise as Promise<void>;
-  };
+          if (content instanceof PathResultFile) {
+            const stream = createReadStream(content.path);
+            const err = await addDumpEntry(stream, attachment.id);
 
-  restoreState = async (dumps: string[]): Promise<void> => {
-    for (const dump of dumps) {
-      if (!existsSync(dump)) {
-        continue;
-      }
+            if (err) {
+              await closeReadStream(stream);
+              skipAttachment(`failed to add attachment entry: ${errMessage(err)}`);
+            }
 
-      const dumpArchive = new ZipReadStream.async({
-        file: dump,
-      });
-      const testResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestResults);
-      const testCasesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestCases);
-      const fixturesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Fixtures);
-      const attachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Attachments);
-      const environmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Environments);
-      const reportVariablesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.ReportVariables);
-      const globalAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalAttachments);
-      const globalErrorsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalErrors);
-      const indexAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
-      const indexTestResultsByHistoryId = await dumpArchive.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
-      const indexTestResultsByTestCaseEntry = await dumpArchive.entryData(
-        AllureStoreDumpFiles.IndexTestResultsByTestCase,
-      );
-      const indexLatestEnvTestResultsByHistoryIdEntry = await dumpArchive.entryData(
-        AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-      );
-      const indexAttachmentsByFixtureEntry = await dumpArchive.entryData(
-        AllureStoreDumpFiles.IndexAttachmentsByFixture,
-      );
-      const indexFixturesByTestResultEntry = await dumpArchive.entryData(
-        AllureStoreDumpFiles.IndexFixturesByTestResult,
-      );
-      const indexKnownByHistoryIdEntry = await dumpArchive.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-      const qualityGateResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.QualityGateResults);
+            continue;
+          }
 
-      const attachmentsEntries = Object.entries(await dumpArchive.entries()).reduce((acc, [entryName, entry]) => {
-        switch (entryName) {
-          case AllureStoreDumpFiles.Attachments:
-          case AllureStoreDumpFiles.TestResults:
-          case AllureStoreDumpFiles.TestCases:
-          case AllureStoreDumpFiles.Fixtures:
-          case AllureStoreDumpFiles.Environments:
-          case AllureStoreDumpFiles.ReportVariables:
-          case AllureStoreDumpFiles.GlobalAttachments:
-          case AllureStoreDumpFiles.GlobalErrors:
-          case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
-          case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
-          case AllureStoreDumpFiles.IndexTestResultsByTestCase:
-          case AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId:
-          case AllureStoreDumpFiles.IndexAttachmentsByFixture:
-          case AllureStoreDumpFiles.IndexFixturesByTestResult:
-          case AllureStoreDumpFiles.IndexKnownByHistoryId:
-          case AllureStoreDumpFiles.QualityGateResults:
-            return acc;
-          default:
-            return Object.assign(acc, {
-              [entryName]: entry,
-            });
+          const data = await content.asBuffer();
+
+          if (data === undefined) {
+            skipAttachment("attachment content is missing");
+            continue;
+          }
+
+          const err = await addDumpEntry(data, attachment.id);
+
+          if (err) {
+            skipAttachment(`failed to add attachment entry: ${errMessage(err)}`);
+          }
+        } catch (err) {
+          skipAttachment(errMessage(err));
         }
-      }, {});
-      const dumpState: AllureStoreDump = {
-        testResults: JSON.parse(testResultsEntry.toString("utf8")),
-        testCases: JSON.parse(testCasesEntry.toString("utf8")),
-        fixtures: JSON.parse(fixturesEntry.toString("utf8")),
-        attachments: JSON.parse(attachmentsEntry.toString("utf8")),
-        environments: JSON.parse(environmentsEntry.toString("utf8")),
-        reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
-        globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
-        globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
-        indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
-        indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
-        indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
-        indexLatestEnvTestResultByHistoryId: JSON.parse(indexLatestEnvTestResultsByHistoryIdEntry.toString("utf8")),
-        indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
-        indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-        indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
-        qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
-      };
-      const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
-      const resultsAttachments: Record<string, ResultFile> = {};
+      }
 
-      this.#dumpTempDirs.push(dumpTempDir);
-
+      for (const [entryName, value] of dumpJsonEntries(this.#store.dumpState())) {
+        await addJsonDumpEntry(entryName, value);
+      }
+    } catch (err) {
+      dumpError = err;
+    } finally {
       try {
-        for (const [attachmentId] of Object.entries(attachmentsEntries)) {
-          const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
-          const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
-
-          await writeFile(attachmentFilePath, attachmentContentEntry);
-
-          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
-        }
+        dumpArchive.finalize();
       } catch (err) {
-        if (err instanceof UnsafeDumpPathError) {
-          console.error(
-            `Cannot restore dump from "${dump}": the archive lists attachment paths that would write outside the extract directory (unsafe zip paths such as "../" or absolute names).`,
-          );
-          console.error(err.message);
-          console.error(
-            "Only use dump archives produced by this tool; do not load untrusted or third-party --dump zip files.",
-          );
-          throw err;
-        }
-        console.error(`Can't restore state from "${dump}", continuing without it`);
-        console.error(err);
+        dumpError ??= err;
+        dumpArchiveWriteStream.destroy();
+        finishDumpArchive(err);
       }
 
-      await this.#store.restoreState(dumpState, resultsAttachments);
+      await dumpArchivePromise;
+    }
 
-      console.info(`Successfully restored state from "${dump}"`);
+    dumpError ??= dumpArchiveError;
+
+    if (dumpError) {
+      await rm(dumpTempPath, { force: true });
+      throw dumpError;
+    }
+
+    await rename(dumpTempPath, dumpPath);
+  };
+
+  restoreState = async (dumps: string[]): Promise<void> =>
+    measurePerf(PERF_METRIC_NAMES.restoreStateTotal, async () => {
+      for (const dump of dumps) {
+        await measurePerf(PERF_METRIC_NAMES.restoreStateDump, async () => {
+          if (!existsSync(dump)) {
+            console.error(`Failed to restore state from "${dump}", continuing without it`);
+            console.error("Dump file does not exist");
+            return;
+          }
+
+          try {
+            const dumpArchive = new ZipReadStream.async({
+              file: dump,
+            });
+            let restoreError: unknown;
+
+            try {
+              const dumpEntries = await dumpArchive.entries();
+              const dumpEntriesList = Object.entries(dumpEntries);
+              const requiredEntryData = async (entryName: AllureStoreDumpFiles) => {
+                if (!dumpEntries[entryName]) {
+                  throw new Error(`Missing required dump entry "${entryName}"`);
+                }
+
+                return dumpArchive.entryData(entryName);
+              };
+              const optionalEntryData = async (entryName: AllureStoreDumpFiles) =>
+                dumpEntries[entryName] ? dumpArchive.entryData(entryName) : undefined;
+
+              if (!dumpEntries[AllureStoreDumpFiles.TestResults]) {
+                const nestedDumpEntries = dumpEntriesList.filter(
+                  ([entryName, entry]) =>
+                    !entry.isDirectory &&
+                    !entryName.startsWith("__MACOSX/") &&
+                    !basename(entryName).startsWith("._") &&
+                    entryName.toLowerCase().endsWith(".zip"),
+                );
+
+                if (nestedDumpEntries.length > 0) {
+                  const nestedDumpsTempDir = await mkdtemp(join(tmpdir(), `${basename(dump, ".zip")}-nested-`));
+                  const nestedDumpPaths: string[] = [];
+
+                  this.#dumpTempDirs.push(nestedDumpsTempDir);
+
+                  for (const [entryName] of nestedDumpEntries) {
+                    const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumpPaths.length}-${basename(entryName)}`);
+
+                    await writeFile(nestedDumpPath, await dumpArchive.entryData(entryName));
+                    nestedDumpPaths.push(nestedDumpPath);
+                  }
+
+                  await this.restoreState(nestedDumpPaths);
+                  return;
+                }
+              }
+
+              const testResultsEntry = await requiredEntryData(AllureStoreDumpFiles.TestResults);
+              const testCasesEntry = await requiredEntryData(AllureStoreDumpFiles.TestCases);
+              const fixturesEntry = await requiredEntryData(AllureStoreDumpFiles.Fixtures);
+              const attachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Attachments);
+              const checkResultsEntry = await optionalEntryData(AllureStoreDumpFiles.CheckResults);
+              const environmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Environments);
+              const reportVariablesEntry = await requiredEntryData(AllureStoreDumpFiles.ReportVariables);
+              const globalAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalAttachments);
+              const globalErrorsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalErrors);
+              const indexAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
+              const indexTestResultsByHistoryId = await requiredEntryData(
+                AllureStoreDumpFiles.IndexTestResultsByHistoryId,
+              );
+              const indexTestResultsByTestCaseEntry = await requiredEntryData(
+                AllureStoreDumpFiles.IndexTestResultsByTestCase,
+              );
+              const indexAttachmentsByFixtureEntry = await requiredEntryData(
+                AllureStoreDumpFiles.IndexAttachmentsByFixture,
+              );
+              const indexFixturesByTestResultEntry = await requiredEntryData(
+                AllureStoreDumpFiles.IndexFixturesByTestResult,
+              );
+              const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+              const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
+              const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
+              const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
+
+              const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
+                switch (entryName) {
+                  case AllureStoreDumpFiles.Attachments:
+                  case AllureStoreDumpFiles.CheckResults:
+                  case AllureStoreDumpFiles.TestResults:
+                  case AllureStoreDumpFiles.TestCases:
+                  case AllureStoreDumpFiles.Fixtures:
+                  case AllureStoreDumpFiles.Environments:
+                  case AllureStoreDumpFiles.ReportVariables:
+                  case AllureStoreDumpFiles.GlobalAttachments:
+                  case AllureStoreDumpFiles.GlobalErrors:
+                  case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
+                  case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
+                  case AllureStoreDumpFiles.IndexTestResultsByTestCase:
+                  case AllureStoreDumpFiles.IndexAttachmentsByFixture:
+                  case AllureStoreDumpFiles.IndexFixturesByTestResult:
+                  case AllureStoreDumpFiles.IndexKnownByHistoryId:
+                  case AllureStoreDumpFiles.QualityGateResults:
+                  case AllureStoreDumpFiles.TestResultIngestOrder:
+                    return acc;
+                  default:
+                    if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
+                      return acc;
+                    }
+
+                    return Object.assign(acc, {
+                      [entryName]: entry,
+                    });
+                }
+              }, {});
+              const dumpState: AllureStoreDump = {
+                testResults: JSON.parse(testResultsEntry.toString("utf8")),
+                testCases: JSON.parse(testCasesEntry.toString("utf8")),
+                fixtures: JSON.parse(fixturesEntry.toString("utf8")),
+                attachments: attachmentsLinks,
+                checkResults: checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : [],
+                environments: JSON.parse(environmentsEntry.toString("utf8")),
+                reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
+                globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
+                globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
+                indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
+                indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
+                indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
+                indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
+                indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
+                indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+                qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
+                testResultIdsIngestOrder: testResultIngestOrderEntry
+                  ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
+                  : [],
+              };
+              const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
+              const resultsAttachments: Record<string, ResultFile> = {};
+
+              this.#dumpTempDirs.push(dumpTempDir);
+
+              await measurePerf(PERF_METRIC_NAMES.restoreStateAttachments, async () => {
+                try {
+                  for (const [attachmentId] of Object.entries(attachmentsEntries)) {
+                    const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
+                    const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
+
+                    await writeFile(attachmentFilePath, attachmentContentEntry);
+
+                    resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
+                  }
+                } catch (err) {
+                  if (err instanceof UnsafeDumpPathError) {
+                    console.error(
+                      `Cannot restore dump from "${dump}": the archive lists attachment paths that would write outside the extract directory (unsafe zip paths such as "../" or absolute names).`,
+                    );
+                    console.error(err.message);
+                    console.error(
+                      "Only use dump archives produced by this tool; do not load untrusted or third-party --dump zip files.",
+                    );
+                    throw err;
+                  }
+                  console.error(`Can't restore attachment contents from "${dump}", continuing without them`);
+                  console.error(errorDetails(err));
+                }
+              });
+
+              await measurePerf(PERF_METRIC_NAMES.restoreStateStoreRestore, async () =>
+                this.#store.restoreState(dumpState, resultsAttachments),
+              );
+
+              console.info(`Successfully restored state from "${dump}"`);
+            } catch (err) {
+              restoreError = err;
+              throw err;
+            } finally {
+              try {
+                await dumpArchive.close();
+              } catch (err) {
+                if (!restoreError) {
+                  console.error(`Failed to close dump archive "${dump}"`);
+                  console.error(errorDetails(err));
+                }
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to restore state from "${dump}", continuing without it`);
+            console.error(errorDetails(err));
+          }
+        });
+      }
+    });
+
+  #getReportsToPublish = async (): Promise<PluginReportFile[]> => {
+    const reports: PluginReportFile[] = [];
+
+    for (const { enabled, id, options } of this.#plugins) {
+      if (!enabled) {
+        continue;
+      }
+
+      const files = (await this.#state?.[id]?.get<Record<string, string>>("files")) ?? {};
+
+      reports.push({
+        pluginId: id,
+        publish: !!options?.publish,
+        files,
+      });
+    }
+
+    return reports;
+  };
+
+  #cleanupFailedRemoteReport = async (client: AllureServiceApiClient): Promise<void> => {
+    try {
+      await client.deleteReport({
+        reportUuid: this.reportUuid,
+      });
+    } catch (cleanupError) {
+      console.error("Failed to clean up failed report upload");
+      console.error(errorDetails(cleanupError));
     }
   };
 
-  done = async (): Promise<void> => {
-    const summaries: PluginSummary[] = [];
-    const remoteHrefs: string[] = [];
-    // track plugins that failed to upload to prevent wrong remote links generation
-    const cancelledPluginsIds: Set<string> = new Set();
+  #logPublishError = (message: string, err: unknown): void => {
+    console.error(message);
 
-    if (this.#executionStage !== "running") {
-      throw new Error(initRequired);
+    if (err instanceof KnownError) {
+      console.error(err.message);
+    } else {
+      console.error(errorDetails(err));
+    }
+  };
+
+  #applyPublishLinksToSummaries = (linksByPluginId: Record<string, string>): Set<string> => {
+    const changedPluginIds = new Set<string>();
+
+    if (this.#summariesByPluginId.size === 0) {
+      return changedPluginIds;
     }
 
-    const testResults = await this.#store.allTestResults();
-    const testCases = await this.#store.allTestCases();
-    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+    for (const [pluginId, remoteHref] of Object.entries(linksByPluginId)) {
+      const summary = this.#summariesByPluginId.get(pluginId);
 
-    this.#realtimeSubscriber.offAll();
-    // closing it early, to prevent future reads
-    this.#executionStage = "done";
+      if (summary && remoteHref) {
+        summary.remoteHref = remoteHref;
+        changedPluginIds.add(pluginId);
+      }
+    }
 
-    // just dump state when dump is set and generate nothing
-    if (this.#dump) {
-      await this.dumpState();
+    return changedPluginIds;
+  };
+
+  #cloneSummariesByPluginId = (): Map<string, PluginSummary> =>
+    new Map([...this.#summariesByPluginId].map(([pluginId, summary]) => [pluginId, clonePluginSummary(summary)]));
+
+  #writeSummaryFiles = async (pluginIds?: Iterable<string>): Promise<void> => {
+    if (this.#summariesByPluginId.size === 0) {
       return;
     }
 
-    // isolate logs of different reports dumps: done and summary
-    await this.#eachPlugin(false, async (plugin, context) => {
-      await plugin.done?.(context, this.#store);
-    });
-    await this.#eachPlugin(false, async (plugin, context) => {
-      // publish report files to the remote service
-      if (this.#allureServiceClient && context.publish) {
-        const pluginFiles = (await context.state.get("files")) ?? {};
-        const pluginFilesEntries = Object.entries(pluginFiles);
-        const progressBar =
-          pluginFilesEntries?.length > 0
-            ? new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
-                total: pluginFilesEntries.length,
-                width: 20,
-              })
-            : undefined;
-        const limitFn = pLimit(50);
-        const fns = pluginFilesEntries.map(([filename, filepath]) =>
-          limitFn(async () => {
-            // skip next plugin files upload if the plugin upload has already failed
-            if (cancelledPluginsIds.has(context.id)) {
-              return;
-            }
+    const pluginIdsSet = pluginIds ? new Set(pluginIds) : undefined;
 
-            if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-              await this.#allureServiceClient!.addReportFile({
-                reportUuid: this.reportUuid,
-                pluginId: context.id,
-                filename,
-                filepath,
-              });
-            } else {
-              await this.#allureServiceClient!.addReportAsset({
-                filename,
-                filepath,
-              });
-            }
-
-            progressBar?.tick?.();
-          }),
-        );
-
-        progressBar?.render?.();
-
-        try {
-          await Promise.all(fns);
-        } catch (err) {
-          cancelledPluginsIds.add(context.id);
-
-          // cleanup the report on failure to prevent incomplete reports on the server
-          // even lack of one file can make the report unusable
-          await this.#allureServiceClient.deleteReport({
-            reportUuid: this.reportUuid,
-            pluginId: context.id,
-          });
-
-          console.error(`Plugin "${context.id}" upload has failed, the plugin won't be published`);
-          console.error(err);
-        }
+    await this.#eachPlugin(false, async (_plugin, context) => {
+      if (pluginIdsSet && !pluginIdsSet.has(context.id)) {
+        return;
       }
 
-      const summary = await plugin?.info?.(context, this.#store);
+      const summary = this.#summariesByPluginId.get(context.id);
 
       if (!summary) {
         return;
       }
 
-      summary.pluginId = context.id;
-      summary.pullRequestHref = this.#ci?.pullRequestUrl;
-      summary.jobHref = this.#ci?.jobRunUrl;
-
-      if (context.publish && this.reportUrl && !cancelledPluginsIds.has(context.id)) {
-        summary.remoteHref = `${this.reportUrl}/${context.id}/`;
-
-        remoteHrefs.push(summary.remoteHref);
-      }
-
-      summaries.push({
-        ...summary,
-        href: `${context.id}/`,
-      });
-
       // expose summary.json file to the FS to make possible to use it in the integrations
       await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
+  };
+
+  #generateRootSummary = async (): Promise<void> => {
+    const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
     if (summaries.length > 1) {
-      const summaryPath = await generateSummary(this.#output, summaries);
-      const publishedReports = this.#plugins
-        .map((plugin) => !!plugin?.options?.publish && !cancelledPluginsIds.has(plugin.id))
-        .filter(Boolean);
-
-      // publish summary when there are multiple published plugins
-      if (this.#publish && summaryPath && publishedReports.length > 1) {
-        await this.#allureServiceClient?.addReportFile({
-          reportUuid: this.reportUuid,
-          filename: "index.html",
-          filepath: summaryPath,
-        });
-      }
+      this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
+        generateSummary(this.#output, summaries),
+      );
+    } else {
+      this.#summaryPath = undefined;
     }
+  };
 
-    if (this.#publish) {
-      await this.#allureServiceClient?.completeReport({
-        reportUuid: this.reportUuid,
-        historyPoint: historyDataPoint,
-      });
+  done = async (): Promise<void> => {
+    const summaries: PluginSummary[] = [];
+
+    if (this.#executionStage !== "running") {
+      throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
     }
-
-    let outputDirFiles: string[] = [];
 
     try {
-      // recursive flag is not applicable, it can provoke the process freeze
-      outputDirFiles = await readdir(this.#output);
-    } catch {}
+      const testResults = await this.#store.allTestResults();
+      const testCases = await this.#store.allTestCases();
+      this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
 
-    // just do nothing if there is no reports in the output directory
-    if (outputDirFiles.length === 0) {
-      return;
-    }
+      this.#realtimeChannel.close();
+      try {
+        await this.#realtimeUpdateScheduler.close();
+      } catch (e) {
+        console.error("realtime update failed during shutdown", e);
+      }
+      // closing it after realtime update settles, to prevent future reads
+      this.#executionStage = "done";
 
-    const reportPath = join(this.#output, outputDirFiles[0]);
-    const reportStats = await lstat(reportPath);
-    const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
-    const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
-
-    // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-    if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
-      const reportContent = await readdir(reportPath);
-
-      for (const entry of reportContent) {
-        const currentFilePath = join(reportPath, entry);
-        const newFilePath = resolve(dirname(currentFilePath), "..", entry);
-
-        await rename(currentFilePath, newFilePath);
+      // just dump state when dump is set and generate nothing
+      if (this.#dump) {
+        await this.dumpState();
+        return;
       }
 
-      await rm(reportPath, { recursive: true });
-    }
+      // isolate logs of different reports dumps: done and summary
+      await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
+        await this.#eachPlugin(false, async (plugin, context) => {
+          await measurePerf(`${PERF_METRIC_PREFIXES.generatePluginDone}${context.id}`, async () => {
+            await plugin.done?.(context, this.#store);
+          });
+        });
+      });
+      this.#finishGeneratePerfSpan();
+      await this.#eachPlugin(false, async (plugin, context) => {
+        const summary = await plugin?.info?.(context, this.#store);
 
-    // remove all dump temp dirs
-    for (const dir of this.#dumpTempDirs) {
+        if (!summary) {
+          return;
+        }
+
+        summary.pluginId = context.id;
+        summary.pullRequestHref = this.#ci?.pullRequestUrl;
+        summary.jobHref = this.#ci?.jobRunUrl;
+
+        summaries.push({
+          ...summary,
+          href: `${context.id}/`,
+        });
+      });
+
+      this.#summariesByPluginId = new Map(
+        summaries
+          .filter((summary): summary is PluginSummary & { pluginId: string } => !!summary.pluginId)
+          .map((summary) => [summary.pluginId, summary]),
+      );
+
+      await this.#publish();
+
+      let outputDirFiles: string[] = [];
+
       try {
-        await rm(dir, { recursive: true });
+        // recursive flag is not applicable, it can provoke the process freeze
+        outputDirFiles = await readdir(this.#output);
       } catch {}
-    }
 
-    if (this.#history) {
-      try {
-        await this.#store.appendHistory(historyDataPoint);
-      } catch (err) {
-        if (err instanceof KnownError) {
-          console.error("Failed to append history", err.message);
-        } else if (err instanceof UnknownError) {
-          // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
-          console.error("Failed to append history due to unexpected error", err.message);
-        } else {
-          throw err;
+      // just do nothing if there is no reports in the output directory
+      if (outputDirFiles.length === 0) {
+        return;
+      }
+
+      const reportPath = join(this.#output, outputDirFiles[0]);
+      const reportStats = await lstat(reportPath);
+      const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
+      const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
+
+      // if there is a single report directory in the output directory, move it to the root and prevent summary generation
+      if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
+        const reportContent = await readdir(reportPath);
+
+        for (const entry of reportContent) {
+          const currentFilePath = join(reportPath, entry);
+          const newFilePath = resolve(dirname(currentFilePath), "..", entry);
+
+          await rename(currentFilePath, newFilePath);
+        }
+
+        await rm(reportPath, { recursive: true });
+      }
+
+      // remove all dump temp dirs
+      for (const dir of this.#dumpTempDirs) {
+        try {
+          await rm(dir, { recursive: true });
+        } catch {}
+      }
+
+      if (this.#history && this.#appendHistory) {
+        try {
+          await this.#store.appendHistory(this.#historyDataPoint!);
+        } catch (err) {
+          if (err instanceof KnownError) {
+            console.error("Failed to append history", err.message);
+          } else if (err instanceof UnknownError) {
+            // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
+            console.error("Failed to append history due to unexpected error", err.message);
+          } else {
+            throw err;
+          }
         }
       }
+
+      if (this.#publishedRemoteHrefs.size > 0) {
+        console.info("Next reports have been published:");
+
+        this.#publishedRemoteHrefs.forEach((href) => {
+          console.info(`- ${href}`);
+        });
+      }
+
+      if (!this.#qualityGate) {
+        return;
+      }
+
+      const qualityGateResults = await this.#store.qualityGateResultsByEnv();
+
+      await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
+    } finally {
+      await this.#finishPerfMetrics();
     }
+  };
 
-    if (remoteHrefs.length > 0) {
-      console.info("Next reports have been published:");
+  #finishGeneratePerfSpan = () => {
+    this.#endGeneratePerfSpan?.();
+    this.#endGeneratePerfSpan = undefined;
+  };
 
-      remoteHrefs.forEach((href) => {
-        console.info(`- ${href}`);
-      });
+  #finishPerfMetrics = async () => {
+    this.#finishGeneratePerfSpan();
+
+    try {
+      await writePerfMetrics(this.#output);
+    } catch (err) {
+      console.error("Failed to write Allure performance metrics", err);
     }
-
-    if (!this.#qualityGate) {
-      return;
-    }
-
-    const qualityGateResults = await this.#store.qualityGateResultsByEnv();
-
-    await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
@@ -785,12 +1207,13 @@ export class AllureReport {
         publish: !!options?.publish,
         allureVersion: version,
         reportUuid: this.reportUuid,
-        reportName: this.#reportName,
+        reportName: this.reportName,
         hideLabels: this.#hideLabels,
         analyticsEnable: this.#analyticsEnable,
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,
+        realTime: !!this.#realTime,
         output: this.#output,
         ci: this.#ci,
         categories: this.#categories,
@@ -799,6 +1222,8 @@ export class AllureReport {
 
       try {
         await consumer.call(this, plugin, pluginContext);
+
+        this.reportUrl = pluginContext.reportUrl ?? this.reportUrl;
 
         if (initState) {
           this.#state![id] = pluginState;

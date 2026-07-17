@@ -1,4 +1,5 @@
 import type {
+  AllureServiceConfig,
   CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
@@ -66,9 +67,7 @@ export interface Config {
   plugins?: Record<string, PluginDescriptor>;
   appendHistory?: boolean;
   qualityGate?: QualityGateConfig;
-  allureService?: {
-    accessToken?: string;
-  };
+  allureService?: AllureServiceConfig;
   categories?: CategoriesConfig;
   /**
    * Array of glob patterns or full paths to match files in the working directory which should be attached to allure report as global attachments

@@ -29,6 +29,7 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
     case "uri":
     case "code":
     case "html":
+    case "markdown":
     case "table":
     case "text": {
       const text = await response.text();
@@ -104,6 +105,11 @@ export const attachmentType = (type: string) => {
       return {
         type: "text",
         icon: "txt",
+      };
+    case "text/markdown":
+      return {
+        type: "markdown",
+        icon: "file",
       };
     case "text/html":
       return {

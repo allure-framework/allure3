@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
@@ -15,6 +15,10 @@ test.describe("output", () => {
 
   test.beforeEach(async ({ browserName }) => {
     await label("env", browserName);
+    await epic("coverage");
+    await feature("report-output");
+    await story("output");
+    await label("coverage", "report-output");
   });
 
   test("should generate single report in the report output directory without sub-directories", async () => {

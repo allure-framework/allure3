@@ -11,20 +11,20 @@
 
 .icon {
   .label[data-style="primary"] & {
-    color: var(--on-icon-primary);
+    color: var(--color-icon-primary);
   }
 
   .label[data-style="secondary"] & {
-    color: var(--on-icon-secondary);
+    color: var(--color-icon-secondary);
   }
 }
 
 .text {
   .label[data-style="primary"] & {
-    color: var(--on-text-primary);
+    color: var(--color-text-primary);
   }
 
   .label[data-style="secondary"] & {
-    color: var(--on-text-secondary);
+    color: var(--color-text-secondary);
   }
 }

@@ -54,18 +54,31 @@ const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTree
   }
 };
 
+const withDirection = <T extends { name: string }>(
+  cmp: Comparator<T>,
+  filterOptions: TreeFiltersState,
+): Comparator<T> => {
+  const isStatusSort = filterOptions.sortBy === "status";
+  const isDescending = filterOptions.direction === "desc";
+  const nameComparator = compareBy<T>("name", alphabetically());
+
+  // Status sort always prioritizes severity. Direction only affects name-based tie-breaking.
+  return andThen([
+    isDescending && !isStatusSort ? reverse(cmp) : cmp,
+    isDescending && isStatusSort ? reverse(nameComparator) : nameComparator,
+  ]);
+};
+
 export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<ClassicTreeLeaf>> => {
   const cmp = leafComparatorByTreeSortBy(filterOptions.sortBy);
-  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
-  // apply fallback sorting by name
-  return andThen([directional, compareBy("name", alphabetically())]);
+
+  return withDirection(cmp, filterOptions);
 };
 
 export const groupComparator = (filterOptions: TreeFiltersState): Comparator<DefaultTreeGroup> => {
   const cmp = groupComparatorByTreeSortBy(filterOptions.sortBy);
-  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
-  // apply fallback sorting by name
-  return andThen([directional, compareBy("name", alphabetically())]);
+
+  return withDirection(cmp, filterOptions);
 };
 
 export const filterLeaves = (

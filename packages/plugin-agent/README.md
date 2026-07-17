@@ -27,14 +27,13 @@ When enabled, the plugin writes:
 - `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl` for machine-readable review
 - copied run logs and other artifacts under `artifacts/`
 - `AGENTS.md` with guidance for consuming the directory
-- `manifest/expected.json` when `ALLURE_AGENT_EXPECTATIONS` is provided
-- `project/docs/allure-agent-mode.md` when the project has a guide at `docs/allure-agent-mode.md`
+- `manifest/expected.json` when inline flags, `--expectations <file>`, or plugin options provide expectations
 
 If no output directory is configured, the plugin does nothing.
 
 The plugin stays read-only by design. A separate harness layer can consume the
 generated manifests, plan enrichment work, and decide whether a rerun is ready to
-accept. See [the enrichment loop guide](../../docs/agent_enrichment_loop.md).
+accept.
 
 ## Verification Standard
 
@@ -42,19 +41,34 @@ accept. See [the enrichment loop guide](../../docs/agent_enrichment_loop.md).
 - Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 
-## Skills-First Workflow
+## CLI Capability Workflow
 
-The downstream workflow is intended to be skills-first:
+The installed CLI help is the local contract for agent mode. When an agent needs
+to choose supported commands or flags, detect the local CLI surface first:
 
-1. install the Allure skills bundle
-2. run the setup skill in a project
-3. let the setup skill create or update root `AGENTS.md`
-4. let the setup skill create `docs/allure-agent-mode.md`
-5. use Allure agent-mode in future test work through the project guide plus per-run manifests
+```shell
+allure --version
+allure agent capabilities --json
+allure agent --help
+allure agent query --help
+allure agent select --help
+allure agent latest --help
+allure agent state-dir --help
+```
 
-Every generated run includes an `AGENTS.md` playbook. When the project has
-`docs/allure-agent-mode.md`, the run output also copies that guide and tells agents
-to read it first.
+`allure agent capabilities --json` is the structured local contract for agents.
+`allure agent --help` includes the human-readable command task map. Each
+agent-mode command names the loop it supports, the problem signal that calls for
+it, and the task the agent should perform with it. For example, `allure agent
+latest` belongs to output recovery, `allure agent state-dir` belongs to tooling
+diagnosis, `allure agent query` belongs to output inspection,
+`allure agent select` belongs to rerun planning, and `--rerun-*` belongs to
+focused retry loops.
+
+Every generated run includes an `AGENTS.md` playbook with the same stable
+artifact-reading order, command task map, workflow guidance, and remediation
+rules. Reusable skills and common knowledge files should not hard-code
+version-specific flags; they should ask the local CLI when support is unclear.
 
 ## Install
 
@@ -90,7 +104,51 @@ The preferred CLI entrypoint is:
 npx allure agent -- npm test
 ```
 
-You can provide an explicit expectations file and output directory when you need deterministic paths:
+To analyze existing Allure results or dump archives downloaded from CI without
+rerunning tests, use `agent inspect`. Positional arguments match Allure results
+directories. `--dump` accepts paths or glob patterns and can be repeated for
+multiple jobs or environments:
+
+```shell
+npx allure agent inspect path/to/allure-results
+npx allure agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip
+npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to/allure-results
+```
+
+`agent inspect` accepts the same result inputs and configuration-style options as
+`allure generate`, including result directory globs, `--dump`, `--config`,
+`--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
+option writes the agentic output directory.
+
+`allure agent` and `allure agent inspect` use `--report auto` by default. This
+writes the agent-readable artifacts and, when the stored visible result count is
+1000 or fewer, also writes a single-file Awesome report at `awesome/index.html`
+inside the agent output directory. Runs above that threshold skip the human
+report to avoid excessive output. Check `manifest/human-report.json`, the Human
+Report section in `index.md`, or `allure agent query --latest summary` to see
+whether a report was generated.
+
+If you need the human-readable report from the most recent agent run, first run
+`npx allure agent latest` when the output directory is unknown. Then check
+`<output>/manifest/human-report.json`; when its status is `generated`, open
+`<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
+Use `--report off` for agent-only artifacts, `--report awesome` to force the
+single-file Awesome report regardless of result count, or `--report config` to
+force the configured non-agent report plugins inside the agent output directory.
+
+You can provide compact inline expectations for the common review path:
+
+```shell
+npx allure agent \
+	  --goal "Review feature A" \
+	  --expect-tests 3 \
+	  --expect-label feature=feature-a \
+	  --expect-step-containing "validate feature A" \
+	  --expect-steps 1 \
+	  -- npm test
+```
+
+Use an explicit expectations file and output directory when inline flags become awkward or you need deterministic paths:
 
 ```shell
 npx allure agent \
@@ -99,21 +157,9 @@ npx allure agent \
   -- npm test
 ```
 
-That command uses an agent-only profile by default, so configured presentation and export plugins such as Awesome, Dashboard, or TestOps are ignored for that run.
-
-You can also enable the plugin through lower-level environment variables when you need direct env control:
-
-```shell
-ALLURE_AGENT_OUTPUT=./out/agent-report npx allure run -- npm test
-```
-
-To compare the run against an intended scope, provide an expectations file:
-
-```shell
-ALLURE_AGENT_OUTPUT=./out/agent-report \
-ALLURE_AGENT_EXPECTATIONS=./out/agent-expected.yaml \
-npx allure run -- npm test
-```
+That command uses the default `--report auto` policy. Configured presentation or
+export plugins such as Dashboard or TestOps are otherwise ignored for agent runs
+unless you explicitly use `--report config`.
 
 ## Options
 
@@ -121,19 +167,14 @@ The plugin accepts the following options:
 
 | Option | Description | Type | Default |
 |--------|-------------|------|---------|
-| `outputDir` | Directory where the markdown report will be written. Relative paths are resolved from the `allure` process working directory | `string` | `ALLURE_AGENT_OUTPUT` |
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `ALLURE_AGENT_OUTPUT` | Directory where the agent output should be written when `outputDir` is not set |
-| `ALLURE_AGENT_EXPECTATIONS` | Optional path to a YAML or JSON file describing expected and forbidden test scope |
-| `ALLURE_AGENT_COMMAND` | The executed command string recorded in `manifest/run.json` and `index.md` |
-| `ALLURE_AGENT_NAME` | Optional agent identifier recorded in `manifest/run.json` |
-| `ALLURE_AGENT_LOOP_ID` | Optional loop identifier recorded in `manifest/run.json` |
-| `ALLURE_AGENT_TASK_ID` | Optional task identifier recorded in `manifest/run.json` |
-| `ALLURE_AGENT_CONVERSATION_ID` | Optional conversation identifier recorded in `manifest/run.json` |
+| `outputDir` | Directory where the markdown report will be written. Relative paths are resolved from the `allure` process working directory | `string` | none |
+| `expectationsPath` | Path to a YAML or JSON file describing expected and forbidden test scope | `string` | none |
+| `expectations` | Inline expectations object. Use either `expectationsPath` or `expectations`, not both | `AgentExpectationsInput` | none |
+| `command` | Executed command string recorded in `manifest/run.json` and `index.md` | `string` | none |
+| `agentName` | Optional agent identifier recorded in `manifest/run.json` | `string` | none |
+| `loopId` | Optional loop identifier recorded in `manifest/run.json` | `string` | none |
+| `taskId` | Optional task identifier recorded in `manifest/run.json` | `string` | expectations task id |
+| `conversationId` | Optional conversation identifier recorded in `manifest/run.json` | `string` | none |
 
 ## Manifest Contract
 
@@ -148,8 +189,7 @@ The plugin emits a hybrid output:
   - `manifest/test-events.jsonl`
   - `manifest/tests.jsonl`
   - `manifest/findings.jsonl`
-  - `manifest/expected.json` when an expectations file is provided
-  - `project/docs/allure-agent-mode.md` when the project guide is available
+  - `manifest/expected.json` when expectations are provided
 
 `index.md` is the landing page for the run. It includes run identity, expected scope,
 advisory check summary, process logs, and grouped test links.
@@ -162,10 +202,20 @@ Each test markdown file includes:
 - retry history
 - advisory findings and rerun guidance when evidence is weak
 
+## Expectations
+
+The preferred `allure agent` workflow uses inline flags:
+
+- `--goal <text>` records the review intent.
+- `--expect-tests <count>` checks visible logical test count.
+- `--expect-label name=value`, `--expect-env <id>`, `--expect-test "<fullName>"`, and `--expect-prefix <prefix>` define expected scope. For a newly added test, use `--expect-test "<fullName>"` so a missing reported test becomes an explicit finding.
+- `--expect-step-containing <text>`, `--expect-steps <count>`, `--expect-attachments <count>`, and `--expect-attachment <name|name=value|content-type=value>` define evidence expectations per evidence-target logical test.
+
+The plugin normalizes inline expectations into `manifest/expected.json`.
+
 ## Expectations File
 
-When `ALLURE_AGENT_EXPECTATIONS` is set, the plugin accepts YAML or JSON, normalizes
-it into `manifest/expected.json`, and compares the run against it.
+When `--expectations <file>` or the plugin `expectationsPath` option is set, the plugin accepts YAML or JSON, normalizes it into `manifest/expected.json`, and compares the run against it.
 
 Expected top-level fields:
 
@@ -173,6 +223,7 @@ Expected top-level fields:
 goal: Validate feature A
 task_id: feature-a
 expected:
+  test_count: 3
   environments:
     - default
   full_names:
@@ -197,23 +248,27 @@ notes:
 Selectors are advisory. The plugin does not fail the run; it records findings in
 markdown and `manifest/findings.jsonl`.
 
-## Review Loop
+## Agent Workflow Pattern
 
-The intended usage pattern is:
+Use the smallest workflow that matches the task. For the common change-validation path:
 
-1. Run tests with `allure agent -- <command>`.
+1. Run tests with `allure agent --goal <text> --expect-test "<fullName>" --expect-label name=value --expect-step-containing <text> -- <command>`.
 2. Watch `manifest/run.json` and `manifest/test-events.jsonl` while the run is active.
 3. Review `index.md` plus the manifest files.
 4. If evidence is weak, add steps, attachments, labels, or parameters.
-5. Rerun the same scope with the same expectations file.
+5. Rerun the same scope with the same expectations.
 6. Accept the run or iterate based on advisory findings.
+
+When a prior agent run already captured failed tests, prefer
+`allure agent --rerun-latest --rerun-preset failed -- <command>` or
+`allure agent --rerun-from <output-dir> --rerun-preset failed -- <command>`
+instead of spending context reconstructing runner-specific test names.
 
 For small mechanical test changes, use a scoped agent-mode run for the smoke check
 too. Plain runner commands should be reserved for cases where agent mode is
 impossible or when you are debugging agent mode itself.
 
-For grouped coverage reviews, prefer one temp output directory and one expectations
-file per scope instead of trying to review a whole command matrix from a single run.
+For grouped coverage reviews, prefer one scoped expectation set per group instead of trying to review a whole command matrix from a single run.
 
 ## Test Enrichment Best Practices
 
@@ -246,25 +301,12 @@ When agent output does not fully model runner-visible failures:
 - treat the review as partial when suite-load, import, or setup failures are visible outside logical test files
 - keep console-only conclusions provisional until the missing modeling is understood
 
-## Project Guide
-
-Projects using the skills flow should keep a short root `AGENTS.md` and a deeper
-`docs/allure-agent-mode.md`.
-
-`AGENTS.md` should route all test-related work to the deeper guide. The deeper guide
-should explain:
-
-- the feature-delivery loop
-- the metadata-enrichment loop
-- per-run temp expectations and output paths
-- meaningful evidence rules
-- minimal metadata rules
-- future loops like flaky, known-issue, mute, and quality gates
-
 ## Copyable Agent Instructions
 
 The generated `AGENTS.md` already contains this guidance for each run. If you want
-the same policy in a project-level skill or agent prompt, you can start with:
+the same stable policy in a reusable skill or agent prompt, keep version-specific
+CLI details out of that reusable body and make agents inspect local CLI help when
+support is unclear:
 
 ```md
 ## Allure Agent Mode Instructions
@@ -273,15 +315,14 @@ the same policy in a project-level skill or agent prompt, you can start with:
 - Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 - After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
-- Use `allure agent latest` to reopen the newest run when `--output` was omitted.
-- Use `allure agent state-dir` to inspect where the current project stores its latest-agent state.
-- Use `allure agent select --latest` or `allure agent select --from <output-dir>` to inspect the review-targeted test plan before rerunning.
-- Use `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` to rerun only the selected tests.
-- Use `--rerun-preset review|failed|unsuccessful|all`, repeated `--rerun-environment <id>`, and repeated `--rerun-label name=value` when you need a narrower rerun selection from the previous output.
-- Use `ALLURE_AGENT_STATE_DIR` when you need to override where the current project stores latest-agent state for `latest`, `state-dir`, or `--rerun-latest`.
-- Use `ALLURE_AGENT_*` with `allure run` only as the lower-level fallback when you need direct environment control.
-- Generate or refresh `ALLURE_AGENT_EXPECTATIONS` before each targeted rerun.
-- Run tests with `ALLURE_AGENT_OUTPUT` and review `manifest/run.json`, `manifest/test-events.jsonl`, `index.md`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
+- Use `allure --version`, `allure agent capabilities --json`, and `allure agent --help` before choosing flags when the local CLI surface is unknown.
+- Use `allure agent latest` to print the newest output directory and `index.md` path when `--output` was omitted.
+- Use `allure agent latest`, `state-dir`, `query`, `select`, and `--rerun-*` according to their loop/task/problem mapping instead of treating them as interchangeable helper commands.
+- Use `allure agent inspect <allure-results-dir-or-glob>` or `allure agent inspect --dump <archive-or-glob>` when you need agent-readable markdown and manifests from existing Allure results without rerunning tests locally; repeat `--dump` for multiple CI jobs or environments.
+- Use `allure agent query --latest summary|tests|findings|test` or `allure agent query --from <output-dir> ...` to inspect prior output as focused JSON before manually opening raw manifests.
+- Use `allure agent select --from <output-dir> --output <file>` when you want the CLI to write the test plan and print a short summary with the file path, source output, preset, and selected count.
+- When rerunning previous failures, use `allure agent --rerun-latest --rerun-preset failed -- <command>` or `allure agent --rerun-from <output-dir> --rerun-preset failed -- <command>` instead of manually rebuilding runner-specific test names.
+- Run tests with `allure agent` and review `manifest/run.json`, `manifest/test-events.jsonl`, `index.md`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 - Enrich only the intended tests. Add real steps for real setup, actions, and assertions.
 - Attach only real runtime evidence such as payloads, responses, screenshots, DOM snapshots, diffs, logs, or traces.
 - Keep metadata minimal. Add labels or severity only when scope review, debugging, or quality policy uses them.
@@ -303,7 +344,7 @@ import {
 ```
 
 - `buildAgentExpectations(...)` converts a goal plus target/forbidden selectors into
-  the JSON shape expected by `ALLURE_AGENT_EXPECTATIONS`.
+  the expectations shape accepted by inline flags, expectations files, and the plugin expectations option.
 - `loadAgentOutput(...)` reads `manifest/run.json`, `manifest/tests.jsonl`, and
   `manifest/findings.jsonl`.
 - `planAgentEnrichmentReview(...)` maps `check_name` values to enrichment actions
@@ -325,5 +366,5 @@ The enrichment loop should add only real runtime evidence:
 Avoid dummy enrichment such as empty wrapper steps, placeholder `"passed"` text
 attachments, or labels that are never used downstream.
 
-For a fuller policy, remediation mapping, and JS/Vitest examples based on the
-existing sandbox tests, see [the enrichment loop guide](../../docs/agent_enrichment_loop.md).
+For remediation mapping and JS/Vitest examples based on the existing sandbox
+tests, inspect the package tests and generated run `AGENTS.md` guidance.

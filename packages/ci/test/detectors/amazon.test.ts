@@ -1,8 +1,12 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { amazon, getPipelineName, isBatchBuild, parseArnValues } from "../../src/detectors/amazon.js";
 import { getEnv } from "../../src/utils.js";
 
+beforeEach(async () => {
+  await story("amazon");
+});
 vi.mock("../../src/utils.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/utils.js")>();
 
@@ -405,10 +409,20 @@ describe("amazon", () => {
       expect(amazon.jobRunBranch).toBe("feature/branch-name");
     });
 
-    it("should return empty string when source version doesn't match pattern", () => {
+    it("should return branch name when source version is an unqualified branch", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "CODEBUILD_SOURCE_VERSION") {
-          return "some-other-format";
+          return "feature/branch-name";
+        }
+      });
+
+      expect(amazon.jobRunBranch).toBe("feature/branch-name");
+    });
+
+    it("should return empty string when source version is a commit hash", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_VERSION") {
+          return "1234567890abcdef1234567890abcdef12345678";
         }
       });
 

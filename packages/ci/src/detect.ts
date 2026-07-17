@@ -12,9 +12,9 @@ import { local } from "./detectors/local.js";
 
 /**
  * Tries to detect current CI
- * Returns CI descriptor if some detected, otherwise undefined
+ * Returns CI descriptor, otherwise local descriptor
  */
-export const detect = (): CiDescriptor | undefined => {
+export const detect = (): CiDescriptor => {
   return (
     [amazon, azure, bitbucket, circle, drone, github, gitlab, jenkins].find((descriptor) => descriptor.detected) ??
     local

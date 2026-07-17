@@ -1,5 +1,7 @@
-import { getParamValue, hasParam, setParams } from "@allurereport/web-commons";
+import { getParamValue, getReportOptions, hasParam, setParams } from "@allurereport/web-commons";
 import { computed, effect, signal } from "@preact/signals";
+
+import type { AwesomeReportOptions } from "../../types.js";
 
 export type SortByDirection = "asc" | "desc";
 export type SortByField = "order" | "duration" | "status" | "name";
@@ -33,6 +35,10 @@ const getInitialSortBy = (): SortBy => {
   const stored = localStorage.getItem(SORT_BY_STORAGE_KEY);
   if (stored && validateSortBy(stored.toLowerCase())) {
     return stored.toLowerCase() as SortBy;
+  }
+  const { defaultSortBy } = getReportOptions<AwesomeReportOptions>() ?? {};
+  if (defaultSortBy && validateSortBy(defaultSortBy.toLowerCase())) {
+    return defaultSortBy.toLowerCase() as SortBy;
   }
   return DEFAULT_SORT_BY;
 };

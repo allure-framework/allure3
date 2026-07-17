@@ -1,6 +1,6 @@
 import { fallbackTestCaseIdLabelName } from "@allurereport/core-api";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -38,6 +38,10 @@ test.describe("hideLabels", () => {
 
   test.beforeEach(async ({ browserName }) => {
     await label("env", browserName);
+    await epic("coverage");
+    await feature("labels-and-tags");
+    await story("hideLabels");
+    await label("coverage", "labels-and-tags");
   });
 
   test.afterAll(async () => {

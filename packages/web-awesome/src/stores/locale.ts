@@ -10,6 +10,8 @@ import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import type { AwesomeReportOptions } from "types";
 
+import { ensureAtSeparator } from "@/utils/atSeparator";
+
 const namespaces = [
   "empty",
   "execution",
@@ -25,6 +27,7 @@ const namespaces = [
   "ui",
   "welcome",
   "controls",
+  "shortcuts",
   "errors",
   "split",
   "modal",
@@ -111,7 +114,7 @@ export const waitForI18next = i18next
         if (override?.includeAtSeparator === false || override?.stripComma) {
           return formatted.replace(",", "");
         }
-        return formatted.replace(",", ` ${i18next.t("ui:at")}`);
+        return ensureAtSeparator(formatted, i18next.t("ui:at"));
       },
     );
     i18next.services.formatter.add(
@@ -132,7 +135,7 @@ export const waitForI18next = i18next
         if (override?.includeAtSeparator === false || override?.stripComma) {
           return formatted.replace(",", "");
         }
-        return formatted.replace(",", ` ${i18next.t("ui:at")}`);
+        return ensureAtSeparator(formatted, i18next.t("ui:at"));
       },
     );
     i18next.services.formatter.add("format_duration", (value: number) => {

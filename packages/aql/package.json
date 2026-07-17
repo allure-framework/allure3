@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/aql",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "description": "Allure Query Language implementation in TypeScript",
   "keywords": [
     "allure",
@@ -35,6 +35,6 @@
     "rimraf": "^6",
     "tslib": "^2",
     "typescript": "^5",
-    "vitest": "^2"
+    "vitest": "^4.1.0"
   }
 }

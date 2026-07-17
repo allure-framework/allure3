@@ -1,7 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
 import type { ClassicTestResult } from "../../types.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("filters");
+  await story("treeFilters");
+  await label("coverage", "filters");
+});
 
 describe("utils > treeFilters", () => {
   describe("filterLeaves", () => {
@@ -285,7 +293,7 @@ describe("utils > treeFilters", () => {
     });
 
     it("sorts leaves by status in descending order", () => {
-      const leaves = ["a1", "b2", "c3", "d4", "e5"];
+      const leaves = ["a1", "b2", "c3", "d4", "e5", "f6", "z9"];
       const leavesById = {
         a1: {
           name: "a1",
@@ -307,6 +315,14 @@ describe("utils > treeFilters", () => {
           name: "e5",
           status: "skipped",
         } as ClassicTestResult,
+        f6: {
+          name: "f6",
+          status: "failed",
+        } as ClassicTestResult,
+        z9: {
+          name: "z9",
+          status: "passed",
+        } as ClassicTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -314,11 +330,13 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "d4" }),
-        expect.objectContaining({ name: "e5" }),
-        expect.objectContaining({ name: "a1" }),
-        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "f6" }),
         expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "z9" }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "e5" }),
+        expect.objectContaining({ name: "d4" }),
       ]);
     });
 
@@ -444,6 +462,84 @@ describe("utils > treeFilters", () => {
           ],
         }),
       );
+    });
+
+    it("keeps problem-heavy groups first when sorting by status in descending order", () => {
+      const group = {
+        leaves: [],
+        groups: ["passedHeavy", "failedAlpha", "brokenGroup", "failedZulu"],
+      };
+      const leavesById = {
+        failedAlphaTest: {
+          name: "failedAlphaTest",
+          status: "failed",
+        } as ClassicTestResult,
+        failedZuluTest: {
+          name: "failedZuluTest",
+          status: "failed",
+        } as ClassicTestResult,
+        brokenTest1: {
+          name: "brokenTest1",
+          status: "broken",
+        } as ClassicTestResult,
+        brokenTest2: {
+          name: "brokenTest2",
+          status: "broken",
+        } as ClassicTestResult,
+        passedTest1: {
+          name: "passedTest1",
+          status: "passed",
+        } as ClassicTestResult,
+        passedTest2: {
+          name: "passedTest2",
+          status: "passed",
+        } as ClassicTestResult,
+      };
+      const groupsById = {
+        passedHeavy: {
+          name: "passedHeavy",
+          leaves: ["passedTest1", "passedTest2"],
+          groups: [],
+        },
+        brokenGroup: {
+          name: "brokenGroup",
+          leaves: ["brokenTest1", "brokenTest2"],
+          groups: [],
+        },
+        failedAlpha: {
+          name: "failedAlpha",
+          leaves: ["failedAlphaTest"],
+          groups: [],
+        },
+        failedZulu: {
+          name: "failedZulu",
+          leaves: ["failedZuluTest"],
+          groups: [],
+        },
+      };
+      const result = createRecursiveTree({
+        group,
+        leavesById,
+        groupsById,
+        filterOptions: {
+          query: "",
+          status: "total",
+          filter: {
+            flaky: false,
+            retry: false,
+            new: false,
+          },
+          sortBy: "status",
+          direction: "desc",
+        },
+      });
+
+      expect(result.trees).toEqual([
+        expect.objectContaining({ name: "failedZulu" }),
+        expect.objectContaining({ name: "failedAlpha" }),
+        expect.objectContaining({ name: "brokenGroup" }),
+        expect.objectContaining({ name: "passedHeavy" }),
+      ]);
     });
   });
 });

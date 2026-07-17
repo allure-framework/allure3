@@ -1,10 +1,9 @@
-import * as console from "node:console";
 import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
 import { validateEnvironmentName } from "@allurereport/core-api";
-import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
+import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -20,6 +19,8 @@ import {
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
+
+type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
   name?: Config["name"];
@@ -42,12 +43,25 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
+const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
+const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
+const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
 
-const isAgentDescriptor = (value: string | undefined) => {
+export const parseIntegerConfigValue = (value: unknown, defaultValue: number, minValue: number): number => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return defaultValue;
+  }
+
+  const normalized = Math.floor(value);
+
+  return normalized >= minValue ? normalized : defaultValue;
+};
+
+export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
 };
 
-const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
+export const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
   return Object.entries(plugins).some(
     ([key, descriptor]) => isAgentDescriptor(key) || isAgentDescriptor(descriptor.import),
   );
@@ -107,9 +121,7 @@ export const findConfig = async (cwd: string, configPath?: string) => {
       if (stats.isFile()) {
         return resolved;
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch {}
 
     throw new Error(`invalid config path ${resolved}: not a regular file`);
   }
@@ -300,24 +312,30 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
-  const configuredPlugins = override.plugins ?? config.plugins;
-  const basePlugins =
-    Object.keys(configuredPlugins ?? {}).length === 0
-      ? {
-          awesome: {
+  let pluginInstances: PluginInstance[] = [];
+  const hasPluginsOverride = override.plugins !== undefined;
+
+  if (!hasPluginsOverride || Object.keys(override.plugins ?? {}).length > 0) {
+    const configuredPlugins = hasPluginsOverride ? override.plugins : config.plugins;
+    const basePlugins =
+      !hasPluginsOverride && Object.keys(configuredPlugins ?? {}).length === 0
+        ? {
+            awesome: {
+              options: {},
+            },
+          }
+        : configuredPlugins!;
+    const pluginsWithAgent = hasConfiguredAgent(basePlugins)
+      ? basePlugins
+      : {
+          ...basePlugins,
+          agent: {
             options: {},
           },
-        }
-      : configuredPlugins!;
-  const plugins = hasConfiguredAgent(basePlugins)
-    ? basePlugins
-    : {
-        ...basePlugins,
-        agent: {
-          options: {},
-        },
-      };
-  const pluginInstances = await resolvePlugins(plugins);
+        };
+
+    pluginInstances = await resolvePlugins(pluginsWithAgent);
+  }
 
   return {
     name,
@@ -339,7 +357,27 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
-    allureService: config.allureService,
+    allureService: config.allureService
+      ? {
+          accessToken: config.allureService.accessToken,
+          private: config.allureService.private,
+          uploadConcurrency: parseIntegerConfigValue(
+            config.allureService.uploadConcurrency,
+            DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
+            1,
+          ),
+          uploadMaxAttempts: parseIntegerConfigValue(
+            config.allureService.uploadMaxAttempts,
+            DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
+            1,
+          ),
+          uploadMaxSimultaneousFailures: parseIntegerConfigValue(
+            config.allureService.uploadMaxSimultaneousFailures,
+            DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
+            0,
+          ),
+        }
+      : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
   };
@@ -384,6 +422,24 @@ export const readConfig = async (
   return fullConfig;
 };
 
+export const readRawConfig = async (cwd: string = process.cwd(), configPath?: string): Promise<Config> => {
+  const cfg = (await findConfig(cwd, configPath)) ?? "";
+
+  switch (extname(cfg)) {
+    case ".json":
+      return loadJsonConfig(cfg);
+    case ".yaml":
+    case ".yml":
+      return loadYamlConfig(cfg);
+    case ".js":
+    case ".cjs":
+    case ".mjs":
+      return loadJsConfig(cfg);
+    default:
+      return DEFAULT_CONFIG;
+  }
+};
+
 /**
  * Returns the plugin instance that matches the given predicate
  * If there are more than one instance that matches the predicate, returns the first one
@@ -405,7 +461,7 @@ const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE
   );
 };
 
-export const resolvePlugin = async (path: string) => {
+export const resolvePlugin = async (path: string): Promise<PluginConstructor> => {
   // try to append @allurereport/plugin- scope
   if (!path.startsWith("@allurereport/plugin-")) {
     try {
@@ -438,12 +494,18 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
     const pluginConfig = plugins[id];
     const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
+    const enabled = pluginConfig.enabled ?? true;
+    const constructorContext: PluginConstructorContext = {};
+
+    if ("enabled" in pluginConfig) {
+      constructorContext.enabled = pluginConfig.enabled;
+    }
 
     pluginInstances.push({
       id: pluginId,
-      enabled: pluginConfig.enabled ?? true,
+      enabled,
       options: pluginConfig.options ?? {},
-      plugin: new Plugin(pluginConfig.options),
+      plugin: new Plugin(pluginConfig.options, constructorContext),
     });
   }
 

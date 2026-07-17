@@ -101,6 +101,8 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
 
   const isImageAttachment = link?.contentType?.startsWith("image");
   const isHtmlAttachment = link?.contentType === "text/html";
+  const isMarkdownAttachment = link?.contentType === "text/markdown";
+  const isPreviewToggleAttachment = isHtmlAttachment || isMarkdownAttachment;
   const downloadData = async (e: Event) => {
     e.stopPropagation();
     const { id, ext, contentType } = link || {};
@@ -132,7 +134,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                   text={"Open in new tab"}
                 />
               )}
-              {isHtmlAttachment && (
+              {isPreviewToggleAttachment && (
                 <TooltipWrapper tooltipText={"Preview attachment"}>
                   <IconButton
                     style={"outline"}

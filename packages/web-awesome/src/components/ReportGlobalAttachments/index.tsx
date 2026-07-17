@@ -39,6 +39,33 @@ export const ReportGlobalAttachments = () => {
     <div className={styles["report-global-attachments"]}>{renderAttachmentList(attachments)}</div>
   );
 
+  const renderAttachmentSections = (entries: Array<[string, PluginGlobalAttachment[]]>) => (
+    <div className={styles["report-global-attachments"]}>
+      {entries.map(([environmentId, envAttachments]) => {
+        const isOpened = !collapsedEnvs.includes(environmentId);
+        const toggleEnv = () => {
+          setCollapsedEnvs((prev) =>
+            isOpened ? prev.concat(environmentId) : prev.filter((currentId) => currentId !== environmentId),
+          );
+        };
+
+        return (
+          <div key={environmentId} className={styles["report-global-attachments-section"]}>
+            <MetadataButton
+              isOpened={isOpened}
+              setIsOpen={toggleEnv}
+              title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(environmentId)}"`}
+              titleTooltipText={environmentNameById(environmentId)}
+              truncateTitle
+              counter={envAttachments.length}
+            />
+            {isOpened ? renderAttachmentList(envAttachments) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <Loadable
       source={globalsStore}
@@ -50,7 +77,7 @@ export const ReportGlobalAttachments = () => {
             return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
           }
 
-          return renderAttachmentsContent(currentEnvAttachments);
+          return renderAttachmentSections([[currentEnvironment.value, currentEnvAttachments]]);
         }
 
         const entries = Object.entries(attachmentsByEnv).filter(([, envAttachments]) => envAttachments.length > 0);
@@ -71,32 +98,7 @@ export const ReportGlobalAttachments = () => {
           return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
         }
 
-        return (
-          <div className={styles["report-global-attachments"]}>
-            {entries.map(([environmentId, envAttachments]) => {
-              const isOpened = !collapsedEnvs.includes(environmentId);
-              const toggleEnv = () => {
-                setCollapsedEnvs((prev) =>
-                  isOpened ? prev.concat(environmentId) : prev.filter((currentId) => currentId !== environmentId),
-                );
-              };
-
-              return (
-                <div key={environmentId} className={styles["report-global-attachments-section"]}>
-                  <MetadataButton
-                    isOpened={isOpened}
-                    setIsOpen={toggleEnv}
-                    title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(environmentId)}"`}
-                    titleTooltipText={environmentNameById(environmentId)}
-                    truncateTitle
-                    counter={envAttachments.length}
-                  />
-                  {isOpened ? renderAttachmentList(envAttachments) : null}
-                </div>
-              );
-            })}
-          </div>
-        );
+        return renderAttachmentSections(entries);
       }}
     />
   );

@@ -1,8 +1,16 @@
 import { CiType } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { h } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("CiInfo");
+  await label("coverage", "ui-components");
+});
 
 import { CiInfo } from "@/components/Header/CiInfo";
 
@@ -188,5 +196,53 @@ describe("components > Header > CiInfo", () => {
     render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveTextContent(fixtures.jobRunName);
+  });
+
+  it("should not render executor metadata in the header", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      executor: {
+        name: "TeamCity",
+        type: "teamcity",
+        buildName: "Wrike #123",
+        buildUrl: "https://teamcity.example/build/123",
+      },
+    });
+
+    render(<CiInfo />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByText("TeamCity · Wrike #123")).not.toBeInTheDocument();
+  });
+
+  it("should render ci label as plain text when ci has a name but no link", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobName: "Nightly Build",
+      },
+    });
+
+    render(<CiInfo />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("Nightly Build")).toBeInTheDocument();
+  });
+
+  it("should ignore executor metadata when ci has no link", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobName: "Nightly Build",
+      },
+      executor: {
+        name: "TeamCity",
+        buildName: "Wrike #123",
+        buildUrl: "https://teamcity.example/build/123",
+      },
+    });
+
+    render(<CiInfo />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText("Nightly Build")).toBeInTheDocument();
+    expect(screen.queryByText("TeamCity · Wrike #123")).not.toBeInTheDocument();
   });
 });

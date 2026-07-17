@@ -1,10 +1,10 @@
 .tooltip {
   align-items: center;
-  background-color: var(--constant-bg-base-modal);
-  border: 1px solid var(--on-border-muted);
+  background-color: var(--color-bg-inverse-raised);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   box-shadow: var(--shadow-small);
-  color: var(--constant-on-text-primary);
+  color: var(--color-text-inverse);
   display: flex;
   padding: 4px;
   text-wrap: nowrap;

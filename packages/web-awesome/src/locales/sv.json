@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Sök",
-    "search-placeholder": "Namn eller ID"
+    "search-placeholder": "Sök tester"
   },
   "filters": {
     "flaky": "Ostadig",
@@ -151,6 +151,7 @@
     "copy-email": "Kopiera e-post",
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
+    "generated": "Genererad",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
     "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
@@ -427,6 +428,66 @@
         "actual": "Faktisk",
         "expected": "Förväntad"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Tangentbordsgenvägar",
+    "groups": {
+      "global": "Allmänt",
+      "tree": "Träd",
+      "testResult": "Testresultat"
+    },
+    "items": {
+      "toggleHelp": "Visa eller dölj genvägar",
+      "focusSearch": "Fokusera sökning",
+      "blurSearch": "Lämna sökning",
+      "focusTree": "Fokusera trädpanel",
+      "focusTestResult": "Fokusera testresultatpanel",
+      "toggleLayout": "Växla delad vy (Shift+L)",
+      "toggleLayoutAlt": "Växla delad vy (Ctrl/Cmd+\\)",
+      "moveUp": "Flytta upp",
+      "moveDown": "Flytta ner",
+      "collapse": "Fäll ihop / gå till förälder",
+      "expand": "Expandera / första barn",
+      "parent": "Gå till förälder (p)",
+      "parentAlt": "Gå till förälder (u)",
+      "openNode": "Öppna test / växla grupp (o)",
+      "collapseNode": "Fäll ihop nod (-)",
+      "expandNode": "Expandera nod (+)",
+      "collapseAll": "Fäll ihop alla barn (C)",
+      "expandAll": "Expandera alla barn (A)",
+      "subtreeCycle": "Cykel fäll ihop/expandera — som pilknapp (>)",
+      "subtreeCollapse": "Fäll ihop hela underträdet (Shift+C)",
+      "subtreeExpand": "Expandera hela underträdet (Shift+A)",
+      "subtreeFirstLevel": "Expandera endast första nivån (f)",
+      "toggleNode": "Växla grupp eller miljö",
+      "openTest": "Öppna testresultat",
+      "firstTest": "Gå till första testet (g g), scrolla till toppen",
+      "lastTest": "Gå till sista testet",
+      "treeTop": "Första trädrad + scrolla till toppen (Home)",
+      "scrollTreeTop": "Scrolla till toppen — visa Variabler och filter (z t)",
+      "toggleReportVariables": "Visa/dölj variabler",
+      "toggleReportMetadata": "Visa/dölj metadata",
+      "reportTabResults": "Rapportflik: Resultat",
+      "reportTabCategories": "Rapportflik: Kategorier",
+      "reportTabQualityGate": "Rapportflik: Quality gate",
+      "reportTabGlobalAttachments": "Rapportflik: Globala bilagor",
+      "reportTabGlobalErrors": "Rapportflik: Globala fel",
+      "reportTabNext": "Nästa rapportflik",
+      "reportTabPrev": "Föregående rapportflik",
+      "nextTest": "Nästa testresultat",
+      "prevTest": "Föregående testresultat",
+      "testTabNext": "Nästa testflik",
+      "testTabPrev": "Föregående testflik",
+      "tabOverview": "Flik översikt",
+      "tabHistory": "Flik historik",
+      "tabRetries": "Flik omförsök",
+      "tabAttachments": "Flik bilagor",
+      "tabEnvironments": "Flik miljöer",
+      "toggleLabels": "Visa/dölj etiketter",
+      "toggleParameters": "Visa/dölj parametrar",
+      "toggleLinks": "Visa/dölj länkar",
+      "backToTree": "Tillbaka till trädet"
     }
   }
 }

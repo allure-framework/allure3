@@ -31,7 +31,7 @@ export class PluginFiles implements ReportFiles {
   constructor(
     parent: ReportFiles,
     pluginId: string,
-    readonly callback?: (key: string, path: string) => void,
+    readonly callback?: (key: string, path: string) => void | Promise<void>,
   ) {
     this.#parent = parent;
     this.#pluginId = pluginId;
@@ -40,7 +40,7 @@ export class PluginFiles implements ReportFiles {
   addFile = async (key: string, data: Buffer): Promise<string> => {
     const filepath = await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
 
-    this.callback?.(key, filepath);
+    await this.callback?.(key, filepath);
 
     return filepath;
   };
@@ -58,6 +58,7 @@ export class InMemoryReportFiles implements ReportFiles {
 
 export class FileSystemReportFiles implements ReportFiles {
   readonly #output: string;
+  readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
     this.#output = resolve(output);
@@ -67,7 +68,14 @@ export class FileSystemReportFiles implements ReportFiles {
     const targetPath = resolvePathUnderOutputRoot(this.#output, path);
     const targetDirPath = dirname(targetPath);
 
-    await mkdir(targetDirPath, { recursive: true });
+    let createdDir = this.#createdDirs.get(targetDirPath);
+
+    if (!createdDir) {
+      createdDir = mkdir(targetDirPath, { recursive: true });
+      this.#createdDirs.set(targetDirPath, createdDir);
+    }
+
+    await createdDir;
     await writeFile(targetPath, data, { encoding: "utf-8" });
 
     return targetPath;

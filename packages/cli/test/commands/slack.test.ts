@@ -1,9 +1,11 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin from "@allurereport/plugin-slack";
+import { epic, feature, label, story } from "allure-js-commons";
+import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SlackCommand } from "../../src/commands/slack.js";
@@ -24,10 +26,6 @@ vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
 }));
-vi.mock("node:fs", async (importOriginal) => ({
-  ...(await importOriginal()),
-  existsSync: vi.fn(),
-}));
 vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
   return {
@@ -35,43 +33,41 @@ vi.mock("@allurereport/core", async () => {
     AllureReport: AllureReportMock,
   };
 });
+vi.mock("glob", async (importOriginal) => {
+  return {
+    ...(await importOriginal()),
+    glob: vi.fn(),
+  };
+});
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("slack");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 
 describe("slack command", () => {
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(false);
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
-    const command = new SlackCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.token = fixtures.token;
-    command.channel = fixtures.channel;
-
-    await command.execute();
+    await run(SlackCommand, ["slack", "--token", fixtures.token, "--channel", fixtures.channel, fixtures.resultsDir]);
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+      expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();
   });
 
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [],
     });
 
-    const command = new SlackCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(SlackCommand, ["slack", "--token", fixtures.token, "--channel", fixtures.channel, fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
@@ -86,7 +82,7 @@ describe("slack command", () => {
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -104,14 +100,7 @@ describe("slack command", () => {
       ],
     });
 
-    const command = new SlackCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.token = fixtures.token;
-    command.channel = fixtures.channel;
-
-    await command.execute();
+    await run(SlackCommand, ["slack", "--token", fixtures.token, "--channel", fixtures.channel, fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -129,5 +118,21 @@ describe("slack command", () => {
         ]),
       }),
     );
+  });
+
+  it("should support multiple resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar/"]);
+
+    await run(SlackCommand, ["slack", "--token", fixtures.token, "--channel", fixtures.channel, "foo", "bar"]);
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", expect.any(Object));
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", expect.any(Object));
+
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(2);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(1, "./foo/");
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(2, "./bar/");
   });
 });

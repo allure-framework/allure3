@@ -9,12 +9,14 @@ import type {
   TestStatus,
 } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
-import axios, { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
+import { createServiceHttpClient } from "@allurereport/service";
+import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import type { LaunchGitContextDto } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
@@ -32,7 +34,10 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
-import { toUploadFixturesResultsDto, toUploadResultsDto } from "./uploaderDto.js";
+import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
+import { testStatusToLaunchStatus } from "./utils/launches.js";
+import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
+import { validateExecutableName } from "./utils/validation.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;
@@ -54,11 +59,11 @@ const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
 
 export class TestOpsClient {
+  #baseUrl: string;
   #logger = new Logger("TestOpsClient");
   #accessToken: string;
   #projectId: string;
-  #oauthToken: string = "";
-  #client: AxiosInstance;
+  #client: ReturnType<typeof createServiceHttpClient>;
   #launch?: TestOpsLaunch;
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
@@ -82,20 +87,12 @@ export class TestOpsClient {
       throw new Error("limit can't be greater than 5");
     }
 
+    this.#baseUrl = params.baseUrl;
     this.#accessToken = params.accessToken;
     this.#projectId = params.projectId;
 
-    this.#client = axios.create({
-      baseURL: params.baseUrl,
-      validateStatus: (status) => status >= 200 && status < 400,
-    });
-
-    this.#client.interceptors.request.use((config) => {
-      if (this.#oauthToken) {
-        config.headers.set("Authorization", `Bearer ${this.#oauthToken}`);
-      }
-
-      return config;
+    this.#client = createServiceHttpClient(params.baseUrl, {
+      apiToken: this.#accessToken,
     });
 
     if (params.limit) {
@@ -116,7 +113,7 @@ export class TestOpsClient {
       return undefined;
     }
 
-    return new URL(`launch/${this.#launch.id}`, this.#client.defaults.baseURL).toString();
+    return new URL(`launch/${this.#launch.id}`, this.#baseUrl).toString();
   }
 
   get launchId() {
@@ -152,8 +149,9 @@ export class TestOpsClient {
 
       this.#logger.debug(body);
 
-      const { data } = await this.#client.post<LaunchCategoryBulkResult[]>("/api/launch/category/bulk", body, {
+      const data = await this.#client.post<LaunchCategoryBulkResult[]>("/api/launch/category/bulk", {
         headers: { "Content-Type": "application/json" },
+        body,
       });
 
       if (Array.isArray(data)) {
@@ -178,22 +176,6 @@ export class TestOpsClient {
     return results;
   }
 
-  async issueOauthToken() {
-    const base = this.#client.defaults.baseURL;
-    this.#logger.debug(`Endpoint: ${base}`);
-    this.#logger.verbose("Issuing OAuth token…");
-    const formData = new FormData();
-
-    formData.append("grant_type", "apitoken");
-    formData.append("scope", "openid");
-    formData.append("token", this.#accessToken);
-
-    const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
-
-    this.#oauthToken = data.access_token as string;
-    this.#logger.verbose("OAuth token received");
-  }
-
   async startUpload(ci: CiDescriptor) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
@@ -201,19 +183,21 @@ export class TestOpsClient {
 
     this.#logger.verbose(`Starting CI upload (${ci.type})…`);
     await this.#client.post<unknown>("/api/upload/start", {
-      projectId: this.#projectId,
-      ci: {
-        name: ci.type,
-      },
-      job: {
-        name: ci.jobUid,
-        uid: ci.jobUid,
-      },
-      jobRun: {
-        uid: ci.jobRunUid,
-      },
-      launch: {
-        id: this.#launch.id,
+      body: {
+        projectId: this.#projectId,
+        ci: {
+          name: ci.type,
+        },
+        job: {
+          name: ci.jobUid,
+          uid: ci.jobUid,
+        },
+        jobRun: {
+          uid: ci.jobRunUid,
+        },
+        launch: {
+          id: this.#launch.id,
+        },
       },
     });
 
@@ -227,28 +211,44 @@ export class TestOpsClient {
     }
 
     await this.#client.post("/api/upload/stop", {
-      jobRunUid: ci.jobRunUid,
-      jobUid: ci.jobUid,
-      projectId: this.#projectId,
-      status,
+      body: {
+        jobRunUid: ci.jobRunUid,
+        jobUid: ci.jobUid,
+        projectId: this.#projectId,
+        status: testStatusToLaunchStatus(status),
+      },
     });
 
     this.#uploadInProgress = false;
     this.#logger.verbose(`CI upload stopped (status: ${status})`);
   }
 
-  async createLaunch(launchName: string, launchTags: string[]) {
+  async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto) {
     this.#logger.verbose("Creating launch…");
-    const { data } = await this.#client.post<TestOpsLaunch>("/api/launch", {
-      name: launchName,
-      projectId: this.#projectId,
-      autoclose: true,
-      external: true,
-      tags: launchTags.map((tag) => ({ name: tag })),
+    const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
+      body: {
+        name: launchName,
+        projectId: this.#projectId,
+        autoclose: true,
+        external: true,
+        tags: launchTags.map((tag) => ({ name: tag })),
+        ...(gitContext ? { gitContext } : {}),
+      },
     });
 
     this.#launch = data;
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
+  }
+
+  async checkLaunchProgress(): Promise<boolean> {
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    this.#logger.verbose("Retrieving launch progress status…");
+    const data = await this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch.id}/progress`);
+
+    return data.ready;
   }
 
   async createSession(environment: Record<string, unknown> = {}) {
@@ -256,21 +256,18 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<TestOpsSession>(
-      "/api/upload/session",
-      {
+    const data = await this.#client.post<TestOpsSession>("/api/upload/session", {
+      body: {
         launchId: this.#launch.id,
         environment: Object.entries(environment).map(([key, value]) => ({
           key,
           value: String(value),
         })),
       },
-      {
-        params: {
-          manual: "true",
-        },
+      params: {
+        manual: "true",
       },
-    );
+    });
 
     this.#session = data;
   }
@@ -298,26 +295,23 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<Pick<TestOpsNamedEnv, "id" | "externalId">[]>(
-      "/api/launch/named-env/bulk",
-      {
+    const data = await this.#client.post<Pick<TestOpsNamedEnv, "id" | "externalId">[]>("/api/launch/named-env/bulk", {
+      body: {
         launchId: this.#launch.id,
         items: environments.map(({ id, name }) => ({
           externalId: id,
           name,
         })),
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        onUploadProgress(progressEvent) {
-          const total = progressEvent.total ?? 100;
-          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-          onProgress?.(percent, total);
-        },
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+        onProgress?.(percent, total);
+      },
+    });
 
     const namesById = new Map(environments.map(({ id, name }) => [id, name]));
 
@@ -359,7 +353,8 @@ export class TestOpsClient {
       });
     }
 
-    await this.#client.post("/api/launch/attachment", formData, {
+    await this.#client.post("/api/launch/attachment", {
+      body: formData,
       onUploadProgress(progressEvent) {
         const total = progressEvent.total ?? 100;
         const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
@@ -379,20 +374,17 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    await this.#client.post(
-      "/api/launch/error/bulk",
-      {
+    await this.#client.post("/api/launch/error/bulk", {
+      body: {
         launchId: this.#launch.id,
         items: errors,
       },
-      {
-        onUploadProgress(progressEvent) {
-          const total = progressEvent.total ?? 100;
-          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-          onProgress?.(percent, total);
-        },
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+        onProgress?.(percent, total);
       },
-    );
+    });
   }
 
   async uploadTestResults(params: {
@@ -407,7 +399,11 @@ export class TestOpsClient {
     }
 
     const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
-    const trsChunks = chunk(trs, CHUNK_SIZE);
+    const projectedTrs = trs.map((tr) => ({
+      ...tr,
+      ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
+    }));
+    const trsChunks = chunk(projectedTrs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
@@ -433,6 +429,8 @@ export class TestOpsClient {
 
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
+        uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+
         await this.#uploadChunkAttachmentsAndFixtures(
           trsChunk,
           reportIdsToTestOpsIds,
@@ -441,8 +439,6 @@ export class TestOpsClient {
           uploadLimitFn,
           onProgress,
         );
-
-        uploadedTrs.push(...trsChunk);
       }
 
       this.#logger.verbose("Test results upload completed");
@@ -489,7 +485,8 @@ export class TestOpsClient {
 
     const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
 
-    const { data } = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", body, {
+    const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
+      body,
       headers: { "Content-Type": "application/json" },
     });
 
@@ -517,8 +514,18 @@ export class TestOpsClient {
       trsChunk.map((tr) =>
         uploadLimitFn(async () => {
           const testOpsId = reportIdsToTestOpsIds[tr.id];
+
+          if (typeof testOpsId !== "number") {
+            return;
+          }
+
           const attachments = await attachmentsResolver(tr);
-          const fixtures = await fixturesResolver(tr);
+          const fixtures = (await fixturesResolver(tr))
+            .filter((fixture) => validateExecutableName(fixture.name))
+            .map((fixture) => ({
+              ...fixture,
+              ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
+            }));
 
           await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
           await this.#uploadFixturesForResult(testOpsId, fixtures);
@@ -546,7 +553,8 @@ export class TestOpsClient {
       }
 
       try {
-        await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, formData, {
+        await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
+          body: formData,
           headers: formData.getHeaders(),
         });
       } catch (error) {
@@ -570,7 +578,9 @@ export class TestOpsClient {
 
     const body = toUploadFixturesResultsDto(fixtures);
 
-    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, body);
+    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
+      body,
+    });
   }
 
   async uploadQualityGateResults(
@@ -600,19 +610,16 @@ export class TestOpsClient {
       return item;
     });
 
-    await this.#client.post(
-      "/api/launch/quality-gate/bulk",
-      {
+    await this.#client.post("/api/launch/quality-gate/bulk", {
+      body: {
         launchId: this.#launch.id,
         items,
       },
-      {
-        onUploadProgress(progressEvent) {
-          const total = progressEvent.total ?? 100;
-          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-          onProgress?.(percent, total);
-        },
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+        onProgress?.(percent, total);
       },
-    );
+    });
   }
 }

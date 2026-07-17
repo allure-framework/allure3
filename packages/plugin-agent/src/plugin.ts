@@ -1,6 +1,6 @@
 import { appendFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
-import process, { env } from "node:process";
+import process from "node:process";
 
 import {
   type AttachmentLink,
@@ -24,21 +24,20 @@ import type {
   RealtimeSubscriber,
   ResultFile,
 } from "@allurereport/plugin-api";
-import { parse } from "yaml";
 
 import { renderAgentsGuide } from "./guidance.js";
-import type { AgentPluginOptions } from "./model.js";
+import type {
+  AgentEvidenceExpectationInput,
+  AgentExpectationSelectorInput,
+  AgentExpectationsInput,
+  AgentHumanReportStatus,
+  AgentHumanReportStatusProvider,
+  AgentPluginOptions,
+} from "./model.js";
+import { parseAgentExpectations } from "./model.js";
 
-const AGENT_OUTPUT_ENV = "ALLURE_AGENT_OUTPUT";
-const AGENT_EXPECTATIONS_ENV = "ALLURE_AGENT_EXPECTATIONS";
-const AGENT_COMMAND_ENV = "ALLURE_AGENT_COMMAND";
-const AGENT_PROJECT_ROOT_ENV = "ALLURE_AGENT_PROJECT_ROOT";
-const AGENT_NAME_ENV = "ALLURE_AGENT_NAME";
-const AGENT_LOOP_ID_ENV = "ALLURE_AGENT_LOOP_ID";
-const AGENT_TASK_ID_ENV = "ALLURE_AGENT_TASK_ID";
-const AGENT_CONVERSATION_ID_ENV = "ALLURE_AGENT_CONVERSATION_ID";
 const AGENT_SCHEMA_VERSION = "allure-agent-output/v1";
-const MANAGED_ENTRIES = ["index.md", "AGENTS.md", "tests", "artifacts", "manifest", "project"] as const;
+const MANAGED_ENTRIES = ["index.md", "AGENTS.md", "tests", "artifacts", "manifest"] as const;
 const STATUS_ORDER: Record<TestStatus, number> = {
   failed: 0,
   broken: 1,
@@ -52,8 +51,6 @@ const FINDING_SEVERITY_ORDER = {
   info: 2,
 } as const;
 const NONTRIVIAL_DURATION_MS = 100;
-const STEP_SPAM_THRESHOLD = 25;
-const NOOP_RATIO_THRESHOLD = 0.8;
 const ASSERTION_STEP_PATTERN = /\b(assert|expect|check|verify|validate|should)\b/i;
 const LOW_VALUE_STDERR_WARNING_PATTERNS = [
   /\bNO_COLOR\b/i,
@@ -86,6 +83,7 @@ const STACK_TRACE_LINE_PATTERN = /^\s*(at\s+|file:|node:internal|Caused by:\s*$|
 
 type FindingSeverity = "info" | "warning" | "high";
 type FindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
+type FindingImpact = "reject" | "iterate" | "advisory";
 type ScopeMatch = "match" | "unexpected" | "forbidden" | "unknown";
 type ModelingCompleteness = "complete" | "partial";
 type RunnerIssueKind = "import" | "suite-load" | "setup" | "global-error";
@@ -191,10 +189,16 @@ type AgentRuntimeState = {
   store: AllureStore;
   generatedAt: string;
   command?: string;
+  agentContext: {
+    agentName?: string;
+    loopId?: string;
+    taskId?: string;
+    conversationId?: string;
+  };
+  humanReport?: AgentHumanReportStatusProvider;
   createFinding: ReturnType<typeof createFindingFactory>;
   expectations?: LoadedExpectations;
   expectationLoadFindings: AgentFinding[];
-  projectGuide?: LoadedProjectGuide;
   unsubscribers: Array<() => void>;
   queue: Promise<void>;
   lastError?: Error;
@@ -233,29 +237,23 @@ type AgentFinding = {
   subject: string;
   subjectType: "run" | "test";
   severity: FindingSeverity;
+  impact?: FindingImpact;
   category: FindingCategory;
   checkName: string;
+  title?: string;
   message: string;
   explanation: string;
   evidencePaths: string[];
   remediationHint: string;
   expectedReference?: string;
   confidence?: number;
-};
-
-type ExpectationSelectorInput = {
-  environments?: string[];
-  full_names?: string[];
-  full_name_prefixes?: string[];
-  label_values?: Record<string, string | string[]>;
-};
-
-type ExpectationsInput = {
-  goal?: string;
-  task_id?: string;
-  expected?: ExpectationSelectorInput;
-  forbidden?: ExpectationSelectorInput;
-  notes?: string | string[];
+  expected?: Record<string, unknown>;
+  observed?: Record<string, unknown>;
+  action?: string;
+  source?: Record<string, unknown>;
+  limits?: string;
+  affected?: Record<string, unknown>;
+  moreCount?: number;
 };
 
 type NormalizedExpectationSelectors = {
@@ -263,22 +261,32 @@ type NormalizedExpectationSelectors = {
   fullNames: string[];
   fullNamePrefixes: string[];
   labelValues: Record<string, string[]>;
+  testCount?: number;
+};
+
+type NormalizedAttachmentExpectation = {
+  name?: string;
+  contentType?: string;
+};
+
+type NormalizedEvidenceExpectations = {
+  minSteps?: number;
+  minAttachments?: number;
+  stepNameContains: string[];
+  attachments: NormalizedAttachmentExpectation[];
 };
 
 type LoadedExpectations = {
-  sourcePath: string;
+  sourcePath?: string;
+  sourceKind: "file" | "inline";
   relativePath: string;
-  raw: ExpectationsInput;
+  raw: AgentExpectationsInput;
   goal?: string;
   taskId?: string;
   notes: string[];
   expected: NormalizedExpectationSelectors;
   forbidden: NormalizedExpectationSelectors;
-};
-
-type LoadedProjectGuide = {
-  sourcePath: string;
-  relativePath: string;
+  evidence: NormalizedEvidenceExpectations;
 };
 
 type ScopeEvaluation = {
@@ -364,8 +372,6 @@ const formatDurationValue = (value?: number) => formatDuration(value);
 
 const escapeJsonPointerSegment = (value: string) => value.replace(/~/g, "~0").replace(/\//g, "~1");
 
-const isFailedLikeStatus = (status: TestStatus) => status === "failed" || status === "broken";
-
 const normalizeStringArray = (value: unknown) => {
   if (!Array.isArray(value)) {
     return [];
@@ -393,11 +399,18 @@ const normalizeLabelValues = (value: unknown) => {
   );
 };
 
-const normalizeSelectors = (input?: ExpectationSelectorInput): NormalizedExpectationSelectors => ({
+const normalizeNonNegativeInteger = (value: unknown) =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+
+const normalizePositiveInteger = (value: unknown) =>
+  typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+
+const normalizeSelectors = (input?: AgentExpectationSelectorInput): NormalizedExpectationSelectors => ({
   environments: normalizeStringArray(input?.environments),
   fullNames: normalizeStringArray(input?.full_names),
   fullNamePrefixes: normalizeStringArray(input?.full_name_prefixes),
   labelValues: normalizeLabelValues(input?.label_values),
+  testCount: normalizeNonNegativeInteger(input?.test_count),
 });
 
 const hasSelector = (selectors: NormalizedExpectationSelectors) =>
@@ -405,6 +418,25 @@ const hasSelector = (selectors: NormalizedExpectationSelectors) =>
   selectors.fullNames.length > 0 ||
   selectors.fullNamePrefixes.length > 0 ||
   Object.keys(selectors.labelValues).length > 0;
+
+const normalizeEvidenceExpectations = (input?: AgentEvidenceExpectationInput): NormalizedEvidenceExpectations => ({
+  minSteps: normalizePositiveInteger(input?.min_steps),
+  minAttachments: normalizePositiveInteger(input?.min_attachments),
+  stepNameContains: normalizeStringArray(input?.step_name_contains),
+  attachments: (Array.isArray(input?.attachments) ? input.attachments : []).flatMap((attachment) => {
+    if (!attachment || typeof attachment !== "object") {
+      return [];
+    }
+
+    const name = typeof attachment.name === "string" && attachment.name.length > 0 ? attachment.name : undefined;
+    const contentType =
+      typeof attachment.content_type === "string" && attachment.content_type.length > 0
+        ? attachment.content_type
+        : undefined;
+
+    return name || contentType ? [{ ...(name ? { name } : {}), ...(contentType ? { contentType } : {}) }] : [];
+  }),
+});
 
 const normalizeNotes = (value: string | string[] | undefined) => {
   if (typeof value === "string") {
@@ -550,11 +582,18 @@ const analyzeStepTree = (steps: TestStepResult[]): StepTreeSummary => {
         summary.nestedSteps += 1;
       }
 
-      if (ASSERTION_STEP_PATTERN.test(node.name)) {
+      const isAssertionLike = ASSERTION_STEP_PATTERN.test(node.name);
+      const isNonTrivialDuration = (node.duration ?? 0) >= NONTRIVIAL_DURATION_MS;
+
+      if (isAssertionLike) {
         summary.assertionLikeSteps += 1;
       }
 
-      if (hasEvidence) {
+      // A leaf step is low-signal only when it carries no signal at all. The step name and duration
+      // are signal too: an assertion step states its check in the name, and a step that did real work
+      // (non-trivial duration) is not a noop. Without this, assertion DSLs and setup narratives that
+      // record one named leaf per check or action are wrongly flagged as noop-dominated.
+      if (hasEvidence || isAssertionLike || isNonTrivialDuration) {
         summary.meaningfulSteps += 1;
       } else {
         summary.noopSteps += 1;
@@ -591,18 +630,35 @@ const mergeStepSummaries = (items: StepTreeSummary[]) =>
     },
   );
 
-const buildAttemptSignature = (attempt: AttemptRecord) =>
-  JSON.stringify({
-    status: attempt.tr.status,
-    errorMessage: attempt.tr.error?.message,
-    errorTrace: attempt.tr.error?.trace,
-    stepSummary: attempt.stepSummary,
-    fixtureSummary: attempt.fixtureStepSummary,
-    artifactNames: attempt.artifacts.map((artifact) => ({
-      name: artifact.displayName,
-      missing: artifact.missing,
-    })),
-  });
+const collectStepNames = (steps: TestStepResult[], path: string[] = []): Array<{ name: string; path: string[] }> => {
+  const names: Array<{ name: string; path: string[] }> = [];
+
+  for (const node of steps) {
+    if (!isStep(node)) {
+      continue;
+    }
+
+    const nextPath = [...path, node.name];
+
+    names.push({ name: node.name, path: nextPath });
+
+    if (node.steps.length) {
+      names.push(...collectStepNames(node.steps, nextPath));
+    }
+  }
+
+  return names;
+};
+
+const testStepContainsText = (entry: TestEntry, expectedText: string) => {
+  const expected = normalizeStepText(expectedText);
+
+  if (!expected) {
+    return false;
+  }
+
+  return collectStepNames(entry.attempts[0].tr.steps).some(({ name }) => normalizeStepText(name).includes(expected));
+};
 
 const getPackageName = (tr: TestResult) => tr.labels.find(({ name }) => name === "package")?.value;
 
@@ -698,6 +754,8 @@ const summarizeStatusCounts = (counts: StatusCounts) =>
   `${counts.total} total (${counts.failed} failed, ${counts.broken} broken, ${counts.unknown} unknown, ${counts.skipped} skipped, ${counts.passed} passed)`;
 
 const normalizeLogLine = (value: string) => value.replace(/\s+/g, " ").trim();
+
+const normalizeStepText = (value: string) => value.replace(/\s+/g, " ").trim().toLocaleLowerCase();
 
 const normalizeWarningLine = (value: string) =>
   normalizeLogLine(value).replace(/^\(node:\d+\)\s+Warning:\s*/i, "Warning: ");
@@ -1212,12 +1270,92 @@ const renderModelingSummary = (modeling: ModelingSummary) => {
   return lines.join("\n");
 };
 
+const cloneHumanReportStatus = (status: AgentHumanReportStatus): AgentHumanReportStatus => ({
+  ...status,
+  reports: status.reports.map((report) => ({ ...report })),
+  ...(status.errors ? { errors: status.errors.map((error) => ({ ...error })) } : {}),
+});
+
+const resolveHumanReportStatus = async (
+  provider?: AgentHumanReportStatusProvider,
+): Promise<AgentHumanReportStatus | undefined> => {
+  if (!provider) {
+    return undefined;
+  }
+
+  const status = typeof provider === "function" ? await provider() : provider;
+
+  return status ? cloneHumanReportStatus(status) : undefined;
+};
+
+const renderHumanReportSection = (humanReport?: AgentHumanReportStatus) => {
+  if (!humanReport) {
+    return undefined;
+  }
+
+  const lines = [
+    "## Human Report",
+    "",
+    `- Status: ${humanReport.status}`,
+    `- Mode: ${humanReport.mode}`,
+    `- Result Count: ${humanReport.result_count ?? "unknown"}`,
+    `- Threshold: ${humanReport.threshold}`,
+  ];
+
+  if (humanReport.path) {
+    lines.push(`- Path: [${escapeInlineMarkdown(humanReport.path)}](${normalizeMarkdownPath(humanReport.path)})`);
+  }
+
+  if (humanReport.reason) {
+    lines.push(`- Reason: ${escapeInlineMarkdown(humanReport.reason)}`);
+  }
+
+  if (humanReport.error) {
+    lines.push(`- Error: ${escapeInlineMarkdown(humanReport.error)}`);
+  }
+
+  if (humanReport.reports.length > 1) {
+    lines.push("");
+    lines.push("### Reports");
+    lines.push("");
+    lines.push(
+      humanReport.reports
+        .map(
+          (report) =>
+            `- ${escapeInlineMarkdown(report.plugin_id)}: [${escapeInlineMarkdown(report.path)}](${normalizeMarkdownPath(report.path)})`,
+        )
+        .join("\n"),
+    );
+  }
+
+  if (humanReport.errors?.length) {
+    lines.push("");
+    lines.push("### Report Errors");
+    lines.push("");
+    lines.push(
+      humanReport.errors
+        .map((error) => {
+          const prefix = error.plugin_id ? `${error.plugin_id}: ` : "";
+
+          return `- ${escapeInlineMarkdown(`${prefix}${error.message}`)}`;
+        })
+        .join("\n"),
+    );
+  }
+
+  return lines.join("\n");
+};
+
 const renderSelectorSummary = (title: string, selectors: NormalizedExpectationSelectors) => {
-  if (!hasSelector(selectors)) {
+  if (!hasSelector(selectors) && selectors.testCount === undefined) {
     return `- ${title}: None`;
   }
 
   const parts: string[] = [];
+
+  if (selectors.testCount !== undefined) {
+    parts.push(`test count: ${selectors.testCount}`);
+  }
 
   if (selectors.environments.length) {
     parts.push(`environments: ${selectors.environments.join(", ")}`);
@@ -1240,6 +1378,39 @@ const renderSelectorSummary = (title: string, selectors: NormalizedExpectationSe
   }
 
   return `- ${title}: ${parts.join(" | ")}`;
+};
+
+const renderEvidenceExpectationSummary = (evidence: NormalizedEvidenceExpectations) => {
+  const parts: string[] = [];
+
+  if (evidence.minSteps !== undefined) {
+    parts.push(`meaningful steps per test: >= ${evidence.minSteps}`);
+  }
+
+  if (evidence.minAttachments !== undefined) {
+    parts.push(`attachments per test: >= ${evidence.minAttachments}`);
+  }
+
+  if (evidence.stepNameContains.length) {
+    parts.push(`step contains: ${evidence.stepNameContains.join("; ")}`);
+  }
+
+  if (evidence.attachments.length) {
+    parts.push(
+      `attachments: ${evidence.attachments
+        .map((attachment) =>
+          [
+            attachment.name ? `name=${attachment.name}` : undefined,
+            attachment.contentType ? `content-type=${attachment.contentType}` : undefined,
+          ]
+            .filter(Boolean)
+            .join(", "),
+        )
+        .join("; ")}`,
+    );
+  }
+
+  return `- Evidence expectations: ${parts.length ? parts.join(" | ") : "None"}`;
 };
 
 const buildCheckSummary = (findings: AgentFinding[]) => {
@@ -1265,6 +1436,272 @@ const buildCheckSummary = (findings: AgentFinding[]) => {
     total: findings.length,
     countsBySeverity,
     countsByCategory,
+  };
+};
+
+const EXPECTATION_CHECK_IDS = new Set<string>([
+  "expectations-invalid",
+  "expectations-empty",
+  "expectations-unsupported-control",
+  "expectations-weak-goal",
+  "expected-test-missing",
+  "expected-prefix-missing",
+  "expected-label-missing",
+  "expected-environment-missing",
+  "expected-count-mismatch",
+  "expected-step-containing-missing",
+  "insufficient-expected-steps",
+  "insufficient-expected-attachments",
+  "missing-expected-attachment",
+  "forbidden-label-observed",
+  "no-tests-observed",
+] as const);
+
+const MISSING_EXPECTED_CHECK_IDS = new Set<string>([
+  "expected-test-missing",
+  "expected-prefix-missing",
+  "expected-label-missing",
+  "expected-environment-missing",
+] as const);
+
+const EVIDENCE_MISMATCH_CHECK_IDS = new Set<string>([
+  "expected-step-containing-missing",
+  "insufficient-expected-steps",
+  "insufficient-expected-attachments",
+  "missing-expected-attachment",
+] as const);
+
+const countLabelValues = (labelValues: Record<string, string[]>) =>
+  Object.values(labelValues).reduce((total, values) => total + values.length, 0);
+
+const recognizedControlCount = (expectations?: LoadedExpectations) => {
+  if (!expectations) {
+    return 0;
+  }
+
+  return (
+    (expectations.goal ? 1 : 0) +
+    (expectations.taskId ? 1 : 0) +
+    (expectations.expected.testCount !== undefined ? 1 : 0) +
+    expectations.expected.environments.length +
+    expectations.expected.fullNames.length +
+    expectations.expected.fullNamePrefixes.length +
+    countLabelValues(expectations.expected.labelValues) +
+    countLabelValues(expectations.forbidden.labelValues) +
+    (expectations.evidence.minSteps !== undefined ? 1 : 0) +
+    (expectations.evidence.minAttachments !== undefined ? 1 : 0) +
+    expectations.evidence.stepNameContains.length +
+    expectations.evidence.attachments.length
+  );
+};
+
+const runtimeMatchingControlCount = (expectations?: LoadedExpectations) => {
+  if (!expectations) {
+    return 0;
+  }
+
+  return (
+    (expectations.expected.testCount !== undefined ? 1 : 0) +
+    expectations.expected.environments.length +
+    expectations.expected.fullNames.length +
+    expectations.expected.fullNamePrefixes.length +
+    countLabelValues(expectations.expected.labelValues) +
+    countLabelValues(expectations.forbidden.labelValues) +
+    (expectations.evidence.minSteps !== undefined ? 1 : 0) +
+    (expectations.evidence.minAttachments !== undefined ? 1 : 0) +
+    expectations.evidence.stepNameContains.length +
+    expectations.evidence.attachments.length
+  );
+};
+
+const toExpectationModel = (expectations: LoadedExpectations) => {
+  const expected: AgentExpectationSelectorInput = {};
+  const forbidden: AgentExpectationSelectorInput = {};
+  const evidence: AgentEvidenceExpectationInput = {};
+
+  if (expectations.expected.testCount !== undefined) {
+    expected.test_count = expectations.expected.testCount;
+  }
+
+  if (expectations.expected.environments.length) {
+    expected.environments = expectations.expected.environments;
+  }
+
+  if (expectations.expected.fullNames.length) {
+    expected.full_names = expectations.expected.fullNames;
+  }
+
+  if (expectations.expected.fullNamePrefixes.length) {
+    expected.full_name_prefixes = expectations.expected.fullNamePrefixes;
+  }
+
+  if (Object.keys(expectations.expected.labelValues).length) {
+    expected.label_values = expectations.expected.labelValues;
+  }
+
+  if (Object.keys(expectations.forbidden.labelValues).length) {
+    forbidden.label_values = expectations.forbidden.labelValues;
+  }
+
+  if (expectations.evidence.minSteps !== undefined) {
+    evidence.min_steps = expectations.evidence.minSteps;
+  }
+
+  if (expectations.evidence.minAttachments !== undefined) {
+    evidence.min_attachments = expectations.evidence.minAttachments;
+  }
+
+  if (expectations.evidence.stepNameContains.length) {
+    evidence.step_name_contains = expectations.evidence.stepNameContains;
+  }
+
+  if (expectations.evidence.attachments.length) {
+    evidence.attachments = expectations.evidence.attachments.map((attachment) => ({
+      ...(attachment.name ? { name: attachment.name } : {}),
+      ...(attachment.contentType ? { content_type: attachment.contentType } : {}),
+    }));
+  }
+
+  return {
+    ...(expectations.goal ? { goal: expectations.goal } : {}),
+    ...(expectations.taskId ? { task_id: expectations.taskId } : {}),
+    ...(Object.keys(expected).length ? { expected } : {}),
+    ...(Object.keys(forbidden).length ? { forbidden } : {}),
+    ...(Object.keys(evidence).length ? { evidence } : {}),
+    ...(expectations.notes.length ? { notes: expectations.notes } : {}),
+  };
+};
+
+const defaultImpactForFinding = (finding: AgentFinding): FindingImpact => {
+  if (finding.impact) {
+    return finding.impact;
+  }
+
+  if (
+    [
+      "expected-test-missing",
+      "expected-prefix-missing",
+      "expected-label-missing",
+      "expected-environment-missing",
+      "forbidden-label-observed",
+      "no-tests-observed",
+    ].includes(finding.checkName)
+  ) {
+    return "reject";
+  }
+
+  if (
+    [
+      "expectations-invalid",
+      "expectations-empty",
+      "expectations-unsupported-control",
+      "expected-count-mismatch",
+      "expected-step-containing-missing",
+      "insufficient-expected-steps",
+      "insufficient-expected-attachments",
+      "missing-expected-attachment",
+      "runner-failures-outside-logical-results",
+      "metadata-mismatch",
+      "history-id-collision",
+    ].includes(finding.checkName)
+  ) {
+    return "iterate";
+  }
+
+  if (finding.severity === "high") {
+    return "iterate";
+  }
+
+  return "advisory";
+};
+
+const strongestImpact = (findings: AgentFinding[], fallback: FindingImpact): FindingImpact => {
+  if (findings.some((finding) => defaultImpactForFinding(finding) === "reject")) {
+    return "reject";
+  }
+
+  if (findings.some((finding) => defaultImpactForFinding(finding) === "iterate")) {
+    return "iterate";
+  }
+
+  return fallback;
+};
+
+const buildExpectationResult = (params: {
+  expectations?: LoadedExpectations;
+  findings: AgentFinding[];
+  observedTestCount: number;
+  modelingSummary: ModelingSummary;
+}) => {
+  const { expectations, findings, observedTestCount, modelingSummary } = params;
+  const expectationFindings = findings.filter((finding) => EXPECTATION_CHECK_IDS.has(finding.checkName));
+  const recognized = recognizedControlCount(expectations);
+  const runtimeMatching = runtimeMatchingControlCount(expectations);
+  const invalidFindings = expectationFindings.filter((finding) => finding.checkName === "expectations-invalid");
+  const emptyFindings = expectationFindings.filter((finding) => finding.checkName === "expectations-empty");
+  const unsupportedFindings = expectationFindings.filter(
+    (finding) => finding.checkName === "expectations-unsupported-control",
+  );
+  const blockingFindings = expectationFindings.filter((finding) => finding.checkName !== "expectations-weak-goal");
+  const expectedTests = expectations?.expected.testCount ?? expectations?.expected.fullNames.length ?? 0;
+  let status: "matched" | "failed" | "partial" | "degraded" | "unsupported" | "unavailable" | "not_requested";
+  let impact: "accept" | "reject" | "iterate" | "advisory";
+
+  if (invalidFindings.length) {
+    status = "unavailable";
+    impact =
+      strongestImpact(invalidFindings, "reject") === "advisory" ? "reject" : strongestImpact(invalidFindings, "reject");
+  } else if (emptyFindings.length || unsupportedFindings.length) {
+    status = "unsupported";
+    impact = strongestImpact([...emptyFindings, ...unsupportedFindings], "iterate") === "reject" ? "reject" : "iterate";
+  } else if (blockingFindings.some((finding) => finding.checkName === "no-tests-observed")) {
+    status = "failed";
+    impact = "reject";
+  } else if (runtimeMatching === 0) {
+    status = "not_requested";
+    impact = "advisory";
+  } else if (blockingFindings.some((finding) => defaultImpactForFinding(finding) === "reject")) {
+    status = "failed";
+    impact = "reject";
+  } else if (blockingFindings.some((finding) => defaultImpactForFinding(finding) === "iterate")) {
+    status = "failed";
+    impact = "iterate";
+  } else if (modelingSummary.completeness === "partial") {
+    status = "partial";
+    impact = "iterate";
+  } else {
+    status = "matched";
+    impact = "accept";
+  }
+
+  return {
+    schema_version: "allure-agent-expectation-result/v1",
+    status,
+    impact,
+    source: expectations
+      ? {
+          kind: expectations.sourceKind,
+          path: expectations.sourceKind === "file" ? (expectations.sourcePath ?? null) : null,
+        }
+      : {
+          kind: "none",
+          path: null,
+        },
+    recognized_control_count: recognized,
+    unsupported_controls: unsupportedFindings.map((finding) => finding.expectedReference ?? finding.message),
+    degraded_controls: [] as string[],
+    summary: {
+      expected_tests: expectedTests,
+      observed_tests: observedTestCount,
+      missing_expected: expectationFindings.filter((finding) => MISSING_EXPECTED_CHECK_IDS.has(finding.checkName))
+        .length,
+      forbidden_observed: expectationFindings.filter((finding) => finding.checkName === "forbidden-label-observed")
+        .length,
+      unexpected_observed: 0,
+      evidence_mismatches: expectationFindings.filter((finding) => EVIDENCE_MISMATCH_CHECK_IDS.has(finding.checkName))
+        .length,
+    },
+    finding_ids: expectationFindings.map((finding) => finding.findingId),
   };
 };
 
@@ -1302,6 +1739,35 @@ const renderFindingEvidenceLinks = (params: { finding: AgentFinding; currentFile
     .join("\n");
 };
 
+const formatFindingStructuredValue = (value: unknown): string | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => formatFindingStructuredValue(item))
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (typeof value === "object") {
+    const parts = Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => {
+      const formatted = formatFindingStructuredValue(item);
+
+      return formatted ? [`${key}: ${formatted}`] : [];
+    });
+
+    return parts.length ? parts.join("; ") : undefined;
+  }
+
+  return undefined;
+};
+
 const renderFindingsSection = (params: {
   title: string;
   findings: AgentFinding[];
@@ -1317,32 +1783,34 @@ const renderFindingsSection = (params: {
   const lines: string[] = [`## ${title}`, ""];
 
   for (const finding of sortFindings(findings)) {
-    lines.push(
-      `### [${finding.severity.toUpperCase()}] ${escapeInlineMarkdown(finding.category)} / ${escapeInlineMarkdown(finding.checkName)}`,
-    );
-    lines.push("");
-    lines.push(`- Message: ${escapeInlineMarkdown(finding.message)}`);
-    lines.push(`- Explanation: ${escapeInlineMarkdown(finding.explanation)}`);
-    lines.push(`- Remediation: ${escapeInlineMarkdown(finding.remediationHint)}`);
+    const impact = defaultImpactForFinding(finding);
+    const expected =
+      formatFindingStructuredValue(finding.expected) ??
+      (finding.expectedReference ? `reference: ${finding.expectedReference}` : undefined);
+    const observed = formatFindingStructuredValue(finding.observed) ?? finding.explanation;
+    const evidenceLinks = renderFindingEvidenceLinks({
+      finding,
+      currentFilePath,
+      outputDir,
+    });
 
-    if (finding.expectedReference) {
-      lines.push(`- Expected Reference: ${escapeInlineMarkdown(finding.expectedReference)}`);
+    lines.push(
+      `- [${finding.severity.toUpperCase()}][${impact}][${escapeInlineMarkdown(finding.category)}] ${escapeInlineMarkdown(finding.title ?? finding.message)}`,
+    );
+
+    if (expected) {
+      lines.push(`  Expected: ${escapeInlineMarkdown(expected)}`);
     }
 
-    if (finding.confidence !== undefined) {
-      lines.push(`- Confidence: ${finding.confidence}`);
+    if (observed) {
+      lines.push(`  Observed: ${escapeInlineMarkdown(observed)}`);
     }
 
-    lines.push("- Evidence:");
-    lines.push("");
-    lines.push(
-      renderFindingEvidenceLinks({
-        finding,
-        currentFilePath,
-        outputDir,
-      }),
-    );
-    lines.push("");
+    lines.push(`  Action: ${escapeInlineMarkdown(finding.action ?? finding.remediationHint)}`);
+
+    if (evidenceLinks !== "None") {
+      lines.push(`  Evidence: ${escapeInlineMarkdown(finding.evidencePaths.join(", "))}`);
+    }
   }
 
   return lines.join("\n").trimEnd();
@@ -1361,10 +1829,34 @@ const renderExpectationSection = (entry: TestEntry) => {
   return lines.join("\n");
 };
 
+const renderExpectationResultSection = (params: {
+  expectations?: LoadedExpectations;
+  findings: AgentFinding[];
+  observedTestCount: number;
+  modelingSummary: ModelingSummary;
+}) => {
+  const result = buildExpectationResult(params);
+  const summary = result.summary;
+
+  return [
+    "## Expectation Result",
+    "",
+    `- Status: ${result.status}`,
+    `- Impact: ${result.impact}`,
+    `- Recognized Controls: ${result.recognized_control_count}`,
+    `- Source: ${result.source.kind}${result.source.path ? ` (${result.source.path})` : ""}`,
+    `- Expected Tests: ${summary.expected_tests}`,
+    `- Observed Tests: ${summary.observed_tests}`,
+    `- Missing Expected: ${summary.missing_expected}`,
+    `- Forbidden Observed: ${summary.forbidden_observed}`,
+    `- Evidence Mismatches: ${summary.evidence_mismatches}`,
+    `- Run Manifest: [manifest/run.json](manifest/run.json)`,
+    `- Findings Manifest: [manifest/findings.jsonl](manifest/findings.jsonl)`,
+  ].join("\n");
+};
+
 const renderRerunGuidance = (findings: AgentFinding[]) => {
-  const relevant = findings.filter(
-    ({ category }) => category === "evidence" || category === "smells" || category === "metadata",
-  );
+  const relevant = findings.filter(({ category }) => category === "evidence" || category === "metadata");
 
   if (!relevant.length) {
     return undefined;
@@ -1381,13 +1873,7 @@ const renderRerunGuidance = (findings: AgentFinding[]) => {
     lines.push("- Add or repair the labels and parameters needed to identify the intended scope.");
   }
 
-  if (relevant.some(({ checkName }) => checkName === "noop-dominated-steps")) {
-    lines.push("- Replace repetitive event-style steps with a compact text attachment when the signal is mostly logs.");
-  }
-
-  lines.push(
-    "- Rerun only the relevant tests with the same expectations file so the next review is scoped and comparable.",
-  );
+  lines.push("- Rerun only the relevant tests with the same expectations so the next review is scoped and comparable.");
 
   return lines.join("\n");
 };
@@ -1492,6 +1978,7 @@ const renderIndex = (params: {
   globalExitCode?: { actual?: number; original: number };
   qualityGateResults: QualityGateValidationResult[];
   findings: AgentFinding[];
+  humanReport?: AgentHumanReportStatus;
 }) => {
   const {
     context,
@@ -1509,6 +1996,7 @@ const renderIndex = (params: {
     globalExitCode,
     qualityGateResults,
     findings,
+    humanReport,
   } = params;
   const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
   const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
@@ -1581,6 +2069,13 @@ const renderIndex = (params: {
   lines.push("");
   lines.push(renderModelingSummary(modelingSummary));
 
+  const humanReportSection = renderHumanReportSection(humanReport);
+
+  if (humanReportSection) {
+    lines.push("");
+    lines.push(humanReportSection);
+  }
+
   if (expectations) {
     lines.push("");
     lines.push("## Expected Scope");
@@ -1588,15 +2083,28 @@ const renderIndex = (params: {
     lines.push(`- Goal: ${escapeInlineMarkdown(expectations.goal ?? "unknown")}`);
     lines.push(`- Feature / Task: ${escapeInlineMarkdown(expectations.taskId ?? "unknown")}`);
     lines.push(
-      `- Expectations Source: [${escapeInlineMarkdown(expectations.relativePath)}](${normalizeMarkdownPath(expectations.relativePath)})`,
+      expectations.sourceKind === "inline"
+        ? `- Expectations Source: CLI options (normalized: [${escapeInlineMarkdown(expectations.relativePath)}](${normalizeMarkdownPath(expectations.relativePath)}))`
+        : `- Expectations Source: [${escapeInlineMarkdown(expectations.relativePath)}](${normalizeMarkdownPath(expectations.relativePath)})`,
     );
     lines.push(renderSelectorSummary("Expected selectors", expectations.expected));
     lines.push(renderSelectorSummary("Forbidden selectors", expectations.forbidden));
+    lines.push(renderEvidenceExpectationSummary(expectations.evidence));
 
     if (expectations.notes.length) {
       lines.push(`- Notes: ${expectations.notes.map((note) => escapeInlineMarkdown(note)).join(" | ")}`);
     }
   }
+
+  lines.push("");
+  lines.push(
+    renderExpectationResultSection({
+      expectations,
+      findings,
+      observedTestCount: tests.length,
+      modelingSummary,
+    }),
+  );
 
   lines.push("");
   lines.push("## Advisory Check Summary");
@@ -1884,11 +2392,7 @@ const readMaterializedArtifactText = async (outputDir: string, artifact?: Materi
   }
 };
 
-const resolveOutputDir = (options: AgentPluginOptions) => {
-  const outputDir = options.outputDir ?? env[AGENT_OUTPUT_ENV];
-
-  return outputDir ? resolve(outputDir) : undefined;
-};
+const resolveOutputDir = (options: AgentPluginOptions) => (options.outputDir ? resolve(options.outputDir) : undefined);
 
 const cleanupManagedEntries = async (outputDir: string) => {
   await Promise.all(
@@ -1939,18 +2443,116 @@ const createFindingFactory = () => {
   };
 };
 
-const parseExpectations = (rawContent: string) => {
-  const parsed = parse(rawContent) as ExpectationsInput;
-
+const assertExpectationsObject = (parsed: AgentExpectationsInput) => {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Expected a YAML or JSON object");
+    throw new Error("Expected an expectations object");
   }
-
-  return parsed;
 };
 
-const loadExpectations = async (outputDir: string, createFinding: ReturnType<typeof createFindingFactory>) => {
-  const configuredPath = env[AGENT_EXPECTATIONS_ENV];
+const writeExpectedManifest = async (outputDir: string, parsed: AgentExpectationsInput) => {
+  const relativePath = normalizeMarkdownPath("manifest/expected.json");
+
+  await mkdir(join(outputDir, "manifest"), { recursive: true });
+  await writeFile(join(outputDir, relativePath), `${JSON.stringify(parsed, null, 2)}\n`, "utf-8");
+
+  return relativePath;
+};
+
+const toLoadedExpectations = (params: {
+  parsed: AgentExpectationsInput;
+  relativePath: string;
+  sourceKind: "file" | "inline";
+  sourcePath?: string;
+}) => {
+  const { parsed, relativePath, sourceKind, sourcePath } = params;
+
+  return {
+    sourcePath,
+    sourceKind,
+    relativePath,
+    raw: parsed,
+    goal: parsed.goal,
+    taskId: parsed.task_id,
+    notes: normalizeNotes(parsed.notes),
+    expected: normalizeSelectors(parsed.expected),
+    forbidden: normalizeSelectors(parsed.forbidden),
+    evidence: normalizeEvidenceExpectations(parsed.evidence),
+  } satisfies LoadedExpectations;
+};
+
+const loadExpectations = async (
+  outputDir: string,
+  createFinding: ReturnType<typeof createFindingFactory>,
+  options: AgentPluginOptions,
+) => {
+  const configuredPath = options.expectationsPath;
+  const inlineExpectations = options.expectations;
+
+  if (!configuredPath && !inlineExpectations) {
+    return {
+      expectations: undefined,
+      findings: [] as AgentFinding[],
+    };
+  }
+
+  if (configuredPath && inlineExpectations) {
+    return {
+      expectations: undefined,
+      findings: [
+        createFinding({
+          subject: "run",
+          subjectType: "run",
+          severity: "high",
+          category: "bootstrap",
+          impact: "reject",
+          checkName: "expectations-invalid",
+          title: "Expectation input is invalid",
+          message: "Both file and inline agent expectations were provided.",
+          explanation: "Set either expectationsPath or expectations in the agent plugin options, not both.",
+          evidencePaths: [],
+          remediationHint: "Rerun with one expectations source so scope checks are unambiguous.",
+          expectedReference: undefined,
+        }),
+      ],
+    };
+  }
+
+  if (inlineExpectations) {
+    try {
+      assertExpectationsObject(inlineExpectations);
+
+      const relativePath = await writeExpectedManifest(outputDir, inlineExpectations);
+
+      return {
+        expectations: toLoadedExpectations({
+          parsed: inlineExpectations,
+          relativePath,
+          sourceKind: "inline",
+        }),
+        findings: [] as AgentFinding[],
+      };
+    } catch (error) {
+      return {
+        expectations: undefined,
+        findings: [
+          createFinding({
+            subject: "run",
+            subjectType: "run",
+            severity: "high",
+            category: "bootstrap",
+            impact: "reject",
+            checkName: "expectations-invalid",
+            title: "Expectation input is invalid",
+            message: "Could not load inline agent expectations",
+            explanation: `The inline expectations option could not be normalized: ${(error as Error).message}`,
+            evidencePaths: [],
+            remediationHint: "Provide a valid expectations object before rerunning.",
+            expectedReference: undefined,
+          }),
+        ],
+      };
+    }
+  }
 
   if (!configuredPath) {
     return {
@@ -1963,24 +2565,16 @@ const loadExpectations = async (outputDir: string, createFinding: ReturnType<typ
 
   try {
     const rawContent = await readFile(expectationsPath, "utf-8");
-    const parsed = parseExpectations(rawContent);
-
-    const relativePath = normalizeMarkdownPath("manifest/expected.json");
-
-    await mkdir(join(outputDir, "manifest"), { recursive: true });
-    await writeFile(join(outputDir, relativePath), `${JSON.stringify(parsed, null, 2)}\n`, "utf-8");
+    const parsed = parseAgentExpectations(rawContent);
+    const relativePath = await writeExpectedManifest(outputDir, parsed);
 
     return {
-      expectations: {
-        sourcePath: expectationsPath,
+      expectations: toLoadedExpectations({
+        parsed,
         relativePath,
-        raw: parsed,
-        goal: parsed.goal,
-        taskId: parsed.task_id,
-        notes: normalizeNotes(parsed.notes),
-        expected: normalizeSelectors(parsed.expected),
-        forbidden: normalizeSelectors(parsed.forbidden),
-      } satisfies LoadedExpectations,
+        sourceKind: "file",
+        sourcePath: expectationsPath,
+      }),
       findings: [] as AgentFinding[],
     };
   } catch (error) {
@@ -1992,39 +2586,17 @@ const loadExpectations = async (outputDir: string, createFinding: ReturnType<typ
           subjectType: "run",
           severity: "high",
           category: "bootstrap",
-          checkName: "invalid-expectations-file",
-          message: `Could not load ALLURE_AGENT_EXPECTATIONS from ${expectationsPath}`,
+          impact: "reject",
+          checkName: "expectations-invalid",
+          title: "Expectation input is invalid",
+          message: `Could not load expectations from ${expectationsPath}`,
           explanation: `The expectations file could not be parsed as YAML or JSON: ${(error as Error).message}`,
           evidencePaths: [],
-          remediationHint: "Provide a readable YAML or JSON file in ALLURE_AGENT_EXPECTATIONS before rerunning.",
+          remediationHint: "Provide a readable YAML or JSON expectations file before rerunning.",
           expectedReference: undefined,
         }),
       ],
     };
-  }
-};
-
-const loadProjectGuide = async (outputDir: string): Promise<LoadedProjectGuide | undefined> => {
-  const projectRoot = resolve(env[AGENT_PROJECT_ROOT_ENV] ?? process.cwd());
-  const sourcePath = join(projectRoot, "docs", "allure-agent-mode.md");
-
-  try {
-    const content = await readFile(sourcePath, "utf-8");
-    const relativePath = normalizeMarkdownPath(join("project", "docs", "allure-agent-mode.md"));
-
-    await mkdir(join(outputDir, "project", "docs"), { recursive: true });
-    await writeFile(join(outputDir, relativePath), content, "utf-8");
-
-    return {
-      sourcePath,
-      relativePath,
-    };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return undefined;
-    }
-
-    throw error;
   }
 };
 
@@ -2067,7 +2639,8 @@ const computeScopeEvaluation = (params: {
       scopeMatch: "forbidden",
       reasons: forbidden.reasons,
       expectedReferences: forbidden.references,
-      metadataMismatches,
+      // A forbidden match is reported on its own; expected-label mismatches are not relevant here.
+      metadataMismatches: [],
     } satisfies ScopeEvaluation;
   }
 
@@ -2104,20 +2677,47 @@ const buildDurationSummary = (entries: TestEntry[]) => {
   return {
     total,
     average: durations.length ? Math.round(total / durations.length) : 0,
-    max: durations.length ? Math.max(...durations) : 0,
+    // Reduce instead of Math.max(...durations): the spread overflows the call-stack/argument
+    // limit (RangeError) on very large runs.
+    max: durations.reduce((acc, value) => (value > acc ? value : acc), 0),
   };
 };
 
-const collectTestEvidencePaths = (entry: TestEntry) => {
-  const paths = [entry.relativePath];
-
-  for (const artifact of entry.allArtifacts) {
-    if (artifact.relativePath) {
-      paths.push(artifact.relativePath);
-    }
+const getExpectationTargetEntries = (entries: TestEntry[], expectations: LoadedExpectations) => {
+  if (!hasSelector(expectations.expected)) {
+    return entries;
   }
 
-  return uniqueValues(paths);
+  return entries.filter((entry) => entry.scope.scopeMatch === "match");
+};
+
+const currentAttemptStepSummary = (entry: TestEntry) =>
+  mergeStepSummaries([entry.attempts[0].stepSummary, entry.attempts[0].fixtureStepSummary]);
+
+const nonMissingArtifacts = (entry: TestEntry) => entry.allArtifacts.filter((artifact) => !artifact.missing);
+
+const formatAttachmentExpectation = (expectation: NormalizedAttachmentExpectation) =>
+  [
+    expectation.name ? `name=${expectation.name}` : undefined,
+    expectation.contentType ? `content-type=${expectation.contentType}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+const matchesAttachmentExpectation = (artifact: MaterializedArtifact, expectation: NormalizedAttachmentExpectation) => {
+  if (artifact.missing) {
+    return false;
+  }
+
+  if (expectation.name && artifact.displayName !== expectation.name) {
+    return false;
+  }
+
+  if (expectation.contentType && artifact.contentType !== expectation.contentType) {
+    return false;
+  }
+
+  return true;
 };
 
 const buildRunAndTestFindings = (params: {
@@ -2132,19 +2732,24 @@ const buildRunAndTestFindings = (params: {
   const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
   const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && expectations?.expected.testCount !== 0) {
     runFindings.push(
       createFinding({
         subject: "run",
         subjectType: "run",
         severity: "high",
+        impact: "reject",
         category: "bootstrap",
-        checkName: "no-visible-tests",
+        checkName: "no-tests-observed",
+        title: "No logical tests were observed",
         message: "No visible test results were found in the run.",
         explanation: "The agent output was generated, but there were no visible logical test results to review.",
-        evidencePaths: [],
-        remediationHint:
-          "Verify that Allure results are being generated and that the test command actually executed the intended tests.",
+        evidencePaths: ["manifest/run.json", "manifest/tests.jsonl"],
+        remediationHint: "Fix command, adapter, discovery, or modeling before calling the run passing validation.",
+        expected: { test_count: expectations?.expected.testCount ?? "one or more logical tests" },
+        observed: { test_count: 0 },
+        action: "Do not call the run passing validation. Fix command, adapter, discovery, or modeling.",
+        confidence: 1,
       }),
     );
   }
@@ -2162,7 +2767,7 @@ const buildRunAndTestFindings = (params: {
           "Global process logs help agents debug bootstrap failures and compare the recorded results with console output.",
         evidencePaths: [],
         remediationHint:
-          "Run tests through `allure agent -- <command>` without `--silent` when you need bootstrap diagnostics, or use `ALLURE_AGENT_*` with `allure run` for lower-level control.",
+          "Run tests through `allure agent -- <command>` without `--silent` when you need bootstrap diagnostics.",
         confidence: 0.9,
       }),
     );
@@ -2216,6 +2821,89 @@ const buildRunAndTestFindings = (params: {
 
   if (expectations) {
     const allFullNames = entries.map(({ tr }) => tr.fullName ?? tr.name);
+    const hasRuntimeControls = runtimeMatchingControlCount(expectations) > 0;
+    const genericGoal = expectations.goal ? normalizeStepText(expectations.goal).replace(/[^\p{L}\p{N}\s]/gu, "") : "";
+
+    if (recognizedControlCount(expectations) === 0) {
+      runFindings.push(
+        createFinding({
+          subject: "run",
+          subjectType: "run",
+          severity: "high",
+          impact: "iterate",
+          category: "scope",
+          checkName: "expectations-empty",
+          title: "Expectation source did not contain recognized controls",
+          message: "Expectation source was provided but no recognized M1 controls were parsed.",
+          explanation: "The run can still be reviewed, but expectation precision was not requested.",
+          evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
+          remediationHint: "Do not claim expectation precision. Fix expectation input or rerun without expectations.",
+          observed: { recognized_control_count: 0 },
+          action: "Do not claim expectation precision. Fix expectation input or rerun without expectations.",
+          confidence: 1,
+        }),
+      );
+    }
+
+    if (
+      (hasRuntimeControls && !expectations.goal) ||
+      ["run tests", "validate", "make sure it passes", "check", "test"].includes(genericGoal)
+    ) {
+      runFindings.push(
+        createFinding({
+          subject: "run",
+          subjectType: "run",
+          severity: "info",
+          impact: "advisory",
+          category: "scope",
+          checkName: "expectations-weak-goal",
+          title: "Run goal is missing or too generic",
+          message: expectations.goal
+            ? `The run goal is too generic: ${expectations.goal}`
+            : "Runtime expectations were provided without a goal.",
+          explanation: "The goal is intent metadata and does not change the runtime evidence.",
+          evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
+          remediationHint:
+            "Use observed evidence for the actual conclusion. Do not discard the run only because the goal is weak.",
+          expected: { goal: "specific validation claim" },
+          observed: { goal: expectations.goal ?? null },
+          action:
+            "Use observed evidence for the actual conclusion. Do not discard the run only because the goal is weak.",
+          confidence: 0.9,
+        }),
+      );
+    }
+
+    if (expectations.expected.testCount !== undefined && entries.length !== expectations.expected.testCount) {
+      const severity: FindingSeverity =
+        expectations.expected.testCount === 0 || expectations.expected.testCount === 1 ? "high" : "warning";
+      const impact: FindingImpact =
+        expectations.expected.testCount === 0 || expectations.expected.testCount === 1 ? "reject" : "iterate";
+
+      runFindings.push(
+        createFinding({
+          subject: "run",
+          subjectType: "run",
+          severity,
+          impact,
+          category: "scope",
+          checkName: "expected-count-mismatch",
+          title: "Observed logical test count did not match",
+          message: `Expected ${expectations.expected.testCount} visible logical tests, got ${entries.length}.`,
+          explanation: "The expected count is evaluated against all visible logical tests after agent-mode modeling.",
+          evidencePaths: expectations.relativePath
+            ? [expectations.relativePath, "manifest/tests.jsonl"]
+            : ["manifest/tests.jsonl"],
+          remediationHint:
+            "Check selector, parameter expansion, retries, missing tests, or unexpected tests before concluding.",
+          expectedReference: "expected.test_count",
+          expected: { test_count: expectations.expected.testCount },
+          observed: { test_count: entries.length },
+          action: "Check selector, parameter expansion, retries, missing tests, or unexpected tests before concluding.",
+          confidence: 1,
+        }),
+      );
+    }
 
     expectations.expected.fullNames.forEach((fullName, index) => {
       if (!allFullNames.includes(fullName)) {
@@ -2224,14 +2912,23 @@ const buildRunAndTestFindings = (params: {
             subject: "run",
             subjectType: "run",
             severity: "high",
+            impact: "reject",
             category: "scope",
-            checkName: "missing-expected-test",
-            message: `Expected test did not run: ${fullName}`,
-            explanation:
-              "The expectations file explicitly listed this test, but it did not appear in the agentic output.",
-            evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
-            remediationHint: "Check the test selection, environment, and feature branch scope before rerunning.",
+            checkName: "expected-test-missing",
+            title: "Expected test was not observed",
+            message: "The expected test did not appear in the observed logical results.",
+            explanation: `Expected test did not run: ${fullName}`,
+            evidencePaths: expectations.relativePath
+              ? [expectations.relativePath, "manifest/tests.jsonl"]
+              : ["manifest/tests.jsonl"],
+            remediationHint:
+              "Do not claim the target behavior was validated. Fix selector, restore coverage, or rerun the intended test.",
             expectedReference: `expected.full_names[${index}]`,
+            expected: { full_names: [fullName] },
+            observed: { test_count: entries.length, closest_full_names: allFullNames.slice(0, 3) },
+            action:
+              "Do not claim the target behavior was validated. Fix selector, restore coverage, or rerun the intended test.",
+            confidence: 1,
           }),
         );
       }
@@ -2243,15 +2940,22 @@ const buildRunAndTestFindings = (params: {
           createFinding({
             subject: "run",
             subjectType: "run",
-            severity: "warning",
+            severity: "high",
+            impact: "reject",
             category: "scope",
-            checkName: "missing-expected-prefix",
-            message: `No executed test matched the expected prefix: ${prefix}`,
-            explanation: "The expectations file asked for tests within this name prefix, but none were recorded.",
-            evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
-            remediationHint:
-              "Check the expected selector or adjust the executed test target so the intended scope is covered.",
+            checkName: "expected-prefix-missing",
+            title: "Expected test prefix was not observed",
+            message: `No observed test full name started with the expected prefix: ${prefix}`,
+            explanation: "The expectations asked for tests within this name prefix, but none were recorded.",
+            evidencePaths: expectations.relativePath
+              ? [expectations.relativePath, "manifest/tests.jsonl"]
+              : ["manifest/tests.jsonl"],
+            remediationHint: "Treat the run as wrong scope or missing coverage.",
             expectedReference: `expected.full_name_prefixes[${index}]`,
+            expected: { full_name_prefixes: [prefix] },
+            observed: { test_count: entries.length, closest_full_names: allFullNames.slice(0, 3) },
+            action: "Treat the run as wrong scope or missing coverage.",
+            confidence: 1,
           }),
         );
       }
@@ -2263,15 +2967,22 @@ const buildRunAndTestFindings = (params: {
           createFinding({
             subject: "run",
             subjectType: "run",
-            severity: "warning",
+            severity: "high",
+            impact: "reject",
             category: "scope",
-            checkName: "missing-expected-environment",
+            checkName: "expected-environment-missing",
+            title: "Expected environment was not observed",
             message: `Expected environment did not appear in the run: ${environment}`,
-            explanation:
-              "The expectations file scoped the run to this environment, but no logical test result matched it.",
-            evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
-            remediationHint: "Check the environment selector or rerun the intended environment explicitly.",
+            explanation: "The expectations scoped the run to this environment, but no logical test result matched it.",
+            evidencePaths: expectations.relativePath
+              ? [expectations.relativePath, "manifest/tests.jsonl"]
+              : ["manifest/tests.jsonl"],
+            remediationHint: "Rerun in the intended environment before making environment-specific claims.",
             expectedReference: `expected.environments[${index}]`,
+            expected: { environments: [environment] },
+            observed: { environments: actualEnvironments },
+            action: "Rerun in the intended environment before making environment-specific claims.",
+            confidence: 1,
           }),
         );
       }
@@ -2285,16 +2996,23 @@ const buildRunAndTestFindings = (params: {
           createFinding({
             subject: "run",
             subjectType: "run",
-            severity: "warning",
+            severity: "high",
+            impact: "reject",
             category: "scope",
-            checkName: "missing-expected-label-selector",
-            message: `No executed test matched ${formatLabelRequirement(labelName, values)}`,
+            checkName: "expected-label-missing",
+            title: "Expected label was not observed",
+            message: `No observed test had ${formatLabelRequirement(labelName, values)}`,
             explanation:
-              "The expectations file defined a label selector for the intended scope, but no logical test result satisfied it.",
-            evidencePaths: expectations.relativePath ? [expectations.relativePath] : [],
-            remediationHint:
-              "Add the expected label metadata to the intended tests or adjust the expectations selector.",
+              "The expectations defined a label selector for the intended scope, but no logical test result satisfied it.",
+            evidencePaths: expectations.relativePath
+              ? [expectations.relativePath, "manifest/tests.jsonl"]
+              : ["manifest/tests.jsonl"],
+            remediationHint: "Fix metadata, selector, or run the correct labeled scope.",
             expectedReference: `expected.label_values/${escapeJsonPointerSegment(labelName)}`,
+            expected: { label_values: { [labelName]: values } },
+            observed: { test_count: entries.length },
+            action: "Fix metadata, selector, or run the correct labeled scope.",
+            confidence: 1,
           }),
         );
       }
@@ -2322,33 +3040,52 @@ const buildRunAndTestFindings = (params: {
     }
   }
 
+  const evidenceTargetKeys = expectations
+    ? new Set(getExpectationTargetEntries(entries, expectations).map((entry) => entry.key))
+    : new Set<string>();
+
   for (const entry of entries) {
-    const currentAttempt = entry.attempts[0];
-    const attemptSignatures = uniqueValues(entry.attempts.map(buildAttemptSignature));
-    const testEvidencePaths = collectTestEvidencePaths(entry);
-    const allStepSummary = mergeStepSummaries(
-      entry.attempts.map((attempt) => mergeStepSummaries([attempt.stepSummary, attempt.fixtureStepSummary])),
-    );
-    const hasUsefulSteps =
-      currentAttempt.stepSummary.meaningfulSteps + currentAttempt.fixtureStepSummary.meaningfulSteps > 0;
-    const hasAnyAttachments = entry.allArtifacts.some((artifact) => !artifact.missing);
-    const noopRatio = allStepSummary.totalSteps > 0 ? allStepSummary.noopSteps / allStepSummary.totalSteps : 0;
+    const expectedEvidenceApplies = expectations ? evidenceTargetKeys.has(entry.key) : false;
+    const expectedEvidence = expectations?.evidence;
+    const currentStepSummary = currentAttemptStepSummary(entry);
+    const currentMeaningfulSteps = currentStepSummary.meaningfulSteps;
+    const currentAttachments = nonMissingArtifacts(entry);
 
     if (entry.scope.scopeMatch === "forbidden") {
+      const forbiddenLabelReference = entry.scope.expectedReferences.find((reference) =>
+        reference.startsWith("forbidden.label_values"),
+      );
+      const checkName = forbiddenLabelReference ? "forbidden-label-observed" : "forbidden-selector-match";
+
       entry.findings.push(
         createFinding({
           subject: entry.key,
           subjectType: "test",
           severity: "high",
+          impact: "reject",
           category: "scope",
-          checkName: "forbidden-selector-match",
-          message: "This test matched a forbidden selector from the expectations file.",
-          explanation: "The logical test belongs to a scope that the expectations file explicitly marked as forbidden.",
+          checkName,
+          title: forbiddenLabelReference ? "Forbidden label was observed" : "Forbidden selector was observed",
+          message: forbiddenLabelReference
+            ? "This test has a label value that was explicitly forbidden."
+            : "This test matched a forbidden selector from the expectations.",
+          explanation: "The logical test belongs to a scope that the expectations explicitly marked as forbidden.",
           evidencePaths: expectations?.relativePath
             ? [entry.relativePath, expectations.relativePath]
             : [entry.relativePath],
-          remediationHint: "Tighten the test selection or update the expectations file before accepting the run.",
-          expectedReference: entry.scope.expectedReferences[0],
+          remediationHint: forbiddenLabelReference
+            ? "Treat as scope drift. Split or correct the run before using it as focused validation."
+            : "Tighten the test selection or update the expectations before accepting the run.",
+          expectedReference: forbiddenLabelReference ?? entry.scope.expectedReferences[0],
+          expected: forbiddenLabelReference ? { forbidden_label: forbiddenLabelReference } : { forbidden: true },
+          observed: {
+            full_name: entry.tr.fullName ?? entry.tr.name,
+            labels: toLabelEntries(entry.tr.labels),
+          },
+          action: forbiddenLabelReference
+            ? "Treat as scope drift. Split or correct the run before using it as focused validation."
+            : "Tighten the test selection or update the expectations before accepting the run.",
+          confidence: 1,
         }),
       );
     } else if (entry.scope.scopeMatch === "unexpected") {
@@ -2361,12 +3098,12 @@ const buildRunAndTestFindings = (params: {
           checkName: "unexpected-test",
           message: "This test ran outside the expected scope.",
           explanation:
-            "The expectations file defined positive scope selectors, but this logical test did not match any of them.",
+            "The expectations defined positive scope selectors, but this logical test did not match any of them.",
           evidencePaths: expectations?.relativePath
             ? [entry.relativePath, expectations.relativePath]
             : [entry.relativePath],
           remediationHint:
-            "Rerun only the intended tests or broaden the expectations file if this test is part of the plan.",
+            "Rerun only the intended tests or broaden the expectations if this test is part of the plan.",
         }),
       );
     }
@@ -2411,162 +3148,141 @@ const buildRunAndTestFindings = (params: {
       );
     }
 
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasUsefulSteps) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "evidence",
-          checkName: "failed-without-useful-steps",
-          message: "A failed or broken test has no useful runtime steps.",
-          explanation:
-            "The failure is recorded, but the step tree does not explain the state transitions that led to it.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add meaningful steps around the important actions and checks before rerunning.",
-          confidence: 0.92,
-        }),
-      );
-    }
+    expectedEvidence?.stepNameContains.forEach((expectedText, index) => {
+      if (!expectedEvidenceApplies || testStepContainsText(entry, expectedText)) {
+        return;
+      }
 
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasAnyAttachments) {
       entry.findings.push(
         createFinding({
           subject: entry.key,
           subjectType: "test",
           severity: "warning",
+          impact: "iterate",
           category: "evidence",
-          checkName: "failed-without-attachments",
-          message: "A failed or broken test has no test-scoped attachments.",
-          explanation: "Attachments often provide the fastest route to understanding why the test failed.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Attach targeted logs, payloads, screenshots, or DOM snapshots around the failing point.",
-          confidence: 0.88,
+          checkName: "expected-step-containing-missing",
+          title: "Expected step text was not observed",
+          message: `Expected a test-scoped step containing ${JSON.stringify(expectedText)}.`,
+          explanation: `The current attempt has ${currentStepSummary.totalSteps} test-scoped steps, but none contained the expected text. Global runner output is not considered test-scoped step evidence.`,
+          evidencePaths: expectations?.relativePath
+            ? [entry.relativePath, expectations.relativePath]
+            : [entry.relativePath],
+          remediationHint:
+            "Add or fix meaningful step evidence, or correct the expectation if the project uses different wording.",
+          expectedReference: `evidence.step_name_contains[${index}]`,
+          expected: { step_name_contains: [expectedText] },
+          observed: { steps: currentStepSummary.totalSteps, matched: false },
+          action:
+            "Add or fix meaningful step evidence, or correct the expectation if the project uses different wording.",
+          confidence: 0.9,
         }),
       );
-    }
+    });
 
     if (
-      (currentAttempt.tr.duration ?? 0) >= NONTRIVIAL_DURATION_MS &&
-      currentAttempt.stepSummary.totalSteps === 0 &&
-      currentAttempt.fixtureStepSummary.totalSteps === 0
+      expectedEvidenceApplies &&
+      expectedEvidence?.minSteps !== undefined &&
+      currentMeaningfulSteps < expectedEvidence.minSteps
     ) {
       entry.findings.push(
         createFinding({
           subject: entry.key,
           subjectType: "test",
           severity: "warning",
+          impact: "iterate",
           category: "evidence",
-          checkName: "nontrivial-run-with-empty-trace",
-          message: "A nontrivial test run recorded no steps or fixture activity.",
-          explanation: "The duration suggests real work happened, but the trace contains no step-level evidence.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add runtime steps or attachments so the execution path is observable on the next run.",
-          confidence: 0.8,
-        }),
-      );
-    }
-
-    if (entry.attempts.length > 1 && attemptSignatures.length === 1) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "evidence",
-          checkName: "retries-without-new-evidence",
-          message: "Retries did not add any new observable evidence.",
+          checkName: "insufficient-expected-steps",
+          title: "Expected step count was not met",
+          message: `Expected at least ${expectedEvidence.minSteps} meaningful steps, got ${currentMeaningfulSteps}.`,
           explanation:
-            "The recorded status, error, steps, and attachments stayed effectively unchanged across retries.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add retry-specific diagnostics or targeted attachments so reruns can show what changed.",
-          confidence: 0.7,
-        }),
-      );
-    }
-
-    if (allStepSummary.totalSteps >= 3 && noopRatio >= NOOP_RATIO_THRESHOLD && !hasAnyAttachments) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "warning",
-          category: "smells",
-          checkName: "noop-dominated-steps",
-          message: "The step tree is dominated by low-signal steps.",
-          explanation:
-            "Most recorded steps are leaf steps without parameters, nested actions, attachments, or error context.",
-          evidencePaths: testEvidencePaths,
-          remediationHint:
-            "Collapse repetitive event-style steps into a smaller set of meaningful steps or attach a text log instead.",
-          confidence: 0.75,
-        }),
-      );
-    }
-
-    if (allStepSummary.totalSteps >= STEP_SPAM_THRESHOLD && !hasAnyAttachments) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "step-spam",
-          message: "The trace records many steps but no compact artifact.",
-          explanation: "A large number of small steps can be harder to review than a focused log attachment.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Consider attaching a structured text log when the trace is mostly event reporting.",
-          confidence: 0.7,
-        }),
-      );
-    }
-
-    if (isFailedLikeStatus(currentAttempt.tr.status) && !hasAnyAttachments && globalArtifacts.length > 0) {
-      entry.findings.push(
-        createFinding({
-          subject: entry.key,
-          subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "global-only-artifacts",
-          message: "Only run-level artifacts are available for this failed test.",
-          explanation:
-            "The run captured global logs, but the failed test has no test-scoped attachments to pinpoint the failure.",
-          evidencePaths: uniqueValues(
-            testEvidencePaths.concat(
-              globalArtifacts.flatMap((artifact) => (artifact.relativePath ? [artifact.relativePath] : [])),
-            ),
-          ),
-          remediationHint:
-            "Prefer step-scoped or test-scoped attachments near the failing action when debugging targeted failures.",
-          confidence: 0.78,
+            "Meaningful steps have parameters, nested actions, attachments, messages, traces, or error context.",
+          evidencePaths: expectations?.relativePath
+            ? [entry.relativePath, expectations.relativePath]
+            : [entry.relativePath],
+          remediationHint: "Add meaningful step evidence only if the missing steps reflect real behavior, not filler.",
+          expectedReference: "evidence.min_steps",
+          expected: { min_steps: expectedEvidence.minSteps },
+          observed: { meaningful_steps: currentMeaningfulSteps },
+          action: "Add meaningful step evidence only if the missing steps reflect real behavior, not filler.",
+          confidence: 0.9,
         }),
       );
     }
 
     if (
-      currentAttempt.tr.status === "passed" &&
-      (currentAttempt.tr.duration ?? 0) >= NONTRIVIAL_DURATION_MS &&
-      currentAttempt.stepSummary.totalSteps === 0 &&
-      currentAttempt.fixtureStepSummary.totalSteps === 0 &&
-      !hasAnyAttachments
+      expectedEvidenceApplies &&
+      expectedEvidence?.minAttachments !== undefined &&
+      currentAttachments.length < expectedEvidence.minAttachments
     ) {
       entry.findings.push(
         createFinding({
           subject: entry.key,
           subjectType: "test",
-          severity: "info",
-          category: "smells",
-          checkName: "passed-without-observable-evidence",
-          message: "A nontrivial passing test recorded no observable evidence.",
-          explanation:
-            "The test passed, but the agentic output contains no steps, fixture activity, or attachments showing what was verified.",
-          evidencePaths: testEvidencePaths,
-          remediationHint: "Add a few meaningful verification steps or attachments so the success path is reviewable.",
-          confidence: 0.65,
+          severity: "warning",
+          impact: "iterate",
+          category: "evidence",
+          checkName: "insufficient-expected-attachments",
+          title: "Expected attachment count was not met",
+          message: `Expected at least ${expectedEvidence.minAttachments} non-missing attachments, got ${currentAttachments.length}.`,
+          explanation: "Only materialized test-scoped or step-scoped attachments count toward this expectation.",
+          evidencePaths: expectations?.relativePath
+            ? [entry.relativePath, expectations.relativePath]
+            : [entry.relativePath],
+          remediationHint: "Attach real runtime artifacts only when they are needed for debugging or review.",
+          expectedReference: "evidence.min_attachments",
+          expected: { min_attachments: expectedEvidence.minAttachments },
+          observed: { attachments: currentAttachments.length },
+          action: "Attach real runtime artifacts only when they are needed for debugging or review.",
+          confidence: 0.9,
         }),
       );
     }
+
+    expectedEvidence?.attachments.forEach((attachmentExpectation, index) => {
+      if (!expectedEvidenceApplies) {
+        return;
+      }
+
+      if (currentAttachments.some((artifact) => matchesAttachmentExpectation(artifact, attachmentExpectation))) {
+        return;
+      }
+
+      entry.findings.push(
+        createFinding({
+          subject: entry.key,
+          subjectType: "test",
+          severity: "warning",
+          impact: "iterate",
+          category: "evidence",
+          checkName: "missing-expected-attachment",
+          title: "Expected attachment was not observed",
+          message: `Expected attachment not found: ${formatAttachmentExpectation(attachmentExpectation)}`,
+          explanation:
+            "The expectations require every expected logical test to include a non-missing attachment matching this filter.",
+          evidencePaths: expectations?.relativePath
+            ? [entry.relativePath, expectations.relativePath]
+            : [entry.relativePath],
+          remediationHint:
+            "Capture the artifact or correct the expectation if the project uses different attachment naming or content types.",
+          expectedReference: `evidence.attachments[${index}]`,
+          expected: {
+            attachment: {
+              ...(attachmentExpectation.name ? { name: attachmentExpectation.name } : {}),
+              ...(attachmentExpectation.contentType ? { content_type: attachmentExpectation.contentType } : {}),
+            },
+          },
+          observed: {
+            attachments: currentAttachments.map((attachment) => ({
+              name: attachment.displayName,
+              content_type: attachment.contentType ?? null,
+            })),
+          },
+          action:
+            "Capture the artifact or correct the expectation if the project uses different attachment naming or content types.",
+          confidence: 0.95,
+        }),
+      );
+    });
   }
 
   return {
@@ -2577,7 +3293,7 @@ const buildRunAndTestFindings = (params: {
 
 const listVisibleTestLayouts = async (params: { outputDir: string; store: AllureStore }) => {
   const { outputDir, store } = params;
-  const tests = (await store.allTestResults({ includeHidden: false })).sort(compareTestResultsByStatusThenName);
+  const tests = (await store.allTestResults({ includeRetries: false })).sort(compareTestResultsByStatusThenName);
   const layouts: TestEntryLayout[] = [];
   const slugsByEnvironment = new Map<string, Set<string>>();
 
@@ -2715,7 +3431,7 @@ const buildSnapshot = async (params: {
   createFinding: ReturnType<typeof createFindingFactory>;
 }) => {
   const { outputDir, store, expectations, expectationLoadFindings, createFinding } = params;
-  const stats = await store.testsStatistic((testResult) => !testResult.hidden);
+  const stats = await store.testsStatistic((testResult) => !testResult.isRetry);
   const entries = await buildEntries({
     outputDir,
     store,
@@ -2790,17 +3506,24 @@ const appendJsonlLine = async (path: string, item: unknown) => {
 const toRunManifest = (params: {
   context: PluginContext;
   command?: string;
+  agentContext: AgentRuntimeState["agentContext"];
   generatedAt: string;
   phase: RunPhase;
   expectations?: LoadedExpectations;
-  projectGuide?: LoadedProjectGuide;
   snapshot: AgentSnapshot;
+  humanReport?: AgentHumanReportStatus;
 }) => {
-  const { context, command, generatedAt, phase, expectations, projectGuide, snapshot } = params;
+  const { context, command, agentContext, generatedAt, phase, expectations, snapshot, humanReport } = params;
   const stdoutArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
   const stderrArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
   const originalExitCode = snapshot.globalExitCode?.original ?? null;
   const actualExitCode = snapshot.globalExitCode?.actual ?? snapshot.globalExitCode?.original ?? null;
+  const expectationResult = buildExpectationResult({
+    expectations,
+    findings: snapshot.combinedAllFindings,
+    observedTestCount: snapshot.entries.length,
+    modelingSummary: snapshot.modelingSummary,
+  });
 
   return {
     schema_version: AGENT_SCHEMA_VERSION,
@@ -2835,28 +3558,32 @@ const toRunManifest = (params: {
       findings_manifest: "manifest/findings.jsonl",
       test_events_manifest: "manifest/test-events.jsonl",
       expected_manifest: expectations?.relativePath ?? null,
-      project_guide: projectGuide?.relativePath ?? null,
+      human_report_manifest: humanReport ? "manifest/human-report.json" : null,
       process_logs: {
         stdout: stdoutArtifact?.relativePath ?? null,
         stderr: stderrArtifact?.relativePath ?? null,
       },
     },
+    human_report: humanReport ?? null,
     expectations_present: Boolean(expectations),
+    expectations: expectations ? toExpectationModel(expectations) : null,
+    expectation_result: expectationResult,
     check_summary: buildCheckSummary(snapshot.combinedAllFindings),
     agent_context: {
-      agent_name: env[AGENT_NAME_ENV] ?? null,
-      loop_id: env[AGENT_LOOP_ID_ENV] ?? null,
-      task_id: env[AGENT_TASK_ID_ENV] ?? expectations?.taskId ?? null,
-      conversation_id: env[AGENT_CONVERSATION_ID_ENV] ?? null,
+      agent_name: agentContext.agentName ?? null,
+      loop_id: agentContext.loopId ?? null,
+      task_id: agentContext.taskId ?? expectations?.taskId ?? null,
+      conversation_id: agentContext.conversationId ?? null,
     },
   };
 };
 
 const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot: AgentSnapshot; phase: RunPhase }) => {
   const { runtime, snapshot, phase } = params;
-  const { outputDir, context, command, generatedAt, expectations, projectGuide } = runtime;
+  const { outputDir, context, command, generatedAt, expectations } = runtime;
   const nextTestPaths = new Set(snapshot.entries.map((entry) => entry.filePath));
   const nextAssetDirs = new Set(snapshot.entries.map((entry) => join(outputDir, entry.relativeAssetDir)));
+  const humanReport = await resolveHumanReportStatus(runtime.humanReport);
 
   for (const stalePath of runtime.currentTestPaths) {
     if (!nextTestPaths.has(stalePath)) {
@@ -2890,13 +3617,17 @@ const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot
       toRunManifest({
         context,
         command,
+        agentContext: runtime.agentContext,
         generatedAt,
         phase,
         expectations,
-        projectGuide,
         snapshot,
+        humanReport,
       }),
     ),
+    ...(humanReport
+      ? [writeJson(join(outputDir, "manifest", "human-report.json"), humanReport)]
+      : [rm(join(outputDir, "manifest", "human-report.json"), { force: true })]),
     writeJsonlSnapshot(join(outputDir, "manifest", "tests.jsonl"), snapshot.entries.map(toTestsManifestLine)),
     writeJsonlSnapshot(
       join(outputDir, "manifest", "findings.jsonl"),
@@ -2920,9 +3651,10 @@ const writeSnapshotFiles = async (params: { runtime: AgentRuntimeState; snapshot
         globalExitCode: snapshot.globalExitCode,
         qualityGateResults: snapshot.qualityGateResults,
         findings: snapshot.combinedAllFindings,
+        humanReport,
       }),
     ),
-    writeTextAtomic(join(outputDir, "AGENTS.md"), renderAgentsGuide(projectGuide?.relativePath)),
+    writeTextAtomic(join(outputDir, "AGENTS.md"), renderAgentsGuide()),
   ]);
 };
 
@@ -2968,7 +3700,7 @@ const createBootstrapSnapshot = (): AgentSnapshot => ({
 });
 
 const writeBootstrapFiles = async (runtime: AgentRuntimeState) => {
-  await writeTextAtomic(join(runtime.outputDir, "AGENTS.md"), renderAgentsGuide(runtime.projectGuide?.relativePath));
+  await writeTextAtomic(join(runtime.outputDir, "AGENTS.md"), renderAgentsGuide());
   await initializeJsonlStream(join(runtime.outputDir, "manifest", "test-events.jsonl"));
   await writeSnapshotFiles({
     runtime,
@@ -2995,19 +3727,56 @@ const toTestsManifestLine = (entry: TestEntry) => ({
   assets_dir: entry.relativeAssetDir,
 });
 
-const toFindingManifestLine = (finding: AgentFinding) => ({
-  finding_id: finding.findingId,
-  subject: finding.subject,
-  severity: finding.severity,
-  category: finding.category,
-  check_name: finding.checkName,
-  message: finding.message,
-  explanation: finding.explanation,
-  evidence_paths: finding.evidencePaths,
-  remediation_hint: finding.remediationHint,
-  expected_reference: finding.expectedReference,
-  confidence: finding.confidence,
+const toFindingSubject = (finding: AgentFinding) => ({
+  type: finding.subjectType,
+  ...(finding.subjectType === "test" ? { id: finding.subject, path: finding.subject } : {}),
 });
+
+const toFindingManifestLine = (finding: AgentFinding) => {
+  const impact = defaultImpactForFinding(finding);
+  const confidence = finding.confidence ?? 1;
+
+  return {
+    schema_version: "allure-agent-finding/v2",
+    check_id: finding.checkName,
+    instance_id: finding.findingId,
+    severity: finding.severity,
+    impact,
+    confidence,
+    category: finding.category,
+    title: finding.title ?? finding.message,
+    message: finding.message,
+    subject: toFindingSubject(finding),
+    expected: finding.expected ?? (finding.expectedReference ? { reference: finding.expectedReference } : {}),
+    observed: finding.observed ?? { detail: finding.explanation },
+    evidence: {
+      paths: finding.evidencePaths,
+    },
+    action: finding.action ?? finding.remediationHint,
+    ...(finding.source ? { source: finding.source } : {}),
+    ...(finding.limits ? { limits: finding.limits } : {}),
+    ...(finding.affected ? { affected: finding.affected } : {}),
+    ...(finding.moreCount !== undefined ? { more_count: finding.moreCount } : {}),
+    legacy: {
+      finding_id: finding.findingId,
+      subject: finding.subject,
+      subject_type: finding.subjectType,
+      check_name: finding.checkName,
+      explanation: finding.explanation,
+      evidence_paths: finding.evidencePaths,
+      remediation_hint: finding.remediationHint,
+      expected_reference: finding.expectedReference,
+    },
+    finding_id: finding.findingId,
+    subject_ref: finding.subject,
+    subject_type: finding.subjectType,
+    check_name: finding.checkName,
+    explanation: finding.explanation,
+    evidence_paths: finding.evidencePaths,
+    remediation_hint: finding.remediationHint,
+    expected_reference: finding.expectedReference,
+  };
+};
 
 const queueRuntimeTask = (runtime: AgentRuntimeState, task: () => Promise<void>) => {
   runtime.queue = runtime.queue
@@ -3171,18 +3940,23 @@ const createRuntimeState = async (params: {
 
   const generatedAt = new Date().toISOString();
   const createFinding = createFindingFactory();
-  const expectationLoadResult = await loadExpectations(outputDir, createFinding);
-  const projectGuide = await loadProjectGuide(outputDir);
+  const expectationLoadResult = await loadExpectations(outputDir, createFinding, options);
   const runtime: AgentRuntimeState = {
     outputDir,
     context,
     store,
     generatedAt,
-    command: env[AGENT_COMMAND_ENV],
+    command: options.command,
+    agentContext: {
+      agentName: options.agentName,
+      loopId: options.loopId,
+      taskId: options.taskId,
+      conversationId: options.conversationId,
+    },
+    humanReport: options.humanReport,
     createFinding,
     expectations: expectationLoadResult.expectations,
     expectationLoadFindings: expectationLoadResult.findings,
-    projectGuide,
     unsubscribers: [],
     queue: Promise.resolve(),
     seenLogicalKeys: new Set<string>(),

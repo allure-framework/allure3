@@ -6,8 +6,7 @@
   position: sticky;
   left: 0;
   top: 0;
-  left: 0;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   z-index: 10;
 }
 
@@ -37,7 +36,7 @@
 /* This is a hack because button do not have this state */
 .filtersBtnWithFilters > button::after {
   content: "";
-  background-color: var(--bg-support-aldebaran);
+  background-color: var(--color-intent-primary-bg);
   width: 6px;
   height: 6px;
   border-radius: 100px;
@@ -51,7 +50,7 @@
 }
 
 .sortByText {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .sortByBtnWrap {

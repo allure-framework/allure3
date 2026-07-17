@@ -97,13 +97,13 @@
     z-index: 2;
     width: var(--allure-handle-size);
     height: 100%;
-    background-color: var(--ad-other-focus);
+    background-color: var(--color-focus-ring);
     cursor: col-resize;
     transition: background-color 0.3s;
 
     &[data-dragging] {
       cursor: grabbing;
-      background-color: var(--bg-control-flat-heavy);
+      background-color: var(--color-control-bg-ghost-active);
 
       &:before {
         opacity: 0.5 !important;
@@ -125,7 +125,7 @@
       bottom: 0;
       width: var(--allure-handle-hover-size);
       height: 100%;
-      background-color: var(--ad-other-focus);
+      background-color: var(--color-focus-ring);
       opacity: 0;
       transition: opacity 0.3s ease;
       border-radius: 1px;

@@ -2,7 +2,8 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
-import type { Config } from "@allurereport/plugin-api";
+import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,7 +28,11 @@ vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-config");
+  await story("config");
+  await label("coverage", "report-config");
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 });
 
@@ -328,6 +333,104 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("does not inject storage plugin and preserves allureService config", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        private: true,
+        uploadConcurrency: 123,
+        uploadMaxAttempts: 7,
+        uploadMaxSimultaneousFailures: 2,
+      },
+      plugins: {
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      private: true,
+      uploadConcurrency: 123,
+      uploadMaxAttempts: 7,
+      uploadMaxSimultaneousFailures: 2,
+    });
+  });
+
+  it("fills default allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("normalizes invalid allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: -1,
+        uploadMaxAttempts: Number.POSITIVE_INFINITY,
+        uploadMaxSimultaneousFailures: null as unknown as number,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 100,
+      uploadMaxAttempts: 5,
+      uploadMaxSimultaneousFailures: 5,
+    });
+  });
+
+  it("floors fractional allureService upload options", async () => {
+    const resolved = await resolveConfig({
+      allureService: {
+        accessToken: "token",
+        uploadConcurrency: 4.9,
+        uploadMaxAttempts: 3.7,
+        uploadMaxSimultaneousFailures: 2.9,
+      },
+    });
+
+    expect(resolved.allureService).toEqual({
+      accessToken: "token",
+      uploadConcurrency: 4,
+      uploadMaxAttempts: 3,
+      uploadMaxSimultaneousFailures: 2,
+    });
+  });
+
+  it("does not inject storage plugin when no plugin is publishable", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        awesome: { options: {} },
+      },
+    });
+
+    expect(resolved.plugins?.some((x) => x.id === "storage")).toBe(false);
+  });
+
+  it("does not inject storage when already configured", async () => {
+    const resolved = await resolveConfig({
+      allureService: { accessToken: "token" },
+      plugins: {
+        storage: { options: { publish: true } },
+        awesome: { options: { publish: true } },
+      },
+    });
+
+    expect(resolved.plugins?.filter((x) => x.id === "storage")).toHaveLength(1);
+  });
+
   it("should allow to override top-level hideLabels", async () => {
     const resolved = await resolveConfig(
       {
@@ -438,6 +541,25 @@ describe("resolveConfig", () => {
     });
   });
 
+  it("should allow plugins to be disabled by override", async () => {
+    vi.clearAllMocks();
+
+    const resolved = await resolveConfig(
+      {
+        plugins: {
+          custom: {
+            import: "custom-plugin",
+            options: {},
+          },
+        },
+      },
+      { plugins: {} },
+    );
+
+    expect(resolved.plugins).toEqual([]);
+    expect(importWrapper).not.toHaveBeenCalled();
+  });
+
   it("should append agent after configured plugins when agent is not specified", async () => {
     const resolved = await resolveConfig({
       plugins: {
@@ -492,6 +614,39 @@ describe("resolveConfig", () => {
       },
       plugin: expect.any(PluginFixture),
     });
+  });
+
+  it("should pass explicit plugin enabled state to plugin constructor", async () => {
+    const constructorMock = vi.fn();
+
+    class PluginWithConstructorFixture {
+      constructor(options?: Record<string, any>, context?: PluginConstructorContext) {
+        constructorMock(options, context);
+      }
+    }
+
+    (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginWithConstructorFixture });
+
+    await resolveConfig({
+      plugins: {
+        custom: {
+          import: "custom-plugin",
+          options: {
+            foo: "bar",
+          },
+        },
+        enabled: {
+          enabled: true,
+        },
+        disabled: {
+          enabled: false,
+        },
+      },
+    });
+
+    expect(constructorMock).toHaveBeenCalledWith({ foo: "bar" }, {});
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: true });
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: false });
   });
 
   it("should throw an error when config contains unsupported fields", async () => {

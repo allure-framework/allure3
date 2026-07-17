@@ -1,8 +1,10 @@
 import type {
   AllureHistory,
-  AttachmentLink,
+  AllureCheckResult,
   CategoryDefinition,
   CiDescriptor,
+  GlobalAttachmentLink,
+  HistoryDataPoint,
   Statistic,
   TestError,
   TestResult,
@@ -17,6 +19,10 @@ export interface PluginDescriptor {
   import?: string;
   enabled?: boolean;
   options?: Record<string, any>;
+}
+
+export interface PluginConstructorContext {
+  enabled?: boolean;
 }
 
 export interface ReportFiles {
@@ -45,6 +51,7 @@ export interface PluginContext {
   analyticsEnable: boolean;
   reportFiles: ReportFiles;
   reportUrl?: string;
+  realTime?: boolean;
   output: string;
   ci?: CiDescriptor;
   categories?: CategoryDefinition[];
@@ -52,9 +59,16 @@ export interface PluginContext {
 }
 
 /**
- * Reduced test result information that can be used in summary
+ * Reduced test result information that can be used in the summary
  */
 export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+
+/**
+ * Reduced check result information that can be used in the summary
+ */
+export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status">;
+
+export type { GlobalAttachmentLink } from "@allurereport/core-api";
 
 export interface PluginSummary {
   href?: string;
@@ -70,12 +84,36 @@ export interface PluginSummary {
   newTests?: SummaryTestResult[];
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
+  checks?: SummaryCheckResult[];
   createdAt?: number;
   /**
    * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
    * The field can be used in integrations to make better experience
    */
   meta?: Record<string, any>;
+}
+
+export interface PluginReportFile {
+  pluginId: string;
+  publish: boolean;
+  files: Record<string, string>;
+}
+
+export interface PluginPublishContext {
+  reportUuid: string;
+  reportName: string;
+  ci?: CiDescriptor;
+  historyPoint?: HistoryDataPoint;
+  reports: PluginReportFile[];
+  summary?: {
+    filepath: string;
+    summaries?: PluginSummary[];
+  };
+}
+
+export interface PluginPublishResult {
+  linksByPluginId: Record<string, string>;
+  remoteHref?: string;
 }
 
 export interface ExitCode {
@@ -93,9 +131,7 @@ export type PluginGlobalError = TestError & {
   environment?: string;
 };
 
-export type PluginGlobalAttachment = AttachmentLink & {
-  environment?: string;
-};
+export type PluginGlobalAttachment = GlobalAttachmentLink;
 
 export interface PluginGlobals {
   exitCode?: ExitCode;
@@ -109,22 +145,24 @@ export interface BatchOptions {
   maxTimeout?: number;
 }
 
+export type RealtimeListenerResult = void | Promise<void>;
+
 export interface RealtimeSubscriber {
   onGlobalAttachment(
-    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
-  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
+  onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
-  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>): () => void;
+  onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
 
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestFixtureResults(listener: (tfrIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onAttachmentFiles(listener: (afIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 }
 
 export interface RealtimeEventsDispatcher {

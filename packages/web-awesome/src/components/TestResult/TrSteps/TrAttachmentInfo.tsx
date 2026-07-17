@@ -18,7 +18,6 @@ interface TrAttachmentInfo {
   isPreviewable?: boolean;
   showPreview?: boolean;
   onPreviewToggle?: () => void;
-  isCodeView?: boolean;
   highlightCode?: boolean;
   onHighlightToggle?: () => void;
 }
@@ -29,7 +28,6 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
   isPreviewable,
   showPreview,
   onPreviewToggle,
-  isCodeView,
   highlightCode = true,
   onHighlightToggle,
 }) => {
@@ -49,10 +47,11 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
     event.stopPropagation();
     openModal({
       data: item,
+      preview: isPreviewable,
       component: (
         <Attachment
           item={item}
-          previewable={true}
+          previewable={isPreviewable}
           i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
         />
       ),
@@ -64,10 +63,17 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
       openModal({
         isModalOpen: true,
         data: item,
-        component: <Attachment item={item} i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }} />,
+        preview: isPreviewable,
+        component: (
+          <Attachment
+            item={item}
+            previewable={isPreviewable}
+            i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+          />
+        ),
       });
     }
-  }, [item, tAttachments]);
+  }, [item, isPreviewable, tAttachments]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -81,28 +87,57 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
       <div className={styles["item-buttons"]}>
         {isPwTrace && <PwTraceButton link={item.link} />}
         {isPreviewable && onPreviewToggle && (
-          <TooltipWrapper tooltipText={tooltip(showPreview ? "viewCode" : "previewAttachment")}>
-            <IconButton
-              className={styles["item-button"]}
-              style={"ghost"}
-              size={"s"}
-              iconSize={"s"}
-              icon={showPreview ? allureIcons.viewOff : allureIcons.view}
-              onClick={(e: Event) => {
-                e.stopPropagation();
-                onPreviewToggle();
-              }}
-            />
-          </TooltipWrapper>
+          <>
+            <TooltipWrapper tooltipText={tooltip("previewAttachment")}>
+              <IconButton
+                className={cx(styles["item-button"], showPreview && styles["item-button-active"])}
+                style={"ghost"}
+                size={"s"}
+                iconSize={"s"}
+                isActive={showPreview}
+                icon={allureIcons.view}
+                aria-pressed={showPreview}
+                onClick={(e: Event) => {
+                  e.stopPropagation();
+                  if (!showPreview) {
+                    onPreviewToggle();
+                  }
+                }}
+              />
+            </TooltipWrapper>
+            <TooltipWrapper tooltipText={tooltip("viewCode")}>
+              <IconButton
+                className={cx(styles["item-button"], !showPreview && styles["item-button-active"])}
+                style={"ghost"}
+                size={"s"}
+                iconSize={"s"}
+                isActive={!showPreview}
+                icon={allureIcons.lineFilesFileAttachment2}
+                aria-pressed={!showPreview}
+                onClick={(e: Event) => {
+                  e.stopPropagation();
+                  if (showPreview) {
+                    onPreviewToggle();
+                  }
+                }}
+              />
+            </TooltipWrapper>
+          </>
         )}
-        {isCodeView && onHighlightToggle && (
+        {onHighlightToggle && (
           <TooltipWrapper tooltipText={tooltip("syntaxHighlight")}>
             <IconButton
-              className={cx(styles["item-button"], !highlightCode && styles["item-button-syntax-off"])}
+              className={cx(
+                styles["item-button"],
+                highlightCode && styles["item-button-active"],
+                !highlightCode && styles["item-button-syntax-off"],
+              )}
               style={"ghost"}
               size={"s"}
               iconSize={"s"}
+              isActive={highlightCode}
               icon={allureIcons.lineDevCodeSquare}
+              aria-pressed={highlightCode}
               onClick={(e: Event) => {
                 e.stopPropagation();
                 onHighlightToggle();

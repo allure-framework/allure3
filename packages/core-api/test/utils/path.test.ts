@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { joinPosixPath, toPosixPath } from "../../src/utils/path.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-engine");
+  await story("path");
+  await label("coverage", "report-engine");
+});
 
 describe("path utils", () => {
   it("should normalize windows separators to posix", () => {

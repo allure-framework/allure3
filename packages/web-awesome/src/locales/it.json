@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Cerca",
-    "search-placeholder": "Nome o ID"
+    "search-placeholder": "Cerca test"
   },
   "filters": {
     "flaky": "Instabili",
@@ -151,6 +151,7 @@
     "copy-email": "Copia email",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "at": "a",
+    "generated": "Generato",
     "variables": "Variabili",
     "openPwTrace": "Apri Playwright Trace",
     "pwTracePopupBlocked": "Il browser ha bloccato l'apertura di Playwright Trace Viewer.",
@@ -427,6 +428,66 @@
         "actual": "Attuale",
         "expected": "Previsto"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "groups": {
+      "global": "Generale",
+      "tree": "Albero",
+      "testResult": "Risultato del test"
+    },
+    "items": {
+      "toggleHelp": "Mostra o nascondi le scorciatoie",
+      "focusSearch": "Metti il focus sulla ricerca",
+      "blurSearch": "Esci dalla ricerca",
+      "focusTree": "Metti il focus sull'albero",
+      "focusTestResult": "Metti il focus sul risultato del test",
+      "toggleLayout": "Attiva/disattiva vista divisa (Shift+L)",
+      "toggleLayoutAlt": "Attiva/disattiva vista divisa (Ctrl/Cmd+\\)",
+      "moveUp": "Su",
+      "moveDown": "Giù",
+      "collapse": "Comprimi / vai al padre",
+      "expand": "Espandi / primo figlio",
+      "parent": "Vai al padre (p)",
+      "parentAlt": "Vai al padre (u)",
+      "openNode": "Apri test / attiva/disattiva gruppo (o)",
+      "collapseNode": "Comprimi nodo (-)",
+      "expandNode": "Espandi nodo (+)",
+      "collapseAll": "Comprimi tutti i figli (C)",
+      "expandAll": "Espandi tutti i figli (A)",
+      "subtreeCycle": "Ciclo comprimi/espandi — come pulsante freccia (>)",
+      "subtreeCollapse": "Comprimi l'intero sottoalbero (Shift+C)",
+      "subtreeExpand": "Espandi l'intero sottoalbero (Shift+A)",
+      "subtreeFirstLevel": "Espandi solo il primo livello (f)",
+      "toggleNode": "Attiva/disattiva gruppo o ambiente",
+      "openTest": "Apri risultato del test",
+      "firstTest": "Vai al primo test (g g), scorri in cima",
+      "lastTest": "Vai all'ultimo test",
+      "treeTop": "Prima riga + scorri in cima (Home)",
+      "scrollTreeTop": "Scorri in cima — mostra Variabili e filtri (z t)",
+      "toggleReportVariables": "Mostra/nascondi variabili",
+      "toggleReportMetadata": "Mostra/nascondi metadati",
+      "reportTabResults": "Tab report: Risultati",
+      "reportTabCategories": "Tab report: Categorie",
+      "reportTabQualityGate": "Tab report: Quality gate",
+      "reportTabGlobalAttachments": "Tab report: Allegati globali",
+      "reportTabGlobalErrors": "Tab report: Errori globali",
+      "reportTabNext": "Tab report successivo",
+      "reportTabPrev": "Tab report precedente",
+      "nextTest": "Risultato test successivo",
+      "prevTest": "Risultato test precedente",
+      "testTabNext": "Tab test successivo",
+      "testTabPrev": "Tab test precedente",
+      "tabOverview": "Tab panoramica",
+      "tabHistory": "Tab cronologia",
+      "tabRetries": "Tab nuovi tentativi",
+      "tabAttachments": "Tab allegati",
+      "tabEnvironments": "Tab ambienti",
+      "toggleLabels": "Mostra/nascondi etichette",
+      "toggleParameters": "Mostra/nascondi parametri",
+      "toggleLinks": "Mostra/nascondi link",
+      "backToTree": "Torna all'albero"
     }
   }
 }

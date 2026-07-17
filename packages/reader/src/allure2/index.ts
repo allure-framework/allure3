@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -52,15 +52,49 @@ const xmlParser = new XMLParser({
 
 const readerId = "allure2";
 
+const isAllure2AttachmentFileName = (fileName: string): boolean => {
+  const attachmentIdx = fileName.lastIndexOf("-attachment");
+
+  if (attachmentIdx === -1) {
+    return false;
+  }
+
+  const suffix = fileName.slice(attachmentIdx + "-attachment".length);
+
+  return suffix === "" || suffix.startsWith(".");
+};
+
+const matchesAllure2File = (fileName: string): boolean => {
+  if (fileName.endsWith("-result.json")) return true;
+  if (fileName.endsWith("-check.json")) return true;
+  if (fileName.endsWith("-container.json")) return true;
+  if (fileName.endsWith("-globals.json")) return true;
+  if (isAllure2AttachmentFileName(fileName)) return true;
+  if (fileName === "executor.json") return true;
+  if (fileName === "categories.json") return true;
+  if (fileName === "environment.properties") return true;
+  if (fileName === "environment.xml") return true;
+  return false;
+};
+
 export const allure2: ResultsReader = {
+  matches: (data) => matchesAllure2File(data.getOriginalFileName()),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
 
-    // this is essential in case we need to attach valid result files
-    // e.g. like in allure2.test.ts
-    if (originalFileName.match(/-attachment(?:\..+)?/)) {
-      await visitor.visitAttachmentFile(data, { readerId });
-      return true;
+    if (originalFileName.endsWith("-check.json")) {
+      try {
+        const parsed = await data.asJson<unknown>();
+
+        if (parsed && isStringAnyRecord(parsed)) {
+          await processCheckResult(visitor, parsed, originalFileName);
+        }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
     }
 
     if (originalFileName.endsWith("-result.json")) {
@@ -158,6 +192,10 @@ export const allure2: ResultsReader = {
       }
     }
 
+    // This is essential in case we need to attach valid result files
+    // e.g. like in allure2.test.ts. Under core dispatch, only files matched
+    // by matchesAllure2File reach this fallback, so the remaining case is an
+    // Allure 2 attachment.
     await visitor.visitAttachmentFile(data, { readerId });
     return true;
   },
@@ -199,6 +237,32 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
   };
 
   await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
+};
+
+const processCheckResult = async (
+  visitor: ResultsVisitor,
+  result: Partial<AllureCheckResult>,
+  originalFileName: string,
+) => {
+  const tags = Array.isArray(result.tags) ? result.tags.map((tag) => ensureString(tag)).filter(notNull) : [];
+  const details: Record<string, any> = isStringAnyRecord(result.details) ? result.details : {};
+  const message = ensureString(details.message);
+  const error = ensureString(details.error);
+
+  await visitor.visitCheckResult(
+    {
+      id: ensureString(result.id, ""),
+      name: ensureString(result.name, originalFileName.replace(/-check\.json$/, "")),
+      status: convertCheckStatus(result.status),
+      ...(tags.length ? { tags } : {}),
+      details: {
+        command: ensureString(details.command, ""),
+        ...(message ? { message } : {}),
+        ...(error ? { error } : {}),
+      },
+    },
+    { readerId, metadata: { originalFileName } },
+  );
 };
 
 const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
@@ -322,6 +386,10 @@ const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
     },
     { readerId },
   );
+};
+
+const convertCheckStatus = (status: unknown): AllureCheckResult["status"] => {
+  return status === "passed" ? "passed" : "failed";
 };
 
 const convertStatus = (status: Status | string | null | undefined): RawTestStatus => {

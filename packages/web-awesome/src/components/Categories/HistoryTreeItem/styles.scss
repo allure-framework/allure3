@@ -4,7 +4,7 @@
 
 .tree-item-history {
   padding: 0;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
 }
 
 .tree-item-history :global(.styles_tree-section-title) {
@@ -32,7 +32,7 @@
 }
 
 .tree-item-history-name {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;

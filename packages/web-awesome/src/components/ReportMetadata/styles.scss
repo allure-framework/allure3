@@ -10,7 +10,7 @@
 }
 
 .report-metadata-separator {
-  border-left: 1px solid var(--on-border-primary);
+  border-left: 1px solid var(--color-border-default);
   height: 24px;
   margin: 11px 0;
 }
@@ -26,7 +26,7 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 16px 0;
-  border-bottom: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--color-border-default);
   width: 100%;
 }
 
@@ -37,7 +37,7 @@
 }
 
 .metadata-item-title {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 6px;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .report-metadata {
-  border-bottom: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .report-metadata-keyvalue {
@@ -80,7 +80,7 @@
   width: 4px;
   height: 12px;
   border-radius: 2px;
-  background: var(--on-text-secondary);
+  background: var(--color-text-secondary);
   margin-right: 8px;
   align-self: center;
   @include status-bg-and-text();
@@ -93,5 +93,5 @@
 
 .metadata-icon {
   margin-right: 8px;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }

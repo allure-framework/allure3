@@ -1,5 +1,5 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
-import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl } from "@allurereport/web-commons";
+import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
 
 import { PARAMS, STATUSES, TRANSITIONS } from "./constants";
 import type {
@@ -15,7 +15,10 @@ export const truncateArrayFieldValues = (values: string[]): string[] => {
 };
 
 export const getTagsFilterUrl = (tags: string[]): string => {
-  const url = new URL(window.location.pathname, window.location.origin);
+  const url = new URL(getCurrentUrl());
+
+  url.search = "";
+  url.hash = "";
 
   tags.forEach((tag) => {
     url.searchParams.append("tags", tag);
@@ -74,8 +77,7 @@ export const migrateFilterParam = () => {
 
   currentUrl.searchParams.delete("filter");
 
-  window.history.replaceState(null, "", currentUrl.toString());
-  window.dispatchEvent(new Event("replaceState"));
+  goTo(currentUrl, { replace: true });
 };
 
 export const constructFilterParams = (filters: Filters) => {

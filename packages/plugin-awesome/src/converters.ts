@@ -4,6 +4,8 @@ import {
   type TestResult,
   type TestStepResult,
   createDictionary,
+  isStep,
+  redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
 import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
@@ -44,12 +46,12 @@ export const convertTestResult = (
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
-    hidden: tr.hidden,
+    isRetry: tr.isRetry,
     labels,
     groupedLabels: mapLabelsByName(labels),
-    parameters: tr.parameters,
+    parameters: redactParameters(tr.parameters),
     links: tr.links,
-    steps: tr.steps,
+    steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
@@ -66,6 +68,14 @@ export const convertTestResult = (
 };
 
 export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResult => {
+  if (isStep(tsr)) {
+    return {
+      ...tsr,
+      parameters: redactParameters(tsr.parameters),
+      steps: (tsr.steps ?? []).map(convertTestStepResult),
+    };
+  }
+
   return tsr;
 };
 

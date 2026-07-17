@@ -14,6 +14,8 @@ interface TreeHeaderProps {
   statusFilter?: Status;
   style?: Record<string, string>;
   actions?: ComponentChildren;
+  focused?: boolean;
+  nodeId?: string;
 }
 
 export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
@@ -24,10 +26,19 @@ export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   reportStatistic,
   statusFilter,
   actions,
+  focused,
+  nodeId,
   ...rest
 }) => {
   return (
-    <TreeSection {...rest} title={categoryTitle} isOpened={isOpened} toggleTree={toggleTree}>
+    <TreeSection
+      {...rest}
+      title={categoryTitle}
+      isOpened={isOpened}
+      toggleTree={toggleTree}
+      focused={focused}
+      nodeId={nodeId}
+    >
       {actions}
       <TreeStatusBar reportStatistic={reportStatistic} statusFilter={statusFilter} statistic={statistic} />
     </TreeSection>

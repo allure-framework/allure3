@@ -7,7 +7,7 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
-import { filterIncludedInSuccessRate, isStep } from "@allurereport/core-api";
+import { filterIncludedInSuccessRate, isStep, redactParameters } from "@allurereport/core-api";
 
 import { matchCategories } from "./categories.js";
 import type {
@@ -41,7 +41,7 @@ const sortByTime = (a: { time: Allure2Time }, b: { time: Allure2Time }): number 
 const convertStatus = (status: TestStatus): Allure2Status => status;
 
 const convertStageResult = (context: ConvertContext, result: TestResult | TestFixtureResult): Allure2StageResult => {
-  const { name, ...testStage } = convertStep(context, {
+  const { name: _name, ...testStage } = convertStep(context, {
     name: "test",
     steps: result.steps,
     start: result.start,
@@ -59,7 +59,7 @@ const convertStep = (context: ConvertContext, step: TestStepResult): Allure2Step
     const name = step.name;
     const steps = step.steps.map((child) => convertStep(context, child));
     const stepsCount = steps.length;
-    const parameters = step.parameters;
+    const parameters = redactParameters(step.parameters);
     const parametersCount = parameters.length;
     const statusMessage = step.error?.message;
     const shouldDisplayMessage = !!statusMessage || steps.findIndex((s) => s.statusMessage === statusMessage) > 0;
@@ -214,16 +214,16 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     statusTrace,
     labels: test.labels,
     links: test.links,
-    parameters: test.parameters,
+    parameters: redactParameters(test.parameters),
     afterStages,
     beforeStages,
     testStage: testStage,
     flaky,
-    hidden: test.hidden,
+    isRetry: test.isRetry,
     newFailed,
     newBroken,
     newPassed,
-    retry: test.hidden,
+    retry: test.isRetry,
     retriesStatusChange,
     retriesCount: retries.length,
     hostId: test.hostId,

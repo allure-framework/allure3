@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   MAX_ENVIRONMENT_ID_LENGTH,
@@ -8,6 +9,13 @@ import {
   validateEnvironmentId,
   validateEnvironmentName,
 } from "../../src/utils/environment.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("environments");
+  await story("environment");
+  await label("coverage", "environments");
+});
 
 describe("validateEnvironmentName", () => {
   it("accepts valid names and returns normalized value", () => {

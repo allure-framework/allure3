@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import type { CategoryDefinition } from "@allurereport/core-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("categories");
+  await story("categories");
+  await label("coverage", "categories");
+});
 
 import { applyCategoriesToTestResults, generateCategories } from "../src/categories.js";
 import type { AwesomeDataWriter } from "../src/writer.js";
@@ -176,7 +184,7 @@ const mkTest = (partial: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
     status: "failed",
     labels: [],
     flaky: false,
-    hidden: false,
+    isRetry: false,
     duration: 10,
     retriesCount: 0,
     transition: undefined,
@@ -236,7 +244,7 @@ describe("generateCategories", () => {
       mkTest({ id: "a", name: "A", status: "failed" as any }),
       mkTest({ id: "b", name: "B", status: "broken" as any }),
       mkTest({ id: "c", name: "C", status: "passed" as any }),
-      mkTest({ id: "h", name: "Hidden", hidden: true, status: "failed" as any }),
+      mkTest({ id: "h", name: "Hidden", isRetry: true, status: "failed" as any }),
     ];
 
     await generateCategories(writer, {

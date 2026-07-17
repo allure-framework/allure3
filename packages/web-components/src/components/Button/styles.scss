@@ -89,7 +89,7 @@
 
   /* Focus ring */
   &:focus-visible {
-    outline: var(--allure-btn-focus-ring-offset) solid var(--ad-other-focus);
+    outline: var(--allure-btn-focus-ring-offset) solid var(--color-focus-ring);
   }
 
   &:disabled {
@@ -185,197 +185,197 @@
   &.style_primary {
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-support-aldebaran);
-    --allure-btn-text-color: var(--constant-on-text-primary);
-    --allure-btn-icon-color: var(--constant-on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-bg-color: var(--color-intent-primary-bg);
+    --allure-btn-text-color: var(--color-intent-primary-on-bg);
+    --allure-btn-icon-color: var(--color-intent-primary-on-bg);
+    --allure-btn-trailing-icon-color: var(--color-intent-primary-on-bg);
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-aldebaran-medium);
+      --allure-btn-bg-color: var(--color-intent-primary-bg-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-aldebaran-medium);
+      --allure-btn-bg-color: var(--color-intent-primary-bg-hover);
     }
 
     &:disabled {
-      --allure-btn-bg-color: var(--bg-control-secondary);
-      --allure-btn-text-color: var(--on-text-hint);
-      --allure-btn-icon-color: var(--on-icon-hint);
-      --allure-btn-trailing-icon-color: var(--on-icon-hint);
+      --allure-btn-bg-color: var(--color-control-bg);
+      --allure-btn-text-color: var(--color-text-muted);
+      --allure-btn-icon-color: var(--color-icon-muted);
+      --allure-btn-trailing-icon-color: var(--color-icon-muted);
     }
 
     &:active,
     .active {
-      --allure-btn-bg-color: var(--bg-support-aldebaran-heavy);
+      --allure-btn-bg-color: var(--color-intent-primary-bg-active);
     }
   }
 
   &.style_primary.danger {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-support-capella);
-    --allure-btn-text-color: var(--constant-on-text-primary);
-    --allure-btn-icon-color: var(--constant-on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-bg-color: var(--color-intent-danger-bg);
+    --allure-btn-text-color: var(--color-intent-danger-on-bg);
+    --allure-btn-icon-color: var(--color-intent-danger-on-bg);
+    --allure-btn-trailing-icon-color: var(--color-intent-danger-on-bg);
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-hover);
     }
 
     &:active,
     .active {
-      --allure-btn-bg-color: var(--bg-support-capella-heavy);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-active);
     }
   }
 
   &.style_primary.positive {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-support-castor);
-    --allure-btn-text-color: var(--constant-on-text-primary);
-    --allure-btn-icon-color: var(--constant-on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-bg-color: var(--color-intent-success-bg);
+    --allure-btn-text-color: var(--color-intent-success-on-bg);
+    --allure-btn-icon-color: var(--color-intent-success-on-bg);
+    --allure-btn-trailing-icon-color: var(--color-intent-success-on-bg);
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-castor-heavy);
+      --allure-btn-bg-color: var(--color-intent-success-bg-active);
     }
   }
 
   &.style_outline {
     --allure-btn-border: 1px;
-    --allure-btn-border-color: var(--on-border-control);
-    --allure-btn-bg-color: var(--bg-control-flat);
-    --allure-btn-text-color: var(--on-text-primary);
-    --allure-btn-icon-color: var(--on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+    --allure-btn-border-color: var(--color-border-control);
+    --allure-btn-bg-color: var(--color-control-bg-ghost);
+    --allure-btn-text-color: var(--color-text-primary);
+    --allure-btn-icon-color: var(--color-icon-primary);
+    --allure-btn-trailing-icon-color: var(--color-icon-primary);
 
     &[data-icon-color="secondary"] {
-      --allure-btn-icon-color: var(--on-icon-secondary);
+      --allure-btn-icon-color: var(--color-icon-secondary);
     }
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-aldebaran);
-      --allure-btn-icon-color: var(--on-support-aldebaran);
+      --allure-btn-text-color: var(--color-link-text);
+      --allure-btn-icon-color: var(--color-link-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-control-flat-medium);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-control-flat-medium);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-control-flat-heavy);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-active);
     }
 
     &:disabled {
       --allure-btn-border: 0px;
       --allure-btn-border-color: transparent;
-      --allure-btn-bg-color: var(--bg-control-secondary);
-      --allure-btn-text-color: var(--on-text-hint);
-      --allure-btn-icon-color: var(--on-icon-hint);
-      --allure-btn-trailing-icon-color: var(--on-icon-hint);
+      --allure-btn-bg-color: var(--color-control-bg);
+      --allure-btn-text-color: var(--color-text-muted);
+      --allure-btn-icon-color: var(--color-icon-muted);
+      --allure-btn-trailing-icon-color: var(--color-icon-muted);
     }
   }
 
   &.style_outline.danger {
-    --allure-btn-border-color: var(--on-border-control);
-    --allure-btn-bg-color: var(--bg-control-flat);
-    --allure-btn-text-color: var(--on-support-capella);
-    --allure-btn-icon-color: var(--on-support-capella);
-    --allure-btn-trailing-icon-color: var(--on-support-capella);
+    --allure-btn-border-color: var(--color-border-control);
+    --allure-btn-bg-color: var(--color-control-bg-ghost);
+    --allure-btn-text-color: var(--color-intent-danger-text);
+    --allure-btn-icon-color: var(--color-intent-danger-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-danger-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-capella);
-      --allure-btn-icon-color: var(--on-support-capella);
+      --allure-btn-text-color: var(--color-intent-danger-text);
+      --allure-btn-icon-color: var(--color-intent-danger-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-hover);
     }
   }
 
   &.style_outline.positive {
-    --allure-btn-border-color: var(--on-border-control);
-    --allure-btn-bg-color: var(--bg-control-flat);
-    --allure-btn-text-color: var(--on-support-castor);
-    --allure-btn-icon-color: var(--on-support-castor);
-    --allure-btn-trailing-icon-color: var(--on-support-castor);
+    --allure-btn-border-color: var(--color-border-control);
+    --allure-btn-bg-color: var(--color-control-bg-ghost);
+    --allure-btn-text-color: var(--color-intent-success-text);
+    --allure-btn-icon-color: var(--color-intent-success-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-success-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-castor);
-      --allure-btn-icon-color: var(--on-support-castor);
+      --allure-btn-text-color: var(--color-intent-success-text);
+      --allure-btn-icon-color: var(--color-intent-success-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-hover);
     }
   }
 
   &.style_ghost {
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-control-flat);
-    --allure-btn-text-color: var(--on-text-primary);
-    --allure-btn-icon-color: var(--on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+    --allure-btn-bg-color: var(--color-control-bg-ghost);
+    --allure-btn-text-color: var(--color-text-primary);
+    --allure-btn-icon-color: var(--color-icon-primary);
+    --allure-btn-trailing-icon-color: var(--color-icon-primary);
 
     &[data-icon-color="secondary"] {
-      --allure-btn-icon-color: var(--on-icon-secondary);
+      --allure-btn-icon-color: var(--color-icon-secondary);
     }
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-aldebaran);
-      --allure-btn-icon-color: var(--on-support-aldebaran);
+      --allure-btn-text-color: var(--color-link-text);
+      --allure-btn-icon-color: var(--color-link-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-control-flat-medium);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-control-flat-heavy);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-active);
     }
 
     &:disabled {
       --allure-btn-bg-color: transparent;
-      --allure-btn-text-color: var(--on-text-hint);
-      --allure-btn-icon-color: var(--on-icon-hint);
-      --allure-btn-trailing-icon-color: var(--on-icon-hint);
+      --allure-btn-text-color: var(--color-text-muted);
+      --allure-btn-icon-color: var(--color-icon-muted);
+      --allure-btn-trailing-icon-color: var(--color-icon-muted);
     }
   }
 
@@ -383,26 +383,26 @@
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
     --allure-btn-bg-color: transparent;
-    --allure-btn-text-color: var(--on-support-capella);
-    --allure-btn-icon-color: var(--on-support-capella);
-    --allure-btn-trailing-icon-color: var(--on-support-capella);
+    --allure-btn-text-color: var(--color-intent-danger-text);
+    --allure-btn-icon-color: var(--color-intent-danger-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-danger-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-capella);
-      --allure-btn-icon-color: var(--on-support-capella);
+      --allure-btn-text-color: var(--color-intent-danger-text);
+      --allure-btn-icon-color: var(--color-intent-danger-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-hover);
     }
   }
 
@@ -410,137 +410,137 @@
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
     --allure-btn-bg-color: transparent;
-    --allure-btn-text-color: var(--on-support-castor);
-    --allure-btn-icon-color: var(--on-support-castor);
-    --allure-btn-trailing-icon-color: var(--on-support-castor);
+    --allure-btn-text-color: var(--color-intent-success-text);
+    --allure-btn-icon-color: var(--color-intent-success-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-success-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-castor);
-      --allure-btn-icon-color: var(--on-support-castor);
+      --allure-btn-text-color: var(--color-intent-success-text);
+      --allure-btn-icon-color: var(--color-intent-success-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-hover);
     }
   }
 
   &.style_flat {
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-control-secondary);
-    --allure-btn-text-color: var(--on-text-primary);
-    --allure-btn-icon-color: var(--on-icon-primary);
+    --allure-btn-bg-color: var(--color-control-bg);
+    --allure-btn-text-color: var(--color-text-primary);
+    --allure-btn-icon-color: var(--color-icon-primary);
 
     &[data-icon-color="secondary"] {
-      --allure-btn-icon-color: var(--on-icon-secondary);
+      --allure-btn-icon-color: var(--color-icon-secondary);
     }
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-aldebaran);
-      --allure-btn-icon-color: var(--on-support-aldebaran);
+      --allure-btn-text-color: var(--color-link-text);
+      --allure-btn-icon-color: var(--color-link-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-control-secondary-medium);
+      --allure-btn-bg-color: var(--color-control-bg-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-control-secondary-medium);
+      --allure-btn-bg-color: var(--color-control-bg-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-control-secondary-heavy);
+      --allure-btn-bg-color: var(--color-control-bg-active);
     }
 
     &:disabled {
-      --allure-btn-bg-color: var(--bg-control-secondary);
-      --allure-btn-text-color: var(--on-text-hint);
-      --allure-btn-icon-color: var(--on-icon-hint);
-      --allure-btn-trailing-icon-color: var(--on-icon-hint);
+      --allure-btn-bg-color: var(--color-control-bg);
+      --allure-btn-text-color: var(--color-text-muted);
+      --allure-btn-icon-color: var(--color-icon-muted);
+      --allure-btn-trailing-icon-color: var(--color-icon-muted);
     }
   }
 
   &.style_flat.danger {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-alpha-capella);
-    --allure-btn-text-color: var(--on-support-capella);
-    --allure-btn-icon-color: var(--on-support-capella);
-    --allure-btn-trailing-icon-color: var(--on-support-capella);
+    --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
+    --allure-btn-text-color: var(--color-intent-danger-text);
+    --allure-btn-icon-color: var(--color-intent-danger-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-danger-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-capella);
-      --allure-btn-icon-color: var(--on-support-capella);
+      --allure-btn-text-color: var(--color-intent-danger-text);
+      --allure-btn-icon-color: var(--color-intent-danger-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-capella-heavy);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-active);
     }
   }
 
   &.style_flat.positive {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-alpha-castor);
-    --allure-btn-text-color: var(--on-support-castor);
-    --allure-btn-icon-color: var(--on-support-castor);
-    --allure-btn-trailing-icon-color: var(--on-support-castor);
+    --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
+    --allure-btn-text-color: var(--color-intent-success-text);
+    --allure-btn-icon-color: var(--color-intent-success-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-success-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-castor);
-      --allure-btn-icon-color: var(--on-support-castor);
+      --allure-btn-text-color: var(--color-intent-success-text);
+      --allure-btn-icon-color: var(--color-intent-success-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-castor-heavy);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-active);
     }
   }
 
   &.style_raised {
     --allure-btn-border: 1px;
-    --allure-btn-border-color: var(--on-border-primary);
-    --allure-btn-bg-color: var(--bg-base-modal);
-    --allure-btn-text-color: var(--on-text-primary);
-    --allure-btn-icon-color: var(--on-icon-primary);
-    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+    --allure-btn-border-color: var(--color-border-default);
+    --allure-btn-bg-color: var(--color-bg-raised);
+    --allure-btn-text-color: var(--color-text-primary);
+    --allure-btn-icon-color: var(--color-icon-primary);
+    --allure-btn-trailing-icon-color: var(--color-icon-primary);
 
     &[data-icon-color="secondary"] {
-      --allure-btn-icon-color: var(--on-icon-secondary);
+      --allure-btn-icon-color: var(--color-icon-secondary);
     }
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-aldebaran);
-      --allure-btn-icon-color: var(--on-support-aldebaran);
+      --allure-btn-text-color: var(--color-link-text);
+      --allure-btn-icon-color: var(--color-link-text);
     }
 
     box-shadow: var(--shadow-raised);
-    background-color: var(--bg-base-modal);
+    background-color: var(--color-bg-raised);
     /* Dropping border on button, cause it will be on before */
     border: var(--allure-btn-border) solid transparent;
     border-color: transparent;
@@ -563,74 +563,74 @@
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-control-flat-medium);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-hover);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-control-flat-medium);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-hover);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-control-flat-heavy);
+      --allure-btn-bg-color: var(--color-control-bg-ghost-active);
     }
 
     &:disabled {
       --allure-btn-border: 0px;
       --allure-btn-border-color: transparent;
-      --allure-btn-bg-color: var(--bg-control-secondary);
-      --allure-btn-text-color: var(--on-text-hint);
-      --allure-btn-icon-color: var(--on-icon-hint);
-      --allure-btn-trailing-icon-color: var(--on-icon-hint);
+      --allure-btn-bg-color: var(--color-control-bg);
+      --allure-btn-text-color: var(--color-text-muted);
+      --allure-btn-icon-color: var(--color-icon-muted);
+      --allure-btn-trailing-icon-color: var(--color-icon-muted);
       box-shadow: none;
     }
   }
 
   &.style_raised.danger {
-    --allure-btn-text-color: var(--on-support-capella);
-    --allure-btn-icon-color: var(--on-support-capella);
-    --allure-btn-trailing-icon-color: var(--on-support-capella);
+    --allure-btn-text-color: var(--color-intent-danger-text);
+    --allure-btn-icon-color: var(--color-intent-danger-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-danger-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-capella);
-      --allure-btn-icon-color: var(--on-support-capella);
+      --allure-btn-text-color: var(--color-intent-danger-text);
+      --allure-btn-icon-color: var(--color-intent-danger-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-capella);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
+      --allure-btn-bg-color: var(--color-intent-danger-bg-subtle-hover);
     }
   }
 
   &.style_raised.positive {
-    --allure-btn-text-color: var(--on-support-castor);
-    --allure-btn-icon-color: var(--on-support-castor);
-    --allure-btn-trailing-icon-color: var(--on-support-castor);
+    --allure-btn-text-color: var(--color-intent-success-text);
+    --allure-btn-icon-color: var(--color-intent-success-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-success-text);
 
     &[data-link] {
-      --allure-btn-text-color: var(--on-support-castor);
-      --allure-btn-icon-color: var(--on-support-castor);
+      --allure-btn-text-color: var(--color-intent-success-text);
+      --allure-btn-icon-color: var(--color-intent-success-text);
     }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-alpha-castor);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
+      --allure-btn-bg-color: var(--color-intent-success-bg-subtle-hover);
     }
   }
 }

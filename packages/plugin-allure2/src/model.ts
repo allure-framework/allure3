@@ -80,7 +80,7 @@ export interface Allure2TestResult {
   hostId?: string;
   threadId?: string;
 
-  hidden: boolean;
+  isRetry: boolean;
   retry: boolean;
   extra: { [key: string]: any };
 }
