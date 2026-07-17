@@ -1061,7 +1061,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/d3-tip", "npm:0.0.1"],\
           ["@types/d3-transition", "npm:3.0.9"],\
-          ["@types/lodash", "npm:4.17.20"],\
+          ["@types/lodash", "npm:4.17.24"],\
           ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.19.41"],\
@@ -11560,17 +11560,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/lodash", [\
-      ["npm:4.17.10", {\
-        "packageLocation": "./.yarn/cache/@types-lodash-npm-4.17.10-033d752d27-10fe24a93a.zip/node_modules/@types/lodash/",\
+      ["npm:4.17.24", {\
+        "packageLocation": "./.yarn/cache/@types-lodash-npm-4.17.24-4a04035060-0f2082565f.zip/node_modules/@types/lodash/",\
         "packageDependencies": [\
-          ["@types/lodash", "npm:4.17.10"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:4.17.20", {\
-        "packageLocation": "./.yarn/cache/@types-lodash-npm-4.17.20-d7ed6ac7af-8cd8ad3bd7.zip/node_modules/@types/lodash/",\
-        "packageDependencies": [\
-          ["@types/lodash", "npm:4.17.20"]\
+          ["@types/lodash", "npm:4.17.24"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -11579,7 +11572,7 @@ const RAW_RUNTIME_STATE =
       ["npm:4.17.12", {\
         "packageLocation": "./.yarn/cache/@types-lodash-es-npm-4.17.12-87dce3f795-56b9a43334.zip/node_modules/@types/lodash-es/",\
         "packageDependencies": [\
-          ["@types/lodash", "npm:4.17.10"],\
+          ["@types/lodash", "npm:4.17.24"],\
           ["@types/lodash-es", "npm:4.17.12"]\
         ],\
         "linkType": "HARD"\
@@ -11589,7 +11582,7 @@ const RAW_RUNTIME_STATE =
       ["npm:4.5.9", {\
         "packageLocation": "./.yarn/cache/@types-lodash.omit-npm-4.5.9-9a46f98103-5be43f3598.zip/node_modules/@types/lodash.omit/",\
         "packageDependencies": [\
-          ["@types/lodash", "npm:4.17.10"],\
+          ["@types/lodash", "npm:4.17.24"],\
           ["@types/lodash.omit", "npm:4.5.9"]\
         ],\
         "linkType": "HARD"\
@@ -11599,7 +11592,7 @@ const RAW_RUNTIME_STATE =
       ["npm:4.3.9", {\
         "packageLocation": "./.yarn/cache/@types-lodash.times-npm-4.3.9-22297a53ef-452374b3db.zip/node_modules/@types/lodash.times/",\
         "packageDependencies": [\
-          ["@types/lodash", "npm:4.17.10"],\
+          ["@types/lodash", "npm:4.17.24"],\
           ["@types/lodash.times", "npm:4.3.9"]\
         ],\
         "linkType": "HARD"\
