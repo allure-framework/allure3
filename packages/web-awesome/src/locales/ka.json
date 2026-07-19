@@ -150,6 +150,7 @@
     "copy": "კოპირება",
     "copy-email": "ელფოსტის კოპირება",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
+    "retry": "გამეორება {{attempt}} {{total}}-დან",
     "at": "ზე",
     "generated": "გენერირებულია",
     "variables": "ცვლადები",

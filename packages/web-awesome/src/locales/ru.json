@@ -150,6 +150,7 @@
     "copy": "Скопировать",
     "copy-email": "Скопировать email",
     "attempt": "Попытка {{attempt}} из {{total}}",
+    "retry": "Повтор {{attempt}} из {{total}}",
     "at": "в",
     "generated": "Сгенерировано",
     "variables": "Переменные",

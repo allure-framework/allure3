@@ -150,6 +150,7 @@
     "copy": "複製",
     "copy-email": "複製電子郵件",
     "attempt": "第 {{attempt}} 次嘗試，共 {{total}} 次",
+    "retry": "第 {{attempt}} 次重試，共 {{total}} 次",
     "at": "於",
     "generated": "已產生",
     "variables": "變數",

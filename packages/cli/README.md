@@ -165,7 +165,7 @@ npx allure --version
 
 ## Configuration
 
-Allure 3 uses an `allurerc.mjs` or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
+Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > [!TIP]
 > We recommend using the **Awesome** plugin for the best experience.  
@@ -193,6 +193,21 @@ export default defineConfig({
 
 In this example, the generated report is named *Allure Report Example* and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
 
+### TypeScript Configuration File
+
+TypeScript configuration files are loaded directly by the Allure CLI, so you don't need to precompile them or install `tsx` or `ts-node`.
+
+```ts
+import type { AllureConfig } from "allure";
+
+export default {
+  name: "Allure Report Example",
+  output: "./out/allure-report",
+} satisfies AllureConfig;
+```
+
+For editor type checking, make sure the `allure` package is available to your project, for example as a local dev dependency. If you run Allure only as a global CLI, you can still use a TypeScript config without importing from `allure`.
+
 ### Configuration Options
 
 The configuration file allows you to fine-tune report generation. Key options include:
@@ -217,11 +232,11 @@ For example, setting `"reportLanguage": "fr"` will render the report interface i
 
 ### Declarative configuration format
 
-You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
+You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a declarative way to configure Allure 3.
 
 > [!WARNING]  
 > Declarative formats don't support advanced features such as tests filtering or environments.
-> If you need these features, please consider using the `allurerc.mjs` or `allurerc.js` files.
+> If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
 
 ## Official CI/CD Integrations
 

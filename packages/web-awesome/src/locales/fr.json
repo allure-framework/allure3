@@ -150,6 +150,7 @@
     "copy": "Copier",
     "copy-email": "Copier l'e-mail",
     "attempt": "Tentative {{attempt}} sur {{total}}",
+    "retry": "Reprise {{attempt}} sur {{total}}",
     "at": "à",
     "generated": "Généré",
     "variables": "Variables",

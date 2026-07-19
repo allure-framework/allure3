@@ -150,6 +150,7 @@
     "copy": "Kopyala",
     "copy-email": "E-postayı kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
+    "retry": "Yeniden deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
     "generated": "Oluşturuldu",
     "variables": "Değişkenler",
