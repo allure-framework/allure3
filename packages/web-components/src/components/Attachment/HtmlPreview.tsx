@@ -71,9 +71,12 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
     }
   };
 
+export const getIframeContentHeight = (iframe: HTMLIFrameElement): number => { ... };
+export const MODAL_SELECTOR = "[class*='modal-data-component']";
+
   return (
-    <div className={styles["html-attachment-preview"]}>
-      <iframe src={blobUrl} width="100%" height={height || "100%"} frameBorder="0" sandbox="allow-same-origin" onLoad={handleLoad} />
+    <div className={styles["html-attachment-preview"]} data-testid="html-attachment-preview">
+      <iframe src={blobUrl} width="100%" height={height || "100%"} frameBorder="0" sandbox="allow-same-origin" onLoad={handleLoad} data-testid="html-attachment-iframe"/>
     </div>
   );
 };
