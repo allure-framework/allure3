@@ -18,13 +18,15 @@ const isDarkTheme = (): boolean => {
 const DARK_STYLE =
   "<style data-allure-preview-theme>:root,html,body{background:#1c1c1e !important;color:#e5e5e7 !important;}body *{border-color:rgba(255,255,255,0.12) !important;}</style>";
 
-const getIframeContentHeight = (iframe: HTMLIFrameElement): number => {
- const documentElement = iframe.contentDocument?.documentElement;
- const body = iframe.contentDocument?.body;
- const bodyRectHeight = body?.getBoundingClientRect().height ?? 0;
- const scrollHeight = Math.max(body?.scrollHeight ?? 0, documentElement?.scrollHeight ?? 0);
- return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
+export const getIframeContentHeight = (iframe: HTMLIFrameElement): number => {
+  const documentElement = iframe.contentDocument?.documentElement;
+  const body = iframe.contentDocument?.body;
+  const bodyRectHeight = body?.getBoundingClientRect().height ?? 0;
+  const scrollHeight = Math.max(body?.scrollHeight ?? 0, documentElement?.scrollHeight ?? 0);
+  return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
 };
+
+export const MODAL_SELECTOR = "[class*='modal-data-component']";
 
 export type HtmlAttachmentPreviewProps = {
   attachment: { text: string };
@@ -62,21 +64,26 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
   if (!sanitizedText) {
     return null;
   }
-  
+
   const handleLoad = (e: Event) => {
     const iframe = e.currentTarget as HTMLIFrameElement;
-    const inModal = !!iframe.closest("[class*='modal-data-component']");
+    const inModal = !!iframe.closest(MODAL_SELECTOR);
     if (!inModal) {
       setHeight(getIframeContentHeight(iframe));
     }
   };
 
-export const getIframeContentHeight = (iframe: HTMLIFrameElement): number => { ... };
-export const MODAL_SELECTOR = "[class*='modal-data-component']";
-
   return (
     <div className={styles["html-attachment-preview"]} data-testid="html-attachment-preview">
-      <iframe src={blobUrl} width="100%" height={height || "100%"} frameBorder="0" sandbox="allow-same-origin" onLoad={handleLoad} data-testid="html-attachment-iframe"/>
+      <iframe
+        src={blobUrl}
+        width="100%"
+        height={height || "100%"}
+        frameBorder="0"
+        sandbox="allow-same-origin"
+        onLoad={handleLoad}
+        data-testid="html-attachment-iframe"
+      />
     </div>
   );
 };
