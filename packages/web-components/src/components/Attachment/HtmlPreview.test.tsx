@@ -61,7 +61,7 @@ describe("HtmlPreview", () => {
     stubIframeContentHeight(iframe, 958);
 
     fireEvent.load(iframe);
-    
+
     expect(iframe.getAttribute("height")).toBe("958");
   });
 
