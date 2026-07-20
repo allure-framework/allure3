@@ -45,7 +45,7 @@ describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
     expect(result).toBe(true);
     expect(postMessage).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(999);
+    vi.advanceTimersByTime(1_999);
     expect(postMessage).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1);
@@ -70,7 +70,7 @@ describe("components > TestResult > openPlaywrightTraceInNewTab", () => {
     expect(postMessage).not.toHaveBeenCalled();
 
     popup.closed = true;
-    vi.advanceTimersByTime(1_000);
+    vi.advanceTimersByTime(2_000);
     expect(postMessage).not.toHaveBeenCalled();
   });
 });
