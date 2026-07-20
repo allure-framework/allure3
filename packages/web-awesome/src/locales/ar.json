@@ -150,6 +150,7 @@
     "copy": "نسخ",
     "copy-email": "نسخ البريد الإلكتروني",
     "attempt": "المحاولة {{attempt}} من {{total}}",
+    "retry": "إعادة المحاولة {{attempt}} من {{total}}",
     "at": "في",
     "generated": "تم الإنشاء",
     "variables": "المتغيرات",

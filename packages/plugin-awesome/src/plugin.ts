@@ -102,11 +102,27 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
+    const trsByEnvId = new Map<string, typeof allTrs>();
+
+    for (const tr of allTrs) {
+      const environmentId = envIdByTrId.get(tr.id);
+
+      if (!environmentId) {
+        continue;
+      }
+
+      const group = trsByEnvId.get(environmentId);
+
+      if (group) {
+        group.push(tr);
+      } else {
+        trsByEnvId.set(environmentId, [tr]);
+      }
+    }
+
     await Promise.all(
       environments.map(async ({ id }) => {
-        const envTrs = await store.testResultsByEnvironmentId(id, { includeRetries: true });
-
-        envStatistics.set(id, await statisticByTestResults(store, envTrs));
+        envStatistics.set(id, await statisticByTestResults(store, trsByEnvId.get(id) ?? []));
       }),
     );
 

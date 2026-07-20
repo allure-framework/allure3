@@ -4,6 +4,7 @@ import * as process from "node:process";
 
 import { validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -38,6 +39,9 @@ const CONFIG_FILENAMES = [
   "allurerc.js",
   "allurerc.mjs",
   "allurerc.cjs",
+  "allurerc.ts",
+  "allurerc.mts",
+  "allurerc.cts",
   "allurerc.json",
   "allurerc.yaml",
   "allurerc.yml",
@@ -135,7 +139,7 @@ export const findConfig = async (cwd: string, configPath?: string) => {
       if (stats.isFile()) {
         return resolved;
       }
-    } catch (ignored) {
+    } catch {
       // ignore
     }
   }
@@ -230,6 +234,16 @@ export const loadJsonConfig = async (configPath: string): Promise<Config> => {
  */
 export const loadJsConfig = async (configPath: string): Promise<Config> => {
   return (await import(normalizeImportPath(configPath))).default;
+};
+
+/**
+ * Loads the TypeScript config from the given path
+ * @param configPath
+ */
+export const loadTsConfig = async (configPath: string): Promise<Config> => {
+  const jiti = createJiti(import.meta.url);
+
+  return await jiti.import<Config>(resolve(configPath), { default: true });
 };
 
 const resolveConfigEnvironments = (config: Config) => {
@@ -386,7 +400,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 /**
  * Tries to read Allure Runtime configuration file in given cwd
  * If config path is not provided, tries to find well-known config file
- * Supports javascript, json and yaml config files
+ * Supports javascript, typescript, json and yaml config files
  * If nothing is found returns an empty config
  * @param cwd
  * @param configPath
@@ -413,6 +427,11 @@ export const readConfig = async (
     case ".mjs":
       config = await loadJsConfig(cfg);
       break;
+    case ".ts":
+    case ".cts":
+    case ".mts":
+      config = await loadTsConfig(cfg);
+      break;
     default:
       config = DEFAULT_CONFIG;
   }
@@ -435,6 +454,10 @@ export const readRawConfig = async (cwd: string = process.cwd(), configPath?: st
     case ".cjs":
     case ".mjs":
       return loadJsConfig(cfg);
+    case ".ts":
+    case ".cts":
+    case ".mts":
+      return loadTsConfig(cfg);
     default:
       return DEFAULT_CONFIG;
   }

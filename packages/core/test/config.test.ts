@@ -13,8 +13,10 @@ import {
   getPluginId,
   getPluginInstance,
   loadJsonConfig,
+  loadTsConfig,
   loadYamlConfig,
   readConfig,
+  readRawConfig,
   resolveConfig,
   resolvePlugin,
   validateConfig,
@@ -46,7 +48,7 @@ describe("findConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should find allurerc.js in cwd", async () => {
@@ -68,6 +70,27 @@ describe("findConfig", () => {
 
     const found = await findConfig(fixturesDir);
     expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
+  });
+
+  it("should find allurerc.ts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.ts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.ts"));
+  });
+
+  it("should find allurerc.mts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.mts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.mts"));
+  });
+
+  it("should find allurerc.cts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.cts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.cts"));
   });
 
   it("should find allurerc.json in cwd", async () => {
@@ -92,10 +115,13 @@ describe("findConfig", () => {
   });
 
   describe("default config files priority", () => {
-    it("shoild attempt finding allurerc.js before allurerc.mjs", async () => {
+    it("should attempt finding allurerc.js before allurerc.mjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.js"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -104,9 +130,12 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.js"));
     });
 
-    it("shoild attempt finding allurerc.mjs before allurerc.cjs", async () => {
+    it("should attempt finding allurerc.mjs before allurerc.cjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -115,8 +144,11 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.mjs"));
     });
 
-    it("shoild attempt finding allurerc.cjs before allurerc.json", async () => {
+    it("should attempt finding allurerc.cjs before allurerc.json", async () => {
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -125,7 +157,40 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
     });
 
-    it("shoild attempt finding allurerc.json before allurerc.yaml", async () => {
+    it("should attempt finding allurerc.ts before allurerc.mts", async () => {
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.ts"));
+    });
+
+    it("should attempt finding allurerc.mts before allurerc.cts", async () => {
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.mts"));
+    });
+
+    it("should attempt finding allurerc.cts before allurerc.json", async () => {
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.cts"));
+    });
+
+    it("should attempt finding allurerc.json before allurerc.yaml", async () => {
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -134,7 +199,7 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.json"));
     });
 
-    it("shoild attempt finding allurerc.yaml before allurerc.yml", async () => {
+    it("should attempt finding allurerc.yaml before allurerc.yml", async () => {
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
 
@@ -1023,7 +1088,7 @@ describe("loadJsonConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should load valid json config file", async () => {
@@ -1076,7 +1141,7 @@ describe("loadYamlConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should load valid yaml config file", async () => {
@@ -1111,6 +1176,52 @@ knownIssuesPath: ./known.json`;
   });
 });
 
+describe("loadTsConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-loadTsConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch {}
+  });
+
+  it("should load a TypeScript config file", async () => {
+    const configPath = join(fixturesDir, "config.ts");
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({
+  name: "Typed Report",
+  historyPath: "./history.jsonl",
+});
+
+export default config;
+`;
+
+    await writeFile(configPath, configContent, "utf-8");
+
+    const config = await loadTsConfig(configPath);
+
+    expect(config).toEqual({
+      name: "Typed Report",
+      historyPath: "./history.jsonl",
+    });
+  });
+
+  it("should throw when a TypeScript config file is invalid", async () => {
+    const configPath = join(fixturesDir, "invalid.ts");
+
+    await writeFile(configPath, "export default {", "utf-8");
+
+    await expect(loadTsConfig(configPath)).rejects.toThrow();
+  });
+});
+
 describe("readConfig", () => {
   let fixturesDir: string;
 
@@ -1121,7 +1232,7 @@ describe("readConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should read a .js config", async () => {
@@ -1154,6 +1265,43 @@ describe("readConfig", () => {
     expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
   });
 
+  it("should read a .ts config", async () => {
+    const configName = "config.ts";
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({ name: "Foo" });
+
+export default config;
+`;
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .mts config", async () => {
+    const configName = "config.mts";
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .cts config", async () => {
+    const configName = "config.cts";
+    const configContent = "module.exports = { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
   it("should read a .json config", async () => {
     const configName = "config.json";
     const configContent = '{ "name": "Foo" }';
@@ -1175,11 +1323,20 @@ describe("readConfig", () => {
   });
 
   it("should read a .yml config", async () => {
-    const configName = "config.yaml";
+    const configName = "config.yml";
     const configContent = 'name: "Foo"';
     await writeFile(join(fixturesDir, configName), configContent, "utf-8");
 
     const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should discover and read allurerc.ts", async () => {
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, "allurerc.ts"), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir);
 
     expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
   });
@@ -1192,5 +1349,56 @@ describe("readConfig", () => {
     const config = await readConfig(fixturesDir, configName);
 
     expect(config).toEqual(expect.objectContaining({ hideLabels: ["owner"] }));
+  });
+});
+
+describe("readRawConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-readRawConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch {}
+  });
+
+  it("should read a raw .ts config", async () => {
+    const configName = "config.ts";
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({
+  name: "Foo",
+  plugins: {
+    awesome: {
+      options: {
+        reportName: "Typed Awesome",
+      },
+    },
+  },
+});
+
+export default config;
+`;
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readRawConfig(fixturesDir, configName);
+
+    expect(config).toEqual(
+      expect.objectContaining({
+        name: "Foo",
+        plugins: expect.objectContaining({
+          awesome: expect.objectContaining({
+            options: {
+              reportName: "Typed Awesome",
+            },
+          }),
+        }),
+      }),
+    );
   });
 });

@@ -136,7 +136,9 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
 
   for (const tr of allTr) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: ClassicFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTrFixtures: ClassicFixtureResult[] = [...trFixtures]
+      .sort(nullsLast(compareBy("start", ordinal())))
+      .map(convertFixtureResult);
     const convertedTr: ClassicTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
     const matchedCategories = matchCategories(categories, {

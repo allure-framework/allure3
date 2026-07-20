@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { AttachmentLink, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, EnvironmentIdentity, TestFixtureResult, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { ResultFile } from "@allurereport/plugin-api";
 import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
@@ -12,6 +12,7 @@ import {
   generateAttachmentsFiles,
   generateGlobals,
   generateSearchIndex,
+  generateTestResults,
   getRunSummary,
 } from "../src/generators.js";
 
@@ -82,6 +83,24 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     links: [],
     steps: [],
   }) as TestResult;
+
+const mockFixtureResult = (
+  id: string,
+  type: TestFixtureResult["type"],
+  name: string,
+  start: number,
+): TestFixtureResult =>
+  ({
+    id,
+    testResultIds: ["tr-1"],
+    type,
+    name,
+    status: "passed",
+    start,
+    duration: 1,
+    steps: [],
+    sourceMetadata: { readerId: "system", metadata: {} },
+  }) as TestFixtureResult;
 
 describe("generateAllCharts", () => {
   it("should filter chart data when filter is passed in options", async () => {
@@ -254,6 +273,41 @@ describe("generateAllCharts", () => {
       failed: 1,
       total: 1,
     });
+  });
+});
+
+describe("generateTestResults", () => {
+  it("should sort setup and teardown fixtures by start time", async () => {
+    const testResult = mockTestResult("tr-1", "test", "passed");
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([
+          [
+            "tr-1",
+            [
+              mockFixtureResult("before-each", "before", "beforeEach", 200),
+              mockFixtureResult("before-all", "before", "beforeAll", 100),
+              mockFixtureResult("after-all", "after", "afterAll", 400),
+              mockFixtureResult("after-each", "after", "afterEach", 300),
+            ],
+          ],
+        ]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult]);
+
+    expect(converted?.setup.map(({ name }) => name)).toEqual(["beforeAll", "beforeEach"]);
+    expect(converted?.teardown.map(({ name }) => name)).toEqual(["afterEach", "afterAll"]);
   });
 });
 
