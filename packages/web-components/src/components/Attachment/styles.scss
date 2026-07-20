@@ -165,6 +165,36 @@
   }
 }
 
+.test-result-attachment-table-wrapper {
+  overflow: auto;
+  width: 100%;
+}
+
+.test-result-attachment-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 20px;
+  min-width: 100%;
+  table-layout: auto;
+
+  th,
+  td {
+    border: 1px solid var(--on-border-muted);
+    max-width: 480px;
+    overflow-wrap: anywhere;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+    white-space: pre-wrap;
+  }
+
+  th {
+    background: var(--bg-control-flat);
+    color: var(--on-text-secondary);
+    font-weight: 700;
+  }
+}
+
 .test-result-parameters {
   padding-left: 62px;
 }
