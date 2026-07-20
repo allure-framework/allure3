@@ -150,6 +150,7 @@
     "copy": "Kopiera",
     "copy-email": "Kopiera e-post",
     "attempt": "Försök {{attempt}} av {{total}}",
+    "retry": "Omförsök {{attempt}} av {{total}}",
     "at": "vid",
     "generated": "Genererad",
     "variables": "Variabler",

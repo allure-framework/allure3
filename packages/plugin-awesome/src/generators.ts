@@ -163,7 +163,9 @@ export const generateTestResults = async (
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTrFixtures: AwesomeFixtureResult[] = [...trFixtures]
+      .sort(nullsLast(compareBy("start", ordinal())))
+      .map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });

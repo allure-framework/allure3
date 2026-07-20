@@ -46,7 +46,7 @@ const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<
       return typedCompareBy("name", alphabetically());
     case "order,desc":
     case "order,asc":
-      return typedCompareBy("groupOrder", ordinal());
+      return andThen([typedCompareBy("groupOrder", ordinal()), typedCompareBy("minStart", ordinal())]);
     case "duration,desc":
     case "duration,asc":
       return typedCompareBy("duration", ordinal());
@@ -158,6 +158,9 @@ export const createRecursiveTree = (payload: {
   const leafMinOrder = leaves.reduce((acc, leaf) => Math.min(acc, leaf.groupOrder ?? Infinity), Infinity);
   const treeMinOrder = trees.reduce((acc, rt) => Math.min(acc, rt.groupOrder), Infinity);
   const groupOrder = Math.min(leafMinOrder, treeMinOrder);
+  const leafMinStart = leaves.reduce((acc, leaf) => Math.min(acc, leaf.start ?? Infinity), Infinity);
+  const treeMinStart = trees.reduce((acc, rt) => Math.min(acc, rt.minStart ?? Infinity), Infinity);
+  const minStart = Math.min(leafMinStart, treeMinStart);
 
   return {
     ...group,
@@ -166,6 +169,7 @@ export const createRecursiveTree = (payload: {
     trees: trees.sort(groupComparator(sortBy)),
     duration,
     groupOrder: isFinite(groupOrder) ? groupOrder : 0,
+    minStart: isFinite(minStart) ? minStart : undefined,
   };
 };
 

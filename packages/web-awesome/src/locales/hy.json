@@ -150,6 +150,7 @@
     "copy": "Պատճենել",
     "copy-email": "Պատճենել էլ. փոստը",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
+    "retry": "Կրկնական փորձ {{attempt}} {{total}}-ից",
     "at": "է",
     "generated": "Ստեղծվել է",
     "variables": "Փոփոխականներ",

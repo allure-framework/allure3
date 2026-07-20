@@ -35,6 +35,7 @@ import type {
   AgentPluginOptions,
 } from "./model.js";
 import { parseAgentExpectations } from "./model.js";
+import { isProcessLogAttachmentName } from "./paths.js";
 
 const AGENT_SCHEMA_VERSION = "allure-agent-output/v1";
 const MANAGED_ENTRIES = ["index.md", "AGENTS.md", "tests", "artifacts", "manifest"] as const;
@@ -1998,10 +1999,12 @@ const renderIndex = (params: {
     findings,
     humanReport,
   } = params;
-  const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stdout"));
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
   const remainingGlobalArtifacts = globalArtifacts.filter(
-    (artifact) => artifact.displayName !== "stdout.txt" && artifact.displayName !== "stderr.txt",
+    (artifact) =>
+      !isProcessLogAttachmentName(artifact.displayName, "stdout") &&
+      !isProcessLogAttachmentName(artifact.displayName, "stderr"),
   );
   const exitCodeSummary =
     globalExitCode?.actual !== undefined && globalExitCode.actual !== globalExitCode.original
@@ -2729,8 +2732,8 @@ const buildRunAndTestFindings = (params: {
 }) => {
   const { entries, expectations, globalArtifacts, modelingSummary, createFinding } = params;
   const runFindings: AgentFinding[] = [];
-  const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stdout"));
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
 
   if (entries.length === 0 && expectations?.expected.testCount !== 0) {
     runFindings.push(
@@ -3441,7 +3444,7 @@ const buildSnapshot = async (params: {
   const globalErrors = await store.allGlobalErrors();
   const globalExitCode = await store.globalExitCode();
   const qualityGateResults = await store.qualityGateResults();
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
   const stderrContent = await readMaterializedArtifactText(outputDir, stderrArtifact);
   const modelingSummary = buildModelingSummary({
     entries,
@@ -3514,8 +3517,12 @@ const toRunManifest = (params: {
   humanReport?: AgentHumanReportStatus;
 }) => {
   const { context, command, agentContext, generatedAt, phase, expectations, snapshot, humanReport } = params;
-  const stdoutArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = snapshot.globalArtifacts.find((artifact) =>
+    isProcessLogAttachmentName(artifact.displayName, "stdout"),
+  );
+  const stderrArtifact = snapshot.globalArtifacts.find((artifact) =>
+    isProcessLogAttachmentName(artifact.displayName, "stderr"),
+  );
   const originalExitCode = snapshot.globalExitCode?.original ?? null;
   const actualExitCode = snapshot.globalExitCode?.actual ?? snapshot.globalExitCode?.original ?? null;
   const expectationResult = buildExpectationResult({
