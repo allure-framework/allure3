@@ -3,10 +3,18 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { findBundleInfoFile, followsXcResultNaming, isMostProbablyXcResultBundle } from "../src/xcresult/bundle.js";
 import { createAttachmentFileFactory, mapWellKnownAttachmentName } from "../src/xcresult/xcresulttool/utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("xcresult.utils");
+  await label("coverage", "reading");
+});
 
 describe("xcresult bundle helpers", () => {
   const tempDirs: string[] = [];

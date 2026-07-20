@@ -7,6 +7,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -19,6 +20,7 @@ import {
   generateHistoryDataPoints,
   generateNav,
   generateQualityGateResults,
+  generateSearchIndex,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -27,6 +29,7 @@ import {
   generateTree,
   generateTreeFilters,
   generateVariables,
+  getRunSummary,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -36,15 +39,16 @@ const statisticByTestResults = async (
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
+  const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
 
   for (const testResult of testResults) {
-    if (testResult.hidden) {
+    if (testResult.isRetry) {
       continue;
     }
 
     incrementStatistic(statistic, testResult.status);
 
-    if ((await store.retriesByTrId(testResult.id)).length > 0) {
+    if ((related.retriesByTrId.get(testResult.id)?.length ?? 0) > 0) {
       statistic.retries = (statistic.retries ?? 0) + 1;
     }
 
@@ -70,8 +74,10 @@ export class AwesomePlugin implements Plugin {
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
+    const executor = await store.metadataByKey<AwesomeExecutorInfo>("allure2_executor");
     const attachments = await store.allAttachments();
-    const allTrs = await store.allTestResults({ includeHidden: true, filter });
+    const allTrs = await store.allTestResults({ includeRetries: true, filter });
+    const runSummary = getRunSummary(allTrs);
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
@@ -96,11 +102,27 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
+    const trsByEnvId = new Map<string, typeof allTrs>();
+
+    for (const tr of allTrs) {
+      const environmentId = envIdByTrId.get(tr.id);
+
+      if (!environmentId) {
+        continue;
+      }
+
+      const group = trsByEnvId.get(environmentId);
+
+      if (group) {
+        group.push(tr);
+      } else {
+        trsByEnvId.set(environmentId, [tr]);
+      }
+    }
+
     await Promise.all(
       environments.map(async ({ id }) => {
-        const envTrs = await store.testResultsByEnvironmentId(id, { includeHidden: true });
-
-        envStatistics.set(id, await statisticByTestResults(store, envTrs));
+        envStatistics.set(id, await statisticByTestResults(store, trsByEnvId.get(id) ?? []));
       }),
     );
 
@@ -134,12 +156,13 @@ export class AwesomePlugin implements Plugin {
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
+    await generateSearchIndex(this.#writer!, convertedTrs, "search-index.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
 
     for (const reportEnvironment of environments) {
-      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeHidden: true });
+      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
       const envConvertedTrs = envTrs
         .map((tr) => convertedTrsById.get(tr.id))
         .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));
@@ -148,6 +171,11 @@ export class AwesomePlugin implements Plugin {
         appendTitlePath,
       });
       await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
+      await generateSearchIndex(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "search-index.json"),
+      );
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,
@@ -189,6 +217,8 @@ export class AwesomePlugin implements Plugin {
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       ci: context.ci,
+      executor,
+      runSummary,
       reportDataFiles,
     });
   };

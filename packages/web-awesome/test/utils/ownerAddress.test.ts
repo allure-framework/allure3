@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseOwnerAddress } from "../../src/utils/ownerAddress.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("labels-and-tags");
+  await story("ownerAddress");
+  await label("coverage", "labels-and-tags");
+});
 
 describe("utils > ownerAddress", () => {
   describe("parseOwnerAddress", () => {

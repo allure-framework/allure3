@@ -1,4 +1,4 @@
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { expect, test } from "../../playwright.js";
@@ -12,7 +12,10 @@ const now = Date.now();
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
-
+  await epic("coverage");
+  await feature("ui-state");
+  await story("stepsSubtreeToggle");
+  await label("coverage", "ui-state");
   treePage = new TreePage(page);
   testResultPage = new TestResultPage(page);
 

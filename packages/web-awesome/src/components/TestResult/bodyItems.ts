@@ -55,7 +55,7 @@ export const hasErrorDiff = (error?: TestErrorLike) =>
 export const hasTestLevelErrorContent = (error?: TestErrorLike) =>
   Boolean(normalizeErrorText(error?.trace).length) || hasErrorDiff(error);
 
-const isDisplayableTestError = (error?: TestErrorLike) => {
+export const isDisplayableTestError = (error?: TestErrorLike) => {
   return (
     Boolean(normalizeErrorText(error?.message).length) ||
     Boolean(normalizeErrorText(error?.trace).length) ||

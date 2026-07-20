@@ -6,7 +6,7 @@
 }
 
 .report-metadata-separator {
-  border-left: 1px solid var(--on-border-primary);
+  border-left: 1px solid var(--color-border-default);
   height: 24px;
   margin: 11px 0;
 }
@@ -22,8 +22,8 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 16px 0;
-  border-top: 1px solid var(--on-border-primary);
-  border-bottom: 1px solid var(--on-border-primary);
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
   width: 100%;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .metadata-item-title {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 6px;
 }
 
@@ -45,7 +45,7 @@
 
 .report-metadata {
   padding: 16px 0;
-  border-bottom: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .report-metadata-keyvalue {
@@ -77,12 +77,24 @@
 }
 
 .report-metadata-keyvalue-wrapper {
-  background: var(--on-border-primary);
+  background: var(--color-border-default);
   border-radius: 4px;
   text-overflow: ellipsis;
   overflow: hidden;
   padding: 2px 4px;
   line-height: 16px;
+}
+
+.report-metadata-keyvalue-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .report-metadata-keyvalue-value {
@@ -118,7 +130,7 @@
   width: 4px;
   height: 12px;
   border-radius: 2px;
-  background: var(--on-text-secondary);
+  background: var(--color-text-secondary);
   margin-right: 8px;
   align-self: center;
   @include status-bg-and-text;
@@ -131,7 +143,7 @@
 
 .metadata-icon {
   margin-right: 8px;
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }
 
 .metadata-tooltip {
@@ -145,7 +157,7 @@
 .metadata-tooltip-value {
   flex: 1 1 auto;
   min-width: 320px;
-  background: var(--bg-base-secondary);
+  background: var(--color-bg-secondary);
   max-height: 238px;
   padding: 8px 16px;
   overflow: hidden;

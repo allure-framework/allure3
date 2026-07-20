@@ -10,6 +10,8 @@ import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { HotkeysProvider } from "@/components/HotkeysProvider";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { ModalComponent } from "@/components/Modal";
 import { SectionSwitcher } from "@/components/SectionSwitcher";
 import { fetchEnvStats, fetchReportStats, getLocale, waitForI18next } from "@/stores";
@@ -112,12 +114,16 @@ const App = () => {
     <>
       {!prefetched && <Loader />}
       {prefetched && (
-        <div className={styles.main}>
-          <Header className={className} />
-          <SectionSwitcher />
-          <Footer className={className} />
-          <ModalComponent />
-        </div>
+        <>
+          <HotkeysProvider />
+          <div className={styles.main}>
+            <Header className={className} />
+            <SectionSwitcher />
+            <Footer className={className} />
+            <ModalComponent />
+            <KeyboardShortcuts />
+          </div>
+        </>
       )}
     </>
   );

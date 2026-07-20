@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "搜索",
-    "search-placeholder": "名称或ID"
+    "search-placeholder": "搜索测试"
   },
   "filters": {
     "flaky": "不稳定",
@@ -150,7 +150,9 @@
     "copy": "复制",
     "copy-email": "复制邮箱",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
+    "retry": "第 {{attempt}} 次重试，共 {{total}} 次",
     "at": "在",
+    "generated": "已生成",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace",
     "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
@@ -427,6 +429,66 @@
         "actual": "实际",
         "expected": "预期"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "groups": {
+      "global": "通用",
+      "tree": "树形结构",
+      "testResult": "测试结果"
+    },
+    "items": {
+      "toggleHelp": "显示或隐藏快捷键",
+      "focusSearch": "聚焦搜索",
+      "blurSearch": "退出搜索",
+      "focusTree": "聚焦树形面板",
+      "focusTestResult": "聚焦测试结果面板",
+      "toggleLayout": "切换分割视图 (Shift+L)",
+      "toggleLayoutAlt": "切换分割视图 (Ctrl/Cmd+\\)",
+      "moveUp": "向上移动",
+      "moveDown": "向下移动",
+      "collapse": "折叠 / 转到父节点",
+      "expand": "展开 / 第一个子节点",
+      "parent": "转到父节点 (p)",
+      "parentAlt": "转到父节点 (u)",
+      "openNode": "打开测试 / 切换组 (o)",
+      "collapseNode": "折叠节点 (-)",
+      "expandNode": "展开节点 (+)",
+      "collapseAll": "折叠所有子节点 (C)",
+      "expandAll": "展开所有子节点 (A)",
+      "subtreeCycle": "循环折叠/展开 — 如箭头按钮 (>)",
+      "subtreeCollapse": "折叠整个子树 (Shift+C)",
+      "subtreeExpand": "展开整个子树 (Shift+A)",
+      "subtreeFirstLevel": "仅展开第一级 (f)",
+      "toggleNode": "切换组或环境",
+      "openTest": "打开测试结果",
+      "firstTest": "跳到第一个测试 (g g)，滚动到顶部",
+      "lastTest": "跳到最后一个测试",
+      "treeTop": "第一行 + 滚动到顶部 (Home)",
+      "scrollTreeTop": "滚动到顶部 — 显示变量和过滤器 (z t)",
+      "toggleReportVariables": "显示/隐藏变量",
+      "toggleReportMetadata": "显示/隐藏元数据",
+      "reportTabResults": "报告标签页：结果",
+      "reportTabCategories": "报告标签页：类别",
+      "reportTabQualityGate": "报告标签页：质量门",
+      "reportTabGlobalAttachments": "报告标签页：全局附件",
+      "reportTabGlobalErrors": "报告标签页：全局错误",
+      "reportTabNext": "下一个报告标签页",
+      "reportTabPrev": "上一个报告标签页",
+      "nextTest": "下一个测试结果",
+      "prevTest": "上一个测试结果",
+      "testTabNext": "下一个测试标签页",
+      "testTabPrev": "上一个测试标签页",
+      "tabOverview": "概览标签页",
+      "tabHistory": "历史标签页",
+      "tabRetries": "重试标签页",
+      "tabAttachments": "附件标签页",
+      "tabEnvironments": "环境标签页",
+      "toggleLabels": "显示/隐藏标签",
+      "toggleParameters": "显示/隐藏参数",
+      "toggleLinks": "显示/隐藏链接",
+      "backToTree": "返回树形结构"
     }
   }
 }

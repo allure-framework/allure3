@@ -1,17 +1,28 @@
 import { randomUUID } from "node:crypto";
 
 import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   byLabels,
+  collapseTreeGroups,
   createTreeByLabels,
+  createTreeByTitlePath,
   filterTree,
   filterTreeLabels,
   preciseTreeLabels,
+  processTree,
   sortTree,
   transformTree,
 } from "../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("tree");
+  await label("coverage", "report-data-model");
+});
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),
@@ -23,7 +34,7 @@ const itResult = (args: Partial<TestResult>): TestResult => ({
   links: [],
   flaky: false,
   muted: false,
-  hidden: false,
+  isRetry: false,
   known: false,
   sourceMetadata: {
     readerId: "system",
@@ -400,6 +411,36 @@ describe("tree filtering", () => {
   });
 });
 
+describe("tree processing", () => {
+  it("filters, sorts, and transforms leaves in one traversal", () => {
+    const tree = JSON.parse(JSON.stringify(sampleTree));
+    const res = processTree(tree as TreeData<any, any>, {
+      filter: (leaf) => leaf.status !== "passed",
+      sort: nullsLast(compareBy("start", ordinal())),
+      transform: (leaf, i) => ({
+        ...leaf,
+        groupOrder: i + 1,
+      }),
+    });
+
+    expect(res).toMatchObject({
+      root: {
+        leaves: ["l2"],
+        groups: ["g1"],
+      },
+      groupsById: {
+        g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l4"] },
+        g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6"] },
+      },
+      leavesById: {
+        l2: expect.objectContaining({ groupOrder: 1 }),
+        l4: expect.objectContaining({ groupOrder: 1 }),
+        l6: expect.objectContaining({ groupOrder: 1 }),
+      },
+    });
+  });
+});
+
 describe("filterTreeLabels", () => {
   it("returns labels that exist in the given test results", () => {
     expect(
@@ -584,5 +625,118 @@ describe("byLabels", () => {
     } as TestResult;
 
     expect(byLabels(tr1, ["parentSuite", "suite", "subSuite"])).toEqual([["A"], ["C"]]);
+  });
+});
+
+describe("collapseTreeGroups", () => {
+  it("merges a chain of resultless single-child groups into one", () => {
+    const tree = {
+      root: { leaves: [], groups: ["g1"] },
+      leavesById: { l1: { nodeId: "l1", name: "file.spec.ts" } },
+      groupsById: {
+        g1: { nodeId: "g1", name: "folder1", groups: ["g2"], leaves: [], statistic: { total: 1 } },
+        g2: { nodeId: "g2", name: "folderEmpty", groups: ["g3"], leaves: [], statistic: { total: 1 } },
+        g3: { nodeId: "g3", name: "folder3", groups: [], leaves: ["l1"], statistic: { total: 1 } },
+      },
+    };
+
+    const result = collapseTreeGroups(tree as unknown as TreeData<any, any>);
+
+    expect(result.root.groups).toEqual(["g1"]);
+    expect(Object.keys(result.groupsById)).toEqual(["g1"]);
+    expect(result.groupsById.g1).toMatchObject({
+      nodeId: "g1",
+      name: "folder1 > folderEmpty > folder3",
+      groups: [],
+      leaves: ["l1"],
+      statistic: { total: 1 },
+    });
+  });
+
+  it("supports a custom separator", () => {
+    const tree = {
+      root: { leaves: [], groups: ["g1"] },
+      leavesById: {},
+      groupsById: {
+        g1: { nodeId: "g1", name: "folder1", groups: ["g2"], leaves: [] },
+        g2: { nodeId: "g2", name: "folder2", groups: [], leaves: ["l1"] },
+      },
+    };
+
+    const result = collapseTreeGroups(tree as unknown as TreeData<any, any>, "/");
+
+    expect(result.groupsById.g1.name).toBe("folder1/folder2");
+  });
+
+  it("does not collapse a group that has leaves of its own", () => {
+    const tree = {
+      root: { leaves: [], groups: ["g1"] },
+      leavesById: {},
+      groupsById: {
+        g1: { nodeId: "g1", name: "folder1", groups: ["g2"], leaves: ["l0"] },
+        g2: { nodeId: "g2", name: "folder2", groups: [], leaves: ["l1"] },
+      },
+    };
+
+    const result = collapseTreeGroups(tree as unknown as TreeData<any, any>);
+
+    expect(result.groupsById.g1.name).toBe("folder1");
+    expect(result.groupsById.g1.groups).toEqual(["g2"]);
+    expect(result.groupsById.g2.name).toBe("folder2");
+  });
+
+  it("does not collapse a group with more than one child group", () => {
+    const tree = {
+      root: { leaves: [], groups: ["g1"] },
+      leavesById: {},
+      groupsById: {
+        g1: { nodeId: "g1", name: "folder1", groups: ["g2", "g3"], leaves: [] },
+        g2: { nodeId: "g2", name: "folder2", groups: [], leaves: ["l1"] },
+        g3: { nodeId: "g3", name: "folder3", groups: [], leaves: ["l2"] },
+      },
+    };
+
+    const result = collapseTreeGroups(tree as unknown as TreeData<any, any>);
+
+    expect(result.groupsById.g1.name).toBe("folder1");
+    expect(result.groupsById.g1.groups).toEqual(["g2", "g3"]);
+  });
+
+  it("collapses independent sibling branches and nested groups below the merged chain", () => {
+    const tree = {
+      root: { leaves: [], groups: ["a1", "b1"] },
+      leavesById: {},
+      groupsById: {
+        a1: { nodeId: "a1", name: "a1", groups: ["a2"], leaves: [] },
+        a2: { nodeId: "a2", name: "a2", groups: ["a3", "a4"], leaves: [] },
+        a3: { nodeId: "a3", name: "a3", groups: [], leaves: ["l1"] },
+        a4: { nodeId: "a4", name: "a4", groups: [], leaves: ["l2"] },
+        b1: { nodeId: "b1", name: "b1", groups: [], leaves: ["l3"] },
+      },
+    };
+
+    const result = collapseTreeGroups(tree as unknown as TreeData<any, any>);
+
+    expect(result.root.groups).toEqual(["a1", "b1"]);
+    expect(result.groupsById.a1.name).toBe("a1 > a2");
+    expect(result.groupsById.a1.groups).toEqual(["a3", "a4"]);
+    expect(result.groupsById.a2).toBeUndefined();
+    expect(result.groupsById.b1.name).toBe("b1");
+  });
+
+  it("collapses empty titlePath prefixes produced by createTreeByTitlePath", () => {
+    const tr = itResult({
+      name: "should pass",
+      titlePath: ["folder1", "folderEmpty", "folder3", "file.spec.ts"],
+    });
+
+    const tree = collapseTreeGroups(createTreeByTitlePath([tr]));
+
+    expect(tree.root.groups).toHaveLength(1);
+    const group = tree.groupsById[tree.root.groups![0]];
+
+    expect(group.name).toBe("folder1 > folderEmpty > folder3 > file.spec.ts");
+    expect(group.leaves).toEqual([tr.id]);
+    expect(group.groups ?? []).toHaveLength(0);
   });
 });

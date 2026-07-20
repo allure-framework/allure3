@@ -16,13 +16,13 @@ import type { Props } from "./types.js";
 const getColorFromTransition = (transition: TestStatusTransition): string => {
   switch (transition) {
     case "new":
-      return "var(--on-support-sirius)";
+      return "var(--color-intent-info-text)";
     case "fixed":
-      return "var(--on-support-castor)";
+      return "var(--color-intent-success-text)";
     case "regressed":
-      return "var(--on-support-capella)";
+      return "var(--color-intent-danger-text)";
     case "malfunctioned":
-      return "var(--on-support-atlas)";
+      return "var(--color-intent-warning-text)";
   }
 };
 
@@ -72,7 +72,7 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
       {
         id: "trend",
         label: i18n("legend.trend"),
-        color: "var(--bg-support-betelgeuse-medium)",
+        color: "var(--color-chart-categorical-9)",
         type: "point",
       },
     ],

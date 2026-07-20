@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseURLPath } from "../src/utils.js";
 
+beforeEach(async () => {
+  await story("utils");
+});
 describe("utils", () => {
   describe("parseURLPath", () => {
     it("should parse URL path", () => {

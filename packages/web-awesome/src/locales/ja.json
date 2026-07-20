@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "検索",
-    "search-placeholder": "名前またはID"
+    "search-placeholder": "テストを検索"
   },
   "filters": {
     "flaky": "不安定",
@@ -150,7 +150,9 @@
     "copy": "コピー",
     "copy-email": "メールをコピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
+    "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
+    "generated": "生成日時",
     "variables": "変数",
     "openPwTrace": "Playwright Traceを開く",
     "pwTracePopupBlocked": "ブラウザーが Playwright Trace Viewer の表示をブロックしました。",
@@ -427,6 +429,66 @@
         "actual": "実際",
         "expected": "期待値"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "キーボードショートカット",
+    "groups": {
+      "global": "全般",
+      "tree": "ツリー",
+      "testResult": "テスト結果"
+    },
+    "items": {
+      "toggleHelp": "ショートカットを表示/非表示",
+      "focusSearch": "検索にフォーカス",
+      "blurSearch": "検索を終了",
+      "focusTree": "ツリーパネルにフォーカス",
+      "focusTestResult": "テスト結果パネルにフォーカス",
+      "toggleLayout": "分割表示を切り替え (Shift+L)",
+      "toggleLayoutAlt": "分割表示を切り替え (Ctrl/Cmd+\\)",
+      "moveUp": "上に移動",
+      "moveDown": "下に移動",
+      "collapse": "折りたたむ / 親に移動",
+      "expand": "展開 / 最初の子",
+      "parent": "親に移動 (p)",
+      "parentAlt": "親に移動 (u)",
+      "openNode": "テストを開く / グループを切り替え (o)",
+      "collapseNode": "ノードを折りたたむ (-)",
+      "expandNode": "ノードを展開 (+)",
+      "collapseAll": "すべての子を折りたたむ (C)",
+      "expandAll": "すべての子を展開 (A)",
+      "subtreeCycle": "サブツリーの折りたたみ/展開サイクル — 矢印ボタンのように (>)",
+      "subtreeCollapse": "サブツリー全体を折りたたむ (Shift+C)",
+      "subtreeExpand": "サブツリー全体を展開 (Shift+A)",
+      "subtreeFirstLevel": "第1レベルのみ展開 (f)",
+      "toggleNode": "グループまたは環境を切り替え",
+      "openTest": "テスト結果を開く",
+      "firstTest": "最初のテストに移動 (g g)、リストを先頭にスクロール",
+      "lastTest": "最後のテストに移動",
+      "treeTop": "最初の行 + 先頭にスクロール (Home)",
+      "scrollTreeTop": "先頭にスクロール — 変数とフィルターを表示 (z t)",
+      "toggleReportVariables": "変数を表示/非表示",
+      "toggleReportMetadata": "メタデータを表示/非表示",
+      "reportTabResults": "レポートタブ：結果",
+      "reportTabCategories": "レポートタブ：カテゴリ",
+      "reportTabQualityGate": "レポートタブ：品質ゲート",
+      "reportTabGlobalAttachments": "レポートタブ：グローバル添付ファイル",
+      "reportTabGlobalErrors": "レポートタブ：グローバルエラー",
+      "reportTabNext": "次のレポートタブ",
+      "reportTabPrev": "前のレポートタブ",
+      "nextTest": "次のテスト結果",
+      "prevTest": "前のテスト結果",
+      "testTabNext": "次のテストタブ",
+      "testTabPrev": "前のテストタブ",
+      "tabOverview": "概要タブ",
+      "tabHistory": "履歴タブ",
+      "tabRetries": "リトライタブ",
+      "tabAttachments": "添付ファイルタブ",
+      "tabEnvironments": "環境タブ",
+      "toggleLabels": "ラベルを表示/非表示",
+      "toggleParameters": "パラメータを表示/非表示",
+      "toggleLinks": "リンクを表示/非表示",
+      "backToTree": "ツリーに戻る"
     }
   }
 }

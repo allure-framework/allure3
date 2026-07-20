@@ -13,7 +13,7 @@ code[class*="language-"] {
 }
 
 .token.number {
-  color: var(--on-support-aldebaran);
+  color: var(--color-syntax-number);
 }
 
 .token.property,
@@ -22,7 +22,7 @@ code[class*="language-"] {
 .token.constant,
 .token.symbol,
 .token.deleted {
-  color: var(--on-support-atlas);
+  color: var(--color-syntax-property);
 }
 
 .token.selector,
@@ -31,18 +31,18 @@ code[class*="language-"] {
 .token.char,
 .token.builtin,
 .token.inserted {
-  color: var(--on-support-castor);
+  color: var(--color-syntax-string);
 }
 
 .token.atrule,
 .token.attr-value,
 .token.keyword {
-  color: var(--on-support-sirius);
+  color: var(--color-syntax-keyword);
 }
 
 .token.function,
 .token.class-name {
-  color: var(--on-support-capella);
+  color: var(--color-syntax-function);
 }
 
 .token.punctuation {
@@ -52,7 +52,7 @@ code[class*="language-"] {
 .token.regex,
 .token.important,
 .token.variable {
-  color: var(--on-support-atlas);
+  color: var(--color-syntax-property);
 }
 
 .line-numbers,

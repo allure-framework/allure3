@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -9,7 +9,10 @@ let treePage: TreePage;
 
 test.beforeEach(async ({ browserName, page }) => {
   await label("env", browserName);
-
+  await epic("coverage");
+  await feature("ui-state");
+  await story("treeSubtreeToggle");
+  await label("coverage", "ui-state");
   treePage = new TreePage(page);
   bootstrap = await bootstrapReport(
     {

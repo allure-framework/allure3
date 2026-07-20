@@ -1,6 +1,7 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   QualityGate,
@@ -28,6 +29,13 @@ const createValidationResult = (
   actual,
   expected,
   message,
+});
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("quality-gates");
+  await story("qualityGate");
+  await label("coverage", "quality-gates");
 });
 
 describe("stringifyQualityGateResults", () => {

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/ci",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "description": "Utilities set to get useful report data from different CI",
   "keywords": [
     "allure",
@@ -33,12 +33,13 @@
     "@allurereport/core-api": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.17.9",
+    "@types/node": "^20",
     "@vitest/runner": "^2.1.8",
     "@vitest/snapshot": "^2.1.8",
-    "allure-vitest": "^3.0.9",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }

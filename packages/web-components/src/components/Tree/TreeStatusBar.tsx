@@ -39,7 +39,7 @@ export const TreeStatusBar: FunctionalComponent<TreeStatusBarProps> = ({
   }
 
   return (
-    <div className={styles["tree-status-bar"]} style={{ width: `${width}px` }}>
+    <div className={styles["tree-status-bar"]} style={{ minWidth: `${width}px` }}>
       {statusesList
         .map((status) => ({ status, value: statistic[status] }))
         .filter(({ status, value }) => {

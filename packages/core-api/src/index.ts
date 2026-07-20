@@ -1,6 +1,7 @@
 export type * from "./aggregate.js";
 export * from "./constants.js";
 export * from "./ci.js";
+export * from "./gitFlow.js";
 export type * from "./environment.js";
 export type * from "./history.js";
 export type * from "./known.js";
@@ -18,6 +19,7 @@ export * from "./utils/time.js";
 export * from "./utils/comparator.js";
 export * from "./utils/predicate.js";
 export * from "./utils/label.js";
+export * from "./utils/parameter.js";
 export * from "./utils/testplan.js";
 export * from "./utils/status.js";
 export * from "./utils/environment.js";

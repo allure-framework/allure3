@@ -65,7 +65,7 @@ export type UploadLabelDto = {
 
 export type UploadTestResultBodyStepDto = {
   type: "body";
-  body?: string;
+  body: string;
   bodyJson?: unknown;
   status?: UploadTestStatus;
   start?: number;
@@ -112,7 +112,7 @@ export type UploadTestResultDto = {
   uuid?: string;
   historyId?: string;
   testCaseId?: string;
-  name?: string;
+  name: string;
   fullName?: string;
   description?: string;
   descriptionHtml?: string;
@@ -157,7 +157,7 @@ export type UploadTestFixtureType = "BEFORE" | "AFTER";
 export type UploadTestFixtureResultDto = {
   type?: UploadTestFixtureType;
   uuid?: string;
-  name?: string;
+  name: string;
   start?: number;
   stop?: number;
   duration?: number;
@@ -233,6 +233,10 @@ export type TestOpsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   autocloseLaunch?: boolean;
+  /** When false, Git Flow metadata is never collected or sent. Default: false */
+  gitFlow?: boolean;
+  /** First-parent ancestor limit (server N). Default: 100 */
+  ancestorLimit?: number;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
 };
@@ -266,6 +270,8 @@ export type TestOpsLaunch = {
   createdDate: number;
   lastModifiedDate: number;
 };
+
+export type TestOpsLaunchStatus = "passed" | "cancelled" | "unknown" | "failed";
 
 export interface TestResultWithAttachments extends TestResult {
   attachments: AttachmentLink[];

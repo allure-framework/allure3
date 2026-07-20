@@ -1,6 +1,14 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SELECTED_THEMES, THEME_AUTO, THEME_DARK, THEME_LIGHT } from "../../src/stores/theme/constants.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-state");
+  await story("actions");
+  await label("coverage", "ui-state");
+});
 
 const mockMediaQuery = {
   matches: false,
@@ -18,7 +26,11 @@ const getMockSetAttribute = () => {
 };
 
 const getMockMatchMedia = () => {
-  return vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery);
+  const mockMatchMedia = vi.fn().mockReturnValue(mockMediaQuery);
+
+  vi.stubGlobal("matchMedia", mockMatchMedia);
+
+  return mockMatchMedia;
 };
 
 describe("theme actions", () => {
@@ -38,6 +50,7 @@ describe("theme actions", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 

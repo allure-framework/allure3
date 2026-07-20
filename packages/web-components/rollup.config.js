@@ -1,13 +1,15 @@
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import alias from "@rollup/plugin-alias";
 import { babel } from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
+import inject from "@rollup/plugin-inject";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import autoprefixer from "autoprefixer";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import postcssImport from "postcss-import";
 import { defineConfig } from "rollup";
 import copy from "rollup-plugin-copy";
@@ -28,7 +30,15 @@ export default defineConfig([
         sourcemap: true,
       },
     ],
-    external: ["preact", "preact/hooks", "@preact/compat", "@preact/signals", "@preact/signals/utils", "react", "react-dom"],
+    external: [
+      "preact",
+      "preact/hooks",
+      "@preact/compat",
+      "@preact/signals",
+      "@preact/signals/utils",
+      "react",
+      "react-dom",
+    ],
     plugins: [
       json(),
       alias({
@@ -41,6 +51,9 @@ export default defineConfig([
       }),
       resolve(),
       commonjs(),
+      inject({
+        Prism: ["prismjs", "default"],
+      }),
       typescript({
         tsconfig: "./tsconfig.json",
       }),

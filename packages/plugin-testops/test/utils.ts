@@ -7,7 +7,6 @@ export const TestOpsClientMock = vi.fn(function () {});
 
 TestOpsClientMock.prototype = {
   uploadTestResult: vi.fn(),
-  issueOauthToken: vi.fn(),
   createLaunch: vi.fn(),
   createSession: vi.fn(),
   createNamedEnvs: vi.fn(),
@@ -15,6 +14,7 @@ TestOpsClientMock.prototype = {
   uploadGlobalAttachments: vi.fn(),
   uploadGlobalErrors: vi.fn(),
   isTestOpsClientError: vi.fn().mockReturnValue(false),
+  checkLaunchProgress: vi.fn().mockResolvedValue(true),
   launchUrl: undefined,
   launchId: 123,
   namedEnvs: [],
@@ -34,7 +34,9 @@ AllureStoreMock.prototype = {
   environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
   allGlobalErrors: vi.fn().mockResolvedValue([]),
   allGlobalAttachments: vi.fn().mockResolvedValue([]),
+  allCheckResults: vi.fn().mockResolvedValue([]),
   attachmentsByTrId: vi.fn(),
+  attachmentById: vi.fn(),
   attachmentContentById: vi.fn(),
   fixturesByTrId: vi.fn(),
   metadataByKey: vi.fn(),
@@ -54,3 +56,5 @@ export const AxiosMock = {
   post: vi.fn(),
   postForm: vi.fn(),
 };
+
+export const AxiosCreateMock = vi.fn(() => AxiosMock);

@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { Spinner } from "@allurereport/web-components";
+import { MarkdownPreview, Spinner } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -22,12 +22,16 @@ const componentsByAttachmentType: Record<string, any> = {
   css: AttachmentCode,
   table: AttachmentCode,
   html: AttachmentCode,
+  markdown: AttachmentCode,
   text: AttachmentCode,
   video: AttachmentVideo,
 };
 const previewComponentsByAttachmentType: Record<string, any> = {
   html: HtmlAttachmentPreview,
+  markdown: MarkdownPreview,
 };
+
+const DUAL_VIEW_ATTACHMENT_TYPES = new Set(["html", "markdown"]);
 
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
@@ -61,8 +65,26 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
     );
   }
 
+  const defaultRenderedPreview = attachmentComponent.type === "markdown" || attachmentComponent.type === "html";
+  const showPreview =
+    !!CurrentPreviewComponent &&
+    (defaultRenderedPreview ? !previewable || modalData.value.preview : !!(previewable && modalData.value.preview));
+
+  if (DUAL_VIEW_ATTACHMENT_TYPES.has(attachmentComponent.type) && CurrentPreviewComponent && CurrentComponent) {
+    return (
+      <div className={styles.attachmentViewStack}>
+        <div className={styles.attachmentViewPane} hidden={showPreview}>
+          <CurrentComponent attachment={attachment} item={item} />
+        </div>
+        <div className={styles.attachmentViewPane} hidden={!showPreview}>
+          <CurrentPreviewComponent attachment={attachment} item={item} />
+        </div>
+      </div>
+    );
+  }
+
   // temp solution before modal component refactoring
-  if (CurrentPreviewComponent && previewable && modalData.value.preview) {
+  if (showPreview) {
     return <CurrentPreviewComponent attachment={attachment} item={item} />;
   }
 

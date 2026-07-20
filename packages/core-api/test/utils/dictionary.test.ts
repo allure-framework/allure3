@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createDictionary } from "../../src/index.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("dictionary");
+  await label("coverage", "report-data-model");
+});
 
 describe("createDictionary", () => {
   it("creates object without prototype", () => {

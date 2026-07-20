@@ -13,6 +13,7 @@ import {
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
+import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
@@ -330,7 +331,7 @@ export const executeAllureRun = async (params: {
       logTests(await allureReport.store.allTestResults());
     }
 
-    const trs = await allureReport.store.allTestResults({ includeHidden: false });
+    const trs = await allureReport.store.allTestResults({ includeRetries: false });
     qualityGateResults = testProcessResult?.qualityGateResults ?? [];
 
     if (withQualityGate && !qualityGateResults.length) {
@@ -384,7 +385,10 @@ export const executeAllureRun = async (params: {
 
     stdoutResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, "stdout.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(
+      stdoutResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stdout"),
+    );
   }
 
   if (!ignoreLogs && testProcessResult?.stderr) {
@@ -393,7 +397,10 @@ export const executeAllureRun = async (params: {
 
     stderrResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(
+      stderrResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stderr"),
+    );
 
     if (processFailed) {
       allureReport.realtimeDispatcher.sendGlobalError({

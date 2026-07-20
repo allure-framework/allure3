@@ -8,6 +8,20 @@ import { findLastByLabelName } from "./label.js";
 
 const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const normalizeHistoryTestResults = (testResults: unknown): Record<string, HistoryTestResult> => {
+  if (!isRecord(testResults)) {
+    return {};
+  }
+
+  return Object.fromEntries(Object.entries(testResults).filter(([, value]) => isRecord(value))) as Record<
+    string,
+    HistoryTestResult
+  >;
+};
+
 const parametersCompare = (a: TestParameter, b: TestParameter) => {
   return (a.name ?? "").localeCompare(b.name ?? "") || (a.value ?? "").localeCompare(b.value ?? "");
 };
@@ -61,22 +75,31 @@ export const filterUnknownByKnownIssues = (
   });
 };
 
+export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => ({
+  ...historyDataPoint,
+  knownTestCaseIds: Array.isArray(historyDataPoint.knownTestCaseIds) ? historyDataPoint.knownTestCaseIds : [],
+  testResults: normalizeHistoryTestResults(historyDataPoint.testResults),
+  metrics: isRecord(historyDataPoint.metrics) ? (historyDataPoint.metrics as Record<string, number>) : {},
+  url: historyDataPoint.url ?? "",
+});
+
 export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => {
-  const { url } = historyDataPoint;
+  const normalizedHistoryDataPoint = normalizeHistoryDataPoint(historyDataPoint);
+  const { url } = normalizedHistoryDataPoint;
 
   if (!url) {
-    return historyDataPoint;
+    return normalizedHistoryDataPoint;
   }
 
-  let testResults = historyDataPoint.testResults;
+  let testResults = normalizedHistoryDataPoint.testResults;
 
-  for (const [historyId, historyTestResult] of Object.entries(historyDataPoint.testResults)) {
+  for (const [historyId, historyTestResult] of Object.entries(normalizedHistoryDataPoint.testResults)) {
     if (historyTestResult.url) {
       continue;
     }
 
-    if (testResults === historyDataPoint.testResults) {
-      testResults = { ...historyDataPoint.testResults };
+    if (testResults === normalizedHistoryDataPoint.testResults) {
+      testResults = { ...normalizedHistoryDataPoint.testResults };
     }
 
     testResults[historyId] = {
@@ -85,12 +108,12 @@ export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint
     };
   }
 
-  if (testResults === historyDataPoint.testResults) {
-    return historyDataPoint;
+  if (testResults === normalizedHistoryDataPoint.testResults) {
+    return normalizedHistoryDataPoint;
   }
 
   return {
-    ...historyDataPoint,
+    ...normalizedHistoryDataPoint,
     testResults,
   };
 };
@@ -105,7 +128,7 @@ export const selectHistoryTestResults = (
 
   return historyDataPoints.reduce((acc, historyDataPoint) => {
     for (const historyId of historyIdCandidates) {
-      const historyTestResult = historyDataPoint.testResults[historyId];
+      const historyTestResult = historyDataPoint.testResults?.[historyId];
 
       if (!historyTestResult) {
         continue;

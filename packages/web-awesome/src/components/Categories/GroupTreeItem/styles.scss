@@ -30,18 +30,17 @@
 }
 
 .tree-item-group[data-group-key="flaky"] :global(.styles_tree-section-title) {
-  color: var(--on-support-atlas);
+  color: var(--color-intent-warning-text);
 }
 
 .tree-item-group[data-group-key="transition"] :global(.styles_tree-section-title) {
-  color: var(--on-support-aldebaran);
+  color: var(--color-intent-primary-text);
 }
 
 .tree-item-group[data-group-key="owner"] :global(.styles_tree-section-title) {
-  color: var(--on-support-sirius);
+  color: var(--color-intent-info-text);
 }
 
 .tree-item-group[data-group-key="layer"] :global(.styles_tree-section-title) {
-  color: var(--on-support-castor);
+  color: var(--color-intent-success-text);
 }
-

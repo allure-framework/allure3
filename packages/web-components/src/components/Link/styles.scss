@@ -13,7 +13,7 @@
   text-decoration: none;
   appearance: none;
   border: none;
-  color: var(--on-support-aldebaran);
+  color: var(--color-link-text);
   cursor: pointer;
   outline: 1px solid transparent;
   outline-offset: 1px;
@@ -22,7 +22,7 @@
     border-color var(--color-change-transition-duration);
 
   &:hover {
-    color: var(--on-support-aldebaran-medium);
+    color: var(--color-link-text-hover);
   }
 
   &:focus {
@@ -31,16 +31,16 @@
 
   &:focus-visible {
     border-radius: 3px;
-    color: var(--on-support-aldebaran-medium);
-    outline: 1px solid var(--ad-other-focus);
+    color: var(--color-link-text-hover);
+    outline: 1px solid var(--color-focus-ring);
     outline-offset: 1px;
   }
 
   &:active {
-    color: var(--on-support-aldebaran-heavy);
+    color: var(--color-link-text-active);
   }
 
   &:visited {
-    color: var(--on-support-aldebaran);
+    color: var(--color-link-text);
   }
 }

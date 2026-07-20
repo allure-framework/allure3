@@ -1,11 +1,11 @@
-import { resolve } from "node:path";
+import * as console from "node:console";
 
 import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { executeAgentMode } from "../../src/commands/agent.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
@@ -25,6 +25,7 @@ const { exitMock, processStream } = vi.hoisted(() => {
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
   log: vi.fn(),
+  warn: vi.fn(),
   error: vi.fn(),
 }));
 vi.mock("node:process", async (importOriginal) => ({
@@ -89,15 +90,13 @@ vi.mock("@allurereport/static-server", async (importOriginal) => ({
   ...(await importOriginal()),
   serve: vi.fn(),
 }));
-vi.mock("../../src/commands/agent.js", () => ({
-  executeAgentMode: vi.fn().mockResolvedValue(undefined),
-}));
-
 beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-run");
+  await story("run");
+  await label("coverage", "cli-run");
   vi.clearAllMocks();
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
-  delete process.env.ALLURE_AGENT_OUTPUT;
-  delete process.env.ALLURE_AGENT_EXPECTATIONS;
 
   const { AllureReportMock } = await import("../utils.js");
 
@@ -115,6 +114,9 @@ beforeEach(async () => {
     sendGlobalError: vi.fn(),
     sendGlobalExitCode: vi.fn(),
   };
+  AllureReportMock.prototype.validate = vi.fn().mockResolvedValue({
+    results: [],
+  });
 });
 
 describe("run command", () => {
@@ -210,6 +212,73 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
+  it("should run with rerun and skip configured quality gate without failing early", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      qualityGate: {
+        rules: [],
+      },
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--rerun", "2", "--", "npm", "test"]);
+
+    expect(console.warn).toHaveBeenCalledWith(
+      "Quality gate doesn't work with rerun; skipping quality gate validation.",
+    );
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualityGate: undefined,
+      }),
+    );
+    expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npm",
+        commandArgs: ["test"],
+      }),
+    );
+    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitMock).not.toHaveBeenCalledWith(-1);
+  });
+
+  it("should keep configured quality gate when rerun is zero", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const qualityGate = {
+      rules: [
+        {
+          maxFailures: 0,
+        },
+      ],
+    };
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      qualityGate,
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--rerun", "0", "--", "npm", "test"]);
+
+    expect(console.warn).not.toHaveBeenCalledWith(
+      "Quality gate doesn't work with rerun; skipping quality gate validation.",
+    );
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualityGate,
+      }),
+    );
+    expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");
@@ -229,32 +298,5 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
-  });
-
-  it("should delegate legacy env-based agent mode to the agent command", async () => {
-    const { AllureReportMock } = await import("../utils.js");
-    const { runProcess } = await import("../../src/utils/index.js");
-    const consoleModule = await import("node:console");
-
-    process.env.ALLURE_AGENT_OUTPUT = "./legacy-agent-output";
-    process.env.ALLURE_AGENT_EXPECTATIONS = "./legacy-expected.yaml";
-
-    await run(RunCommand, ["run", "--cwd", "./fixture", "--silent", "--", "npm", "test"]);
-
-    expect(executeAgentMode).toHaveBeenCalledWith({
-      configPath: undefined,
-      cwd: "./fixture",
-      output: resolve(process.cwd(), "./legacy-agent-output"),
-      expectations: resolve(process.cwd(), "./legacy-expected.yaml"),
-      environment: undefined,
-      environmentName: undefined,
-      silent: true,
-      args: ["npm", "test"],
-    });
-    expect(readConfig).not.toHaveBeenCalled();
-    expect(AllureReportMock).not.toHaveBeenCalled();
-    expect(runProcess).not.toHaveBeenCalled();
-    expect(consoleModule.log).not.toHaveBeenCalled();
-    expect(exitMock).not.toHaveBeenCalled();
   });
 });

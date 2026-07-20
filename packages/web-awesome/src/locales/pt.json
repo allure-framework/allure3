@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Pesquisar",
-    "search-placeholder": "Nome ou ID"
+    "search-placeholder": "Pesquisar testes"
   },
   "filters": {
     "flaky": "Instável",
@@ -150,7 +150,9 @@
     "copy": "Copiar",
     "copy-email": "Copiar e-mail",
     "attempt": "Tentativa {{attempt}} de {{total}}",
+    "retry": "Nova tentativa {{attempt}} de {{total}}",
     "at": "em",
+    "generated": "Gerado",
     "variables": "Variáveis",
     "openPwTrace": "Abrir Playwright Trace",
     "pwTracePopupBlocked": "O navegador bloqueou a abertura do Playwright Trace Viewer.",
@@ -427,6 +429,66 @@
         "actual": "Atual",
         "expected": "Esperado"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Atalhos de teclado",
+    "groups": {
+      "global": "Geral",
+      "tree": "Árvore",
+      "testResult": "Resultado do teste"
+    },
+    "items": {
+      "toggleHelp": "Mostrar ou ocultar atalhos",
+      "focusSearch": "Focar na pesquisa",
+      "blurSearch": "Sair da pesquisa",
+      "focusTree": "Focar no painel da árvore",
+      "focusTestResult": "Focar no painel de resultado do teste",
+      "toggleLayout": "Alternar visualização dividida (Shift+L)",
+      "toggleLayoutAlt": "Alternar visualização dividida (Ctrl/Cmd+\\)",
+      "moveUp": "Mover para cima",
+      "moveDown": "Mover para baixo",
+      "collapse": "Recolher / ir para o pai",
+      "expand": "Expandir / primeiro filho",
+      "parent": "Ir para o pai (p)",
+      "parentAlt": "Ir para o pai (u)",
+      "openNode": "Abrir teste / alternar grupo (o)",
+      "collapseNode": "Recolher nó (-)",
+      "expandNode": "Expandir nó (+)",
+      "collapseAll": "Recolher todos os filhos (C)",
+      "expandAll": "Expandir todos os filhos (A)",
+      "subtreeCycle": "Ciclo recolher/expandir — como botão de seta (>)",
+      "subtreeCollapse": "Recolher toda a subárvore (Shift+C)",
+      "subtreeExpand": "Expandir toda a subárvore (Shift+A)",
+      "subtreeFirstLevel": "Expandir apenas o primeiro nível (f)",
+      "toggleNode": "Alternar grupo ou ambiente",
+      "openTest": "Abrir resultado do teste",
+      "firstTest": "Ir ao primeiro teste (g g), rolar lista para o topo",
+      "lastTest": "Ir ao último teste",
+      "treeTop": "Primeira linha + rolar para o topo (Home)",
+      "scrollTreeTop": "Rolar para o topo — mostrar Variáveis e filtros (z t)",
+      "toggleReportVariables": "Mostrar/ocultar variáveis",
+      "toggleReportMetadata": "Mostrar/ocultar metadados",
+      "reportTabResults": "Aba do relatório: Resultados",
+      "reportTabCategories": "Aba do relatório: Categorias",
+      "reportTabQualityGate": "Aba do relatório: Quality gate",
+      "reportTabGlobalAttachments": "Aba do relatório: Anexos globais",
+      "reportTabGlobalErrors": "Aba do relatório: Erros globais",
+      "reportTabNext": "Próxima aba do relatório",
+      "reportTabPrev": "Aba anterior do relatório",
+      "nextTest": "Próximo resultado de teste",
+      "prevTest": "Resultado de teste anterior",
+      "testTabNext": "Próxima aba de teste",
+      "testTabPrev": "Aba de teste anterior",
+      "tabOverview": "Aba visão geral",
+      "tabHistory": "Aba histórico",
+      "tabRetries": "Aba tentativas",
+      "tabAttachments": "Aba anexos",
+      "tabEnvironments": "Aba ambientes",
+      "toggleLabels": "Mostrar/ocultar etiquetas",
+      "toggleParameters": "Mostrar/ocultar parâmetros",
+      "toggleLinks": "Mostrar/ocultar links",
+      "backToTree": "Voltar à árvore"
     }
   }
 }

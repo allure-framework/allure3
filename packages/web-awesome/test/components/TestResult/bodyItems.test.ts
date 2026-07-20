@@ -1,6 +1,14 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult } from "@allurereport/core-api";
+import { epic, feature, label, story } from "allure-js-commons";
 import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("bodyItems");
+  await label("coverage", "ui-components");
+});
 
 import {
   fixtureResultToTrStepItem,

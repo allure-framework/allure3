@@ -1,8 +1,16 @@
+import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as dataModule from "../../src/data.js";
 import { STORAGE_KEY, THEME_AUTO, THEME_DARK, THEME_LIGHT } from "../../src/stores/theme/constants.js";
 import * as utilsModule from "../../src/stores/theme/utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-state");
+  await story("store");
+  await label("coverage", "ui-state");
+});
 
 const mockMediaQuery = {
   matches: false,
@@ -16,7 +24,11 @@ const mockMediaQuery = {
 } as MediaQueryList;
 
 const getMockMatchMedia = () => {
-  return vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery);
+  const mockMatchMedia = vi.fn().mockReturnValue(mockMediaQuery);
+
+  vi.stubGlobal("matchMedia", mockMatchMedia);
+
+  return mockMatchMedia;
 };
 
 const getMockGetPrefersColorSchemeMQ = () => {
@@ -43,6 +55,7 @@ describe("theme store", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 

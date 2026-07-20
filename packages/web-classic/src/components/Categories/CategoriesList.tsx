@@ -21,6 +21,7 @@ export const CategoriesList = () => {
 
   useEffect(() => {
     setCategoriesStatus(currentTab.value as ClassicStatus);
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [currentTab.value]);
 
   return (

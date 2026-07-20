@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { story } from "allure-js-commons";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import {
   AqlError,
   AqlErrorCode,
@@ -10,6 +12,9 @@ import {
   isAqlTokenizerError,
 } from "../src/errors/index.js";
 
+beforeEach(async () => {
+  await story("errors");
+});
 describe("AqlError", () => {
   test("should create error with code and details", () => {
     const error = new AqlError(AqlErrorCode.UNEXPECTED_CHARACTER, "Test error", { position: 10, character: "@" });

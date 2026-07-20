@@ -2,6 +2,7 @@ import { extname } from "node:path";
 
 /* eslint max-lines: off */
 import {
+  type AllureCheckResult,
   type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
@@ -9,7 +10,9 @@ import {
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
   type EnvironmentIdentity,
+  type EnvironmentDescriptor,
   type EnvironmentsConfig,
+  type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
@@ -20,11 +23,12 @@ import {
   type TestError,
   type TestFixtureResult,
   type TestResult,
+  type TestStepResult,
   compareBy,
   createDictionary,
   getHistoryIdCandidates,
   getWorstStatus,
-  nullsLast,
+  normalizeHistoryDataPoint,
   ordinal,
   reverse,
   selectHistoryTestResults,
@@ -35,7 +39,6 @@ import {
   type AllureStore,
   type AllureStoreDump,
   type ExitCode,
-  type PluginGlobalAttachment,
   type PluginGlobalError,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
@@ -63,6 +66,7 @@ import {
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
+import { calculateParametersHash, calculateRetryHash, RetrySubstore } from "./retrySubstore.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -73,39 +77,6 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
     const current = indexMap.get(key)!;
 
     current.push(...items);
-  }
-};
-
-const wasStartedEarlier = (first: TestResult, second: TestResult) =>
-  first.start === undefined || second.start === undefined || first.start < second.start;
-
-const hidePreviousAttemptByEnvironment = (
-  state: Map<string, Map<string, TestResult>>,
-  testResult: TestResult,
-  environmentId: string | undefined,
-) => {
-  const { historyId } = testResult;
-
-  if (environmentId) {
-    if (!state.has(environmentId)) {
-      state.set(environmentId, new Map());
-    }
-
-    if (historyId) {
-      const historyIdToLastAttemptResult = state.get(environmentId)!;
-      const currentLastAttemptResult = historyIdToLastAttemptResult.get(historyId);
-
-      if (currentLastAttemptResult) {
-        if (wasStartedEarlier(currentLastAttemptResult, testResult)) {
-          historyIdToLastAttemptResult.set(historyId, testResult);
-          currentLastAttemptResult.hidden = true;
-        } else {
-          testResult.hidden = true;
-        }
-      } else {
-        historyIdToLastAttemptResult.set(historyId, testResult);
-      }
-    }
   }
 };
 
@@ -130,6 +101,21 @@ export const updateMapWithRecord = <K extends string | number | symbol, T = any>
   return map;
 };
 
+const relinkAttachmentSteps = (steps: TestStepResult[] = [], attachments: Map<string, AttachmentLink>) => {
+  steps.forEach((step) => {
+    if (step.type === "attachment") {
+      const restoredLink = attachments.get(step.link.id);
+
+      if (restoredLink && restoredLink.used) {
+        step.link = restoredLink;
+      }
+      return;
+    }
+
+    relinkAttachmentSteps(step.steps, attachments);
+  });
+};
+
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testResults: Map<string, TestResult>;
   // Restored/runtime aliases that should still resolve by display name.
@@ -150,10 +136,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly #allowedEnvironmentIds: Set<string>;
+  readonly #retrySubstore: RetrySubstore;
+  readonly #testResultIdsByEnvironmentId: Map<string, Set<string>> = new Map();
+  readonly #cachedEnvironmentEntries: [string, EnvironmentDescriptor][] = [];
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexTestResultByEnvironmentId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>> = new Map();
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -165,6 +153,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalErrors: PluginGlobalError[] = [];
   #globalErrorsByEnv: Map<string, PluginGlobalError[]> = new Map();
   #globalExitCode: ExitCode | undefined;
+  #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
@@ -236,10 +225,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
     this.#allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
+    this.#retrySubstore = new RetrySubstore();
+    this.#cachedEnvironmentEntries = Object.entries(this.#environmentsConfig);
 
     this.#addEnvironments(environments);
 
-    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
+    this.#realtimeSubscriber?.onQualityGateResults((results: QualityGateValidationResult[]) => {
       this.#qualityGateResults.push(...results);
       this.#addEnvironments(
         results
@@ -271,17 +262,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           .filter(Boolean) as EnvironmentIdentity[],
       );
     });
-    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
+    this.#realtimeSubscriber?.onGlobalExitCode((exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
     });
-    this.#realtimeSubscriber?.onGlobalError(async (error: PluginGlobalError) => {
-      this.#addGlobalError(error);
+    this.#realtimeSubscriber?.onGlobalError((error: PluginGlobalError) => {
+      const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(error.environment);
+
+      this.#addGlobalError({
+        ...error,
+        environment: resolvedEnvironment.id,
+      });
     });
-    this.#realtimeSubscriber?.onGlobalAttachment(async ({ attachment, fileName, environment }) => {
+    this.#realtimeSubscriber?.onGlobalAttachment(({ attachment, fileName, environment }) => {
       const originalFileName = attachment.getOriginalFileName();
       const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(environment);
-      const attachmentLink: PluginGlobalAttachment = {
-        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment?.id),
+      const attachmentLink: GlobalAttachmentLink = {
+        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment.id),
         name: fileName || originalFileName,
         missed: false,
         used: true,
@@ -289,7 +285,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         contentType: attachment.getContentType(),
         contentLength: attachment.getContentLength(),
         originalFileName,
-        environment: resolvedEnvironment?.name ?? environment,
+        environment: resolvedEnvironment.id,
       };
 
       this.#addGlobalAttachment(attachmentLink, attachment);
@@ -364,12 +360,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     envs.forEach(({ id, name }) => {
       this.#environmentDisplayNames.set(name, id);
     });
-
-    envs.forEach(({ id }) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
-        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
-      }
-    });
   }
 
   #environmentIdByName(environmentName: string): string | undefined {
@@ -386,9 +376,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return;
     }
 
-    const existing = this.indexTestResultByEnvironmentId.get(environmentId);
-    if (existing?.some((tr) => tr.id === testResult.id)) {
+    const ids = this.#testResultIdsByEnvironmentId.get(environmentId);
+    if (ids?.has(testResult.id)) {
       return;
+    }
+
+    if (!ids) {
+      this.#testResultIdsByEnvironmentId.set(environmentId, new Set([testResult.id]));
+    } else {
+      ids.add(testResult.id);
     }
 
     index(this.indexTestResultByEnvironmentId, environmentId, testResult);
@@ -450,7 +446,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
   }
 
-  #resolveGlobalEnvironmentIdentity(environment?: string): EnvironmentIdentity | undefined {
+  #assignRetryHash(testResult: TestResult, options?: { parametersHash?: string; environmentId?: string }) {
+    const environmentId = options?.environmentId ?? this.#environmentIdByTestResult(testResult);
+    const parametersHash = options?.parametersHash ?? calculateParametersHash(testResult.parameters);
+    testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentId);
+  }
+
+  #rebuildRetrySubstore() {
+    this.#retrySubstore.reset();
+
+    for (const [, testResult] of this.#testResults) {
+      if (!testResult.retryHash) {
+        this.#assignRetryHash(testResult);
+      }
+
+      this.#retrySubstore.upsert(testResult);
+    }
+  }
+
+  #resolveGlobalEnvironmentIdentity(environment?: string): EnvironmentIdentity {
     if (environment !== undefined) {
       const resolvedEnvironment = resolveStoredEnvironmentIdentity(
         {
@@ -497,21 +511,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#globalErrors.push(this.#indexGlobalError(error));
   }
 
-  #indexGlobalAttachment(attachmentLink: PluginGlobalAttachment) {
+  #indexGlobalAttachment(attachmentLink: GlobalAttachmentLink): GlobalAttachmentLink {
     const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(attachmentLink.environment);
-
-    if (!resolvedEnvironment) {
-      return attachmentLink;
-    }
-
     attachmentLink.environment = resolvedEnvironment.name;
     this.#addEnvironments([resolvedEnvironment]);
     index(this.#globalAttachmentIdsByEnv, resolvedEnvironment.id, attachmentLink.id);
 
-    return attachmentLink;
+    return attachmentLink as GlobalAttachmentLink;
   }
 
-  #addGlobalAttachment(attachmentLink: PluginGlobalAttachment, attachment?: ResultFile) {
+  #addGlobalAttachment(attachmentLink: GlobalAttachmentLink, attachment?: ResultFile) {
     const indexedAttachment = this.#indexGlobalAttachment({ ...attachmentLink });
 
     this.#attachments.set(indexedAttachment.id, indexedAttachment);
@@ -530,7 +539,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    this.#historyPoints = (await this.#history.readHistory()) ?? [];
+    this.#historyPoints = ((await this.#history.readHistory()) ?? [])
+      .filter(
+        (historyPoint): historyPoint is HistoryDataPoint => typeof historyPoint === "object" && historyPoint !== null,
+      )
+      .map(normalizeHistoryDataPoint);
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;
@@ -544,6 +557,32 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#historyPoints.push(history);
 
     await this.#history.appendHistory(history);
+  }
+
+  // check data
+
+  async addCheckResult(result: AllureCheckResult): Promise<void> {
+    this.#checkResultsById.set(result.id, {
+      ...result,
+      ...(result.tags?.length ? { tags: [...result.tags] } : {}),
+      details: {
+        command: result.details.command,
+        ...(result.details.message ? { message: result.details.message } : {}),
+        ...(result.details.error ? { error: result.details.error } : {}),
+      },
+    });
+  }
+
+  async allCheckResults(): Promise<AllureCheckResult[]> {
+    return Array.from(this.#checkResultsById.values()).map((result) => ({
+      ...result,
+      ...(result.tags ? { tags: [...result.tags] } : {}),
+      details: {
+        command: result.details.command,
+        ...(result.details.message ? { message: result.details.message } : {}),
+        ...(result.details.error ? { error: result.details.error } : {}),
+      },
+    }));
   }
 
   // quality gate data
@@ -616,9 +655,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return mapToObject(this.#globalErrorsByEnv);
   }
 
-  async allGlobalAttachments(): Promise<AttachmentLink[]> {
+  async allGlobalAttachments(): Promise<GlobalAttachmentLink[]> {
     return this.#globalAttachmentIds.reduce((acc, id) => {
-      const attachment = this.#attachments.get(id);
+      const attachment = this.#attachments.get(id) as GlobalAttachmentLink | undefined;
 
       if (!attachment) {
         return acc;
@@ -627,24 +666,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       acc.push(attachment);
 
       return acc;
-    }, [] as AttachmentLink[]);
+    }, [] as GlobalAttachmentLink[]);
   }
 
-  async allGlobalAttachmentsByEnv(): Promise<Record<string, PluginGlobalAttachment[]>> {
-    const result: Record<string, PluginGlobalAttachment[]> = {};
+  async allGlobalAttachmentsByEnv(): Promise<Record<string, GlobalAttachmentLink[]>> {
+    const result: Record<string, GlobalAttachmentLink[]> = {};
 
     this.#globalAttachmentIdsByEnv.forEach((attachmentIds, environmentId) => {
       result[environmentId] = attachmentIds.reduce((acc, id) => {
-        const attachment = this.#attachments.get(id);
+        const attachment = this.#attachments.get(id) as GlobalAttachmentLink | undefined;
 
         if (!attachment) {
           return acc;
         }
 
-        acc.push(attachment as PluginGlobalAttachment);
+        acc.push(attachment);
 
         return acc;
-      }, [] as PluginGlobalAttachment[]);
+      }, [] as GlobalAttachmentLink[]);
     });
 
     return result;
@@ -654,6 +693,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   // visitor API
 
+  async visitCheckResult(result: AllureCheckResult): Promise<void> {
+    await this.addCheckResult(result);
+  }
+
+  /**
+   * Process a raw test result into the store.
+   *
+   * Time complexity: O(k) where k is the number of labels and attachments.
+   * Environment matching uses a cached entries array for O(m) lookup where m
+   * is the number of configured environments (typically < 10).
+   * History resolution is skipped entirely when no history is configured.
+   */
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
     const testResult = testResultRawToState(
@@ -686,9 +737,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const environmentIdentity =
       this.#environment ??
       (() => {
-        const match = Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
-          matcher({ labels: testResult.labels }),
-        );
+        const match = this.#cachedEnvironmentEntries.find(([, { matcher }]) => matcher({ labels: testResult.labels }));
 
         if (!match) {
           return DEFAULT_ENVIRONMENT_IDENTITY;
@@ -701,8 +750,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = environmentIdentity.name;
     this.#addEnvironments([environmentIdentity]);
+    const parametersHash =
+      typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
+        ? raw.parametersHash
+        : calculateParametersHash(testResult.parameters);
+    testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
-    const trHistory = await this.historyByTr(testResult);
+    const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
 
     if (trHistory !== undefined) {
       testResult.transition = getStatusTransition(testResult, trHistory);
@@ -711,8 +765,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
-
-    hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, testResult, environmentIdentity.id);
+    this.#retrySubstore.recordIngestOrder(testResult.id);
+    this.#retrySubstore.upsert(testResult);
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
@@ -809,8 +863,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(attachment.environment);
       const linkedAttachment = this.#attachments.get(md5(originalFileName)) as AttachmentLinkLinked | undefined;
       const attachmentContent = this.#attachmentContents.get(md5(originalFileName));
-      const attachmentLink: PluginGlobalAttachment = {
-        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment?.id),
+      const attachmentLink: GlobalAttachmentLink = {
+        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment.id),
         name: attachment?.name || originalFileName,
         originalFileName,
         ext: extname(originalFileName),
@@ -818,7 +872,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         missed: !attachmentContent,
         contentType: attachment?.contentType ?? linkedAttachment?.contentType,
         contentLength: linkedAttachment?.contentLength,
-        environment: resolvedEnvironment?.name ?? attachment.environment,
+        environment: resolvedEnvironment.name,
       };
 
       this.#addGlobalAttachment(attachmentLink, attachmentContent);
@@ -833,15 +887,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async allTestResults(
     options: {
-      includeHidden?: boolean;
+      includeRetries?: boolean;
       filter?: TestResultFilter;
-    } = { includeHidden: false },
+    } = { includeRetries: false },
   ): Promise<TestResult[]> {
-    const { includeHidden = false, filter } = options;
+    const { includeRetries = false, filter } = options;
     const result: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (!includeHidden && tr.hidden) {
+      if (!includeRetries && tr.isRetry) {
         continue;
       }
 
@@ -922,7 +976,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#historyPoints.reduce((result, dp) => {
       const filteredTestResults: HistoryTestResult[] = [];
 
-      for (const tr of Object.values(dp.testResults)) {
+      for (const tr of Object.values(dp.testResults ?? {})) {
         const storedEnvironmentKey = typeof tr.environment === "string" ? tr.environment : undefined;
         const trEnvId =
           (storedEnvironmentKey ? this.#environmentIdByName(storedEnvironmentKey) : undefined) ??
@@ -978,11 +1032,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return Array.from(this.#testResults.values());
     }
 
-    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults)));
+    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults ?? {})));
     const newTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1018,6 +1072,48 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#attachmentContents.get(attachmentId);
   }
 
+  markAttachmentMissed(attachmentId: string) {
+    const attachment = this.#attachments.get(attachmentId);
+
+    if (!attachment) {
+      return;
+    }
+
+    const missedAttachment = attachment as AttachmentLink & { contentLength?: number; missed: boolean };
+
+    missedAttachment.missed = true;
+    delete missedAttachment.contentLength;
+    this.#attachmentContents.delete(attachmentId);
+    this.#relinkRestoredAttachmentSteps();
+  }
+
+  #restoreAttachmentContent(id: string, content: ResultFile) {
+    const attachment = this.#attachments.get(id);
+
+    this.#attachmentContents.set(id, content);
+
+    if (!attachment) {
+      return;
+    }
+
+    const linkedAttachment = attachment as AttachmentLinkLinked;
+
+    linkedAttachment.missed = false;
+    linkedAttachment.contentType = linkedAttachment.contentType ?? content.getContentType();
+    linkedAttachment.contentLength = content.getContentLength();
+    linkedAttachment.ext =
+      linkedAttachment.ext === undefined || linkedAttachment.ext === "" ? content.getExtension() : linkedAttachment.ext;
+  }
+
+  #relinkRestoredAttachmentSteps() {
+    this.#testResults.forEach(({ steps }) => {
+      relinkAttachmentSteps(steps, this.#attachments);
+    });
+    this.#fixtures.forEach(({ steps }) => {
+      relinkAttachmentSteps(steps, this.#attachments);
+    });
+  }
+
   async metadataByKey<T>(key: string): Promise<T | undefined> {
     return this.#metadata.get(key);
   }
@@ -1036,39 +1132,29 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.indexAttachmentByTestResult.get(trId) ?? [];
   }
 
+  #retriesByTr(tr?: TestResult): TestResult[] {
+    if (!tr) {
+      return [];
+    }
+
+    return this.#retrySubstore.retriesByTr(tr);
+  }
+
   async retriesByTr(tr?: TestResult): Promise<TestResult[]> {
-    const retries: TestResult[] = [];
-
-    if (!tr || tr.hidden || !tr.historyId) {
-      return retries;
-    }
-
-    const trByHistoryId = this.indexTestResultByHistoryId.get(tr.historyId);
-
-    if (!trByHistoryId) {
-      return retries;
-    }
-
-    for (const r of trByHistoryId) {
-      // hidden should be true for a retry
-      // the environment should be the same as the original test result
-      if (!r.hidden || tr.environment !== r.environment) {
-        continue;
-      }
-
-      retries.push(r);
-    }
-
-    return retries.sort(nullsLast(compareBy("start", reverse(ordinal()))));
+    return this.#retriesByTr(tr);
   }
 
   async retriesByTrId(trId: string): Promise<TestResult[]> {
-    const tr = await this.testResultById(trId);
+    const tr = this.#testResults.get(trId);
 
-    return this.retriesByTr(tr);
+    return this.#retriesByTr(tr);
   }
 
-  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+  resetIngestOrder() {
+    this.#retrySubstore.resetIngestOrder();
+  }
+
+  #historyByTr(tr: TestResult): HistoryTestResult[] | undefined {
     if (!this.#history) {
       return undefined;
     }
@@ -1082,18 +1168,55 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return selectHistoryTestResults(this.#historyPoints, historyIdCandidates);
   }
 
+  /**
+   * Get historical test results for a given test result.
+   *
+   * Returns `undefined` when no history source is configured.
+   * Returns an empty array when history is configured but no matching
+   * history ID candidates are found.
+   *
+   * This method is async for API compatibility, but the underlying
+   * lookup is synchronous.
+   */
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+    return this.#historyByTr(tr);
+  }
+
   async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
-    const tr = await this.testResultById(trId);
+    const tr = this.#testResults.get(trId);
 
     if (!tr) {
       return undefined;
     }
 
-    return this.historyByTr(tr);
+    return this.#historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {
     return this.indexFixturesByTestResult.get(trId) ?? [];
+  }
+
+  async relatedByTestResultIds(trIds: readonly string[]) {
+    const attachmentsByTrId = new Map<string, AttachmentLink[]>();
+    const fixturesByTrId = new Map<string, TestFixtureResult[]>();
+    const historyByTrId = new Map<string, HistoryTestResult[] | undefined>();
+    const retriesByTrId = new Map<string, TestResult[]>();
+
+    for (const trId of trIds) {
+      const tr = this.#testResults.get(trId);
+
+      attachmentsByTrId.set(trId, this.indexAttachmentByTestResult.get(trId) ?? []);
+      fixturesByTrId.set(trId, this.indexFixturesByTestResult.get(trId) ?? []);
+      retriesByTrId.set(trId, this.#retriesByTr(tr));
+      historyByTrId.set(trId, tr ? this.#historyByTr(tr) : undefined);
+    }
+
+    return {
+      attachmentsByTrId,
+      fixturesByTrId,
+      historyByTrId,
+      retriesByTrId,
+    };
   }
 
   // aggregate API
@@ -1102,7 +1225,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const failedTrs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1137,7 +1260,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     results._ = [];
 
     for (const [, test] of this.#testResults) {
-      if (test.hidden) {
+      if (test.isRetry) {
         continue;
       }
 
@@ -1164,7 +1287,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const statistic: Statistic = { total: 0 };
 
     for (const [, tr] of this.#testResults) {
-      if (tr.hidden) {
+      if (tr.isRetry) {
         continue;
       }
 
@@ -1174,8 +1297,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       statistic.total++;
 
-      // This is fine because retriesByTr does not contain any async operations
-      const retries = await this.retriesByTr(tr);
+      const retries = this.#retriesByTr(tr);
 
       if (retries.length > 0) {
         statistic.retries = (statistic.retries ?? 0) + 1;
@@ -1212,8 +1334,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testResultsByEnvironment(
     env: string,
     options: {
-      includeHidden?: boolean;
-    } = { includeHidden: false },
+      includeRetries?: boolean;
+    } = { includeRetries: false },
   ) {
     const environmentNameValidation = validateEnvironmentName(env);
 
@@ -1233,8 +1355,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testResultsByEnvironmentId(
     envId: string,
     options: {
-      includeHidden?: boolean;
-    } = { includeHidden: false },
+      includeRetries?: boolean;
+    } = { includeRetries: false },
   ) {
     const normalizedEnvId = this.#environmentIdForLookup(envId);
 
@@ -1246,7 +1368,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
     const trs = this.indexTestResultByEnvironmentId.get(normalizedEnvId) ?? [];
 
-    return options.includeHidden ? [...trs] : trs.filter((tr) => !tr.hidden);
+    return options.includeRetries ? [...trs] : trs.filter((tr) => !tr.isRetry);
   }
 
   async allTestEnvGroups() {
@@ -1347,7 +1469,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables: this.#reportVariables,
       globalAttachmentIds: this.#globalAttachmentIds,
       globalErrors: this.#globalErrors,
-      indexLatestEnvTestResultByHistoryId: {},
+      checkResults: mapToObject(this.#checkResultsById),
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -1355,17 +1477,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
       qualityGateResults: this.#qualityGateResults,
+      testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
 
-    this.indexLatestEnvTestResultByHistoryId.forEach((envMap, environmentId) => {
-      if (!storeDump.indexLatestEnvTestResultByHistoryId[environmentId]) {
-        storeDump.indexLatestEnvTestResultByHistoryId[environmentId] = {};
-      }
-
-      envMap.forEach((tr, historyId) => {
-        (storeDump.indexLatestEnvTestResultByHistoryId[environmentId] as Record<string, string>)[historyId] = tr.id;
-      });
-    });
     this.indexAttachmentByFixture.forEach((link, fxId) => {
       storeDump.indexAttachmentByFixture[fxId] = link.map((l) => l.id);
     });
@@ -1398,14 +1512,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environments,
       globalAttachmentIds = [],
       globalErrors = [],
+      checkResults,
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
-      indexLatestEnvTestResultByHistoryId = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
+      testResultIdsIngestOrder = [],
     } = stateDump;
     const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
       if (typeof environmentValue === "string") {
@@ -1467,6 +1582,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#addEnvironments([...storedEnvironmentAliases, ...normalizedEnvironments]);
 
     const envNameToId = new Map<string, string>();
+
     for (const { id, name } of this.#environments) {
       envNameToId.set(name, id);
       envNameToId.set(id, id);
@@ -1480,12 +1596,23 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#assertAllowedEnvironmentId(envId, `restored testResults[${JSON.stringify(testResult.id)}]`);
       this.#setTestResultEnvironmentId(testResult, envId);
+      this.#assignRetryHash(testResult, { environmentId: envId });
     });
 
+    this.#retrySubstore.restoreIngestOrder(testResultIdsIngestOrder, (id) => this.#testResults.has(id));
+    // Rebuild the O(1) ID lookup Set from the restored array index
+    this.indexTestResultByEnvironmentId.forEach((trs, envId) => {
+      this.#testResultIdsByEnvironmentId.set(envId, new Set(trs.map((tr) => tr.id)));
+    });
+
+    updateMapWithRecord(this.#checkResultsById, checkResults);
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
-    updateMapWithRecord(this.#attachmentContents, attachmentsContents);
+    Object.entries(attachmentsContents).forEach(([id, content]) => {
+      this.#restoreAttachmentContent(id, content);
+    });
+    this.#relinkRestoredAttachmentSteps();
     globalAttachmentIds.forEach((id) => {
       const attachment = this.#attachments.get(id);
 
@@ -1495,8 +1622,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#assertAllowedStoredEnvironment(
         {
-          environment: (attachment as PluginGlobalAttachment).environment,
-          environmentName: (attachment as PluginGlobalAttachment).environment,
+          environment: (attachment as GlobalAttachmentLink).environment,
+          environmentName: (attachment as GlobalAttachmentLink).environment,
         },
         `restored globalAttachments[${JSON.stringify(id)}]`,
         {
@@ -1504,7 +1631,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         },
       );
       this.#globalAttachmentIds.push(id);
-      this.#indexGlobalAttachment(attachment as PluginGlobalAttachment);
+      this.#indexGlobalAttachment(attachment as GlobalAttachmentLink);
     });
     globalErrors.forEach((error, index) => {
       this.#assertAllowedStoredEnvironment(
@@ -1611,81 +1738,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-    this.#environments.forEach(({ id }) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
-        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
-      }
-    });
-
-    const latestAttemptsEntries = Object.entries(indexLatestEnvTestResultByHistoryId);
-    const hasNestedLatestAttempts = latestAttemptsEntries.some(
-      ([, value]) => typeof value === "object" && value !== null,
-    );
-
-    if (hasNestedLatestAttempts) {
-      latestAttemptsEntries.forEach(([environmentId, historyIds]) => {
-        const environmentIdValidation = validateEnvironmentId(environmentId);
-
-        if (!environmentIdValidation.valid || typeof historyIds !== "object" || historyIds === null) {
-          return;
-        }
-
-        const normalizedEnvironmentId = environmentIdValidation.normalized;
-
-        this.#assertAllowedEnvironmentId(
-          normalizedEnvironmentId,
-          `restored indexLatestEnvTestResultByHistoryId[${JSON.stringify(environmentId)}]`,
-        );
-
-        Object.values(historyIds as Record<string, string>).forEach((trId) => {
-          const tr = this.#testResults.get(trId);
-
-          if (!tr) {
-            return;
-          }
-
-          hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironmentId);
-        });
-      });
-    } else {
-      Object.entries(indexLatestEnvTestResultByHistoryId as Record<string, string>).forEach(
-        ([historyId, latestTrId]) => {
-          const trIdsForHistory = indexTestResultByHistoryId[historyId] ?? [];
-          const storedLatestTr = this.#testResults.get(latestTrId);
-          const storedLatestEnvironmentId = storedLatestTr
-            ? (this.#environmentIdByTestResult(storedLatestTr) ?? DEFAULT_ENVIRONMENT)
-            : undefined;
-
-          if (storedLatestTr && storedLatestEnvironmentId) {
-            hidePreviousAttemptByEnvironment(
-              this.indexLatestEnvTestResultByHistoryId,
-              storedLatestTr,
-              storedLatestEnvironmentId,
-            );
-          }
-
-          for (const trId of trIdsForHistory) {
-            if (trId === latestTrId) {
-              continue;
-            }
-
-            const tr = this.#testResults.get(trId);
-
-            if (!tr) {
-              continue;
-            }
-
-            const environmentId = this.#environmentIdByTestResult(tr) ?? DEFAULT_ENVIRONMENT;
-
-            if (storedLatestEnvironmentId && environmentId === storedLatestEnvironmentId) {
-              continue;
-            }
-
-            hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, environmentId);
-          }
-        },
-      );
-    }
+    this.#rebuildRetrySubstore();
 
     qualityGateResults.forEach((result, index) => {
       this.#assertAllowedStoredEnvironment(

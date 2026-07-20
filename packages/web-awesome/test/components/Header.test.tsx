@@ -1,7 +1,15 @@
 import * as webCommons from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
+import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("ui-components");
+  await story("Header");
+  await label("coverage", "ui-components");
+});
 
 import { Header } from "@/components/Header";
 import { CiInfo } from "@/components/Header/CiInfo";

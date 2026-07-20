@@ -1,6 +1,8 @@
 import type {
+  AllureCheckResult,
   AttachmentLink,
   EnvironmentIdentity,
+  GlobalAttachmentLink,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
@@ -13,16 +15,23 @@ import type {
   TestResult,
 } from "@allurereport/core-api";
 
-import type { ExitCode, PluginGlobalAttachment, PluginGlobalError } from "./plugin.js";
+import type { ExitCode, PluginGlobalError } from "./plugin.js";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;
 
+export interface TestResultRelatedData {
+  attachmentsByTrId: Map<string, AttachmentLink[]>;
+  fixturesByTrId: Map<string, TestFixtureResult[]>;
+  historyByTrId: Map<string, HistoryTestResult[] | undefined>;
+  retriesByTrId: Map<string, TestResult[]>;
+}
+
 export interface AllureStore {
   // base state
   allTestCases: () => Promise<TestCase[]>;
-  allTestResults: (options?: { includeHidden?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
+  allTestResults: (options?: { includeRetries?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
   allAttachments: () => Promise<AttachmentLink[]>;
   allMetadata: () => Promise<Record<string, any>>;
   allFixtures: () => Promise<TestFixtureResult[]>;
@@ -31,6 +40,9 @@ export interface AllureStore {
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
+  // check data
+  addCheckResult: (result: AllureCheckResult) => Promise<void>;
+  allCheckResults: () => Promise<AllureCheckResult[]>;
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   qualityGateResultsByEnv: () => Promise<Record<string, QualityGateValidationResult[]>>;
@@ -39,8 +51,8 @@ export interface AllureStore {
   globalExitCode: () => Promise<ExitCode | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
   allGlobalErrorsByEnv: () => Promise<Record<string, PluginGlobalError[]>>;
-  allGlobalAttachments: () => Promise<AttachmentLink[]>;
-  allGlobalAttachmentsByEnv: () => Promise<Record<string, PluginGlobalAttachment[]>>;
+  allGlobalAttachments: () => Promise<GlobalAttachmentLink[]>;
+  allGlobalAttachmentsByEnv: () => Promise<Record<string, GlobalAttachmentLink[]>>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;
@@ -54,6 +66,7 @@ export interface AllureStore {
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
   historyByTrId: (trId: string) => Promise<HistoryTestResult[] | undefined>;
   fixturesByTrId: (trId: string) => Promise<TestFixtureResult[]>;
+  relatedByTestResultIds: (trIds: readonly string[]) => Promise<TestResultRelatedData>;
   // aggregate api
   failedTestResults: () => Promise<TestResult[]>;
   unknownFailedTestResults: () => Promise<TestResult[]>;
@@ -65,8 +78,8 @@ export interface AllureStore {
   // environments
   allEnvironments: () => Promise<string[]>;
   allEnvironmentIdentities: () => Promise<EnvironmentIdentity[]>;
-  testResultsByEnvironment: (env: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
-  testResultsByEnvironmentId: (envId: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
+  testResultsByEnvironment: (env: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
+  testResultsByEnvironmentId: (envId: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
   allTestEnvGroups: () => Promise<TestEnvGroup[]>;
   // variables
   allVariables: () => Promise<Record<string, any>>;
@@ -79,6 +92,7 @@ export interface AllureStoreDump {
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
   globalErrors: PluginGlobalError[];
+  checkResults: Record<string, AllureCheckResult>;
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
@@ -87,10 +101,11 @@ export interface AllureStoreDump {
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
-  indexLatestEnvTestResultByHistoryId: Record<string, string> | Record<string, Record<string, string>>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
   indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
+  /** Global ingest order of test result ids (append order in store). */
+  testResultIdsIngestOrder: string[];
 }
 
 export enum AllureStoreDumpFiles {
@@ -100,14 +115,15 @@ export enum AllureStoreDumpFiles {
   GlobalErrors = "global-errors.json",
   GlobalAttachments = "global-attachments.json",
   Attachments = "attachments.json",
+  CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
   IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
   IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
-  IndexLatestEnvTestResultsByHistoryId = "index-latest-env-test-results-by-history-id.json",
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   IndexKnownByHistoryId = "index-known-by-history-id.json",
   QualityGateResults = "quality-gate-results.json",
+  TestResultIngestOrder = "test-result-ingest-order.json",
 }

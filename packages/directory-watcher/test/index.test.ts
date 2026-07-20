@@ -2,10 +2,14 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import watchDirectory from "../src/index.js";
 
+beforeEach(async () => {
+  await story("index");
+});
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const fixturesDir = join(__dirname, "fixtures");
 

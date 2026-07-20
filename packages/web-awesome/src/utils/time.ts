@@ -1,6 +1,7 @@
 import { getLocaleDateTimeOverride } from "@allurereport/web-commons";
 
 import { currentLocale, currentLocaleIso, useI18n } from "@/stores/locale";
+import { ensureAtSeparator } from "@/utils/atSeparator";
 
 const defaultOptions: Intl.DateTimeFormatOptions = {
   month: "numeric",
@@ -29,5 +30,5 @@ export const timestampToDate = (timestamp: number, options = defaultOptions) => 
     return formatted.replace(",", "");
   }
 
-  return formatted.replace(",", ` ${t("at")}`);
+  return ensureAtSeparator(formatted, t("at"));
 };

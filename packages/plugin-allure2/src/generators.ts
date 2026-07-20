@@ -32,6 +32,12 @@ import type { Allure2DataWriter, ReportFile } from "./writer.js";
 
 export type TemplateManifest = Record<string, string>;
 
+const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
+  for (let i = 0; i < items.length; i += concurrency) {
+    await Promise.all(items.slice(i, i + concurrency).map(write));
+  }
+};
+
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="{{reportLanguage}}">
 <head>
@@ -71,6 +77,8 @@ const template = `<!DOCTYPE html>
 </body>
 </html>
 `;
+
+const compiledTemplate = Handlebars.compile(template);
 
 export const getPackageRoot = async (): Promise<string> => {
   const packageJsonPath = await findUp("package.json", {
@@ -122,7 +130,6 @@ export const generateStaticFiles = async (payload: {
 }) => {
   const packageRoot = await getPackageRoot();
   const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
-  const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(packageRoot, singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
@@ -190,7 +197,7 @@ export const generateStaticFiles = async (payload: {
   };
 
   try {
-    const html = compile({
+    const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
@@ -278,9 +285,7 @@ export const generateTimelineData = async (writer: Allure2DataWriter, tests: All
 };
 
 export const generateTestResults = async (writer: Allure2DataWriter, tests: Allure2TestResult[]) => {
-  for (const test of tests) {
-    await writer.writeTestCase(test);
-  }
+  await writeConcurrently(tests, (test) => writer.writeTestCase(test));
 };
 
 export const generateSummaryJson = async (
@@ -292,7 +297,7 @@ export const generateSummaryJson = async (
   const time: GroupTime = {};
 
   tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .forEach((test) => {
       updateStatistic(statistic, test);
       updateTime(time, test);
@@ -327,7 +332,7 @@ export const generateDefaultWidgetData = async (
   ...fileNames: string[]
 ) => {
   const statusChartData = tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .map(({ uid, name, status, time, extra: { severity = "normal" } }) => {
       return {
         uid,
@@ -363,7 +368,7 @@ export const generateTrendData = async (
 ) => {
   const statistic: Statistic = { total: 0 };
   tests
-    .filter((test) => !test.hidden)
+    .filter((test) => !test.isRetry)
     .forEach((test) => {
       updateStatistic(statistic, test);
     });

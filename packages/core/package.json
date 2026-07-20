@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -46,24 +46,23 @@
     "@allurereport/summary": "workspace:*",
     "glob": "^13.0.6",
     "handlebars": "^4.7.9",
+    "jiti": "^2.5.1",
     "node-stream-zip": "^1.15.0",
-    "p-limit": "^7.2.0",
-    "progress": "^2.0.3",
+    "p-limit": "^7.3.0",
     "yaml": "^2.8.3",
-    "yoctocolors": "^2.1.1",
-    "zip-stream": "^7.0.2"
+    "yoctocolors": "^2.1.2",
+    "zip-stream": "^7.0.5"
   },
   "devDependencies": {
-    "@types/node": "^20.17.9",
-    "@types/progress": "^2",
+    "@types/node": "^20",
     "@types/zip-stream": "^7.0.0",
-    "@vitest/runner": "^2.1.9",
+    "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
-    "allure-js-commons": "^3.3.3",
-    "allure-vitest": "^3.3.3",
-    "rimraf": "^6.0.1",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
     "tslib": "^2.7.0",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.9"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }

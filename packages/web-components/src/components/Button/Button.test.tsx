@@ -1,8 +1,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
+import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Button, IconButton } from "@/components/Button";
 
+beforeEach(async () => {
+  await story("Button");
+});
 beforeEach(() => {
   cleanup();
 });

@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "חפש",
-    "search-placeholder": "שם או מזהה"
+    "search-placeholder": "חיפוש בדיקות"
   },
   "filters": {
     "flaky": "לא יציב",
@@ -150,7 +150,9 @@
     "copy": "העתק",
     "copy-email": "העתק אימייל",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
+    "retry": "ניסיון חוזר {{attempt}} מתוך {{total}}",
     "at": "ב-",
+    "generated": "נוצר",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
     "pwTracePopupBlocked": "הדפדפן חסם את פתיחת Playwright Trace Viewer.",
@@ -427,6 +429,66 @@
         "actual": "ממשי",
         "expected": "צפוי"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "קיצורי מקלדת",
+    "groups": {
+      "global": "כללי",
+      "tree": "עץ",
+      "testResult": "תוצאת בדיקה"
+    },
+    "items": {
+      "toggleHelp": "הצג או הסתר קיצורים",
+      "focusSearch": "התמקד בחיפוש",
+      "blurSearch": "צא מהחיפוש",
+      "focusTree": "התמקד בחלונית העץ",
+      "focusTestResult": "התמקד בחלונית תוצאת הבדיקה",
+      "toggleLayout": "החלף תצוגה מפוצלת (Shift+L)",
+      "toggleLayoutAlt": "החלף תצוגה מפוצלת (Ctrl/Cmd+\\)",
+      "moveUp": "זוז למעלה",
+      "moveDown": "זוז למטה",
+      "collapse": "כווץ / עבור להורה",
+      "expand": "הרחב / ילד ראשון",
+      "parent": "עבור להורה (p)",
+      "parentAlt": "עבור להורה (u)",
+      "openNode": "פתח בדיקה / החלף קבוצה (o)",
+      "collapseNode": "כווץ צומת (-)",
+      "expandNode": "הרחב צומת (+)",
+      "collapseAll": "כווץ את כל הילדים (C)",
+      "expandAll": "הרחב את כל הילדים (A)",
+      "subtreeCycle": "מחזור כיווץ/הרחבה של תת-עץ — כמו כפתור חץ (>)",
+      "subtreeCollapse": "כווץ את כל תת-העץ (Shift+C)",
+      "subtreeExpand": "הרחב את כל תת-העץ (Shift+A)",
+      "subtreeFirstLevel": "הרחב רק רמה ראשונה (f)",
+      "toggleNode": "החלף קבוצה או סביבה",
+      "openTest": "פתח תוצאת בדיקה",
+      "firstTest": "עבור לבדיקה הראשונה (g g), גלול למעלה",
+      "lastTest": "עבור לבדיקה האחרונה",
+      "treeTop": "שורה ראשונה + גלול למעלה (Home)",
+      "scrollTreeTop": "גלול למעלה — הצג משתנים ומסננים (z t)",
+      "toggleReportVariables": "הצג/הסתר משתנים",
+      "toggleReportMetadata": "הצג/הסתר מטא-נתונים",
+      "reportTabResults": "לשונית דוח: תוצאות",
+      "reportTabCategories": "לשונית דוח: קטגוריות",
+      "reportTabQualityGate": "לשונית דוח: שער איכות",
+      "reportTabGlobalAttachments": "לשונית דוח: קבצים מצורפים גלובליים",
+      "reportTabGlobalErrors": "לשונית דוח: שגיאות גלובליות",
+      "reportTabNext": "לשונית דוח הבאה",
+      "reportTabPrev": "לשונית דוח הקודמת",
+      "nextTest": "תוצאת בדיקה הבאה",
+      "prevTest": "תוצאת בדיקה הקודמת",
+      "testTabNext": "לשונית בדיקה הבאה",
+      "testTabPrev": "לשונית בדיקה הקודמת",
+      "tabOverview": "לשונית סקירה",
+      "tabHistory": "לשונית היסטוריה",
+      "tabRetries": "לשונית ניסיונות חוזרים",
+      "tabAttachments": "לשונית קבצים מצורפים",
+      "tabEnvironments": "לשונית סביבות",
+      "toggleLabels": "הצג/הסתר תוויות",
+      "toggleParameters": "הצג/הסתר פרמטרים",
+      "toggleLinks": "הצג/הסתר קישורים",
+      "backToTree": "חזור לעץ"
     }
   }
 }

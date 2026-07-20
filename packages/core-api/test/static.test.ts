@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createReportDataScript, stringifyForInlineScript } from "../src/static.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("static");
+  await label("coverage", "report-data-model");
+});
 
 describe("createReportDataScript", () => {
   it("should escape windows-like report data paths safely", () => {

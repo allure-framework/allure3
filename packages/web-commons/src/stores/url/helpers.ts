@@ -39,12 +39,44 @@ const getUrl = (to: NavigateTo) => {
   return new URL(to.path, getCurrentUrl());
 };
 
+export const isSameDocumentUrl = (url: URL, currentHref: string = getCurrentUrl()) => {
+  try {
+    const currentUrl = new URL(currentHref);
+
+    return url.protocol === currentUrl.protocol && url.host === currentUrl.host && url.pathname === currentUrl.pathname;
+  } catch {
+    return false;
+  }
+};
+
+export const toSameDocumentHistoryUrl = (url: URL) => {
+  const fileName = url.pathname.split("/").pop() || ".";
+
+  return `${fileName}${url.search}${url.hash}`;
+};
+
+export const getHistoryUrl = (to: NavigateTo, currentHref: string = getCurrentUrl()) => {
+  const url = getUrl(to);
+
+  if (url instanceof URL) {
+    return isSameDocumentUrl(url, currentHref) ? toSameDocumentHistoryUrl(url) : url;
+  }
+
+  try {
+    const absoluteUrl = new URL(url, currentHref);
+
+    return isSameDocumentUrl(absoluteUrl, currentHref) ? toSameDocumentHistoryUrl(absoluteUrl) : url;
+  } catch {
+    return url;
+  }
+};
+
 export const goTo = (to: NavigateTo, options?: NavigateToOptions) => {
   if (typeof window === "undefined") {
     return;
   }
 
-  const url = getUrl(to);
+  const url = getHistoryUrl(to);
 
   if (options?.replace) {
     window.history.replaceState(null, "", url);

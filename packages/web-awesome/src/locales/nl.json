@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Zoeken",
-    "search-placeholder": "Naam of ID"
+    "search-placeholder": "Tests zoeken"
   },
   "filters": {
     "flaky": "Onstabiel",
@@ -150,7 +150,9 @@
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
+    "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",
+    "generated": "Gegenereerd",
     "variables": "Variabelen",
     "openPwTrace": "Open Playwright Trace",
     "pwTracePopupBlocked": "De browser heeft het openen van Playwright Trace Viewer geblokkeerd.",
@@ -427,6 +429,66 @@
         "actual": "Werkelijk",
         "expected": "Verwacht"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Sneltoetsen",
+    "groups": {
+      "global": "Algemeen",
+      "tree": "Boom",
+      "testResult": "Testresultaat"
+    },
+    "items": {
+      "toggleHelp": "Sneltoetsen tonen of verbergen",
+      "focusSearch": "Focus op zoeken",
+      "blurSearch": "Zoeken verlaten",
+      "focusTree": "Focus op boomvenster",
+      "focusTestResult": "Focus op testresultaatvenster",
+      "toggleLayout": "Gesplitste weergave wisselen (Shift+L)",
+      "toggleLayoutAlt": "Gesplitste weergave wisselen (Ctrl/Cmd+\\)",
+      "moveUp": "Omhoog",
+      "moveDown": "Omlaag",
+      "collapse": "Inklappen / naar bovenliggend",
+      "expand": "Uitklappen / eerste kind",
+      "parent": "Naar bovenliggend (p)",
+      "parentAlt": "Naar bovenliggend (u)",
+      "openNode": "Test openen / groep wisselen (o)",
+      "collapseNode": "Knoop inklappen (-)",
+      "expandNode": "Knoop uitklappen (+)",
+      "collapseAll": "Alle kinderen inklappen (C)",
+      "expandAll": "Alle kinderen uitklappen (A)",
+      "subtreeCycle": "Cyclus inklappen/uitklappen — zoals pijlknop (>)",
+      "subtreeCollapse": "Gehele deelboom inklappen (Shift+C)",
+      "subtreeExpand": "Gehele deelboom uitklappen (Shift+A)",
+      "subtreeFirstLevel": "Alleen eerste niveau uitklappen (f)",
+      "toggleNode": "Groep of omgeving wisselen",
+      "openTest": "Testresultaat openen",
+      "firstTest": "Naar eerste test (g g), lijst naar boven scrollen",
+      "lastTest": "Naar laatste test",
+      "treeTop": "Eerste rij + lijst naar boven scrollen (Home)",
+      "scrollTreeTop": "Naar boven scrollen — Variabelen en filters tonen (z t)",
+      "toggleReportVariables": "Variabelen tonen/verbergen",
+      "toggleReportMetadata": "Metagegevens tonen/verbergen",
+      "reportTabResults": "Rapporttab: Resultaten",
+      "reportTabCategories": "Rapporttab: Categorieën",
+      "reportTabQualityGate": "Rapporttab: Quality gate",
+      "reportTabGlobalAttachments": "Rapporttab: Globale bijlagen",
+      "reportTabGlobalErrors": "Rapporttab: Globale fouten",
+      "reportTabNext": "Volgende rapporttab",
+      "reportTabPrev": "Vorige rapporttab",
+      "nextTest": "Volgend testresultaat",
+      "prevTest": "Vorig testresultaat",
+      "testTabNext": "Volgende testtab",
+      "testTabPrev": "Vorige testtab",
+      "tabOverview": "Tab overzicht",
+      "tabHistory": "Tab geschiedenis",
+      "tabRetries": "Tab nieuwe pogingen",
+      "tabAttachments": "Tab bijlagen",
+      "tabEnvironments": "Tab omgevingen",
+      "toggleLabels": "Labels tonen/verbergen",
+      "toggleParameters": "Parameters tonen/verbergen",
+      "toggleLinks": "Links tonen/verbergen",
+      "backToTree": "Terug naar boom"
     }
   }
 }

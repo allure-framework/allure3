@@ -1,7 +1,9 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
+import { getReportOptions } from "@allurereport/web-commons";
 import { Button, Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+import type { AwesomeExecutorInfo, AwesomeReportOptions } from "types";
 
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
@@ -9,6 +11,7 @@ import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
+import { getReportEnvSectionId } from "@/stores/reportEnvSections";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
 
@@ -18,6 +21,7 @@ const REPORT_VISIBLE_LIMIT = 8;
 
 export interface MetadataItem extends EnvironmentItem {
   value?: string;
+  url?: string;
 }
 
 // TODO: check, where do we use the component and refactor it up to our needs
@@ -34,12 +38,11 @@ export type MetadataVariablesProps = {
 };
 
 const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
-  const envKey = currentEnvironment.value ?? "default";
-  const sectionId = `report-${envKey}-metadata`;
-  const showAllId = `report-${envKey}-metadata-showAll`;
+  const sectionId = getReportEnvSectionId("metadata");
+  const showAllId = `${sectionId}-showAll`;
   const isOpened = !collapsedTrees.value.has(sectionId);
   const showAll = collapsedTrees.value.has(showAllId);
-  const list = envInfo.map((env) => ({ ...env, value: env.values.join(", ") }));
+  const list = envInfo.map((env) => ({ ...env, value: env.value ?? env.values.join(", ") }));
   const totalCount = list.length;
   const visibleList = totalCount <= REPORT_VISIBLE_LIMIT ? list : showAll ? list : list.slice(0, REPORT_VISIBLE_LIMIT);
   const { t } = useI18n("ui");
@@ -71,9 +74,8 @@ const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
 
 const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) => {
   const { t } = useI18n("ui");
-  const envKey = currentEnvironment.value ?? "default";
-  const sectionId = `report-${envKey}-variables`;
-  const showAllId = `report-${envKey}-variables-showAll`;
+  const sectionId = getReportEnvSectionId("variables");
+  const showAllId = `${sectionId}-showAll`;
   const isOpened = !collapsedTrees.value.has(sectionId);
   const showAll = collapsedTrees.value.has(showAllId);
   const fullList = Object.entries(props.variables).map(([key, value]) => ({
@@ -110,27 +112,54 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   );
 };
 
+const getExecutorLabel = (executor?: AwesomeExecutorInfo) => {
+  if (!executor) return undefined;
+  if (executor.name && executor.buildName) return `${executor.name} · ${executor.buildName}`;
+
+  return (
+    executor.buildName ||
+    executor.reportName ||
+    executor.name ||
+    executor.buildUrl ||
+    executor.reportUrl ||
+    executor.url
+  );
+};
+
+const getExecutorMetadata = (executor?: AwesomeExecutorInfo): MetadataItem[] => {
+  const label = getExecutorLabel(executor);
+
+  return label
+    ? [{ name: "executor", values: [], value: label, url: executor?.buildUrl || executor?.reportUrl || executor?.url }]
+    : [];
+};
+
 export const ReportMetadata = () => {
-  const stats = currentEnvironment.value
-    ? statsByEnvStore.value.data[currentEnvironment.value]
-    : reportStatsStore.value.data;
+  const envId = currentEnvironment.value;
+  const { executor } = getReportOptions<AwesomeReportOptions>();
+  const executorMetadata = getExecutorMetadata(executor);
+  const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
 
   useEffect(() => {
-    fetchVariables(currentEnvironment.value);
-  }, [currentEnvironment.value]);
+    fetchVariables(envId);
+  }, [envId]);
 
   return (
     <div className={styles["report-metadata-wrapper"]}>
       {stats && <MetadataSummary stats={stats} />}
       <Loadable
         source={variables}
-        transformData={(data) => data?.[currentEnvironment.value ?? "default"] ?? {}}
+        transformData={(data) => data?.[envId ?? "default"] ?? {}}
         renderData={(data) => !!Object.keys(data).length && <MetadataVariables variables={data} />}
       />
       <Loadable
         source={envInfoStore}
-        renderError={() => null}
-        renderData={(data) => Boolean(data?.length) && <Metadata envInfo={data} />}
+        renderError={() => Boolean(executorMetadata.length) && <Metadata envInfo={executorMetadata} />}
+        renderData={(data) => {
+          const metadata = [...executorMetadata, ...(data ?? [])];
+
+          return Boolean(metadata.length) && <Metadata envInfo={metadata} />;
+        }}
       />
     </div>
   );

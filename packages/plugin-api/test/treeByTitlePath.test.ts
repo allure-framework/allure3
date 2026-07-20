@@ -1,9 +1,17 @@
 import { randomUUID } from "node:crypto";
 
 import type { TestResult } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createTreeByTitlePath } from "../src/utils/tree.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("report-data-model");
+  await story("treeByTitlePath");
+  await label("coverage", "report-data-model");
+});
 
 const itResult = (args: Partial<TestResult> & { titlePath: string[] }): TestResult => ({
   id: randomUUID(),
@@ -15,7 +23,7 @@ const itResult = (args: Partial<TestResult> & { titlePath: string[] }): TestResu
   links: [],
   flaky: false,
   muted: false,
-  hidden: false,
+  isRetry: false,
   known: false,
   sourceMetadata: {
     readerId: "system",
@@ -79,10 +87,10 @@ describe("createTreeByTitlePath", () => {
     const g1 = result.groupsById[rootGroupId as string];
     expect(g1.name).toBe("folder");
 
-    const g2 = result.groupsById[g1.groups?.[0]];
+    const g2 = result.groupsById[g1.groups?.[0]!];
     expect(g2.name).toBe("file.spec.ts");
 
-    const g3 = result.groupsById[g2.groups[0]];
+    const g3 = result.groupsById[g2.groups?.[0]!];
     expect(g3.name).toBe("suite");
 
     expect(g3.leaves).toContain(tr.id);

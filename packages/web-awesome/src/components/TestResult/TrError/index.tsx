@@ -1,5 +1,5 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
-import { ansiToHTML } from "@allurereport/web-commons";
+import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
 import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
@@ -13,19 +13,15 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 
-const TrErrorTrace = ({ trace }: { trace: string }) => {
-  const sanitizedTrace = ansiToHTML(trace, {
-    fg: "var(--on-text-primary)",
+const ansiStatusDetailsToHTML = (text: string) =>
+  ansiToHTML(normalizeAnsiForegroundColors(text), {
+    fg: "var(--color-text-primary)",
     bg: "none",
-    colors: {
-      0: "none",
-      1: "none",
-      2: "var(--on-support-sirius)",
-      3: "var(--on-support-atlas)",
-      4: "var(--bg-support-skat)",
-      5: "var(--on-support-betelgeuse)",
-    },
+    colors: ansiSemanticColors,
   });
+
+const TrErrorTrace = ({ trace }: { trace: string }) => {
+  const sanitizedTrace = ansiStatusDetailsToHTML(trace);
 
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
@@ -52,13 +48,7 @@ export const TrError: FunctionalComponent<
       data: { actual, expected },
       component: <TrDiff actual={actual} expected={expected} />,
     });
-  const sanitizedMessage =
-    showMessage && message
-      ? ansiToHTML(message, {
-          fg: "var(--on-text-primary)",
-          colors: {},
-        })
-      : "";
+  const sanitizedMessage = showMessage && message ? ansiStatusDetailsToHTML(message) : "";
 
   return (
     <div
@@ -83,7 +73,7 @@ export const TrError: FunctionalComponent<
                 size={"s"}
                 icon={allureIcons.lineGeneralCopy3}
                 onClick={() => {
-                  copyToClipboard(message);
+                  copyToClipboard(trace || message);
                 }}
               />
             </TooltipWrapper>
@@ -98,7 +88,32 @@ export const TrError: FunctionalComponent<
       ) : showMessage ? (
         empty("no-message-provided")
       ) : null}
-      {hasDiff && (
+      {!showMessage && message && (
+        <div className={styles["test-result-error-header"]}>
+          {hasDiff ? (
+            <Button
+              style={"flat"}
+              data-testId={"test-result-diff-button"}
+              size={"s"}
+              text={tooltip("showDiff")}
+              onClick={openDiff}
+            />
+          ) : (
+            <span />
+          )}
+          <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
+            <IconButton
+              style={"ghost"}
+              size={"s"}
+              icon={allureIcons.lineGeneralCopy3}
+              onClick={() => {
+                copyToClipboard(trace || message);
+              }}
+            />
+          </TooltipWrapper>
+        </div>
+      )}
+      {(showMessage || !message) && hasDiff && (
         <Button
           style={"flat"}
           data-testId={"test-result-diff-button"}

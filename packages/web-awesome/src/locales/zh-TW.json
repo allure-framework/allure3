@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "搜尋",
-    "search-placeholder": "名稱或 ID"
+    "search-placeholder": "搜尋測試"
   },
   "filters": {
     "flaky": "不穩定",
@@ -150,7 +150,9 @@
     "copy": "複製",
     "copy-email": "複製電子郵件",
     "attempt": "第 {{attempt}} 次嘗試，共 {{total}} 次",
+    "retry": "第 {{attempt}} 次重試，共 {{total}} 次",
     "at": "於",
+    "generated": "已產生",
     "variables": "變數",
     "openPwTrace": "開啟 Playwright Trace",
     "pwTracePopupBlocked": "瀏覽器封鎖了開啟 Playwright Trace Viewer。",
@@ -427,6 +429,66 @@
         "actual": "實際",
         "expected": "預期"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "鍵盤快捷鍵",
+    "groups": {
+      "global": "通用",
+      "tree": "樹狀結構",
+      "testResult": "測試結果"
+    },
+    "items": {
+      "toggleHelp": "顯示或隱藏快捷鍵",
+      "focusSearch": "聚焦搜尋",
+      "blurSearch": "離開搜尋",
+      "focusTree": "聚焦樹狀面板",
+      "focusTestResult": "聚焦測試結果面板",
+      "toggleLayout": "切換分割視圖 (Shift+L)",
+      "toggleLayoutAlt": "切換分割視圖 (Ctrl/Cmd+\\)",
+      "moveUp": "向上移動",
+      "moveDown": "向下移動",
+      "collapse": "折疊 / 前往父節點",
+      "expand": "展開 / 第一個子節點",
+      "parent": "前往父節點 (p)",
+      "parentAlt": "前往父節點 (u)",
+      "openNode": "開啟測試 / 切換群組 (o)",
+      "collapseNode": "折疊節點 (-)",
+      "expandNode": "展開節點 (+)",
+      "collapseAll": "折疊所有子節點 (C)",
+      "expandAll": "展開所有子節點 (A)",
+      "subtreeCycle": "循環折疊/展開 — 如箭頭按鈕 (>)",
+      "subtreeCollapse": "折疊整個子樹 (Shift+C)",
+      "subtreeExpand": "展開整個子樹 (Shift+A)",
+      "subtreeFirstLevel": "僅展開第一層 (f)",
+      "toggleNode": "切換群組或環境",
+      "openTest": "開啟測試結果",
+      "firstTest": "跳到第一個測試 (g g)，捲動至頂部",
+      "lastTest": "跳到最後一個測試",
+      "treeTop": "第一行 + 捲動至頂部 (Home)",
+      "scrollTreeTop": "捲動至頂部 — 顯示變數和篩選器 (z t)",
+      "toggleReportVariables": "顯示/隱藏變數",
+      "toggleReportMetadata": "顯示/隱藏元資料",
+      "reportTabResults": "報告標籤：結果",
+      "reportTabCategories": "報告標籤：類別",
+      "reportTabQualityGate": "報告標籤：品質門",
+      "reportTabGlobalAttachments": "報告標籤：全域附件",
+      "reportTabGlobalErrors": "報告標籤：全域錯誤",
+      "reportTabNext": "下一個報告標籤",
+      "reportTabPrev": "上一個報告標籤",
+      "nextTest": "下一個測試結果",
+      "prevTest": "上一個測試結果",
+      "testTabNext": "下一個測試標籤",
+      "testTabPrev": "上一個測試標籤",
+      "tabOverview": "概覽標籤",
+      "tabHistory": "歷史標籤",
+      "tabRetries": "重試標籤",
+      "tabAttachments": "附件標籤",
+      "tabEnvironments": "環境標籤",
+      "toggleLabels": "顯示/隱藏標籤",
+      "toggleParameters": "顯示/隱藏參數",
+      "toggleLinks": "顯示/隱藏連結",
+      "backToTree": "返回樹狀結構"
     }
   }
 }

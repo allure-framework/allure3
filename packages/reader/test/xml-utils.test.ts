@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   cleanBadXmlCharacters,
@@ -7,6 +8,13 @@ import {
   isStringAnyRecord,
   isStringAnyRecordArray,
 } from "../src/xml-utils.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("reading");
+  await story("xml-utils");
+  await label("coverage", "reading");
+});
 
 describe("xml utility helpers", () => {
   it("should recognize empty xml elements and plain string-keyed records", () => {

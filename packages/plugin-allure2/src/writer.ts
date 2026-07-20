@@ -22,30 +22,44 @@ export interface Allure2DataWriter {
 }
 
 export class FileSystemReportDataWriter implements Allure2DataWriter {
-  constructor(private readonly output: string) {}
+  readonly #dataDir: string;
+  readonly #widgetsDir: string;
+  readonly #testCasesDir: string;
+  readonly #attachmentsDir: string;
+  readonly #dataDirReady: Promise<string | undefined>;
+  readonly #widgetsDirReady: Promise<string | undefined>;
+  readonly #testCasesDirReady: Promise<string | undefined>;
+  readonly #attachmentsDirReady: Promise<string | undefined>;
+
+  constructor(private readonly output: string) {
+    this.#dataDir = resolve(this.output, "data");
+    this.#widgetsDir = resolve(this.output, "widgets");
+    this.#testCasesDir = resolve(this.output, "data", "test-cases");
+    this.#attachmentsDir = resolve(this.output, "data", "attachments");
+    this.#dataDirReady = mkdir(this.#dataDir, { recursive: true });
+    this.#widgetsDirReady = mkdir(this.#widgetsDir, { recursive: true });
+    this.#testCasesDirReady = mkdir(this.#testCasesDir, { recursive: true });
+    this.#attachmentsDirReady = mkdir(this.#attachmentsDir, { recursive: true });
+  }
 
   async writeData(fileName: string, data: any): Promise<void> {
-    const distFolder = resolve(this.output, "data");
-    await mkdir(distFolder, { recursive: true });
-    await writeFile(resolve(distFolder, fileName), JSON.stringify(data), { encoding: "utf-8" });
+    await this.#dataDirReady;
+    await writeFile(resolve(this.#dataDir, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
-    const distFolder = resolve(this.output, "widgets");
-    await mkdir(distFolder, { recursive: true });
-    await writeFile(resolve(distFolder, fileName), JSON.stringify(data), { encoding: "utf-8" });
+    await this.#widgetsDirReady;
+    await writeFile(resolve(this.#widgetsDir, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 
   async writeTestCase(test: Allure2TestResult): Promise<void> {
-    const distFolder = resolve(this.output, "data", "test-cases");
-    await mkdir(distFolder, { recursive: true });
-    await writeFile(resolve(distFolder, `${test.uid}.json`), JSON.stringify(test), { encoding: "utf-8" });
+    await this.#testCasesDirReady;
+    await writeFile(resolve(this.#testCasesDir, `${test.uid}.json`), JSON.stringify(test), { encoding: "utf-8" });
   }
 
   async writeAttachment(source: string, file: ResultFile): Promise<void> {
-    const distFolder = resolve(this.output, "data", "attachments");
-    await mkdir(distFolder, { recursive: true });
-    await file.writeTo(resolve(distFolder, source));
+    await this.#attachmentsDirReady;
+    await file.writeTo(resolve(this.#attachmentsDir, source));
   }
 }
 

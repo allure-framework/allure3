@@ -1,7 +1,15 @@
 import type { EnvironmentsConfig } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { resolveEnvironmentIdentity, resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("environments");
+  await story("environment");
+  await label("coverage", "environments");
+});
 
 describe("environment runtime resolution", () => {
   it("should reject invalid environment ids in public environment resolution", () => {

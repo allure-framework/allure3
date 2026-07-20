@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.6.2",
+  "version": "3.14.3",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
@@ -42,14 +42,14 @@
   "devDependencies": {
     "@types/d3-interpolate": "^3.0.4",
     "@types/d3-scale": "^4.0.9",
-    "@types/d3-shape": "^3.1.6",
-    "@vitest/runner": "^2.1.9",
-    "allure-js-commons": "^3.3.0",
-    "allure-vitest": "^3.3.0",
+    "@types/d3-shape": "^3.1.8",
+    "@vitest/runner": "^2",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
     "jsdom": "^26.1.0",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6",
     "tslib": "^2.7.0",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.9"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }

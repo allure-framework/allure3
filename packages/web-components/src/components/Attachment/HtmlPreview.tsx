@@ -1,4 +1,4 @@
-import { sanitize } from "@allurereport/web-commons";
+import { sanitizeHtmlDocument } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -26,7 +26,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
   const [blobUrl, setBlobUrl] = useState<string>("");
 
   const rawText = attachment.text ?? "";
-  const sanitizedText = rawText.length > 0 ? sanitize(rawText) : "";
+  const sanitizedText = rawText.length > 0 ? sanitizeHtmlDocument(rawText) : "";
 
   useEffect(() => {
     if (sanitizedText) {
@@ -40,7 +40,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
           wrapped = DARK_STYLE + sanitizedText;
         }
       }
-      const blob = new Blob([wrapped], { type: "text/html" });
+      const blob = new Blob([wrapped], { type: "text/html; charset=utf-8" });
       const url = URL.createObjectURL(blob);
       setBlobUrl(url);
 

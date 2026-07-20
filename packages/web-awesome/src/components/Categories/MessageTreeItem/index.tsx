@@ -1,6 +1,6 @@
 import type { CategoryNode, CategoryNodeProps, Statistic, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import { ansiToHTML } from "@allurereport/web-commons";
+import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
 import { ArrowButton, Button, Code, TreeStatusBar } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
@@ -57,7 +57,11 @@ export const MessageTreeItem: FC<MessageTreeItemProps> = ({
 }) => {
   const { t } = useI18n("ui");
   const status = statusFromStatistic(node.statistic);
-  const sanitizedMessage = ansiToHTML(node.name ?? "", { fg: "var(--on-text-primary)", colors: {} });
+  const sanitizedMessage = ansiToHTML(normalizeAnsiForegroundColors(node.name ?? ""), {
+    fg: "var(--color-text-primary)",
+    bg: "none",
+    colors: ansiSemanticColors,
+  });
   const stickyStyle = createCategoriesStickyStyle(depth);
   const hasLongMessage = (node.name ?? "").length > 80;
   const [isMessageExpanded, setIsMessageExpanded] = useState(false);

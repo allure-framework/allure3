@@ -1,21 +1,32 @@
+@use "../../styles/pane-active" as paneActive;
+
 .content {
+  position: relative;
   box-shadow: var(--shadow-small);
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   border-radius: 12px;
   width: 100%;
+  flex: 1 1 auto;
 }
 
 .scroll-inside {
-  overflow: auto;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 0;
-  scrollbar-width: thin;
+}
+
+.main-report-header {
+  flex-shrink: 0;
 }
 
 .main-report-tabs {
   padding: 0 24px;
 }
 
+.main-report-tabs-nav {
+  flex-shrink: 0;
+}
+
 .main-report-tabs-content {
-  border-top: 1px solid var(--on-border-primary);
+  border-top: 1px solid var(--color-border-default);
 }

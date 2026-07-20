@@ -74,7 +74,41 @@ For example:
 npx allure agent -- npm test
 ```
 
-`allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, can load an expectations file with `--expectations`, and ignores configured presentation or export plugins such as Awesome or TestOps unless you explicitly fall back to the lower-level `ALLURE_AGENT_*` plus `allure run` flow.
+To analyze existing Allure results or dump archives downloaded from CI without
+rerunning tests, use `agent inspect`:
+
+```bash
+npx allure agent inspect path/to/allure-results
+npx allure agent inspect --dump allure-results-linux.zip --dump allure-results-macos.zip
+npx allure agent inspect --config ./allurerc.mjs --output ./agent-output path/to/allure-results
+```
+
+`agent inspect` accepts the same result inputs and configuration-style options as
+`allure generate`, including result directory globs, `--dump`, `--config`,
+`--cwd`, `--report-name`, `--history-limit`, and `--hide-labels`. Its `--output`
+option writes the agentic output directory.
+
+`allure agent` and `allure agent inspect` use `--report auto` by default. This writes the agent-readable artifacts and, when the stored visible result count is 1000 or fewer, also writes a single-file Awesome report at `awesome/index.html` inside the agent output directory. Runs above that threshold skip the human report to avoid excessive output, and the status is recorded in `index.md`, `manifest/run.json`, and `manifest/human-report.json`.
+
+Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or TestOps are otherwise ignored for agent runs.
+
+If you need the human-readable report from the most recent agent run, first run `npx allure agent latest` when the output directory is unknown. Then check `<output>/manifest/human-report.json`; when its status is `generated`, open `<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
+
+`allure agent` creates a fresh output directory automatically, accepts compact inline expectations such as `--goal`, `--expect-tests`, `--expect-test`, `--expect-label`, and `--expect-step-containing`, and can still load an expectations file with `--expectations` when needed.
+
+Agents and setup tools can inspect the local structured capability contract without scraping help text:
+
+```bash
+npx allure agent capabilities --json
+```
+
+After a run, agents can query the output directory without manually reading every manifest:
+
+```bash
+npx allure agent query --latest summary
+npx allure agent query --latest tests --status failed
+npx allure agent query --from ./agent-output findings --severity high
+```
 
 ### Generating Reports Manually
 
@@ -94,7 +128,7 @@ To view a previously generated report locally, the `open` command serves it in y
 npx allure open <reportDir>
 ```
 
-If you’ve defined the output directory in your configuration file, specifying `<reportDir>` is optional. By default, Allure 3 looks for a directory named `allure-report`. To open the Awesome report directly, point to the nested directory:
+When `<reportDir>` is omitted, Allure 3 uses the configured output directory, falling back to `allure-report` when no output is configured. To open the Awesome report directly, point to the nested directory:
 
 ```bash
 npx allure open allure-report/awesome
@@ -118,6 +152,7 @@ The Allure CLI includes several helpful global options. Use `--help` to explore 
 
 ```bash
 npx allure run --help
+npx allure agent capabilities --json
 npx allure agent --help
 npx allure watch --help
 ```
@@ -130,7 +165,7 @@ npx allure --version
 
 ## Configuration
 
-Allure 3 uses an `allurerc.mjs` or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
+Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > [!TIP]
 > We recommend using the **Awesome** plugin for the best experience.  
@@ -158,6 +193,21 @@ export default defineConfig({
 
 In this example, the generated report is named *Allure Report Example* and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
 
+### TypeScript Configuration File
+
+TypeScript configuration files are loaded directly by the Allure CLI, so you don't need to precompile them or install `tsx` or `ts-node`.
+
+```ts
+import type { AllureConfig } from "allure";
+
+export default {
+  name: "Allure Report Example",
+  output: "./out/allure-report",
+} satisfies AllureConfig;
+```
+
+For editor type checking, make sure the `allure` package is available to your project, for example as a local dev dependency. If you run Allure only as a global CLI, you can still use a TypeScript config without importing from `allure`.
+
 ### Configuration Options
 
 The configuration file allows you to fine-tune report generation. Key options include:
@@ -182,11 +232,11 @@ For example, setting `"reportLanguage": "fr"` will render the report interface i
 
 ### Declarative configuration format
 
-You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
+You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a declarative way to configure Allure 3.
 
 > [!WARNING]  
 > Declarative formats don't support advanced features such as tests filtering or environments.
-> If you need these features, please consider using the `allurerc.mjs` or `allurerc.js` files.
+> If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
 
 ## Official CI/CD Integrations
 

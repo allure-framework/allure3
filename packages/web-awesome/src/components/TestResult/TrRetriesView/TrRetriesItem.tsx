@@ -4,6 +4,7 @@ import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 
+import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
@@ -22,13 +23,15 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   const [isOpened, setIsOpen] = useState(false);
 
   const { t } = useI18n("ui");
+  const { t: controls } = useI18n("controls");
 
-  const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
+  const retryTitlePrefix = t("retry", { attempt, total: totalAttempts });
   const convertedStop = stop ? timestampToDate(stop) : undefined;
   const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
 
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
-  const hasErrorDetails = Boolean(error?.trace || error?.message);
+  const errorPreview = getErrorPreview(error, controls("comparison"));
+  const hasErrorDetails = Boolean(errorPreview);
 
   return (
     <div data-testid="test-result-retries-item">
@@ -45,6 +48,16 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
           <Text data-testid="test-result-retries-item-text" className={styles["test-result-retries-item-text"]}>
             {retryTitle}
           </Text>
+          {errorPreview && (
+            <Text
+              data-testid="test-result-retries-item-error-preview"
+              type="ui"
+              size="s"
+              className={styles["test-result-retries-item-error-preview"]}
+            >
+              {errorPreview}
+            </Text>
+          )}
           <div className={styles["test-result-retries-item-info"]}>
             {Boolean(formattedDuration) && (
               <Text type="ui" size={"s"} className={styles["item-time"]}>
@@ -69,4 +82,17 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
       )}
     </div>
   );
+};
+
+const getErrorPreview = (error: AwesomeTestResult["error"], diffPreview: string) => {
+  const message = error?.message?.trim();
+  if (message) return message;
+
+  const tracePreview = error?.trace
+    ?.split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+  if (tracePreview) return tracePreview;
+
+  if (hasErrorDiff(error)) return diffPreview;
 };

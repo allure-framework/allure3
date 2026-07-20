@@ -174,7 +174,7 @@ export const toChartData = (props: { data: Statistic; i18n: I18nProp; statuses?:
   for (const status of statuses) {
     if (status in data) {
       chartData.push({
-        color: getColorFromStatus(status),
+        color: getColorFromStatus(status, "chartFill"),
         id: status,
         value: data[status] ?? 0,
         label: i18n(`status.${status}`),

@@ -1,14 +1,16 @@
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 
-import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
-import TerserPlugin from "terser-webpack-plugin";
-import webpack from "webpack";
-import { WebpackManifestPlugin } from "webpack-manifest-plugin";
+const require = createRequire(import.meta.url);
+const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const SpriteLoaderPlugin = require("svg-sprite-loader/plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const webpack = require("webpack");
+const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
 const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
@@ -24,6 +26,7 @@ export default (env, argv) => {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
+      publicPath: devMode ? "auto" : undefined,
     },
     devtool: devMode ? "eval-source-map" : false,
     optimization: {
@@ -146,6 +149,8 @@ export default (env, argv) => {
     config.plugins.push(
       new HtmlWebpackPlugin({
         template: "src/index.html",
+        inject: "body",
+        scriptLoading: "defer",
       }),
     );
   }

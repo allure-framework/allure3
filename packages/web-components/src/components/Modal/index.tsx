@@ -104,6 +104,19 @@ export const Modal = ({
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeModal?.();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen, closeModal]);
+
   const downloadData = async (e: Event) => {
     e.stopPropagation();
     const { id, ext, contentType } = link || {};

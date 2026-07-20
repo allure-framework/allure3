@@ -1,6 +1,6 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
@@ -322,7 +322,10 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
-
+  await epic("coverage");
+  await feature("ui-components");
+  await story("testResult");
+  await label("coverage", "ui-components");
   treePage = new TreePage(page);
   testResultPage = new TestResultPage(page);
 
@@ -374,7 +377,7 @@ test.describe("allure-awesome", () => {
       expect(clipboardContent).toEqual("sample.js#0 sample passed test");
     });
 
-    test("failed test renders its test-level error in the body section", async () => {
+    test("failed test renders its test-level error in the overview header and body section", async () => {
       await treePage.openTestResultByTitle("1 sample failed test");
 
       const errorStep = testResultPage.getStepByName("Assertion error: Expected 1 to be 2");
@@ -384,18 +387,18 @@ test.describe("allure-awesome", () => {
         "Assertion error: Expected 1 to be 2",
       );
       await expect(testResultPage.page.getByText("No test steps information available")).not.toBeVisible();
-      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(0);
+      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(1);
 
       await testResultPage.expandStepByTitle("Assertion error: Expected 1 to be 2");
 
       await expect(errorStep.stepDetailsLocator.getByTestId("test-result-error-message")).toHaveCount(0);
       await expect(errorStep.stepTraceLocator).toHaveText("failed test trace");
-      await expect(testResultPage.errorDiffButtonLocator).toBeVisible();
-      await testResultPage.errorDiffButtonLocator.click();
+      await expect(errorStep.stepDetailsLocator.getByTestId("test-result-diff-button")).toBeVisible();
+      await errorStep.stepDetailsLocator.getByTestId("test-result-diff-button").click();
       await expect(testResultPage.errorDiffLocator).toBeVisible();
     });
 
-    test("broken test renders its test-level error in the body section", async () => {
+    test("broken test renders its test-level error in the overview header and body section", async () => {
       await treePage.openTestResultByTitle("2 sample broken test");
 
       const errorStep = testResultPage.getStepByName("An unexpected error");
@@ -403,7 +406,7 @@ test.describe("allure-awesome", () => {
       await expect(errorStep.locator).toBeVisible();
       await expect(errorStep.locator.getByTestId("test-result-step-title")).toHaveText("An unexpected error");
       await expect(testResultPage.page.getByText("No test steps information available")).not.toBeVisible();
-      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(0);
+      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(1);
 
       await testResultPage.expandStepByTitle("An unexpected error");
 

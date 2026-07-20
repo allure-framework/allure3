@@ -13,6 +13,7 @@ import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
 import { TrTabs } from "@/components/TestResult/TrTabs";
 import { fetchTestEnvGroup } from "@/stores/env";
+import { focusTestResultPane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { trCurrentTab } from "@/stores/testResult";
 
@@ -57,7 +58,7 @@ const TrContent: FunctionalComponent<TrContentProps> = ({ testResult }) => {
 };
 
 const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
-  const splitModeClass = isSplitMode.value ? styles["scroll-inside"] : "";
+  const split = isSplitMode.value;
 
   useEffect(() => {
     const testCaseId = testResult?.testCase?.id;
@@ -69,7 +70,11 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
 
   return (
     <>
-      <div className={clsx(styles.content, splitModeClass)}>
+      <div
+        className={clsx(styles.content, split && styles["scroll-inside"])}
+        data-tr-scroll-container
+        onMouseDown={() => focusTestResultPane()}
+      >
         {testResult ? <TrContent testResult={testResult} /> : <TrEmpty />}
       </div>
     </>

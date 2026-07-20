@@ -26,7 +26,7 @@
   },
   "search": {
     "search": "Suchen",
-    "search-placeholder": "Name oder ID"
+    "search-placeholder": "Tests suchen"
   },
   "filters": {
     "flaky": "Instabil",
@@ -150,7 +150,9 @@
     "copy": "Kopieren",
     "copy-email": "E-Mail kopieren",
     "attempt": "Versuch {{attempt}} von {{total}}",
+    "retry": "Wiederholung {{attempt}} von {{total}}",
     "at": "bei",
+    "generated": "Generiert",
     "variables": "Variablen",
     "openPwTrace": "Playwright Trace öffnen",
     "pwTracePopupBlocked": "Der Browser hat das Öffnen des Playwright Trace Viewer blockiert.",
@@ -427,6 +429,66 @@
         "actual": "Tatsächlich",
         "expected": "Erwartet"
       }
+    }
+  },
+  "shortcuts": {
+    "title": "Tastaturkürzel",
+    "groups": {
+      "global": "Allgemein",
+      "tree": "Baum",
+      "testResult": "Testergebnis"
+    },
+    "items": {
+      "toggleHelp": "Kürzel ein-/ausblenden",
+      "focusSearch": "Suche fokussieren",
+      "blurSearch": "Suche verlassen",
+      "focusTree": "Baumbereich fokussieren",
+      "focusTestResult": "Testergebnisbereich fokussieren",
+      "toggleLayout": "Split-Ansicht umschalten (Shift+L)",
+      "toggleLayoutAlt": "Split-Ansicht umschalten (Ctrl/Cmd+\\)",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "collapse": "Einklappen / zum Elternelement",
+      "expand": "Ausklappen / erstes Kind",
+      "parent": "Zum Elternelement (p)",
+      "parentAlt": "Zum Elternelement (u)",
+      "openNode": "Test öffnen / Gruppe umschalten (o)",
+      "collapseNode": "Knoten einklappen (-)",
+      "expandNode": "Knoten ausklappen (+)",
+      "collapseAll": "Alle Kinder einklappen (C)",
+      "expandAll": "Alle Kinder ausklappen (A)",
+      "subtreeCycle": "Teilbaum ein-/ausklappen — wie Pfeil-Schaltfläche (>)",
+      "subtreeCollapse": "Gesamten Teilbaum einklappen (Shift+C)",
+      "subtreeExpand": "Gesamten Teilbaum ausklappen (Shift+A)",
+      "subtreeFirstLevel": "Nur erste Ebene ausklappen (f)",
+      "toggleNode": "Gruppe oder Umgebung umschalten",
+      "openTest": "Testergebnis öffnen",
+      "firstTest": "Zum ersten Test (g g), Liste nach oben scrollen",
+      "lastTest": "Zum letzten Test",
+      "treeTop": "Erste Baumzeile + Liste nach oben scrollen (Home)",
+      "scrollTreeTop": "Liste nach oben scrollen — Variablen und Filter anzeigen (z t)",
+      "toggleReportVariables": "Variablen ein-/ausblenden",
+      "toggleReportMetadata": "Metadaten ein-/ausblenden",
+      "reportTabResults": "Bericht-Tab: Ergebnisse",
+      "reportTabCategories": "Bericht-Tab: Kategorien",
+      "reportTabQualityGate": "Bericht-Tab: Quality Gate",
+      "reportTabGlobalAttachments": "Bericht-Tab: Globale Anhänge",
+      "reportTabGlobalErrors": "Bericht-Tab: Globale Fehler",
+      "reportTabNext": "Nächster Bericht-Tab",
+      "reportTabPrev": "Vorheriger Bericht-Tab",
+      "nextTest": "Nächstes Testergebnis",
+      "prevTest": "Vorheriges Testergebnis",
+      "testTabNext": "Nächster Test-Tab",
+      "testTabPrev": "Vorheriger Test-Tab",
+      "tabOverview": "Tab Übersicht",
+      "tabHistory": "Tab Verlauf",
+      "tabRetries": "Tab Wiederholungen",
+      "tabAttachments": "Tab Anhänge",
+      "tabEnvironments": "Tab Umgebungen",
+      "toggleLabels": "Labels ein-/ausblenden",
+      "toggleParameters": "Parameter ein-/ausblenden",
+      "toggleLinks": "Links ein-/ausblenden",
+      "backToTree": "Zurück zum Baum"
     }
   }
 }

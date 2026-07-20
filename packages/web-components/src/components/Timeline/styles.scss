@@ -1,18 +1,18 @@
 .timelineContainer {
   --timeline-font-family: var(--font-family);
-  --timeline-grid: var(--on-border-muted);
-  --timeline-axis: var(--on-border-primary);
-  --timeline-border-primary: var(--on-border-primary);
-  --timeline-axis-text: var(--on-text-primary);
-  --timeline-text: var(--on-text-secondary);
-  --timeline-bg: var(--bg-base-primary);
-  --timeline-selection-bg: var(--bg-control-flat-medium);
-  --timeline-selection-bg-hover: var(--bg-control-flat-heavy);
-  --timeline-status-failed: var(--bg-support-capella);
-  --timeline-status-broken: var(--bg-support-atlas);
-  --timeline-status-passed: var(--bg-support-castor);
-  --timeline-status-skipped: var(--bg-support-rau);
-  --timeline-status-unknown: var(--bg-support-skat);
+  --timeline-grid: var(--color-border-subtle);
+  --timeline-axis: var(--color-border-default);
+  --timeline-border-primary: var(--color-border-default);
+  --timeline-axis-text: var(--color-text-primary);
+  --timeline-text: var(--color-text-secondary);
+  --timeline-bg: var(--color-bg-primary);
+  --timeline-selection-bg: var(--color-control-bg-ghost-hover);
+  --timeline-selection-bg-hover: var(--color-control-bg-ghost-active);
+  --timeline-status-failed: var(--color-status-failed-chart);
+  --timeline-status-broken: var(--color-status-broken-chart);
+  --timeline-status-passed: var(--color-status-passed-chart);
+  --timeline-status-skipped: var(--color-status-skipped-chart);
+  --timeline-status-unknown: var(--color-status-unknown-chart);
 
   background: var(--timeline-bg);
 }
@@ -143,11 +143,11 @@
 }
 
 .tooltip {
-  border: 1px solid var(--on-border-primary);
+  border: 1px solid var(--color-border-default);
   box-shadow: var(--shadow-medium);
   border-radius: 6px;
-  background-color: var(--constant-bg-base-modal);
-  color: var(--constant-on-text-primary);
+  background-color: var(--color-bg-inverse-raised);
+  color: var(--color-text-inverse);
   padding: 4px 8px;
   font-size: 12px;
   max-width: 600px;
@@ -158,7 +158,7 @@
   gap: 4px;
 
   & * {
-    color: var(--constant-on-text-primary);
+    color: var(--color-text-inverse);
   }
 
   &[data-visible="true"] {

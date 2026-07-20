@@ -107,7 +107,11 @@ export const createCoverageDiffTreeMapChartData = (
     (value: number, domain = chartColorDomain) => {
       const scaledRgb = scaleLinear<string>()
         .domain(domain)
-        .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+        .range([
+          resolveCSSVarColor(statusColors.failed),
+          resolveCSSVarColor("var(--color-dashboard-neutral)"),
+          resolveCSSVarColor(statusColors.passed),
+        ])
         .interpolate(interpolateRgb)
         .clamp(true);
 

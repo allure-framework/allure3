@@ -1,11 +1,13 @@
+:global(pre.attachment-code-block),
+:global(pre.attachment-code-block code),
 :global(pre[class*="language-"]),
 :global(code[class*="language-"]),
 :global(pre.attachment-code-plain),
 :global(pre.attachment-code-plain code) {
-  background: var(--bg-base-secondary);
+  background: var(--color-bg-secondary);
   font-size: 12px;
-  font-family: "JetBrains Mono", monospace;
-  color: var(--on-text-primary);
+  font-family: var(--font-family-mono), "JetBrains Mono", monospace;
+  color: var(--color-text-primary);
   text-shadow: none !important;
   margin: 0;
   width: 100%;
@@ -15,19 +17,23 @@
   line-height: 1.5;
 }
 
+:global(pre.attachment-code-block.line-numbers) {
+  padding-left: 8px;
+}
+
 :global(.token.comment),
 :global(.token.prolog),
 :global(.token.doctype),
 :global(.token.cdata) {
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
 }
 
 :global(.token.punctuation) {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
 }
 
 :global(.token.number) {
-  color: var(--on-support-aldebaran);
+  color: var(--color-syntax-number);
 }
 
 :global(.token.property),
@@ -36,7 +42,7 @@
 :global(.token.constant),
 :global(.token.symbol),
 :global(.token.deleted) {
-  color: var(--on-support-atlas);
+  color: var(--color-syntax-property);
 }
 
 :global(.token.selector),
@@ -45,46 +51,46 @@
 :global(.token.char),
 :global(.token.builtin),
 :global(.token.inserted) {
-  color: var(--on-support-castor);
+  color: var(--color-syntax-string);
 }
 
 :global(.token.atrule),
 :global(.token.attr-value),
 :global(.token.keyword) {
-  color: var(--on-support-sirius);
+  color: var(--color-syntax-keyword);
 }
 
 :global(.token.function),
 :global(.token.class-name) {
-  color: var(--on-support-capella);
+  color: var(--color-syntax-function);
 }
 
 :global(.token.regex),
 :global(.token.important),
 :global(.token.variable) {
-  color: var(--on-support-atlas);
+  color: var(--color-syntax-property);
 }
 
 :global(.line-numbers .line-numbers-rows) {
-  border-right: 1px solid var(--on-border-muted);
+  border-right: 1px solid var(--color-border-subtle);
 }
 
 :global(.line-numbers-rows span) {
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
   line-height: 1.5;
 }
 
 :global(.token.operator),
 :global(.token.entity),
 :global(.token.url) {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   background: none;
 }
 
 :global(pre[class*="language-"]) :global(code.language-javascript),
 :global(pre[class*="language-"]) :global(code.language-typescript) {
   & :global(.token.function) {
-    color: var(--on-support-aldebaran);
+    color: var(--color-syntax-number);
     font-weight: var(--font-weight-bold);
   }
 
@@ -93,19 +99,19 @@
   }
 
   & :global(.token.class-name) {
-    color: var(--on-support-betelgeuse);
+    color: var(--color-syntax-type);
     font-weight: var(--font-weight-bold);
   }
 
   & :global(.token.property) {
-    color: var(--on-support-aldebaran);
+    color: var(--color-syntax-number);
   }
 
   & :global(.token.operator) {
-    color: var(--on-icon-primary);
+    color: var(--color-icon-primary);
   }
 
   & :global(.token.builtin) {
-    color: var(--on-support-sirius);
+    color: var(--color-syntax-keyword);
   }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
+import { epic, feature, label, Stage, Status, story } from "allure-js-commons";
 
 import { CommonPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -77,7 +77,10 @@ const longUnicodeEnvId = "long_unicode_env";
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
-
+  await epic("coverage");
+  await feature("environments");
+  await story("environments");
+  await label("coverage", "environments");
   commonPage = new CommonPage(page);
   treePage = new TreePage(page);
 

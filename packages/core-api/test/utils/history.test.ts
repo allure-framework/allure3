@@ -1,18 +1,32 @@
 import { createHash } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { fallbackTestCaseIdLabelName, type TestParameter, type TestResult } from "../../src/index.js";
+import {
+  fallbackTestCaseIdLabelName,
+  type HistoryDataPoint,
+  type TestParameter,
+  type TestResult,
+} from "../../src/index.js";
 import {
   filterUnknownByKnownIssues,
   getFallbackHistoryId,
   getHistoryIdCandidates,
+  normalizeHistoryDataPoint,
   normalizeHistoryDataPointUrls,
   selectHistoryTestResults,
   stringifyHistoryParams,
 } from "../../src/utils/history.js";
 
 const md5 = (data: string) => createHash("md5").update(data).digest("hex");
+
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("history");
+  await story("history");
+  await label("coverage", "history");
+});
 
 describe("history utils", () => {
   it("should sort and exclude parameters in stringifyHistoryParams", () => {
@@ -80,7 +94,7 @@ describe("history utils", () => {
         flaky: false,
         muted: false,
         known: false,
-        hidden: false,
+        isRetry: false,
         links: [],
         steps: [],
         sourceMetadata: { readerId: "", metadata: {} },
@@ -95,7 +109,7 @@ describe("history utils", () => {
         flaky: false,
         muted: false,
         known: false,
-        hidden: false,
+        isRetry: false,
         links: [],
         steps: [],
         sourceMetadata: { readerId: "", metadata: {} },
@@ -138,6 +152,21 @@ describe("history utils", () => {
       primaryHistoryResult,
       fallbackHistoryResult,
     ]);
+  });
+
+  it("should ignore missing history test results while selecting candidates", () => {
+    const historyDataPoints = [
+      {
+        uuid: "first",
+        name: "Entry 1",
+        timestamp: 1,
+        knownTestCaseIds: [],
+        metrics: {},
+        url: "",
+      } as unknown as HistoryDataPoint,
+    ];
+
+    expect(selectHistoryTestResults(historyDataPoints, ["primary"])).toEqual([]);
   });
 
   it("should not mutate selected history entries", () => {
@@ -184,6 +213,22 @@ describe("history utils", () => {
           url: "https://history",
         },
       },
+    });
+  });
+
+  it("should normalize missing history fields", () => {
+    const historyDataPoint = {
+      uuid: "first",
+      name: "Entry 1",
+      timestamp: 1,
+    } as unknown as HistoryDataPoint;
+
+    expect(normalizeHistoryDataPoint(historyDataPoint)).toEqual({
+      ...historyDataPoint,
+      knownTestCaseIds: [],
+      metrics: {},
+      testResults: {},
+      url: "",
     });
   });
 });

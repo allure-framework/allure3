@@ -3,6 +3,7 @@ import { exit } from "node:process";
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport, readConfig } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
+import { epic, feature, label, story } from "allure-js-commons";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -29,7 +30,11 @@ vi.mock("node:process", async (importOriginal) => ({
   exit: vi.fn(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await epic("coverage");
+  await feature("cli-commands");
+  await story("generate");
+  await label("coverage", "cli-commands");
   vi.clearAllMocks();
 });
 
@@ -42,7 +47,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./notfound",
+      resultsDir: ["./notfound"],
       dump: [],
     });
 
@@ -62,7 +67,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
@@ -78,18 +83,21 @@ describe("generate function", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
-    AllureReportMock.prototype.start.mockRejectedValueOnce(new KnownError("known error"));
+    const fence = new Promise<void>((r) => {
+      AllureReportMock.prototype.start.mockImplementationOnce(async () => {
+        r();
+        throw new KnownError("known error");
+      });
+    });
 
     const promise = generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await fence;
     await Promise.resolve();
 
     expect(async () => await promise).not.toThrow();
@@ -103,18 +111,21 @@ describe("generate function", () => {
   it("should handle unknown errors and exit with code 1 with errors logging", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
-    AllureReportMock.prototype.start.mockRejectedValueOnce(new Error("unknown error"));
+    const fence = new Promise<void>((r) => {
+      AllureReportMock.prototype.start.mockImplementationOnce(async () => {
+        r();
+        throw new Error("unknown error");
+      });
+    });
 
     const promise = generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await fence;
     await Promise.resolve();
     await Promise.resolve();
 
@@ -135,7 +146,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "",
+      resultsDir: [""],
       dump: ["dump1.zip", "dump2.zip"],
     });
 
@@ -158,7 +169,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: ["dump1.zip", "dump2.zip"],
     });
 
@@ -167,5 +178,46 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
+  });
+
+  it("should support multiple result directories", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo1/", "./foo2/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar1/", "./bar2/"]);
+    (readConfig as Mock).mockResolvedValue({});
+
+    await generate({
+      cwd: ".",
+      config: {} as FullConfig,
+      resultsDir: ["foo", "bar"],
+      dump: [],
+    });
+
+    expect(AllureReportMock).toHaveBeenCalled();
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: ".",
+    });
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: ".",
+    });
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([]);
+    expect(AllureReportMock.prototype.start).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledTimes(4);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(1, "./foo1/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(2, "./foo2/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(3, "./bar1/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(4, "./bar2/");
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
   });
 });

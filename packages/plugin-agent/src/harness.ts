@@ -3,13 +3,26 @@ import { join, resolve } from "node:path";
 
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
+import { AgentUsageError } from "./errors.js";
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
+import type { AgentHumanReportStatus } from "./model.js";
+import { isPathInside } from "./paths.js";
+import { isFileNotFoundError } from "./utils.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
 export type AgentFindingCategory = "bootstrap" | "scope" | "metadata" | "evidence" | "smells";
 export type AgentScopeMatch = "match" | "unexpected" | "forbidden" | "unknown";
 export type AgentAcceptanceStatus = "accept" | "iterate" | "reject";
 export type AgentAcceptanceImpact = "advisory" | "iterate" | "reject";
+export type AgentExpectationResultStatus =
+  | "matched"
+  | "failed"
+  | "partial"
+  | "degraded"
+  | "unsupported"
+  | "unavailable"
+  | "not_requested";
+export type AgentExpectationResultImpact = "accept" | "reject" | "iterate" | "advisory";
 export type AgentEnrichmentActionCategory = EnrichmentActionCategory;
 
 export type AgentExpectationSelector = {
@@ -17,6 +30,18 @@ export type AgentExpectationSelector = {
   full_names?: string[];
   full_name_prefixes?: string[];
   label_values?: Record<string, string | string[]>;
+  test_count?: number;
+};
+
+export type AgentEvidenceExpectations = {
+  required?: boolean;
+  min_steps?: number;
+  min_attachments?: number;
+  step_name_contains?: string[];
+  attachments?: Array<{
+    name?: string;
+    content_type?: string;
+  }>;
 };
 
 export type AgentExpectations = {
@@ -24,6 +49,7 @@ export type AgentExpectations = {
   task_id?: string;
   expected?: AgentExpectationSelector;
   forbidden?: AgentExpectationSelector;
+  evidence?: AgentEvidenceExpectations;
   notes?: string[];
 };
 
@@ -107,12 +133,13 @@ export type AgentRunManifest = {
     findings_manifest: string;
     test_events_manifest?: string;
     expected_manifest: string | null;
-    project_guide: string | null;
+    human_report_manifest?: string | null;
     process_logs: {
       stdout: string | null;
       stderr: string | null;
     };
   };
+  human_report?: AgentHumanReportStatus | null;
   modeling?: {
     completeness: "complete" | "partial";
     reasons: string[];
@@ -158,6 +185,28 @@ export type AgentRunManifest = {
     };
   };
   expectations_present: boolean;
+  expectations: AgentExpectations | null;
+  expectation_result: {
+    schema_version: "allure-agent-expectation-result/v1";
+    status: AgentExpectationResultStatus;
+    impact: AgentExpectationResultImpact;
+    source: {
+      kind: "inline" | "file" | "none";
+      path: string | null;
+    };
+    recognized_control_count: number;
+    unsupported_controls: string[];
+    degraded_controls: string[];
+    summary: {
+      expected_tests: number;
+      observed_tests: number;
+      missing_expected: number;
+      forbidden_observed: number;
+      unexpected_observed: number;
+      evidence_mismatches: number;
+    };
+    finding_ids: string[];
+  };
   check_summary: {
     total: number;
     countsBySeverity: Record<AgentFindingSeverity, number>;
@@ -195,17 +244,48 @@ export type AgentTestManifestLine = {
 };
 
 export type AgentFindingManifestLine = {
+  schema_version?: "allure-agent-finding/v2";
+  check_id?: string;
+  instance_id?: string;
   finding_id: string;
-  subject: string;
+  subject:
+    | string
+    | {
+        type: "run" | "test" | "environment" | "attachment" | "global";
+        id?: string;
+        path?: string;
+        full_name?: string;
+        environment?: string;
+      };
+  subject_ref?: string;
+  subject_type?: "run" | "test";
   severity: AgentFindingSeverity;
+  impact?: AgentAcceptanceImpact;
   category: AgentFindingCategory;
   check_name: string;
+  title?: string;
   message: string;
   explanation: string;
   evidence_paths: string[];
   remediation_hint: string;
   expected_reference?: string;
   confidence?: number;
+  expected?: Record<string, unknown>;
+  observed?: Record<string, unknown>;
+  evidence?: {
+    paths?: string[];
+  };
+  action?: string;
+  legacy?: {
+    finding_id: string;
+    subject: string;
+    subject_type?: "run" | "test";
+    check_name: string;
+    explanation?: string;
+    evidence_paths?: string[];
+    remediation_hint: string;
+    expected_reference?: string;
+  };
 };
 
 export type AgentOutputBundle = {
@@ -214,6 +294,7 @@ export type AgentOutputBundle = {
   tests: AgentTestManifestLine[];
   findings: AgentFindingManifestLine[];
   expected?: AgentExpectations;
+  humanReport?: AgentHumanReportStatus;
 };
 
 export type AgentEnrichmentAction = {
@@ -284,29 +365,33 @@ export const AGENT_ENRICHMENT_ACTIONS: Record<string, AgentEnrichmentAction> = O
 ) as Record<string, AgentEnrichmentAction>;
 
 export const SCOPE_REJECTING_CHECKS = [
-  "missing-expected-test",
-  "missing-expected-prefix",
-  "missing-expected-environment",
+  "expected-test-missing",
+  "expected-count-mismatch",
+  "expected-prefix-missing",
+  "expected-label-missing",
+  "expected-environment-missing",
+  "no-tests-observed",
   "unexpected-environment",
-  "forbidden-selector-match",
+  "forbidden-label-observed",
   "unexpected-test",
 ] as const;
 
 export const ITERATION_REQUIRED_CHECKS = [
-  "invalid-expectations-file",
-  "no-visible-tests",
+  "expectations-invalid",
+  "expectations-empty",
+  "expectations-unsupported-control",
   "runner-failures-outside-logical-results",
-  "missing-expected-label-selector",
   "metadata-mismatch",
   "history-id-collision",
-  "failed-without-useful-steps",
-  "failed-without-attachments",
-  "nontrivial-run-with-empty-trace",
-  "retries-without-new-evidence",
-  "passed-without-observable-evidence",
+  "expected-step-containing-missing",
+  "insufficient-expected-steps",
+  "insufficient-expected-attachments",
+  "missing-expected-attachment",
 ] as const;
 
-export const ANTI_DUMMY_CHECKS = ["noop-dominated-steps"] as const;
+// Anti-fakery checks force a reject above the confidence threshold. None ship yet (the previous
+// evidence-shape heuristics were removed); honesty/staleness checks will be added here.
+export const ANTI_DUMMY_CHECKS: readonly string[] = [];
 
 const SEVERITY_ORDER: Record<AgentFindingSeverity, number> = {
   high: 0,
@@ -321,6 +406,28 @@ const IMPACT_ORDER: Record<AgentAcceptanceImpact, number> = {
 };
 
 const uniqueValues = (values: string[]) => Array.from(new Set(values));
+
+const checkNameForFinding = (finding: AgentFindingManifestLine) => finding.check_id ?? finding.check_name;
+
+const subjectRefForFinding = (finding: AgentFindingManifestLine) => {
+  if (finding.subject_ref) {
+    return finding.subject_ref;
+  }
+
+  if (typeof finding.subject === "string") {
+    return finding.subject;
+  }
+
+  return finding.subject.path ?? finding.subject.id ?? finding.subject.type;
+};
+
+const subjectTypeForFinding = (finding: AgentFindingManifestLine): "run" | "test" =>
+  finding.subject_type ??
+  (typeof finding.subject === "object" && finding.subject.type === "test"
+    ? "test"
+    : subjectRefForFinding(finding) === "run"
+      ? "run"
+      : "test");
 
 const normalizeStringArray = (value?: string | string[]) => {
   if (typeof value === "string") {
@@ -426,18 +533,21 @@ const impactForFinding = (
   finding: AgentFindingManifestLine,
   antiDummyConfidenceThreshold: number,
 ): AgentAcceptanceImpact => {
-  if (SCOPE_REJECTING_CHECKS.includes(finding.check_name as (typeof SCOPE_REJECTING_CHECKS)[number])) {
+  if (finding.impact === "reject" || finding.impact === "iterate" || finding.impact === "advisory") {
+    return finding.impact;
+  }
+
+  const checkName = checkNameForFinding(finding);
+
+  if (SCOPE_REJECTING_CHECKS.includes(checkName as (typeof SCOPE_REJECTING_CHECKS)[number])) {
     return "reject";
   }
 
-  if (
-    ANTI_DUMMY_CHECKS.includes(finding.check_name as (typeof ANTI_DUMMY_CHECKS)[number]) &&
-    (finding.confidence ?? 0) >= antiDummyConfidenceThreshold
-  ) {
+  if (ANTI_DUMMY_CHECKS.includes(checkName) && (finding.confidence ?? 0) >= antiDummyConfidenceThreshold) {
     return "reject";
   }
 
-  if (ITERATION_REQUIRED_CHECKS.includes(finding.check_name as (typeof ITERATION_REQUIRED_CHECKS)[number])) {
+  if (ITERATION_REQUIRED_CHECKS.includes(checkName as (typeof ITERATION_REQUIRED_CHECKS)[number])) {
     return "iterate";
   }
 
@@ -463,21 +573,76 @@ export const buildAgentExpectations = (input: AgentHarnessRequest): AgentExpecta
 };
 
 export const mapFindingToEnrichmentAction = (finding: AgentFindingManifestLine | string): AgentEnrichmentAction => {
-  const checkName = typeof finding === "string" ? finding : finding.check_name;
+  const checkName = typeof finding === "string" ? finding : checkNameForFinding(finding);
   const mapped = AGENT_ENRICHMENT_ACTIONS[checkName];
 
   return mapped ?? { ...FALLBACK_ACTION, checkName };
 };
 
+// Manifest-supplied paths are untrusted (the output directory may be an attacker-supplied bundle),
+// so never read a path that resolves outside the output directory.
+const resolveContainedOutputPath = (outputDir: string, relativePath: string) => {
+  const resolved = join(outputDir, relativePath);
+
+  return isPathInside(outputDir, resolved) ? resolved : undefined;
+};
+
+const readAgentRunManifest = async (outputDir: string): Promise<AgentRunManifest> => {
+  const runManifestPath = join(outputDir, "manifest", "run.json");
+  let raw: string;
+
+  try {
+    raw = await readFile(runManifestPath, "utf-8");
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      throw new AgentUsageError(
+        `No Allure agent output found at ${JSON.stringify(outputDir)} (missing manifest/run.json). ` +
+          "It must be a directory created by a previous `allure agent` run. " +
+          "Run `allure agent latest` to find the most recent output, pass a valid --from <agent-output-dir> or --latest, " +
+          "or run `allure agent <command>` to create one.",
+      );
+    }
+
+    throw error;
+  }
+
+  try {
+    return JSON.parse(raw) as AgentRunManifest;
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(outputDir)} is corrupted: manifest/run.json is not valid JSON. ` +
+        "Re-run `allure agent` to regenerate the output.",
+    );
+  }
+};
+
 export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBundle> => {
   const absoluteOutputDir = resolve(outputDir);
-  const run = await readJson<AgentRunManifest>(join(absoluteOutputDir, "manifest", "run.json"));
-  const tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
-  const findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
-  const expected =
+  const run = await readAgentRunManifest(absoluteOutputDir);
+  let tests: AgentTestManifestLine[];
+  let findings: AgentFindingManifestLine[];
+
+  try {
+    tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
+    findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
+  } catch {
+    throw new AgentUsageError(
+      `The Allure agent output at ${JSON.stringify(absoluteOutputDir)} is incomplete or corrupted: ` +
+        "its test/finding manifests could not be read. Re-run `allure agent` to regenerate the output.",
+    );
+  }
+
+  const expectedManifestPath =
     run.paths.expected_manifest && run.expectations_present
-      ? await readJson<AgentExpectations>(join(absoluteOutputDir, run.paths.expected_manifest))
+      ? resolveContainedOutputPath(absoluteOutputDir, run.paths.expected_manifest)
       : undefined;
+  const expected = expectedManifestPath ? await readJson<AgentExpectations>(expectedManifestPath) : undefined;
+  const humanReportManifestPath = run.paths.human_report_manifest
+    ? resolveContainedOutputPath(absoluteOutputDir, run.paths.human_report_manifest)
+    : undefined;
+  const humanReport = humanReportManifestPath
+    ? await readJson<AgentHumanReportStatus>(humanReportManifestPath)
+    : undefined;
 
   return {
     outputDir: absoluteOutputDir,
@@ -485,6 +650,7 @@ export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBun
     tests,
     findings,
     expected,
+    humanReport,
   };
 };
 
@@ -498,17 +664,18 @@ export const planAgentEnrichmentReview = (
   const plan = sortPlan(
     output.findings.map((finding) => {
       const action = mapFindingToEnrichmentAction(finding);
-      const matchedTest = testsByPath.get(finding.subject);
+      const subject = subjectRefForFinding(finding);
+      const matchedTest = testsByPath.get(subject);
 
       return {
         ...action,
-        subject: finding.subject,
-        subjectType: finding.subject === "run" ? "run" : "test",
+        subject,
+        subjectType: subjectTypeForFinding(finding),
         severity: finding.severity,
         message: finding.message,
         explanation: finding.explanation,
-        remediationHint: finding.remediation_hint,
-        evidencePaths: finding.evidence_paths,
+        remediationHint: finding.action ?? finding.remediation_hint,
+        evidencePaths: finding.evidence?.paths ?? finding.evidence_paths,
         expectedReference: finding.expected_reference,
         confidence: finding.confidence,
         acceptanceImpact: impactForFinding(finding, antiDummyConfidenceThreshold),
@@ -525,13 +692,7 @@ export const planAgentEnrichmentReview = (
 
   if (!output.run.expectations_present) {
     notes.push(
-      "Generate ALLURE_AGENT_EXPECTATIONS before the next enrichment iteration so scope checks are comparable.",
-    );
-  }
-
-  if (rejecting.some((item) => item.checkName === "noop-dominated-steps")) {
-    notes.push(
-      "Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.",
+      "Declare inline expectations or provide an expectations file before the next enrichment iteration so scope checks are comparable.",
     );
   }
 

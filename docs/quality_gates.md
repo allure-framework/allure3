@@ -30,13 +30,20 @@ export default defineConfig({
 });
 ```
 
+## Compatibility with rerun
+
+Quality gate validation doesn't work with `allure run --rerun` when the rerun count is greater than `0`.
+If `qualityGate` is configured and `--rerun` is enabled, Allure runs the test command and prints a warning that quality gate validation is skipped for that run.
+
+Use `--rerun=0` or remove `--rerun` when the quality gate should validate the run.
+
 ## Using external rules
 
 You can use external quality gate rules implemented by the community – just provide them to the `use` field in the quality gate configuration:
 
 ```js
 import { defineConfig } from "allure";
-import { rule1, rule2 } from "custom-rules-package"
+import { rule1, rule2 } from "custom-rules-package";
 
 export default defineConfig({
   qualityGate: {
@@ -54,10 +61,10 @@ export default defineConfig({
 ```js
 import { defineConfig } from "allure";
 // import default rules at once
-import { qualityGateDefaultRules } from "allure/rules"
+import { qualityGateDefaultRules } from "allure/rules";
 // or import them separately
-import { maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule } from "allure/rules"
-import { rule1, rule2 } from "custom-rules-package"
+import { maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule } from "allure/rules";
+import { rule1, rule2 } from "custom-rules-package";
 
 export default defineConfig({
   qualityGate: {
@@ -73,7 +80,7 @@ If you don't re-assign `use` field, Allure will use only the default rules autom
 
 ## Authoring custom rules
 
-You can create your own quality gate rules by implementing the `QualityGateRule` interface. 
+You can create your own quality gate rules by implementing the `QualityGateRule` interface.
 
 Below is an example of a custom quality gate rule that checks if the number of test results matches an expected value:
 
@@ -91,8 +98,8 @@ export const myRule: QualityGateRule<number> = {
       success: actual === expected,
       actual,
     };
-  }
-}
+  },
+};
 ```
 
 You can also aggregate validation data in runtime to make more complex rules.
@@ -110,15 +117,15 @@ export const myRule: QualityGateRule<number> = {
     const previous = state.getResult() ?? 0;
     const actual = previous + trs.length;
     const passed = actual === expected;
-    
+
     state.setResult(actual);
 
     return {
       success: actual === expected,
       actual,
     };
-  }
-}
+  },
+};
 ```
 
 Then, you can register your custom rule in the Allure configuration file:
@@ -164,7 +171,7 @@ export default defineConfig({
         // don't forget to use rest spread operator to keep rest rule's fields intact
         ...myRule,
         message: ({ expected, actual }) => `Custom message: expected ${expected}, got ${actual}`,
-      }
+      },
     ],
   },
 });
