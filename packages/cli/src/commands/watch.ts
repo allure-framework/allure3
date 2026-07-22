@@ -5,7 +5,8 @@ import { join } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
-import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
+import type { Watcher } from "@allurereport/directory-watcher";
+import { allureResultsDirectoriesWatcher, newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
 import ProgressPlugin from "@allurereport/plugin-progress";
 import ServerReloadPlugin from "@allurereport/plugin-server-reload";
@@ -64,14 +65,30 @@ export class WatchCommand extends Command {
     description: "The port to serve the reports on (default: random port)",
   });
 
+  newOnly = Option.Boolean("--new-only", {
+    description:
+      "Skip whatever test results already exist on disk at startup and only react to results written after the watch has started, instead of ingesting the existing backlog first (default: false)",
+  });
+
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    // with the default pattern (no explicit directories given), watch for allure-results
+    // directories showing up dynamically — a directory that doesn't exist yet (e.g. a package
+    // whose tests haven't run for the first time) will still be picked up once it appears,
+    // instead of only ever seeing the directories that existed at startup.
+    const useDynamicDiscovery = !this.resultsDir?.length;
+    let resultDirectories: string[] = [];
 
-    if (!resultDirectories.length) {
-      console.error(red(`No test results directories found matching pattern: ${patterns}`));
-      exit(1);
-      return;
+    if (!useDynamicDiscovery) {
+      const found = await findAllureResultDirectories(cwd, this.resultsDir);
+
+      if (!found.resultDirectories.length) {
+        console.error(red(`No test results directories found matching pattern: ${found.patterns}`));
+        exit(1);
+        return;
+      }
+
+      resultDirectories = found.resultDirectories;
     }
 
     const before = new Date().getTime();
@@ -141,14 +158,62 @@ export class WatchCommand extends Command {
 
     await allureReport.start();
 
-    const abortFunctions: (() => Promise<void>)[] = [];
+    const abortFunctions: ((immediately?: boolean) => Promise<void>)[] = [];
 
-    for (const directory of resultDirectories) {
-      const { abort } = newFilesInDirectoryWatcher(directory, async (path) => {
-        await allureReport.readResult(new PathResultFile(path));
+    if (useDynamicDiscovery) {
+      const perDirectoryWatchers = new Map<string, Watcher>();
+      const discoveryWatcher = allureResultsDirectoriesWatcher(cwd, async (newDirectories, deletedDirectories) => {
+        for (const deletedDir of deletedDirectories) {
+          const watcher = perDirectoryWatchers.get(deletedDir);
+
+          if (watcher) {
+            await watcher.abort();
+          }
+
+          perDirectoryWatchers.delete(deletedDir);
+        }
+
+        for (const newDir of newDirectories) {
+          if (perDirectoryWatchers.has(newDir)) {
+            continue;
+          }
+
+          const watcher = newFilesInDirectoryWatcher(
+            newDir,
+            async (path) => {
+              await allureReport.readResult(new PathResultFile(path));
+            },
+            { ignoreInitial: this.newOnly },
+          );
+
+          perDirectoryWatchers.set(newDir, watcher);
+
+          await watcher.initialScan();
+        }
       });
 
-      abortFunctions.push(abort);
+      await discoveryWatcher.initialScan();
+
+      abortFunctions.push(discoveryWatcher.abort);
+      abortFunctions.push(async (immediately?: boolean) => {
+        for (const watcher of perDirectoryWatchers.values()) {
+          await watcher.abort(immediately);
+        }
+
+        perDirectoryWatchers.clear();
+      });
+    } else {
+      for (const directory of resultDirectories) {
+        const { abort } = newFilesInDirectoryWatcher(
+          directory,
+          async (path) => {
+            await allureReport.readResult(new PathResultFile(path));
+          },
+          { ignoreInitial: this.newOnly },
+        );
+
+        abortFunctions.push(abort);
+      }
     }
 
     const pluginIdToOpen = config.plugins?.find((plugin) => !!plugin.options.open)?.id;
@@ -159,18 +224,40 @@ export class WatchCommand extends Command {
 
     console.info("Press Ctrl+C to exit");
 
-    process.on("SIGINT", async () => {
+    let interruptCount = 0;
+
+    process.on("SIGINT", () => {
+      interruptCount += 1;
+
       // new line for ctrl+C character
       console.log("");
 
-      for (const abort of abortFunctions) {
-        await abort();
+      if (interruptCount > 1) {
+        console.log("force exiting...");
+        process.exit(130);
       }
 
-      await server.stop();
-      await allureReport.done();
+      console.log("stopping, please wait (press Ctrl+C again to force exit)...");
 
-      process.exit(0);
+      const shutdownTimeout = setTimeout(() => {
+        console.log("shutdown is taking too long, force exiting...");
+        process.exit(130);
+      }, 5_000);
+
+      shutdownTimeout.unref();
+
+      void (async () => {
+        // abort(true) interrupts any in-progress directory scan right away, instead of waiting
+        // for it to index every remaining file (which can take a while for large result sets).
+        for (const abort of abortFunctions) {
+          await abort(true);
+        }
+
+        await server.stop();
+        await allureReport.done();
+
+        process.exit(0);
+      })();
     });
   }
 }

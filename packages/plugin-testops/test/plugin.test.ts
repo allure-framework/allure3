@@ -1,3 +1,4 @@
+import console from "node:console";
 import { env } from "node:process";
 
 /* eslint max-lines: off */
@@ -1121,6 +1122,26 @@ describe("testops plugin", () => {
           trs: expect.arrayContaining([expect.objectContaining({ id: allResults[1].id })]),
         }),
       );
+    });
+
+    it("should announce newly found test results before uploading them", async () => {
+      // the outer beforeEach stubs the log level to "silent", and Logger reads the level once at
+      // construction time — so a plugin built after re-stubbing to "info" is needed here.
+      vi.stubEnv("ALLURE_LOG_LEVEL", "info");
+
+      const loudPlugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+      const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await loudPlugin.update({} as PluginContext, store);
+
+      expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining("Found 2 new test results, uploading"));
+
+      consoleInfoSpy.mockRestore();
     });
 
     it("should not call createLaunch on update", async () => {

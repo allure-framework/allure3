@@ -1,21 +1,73 @@
 import { clearLine, clearScreenDown, cursorTo, moveCursor } from "node:readline";
 import type { WriteStream } from "node:tty";
 
+// tracks which streams already have a Terminal's write-interception installed, so constructing
+// more than one Terminal for the same stream doesn't stack patches on top of each other.
+const patchedStreams = new WeakSet<WriteStream>();
+
 // Taken from https://github.com/npkgz/cli-progress
 // low-level terminal interactions
 export class Terminal {
   readonly #stream: WriteStream;
+  // the stream's original, unpatched write, used for everything this class writes itself so it
+  // never re-triggers its own foreign-write interception (see #interceptForeignWrites).
+  readonly #originalWrite: WriteStream["write"];
+  // a stream-like shim over #originalWrite, handed to node's readline helpers (cursorTo, etc.)
+  // instead of the real stream, for the same reason.
+  readonly #rawStream: { write: WriteStream["write"] };
   #wrapLines: boolean;
   #dy: number;
+  // true while we've written visible content on the current line without terminating it with a
+  // newline yet (i.e. a line we expect to redraw in place later).
+  #lineActive = false;
 
   constructor(outputStream: WriteStream) {
     this.#stream = outputStream;
+    this.#originalWrite = outputStream.write.bind(outputStream);
+    this.#rawStream = { write: this.#originalWrite };
 
     // default: line wrapping enabled
     this.#wrapLines = true;
 
     // current, relative y position
     this.#dy = 0;
+
+    if (outputStream.isTTY) {
+      this.#interceptForeignWrites();
+    }
+  }
+
+  // Other code (other plugins' loggers, console.log, …) can write to the same stream between our
+  // renders. If we're mid-way through an in-place line (no trailing newline yet) when that
+  // happens, their text ends up glued onto ours instead of starting on its own line. Patching
+  // the stream's own `write` lets us notice and terminate our line first, so foreign output
+  // always starts clean — without requiring every other writer to know about us.
+  #interceptForeignWrites() {
+    if (patchedStreams.has(this.#stream)) {
+      return;
+    }
+
+    patchedStreams.add(this.#stream);
+
+    const originalWrite = this.#originalWrite;
+
+    this.#stream.write = ((...args: Parameters<WriteStream["write"]>) => {
+      if (this.#lineActive) {
+        originalWrite("\n");
+        this.#lineActive = false;
+      }
+
+      return originalWrite(...args);
+    }) as WriteStream["write"];
+  }
+
+  // undo the write patch installed by #interceptForeignWrites, e.g. once the report is done and
+  // this instance won't render anything else.
+  detach() {
+    if (patchedStreams.has(this.#stream)) {
+      patchedStreams.delete(this.#stream);
+      this.#stream.write = this.#originalWrite;
+    }
   }
 
   // save cursor position + settings
@@ -25,7 +77,7 @@ export class Terminal {
     }
 
     // save position
-    this.#stream.write("\x1B7");
+    this.#originalWrite("\x1B7");
   }
 
   // restore last cursor position + settings
@@ -35,7 +87,7 @@ export class Terminal {
     }
 
     // restore cursor
-    this.#stream.write("\x1B8");
+    this.#originalWrite("\x1B8");
   }
 
   // show/hide cursor
@@ -45,9 +97,9 @@ export class Terminal {
     }
 
     if (enabled) {
-      this.#stream.write("\x1B[?25h");
+      this.#originalWrite("\x1B[?25h");
     } else {
-      this.#stream.write("\x1B[?25l");
+      this.#originalWrite("\x1B[?25l");
     }
   }
 
@@ -58,7 +110,7 @@ export class Terminal {
     }
 
     // move cursor absolute
-    cursorTo(this.#stream, x, y);
+    cursorTo(this.#rawStream as WriteStream, x, y);
   }
 
   // change relative cursor position
@@ -71,7 +123,7 @@ export class Terminal {
     this.#dy = this.#dy + dy;
 
     // move cursor relative
-    moveCursor(this.#stream, dx, dy);
+    moveCursor(this.#rawStream as WriteStream, dx, dy);
   }
 
   // relative reset
@@ -81,10 +133,10 @@ export class Terminal {
     }
 
     // move cursor to initial line
-    moveCursor(this.#stream, 0, -this.#dy);
+    moveCursor(this.#rawStream as WriteStream, 0, -this.#dy);
 
     // first char
-    cursorTo(this.#stream, 0);
+    cursorTo(this.#rawStream as WriteStream, 0);
 
     // reset counter
     this.#dy = 0;
@@ -96,7 +148,7 @@ export class Terminal {
       return;
     }
 
-    clearLine(this.#stream, 1);
+    clearLine(this.#rawStream as WriteStream, 1);
   }
 
   // clear the full line
@@ -105,7 +157,7 @@ export class Terminal {
       return;
     }
 
-    clearLine(this.#stream, 0);
+    clearLine(this.#rawStream as WriteStream, 0);
   }
 
   // clear everyting beyond the current line
@@ -114,13 +166,14 @@ export class Terminal {
       return;
     }
 
-    clearScreenDown(this.#stream);
+    clearScreenDown(this.#rawStream as WriteStream);
   }
 
   // add new line; increment counter
   newline() {
-    this.#stream.write("\n");
+    this.#originalWrite("\n");
     this.#dy++;
+    this.#lineActive = false;
   }
 
   // write content to output stream
@@ -129,11 +182,15 @@ export class Terminal {
     // line wrapping enabled ? trim output
     // this is just a fallback mechanism in case user enabled line-wrapping via options or set it to auto
     if (this.#wrapLines && !rawWrite) {
-      this.#stream.write(s.slice(0, this.getWidth()));
+      this.#originalWrite(s.slice(0, this.getWidth()));
 
       // standard behaviour with disabled linewrapping
     } else {
-      this.#stream.write(s);
+      this.#originalWrite(s);
+    }
+
+    if (s.length > 0) {
+      this.#lineActive = true;
     }
   }
 
@@ -146,9 +203,9 @@ export class Terminal {
     // store state
     this.#wrapLines = enabled;
     if (enabled) {
-      this.#stream.write("\x1B[?7h");
+      this.#originalWrite("\x1B[?7h");
     } else {
-      this.#stream.write("\x1B[?7l");
+      this.#originalWrite("\x1B[?7l");
     }
   }
 

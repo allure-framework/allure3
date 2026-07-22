@@ -37,6 +37,8 @@ export class TestOpsPlugin implements Plugin {
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
+  #uploadedGlobalAttachmentIds: Set<string> = new Set();
+  #uploadedGlobalErrorsCount = 0;
   #autocloseLaunch: boolean = false;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
@@ -192,10 +194,13 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalErrors(store: AllureStore) {
-    const results = await store.allGlobalErrors();
+    const allResults = await store.allGlobalErrors();
+    // global errors are append-only, so anything before the count we've already uploaded is a
+    // repeat — without this, every realtime update cycle would re-upload the same errors again.
+    const results = allResults.slice(this.#uploadedGlobalErrorsCount);
 
     if (results.length === 0) {
-      this.#logger.verbose("No global errors to upload");
+      this.#logger.verbose("No new global errors to upload");
       return;
     }
 
@@ -220,6 +225,8 @@ export class TestOpsPlugin implements Plugin {
         progressLogger.increment();
       }
 
+      this.#uploadedGlobalErrorsCount = allResults.length;
+
       progressLogger.log(true);
     } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
@@ -236,10 +243,11 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalAttachments(store: AllureStore) {
-    const attachments = await store.allGlobalAttachments();
+    const allAttachments = await store.allGlobalAttachments();
+    const attachments = allAttachments.filter((attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id));
 
     if (attachments.length === 0) {
-      this.#logger.debug("No global attachments to upload");
+      this.#logger.debug("No new global attachments to upload");
       return;
     }
 
@@ -281,6 +289,10 @@ export class TestOpsPlugin implements Plugin {
       if (!completed) {
         progressLogger.increment();
       }
+
+      attachments.forEach((attachment) => {
+        this.#uploadedGlobalAttachmentIds.add(attachment.id);
+      });
 
       progressLogger.log(true);
     } catch (error) {
@@ -367,6 +379,12 @@ export class TestOpsPlugin implements Plugin {
       }
 
       return;
+    }
+
+    if (stage === "update") {
+      this.#logger.info(
+        `Found ${bold(trsToUpload.length.toString())} new test ${trsToUpload.length > 1 ? "results" : "result"}, uploading…`,
+      );
     }
 
     await this.#client.createSession(env);

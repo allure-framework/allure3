@@ -33,11 +33,18 @@ export const findMatching = async (
   existingResults: Set<string>,
   match: (dirent: Dirent) => boolean,
   maximumDepth: number = 5,
+  signal?: AbortSignal,
 ) => {
   try {
     const dir = await opendir(watchDirectory);
 
     for await (const dirent of dir) {
+      // bail out promptly instead of finishing the whole (possibly huge) directory tree scan
+      // when the caller is trying to shut down (e.g. the user pressed Ctrl+C).
+      if (signal?.aborted) {
+        return;
+      }
+
       const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
       // shouldn't be looking in private folders
@@ -55,7 +62,7 @@ export const findMatching = async (
       }
 
       if (dirent.isDirectory() && maximumDepth > 0) {
-        await findMatching(path, existingResults, match, maximumDepth - 1);
+        await findMatching(path, existingResults, match, maximumDepth - 1, signal);
       }
     }
   } catch (e) {
@@ -73,12 +80,19 @@ const findFiles = async (
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   recursive: boolean,
   maximumDepth: number = 10,
+  signal?: AbortSignal,
 ) => {
   const scanDirectory = async (directory: string, isRoot: boolean, remainingDepth: number): Promise<void> => {
     try {
       const dir = await opendir(directory);
 
       for await (const dirent of dir) {
+        // bail out promptly instead of finishing the whole (possibly huge) directory tree scan
+        // when the caller is trying to shut down (e.g. the user pressed Ctrl+C).
+        if (signal?.aborted) {
+          return;
+        }
+
         const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
         if (dirent.isDirectory()) {
@@ -200,17 +214,30 @@ export const newFilesInDirectoryWatcher = (
   onNewFile: (file: string, dirent: Dirent) => Promise<void>,
   options: WatchNewFilesOptions = {},
 ): Watcher => {
-  const { recursive = true, maximumDepth = 10, ignoreInitial = false, ...rest } = options;
+  const {
+    recursive = true,
+    maximumDepth = 10,
+    ignoreInitial = false,
+    abortController = new AbortController(),
+    ...rest
+  } = options;
   const indexedFiles: Set<string> = new Set();
 
   const initialCallback = async () => {
-    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive, maximumDepth);
+    await findFiles(
+      directory,
+      indexedFiles,
+      ignoreInitial ? noop : onNewFile,
+      recursive,
+      maximumDepth,
+      abortController.signal,
+    );
   };
   const iterationCallback = async () => {
-    await findFiles(directory, indexedFiles, onNewFile, recursive, maximumDepth);
+    await findFiles(directory, indexedFiles, onNewFile, recursive, maximumDepth, abortController.signal);
   };
 
-  return watch(initialCallback, iterationCallback, iterationCallback, rest);
+  return watch(initialCallback, iterationCallback, iterationCallback, { ...rest, abortController });
 };
 
 export const allureResultsDirectoriesWatcher = (
@@ -218,6 +245,7 @@ export const allureResultsDirectoriesWatcher = (
   update: (newAllureResults: Set<string>, deletedAllureResults: Set<string>) => Promise<void>,
   options: WatchOptions = {},
 ): Watcher => {
+  const { abortController = new AbortController(), ...rest } = options;
   let previousAllureResults: Set<string> = new Set();
 
   const callback = async () => {
@@ -226,13 +254,15 @@ export const allureResultsDirectoriesWatcher = (
       directory,
       currentAllureResults,
       (dirent) => dirent.isDirectory() && dirent.name === "allure-results",
+      undefined,
+      abortController.signal,
     );
     const [added, deleted] = difference(previousAllureResults, currentAllureResults);
     await update(added, deleted);
     previousAllureResults = currentAllureResults;
   };
 
-  return watch(callback, callback, callback, options);
+  return watch(callback, callback, callback, { ...rest, abortController });
 };
 
 interface FileContentWatcherOptions extends WatchOptions {
