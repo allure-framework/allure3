@@ -320,9 +320,15 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
-  const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
+  const knownIssuesPathValue = Object.hasOwn(override, "knownIssuesPath")
+    ? override.knownIssuesPath
+    : config.knownIssuesPath;
+  const knownIssuesPath =
+    typeof knownIssuesPathValue === "string" && knownIssuesPathValue.length > 0
+      ? resolve(knownIssuesPathValue)
+      : undefined;
   const output = resolve(override.output ?? config.output ?? "./allure-report");
-  const known = await readKnownIssues(knownIssuesPath);
+  const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
   const variables = config.variables ?? {};
   let pluginInstances: PluginInstance[] = [];
   const hasPluginsOverride = override.plugins !== undefined;

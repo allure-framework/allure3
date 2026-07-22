@@ -21,6 +21,7 @@ import {
   resolvePlugin,
   validateConfig,
 } from "../src/config.js";
+import { readKnownIssues as readKnownIssuesFn } from "../src/known.js";
 import { importWrapper } from "../src/utils/module.js";
 import { isWindows } from "../src/utils/windows.js";
 
@@ -29,8 +30,19 @@ class PluginFixture {}
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
+vi.mock("../src/known.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/known.js")>();
+
+  return {
+    ...actual,
+    readKnownIssues: vi.fn().mockResolvedValue([]),
+  };
+});
+
+const mockedReadKnownIssues = vi.mocked(readKnownIssuesFn);
 
 beforeEach(async () => {
+  vi.clearAllMocks();
   await epic("coverage");
   await feature("report-config");
   await story("config");
@@ -535,11 +547,21 @@ describe("resolveConfig", () => {
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
   });
 
-  it("should set default known issues path if it's not provided", async () => {
+  it("should leave known issues path undefined when not provided", async () => {
     const fixture = {} as Config;
     const resolved = await resolveConfig(fixture);
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./allure/known.json"));
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+  });
+
+  it("should ignore empty known issues path", async () => {
+    const resolved = await resolveConfig({
+      knownIssuesPath: "",
+    });
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
   });
 
   it("should return provided known issues path", async () => {
@@ -549,6 +571,7 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture);
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known.json"));
   });
 
   it("should allow to override given known issues path", async () => {
@@ -558,6 +581,18 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./custom/known.json"));
+  });
+
+  it("should leave known issues path undefined when override is empty", async () => {
+    const resolved = await resolveConfig(
+      {
+        knownIssuesPath: "./known.json",
+      },
+      { knownIssuesPath: "" },
+    );
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
   });
 
   it("should allow to override given history limit", async () => {

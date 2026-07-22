@@ -1,7 +1,7 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -13,6 +13,7 @@ import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
+import { writeKnownIssues } from "../src/known.js";
 import { AllureReport } from "../src/report.js";
 import { PERF_METRICS_FILE, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, resetPerfMetrics } from "../src/utils/perf.js";
 import { AllureServiceClientMock } from "./utils.js";
@@ -45,6 +46,14 @@ vi.mock("@allurereport/ci", () => ({
     jobRunBranch: "main",
   }),
 }));
+vi.mock("../src/known.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/known.js")>();
+
+  return {
+    ...actual,
+    writeKnownIssues: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
   const plugin: Mocked<Required<Plugin>> = {
@@ -237,6 +246,36 @@ describe("report", () => {
 
     expect(historyContent).not.toEqual(initialHistoryContent);
     expect(historyContent.startsWith(initialHistoryContent)).toBe(true);
+  });
+
+  it("should not write known issues for default path", async () => {
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(writeKnownIssues).not.toHaveBeenCalled();
+  });
+
+  it("should write known issues only when path is explicit", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-known-issues-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      knownIssuesPath: "./known/issues.json",
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(writeKnownIssues).toHaveBeenCalledTimes(1);
+    expect(writeKnownIssues).toHaveBeenCalledWith(allureReport.store, resolve("./known/issues.json"));
   });
 
   it("should read result directory files with bounded concurrency", async () => {
