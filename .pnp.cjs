@@ -10861,10 +10861,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/adm-zip", [\
-      ["npm:0.5.7", {\
-        "packageLocation": "./.yarn/cache/@types-adm-zip-npm-0.5.7-b19d96a568-24e9842bd6.zip/node_modules/@types/adm-zip/",\
+      ["npm:0.5.8", {\
+        "packageLocation": "./.yarn/cache/@types-adm-zip-npm-0.5.8-1b88fecc8d-0739e5abda.zip/node_modules/@types/adm-zip/",\
         "packageDependencies": [\
-          ["@types/adm-zip", "npm:0.5.7"],\
+          ["@types/adm-zip", "npm:0.5.8"],\
           ["@types/node", "npm:25.9.1"]\
         ],\
         "linkType": "HARD"\
@@ -12653,7 +12653,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
-          ["@types/adm-zip", "npm:0.5.7"],\
+          ["@types/adm-zip", "npm:0.5.8"],\
           ["@types/lodash.omit", "npm:4.5.9"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prompts", "npm:2.4.9"],\
