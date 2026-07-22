@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@allurereport/ci": "workspace:*",
+    "@allurereport/cli-commons": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-agent": "workspace:*",
     "@allurereport/plugin-allure2": "workspace:*",
