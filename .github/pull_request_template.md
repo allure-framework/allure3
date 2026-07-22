@@ -21,6 +21,5 @@ Describe the problem or feature in addition to a link to the issues
 
 - [ ] [Sign Allure CLA][cla]
 - [ ] Provide unit tests
-- [ ] Build passed
 
 [cla]: https://cla-assistant.io/accept/allure-framework/allure3

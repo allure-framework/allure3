@@ -297,7 +297,7 @@ Acceptance should stay strict even though the plugin itself is advisory:
 
 When agent output does not fully model runner-visible failures:
 
-- inspect `artifacts/global/stderr.txt` and global errors before concluding the run is complete
+- inspect process-log paths in `manifest/run.json` (or command-qualified artifacts under `artifacts/global/`) and global errors before concluding the run is complete
 - treat the review as partial when suite-load, import, or setup failures are visible outside logical test files
 - keep console-only conclusions provisional until the missing modeling is understood
 

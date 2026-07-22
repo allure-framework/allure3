@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
-import { resolvePluginOptions } from "../src/utils/index.js";
+import { resolvePluginOptions } from "../src/utils/options.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("@allurereport/ci", async (importOriginal) => {
@@ -40,7 +40,7 @@ vi.mock("../src/client.js", async () => {
   };
 });
 
-vi.mock("../src/utils/index.js", async (importOriginal) => {
+vi.mock("../src/utils/options.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     resolvePluginOptions: vi.fn(),
@@ -57,6 +57,7 @@ const fixtures = {
   testResults: [
     {
       id: "0-0-0-0",
+      name: "Test 0",
       steps: [
         {
           name: "step without attachments",
@@ -65,6 +66,7 @@ const fixtures = {
     },
     {
       id: "0-0-0-1",
+      name: "Test 1",
       steps: [
         {
           name: "step with attachments",
@@ -457,6 +459,35 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(0);
     });
 
+    it("should exclude invalid-only results before upload side effects", async () => {
+      const invalidResult = { id: "invalid", name: "bad\u0000name" } as TestResult;
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        [invalidResult].filter(options.filter ?? (() => true)),
+      );
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.createSession).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+    });
+
+    it("should retain valid results when mixed with invalid results", async () => {
+      const invalidResult = { id: "invalid", name: "bad\u0000name" } as TestResult;
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        [fixtures.testResults[0], invalidResult].filter(options.filter ?? (() => true)),
+      );
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({ trs: [fixtures.testResults[0]] }),
+      );
+    });
+
     it("should call attachmentsResolver for each test result", async () => {
       AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
         fixtures.testResults.filter(options.filter ?? (() => true)),
@@ -756,7 +787,7 @@ describe("testops plugin", () => {
                       value: "boom from testops",
                       name: "message: boom from testops",
                     },
-                    { key: "historyId", value: failedTr.id, name: failedTr.id },
+                    { key: "historyId", value: failedTr.id, name: failedTr.name },
                     { key: "environment", value: "foo", name: "environment: foo" },
                   ],
                 }),

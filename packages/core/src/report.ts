@@ -7,8 +7,9 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
-/* eslint max-lines: 0 */
 import { detect } from "@allurereport/ci";
+/* eslint max-lines: 0 */
+import { createProgressLogger } from "@allurereport/cli-commons";
 import type {
   AllureHistory,
   CategoryDefinition,
@@ -109,6 +110,7 @@ export class AllureReport {
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
+  readonly #appendHistory: boolean;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
@@ -140,6 +142,7 @@ export class AllureReport {
       realTime,
       historyPath,
       historyLimit,
+      appendHistory,
       defaultLabels = {},
       variables = {},
       environment,
@@ -181,6 +184,7 @@ export class AllureReport {
     this.#hideLabels = hideLabels;
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
+    this.#appendHistory = appendHistory ?? true;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -276,38 +280,18 @@ export class AllureReport {
     const uploadProgressMessage =
       reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
     const totalFilesToUpload = reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0);
-    const progressStep = Math.max(1, Math.ceil(totalFilesToUpload / 20));
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
-    let uploadedFiles = 0;
-    let nextProgressLogAt = 0;
-    let lastProgressLog = -1;
+    const progressLogger = createProgressLogger({
+      total: totalFilesToUpload,
+      message: uploadProgressMessage,
+      unitLabel: "files uploaded",
+      prefix: "[AllureReport]",
+    });
     const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
-
-    const logUploadProgress = (force = false) => {
-      if (force && uploadedFiles === lastProgressLog) {
-        return;
-      }
-
-      if (!force && uploadedFiles < nextProgressLogAt && uploadedFiles !== totalFilesToUpload) {
-        return;
-      }
-
-      if (!force && uploadedFiles === lastProgressLog) {
-        return;
-      }
-
-      console.info(`[AllureReport]: ${uploadProgressMessage}: ${uploadedFiles}/${totalFilesToUpload} files uploaded`);
-
-      lastProgressLog = uploadedFiles;
-      nextProgressLogAt = Math.min(totalFilesToUpload, uploadedFiles + progressStep);
-    };
-
-    const incrementUploadProgress = (delta = 1) => {
-      uploadedFiles = Math.min(totalFilesToUpload, uploadedFiles + delta);
-      logUploadProgress();
-    };
+    const logUploadProgress = progressLogger.log;
+    const incrementUploadProgress = progressLogger.increment;
 
     try {
       logUploadProgress(true);
@@ -407,6 +391,7 @@ export class AllureReport {
 
       this.#logPublishError(publishErrorMessage, err);
     } finally {
+      progressLogger.cancel?.();
       endPublishPerfSpan();
     }
   };
@@ -727,7 +712,12 @@ export class AllureReport {
     await rename(dumpTempPath, dumpPath);
   };
 
-  restoreState = async (dumps: string[]): Promise<void> =>
+  restoreState = async (dumps: string[]): Promise<void> => {
+    this.#store.resetIngestOrder();
+    await this.#restoreStateDumps(dumps);
+  };
+
+  #restoreStateDumps = async (dumps: string[]): Promise<void> =>
     measurePerf(PERF_METRIC_NAMES.restoreStateTotal, async () => {
       for (const dump of dumps) {
         await measurePerf(PERF_METRIC_NAMES.restoreStateDump, async () => {
@@ -778,7 +768,7 @@ export class AllureReport {
                     nestedDumpPaths.push(nestedDumpPath);
                   }
 
-                  await this.restoreState(nestedDumpPaths);
+                  await this.#restoreStateDumps(nestedDumpPaths);
                   return;
                 }
               }
@@ -1115,7 +1105,7 @@ export class AllureReport {
         } catch {}
       }
 
-      if (this.#history) {
+      if (this.#history && this.#appendHistory) {
         try {
           await this.#store.appendHistory(this.#historyDataPoint!);
         } catch (err) {

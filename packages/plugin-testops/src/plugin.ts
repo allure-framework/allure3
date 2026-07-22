@@ -1,6 +1,7 @@
 import { env } from "node:process";
 
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
+import { createProgressLogger } from "@allurereport/cli-commons";
 import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
@@ -17,14 +18,11 @@ import { TestOpsClient } from "./client.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
-import {
-  attachmentsResolverFactory,
-  fixturesResolverFactory,
-  resolvePluginOptions,
-  unwrapStepsAttachments,
-} from "./utils/index.js";
-import { toUploadCategory } from "./utils/uploadCategory.js";
-import { uploadFilenameForLink } from "./utils/uploaderDto.js";
+import { uploadFilenameForLink } from "./utils/attachments.js";
+import { toUploadCategory } from "./utils/categories.js";
+import { resolvePluginOptions } from "./utils/options.js";
+import { attachmentsResolverFactory, fixturesResolverFactory, unwrapStepsAttachments } from "./utils/resolvers.js";
+import { validateExecutableName } from "./utils/validation.js";
 
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
 const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
@@ -156,18 +154,30 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const progressBar = this.#logger.progressBar("Uploading quality gate results");
+    const progressLogger = createProgressLogger({
+      total: 1,
+      message: "Uploading quality gate results",
+      unitLabel: "request uploaded",
+      prefix: "[TestOpsPlugin]",
+    });
+    let completed = false;
 
     try {
-      progressBar.update(0);
-      await this.#client.uploadQualityGateResults(uniqueResults, (percent, total) => {
-        progressBar.update(percent / total);
-      });
-      progressBar.update(1);
-      progressBar.terminate();
-    } catch (error) {
-      progressBar.terminate();
+      progressLogger.log(true);
 
+      await this.#client.uploadQualityGateResults(uniqueResults, (percent) => {
+        if (!completed && percent >= 100) {
+          completed = true;
+          progressLogger.increment();
+        }
+      });
+
+      if (!completed) {
+        progressLogger.increment();
+      }
+
+      progressLogger.log(true);
+    } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
@@ -176,6 +186,8 @@ export class TestOpsPlugin implements Plugin {
       } else {
         this.#logger.error("Failed to upload quality gate results");
       }
+    } finally {
+      progressLogger.cancel?.();
     }
   }
 
@@ -187,18 +199,29 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const progressBar = this.#logger.progressBar("Uploading global errors");
+    const progressLogger = createProgressLogger({
+      total: 1,
+      message: "Uploading global errors",
+      unitLabel: "request uploaded",
+      prefix: "[TestOpsPlugin]",
+    });
+    let completed = false;
 
     try {
-      progressBar.update(0);
-      await this.#client.uploadGlobalErrors(results, (percent, total) => {
-        progressBar.update(percent / total);
+      progressLogger.log(true);
+      await this.#client.uploadGlobalErrors(results, (percent) => {
+        if (!completed && percent >= 100) {
+          completed = true;
+          progressLogger.increment();
+        }
       });
-      progressBar.update(1);
-      progressBar.terminate();
-    } catch (error) {
-      progressBar.terminate();
 
+      if (!completed) {
+        progressLogger.increment();
+      }
+
+      progressLogger.log(true);
+    } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
@@ -207,6 +230,8 @@ export class TestOpsPlugin implements Plugin {
       } else {
         this.#logger.error("Failed to upload global errors");
       }
+    } finally {
+      progressLogger.cancel?.();
     }
   }
 
@@ -218,10 +243,16 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const progressBar = this.#logger.progressBar("Uploading global attachments");
+    const progressLogger = createProgressLogger({
+      total: 1,
+      message: "Uploading global attachments",
+      unitLabel: "request uploaded",
+      prefix: "[TestOpsPlugin]",
+    });
+    let completed = false;
 
     try {
-      progressBar.update(0);
+      progressLogger.log(true);
       await this.#client.uploadGlobalAttachments({
         attachments,
         attachmentsResolver: async (attachmentLink) => {
@@ -239,15 +270,20 @@ export class TestOpsPlugin implements Plugin {
             content: body,
           };
         },
-        onProgress: (percent, total) => {
-          progressBar.update(percent / total);
+        onProgress: (percent) => {
+          if (!completed && percent >= 100) {
+            completed = true;
+            progressLogger.increment();
+          }
         },
       });
-      progressBar.update(1);
-      progressBar.terminate();
-    } catch (error) {
-      progressBar.terminate();
 
+      if (!completed) {
+        progressLogger.increment();
+      }
+
+      progressLogger.log(true);
+    } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
@@ -256,6 +292,8 @@ export class TestOpsPlugin implements Plugin {
       } else {
         this.#logger.error("Failed to upload global attachments");
       }
+    } finally {
+      progressLogger.cancel?.();
     }
   }
 
@@ -270,31 +308,43 @@ export class TestOpsPlugin implements Plugin {
       `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}`,
     );
 
-    const trsProgressBar = this.#logger.progressBarCounter("Uploading test results", totalCount);
-
-    const uploadedTrs = await this.#client.uploadTestResults({
-      attachmentsResolver: attachmentsResolverFactory(store),
-      fixturesResolver: fixturesResolverFactory(store),
-      environments,
-      trs: trsToUpload,
-      onProgress: () => trsProgressBar.tick(),
+    const progressLogger = createProgressLogger({
+      total: totalCount,
+      message: "Uploading test results",
+      unitLabel: totalCount === 1 ? "test result uploaded" : "test results uploaded",
+      prefix: "[TestOpsPlugin]",
     });
+    const logProgress = progressLogger.log;
+    const incrementProgress = progressLogger.increment;
 
-    uploadedTrs.forEach((tr) => {
-      this.#uploadedTestResultsIds.add(tr.id);
-    });
+    try {
+      logProgress(true);
 
-    const uploadedCount = uploadedTrs.length;
+      const uploadedTrs = await this.#client.uploadTestResults({
+        attachmentsResolver: attachmentsResolverFactory(store),
+        fixturesResolver: fixturesResolverFactory(store),
+        environments,
+        trs: trsToUpload,
+        onProgress: () => incrementProgress(),
+      });
 
-    trsProgressBar.update(uploadedCount / totalCount);
-    trsProgressBar.terminate();
+      logProgress(true);
 
-    if (uploadedCount === 0) {
-      this.#logger.warn("No test results were uploaded");
-      return;
+      uploadedTrs.forEach((tr) => {
+        this.#uploadedTestResultsIds.add(tr.id);
+      });
+
+      const uploadedCount = uploadedTrs.length;
+
+      if (uploadedCount === 0) {
+        this.#logger.warn("No test results were uploaded");
+        return;
+      }
+
+      this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+    } finally {
+      progressLogger.cancel?.();
     }
-
-    this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
   }
 
   async #upload(
@@ -305,7 +355,6 @@ export class TestOpsPlugin implements Plugin {
     },
   ) {
     const { context, stage } = options;
-
     const trsToUpload = await this.#trsToUpload(store);
 
     if (trsToUpload.length === 0) {
@@ -321,7 +370,6 @@ export class TestOpsPlugin implements Plugin {
     }
 
     await this.#client.createSession(env);
-
     await this.#uploadGlobalAttachments(store);
     await this.#uploadGlobalErrors(store);
     await this.#uploadQualityGateResults(store);
@@ -329,14 +377,13 @@ export class TestOpsPlugin implements Plugin {
     const environments = await store.allEnvironmentIdentities();
     const contextCategories = context?.categories ?? [];
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
 
   async #trsToUpload(store: AllureStore) {
     const filter = this.options.filter ?? stubTrue;
-
     const filteredTrs = await store.allTestResults({
       filter: (tr) => {
         const uploaded = this.#uploadedTestResultsIds.has(tr.id);
@@ -345,7 +392,7 @@ export class TestOpsPlugin implements Plugin {
           return false;
         }
 
-        return filter(tr);
+        return validateExecutableName(tr.name) && filter(tr);
       },
       includeRetries: false,
     });

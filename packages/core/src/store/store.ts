@@ -12,6 +12,7 @@ import {
   type EnvironmentIdentity,
   type EnvironmentDescriptor,
   type EnvironmentsConfig,
+  type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
@@ -39,7 +40,6 @@ import {
   type AllureStore,
   type AllureStoreDump,
   type ExitCode,
-  type PluginGlobalAttachment,
   type PluginGlobalError,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
@@ -267,13 +267,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#globalExitCode = exitCode;
     });
     this.#realtimeSubscriber?.onGlobalError((error: PluginGlobalError) => {
-      this.#addGlobalError(error);
+      const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(error.environment);
+
+      this.#addGlobalError({
+        ...error,
+        environment: resolvedEnvironment.id,
+      });
     });
     this.#realtimeSubscriber?.onGlobalAttachment(({ attachment, fileName, environment }) => {
       const originalFileName = attachment.getOriginalFileName();
       const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(environment);
-      const attachmentLink: PluginGlobalAttachment = {
-        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment?.id),
+      const attachmentLink: GlobalAttachmentLink = {
+        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment.id),
         name: fileName || originalFileName,
         missed: false,
         used: true,
@@ -281,7 +286,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         contentType: attachment.getContentType(),
         contentLength: attachment.getContentLength(),
         originalFileName,
-        environment: resolvedEnvironment?.name ?? environment,
+        environment: resolvedEnvironment.id,
       };
 
       this.#addGlobalAttachment(attachmentLink, attachment);
@@ -460,7 +465,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
   }
 
-  #resolveGlobalEnvironmentIdentity(environment?: string): EnvironmentIdentity | undefined {
+  #resolveGlobalEnvironmentIdentity(environment?: string): EnvironmentIdentity {
     if (environment !== undefined) {
       const resolvedEnvironment = resolveStoredEnvironmentIdentity(
         {
@@ -507,21 +512,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#globalErrors.push(this.#indexGlobalError(error));
   }
 
-  #indexGlobalAttachment(attachmentLink: PluginGlobalAttachment) {
+  #indexGlobalAttachment(attachmentLink: GlobalAttachmentLink): GlobalAttachmentLink {
     const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(attachmentLink.environment);
-
-    if (!resolvedEnvironment) {
-      return attachmentLink;
-    }
-
     attachmentLink.environment = resolvedEnvironment.name;
     this.#addEnvironments([resolvedEnvironment]);
     index(this.#globalAttachmentIdsByEnv, resolvedEnvironment.id, attachmentLink.id);
 
-    return attachmentLink;
+    return attachmentLink as GlobalAttachmentLink;
   }
 
-  #addGlobalAttachment(attachmentLink: PluginGlobalAttachment, attachment?: ResultFile) {
+  #addGlobalAttachment(attachmentLink: GlobalAttachmentLink, attachment?: ResultFile) {
     const indexedAttachment = this.#indexGlobalAttachment({ ...attachmentLink });
 
     this.#attachments.set(indexedAttachment.id, indexedAttachment);
@@ -656,9 +656,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return mapToObject(this.#globalErrorsByEnv);
   }
 
-  async allGlobalAttachments(): Promise<AttachmentLink[]> {
+  async allGlobalAttachments(): Promise<GlobalAttachmentLink[]> {
     return this.#globalAttachmentIds.reduce((acc, id) => {
-      const attachment = this.#attachments.get(id);
+      const attachment = this.#attachments.get(id) as GlobalAttachmentLink | undefined;
 
       if (!attachment) {
         return acc;
@@ -667,24 +667,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       acc.push(attachment);
 
       return acc;
-    }, [] as AttachmentLink[]);
+    }, [] as GlobalAttachmentLink[]);
   }
 
-  async allGlobalAttachmentsByEnv(): Promise<Record<string, PluginGlobalAttachment[]>> {
-    const result: Record<string, PluginGlobalAttachment[]> = {};
+  async allGlobalAttachmentsByEnv(): Promise<Record<string, GlobalAttachmentLink[]>> {
+    const result: Record<string, GlobalAttachmentLink[]> = {};
 
     this.#globalAttachmentIdsByEnv.forEach((attachmentIds, environmentId) => {
       result[environmentId] = attachmentIds.reduce((acc, id) => {
-        const attachment = this.#attachments.get(id);
+        const attachment = this.#attachments.get(id) as GlobalAttachmentLink | undefined;
 
         if (!attachment) {
           return acc;
         }
 
-        acc.push(attachment as PluginGlobalAttachment);
+        acc.push(attachment);
 
         return acc;
-      }, [] as PluginGlobalAttachment[]);
+      }, [] as GlobalAttachmentLink[]);
     });
 
     return result;
@@ -864,8 +864,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(attachment.environment);
       const linkedAttachment = this.#attachments.get(md5(originalFileName)) as AttachmentLinkLinked | undefined;
       const attachmentContent = this.#attachmentContents.get(md5(originalFileName));
-      const attachmentLink: PluginGlobalAttachment = {
-        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment?.id),
+      const attachmentLink: GlobalAttachmentLink = {
+        id: this.#globalAttachmentId(originalFileName, resolvedEnvironment.id),
         name: attachment?.name || originalFileName,
         originalFileName,
         ext: extname(originalFileName),
@@ -873,7 +873,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         missed: !attachmentContent,
         contentType: attachment?.contentType ?? linkedAttachment?.contentType,
         contentLength: linkedAttachment?.contentLength,
-        environment: resolvedEnvironment?.name ?? attachment.environment,
+        environment: resolvedEnvironment.name,
       };
 
       this.#addGlobalAttachment(attachmentLink, attachmentContent);
@@ -1153,6 +1153,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const tr = this.#testResults.get(trId);
 
     return this.#retriesByTr(tr);
+  }
+
+  resetIngestOrder() {
+    this.#retrySubstore.resetIngestOrder();
   }
 
   #historyByTr(tr: TestResult): HistoryTestResult[] | undefined {
@@ -1630,8 +1634,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#assertAllowedStoredEnvironment(
         {
-          environment: (attachment as PluginGlobalAttachment).environment,
-          environmentName: (attachment as PluginGlobalAttachment).environment,
+          environment: (attachment as GlobalAttachmentLink).environment,
+          environmentName: (attachment as GlobalAttachmentLink).environment,
         },
         `restored globalAttachments[${JSON.stringify(id)}]`,
         {
@@ -1639,7 +1643,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         },
       );
       this.#globalAttachmentIds.push(id);
-      this.#indexGlobalAttachment(attachment as PluginGlobalAttachment);
+      this.#indexGlobalAttachment(attachment as GlobalAttachmentLink);
     });
     globalErrors.forEach((error, index) => {
       this.#assertAllowedStoredEnvironment(

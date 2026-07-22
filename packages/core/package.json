@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.14.1",
+  "version": "3.14.3",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@allurereport/ci": "workspace:*",
+    "@allurereport/cli-commons": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-agent": "workspace:*",
     "@allurereport/plugin-allure2": "workspace:*",
@@ -46,11 +47,12 @@
     "@allurereport/summary": "workspace:*",
     "glob": "^13.0.6",
     "handlebars": "^4.7.9",
+    "jiti": "^2.5.1",
     "node-stream-zip": "^1.15.0",
     "p-limit": "^7.3.0",
     "yaml": "^2.8.3",
-    "yoctocolors": "^2.1.1",
-    "zip-stream": "^7.0.2"
+    "yoctocolors": "^2.1.2",
+    "zip-stream": "^7.0.5"
   },
   "devDependencies": {
     "@types/node": "^20",

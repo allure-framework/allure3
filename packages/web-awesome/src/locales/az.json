@@ -150,6 +150,7 @@
     "copy": "Kopyala",
     "copy-email": "E-poçtu kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
+    "retry": "Təkrar cəhd {{attempt}} / {{total}}",
     "at": "tarixində",
     "generated": "Yaradıldı",
     "variables": "Dəyişənlər",

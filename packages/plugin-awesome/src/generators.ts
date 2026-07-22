@@ -27,9 +27,9 @@ import {
 } from "@allurereport/core-api";
 import type {
   AllureStore,
+  GlobalAttachmentLink,
   ExitCode,
   PluginContext,
-  PluginGlobalAttachment,
   PluginGlobalError,
   PluginGlobals,
   QualityGateValidationResult,
@@ -160,7 +160,9 @@ export const generateTestResults = async (
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTrFixtures: AwesomeFixtureResult[] = [...trFixtures]
+      .sort(nullsLast(compareBy("start", ordinal())))
+      .map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
@@ -555,8 +557,8 @@ export const generateGlobals = async (
   writer: AwesomeDataWriter,
   payload: {
     globalExitCode?: ExitCode;
-    globalAttachments?: PluginGlobalAttachment[];
-    globalAttachmentsByEnv?: Record<string, PluginGlobalAttachment[]>;
+    globalAttachments?: GlobalAttachmentLink[];
+    globalAttachmentsByEnv?: Record<string, GlobalAttachmentLink[]>;
     globalErrors?: PluginGlobalError[];
     globalErrorsByEnv?: Record<string, PluginGlobalError[]>;
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
@@ -574,7 +576,7 @@ export const generateGlobals = async (
     errors: globalErrors,
     attachments: [],
   };
-  const attachmentsByEnv: Record<string, PluginGlobalAttachment[]> = {};
+  const attachmentsByEnv: Record<string, GlobalAttachmentLink[]> = {};
 
   if (globalExitCode) {
     globals.exitCode = globalExitCode;

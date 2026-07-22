@@ -29,6 +29,7 @@ export type UploadReportPayload = {
   pluginId?: string;
   files: Record<string, string> | Record<string, string>[];
   onProgress?: (uploadedFilesDelta?: number) => void;
+  uploadBatchMaxBytes?: number;
 };
 
 export type UploadReportFilePayload = {

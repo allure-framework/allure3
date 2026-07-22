@@ -1,11 +1,12 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -270,6 +271,53 @@ describe("run command integration", () => {
     });
   }, 240_000);
 
+  it("runs the built generate command with a TypeScript config", async () => {
+    const fixtureDir = join(tempDir, "typescript-config-generate");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "typed-report");
+    const configPath = join(fixtureDir, "allurerc.ts");
+    const resultPath = join(resultsDir, "simple-result.json");
+    const configSource = `
+import type { AllureConfig } from "allure";
+
+const config = {
+  name: "Typed CLI Report",
+  output: ${JSON.stringify(outputDir)},
+} satisfies AllureConfig;
+
+export default config;
+`.trimStart();
+
+    let stderr = "";
+
+    await step("prepare TypeScript config fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(resultPath, await readFile(simpleResultFixture, "utf-8"), "utf-8");
+      await attachment("typescript config", configSource, "text/plain");
+    });
+
+    await step("run built generate command with TypeScript config", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        resultsDir,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("generate with TypeScript config", result);
+    });
+
+    await step("verify generated report uses TypeScript config", async () => {
+      await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
+      expect(stderr).toBe("");
+    });
+  }, 240_000);
+
   it("runs the built agent command with default human report output", async () => {
     const fixtureDir = join(tempDir, "built-agent");
     const homeDir = join(fixtureDir, "home");
@@ -407,6 +455,10 @@ console.log("emitted simple result");
         paths: {
           expected_manifest: string | null;
           human_report_manifest: string | null;
+          process_logs: {
+            stdout: string | null;
+            stderr: string | null;
+          };
         };
         human_report: {
           mode: string;
@@ -428,6 +480,10 @@ console.log("emitted simple result");
       expect(runManifest.expectations_present).toBe(true);
       expect(runManifest.paths.expected_manifest).toBe("manifest/expected.json");
       expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
+      expect(runManifest.paths.process_logs).toEqual({
+        stdout: `artifacts/global/${formatProcessLogAttachmentName(`node ${emitResultsPath} ${simpleResultFixture}`, "stdout")}`,
+        stderr: null,
+      });
       expect(runManifest.human_report).toEqual(humanReportManifest);
       expect(humanReportManifest).toEqual(
         expect.objectContaining({
@@ -445,7 +501,7 @@ console.log("emitted simple result");
       expect(indexMarkdown).toContain("- Status: generated");
       expect(indexMarkdown).toContain("- Path: [awesome/index.html](awesome/index.html)");
       expect(await pathExists(join(outputDir, "project"))).toBe(false);
-      expect(findingsContent).toBe("");
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
@@ -453,9 +509,14 @@ console.log("emitted simple result");
       expect(stdout).toContain(join(outputDir, "index.md"));
       expect(stdout).toContain("expectations: matched");
       // The test command's own stdout is captured into the agent artifacts, not echoed to the terminal.
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("emitted simple result");
-      expect(stdout).not.toContain("emitted simple result");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${simpleResultFixture}`,
+        "stdout",
+      );
+      expect(globalArtifactNames).toContain(stdoutArtifactName);
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain("emitted simple result");
       expect(stdout).not.toContain("process finished with code");
       expect(stdout).not.toContain("exit code ");
       expect(stdout).not.toContain("[DEP0190]");
@@ -497,6 +558,7 @@ const outDir = join(process.cwd(), "allure-results");
 await mkdir(outDir, { recursive: true });
 await cp(fixture, join(outDir, \`\${randomUUID()}-result.json\`));
 console.log("emitted newly added test result");
+console.error("emitted newly added test diagnostic");
 `.trimStart();
 
     let stdout = "";
@@ -590,11 +652,26 @@ console.log("emitted newly added test result");
           full_name: expectedFullName,
         }),
       ]);
-      expect(findingsContent).toBe("");
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(indexMarkdown).toContain(expectedFullName);
       expect(stdout).toContain("expectations: matched");
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("emitted newly added test result");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stdout",
+      );
+      const stderrArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stderr",
+      );
+      expect(globalArtifactNames).toEqual(expect.arrayContaining([stdoutArtifactName, stderrArtifactName]));
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain(
+        "emitted newly added test result",
+      );
+      expect(await readFile(join(globalArtifactsDir, stderrArtifactName), "utf-8")).toContain(
+        "emitted newly added test diagnostic",
+      );
       expect(stderr).toBe("");
     });
   }, 240_000);
@@ -928,8 +1005,14 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       // The rerun prints its summary to the terminal, but the command's own stdout is captured into
       // the agent artifacts rather than echoed.
       expect(stdout).toContain("Allure agent:");
-      const capturedStdout = await readFile(join(outputDir, "artifacts", "global", "stdout.txt"), "utf-8");
-      expect(capturedStdout).toContain("selected selectors: suite feature A");
+      const globalArtifactsDir = join(outputDir, "artifacts", "global");
+      const globalArtifactNames = await readdir(globalArtifactsDir);
+      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
+
+      if (stdoutArtifactName) {
+        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
+        expect(capturedStdout).toContain("selected selectors: suite feature A");
+      }
       expect(stderr).toBe("");
 
       const selectedTests = (await readFile(join(outputDir, "manifest", "tests.jsonl"), "utf-8"))

@@ -25,7 +25,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   const { t } = useI18n("ui");
   const { t: controls } = useI18n("controls");
 
-  const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
+  const retryTitlePrefix = t("retry", { attempt, total: totalAttempts });
   const convertedStop = stop ? timestampToDate(stop) : undefined;
   const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
 

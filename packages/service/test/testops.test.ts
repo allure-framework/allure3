@@ -23,6 +23,10 @@ const uploadConfig = {
   uploadMaxSimultaneousFailures: 5,
 };
 
+const httpMock = vi.hoisted(() => ({
+  uploadReport: vi.fn(),
+}));
+
 const fixtures = {
   accessToken: validAccessToken,
   testOpsAccessToken,
@@ -81,10 +85,12 @@ const { AllureTestOpsClient: AllureTestOpsClientClass } = await import("../src/t
 
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
+  stat: vi.fn(),
 }));
 vi.mock("../src/utils/http.js", async (importOriginal) => ({
   ...(await importOriginal()),
   createServiceHttpClient: createHttpClientMock,
+  uploadReport: httpMock.uploadReport,
 }));
 
 describe("AllureTestOpsClient", () => {
@@ -364,8 +370,7 @@ describe("AllureTestOpsClient", () => {
 
   describe("uploadReport", () => {
     it("uploads files through shared helper", async () => {
-      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("<html></html>"));
-      HttpClientMock.prototype.post.mockResolvedValue(undefined);
+      httpMock.uploadReport.mockResolvedValue({ hrefs: {}, indexHref: undefined });
 
       const result = await testOpsClient.uploadReport({
         reportUuid: fixtures.report,
@@ -375,12 +380,13 @@ describe("AllureTestOpsClient", () => {
         },
       });
 
-      expect(result.indexHref).toBe(
-        `${fixtures.url}/api/test-report/view/${fixtures.report}/${fixtures.pluginId}/index.html`,
-      );
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(
-        `/api/test-report/${fixtures.report}/upload`,
-        expect.anything(),
+      expect(result.indexHref).toBeUndefined();
+      expect(httpMock.uploadReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reportUuid: fixtures.report,
+          pluginId: fixtures.pluginId,
+          uploadBatchMaxBytes: 8 * 1024 * 1024,
+        }),
       );
     });
   });

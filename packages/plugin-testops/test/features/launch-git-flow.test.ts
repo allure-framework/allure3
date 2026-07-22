@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TestOpsPluginOptions } from "../../src/model.js";
 import { TestOpsPlugin } from "../../src/plugin.js";
-import { resolvePluginOptions } from "../../src/utils/index.js";
+import { resolvePluginOptions } from "../../src/utils/options.js";
 import { AllureStoreMock, TestOpsClientMock } from "../utils.js";
 
 vi.mock("@allurereport/ci", async (importOriginal) => ({
@@ -34,7 +34,7 @@ vi.mock("../../src/client.js", async () => {
   };
 });
 
-vi.mock("../../src/utils/index.js", async (importOriginal) => {
+vi.mock("../../src/utils/options.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     resolvePluginOptions: vi.fn(),

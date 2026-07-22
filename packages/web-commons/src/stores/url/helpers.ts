@@ -50,15 +50,9 @@ export const isSameDocumentUrl = (url: URL, currentHref: string = getCurrentUrl(
 };
 
 export const toSameDocumentHistoryUrl = (url: URL) => {
-  if (url.search) {
-    return `${url.search}${url.hash}`;
-  }
+  const fileName = url.pathname.split("/").pop() || ".";
 
-  if (url.hash) {
-    return url.hash;
-  }
-
-  return url.pathname.split("/").pop() || ".";
+  return `${fileName}${url.search}${url.hash}`;
 };
 
 export const getHistoryUrl = (to: NavigateTo, currentHref: string = getCurrentUrl()) => {

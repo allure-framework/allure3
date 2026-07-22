@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-dashboard",
-  "version": "3.14.1",
+  "version": "3.14.3",
   "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
-    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^7.27.1",
     "@floating-ui/dom": "^1.6.12",
     "@preact/compat": "^18.3.1",
