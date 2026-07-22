@@ -1,5 +1,5 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 
 import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "@allurereport/plugin-api";
@@ -29,6 +29,7 @@ export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: str
     return;
   }
 
+  const path = resolve(knownIssuesPath);
   const testResults = await store.allTestResults();
   const knownIssues: KnownTestFailure[] = testResults
     .filter((tr) => failedStatuses.has(tr.status))
@@ -39,5 +40,6 @@ export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: str
       comment: "automatically generated from failure by allure known-issue command",
     }));
 
-  await writeFile(knownIssuesPath, JSON.stringify(knownIssues));
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(knownIssues)}\n`, "utf-8");
 };

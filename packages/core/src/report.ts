@@ -47,6 +47,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
+import { writeKnownIssues } from "./known.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -110,6 +111,7 @@ export class AllureReport {
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #appendHistory: boolean;
+  readonly #knownIssuesPath?: string;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
@@ -137,6 +139,7 @@ export class AllureReport {
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       known,
+      knownIssuesPath,
       reportFiles,
       realTime,
       historyPath,
@@ -184,6 +187,7 @@ export class AllureReport {
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
+    this.#knownIssuesPath = knownIssuesPath;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -1133,6 +1137,14 @@ export class AllureReport {
           } else {
             throw err;
           }
+        }
+      }
+
+      if (this.#knownIssuesPath) {
+        try {
+          await writeKnownIssues(this.#store, this.#knownIssuesPath);
+        } catch (err) {
+          console.error("Failed to write known issues", errorDetails(err));
         }
       }
 

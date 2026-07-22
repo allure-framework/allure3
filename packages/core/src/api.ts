@@ -9,7 +9,7 @@ export interface PluginInstance {
   options: Record<string, any>;
 }
 
-type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "open" | "knownIssuesPath">>;
+type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "open">>;
 
 export interface FullConfig
   extends
@@ -21,6 +21,7 @@ export interface FullConfig
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
   known?: KnownTestFailure[];
+  knownIssuesPath?: Config["knownIssuesPath"];
   realTime?: any;
   qualityGate?: Config["qualityGate"];
   allureService?: ResolvedAllureServiceConfig;
