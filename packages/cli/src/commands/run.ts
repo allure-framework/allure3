@@ -14,7 +14,7 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
+import { executeAllureRun, executeAllureWatchRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -90,6 +90,16 @@ export class RunCommand extends Command {
     description: "Path to known issues file",
   });
 
+  watch = Option.Boolean("--watch", {
+    description:
+      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental)",
+  });
+
+  testMatch = Option.String("--test-match", {
+    description:
+      "Regular expression used in --watch mode to detect spec files (default: /\\.(spec|test)\\.[cm]?[jt]sx?$/)",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -154,10 +164,18 @@ export class RunCommand extends Command {
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
-    const withQualityGate = !!config.qualityGate && !withRerun;
+    const withQualityGate = !!config.qualityGate && !withRerun && !this.watch;
 
     if (config.qualityGate && withRerun) {
       console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
+    }
+
+    if (config.qualityGate && this.watch) {
+      console.warn("Quality gate doesn't work with watch; skipping quality gate validation.");
+    }
+
+    if (this.watch && withRerun) {
+      console.warn("--rerun is ignored in --watch mode.");
     }
 
     try {
@@ -172,7 +190,7 @@ export class RunCommand extends Command {
       environment: resolvedEnvironment?.id,
       qualityGate: withQualityGate ? config.qualityGate : undefined,
       dump: this.dump,
-      realTime: false,
+      realTime: !!this.watch,
       plugins: [
         ...(config.plugins?.length
           ? config.plugins
@@ -189,6 +207,26 @@ export class RunCommand extends Command {
       ],
     });
     const knownIssues = await allureReport.store.allKnownIssues();
+
+    if (this.watch) {
+      await executeAllureWatchRun({
+        allureReport,
+        knownIssues,
+        cwd,
+        command,
+        commandArgs,
+        outputDir: config.output,
+        environmentVariables: createChildAllureCliEnvironment("run"),
+        environment: resolvedEnvironment?.id,
+        logs: this.logs,
+        silent: this.silent,
+        testMatch: this.testMatch ? new RegExp(this.testMatch) : undefined,
+      });
+
+      exit(0);
+      return;
+    }
+
     const { globalExitCode } = await executeAllureRun({
       allureReport,
       knownIssues,
