@@ -89,7 +89,11 @@ export class RunCommand extends Command {
 
   watch = Option.Boolean("--watch", {
     description:
-      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental). Defaults to on outside CI and off in CI; pass --no-watch to force a single run locally",
+      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental). Defaults to on outside CI and off in CI; pass --once to force a single run locally",
+  });
+
+  once = Option.Boolean("--once", {
+    description: "Force a single run and exit, even outside CI where --watch is on by default",
   });
 
   testMatch = Option.String("--test-match", {
@@ -159,9 +163,14 @@ export class RunCommand extends Command {
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
+
+    if (this.watch && this.once) {
+      throw new UsageError("--watch and --once cannot be used together");
+    }
+
     const ci = detect();
     const isCI = !isLocalCiDescriptor(ci) || env.CI === "true" || env.CI === "1";
-    const shouldWatch = this.watch ?? !isCI;
+    const shouldWatch = this.once ? false : (this.watch ?? !isCI);
     const withQualityGate = !!config.qualityGate && !withRerun && !shouldWatch;
 
     if (config.qualityGate && withRerun) {
