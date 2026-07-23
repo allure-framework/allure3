@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -165,6 +167,28 @@ describe("testops http client", () => {
       );
       expect(AxiosMock.post).toHaveBeenCalledWith(
         `/api/launch/${fixtures.launch.id}/close`,
+        undefined,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+    });
+  });
+
+  describe("reopenLaunch", () => {
+    it("should post to /api/launch/{id}/reopen", async () => {
+      AxiosMock.post.mockResolvedValue({ data: {} });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.reopenLaunch(fixtures.launch.id);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/${fixtures.launch.id}/reopen`,
         undefined,
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
@@ -679,6 +703,46 @@ describe("testops http client", () => {
           onUploadProgress: expect.any(Function),
         }),
       );
+    });
+
+    it("should pace subsequent uploads by the resolved attachments' byte size", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const windowMs = 100;
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+        uploadRateLimit: { windowMs, maxBytesPerWindow: 1 },
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue({
+        originalFileName: "file.txt",
+        contentType: "text/plain",
+        content: Buffer.from("more than one byte of content"),
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      // first call establishes the byte budget usage, well past the 1-byte-per-window limit
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      const start = performance.now();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
     });
   });
 

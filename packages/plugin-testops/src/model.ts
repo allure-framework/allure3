@@ -253,6 +253,8 @@ export type TestOpsUploaderOptions = {
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
   uploadRateLimit?: UploadRateLimit | false;
+  /** Reopens a launch that TestOps reports as closed instead of failing the upload. Default: false */
+  reopenClosedLaunch?: boolean;
 };
 
 export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {

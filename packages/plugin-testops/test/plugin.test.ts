@@ -958,6 +958,59 @@ describe("testops plugin", () => {
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(1);
       });
     });
+
+    describe("reopenClosedLaunch", () => {
+      const closedLaunchError = {
+        isAxiosError: true,
+        response: { status: 423, data: { message: "Launch is closed" } },
+      };
+
+      it("reopens the launch and retries when the option is enabled", async () => {
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: [],
+          reopenClosedLaunch: true,
+        });
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(closedLaunchError);
+
+        await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.reopenLaunch).toHaveBeenCalledWith(TestOpsClientMock.prototype.launchId);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+      });
+
+      it("does not reopen the launch when the option is disabled (default)", async () => {
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: [],
+        });
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(closedLaunchError);
+
+        await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.reopenLaunch).not.toHaveBeenCalled();
+        // still retries: "launch is closed" is a resource-recoverable error kind regardless of the reopen option
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+      });
+    });
   });
 
   describe("when client is not initialized", () => {

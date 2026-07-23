@@ -59,6 +59,20 @@ class TestOpsClientError extends AxiosError<{
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
 
+// best-effort: a Buffer/Blob's size is known upfront, a stream's isn't without consuming it,
+// so streamed attachments just don't contribute to the byte budget
+const attachmentByteLength = (content: AttachmentForUpload["content"]): number => {
+  if (Buffer.isBuffer(content)) {
+    return content.length;
+  }
+
+  if (typeof Blob !== "undefined" && content instanceof Blob) {
+    return content.size;
+  }
+
+  return 0;
+};
+
 export class TestOpsClient {
   #baseUrl: string;
   #logger = new Logger("TestOpsClient");
@@ -128,6 +142,12 @@ export class TestOpsClient {
     this.#logger.verbose("Closing launch…");
     await this.#client.post(`/api/launch/${launchId}/close`);
     this.#logger.verbose("Launch closed");
+  }
+
+  async reopenLaunch(launchId: number): Promise<void> {
+    this.#logger.verbose("Reopening closed launch…");
+    await this.#client.post(`/api/launch/${launchId}/reopen`);
+    this.#logger.verbose("Launch reopened");
   }
 
   async createLaunchCategoriesBulk(
@@ -343,6 +363,7 @@ export class TestOpsClient {
     }
 
     const formData = new FormData();
+    let totalBytes = 0;
 
     for (const attachmentLink of attachments) {
       const attachment = await attachmentsResolver(attachmentLink);
@@ -351,11 +372,15 @@ export class TestOpsClient {
         continue;
       }
 
+      totalBytes += attachmentByteLength(attachment.content);
+
       formData.append("file", attachment.content, {
         filename: attachment.originalFileName,
         contentType: attachment.contentType,
       });
     }
+
+    await this.#uploadPacer.wait({ requests: 1, files: attachments.length, bytes: totalBytes });
 
     await this.#client.post("/api/launch/attachment", {
       body: formData,
@@ -377,6 +402,8 @@ export class TestOpsClient {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
+
+    await this.#uploadPacer.wait({ requests: 1 });
 
     await this.#client.post("/api/launch/error/bulk", {
       body: {
@@ -412,52 +439,41 @@ export class TestOpsClient {
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 
-    try {
-      for (const trsChunk of trsChunks) {
-        const chunkEnvs = new Map<string, EnvironmentIdentity>();
+    for (const trsChunk of trsChunks) {
+      const chunkEnvs = new Map<string, EnvironmentIdentity>();
 
-        for (const tr of trsChunk) {
-          const environmentId = tr.environment;
+      for (const tr of trsChunk) {
+        const environmentId = tr.environment;
 
-          if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
-            chunkEnvs.set(environmentId, {
-              id: environmentId,
-              name: envNamesById.get(environmentId) ?? environmentId,
-            });
-          }
+        if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
+          chunkEnvs.set(environmentId, {
+            id: environmentId,
+            name: envNamesById.get(environmentId) ?? environmentId,
+          });
         }
-
-        if (chunkEnvs.size > 0) {
-          await this.createNamedEnvs(Array.from(chunkEnvs.values()));
-        }
-
-        await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
-
-        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
-
-        uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
-
-        await this.#uploadChunkAttachmentsAndFixtures(
-          trsChunk,
-          reportIdsToTestOpsIds,
-          attachmentsResolver,
-          fixturesResolver,
-          uploadLimitFn,
-          onProgress,
-        );
       }
 
-      this.#logger.verbose("Test results upload completed");
-    } catch (error) {
-      if (this.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload test results: ${error.response?.data.message}`);
-        this.#logger.debug(error.response.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload test results: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload test results");
+      if (chunkEnvs.size > 0) {
+        await this.createNamedEnvs(Array.from(chunkEnvs.values()));
       }
+
+      await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
+
+      const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
+
+      uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+
+      await this.#uploadChunkAttachmentsAndFixtures(
+        trsChunk,
+        reportIdsToTestOpsIds,
+        attachmentsResolver,
+        fixturesResolver,
+        uploadLimitFn,
+        onProgress,
+      );
     }
+
+    this.#logger.verbose("Test results upload completed");
 
     return uploadedTrs;
   }
@@ -525,17 +541,30 @@ export class TestOpsClient {
             return;
           }
 
-          const attachments = await attachmentsResolver(tr);
-          const fixtures = (await fixturesResolver(tr))
-            .filter((fixture) => validateExecutableName(fixture.name))
-            .map((fixture) => ({
-              ...fixture,
-              ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
-            }));
+          try {
+            const attachments = await attachmentsResolver(tr);
+            const fixtures = (await fixturesResolver(tr))
+              .filter((fixture) => validateExecutableName(fixture.name))
+              .map((fixture) => ({
+                ...fixture,
+                ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
+              }));
 
-          await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
-          await this.#uploadFixturesForResult(testOpsId, fixtures);
-          onProgress?.();
+            await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
+            await this.#uploadFixturesForResult(testOpsId, fixtures);
+          } catch (error) {
+            // a subordinate failure (resolver or fixture upload) shouldn't invalidate the test
+            // result itself, which TestOps has already acknowledged by this point
+            if (this.isTestOpsClientError(error)) {
+              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}: ${error.response?.data.message}`);
+            } else if (error instanceof Error) {
+              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}: ${error.message}`);
+            } else {
+              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}`);
+            }
+          } finally {
+            onProgress?.();
+          }
         }),
       ),
     );
@@ -551,7 +580,11 @@ export class TestOpsClient {
     for (const attachmentsChunk of attachmentsChunks) {
       const formData = new FormData();
 
+      let chunkBytes = 0;
+
       for (const att of attachmentsChunk) {
+        chunkBytes += attachmentByteLength(att.content);
+
         formData.append("file", att.content, {
           filename: att.originalFileName,
           contentType: att.contentType,
@@ -559,6 +592,8 @@ export class TestOpsClient {
       }
 
       try {
+        await this.#uploadPacer.wait({ requests: 1, files: attachmentsChunk.length, bytes: chunkBytes });
+
         await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
           body: formData,
           headers: formData.getHeaders(),
@@ -583,6 +618,8 @@ export class TestOpsClient {
     if (fixtures.length === 0) return;
 
     const body = toUploadFixturesResultsDto(fixtures);
+
+    await this.#uploadPacer.wait({ requests: 1 });
 
     await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
       body,
@@ -615,6 +652,8 @@ export class TestOpsClient {
 
       return item;
     });
+
+    await this.#uploadPacer.wait({ requests: 1 });
 
     await this.#client.post("/api/launch/quality-gate/bulk", {
       body: {
