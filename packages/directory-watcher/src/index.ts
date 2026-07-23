@@ -1,5 +1,4 @@
 import console from "node:console";
-import { sep } from "node:path";
 
 import { watch as chokidarWatch } from "chokidar";
 import type { EventName } from "chokidar/handler.js";
@@ -11,8 +10,10 @@ const DEFAULT_IGNORED_DIR_NAMES = ["node_modules", "dist", "build", "out", "cove
 // reasoning, plus some contain things fs.watch can't handle (e.g. a unix socket)
 const isDotSegment = (segment: string): boolean => segment.length > 1 && segment.startsWith(".");
 
+// chokidar always normalizes paths to forward slashes internally, even on Windows, so splitting
+// on the platform's own path.sep (`\` there) would never find a segment boundary
 const isIgnoredByDefault = (path: string): boolean =>
-  path.split(sep).some((segment) => isDotSegment(segment) || DEFAULT_IGNORED_DIR_NAMES.includes(segment));
+  path.split(/[\\/]/).some((segment) => isDotSegment(segment) || DEFAULT_IGNORED_DIR_NAMES.includes(segment));
 
 /**
  * Setup file system watcher for a given directory (includes subdirectories and all nested files)
