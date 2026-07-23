@@ -1,8 +1,9 @@
+import type { ChildProcess } from "node:child_process";
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import process from "node:process";
 
 import { AllureReport, QualityGateState, stringifyQualityGateResults } from "@allurereport/core";
@@ -13,15 +14,17 @@ import {
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
+import watchDirectory from "@allurereport/directory-watcher";
 import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
-import { red } from "yoctocolors";
+import { cyan, dim, green, red } from "yoctocolors";
 
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
+import { boundedTerminationSignal, notifySignals, waitForAbort } from "../../utils/signals.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -62,6 +65,7 @@ export const runTests = async (params: {
   silent?: boolean;
   logs?: RunLogsMode;
   logProcessExit?: boolean;
+  onProcessStarted?: (testProcess: ChildProcess) => void;
 }): Promise<TestProcessResult | null> => {
   const {
     allureReport,
@@ -75,6 +79,7 @@ export const runTests = async (params: {
     withQualityGate,
     silent,
     logProcessExit = true,
+    onProcessStarted,
   } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
@@ -139,6 +144,9 @@ export const runTests = async (params: {
     environmentVariables,
     logs,
   });
+
+  onProcessStarted?.(testProcess);
+
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
@@ -231,6 +239,204 @@ export const runTests = async (params: {
     stderr: testProcessStderr,
     qualityGateResults,
   };
+};
+
+const DEFAULT_SPEC_TEST_MATCH = /\.(spec|test)\.[cm]?[jt]sx?$/;
+const SPEC_CHANGE_DEBOUNCE_MS = 300;
+const GRACEFUL_KILL_TIMEOUT_MS = 5_000;
+
+/**
+ * Watches source files under `cwd`; when a changed file matches `testMatch`, reruns the test
+ * command scoped to just that file instead of the whole suite. Non-spec changes are ignored —
+ * mapping them to related specs is a separate, heavier problem (dependency graph).
+ */
+export const executeAllureWatchRun = async (params: {
+  allureReport: AllureReport;
+  knownIssues: KnownTestFailure[];
+  cwd: string;
+  command: string;
+  commandArgs: string[];
+  outputDir: string;
+  environmentVariables?: Record<string, string>;
+  environment?: string;
+  silent?: boolean;
+  logs?: RunLogsMode;
+  testMatch?: RegExp;
+}): Promise<void> => {
+  const {
+    allureReport,
+    knownIssues,
+    cwd,
+    command,
+    commandArgs,
+    outputDir,
+    environmentVariables = {},
+    environment,
+    silent,
+    logs,
+    testMatch = DEFAULT_SPEC_TEST_MATCH,
+  } = params;
+
+  await allureReport.start();
+
+  const ignoredSegments = ["node_modules", ".git", "allure-results", relative(cwd, outputDir)].filter(Boolean);
+  const isIgnoredPath = (path: string) =>
+    ignoredSegments.some((segment) => relative(cwd, path).split(sep).includes(segment));
+  let running = false;
+  let stopping = false;
+  let currentTestProcess: ChildProcess | undefined;
+  const pendingSpecs = new Set<string>();
+  const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  const processQueue = async (): Promise<void> => {
+    if (running || stopping) {
+      return;
+    }
+
+    const next = pendingSpecs.values().next();
+
+    if (next.done) {
+      return;
+    }
+
+    const specPath = next.value;
+    const relativeSpec = relative(cwd, specPath);
+
+    pendingSpecs.delete(specPath);
+    running = true;
+
+    try {
+      console.log(cyan(`\n● spec changed: ${relativeSpec} — rerunning just this file`));
+
+      const result = await runTests({
+        allureReport,
+        knownIssues,
+        cwd,
+        command,
+        commandArgs: [...commandArgs, relativeSpec],
+        environmentVariables,
+        environment,
+        withQualityGate: false,
+        silent,
+        logs,
+        logProcessExit: false,
+        onProcessStarted: (testProcess) => {
+          currentTestProcess = testProcess;
+        },
+      });
+
+      if (result?.code === 0) {
+        console.log(green(`✓ ${relativeSpec} passed`));
+      } else {
+        console.log(red(`✗ ${relativeSpec} failed (exit code ${result?.code ?? "unknown"})`));
+      }
+    } catch (error) {
+      // isolate the crash so the watch loop (invoked fire-and-forget) doesn't die with it
+      console.log(red(`✗ ${relativeSpec} crashed while running: ${(error as Error)?.message ?? error}`));
+    } finally {
+      currentTestProcess = undefined;
+      running = false;
+
+      if (!stopping) {
+        void processQueue();
+      }
+    }
+  };
+
+  const scheduleSpec = (specPath: string) => {
+    const existingTimer = debounceTimers.get(specPath);
+
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    debounceTimers.set(
+      specPath,
+      setTimeout(() => {
+        debounceTimers.delete(specPath);
+        pendingSpecs.add(specPath);
+        void processQueue();
+      }, SPEC_CHANGE_DEBOUNCE_MS),
+    );
+  };
+
+  const stopWatching = watchDirectory(
+    cwd,
+    (eventName, path) => {
+      if (eventName !== "add" && eventName !== "change") {
+        return;
+      }
+
+      if (isIgnoredPath(path)) {
+        return;
+      }
+
+      if (!testMatch.test(path)) {
+        return;
+      }
+
+      scheduleSpec(path);
+    },
+    { ignoreInitial: true, ignored: isIgnoredPath },
+  );
+
+  console.log(dim("watching for changed spec files, press Ctrl+C to exit"));
+
+  const notifier = notifySignals(["SIGINT", "SIGTERM"], (signal) => {
+    // the user is insisting: stop being graceful and force-kill immediately
+    console.log(`\nreceived another ${signal}, force exiting...`);
+
+    if (currentTestProcess?.pid) {
+      void stopProcessTree(currentTestProcess.pid, { signal: "SIGKILL" });
+    }
+
+    process.exit(130);
+  });
+
+  await waitForAbort(notifier.signal);
+
+  const signalInfo = notifier.info();
+
+  console.log(`\nreceived ${signalInfo?.signal}, stopping (press again to force exit)...`);
+
+  stopping = true;
+
+  for (const timer of debounceTimers.values()) {
+    clearTimeout(timer);
+  }
+
+  debounceTimers.clear();
+  pendingSpecs.clear();
+
+  await stopWatching();
+
+  const processToKill = currentTestProcess;
+
+  if (processToKill?.pid) {
+    console.log("stopping the running test process...");
+
+    try {
+      await stopProcessTree(processToKill.pid, { signal: "SIGTERM" });
+
+      // some tools (dev servers, e2e-launched browsers) ignore or delay SIGTERM, so escalate ourselves
+      const terminationSignal = boundedTerminationSignal(signalInfo, GRACEFUL_KILL_TIMEOUT_MS);
+      const exited = await Promise.race([
+        terminationOf(processToKill).then(() => true),
+        waitForAbort(terminationSignal).then(() => false),
+      ]);
+
+      if (!exited) {
+        console.log("test process did not exit in time, force killing...");
+        await stopProcessTree(processToKill.pid, { signal: "SIGKILL" });
+      }
+    } catch {
+      // the process may have already exited on its own
+    }
+  }
+
+  await allureReport.done();
+  notifier.dispose();
+  process.exit(signalInfo?.code ?? 0);
 };
 
 export const executeAllureRun = async (params: {

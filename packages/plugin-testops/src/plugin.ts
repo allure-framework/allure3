@@ -15,6 +15,7 @@ import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
+import { withUploadRetry } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
@@ -37,6 +38,8 @@ export class TestOpsPlugin implements Plugin {
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
+  #uploadedGlobalAttachmentIds: Set<string> = new Set();
+  #uploadedGlobalErrorsCount = 0;
   #autocloseLaunch: boolean = false;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
@@ -65,6 +68,7 @@ export class TestOpsPlugin implements Plugin {
       launchName,
       launchTags,
       autocloseLaunch = true,
+      uploadRateLimit,
     } = resolvePluginOptions(options);
 
     // don't initialize the client when some options are missing
@@ -74,6 +78,7 @@ export class TestOpsPlugin implements Plugin {
         baseUrl: endpoint,
         accessToken,
         projectId,
+        uploadRateLimit,
       });
       this.#launchName = launchName;
       this.#launchTags = launchTags;
@@ -192,10 +197,12 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalErrors(store: AllureStore) {
-    const results = await store.allGlobalErrors();
+    const allResults = await store.allGlobalErrors();
+    // append-only store, so anything before the already-uploaded count is a repeat
+    const results = allResults.slice(this.#uploadedGlobalErrorsCount);
 
     if (results.length === 0) {
-      this.#logger.verbose("No global errors to upload");
+      this.#logger.verbose("No new global errors to upload");
       return;
     }
 
@@ -209,16 +216,25 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressLogger.log(true);
-      await this.#client.uploadGlobalErrors(results, (percent) => {
-        if (!completed && percent >= 100) {
-          completed = true;
-          progressLogger.increment();
-        }
-      });
+      await withUploadRetry(
+        () =>
+          this.#client.uploadGlobalErrors(results, (percent) => {
+            if (!completed && percent >= 100) {
+              completed = true;
+              progressLogger.increment();
+            }
+          }),
+        {
+          onRetry: (error, attempt) =>
+            this.#logger.debug(`Retrying global errors upload (attempt ${attempt}): ${error}`),
+        },
+      );
 
       if (!completed) {
         progressLogger.increment();
       }
+
+      this.#uploadedGlobalErrorsCount = allResults.length;
 
       progressLogger.log(true);
     } catch (error) {
@@ -236,10 +252,11 @@ export class TestOpsPlugin implements Plugin {
   }
 
   async #uploadGlobalAttachments(store: AllureStore) {
-    const attachments = await store.allGlobalAttachments();
+    const allAttachments = await store.allGlobalAttachments();
+    const attachments = allAttachments.filter((attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id));
 
     if (attachments.length === 0) {
-      this.#logger.debug("No global attachments to upload");
+      this.#logger.debug("No new global attachments to upload");
       return;
     }
 
@@ -253,34 +270,45 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressLogger.log(true);
-      await this.#client.uploadGlobalAttachments({
-        attachments,
-        attachmentsResolver: async (attachmentLink) => {
-          const content = await store.attachmentContentById(attachmentLink.id);
-          const body = await content?.readContent(async (stream) => stream);
-          const filename = uploadFilenameForLink(attachmentLink);
+      await withUploadRetry(
+        () =>
+          this.#client.uploadGlobalAttachments({
+            attachments,
+            attachmentsResolver: async (attachmentLink) => {
+              const content = await store.attachmentContentById(attachmentLink.id);
+              const body = await content?.readContent(async (stream) => stream);
+              const filename = uploadFilenameForLink(attachmentLink);
 
-          if (filename === undefined || body === undefined) {
-            return undefined;
-          }
+              if (filename === undefined || body === undefined) {
+                return undefined;
+              }
 
-          return {
-            originalFileName: filename,
-            contentType: attachmentLink.contentType ?? "application/octet-stream",
-            content: body,
-          };
+              return {
+                originalFileName: filename,
+                contentType: attachmentLink.contentType ?? "application/octet-stream",
+                content: body,
+              };
+            },
+            onProgress: (percent) => {
+              if (!completed && percent >= 100) {
+                completed = true;
+                progressLogger.increment();
+              }
+            },
+          }),
+        {
+          onRetry: (error, attempt) =>
+            this.#logger.debug(`Retrying global attachments upload (attempt ${attempt}): ${error}`),
         },
-        onProgress: (percent) => {
-          if (!completed && percent >= 100) {
-            completed = true;
-            progressLogger.increment();
-          }
-        },
-      });
+      );
 
       if (!completed) {
         progressLogger.increment();
       }
+
+      attachments.forEach((attachment) => {
+        this.#uploadedGlobalAttachmentIds.add(attachment.id);
+      });
 
       progressLogger.log(true);
     } catch (error) {
@@ -320,13 +348,20 @@ export class TestOpsPlugin implements Plugin {
     try {
       logProgress(true);
 
-      const uploadedTrs = await this.#client.uploadTestResults({
-        attachmentsResolver: attachmentsResolverFactory(store),
-        fixturesResolver: fixturesResolverFactory(store),
-        environments,
-        trs: trsToUpload,
-        onProgress: () => incrementProgress(),
-      });
+      const uploadedTrs = await withUploadRetry(
+        () =>
+          this.#client.uploadTestResults({
+            attachmentsResolver: attachmentsResolverFactory(store),
+            fixturesResolver: fixturesResolverFactory(store),
+            environments,
+            trs: trsToUpload,
+            onProgress: () => incrementProgress(),
+          }),
+        {
+          onRetry: (error, attempt) =>
+            this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`),
+        },
+      );
 
       logProgress(true);
 
@@ -367,6 +402,12 @@ export class TestOpsPlugin implements Plugin {
       }
 
       return;
+    }
+
+    if (stage === "update") {
+      this.#logger.info(
+        `Found ${bold(trsToUpload.length.toString())} new test ${trsToUpload.length > 1 ? "results" : "result"}, uploading…`,
+      );
     }
 
     await this.#client.createSession(env);

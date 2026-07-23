@@ -1,7 +1,8 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import process, { exit } from "node:process";
+import process, { env, exit } from "node:process";
 
+import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
@@ -14,7 +15,7 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
+import { executeAllureRun, executeAllureWatchRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -86,6 +87,20 @@ export class RunCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  watch = Option.Boolean("--watch", {
+    description:
+      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental). Defaults to on outside CI and off in CI; pass --once to force a single run locally",
+  });
+
+  once = Option.Boolean("--once", {
+    description: "Force a single run and exit, even outside CI where --watch is on by default",
+  });
+
+  testMatch = Option.String("--test-match", {
+    description:
+      "Regular expression used in --watch mode to detect spec files (default: /\\.(spec|test)\\.[cm]?[jt]sx?$/)",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -148,10 +163,26 @@ export class RunCommand extends Command {
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
-    const withQualityGate = !!config.qualityGate && !withRerun;
+
+    if (this.watch && this.once) {
+      throw new UsageError("--watch and --once cannot be used together");
+    }
+
+    const ci = detect();
+    const isCI = !isLocalCiDescriptor(ci) || env.CI === "true" || env.CI === "1";
+    const shouldWatch = this.once ? false : (this.watch ?? !isCI);
+    const withQualityGate = !!config.qualityGate && !withRerun && !shouldWatch;
 
     if (config.qualityGate && withRerun) {
       console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
+    }
+
+    if (config.qualityGate && shouldWatch) {
+      console.warn("Quality gate doesn't work with watch; skipping quality gate validation.");
+    }
+
+    if (shouldWatch && withRerun) {
+      console.warn("--rerun is ignored in --watch mode.");
     }
 
     try {
@@ -166,7 +197,7 @@ export class RunCommand extends Command {
       environment: resolvedEnvironment?.id,
       qualityGate: withQualityGate ? config.qualityGate : undefined,
       dump: this.dump,
-      realTime: false,
+      realTime: shouldWatch,
       plugins: [
         ...(config.plugins?.length
           ? config.plugins
@@ -183,6 +214,26 @@ export class RunCommand extends Command {
       ],
     });
     const knownIssues = await allureReport.store.allKnownIssues();
+
+    if (shouldWatch) {
+      await executeAllureWatchRun({
+        allureReport,
+        knownIssues,
+        cwd,
+        command,
+        commandArgs,
+        outputDir: config.output,
+        environmentVariables: createChildAllureCliEnvironment("run"),
+        environment: resolvedEnvironment?.id,
+        logs: this.logs,
+        silent: this.silent,
+        testMatch: this.testMatch ? new RegExp(this.testMatch) : undefined,
+      });
+
+      exit(0);
+      return;
+    }
+
     const { globalExitCode } = await executeAllureRun({
       allureReport,
       knownIssues,
