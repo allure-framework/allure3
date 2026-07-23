@@ -801,6 +801,45 @@ describe("unknownFailedTestResults", () => {
 
     expect(unknownFailed).toEqual([]);
   });
+
+  it("should keep quarantine failures blocking while known failures stay suppressed", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const store = new DefaultAllureStore({
+      known: [{ historyId: fallbackHistoryId }],
+      quarantine: [{ historyId: "quarantine-history", error: { message: "boom" } }],
+    });
+
+    await store.visitTestResult(
+      {
+        name: "known failed test",
+        testId: "new-test-case-id",
+        status: "failed",
+        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "quarantined failed test",
+        status: "failed",
+        testId: "quarantine-test-case-id",
+        historyId: "quarantine-history",
+      },
+      { readerId },
+    );
+
+    const allKnownIssues = await store.allKnownIssues();
+    const blockingFailed = await store.blockingFailedTestResults();
+    const unknownFailed = await store.unknownFailedTestResults();
+    const allTestResults = await store.allTestResults({ includeRetries: true });
+
+    expect(allKnownIssues.map(({ historyId }) => historyId)).toEqual([fallbackHistoryId]);
+    expect(blockingFailed).toEqual([expect.objectContaining({ name: "quarantined failed test" })]);
+    expect(unknownFailed).toEqual([expect.objectContaining({ name: "quarantined failed test" })]);
+    expect(allTestResults.find((tr) => tr.name === "known failed test")?.known).toBe(true);
+    expect(allTestResults.find((tr) => tr.name === "quarantined failed test")?.known).toBe(false);
+  });
 });
 
 describe("attachments", () => {

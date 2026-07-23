@@ -16,6 +16,7 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
+  type QuarantineTestFailure,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -128,6 +129,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
+  readonly #quarantine: QuarantineTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
@@ -147,6 +149,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
+  readonly indexQuarantineByHistoryId: Map<string, QuarantineTestFailure[]> = new Map<
+    string,
+    QuarantineTestFailure[]
+  >();
 
   #globalAttachmentIds: string[] = [];
   #globalAttachmentIdsByEnv: Map<string, string[]> = new Map();
@@ -161,6 +167,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
+    quarantine?: QuarantineTestFailure[];
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
@@ -172,6 +179,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
+      quarantine = [],
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
@@ -218,6 +226,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
+    this.#quarantine = [...quarantine];
+    this.#quarantine.forEach((qtf) => index(this.indexQuarantineByHistoryId, qtf.historyId, qtf));
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
@@ -290,6 +300,49 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#addGlobalAttachment(attachmentLink, attachment);
     });
+  }
+
+  #knownHistoryIds() {
+    return new Set(this.#known.map(({ historyId }) => historyId));
+  }
+
+  #quarantineHistoryIds() {
+    return new Set(this.#quarantine.map(({ historyId }) => historyId));
+  }
+
+  #isSuppressedByHistoryIdCandidates(
+    historyIdCandidates: string[],
+    knownHistoryIds: Set<string>,
+    quarantineHistoryIds: Set<string>,
+  ) {
+    return historyIdCandidates.some(
+      (historyId) => knownHistoryIds.has(historyId) || quarantineHistoryIds.has(historyId),
+    );
+  }
+
+  #upsertQuarantine(testResult: TestResult) {
+    const historyIdCandidates = getHistoryIdCandidates(testResult);
+
+    if (historyIdCandidates.length === 0) {
+      return;
+    }
+
+    const knownHistoryIds = this.#knownHistoryIds();
+    const quarantineHistoryIds = this.#quarantineHistoryIds();
+
+    if (this.#isSuppressedByHistoryIdCandidates(historyIdCandidates, knownHistoryIds, quarantineHistoryIds)) {
+      return;
+    }
+
+    const historyId = historyIdCandidates[0];
+    const quarantineIssue: QuarantineTestFailure = {
+      historyId,
+      ...(testResult.error ? { error: testResult.error } : {}),
+    };
+
+    this.#quarantine.push(quarantineIssue);
+
+    index(this.indexQuarantineByHistoryId, historyId, quarantineIssue);
   }
 
   #mergeEnvironmentIdentity(
@@ -763,6 +816,28 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testResult.flaky = isFlaky(testResult, trHistory);
     }
 
+    if (testResult.status === "failed" || testResult.status === "broken") {
+      const historyIdCandidates = getHistoryIdCandidates(testResult);
+      const knownHistoryIds = this.#knownHistoryIds();
+      const quarantineHistoryIds = this.#quarantineHistoryIds();
+
+      if (historyIdCandidates.some((historyId) => knownHistoryIds.has(historyId))) {
+        testResult.known = true;
+      } else {
+        const quarantinedHistoryId = historyIdCandidates.find((historyId) => quarantineHistoryIds.has(historyId));
+
+        if (quarantinedHistoryId) {
+          const existingQuarantine = this.#quarantine.find((issue) => issue.historyId === quarantinedHistoryId);
+
+          if (existingQuarantine && testResult.error) {
+            existingQuarantine.error = testResult.error;
+          }
+        } else {
+          this.#upsertQuarantine(testResult);
+        }
+      }
+    }
+
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
     this.#retrySubstore.recordIngestOrder(testResult.id);
@@ -1016,7 +1091,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
-    return this.#known;
+    const knownIssues = new Map<string, KnownTestFailure>();
+
+    this.#known.forEach((issue) => knownIssues.set(issue.historyId, issue));
+
+    return [...knownIssues.values()];
+  }
+
+  async quarantineIssues(): Promise<QuarantineTestFailure[]> {
+    return [...this.#quarantine];
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1237,22 +1320,26 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return failedTrs;
   }
 
-  async unknownFailedTestResults() {
+  async blockingFailedTestResults() {
     const failedTestResults = await this.failedTestResults();
 
-    if (!this.#known?.length) {
+    if (!this.#known.length) {
       return failedTestResults;
     }
 
-    const knownHistoryIds = new Set(this.#known.map((ktf) => ktf.historyId));
+    const suppressedHistoryIds = new Set(this.#known.map(({ historyId }) => historyId));
 
     return failedTestResults.filter((tr) => {
       const historyIdCandidates = getHistoryIdCandidates(tr);
 
       return (
-        historyIdCandidates.length > 0 && historyIdCandidates.every((historyId) => !knownHistoryIds.has(historyId))
+        historyIdCandidates.length > 0 && historyIdCandidates.every((historyId) => !suppressedHistoryIds.has(historyId))
       );
     });
+  }
+
+  async unknownFailedTestResults() {
+    return this.blockingFailedTestResults();
   }
 
   async testResultsByLabel(labelName: string): Promise<{ _: TestResult[]; [x: string]: TestResult[] }> {
@@ -1476,6 +1563,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
+      indexQuarantineByHistoryId: {},
       qualityGateResults: this.#qualityGateResults,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
@@ -1498,6 +1586,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.indexKnownByHistoryId.forEach((known, historyId) => {
       storeDump.indexKnownByHistoryId[historyId] = known;
     });
+    this.indexQuarantineByHistoryId.forEach((quarantine, historyId) => {
+      const quarantineIndex = storeDump.indexQuarantineByHistoryId ?? (storeDump.indexQuarantineByHistoryId = {});
+
+      quarantineIndex[historyId] = quarantine;
+    });
 
     return storeDump;
   }
@@ -1519,6 +1612,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
+      indexQuarantineByHistoryId = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
@@ -1609,10 +1703,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
+
+    this.indexKnownByHistoryId.clear();
+    this.indexQuarantineByHistoryId.clear();
+
+    updateMapWithRecord(this.indexKnownByHistoryId, indexKnownByHistoryId);
+    updateMapWithRecord(this.indexQuarantineByHistoryId, indexQuarantineByHistoryId);
     Object.entries(attachmentsContents).forEach(([id, content]) => {
       this.#restoreAttachmentContent(id, content);
     });
     this.#relinkRestoredAttachmentSteps();
+    this.#known.splice(0, this.#known.length, ...Object.values(indexKnownByHistoryId).flat());
+    this.#quarantine.splice(0, this.#quarantine.length, ...Object.values(indexQuarantineByHistoryId).flat());
     globalAttachmentIds.forEach((id) => {
       const attachment = this.#attachments.get(id);
 

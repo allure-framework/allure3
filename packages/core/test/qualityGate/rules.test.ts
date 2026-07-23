@@ -223,6 +223,32 @@ describe("successRateRule", () => {
     expect(setState).not.toHaveBeenCalled();
   });
 
+  it("should return full success rate when no unknown tests exist", async () => {
+    const testResults: TestResult[] = [createTestResult("1", "failed", "known-issue-1")];
+    const expected = 1;
+    const result = await successRateRule.validate({
+      trs: testResults,
+      expected,
+      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should fail empty suite with zero success rate", async () => {
+    const result = await successRateRule.validate({
+      trs: [],
+      expected: 1,
+      knownIssues: [] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+  });
+
   it("should filter out known issues", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),

@@ -50,6 +50,8 @@ export class KnownIssueCommand extends Command {
     const outputPath = this.output ?? "known-issues.json";
     const config = await resolveConfig({
       plugins: {},
+      knownIssuesPath: "",
+      quarantinePath: "",
     });
     const allureReport = new AllureReport(config);
 

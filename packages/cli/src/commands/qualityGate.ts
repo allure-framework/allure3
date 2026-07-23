@@ -67,7 +67,11 @@ export class QualityGateCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+    description: "Path to known issues file. Read-only; quarantine is controlled separately",
+  });
+
+  quarantine = Option.String("--quarantine", {
+    description: "Path to quarantine file. Read/write quarantine issues only",
   });
 
   environment = environmentOption();
@@ -87,9 +91,10 @@ export class QualityGateCommand extends Command {
     normalizeCommandEnvironmentOptions(environmentOptions);
 
     const cwd = await realpath(this.cwd ?? processCwd());
-    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
+    const { maxFailures, minTestsCount, successRate, fastFail } = this;
     const config = await readConfig(cwd, this.config, {
-      knownIssuesPath,
+      knownIssuesPath: this.knownIssues,
+      quarantinePath: this.quarantine,
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const rules: Record<string, any> = {};

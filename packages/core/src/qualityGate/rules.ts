@@ -45,7 +45,7 @@ export const successRateRule: QualityGateRule<number> = {
     const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
     const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
     const passedTrs = unknown.filter(filterSuccessful);
-    const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;
+    const rate = trs.length === 0 ? 0 : unknown.length === 0 ? 1 : passedTrs.length / unknown.length;
 
     return {
       success: rate >= expected,
