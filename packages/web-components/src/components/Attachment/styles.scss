@@ -219,10 +219,23 @@
 
 .attachmentViewStack {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.attachmentViewPane[hidden] {
-  display: none !important;
+.attachmentViewPane {
+  &[hidden] {
+    display: none !important;
+  }
+
+  &:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 .html-attachment-preview {
@@ -233,7 +246,7 @@
   flex-direction: column;
 
   iframe {
-    flex: 1;
+    flex: none;
     min-height: 0;
   }
 }

@@ -61,23 +61,8 @@
     flex: 1 1 auto;
   }
 
-  :global(.attachmentViewStack) {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  :global(.attachmentViewPane):not([hidden]) {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  :global(.html-attachment-preview) {
-    flex: 1;
-    min-height: 0;
+  :global(.html-attachment-preview) iframe {
+    height: 100% !important;
   }
 }
 
