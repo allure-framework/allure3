@@ -56,6 +56,10 @@ vi.mock("@allurereport/core", async () => {
     isFileNotFoundError: vi.fn().mockReturnValue(false),
   };
 });
+vi.mock("@allurereport/ci", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@allurereport/ci")>()),
+  detect: vi.fn(() => ({ type: "github" })),
+}));
 vi.mock("@allurereport/directory-watcher", () => ({
   allureResultsDirectoriesWatcher: vi.fn(() => ({
     initialScan: vi.fn().mockResolvedValue(undefined),
