@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3
         with:
           client-id: ${{ vars.ALLURE_CI_APP_CLIENT_ID }}
           private-key: ${{ secrets.ALLURE_CI_APP_PRIVATE_KEY }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Reset stale update branch
         if: steps.update-branch.outputs.exists == 'true'
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         env:
           UPDATE_BRANCH: ${{ env.UPDATE_BRANCH }}
         with:
@@ -139,7 +139,7 @@ jobs:
 
       - name: Create or update pull request
         if: steps.changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1  # v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           branch: ${{ env.UPDATE_BRANCH }}
