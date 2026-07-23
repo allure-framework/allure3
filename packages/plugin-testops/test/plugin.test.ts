@@ -1139,7 +1139,10 @@ describe("testops plugin", () => {
 
       await loudPlugin.update({} as PluginContext, store);
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining("Found 2 new test results, uploading"));
+      // eslint-disable-next-line no-control-regex
+      const plainCalls = consoleInfoSpy.mock.calls.map(([message]) => String(message).replace(/\x1B\[\d+m/g, ""));
+
+      expect(plainCalls).toContainEqual(expect.stringContaining("Found 2 new test results, uploading"));
 
       consoleInfoSpy.mockRestore();
     });
