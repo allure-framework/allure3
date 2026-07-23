@@ -1,4 +1,3 @@
-import { csvParseRows, tsvParseRows } from "d3-dsv";
 import { useMemo } from "preact/hooks";
 
 import { EmptyView } from "@/components/EmptyView";
@@ -7,14 +6,78 @@ import type { AttachmentProps } from "./model";
 
 import styles from "./styles.scss";
 
+const parseDelimitedText = (text: string, delimiter: string): string[][] => {
+  if (text.length === 0) {
+    return [];
+  }
+
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let hasPendingRow = false;
+
+  const appendField = () => {
+    row.push(field);
+    field = "";
+  };
+
+  const appendRow = () => {
+    appendField();
+    rows.push(row);
+    row = [];
+    hasPendingRow = false;
+  };
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[index + 1] === '"') {
+          field += '"';
+          index++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += char;
+      }
+
+      continue;
+    }
+
+    if (char === '"' && field.length === 0) {
+      inQuotes = true;
+      hasPendingRow = true;
+    } else if (char === delimiter) {
+      appendField();
+      hasPendingRow = true;
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[index + 1] === "\n") {
+        index++;
+      }
+
+      if (hasPendingRow || field.length > 0 || row.length > 0) {
+        appendRow();
+      }
+    } else {
+      field += char;
+      hasPendingRow = true;
+    }
+  }
+
+  if (hasPendingRow || field.length > 0 || row.length > 0) {
+    appendRow();
+  }
+
+  return rows;
+};
+
 const parseDelimitedRows = (text: string, contentType?: string): string[][] => {
   const normalizedType = contentType?.split(";")[0].trim().toLowerCase();
 
-  if (normalizedType === "text/tab-separated-values") {
-    return tsvParseRows(text);
-  }
-
-  return csvParseRows(text);
+  return parseDelimitedText(text, normalizedType === "text/tab-separated-values" ? "\t" : ",");
 };
 
 const normalizeRow = (row: string[], columnCount: number): string[] =>

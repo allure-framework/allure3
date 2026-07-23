@@ -1077,7 +1077,6 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-array", "npm:3.2.2"],\
           ["@types/d3-axis", "npm:3.0.6"],\
           ["@types/d3-brush", "npm:3.0.6"],\
-          ["@types/d3-dsv", "npm:3.0.7"],\
           ["@types/d3-format", "npm:3.0.4"],\
           ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
@@ -1103,7 +1102,6 @@ const RAW_RUNTIME_STATE =
           ["d3-array", "npm:3.2.4"],\
           ["d3-axis", "npm:3.0.0"],\
           ["d3-brush", "npm:3.0.0"],\
-          ["d3-dsv", "npm:3.0.1"],\
           ["d3-format", "npm:3.1.0"],\
           ["d3-interpolate", "npm:3.0.1"],\
           ["d3-regression", "npm:1.3.10"],\
@@ -15073,18 +15071,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["d3-dsv", [\
-      ["npm:3.0.1", {\
-        "packageLocation": "./.yarn/cache/d3-dsv-npm-3.0.1-5d88fb8a85-a628ac42a2.zip/node_modules/d3-dsv/",\
-        "packageDependencies": [\
-          ["commander", "npm:7.2.0"],\
-          ["d3-dsv", "npm:3.0.1"],\
-          ["iconv-lite", "npm:0.6.3"],\
-          ["rw", "npm:1.3.3"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["d3-ease", [\
       ["npm:3.0.1", {\
         "packageLocation": "./.yarn/cache/d3-ease-npm-3.0.1-f8f3709dc7-985d46e868.zip/node_modules/d3-ease/",\
@@ -22776,15 +22762,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["queue-microtask", "npm:1.2.3"],\
           ["run-parallel", "npm:1.2.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["rw", [\
-      ["npm:1.3.3", {\
-        "packageLocation": "./.yarn/cache/rw-npm-1.3.3-2197930a8d-e90985d647.zip/node_modules/rw/",\
-        "packageDependencies": [\
-          ["rw", "npm:1.3.3"]\
         ],\
         "linkType": "HARD"\
       }]\

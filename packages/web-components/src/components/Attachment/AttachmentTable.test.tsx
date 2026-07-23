@@ -25,7 +25,9 @@ describe("AttachmentTable", () => {
   it("renders CSV attachment rows as a table", () => {
     render(
       <AttachmentTable
-        attachment={{ text: 'name,status,note\n"Checkout, guest",passed,"line 1\nline 2"' }}
+        attachment={{
+          text: 'name,status,note,owner\n"Checkout, guest",passed,"line 1\r\nline 2","Ada ""QA"""\nSearch,failed,,',
+        }}
         item={attachmentItem()}
       />,
     );
@@ -38,8 +40,8 @@ describe("AttachmentTable", () => {
       .getAllByRole("cell")
       .map((cell) => cell.textContent);
 
-    expect(headers).toEqual(["name", "status", "note"]);
-    expect(cells).toEqual(["Checkout, guest", "passed", "line 1\nline 2"]);
+    expect(headers).toEqual(["name", "status", "note", "owner"]);
+    expect(cells).toEqual(["Checkout, guest", "passed", "line 1\r\nline 2", 'Ada "QA"', "Search", "failed", "", ""]);
   });
 
   it("renders TSV attachments with tab separators", () => {
