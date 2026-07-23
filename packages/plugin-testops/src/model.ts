@@ -210,11 +210,24 @@ export type LaunchCategoryBulkResult = {
   externalId: string;
 };
 
+/**
+ * Caps how fast uploads are sent to TestOps within a rolling time window. Each budget is
+ * optional and independent — unset ones don't pace anything. Paced with sane defaults
+ * (see `DEFAULT_UPLOAD_RATE_LIMIT`) unless explicitly overridden; pass `false` to disable pacing.
+ */
+export type UploadRateLimit = {
+  windowMs: number;
+  maxRequestsPerWindow?: number;
+  maxFilesPerWindow?: number;
+  maxBytesPerWindow?: number;
+};
+
 export type TestOpsClientParams = {
   baseUrl: string;
   projectId: string;
   accessToken: string;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
 };
 
 export type AttachmentForUpload = {
@@ -239,6 +252,9 @@ export type TestOpsUploaderOptions = {
   ancestorLimit?: number;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
+  /** Reopens a launch that TestOps reports as closed instead of failing the upload. Default: false */
+  reopenClosedLaunch?: boolean;
 };
 
 export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
