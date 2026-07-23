@@ -68,6 +68,8 @@ describe("known-issue command", () => {
     expect(resolveConfig).toHaveBeenCalledTimes(1);
     expect(resolveConfig).toHaveBeenCalledWith({
       plugins: {},
+      knownIssuesPath: "",
+      quarantinePath: "",
     });
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.start).toHaveBeenCalledTimes(1);
@@ -85,6 +87,8 @@ describe("known-issue command", () => {
     expect(resolveConfig).toHaveBeenCalledTimes(1);
     expect(resolveConfig).toHaveBeenCalledWith({
       plugins: {},
+      knownIssuesPath: "",
+      quarantinePath: "",
     });
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.start).toHaveBeenCalledTimes(1);

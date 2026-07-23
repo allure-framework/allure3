@@ -135,6 +135,8 @@ describe("awesome command", () => {
       "bar",
       "--known-issues",
       "baz",
+      "--quarantine",
+      "quux",
       "--history-path",
       "qux",
       "./allure-results",
@@ -145,8 +147,8 @@ describe("awesome command", () => {
       name: "foo",
       output: "bar",
       knownIssuesPath: "baz",
+      quarantinePath: "quux",
       historyPath: "qux",
-      hideLabels: undefined,
     });
   });
 
@@ -158,9 +160,10 @@ describe("awesome command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
+      name: undefined,
       knownIssuesPath: undefined,
+      quarantinePath: undefined,
       historyPath: undefined,
       hideLabels: undefined,
     });
@@ -179,6 +182,7 @@ describe("awesome command", () => {
       output: undefined,
       name: undefined,
       knownIssuesPath: undefined,
+      quarantinePath: undefined,
       historyPath: undefined,
       hideLabels: ["owner", "tag"],
     });

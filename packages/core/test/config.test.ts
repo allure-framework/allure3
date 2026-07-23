@@ -21,7 +21,7 @@ import {
   resolvePlugin,
   validateConfig,
 } from "../src/config.js";
-import { readKnownIssues as readKnownIssuesFn } from "../src/known.js";
+import { readKnownIssues as readKnownIssuesFn, readQuarantine as readQuarantineFn } from "../src/known.js";
 import { importWrapper } from "../src/utils/module.js";
 import { isWindows } from "../src/utils/windows.js";
 
@@ -36,10 +36,12 @@ vi.mock("../src/known.js", async (importOriginal) => {
   return {
     ...actual,
     readKnownIssues: vi.fn().mockResolvedValue([]),
+    readQuarantine: vi.fn().mockResolvedValue([]),
   };
 });
 
 const mockedReadKnownIssues = vi.mocked(readKnownIssuesFn);
+const mockedReadQuarantine = vi.mocked(readQuarantineFn);
 
 beforeEach(async () => {
   vi.clearAllMocks();
@@ -547,52 +549,69 @@ describe("resolveConfig", () => {
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
   });
 
-  it("should leave known issues path undefined when not provided", async () => {
-    const fixture = {} as Config;
-    const resolved = await resolveConfig(fixture);
+  it("should use default known and quarantine files when not provided", async () => {
+    const resolved = await resolveConfig({} as Config);
 
-    expect(resolved.knownIssuesPath).toBeUndefined();
-    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(resolved.knownIssuesPath).toEqual(resolve("./known-issues.json"));
+    expect(resolved.quarantinePath).toEqual(resolve("./quarantine.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known-issues.json"));
+    expect(mockedReadQuarantine).toHaveBeenCalledWith(resolve("./quarantine.json"));
   });
 
-  it("should ignore empty known issues path", async () => {
+  it("should ignore empty known and quarantine paths", async () => {
     const resolved = await resolveConfig({
       knownIssuesPath: "",
+      quarantinePath: "",
     });
 
     expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(resolved.quarantinePath).toBeUndefined();
     expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(mockedReadQuarantine).not.toHaveBeenCalled();
   });
 
-  it("should return provided known issues path", async () => {
+  it("should read known and quarantine files from provided exact file paths", async () => {
     const fixture = {
       knownIssuesPath: "./known.json",
+      quarantinePath: "./quarantine.json",
     };
     const resolved = await resolveConfig(fixture);
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
+    expect(resolved.quarantinePath).toEqual(resolve("./quarantine.json"));
     expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known.json"));
+    expect(mockedReadQuarantine).toHaveBeenCalledWith(resolve("./quarantine.json"));
   });
 
-  it("should allow to override given known issues path", async () => {
+  it("should allow to override given exact known and quarantine paths", async () => {
     const fixture = {
       knownIssuesPath: "./known.json",
+      quarantinePath: "./quarantine.json",
     };
-    const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
+    const resolved = await resolveConfig(fixture, {
+      knownIssuesPath: "./custom-known.json",
+      quarantinePath: "./custom-quarantine.json",
+    });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
-    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./custom/known.json"));
+    expect(resolved.knownIssuesPath).toEqual(resolve("./custom-known.json"));
+    expect(resolved.quarantinePath).toEqual(resolve("./custom-quarantine.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./custom-known.json"));
+    expect(mockedReadQuarantine).toHaveBeenCalledWith(resolve("./custom-quarantine.json"));
   });
 
-  it("should leave known issues path undefined when override is empty", async () => {
+  it("should leave paths undefined when override is empty", async () => {
     const resolved = await resolveConfig(
       {
         knownIssuesPath: "./known.json",
+        quarantinePath: "./quarantine.json",
       },
-      { knownIssuesPath: "" },
+      { knownIssuesPath: "", quarantinePath: "" },
     );
 
     expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(resolved.quarantinePath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(mockedReadQuarantine).not.toHaveBeenCalled();
   });
 
   it("should allow to override given history limit", async () => {

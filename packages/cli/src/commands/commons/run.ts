@@ -290,8 +290,15 @@ export const executeAllureRun = async (params: {
       logProcessExit,
     });
 
+    const allFailuresAfterInitialRun = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterInitialRun = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterInitialRun.length > 0 && blockingFailuresAfterInitialRun.length === 0 && testProcessResult) {
+      testProcessResult.code = 0;
+    }
+
     for (let rerun = 0; rerun < maxRerun; rerun++) {
-      const failed = await allureReport.store.failedTestResults();
+      const failed = await allureReport.store.blockingFailedTestResults();
 
       if (failed.length === 0) {
         console.log("no failed tests is detected.");
@@ -329,6 +336,13 @@ export const executeAllureRun = async (params: {
       await rm(tmpDir, { recursive: true });
 
       logTests(await allureReport.store.allTestResults());
+    }
+
+    const allFailuresAfterReruns = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterReruns = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterReruns.length > 0 && blockingFailuresAfterReruns.length === 0 && testProcessResult) {
+      testProcessResult.code = 0;
     }
 
     const trs = await allureReport.store.allTestResults({ includeRetries: false });

@@ -8,7 +8,7 @@ import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { readKnownIssues } from "./known.js";
+import { readKnownIssues, readQuarantine, resolveExactIssuesFilePath } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import {
   environmentIdentityById,
@@ -32,6 +32,7 @@ export interface ConfigOverride {
   historyPath?: Config["historyPath"];
   historyLimit?: Config["historyLimit"];
   knownIssuesPath?: Config["knownIssuesPath"];
+  quarantinePath?: Config["quarantinePath"];
   plugins?: Config["plugins"];
 }
 
@@ -165,6 +166,7 @@ export const validateConfig = (config: Config) => {
     "historyPath",
     "historyLimit",
     "knownIssuesPath",
+    "quarantinePath",
     "plugins",
     "defaultLabels",
     "variables",
@@ -320,15 +322,17 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
-  const knownIssuesPathValue = Object.hasOwn(override, "knownIssuesPath")
-    ? override.knownIssuesPath
-    : config.knownIssuesPath;
-  const knownIssuesPath =
-    typeof knownIssuesPathValue === "string" && knownIssuesPathValue.length > 0
-      ? resolve(knownIssuesPathValue)
-      : undefined;
+  const knownIssuesPath = await resolveExactIssuesFilePath(
+    override.knownIssuesPath ?? config.knownIssuesPath ?? "known-issues.json",
+    "known issues",
+  );
+  const quarantinePath = await resolveExactIssuesFilePath(
+    override.quarantinePath ?? config.quarantinePath ?? "quarantine.json",
+    "quarantine",
+  );
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
+  const quarantine = quarantinePath ? await readQuarantine(quarantinePath) : undefined;
   const variables = config.variables ?? {};
   let pluginInstances: PluginInstance[] = [];
   const hasPluginsOverride = override.plugins !== undefined;
@@ -362,7 +366,9 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     port,
     hideLabels,
     knownIssuesPath,
+    quarantinePath,
     known,
+    quarantine,
     environment,
     allowedEnvironments,
     variables,
