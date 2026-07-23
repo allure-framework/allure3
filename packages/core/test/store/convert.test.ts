@@ -215,6 +215,113 @@ describe("testResultRawToState", () => {
     });
   });
 
+  describe("reusing the same attachment across steps and test results (#433)", () => {
+    it("should link every reference to the same not-yet-resolved file, not just the first", async () => {
+      await issue("433");
+
+      const result = await functionUnderTest(
+        emptyStateData,
+        {
+          steps: [
+            { type: "attachment", name: "first", originalFileName: "shared-file.zip" },
+            { type: "attachment", name: "second", originalFileName: "shared-file.zip" },
+          ],
+        },
+        { readerId },
+      );
+
+      const [first, second] = result.steps as { link: Record<string, unknown> }[];
+      expect(first.link).toMatchObject({
+        name: "first",
+        originalFileName: "shared-file.zip",
+        used: true,
+        missed: true,
+      });
+      expect(second.link).toMatchObject({
+        id: first.link.id,
+        name: "second",
+        originalFileName: "shared-file.zip",
+        ext: ".zip",
+        used: true,
+        missed: true,
+      });
+    });
+
+    it("should link every reference to the same file across separate test results", async () => {
+      await issue("433");
+
+      const sharedStateData: StateData = { ...emptyStateData, attachments: new Map() };
+
+      const firstResult = await functionUnderTest(
+        sharedStateData,
+        { name: "test 1", steps: [{ type: "attachment", name: "first", originalFileName: "shared-file.zip" }] },
+        { readerId },
+      );
+      const secondResult = await functionUnderTest(
+        sharedStateData,
+        { name: "test 2", steps: [{ type: "attachment", name: "second", originalFileName: "shared-file.zip" }] },
+        { readerId },
+      );
+
+      const [firstStep] = firstResult.steps as { link: Record<string, unknown> }[];
+      const [secondStep] = secondResult.steps as { link: Record<string, unknown> }[];
+
+      expect(secondStep.link).toMatchObject({
+        id: firstStep.link.id,
+        originalFileName: "shared-file.zip",
+        used: true,
+        missed: true,
+      });
+    });
+
+    it("should link every reference to an already-resolved file with the resolved content metadata", async () => {
+      await issue("433");
+
+      const fileId = md5("shared-file.zip");
+      const sharedStateData: StateData = {
+        ...emptyStateData,
+        attachments: new Map([
+          [
+            fileId,
+            {
+              id: fileId,
+              used: false,
+              missed: false,
+              originalFileName: "shared-file.zip",
+              ext: ".zip",
+              contentType: "application/zip",
+              contentLength: 42,
+            },
+          ],
+        ]),
+      };
+
+      const firstResult = await functionUnderTest(
+        sharedStateData,
+        { name: "test 1", steps: [{ type: "attachment", name: "first", originalFileName: "shared-file.zip" }] },
+        { readerId },
+      );
+      const secondResult = await functionUnderTest(
+        sharedStateData,
+        { name: "test 2", steps: [{ type: "attachment", name: "second", originalFileName: "shared-file.zip" }] },
+        { readerId },
+      );
+
+      const [firstStep] = firstResult.steps as { link: Record<string, unknown> }[];
+      const [secondStep] = secondResult.steps as { link: Record<string, unknown> }[];
+
+      for (const step of [firstStep, secondStep]) {
+        expect(step.link).toMatchObject({
+          id: fileId,
+          originalFileName: "shared-file.zip",
+          contentLength: 42,
+          used: true,
+          missed: false,
+        });
+      }
+    });
+  });
+
   describe("a converted step", () => {
     it("should mark the message if it's contained in a sub-step", async () => {
       const result = await functionUnderTest(
