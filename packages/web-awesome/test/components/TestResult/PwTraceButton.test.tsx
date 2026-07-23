@@ -24,7 +24,13 @@ const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
       });
   const openModal = vi.fn();
   const closeModal = vi.fn();
-  const openPlaywrightTraceInNewTab = vi.fn().mockReturnValue(canOpenInNewTab);
+  const openPlaywrightTraceInNewTab = vi.fn((loadTrace: () => Promise<Blob>) => {
+    if (canOpenInNewTab) {
+      void loadTrace().catch(() => undefined);
+    }
+
+    return canOpenInNewTab;
+  });
 
   vi.doMock("@allurereport/web-commons", () => ({
     fetchFromUrl,
@@ -69,7 +75,7 @@ describe("components > TestResult > PwTraceButton", () => {
   });
 
   it("opens trace viewer in new tab and does not open modal", async () => {
-    const { openModal, openPlaywrightTraceInNewTab } = await setup({
+    const { fetchFromUrl, openModal, openPlaywrightTraceInNewTab } = await setup({
       canOpenInNewTab: true,
     });
 
@@ -77,11 +83,12 @@ describe("components > TestResult > PwTraceButton", () => {
       expect(openPlaywrightTraceInNewTab).toHaveBeenCalledTimes(1);
     });
 
+    expect(fetchFromUrl).toHaveBeenCalledTimes(1);
     expect(openModal).not.toHaveBeenCalled();
   });
 
   it("shows popup-blocked modal when new tab cannot be opened", async () => {
-    const { openModal, openPlaywrightTraceInNewTab } = await setup({
+    const { fetchFromUrl, openModal, openPlaywrightTraceInNewTab } = await setup({
       canOpenInNewTab: false,
     });
 
@@ -90,6 +97,7 @@ describe("components > TestResult > PwTraceButton", () => {
     });
 
     expect(openPlaywrightTraceInNewTab).toHaveBeenCalledTimes(1);
+    expect(fetchFromUrl).not.toHaveBeenCalled();
     expect(openModal).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Playwright Trace Viewer | trace.zip",
@@ -97,16 +105,17 @@ describe("components > TestResult > PwTraceButton", () => {
     );
   });
 
-  it("shows error modal when trace attachment fetch fails", async () => {
-    const { openModal, openPlaywrightTraceInNewTab } = await setup({
+  it("starts loading trace attachment after opening the popup", async () => {
+    const { fetchFromUrl, openModal, openPlaywrightTraceInNewTab } = await setup({
       canOpenInNewTab: true,
       failFetch: true,
     });
 
     await waitFor(() => {
-      expect(openModal).toHaveBeenCalledTimes(1);
+      expect(fetchFromUrl).toHaveBeenCalledTimes(1);
     });
 
-    expect(openPlaywrightTraceInNewTab).not.toHaveBeenCalled();
+    expect(openPlaywrightTraceInNewTab).toHaveBeenCalledTimes(1);
+    expect(openModal).not.toHaveBeenCalled();
   });
 });
