@@ -66,8 +66,8 @@ export class WatchCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-
     const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
@@ -142,10 +142,12 @@ export class WatchCommand extends Command {
     await allureReport.start();
 
     const abortFunctions: (() => Promise<void>)[] = [];
+
     for (const directory of resultDirectories) {
       const { abort } = newFilesInDirectoryWatcher(directory, async (path) => {
         await allureReport.readResult(new PathResultFile(path));
       });
+
       abortFunctions.push(abort);
     }
 
@@ -167,6 +169,7 @@ export class WatchCommand extends Command {
 
       await server.stop();
       await allureReport.done();
+
       process.exit(0);
     });
   }
