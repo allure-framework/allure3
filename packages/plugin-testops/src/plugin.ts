@@ -195,8 +195,7 @@ export class TestOpsPlugin implements Plugin {
 
   async #uploadGlobalErrors(store: AllureStore) {
     const allResults = await store.allGlobalErrors();
-    // global errors are append-only, so anything before the count we've already uploaded is a
-    // repeat — without this, every realtime update cycle would re-upload the same errors again.
+    // append-only store, so anything before the already-uploaded count is a repeat
     const results = allResults.slice(this.#uploadedGlobalErrorsCount);
 
     if (results.length === 0) {

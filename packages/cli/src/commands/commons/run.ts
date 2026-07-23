@@ -246,12 +246,9 @@ const SPEC_CHANGE_DEBOUNCE_MS = 300;
 const GRACEFUL_KILL_TIMEOUT_MS = 5_000;
 
 /**
- * Fast-path watch mode: watches source files under `cwd` and, when a changed file looks like a
- * spec file (matches `testMatch`), reruns the test command scoped to just that file (passed as
- * a trailing positional arg), instead of rerunning the whole suite.
- *
- * This intentionally does not try to map non-spec source file changes to related specs — that's
- * a separate, heavier problem (dependency graph). Non-spec changes are ignored.
+ * Watches source files under `cwd`; when a changed file matches `testMatch`, reruns the test
+ * command scoped to just that file instead of the whole suite. Non-spec changes are ignored —
+ * mapping them to related specs is a separate, heavier problem (dependency graph).
  */
 export const executeAllureWatchRun = async (params: {
   allureReport: AllureReport;
@@ -334,9 +331,7 @@ export const executeAllureWatchRun = async (params: {
         console.log(red(`✗ ${relativeSpec} failed (exit code ${result?.code ?? "unknown"})`));
       }
     } catch (error) {
-      // one bad run (a spawn failure, a plugin error, …) must not take down the whole watch
-      // session — log it and keep watching for the next change instead of letting the exception
-      // become an unhandled rejection (processQueue is always invoked fire-and-forget).
+      // isolate the crash so the watch loop (invoked fire-and-forget) doesn't die with it
       console.log(red(`✗ ${relativeSpec} crashed while running: ${(error as Error)?.message ?? error}`));
     } finally {
       currentTestProcess = undefined;
@@ -426,9 +421,7 @@ export const executeAllureWatchRun = async (params: {
           try {
             await stopProcessTree(processToKill.pid, { signal: "SIGTERM" });
 
-            // don't trust the process to actually honor SIGTERM: some tools (dev servers,
-            // browsers launched by e2e runners) ignore or delay it. Escalate on our own instead
-            // of leaving the user to mash Ctrl+C.
+            // some tools (dev servers, e2e-launched browsers) ignore or delay SIGTERM, so escalate ourselves
             const exited = await Promise.race([
               terminationOf(processToKill).then(() => true),
               delay(GRACEFUL_KILL_TIMEOUT_MS).then(() => false),

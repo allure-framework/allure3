@@ -72,10 +72,7 @@ export class WatchCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    // with the default pattern (no explicit directories given), watch for allure-results
-    // directories showing up dynamically — a directory that doesn't exist yet (e.g. a package
-    // whose tests haven't run for the first time) will still be picked up once it appears,
-    // instead of only ever seeing the directories that existed at startup.
+    // default pattern: discover allure-results directories dynamically, not just at startup
     const useDynamicDiscovery = !this.resultsDir?.length;
     let resultDirectories: string[] = [];
 
@@ -247,8 +244,7 @@ export class WatchCommand extends Command {
       shutdownTimeout.unref();
 
       void (async () => {
-        // abort(true) interrupts any in-progress directory scan right away, instead of waiting
-        // for it to index every remaining file (which can take a while for large result sets).
+        // abort(true) interrupts an in-progress directory scan instead of finishing it first
         for (const abort of abortFunctions) {
           await abort(true);
         }

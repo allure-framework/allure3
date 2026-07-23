@@ -36,15 +36,11 @@ export class ProgressPlugin implements Plugin {
   };
 
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
-    // wait for any in-flight render to settle first, so we never write concurrently with it and
-    // corrupt the in-place line, then force one final, unthrottled render so the last numbers
-    // shown are always accurate, even if they arrived inside the throttling window.
+    // wait for any in-flight render first, then force a final unthrottled one with fresh numbers
     await this.#pumpDone;
     await this.#render(store);
 
-    // commit the in-place line so it doesn't end up glued to whatever gets printed after us
-    // (the shell prompt, another log line, etc.), then stop intercepting the stream — we're not
-    // rendering anything else.
+    // commit the in-place line so later output doesn't glue onto it
     if (this.#terminal?.isTTY()) {
       this.#terminal.newline();
     }
@@ -52,12 +48,7 @@ export class ProgressPlugin implements Plugin {
     this.#terminal?.detach();
   };
 
-  // results come in bursts (a single test run can report dozens of results within milliseconds).
-  // rendering on every single one is what floods non-TTY output (piped logs, CI, IDE panels) with
-  // thousands of near-duplicate lines, and on a real terminal a new render can start before the
-  // previous one finishes writing, corrupting the cursor-controlled block. This pump guarantees at
-  // most one #render in flight at a time, spaced at least #minRenderIntervalMs apart, always using
-  // the latest available stats.
+  // coalesces bursty result events into at most one #render in flight, spaced #minRenderIntervalMs apart
   #pump = async (): Promise<void> => {
     this.#pumping = true;
 
@@ -97,18 +88,13 @@ export class ProgressPlugin implements Plugin {
     const line = parts.join("  ");
 
     if (!this.#terminal.isTTY()) {
-      // one line per update; can't be redrawn in place without a real terminal.
+      // no in-place redraw without a real terminal
       this.#terminal.write(line);
       this.#terminal.newline();
       return;
     }
 
-    // Redraw a single line in place instead of a multi-row block. A multi-row block needs to
-    // remember how many rows it occupies to move the cursor back up before the next redraw, and
-    // that bookkeeping desyncs the moment *anything else* writes to the same stream between
-    // renders (another plugin's log line, etc.) — the cursor ends up a different number of rows
-    // away than expected, and the block starts drifting/duplicating instead of overwriting.
-    // Resetting to column 0 of whatever the current row is has no such state to get out of sync.
+    // single-line redraw: no row-count bookkeeping to desync when other output interleaves
     this.#terminal.cursorTo(0);
     this.#terminal.clearLine();
     this.#terminal.write(line);

@@ -4,17 +4,11 @@ import { sep } from "node:path";
 import { watch as chokidarWatch } from "chokidar";
 import type { EventName } from "chokidar/handler.js";
 
-// non-dotfile directories that are essentially never relevant to watch, and that can be huge
-// enough (deps, build output) to exhaust the OS's per-process fs-watch handle limit (EMFILE) if
-// chokidar is left to recurse into them.
+// large, essentially never-relevant directories that can exhaust the fs-watch handle limit (EMFILE)
 const DEFAULT_IGNORED_DIR_NAMES = ["node_modules", "dist", "build", "out", "coverage"];
 
-// dotfiles/dot-directories (.git, .yarn, .cache, .codegraph, .vscode, .idea, …) are near-never
-// relevant to source watching either, are numerous enough on their own to matter for the fd
-// limit, and sometimes contain things a plain fs.watch can't even handle (e.g. .codegraph's unix
-// socket, which errors with ENOTSUP/UNKNOWN if chokidar tries to watch it). Ignoring the whole
-// class by convention avoids both problems without having to enumerate every tool's dotfolder by
-// name.
+// dot-directories (.git, .yarn, .cache, .codegraph, …) are ignored wholesale too — same fd-limit
+// reasoning, plus some contain things fs.watch can't handle (e.g. a unix socket)
 const isDotSegment = (segment: string): boolean => segment.length > 1 && segment.startsWith(".");
 
 const isIgnoredByDefault = (path: string): boolean =>
