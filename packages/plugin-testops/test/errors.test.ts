@@ -1,9 +1,11 @@
+import { KnownError, UnknownError } from "@allurereport/service";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ErrorKind,
   classifyError,
+  isClosedLaunchError,
   isPermanentUploadError,
   isTerminalUploadError,
   shouldRetryUpload,
@@ -62,6 +64,53 @@ describe("classifyError", () => {
 
   it("classifies a plain non-axios error as unknown", () => {
     expect(classifyError(new Error("boom"))).toBe(ErrorKind.Unknown);
+  });
+
+  // TestOpsClient never sees a raw AxiosError in practice: @allurereport/service's
+  // createServiceHttpClient wraps every HTTP failure into a KnownError (status < 500) or an
+  // UnknownError (status >= 500 / no response), so classifyError must recognize those directly.
+  it("classifies a KnownError by its status code", () => {
+    expect(classifyError(new KnownError("boom", 401))).toBe(ErrorKind.AuthTerminal);
+    expect(classifyError(new KnownError("boom", 429))).toBe(ErrorKind.ServiceTransient);
+    expect(classifyError(new KnownError("boom", 404))).toBe(ErrorKind.NotFoundTerminal);
+  });
+
+  it("classifies a KnownError with a 'launch is closed' message as resource recoverable regardless of status", () => {
+    expect(classifyError(new KnownError("Allure service request failed: Launch is closed", 400))).toBe(
+      ErrorKind.ResourceRecoverable,
+    );
+  });
+
+  it("classifies a statusless KnownError as unknown", () => {
+    expect(classifyError(new KnownError("boom"))).toBe(ErrorKind.Unknown);
+  });
+
+  it("classifies an UnknownError as service transient (it only ever means 5xx or no response)", () => {
+    expect(classifyError(new UnknownError("boom"))).toBe(ErrorKind.ServiceTransient);
+  });
+
+  it("classifies an UnknownError with a 'launch is closed' message as resource recoverable", () => {
+    expect(classifyError(new UnknownError("Allure service request failed: closed launch"))).toBe(
+      ErrorKind.ResourceRecoverable,
+    );
+  });
+});
+
+describe("isClosedLaunchError", () => {
+  it("recognizes a 'launch is closed' message regardless of status", () => {
+    expect(isClosedLaunchError(axiosError(400, "Launch is closed"))).toBe(true);
+    expect(isClosedLaunchError(axiosError(423, "closed launch"))).toBe(true);
+  });
+
+  it("does not flag unrelated errors", () => {
+    expect(isClosedLaunchError(axiosError(500, "internal error"))).toBe(false);
+    expect(isClosedLaunchError(new Error("boom"))).toBe(false);
+  });
+
+  it("recognizes a 'launch is closed' message wrapped in a KnownError or UnknownError", () => {
+    expect(isClosedLaunchError(new KnownError("Allure service request failed: Launch is closed", 400))).toBe(true);
+    expect(isClosedLaunchError(new UnknownError("Allure service request failed: closed launch"))).toBe(true);
+    expect(isClosedLaunchError(new KnownError("Allure service request failed: not found", 404))).toBe(false);
   });
 });
 
@@ -124,5 +173,28 @@ describe("withUploadRetry", () => {
 
     await expect(withUploadRetry(operation, { baseDelayMs: 0, maxRetries: 2 })).rejects.toEqual(axiosError(503));
     expect(operation).toHaveBeenCalledTimes(3);
+  });
+
+  it("awaits an async onRetry before the next attempt", async () => {
+    const order: string[] = [];
+    const onRetry = vi.fn().mockImplementation(async () => {
+      order.push("onRetry:start");
+      await Promise.resolve();
+      order.push("onRetry:end");
+    });
+    const operation = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        throw axiosError(503);
+      })
+      .mockImplementationOnce(async () => {
+        order.push("operation:retry");
+        return "ok";
+      });
+
+    const result = await withUploadRetry(operation, { baseDelayMs: 0, onRetry });
+
+    expect(result).toBe("ok");
+    expect(order).toEqual(["onRetry:start", "onRetry:end", "operation:retry"]);
   });
 });

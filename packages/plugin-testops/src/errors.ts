@@ -1,5 +1,6 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+import { KnownError, UnknownError } from "@allurereport/service";
 import { isAxiosError } from "axios";
 
 export enum ErrorKind {
@@ -69,6 +70,21 @@ const classifyHttpStatus = (status: number): ErrorKind => {
   return ErrorKind.Unknown;
 };
 
+export const isClosedLaunchError = (error: unknown): boolean => {
+  if (isAxiosError(error)) {
+    return isLaunchClosedMessage(responseMessage(error));
+  }
+
+  // TestOpsClient never sees a raw AxiosError: @allurereport/service's createServiceHttpClient
+  // already unwraps it into a KnownError/UnknownError, formatting the response message into
+  // `.message` in the process — so the "launch is closed" text still survives there
+  if (error instanceof KnownError || error instanceof UnknownError) {
+    return isLaunchClosedMessage(error.message);
+  }
+
+  return false;
+};
+
 export const classifyError = (error: unknown): ErrorKind => {
   if (!error) {
     return ErrorKind.None;
@@ -83,6 +99,25 @@ export const classifyError = (error: unknown): ErrorKind => {
 
     // no response at all: network error, DNS failure, connection reset, request timeout, ...
     return status === undefined ? ErrorKind.ServiceTransient : classifyHttpStatus(status);
+  }
+
+  // real TestOpsClient calls surface a KnownError (status < 500, response known) or an
+  // UnknownError (status >= 500, or no response at all) — see the comment on isClosedLaunchError
+  if (error instanceof KnownError) {
+    if (isLaunchClosedMessage(error.message)) {
+      return ErrorKind.ResourceRecoverable;
+    }
+
+    return typeof error.status === "number" ? classifyHttpStatus(error.status) : ErrorKind.Unknown;
+  }
+
+  if (error instanceof UnknownError) {
+    if (isLaunchClosedMessage(error.message)) {
+      return ErrorKind.ResourceRecoverable;
+    }
+
+    // UnknownError only ever represents a 5xx response or a request that never got one
+    return ErrorKind.ServiceTransient;
   }
 
   if (error instanceof Error && (error.name === "AbortError" || /timeout/i.test(error.message))) {
@@ -118,7 +153,7 @@ export type RetryOptions = {
   maxRetries?: number;
   baseDelayMs?: number;
   maxDelayMs?: number;
-  onRetry?: (error: unknown, attempt: number) => void;
+  onRetry?: (error: unknown, attempt: number) => void | Promise<void>;
 };
 
 const DEFAULT_MAX_RETRIES = 3;
@@ -148,7 +183,7 @@ export const withUploadRetry = async <T>(operation: () => Promise<T>, options: R
       }
 
       attempt += 1;
-      onRetry?.(error, attempt);
+      await onRetry?.(error, attempt);
 
       const backoffMs = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
 

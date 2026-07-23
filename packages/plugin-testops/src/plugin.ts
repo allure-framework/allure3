@@ -15,7 +15,7 @@ import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import { withUploadRetry } from "./errors.js";
+import { isClosedLaunchError, withUploadRetry } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
@@ -39,6 +39,7 @@ export class TestOpsPlugin implements Plugin {
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
+  #reopenClosedLaunch: boolean = false;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
 
@@ -67,6 +68,7 @@ export class TestOpsPlugin implements Plugin {
       launchTags,
       autocloseLaunch = true,
       uploadRateLimit,
+      reopenClosedLaunch = false,
     } = resolvePluginOptions(options);
 
     // don't initialize the client when some options are missing
@@ -83,6 +85,7 @@ export class TestOpsPlugin implements Plugin {
     }
 
     this.#autocloseLaunch = autocloseLaunch;
+    this.#reopenClosedLaunch = reopenClosedLaunch;
     const gitFlowOptions = resolveGitFlowOptions(options);
 
     this.#gitFlow = new LaunchGitFlow({
@@ -143,6 +146,25 @@ export class TestOpsPlugin implements Plugin {
     return true;
   }
 
+  async #reopenLaunchIfClosed(error: unknown): Promise<void> {
+    if (!this.#reopenClosedLaunch || !isClosedLaunchError(error)) {
+      return;
+    }
+
+    const launchId = this.#client.launchId;
+
+    if (launchId === undefined) {
+      return;
+    }
+
+    try {
+      this.#logger.warn(`Launch ${launchId} was closed - reopening before retrying the upload…`);
+      await this.#client.reopenLaunch(launchId);
+    } catch (reopenError) {
+      this.#logger.debug(`Failed to reopen launch ${launchId}: ${reopenError}`);
+    }
+  }
+
   async #uploadQualityGateResults(store: AllureStore) {
     const results = await store.qualityGateResults();
     const uniqueResults = uniqBy(
@@ -168,12 +190,21 @@ export class TestOpsPlugin implements Plugin {
     try {
       progressLogger.log(true);
 
-      await this.#client.uploadQualityGateResults(uniqueResults, (percent) => {
-        if (!completed && percent >= 100) {
-          completed = true;
-          progressLogger.increment();
-        }
-      });
+      await withUploadRetry(
+        () =>
+          this.#client.uploadQualityGateResults(uniqueResults, (percent) => {
+            if (!completed && percent >= 100) {
+              completed = true;
+              progressLogger.increment();
+            }
+          }),
+        {
+          onRetry: async (error, attempt) => {
+            this.#logger.debug(`Retrying quality gate results upload (attempt ${attempt}): ${error}`);
+            await this.#reopenLaunchIfClosed(error);
+          },
+        },
+      );
 
       if (!completed) {
         progressLogger.increment();
@@ -221,8 +252,10 @@ export class TestOpsPlugin implements Plugin {
             }
           }),
         {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying global errors upload (attempt ${attempt}): ${error}`),
+          onRetry: async (error, attempt) => {
+            this.#logger.debug(`Retrying global errors upload (attempt ${attempt}): ${error}`);
+            await this.#reopenLaunchIfClosed(error);
+          },
         },
       );
 
@@ -290,8 +323,10 @@ export class TestOpsPlugin implements Plugin {
             },
           }),
         {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying global attachments upload (attempt ${attempt}): ${error}`),
+          onRetry: async (error, attempt) => {
+            this.#logger.debug(`Retrying global attachments upload (attempt ${attempt}): ${error}`);
+            await this.#reopenLaunchIfClosed(error);
+          },
         },
       );
 
@@ -347,8 +382,10 @@ export class TestOpsPlugin implements Plugin {
             onProgress: () => incrementProgress(),
           }),
         {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`),
+          onRetry: async (error, attempt) => {
+            this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`);
+            await this.#reopenLaunchIfClosed(error);
+          },
         },
       );
 
@@ -366,6 +403,15 @@ export class TestOpsPlugin implements Plugin {
       }
 
       this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+    } catch (error) {
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload test results: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload test results: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to upload test results");
+      }
     } finally {
       progressLogger.cancel?.();
     }
