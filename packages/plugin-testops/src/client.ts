@@ -34,6 +34,7 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
+import { UploadPacer } from "./uploadPacer.js";
 import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
@@ -68,6 +69,7 @@ export class TestOpsClient {
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
+  #uploadPacer: UploadPacer;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: TestOpsClientParams) {
@@ -98,6 +100,8 @@ export class TestOpsClient {
     if (params.limit) {
       this.#uploadLimit = params.limit;
     }
+
+    this.#uploadPacer = new UploadPacer(params.uploadRateLimit);
   }
 
   isTestOpsClientError(error: unknown): error is TestOpsClientError {
@@ -426,6 +430,8 @@ export class TestOpsClient {
         if (chunkEnvs.size > 0) {
           await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
+
+        await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
 
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 

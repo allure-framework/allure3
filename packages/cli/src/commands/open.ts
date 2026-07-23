@@ -10,6 +10,7 @@ import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 import { findFilesByGlobs } from "./../utils/fileSystem.js";
+import { notifySignals, waitForAbort } from "./../utils/signals.js";
 import { generate } from "./commons/generate.js";
 
 export class OpenCommand extends Command {
@@ -83,12 +84,14 @@ export class OpenCommand extends Command {
       });
 
       // clean up temp report directory on ctrl-c
-      process.on("SIGINT", async () => {
+      const notifier = notifySignals(["SIGINT", "SIGTERM"]);
+
+      void waitForAbort(notifier.signal).then(async () => {
         try {
           await rm(config.output, { recursive: true });
         } catch {}
 
-        process.exit(0);
+        process.exit(notifier.info()?.code ?? 0);
       });
 
       await serve({

@@ -5,7 +5,6 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, resolve, sep } from "node:path";
 import process from "node:process";
-import { setTimeout as delay } from "node:timers/promises";
 
 import { AllureReport, QualityGateState, stringifyQualityGateResults } from "@allurereport/core";
 import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
@@ -25,6 +24,7 @@ import { cyan, dim, green, red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
+import { boundedTerminationSignal, notifySignals, waitForAbort } from "../../utils/signals.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -382,65 +382,61 @@ export const executeAllureWatchRun = async (params: {
 
   console.log(dim("watching for changed spec files, press Ctrl+C to exit"));
 
-  await new Promise<void>((resolvePromise) => {
-    let interruptCount = 0;
+  const notifier = notifySignals(["SIGINT", "SIGTERM"], (signal) => {
+    // the user is insisting: stop being graceful and force-kill immediately
+    console.log(`\nreceived another ${signal}, force exiting...`);
 
-    process.on("SIGINT", () => {
-      interruptCount += 1;
+    if (currentTestProcess?.pid) {
+      void stopProcessTree(currentTestProcess.pid, { signal: "SIGKILL" });
+    }
 
-      console.log("");
-
-      if (interruptCount > 1) {
-        // the user is insisting: stop being graceful and force-kill immediately.
-        console.log("force exiting...");
-
-        if (currentTestProcess?.pid) {
-          void stopProcessTree(currentTestProcess.pid, { signal: "SIGKILL" });
-        }
-
-        process.exit(130);
-      }
-
-      stopping = true;
-
-      for (const timer of debounceTimers.values()) {
-        clearTimeout(timer);
-      }
-
-      debounceTimers.clear();
-      pendingSpecs.clear();
-
-      void (async () => {
-        await stopWatching();
-
-        const processToKill = currentTestProcess;
-
-        if (processToKill?.pid) {
-          console.log("stopping the running test process...");
-
-          try {
-            await stopProcessTree(processToKill.pid, { signal: "SIGTERM" });
-
-            // some tools (dev servers, e2e-launched browsers) ignore or delay SIGTERM, so escalate ourselves
-            const exited = await Promise.race([
-              terminationOf(processToKill).then(() => true),
-              delay(GRACEFUL_KILL_TIMEOUT_MS).then(() => false),
-            ]);
-
-            if (!exited) {
-              console.log("test process did not exit in time, force killing...");
-              await stopProcessTree(processToKill.pid, { signal: "SIGKILL" });
-            }
-          } catch {
-            // the process may have already exited on its own.
-          }
-        }
-
-        await allureReport.done();
-        resolvePromise();
-      })();
-    });
+    process.exit(130);
   });
+
+  await waitForAbort(notifier.signal);
+
+  const signalInfo = notifier.info();
+
+  console.log(`\nreceived ${signalInfo?.signal}, stopping (press again to force exit)...`);
+
+  stopping = true;
+
+  for (const timer of debounceTimers.values()) {
+    clearTimeout(timer);
+  }
+
+  debounceTimers.clear();
+  pendingSpecs.clear();
+
+  await stopWatching();
+
+  const processToKill = currentTestProcess;
+
+  if (processToKill?.pid) {
+    console.log("stopping the running test process...");
+
+    try {
+      await stopProcessTree(processToKill.pid, { signal: "SIGTERM" });
+
+      // some tools (dev servers, e2e-launched browsers) ignore or delay SIGTERM, so escalate ourselves
+      const terminationSignal = boundedTerminationSignal(signalInfo, GRACEFUL_KILL_TIMEOUT_MS);
+      const exited = await Promise.race([
+        terminationOf(processToKill).then(() => true),
+        waitForAbort(terminationSignal).then(() => false),
+      ]);
+
+      if (!exited) {
+        console.log("test process did not exit in time, force killing...");
+        await stopProcessTree(processToKill.pid, { signal: "SIGKILL" });
+      }
+    } catch {
+      // the process may have already exited on its own
+    }
+  }
+
+  await allureReport.done();
+  notifier.dispose();
+  process.exit(signalInfo?.code ?? 0);
 };
 
 export const executeAllureRun = async (params: {

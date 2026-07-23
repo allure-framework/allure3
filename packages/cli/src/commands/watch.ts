@@ -16,6 +16,7 @@ import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { boundedTerminationSignal, notifySignals, waitForAbort } from "../utils/signals.js";
 
 export class WatchCommand extends Command {
   static paths = [["watch"]];
@@ -221,39 +222,36 @@ export class WatchCommand extends Command {
 
     console.info("Press Ctrl+C to exit");
 
-    let interruptCount = 0;
+    const notifier = notifySignals(["SIGINT", "SIGTERM"], (signal) => {
+      console.log(`\nreceived another ${signal}, force exiting...`);
+      process.exit(130);
+    });
 
-    process.on("SIGINT", () => {
-      interruptCount += 1;
+    await waitForAbort(notifier.signal);
 
-      // new line for ctrl+C character
-      console.log("");
+    const signalInfo = notifier.info();
 
-      if (interruptCount > 1) {
-        console.log("force exiting...");
-        process.exit(130);
+    console.log(`\nreceived ${signalInfo?.signal}, stopping (press again to force exit)...`);
+
+    const terminationSignal = boundedTerminationSignal(signalInfo, 5_000);
+    const cleanup = (async () => {
+      // abort(true) interrupts an in-progress directory scan instead of finishing it first
+      for (const abort of abortFunctions) {
+        await abort(true);
       }
 
-      console.log("stopping, please wait (press Ctrl+C again to force exit)...");
+      await server.stop();
+      await allureReport.done();
+    })();
 
-      const shutdownTimeout = setTimeout(() => {
-        console.log("shutdown is taking too long, force exiting...");
-        process.exit(130);
-      }, 5_000);
+    const timedOut = await Promise.race([cleanup.then(() => false), waitForAbort(terminationSignal).then(() => true)]);
 
-      shutdownTimeout.unref();
+    if (timedOut) {
+      console.log("shutdown is taking too long, force exiting...");
+      process.exit(130);
+    }
 
-      void (async () => {
-        // abort(true) interrupts an in-progress directory scan instead of finishing it first
-        for (const abort of abortFunctions) {
-          await abort(true);
-        }
-
-        await server.stop();
-        await allureReport.done();
-
-        process.exit(0);
-      })();
-    });
+    notifier.dispose();
+    process.exit(signalInfo?.code ?? 0);
   }
 }

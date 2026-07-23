@@ -11,6 +11,7 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     launchTags = ALLURE_LAUNCH_TAGS,
     launchName = ALLURE_LAUNCH_NAME,
     autocloseLaunch,
+    uploadRateLimit,
   } = options;
   const tags = !launchTags
     ? []
@@ -25,5 +26,6 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     endpoint: endpoint || "",
     projectId: projectId || "",
     ...(autocloseLaunch !== undefined ? { autocloseLaunch } : {}),
+    ...(uploadRateLimit !== undefined ? { uploadRateLimit } : {}),
   };
 };
