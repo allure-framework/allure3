@@ -30,6 +30,7 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
