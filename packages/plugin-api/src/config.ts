@@ -15,6 +15,12 @@ export interface Config {
   open?: boolean;
   port?: string;
   hideLabels?: (string | RegExp)[];
+  /**
+   * When false, omit Google Analytics from report HTML for all plugins.
+   * Also disabled when `ALLURE_NO_ANALYTICS=true` (Allure 2 parity); env always wins.
+   * @default true
+   */
+  analyticsEnable?: boolean;
   historyPath?: string;
   historyLimit?: number;
   knownIssuesPath?: string;

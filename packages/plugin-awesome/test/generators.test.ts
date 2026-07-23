@@ -159,6 +159,7 @@ describe("generateAllCharts", () => {
       allureVersion: "3.0.0",
       reportUuid: "report-uuid",
       reportName: "Test report",
+      analyticsEnable: true,
       reportFiles: {} as PluginContext["reportFiles"],
       output: "/tmp/out",
     };
@@ -251,6 +252,7 @@ describe("generateAllCharts", () => {
       allureVersion: "3.0.0",
       reportUuid: "report-uuid",
       reportName: "Test report",
+      analyticsEnable: true,
       reportFiles: {} as PluginContext["reportFiles"],
       output: "/tmp/out",
     };

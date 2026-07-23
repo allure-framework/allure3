@@ -41,6 +41,7 @@ import {
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
+  isAnalyticsEnabled,
   preciseTreeLabels,
   processTree,
 } from "@allurereport/plugin-api";
@@ -632,6 +633,11 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    /**
+     * Core-resolved analytics flag; also re-checked against `ALLURE_NO_ANALYTICS`.
+     * @default true
+     */
+    analyticsEnable?: boolean;
     executor?: AwesomeExecutorInfo;
     runSummary?: AwesomeRunSummary;
   },
@@ -729,7 +735,7 @@ export const generateStaticFiles = async (
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: isAnalyticsEnabled(payload.analyticsEnable),
       allureVersion,
       reportUuid,
       reportName,

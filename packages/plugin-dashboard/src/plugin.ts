@@ -28,6 +28,7 @@ export class DashboardPlugin implements Plugin {
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
+      analyticsEnable: context.analyticsEnable,
     });
   };
 

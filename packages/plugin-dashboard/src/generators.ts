@@ -13,7 +13,7 @@ import {
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
+import { type AllureStore, type PluginContext, type ReportFiles, isAnalyticsEnabled } from "@allurereport/plugin-api";
 import { generateCharts } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import Handlebars from "handlebars";
@@ -98,6 +98,11 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    /**
+     * Core-resolved analytics flag; also re-checked against `ALLURE_NO_ANALYTICS`.
+     * @default true
+     */
+    analyticsEnable?: boolean;
   },
 ) => {
   const {
@@ -167,7 +172,7 @@ export const generateStaticFiles = async (
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: isAnalyticsEnabled(payload.analyticsEnable),
       allureVersion,
       reportUuid,
       reportName,

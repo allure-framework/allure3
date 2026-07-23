@@ -382,6 +382,14 @@ describe("resolveConfig", () => {
     expect(resolved.environment).toEqual("staging");
   });
 
+  it("should keep top-level analyticsEnable in resolved config", async () => {
+    const resolved = await resolveConfig({
+      analyticsEnable: false,
+    });
+
+    expect(resolved.analyticsEnable).toEqual(false);
+  });
+
   it("should keep top-level hideLabels in resolved config", async () => {
     const resolved = await resolveConfig({
       hideLabels: ["owner", /^tag/],

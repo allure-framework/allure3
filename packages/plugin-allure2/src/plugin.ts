@@ -96,6 +96,7 @@ export class Allure2Plugin implements Plugin {
       reportName,
       reportLanguage,
       singleFile,
+      analyticsEnable: context.analyticsEnable,
       reportFiles: context.reportFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,
