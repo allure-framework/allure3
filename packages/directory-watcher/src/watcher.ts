@@ -39,8 +39,7 @@ export const findMatching = async (
     const dir = await opendir(watchDirectory);
 
     for await (const dirent of dir) {
-      // bail out promptly instead of finishing the whole (possibly huge) directory tree scan
-      // when the caller is trying to shut down (e.g. the user pressed Ctrl+C).
+      // let an aborting caller interrupt mid-scan instead of finishing the whole tree first
       if (signal?.aborted) {
         return;
       }
@@ -87,8 +86,7 @@ const findFiles = async (
       const dir = await opendir(directory);
 
       for await (const dirent of dir) {
-        // bail out promptly instead of finishing the whole (possibly huge) directory tree scan
-        // when the caller is trying to shut down (e.g. the user pressed Ctrl+C).
+        // let an aborting caller interrupt mid-scan instead of finishing the whole tree first
         if (signal?.aborted) {
           return;
         }

@@ -423,6 +423,25 @@ describe("findMatching", () => {
 
     expect(result).does.not.contain(dir311);
   });
+
+  it("stops scanning once the signal is aborted", async () => {
+    const dir1 = await randomDirectory(fixturesDir, "allure-results");
+    const dir2 = await randomDirectory(fixturesDir, "allure-results-2");
+
+    const controller = new AbortController();
+    controller.abort();
+
+    const result = new Set<string>();
+    await findMatching(
+      fixturesDir,
+      result,
+      (dirent) => dirent.isDirectory() && dirent.name.startsWith("allure-results"),
+      5,
+      controller.signal,
+    );
+
+    expect(result.size).toEqual(0);
+  });
 });
 
 describe("difference", () => {

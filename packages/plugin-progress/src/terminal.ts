@@ -1,24 +1,20 @@
 import { clearLine, clearScreenDown, cursorTo, moveCursor } from "node:readline";
 import type { WriteStream } from "node:tty";
 
-// tracks which streams already have a Terminal's write-interception installed, so constructing
-// more than one Terminal for the same stream doesn't stack patches on top of each other.
+// streams with write-interception already installed, so multiple Terminals don't double-patch
 const patchedStreams = new WeakSet<WriteStream>();
 
 // Taken from https://github.com/npkgz/cli-progress
 // low-level terminal interactions
 export class Terminal {
   readonly #stream: WriteStream;
-  // the stream's original, unpatched write, used for everything this class writes itself so it
-  // never re-triggers its own foreign-write interception (see #interceptForeignWrites).
+  // unpatched write, used for our own output so it never re-triggers #interceptForeignWrites
   readonly #originalWrite: WriteStream["write"];
-  // a stream-like shim over #originalWrite, handed to node's readline helpers (cursorTo, etc.)
-  // instead of the real stream, for the same reason.
+  // shim over #originalWrite passed to node's readline helpers, for the same reason
   readonly #rawStream: { write: WriteStream["write"] };
   #wrapLines: boolean;
   #dy: number;
-  // true while we've written visible content on the current line without terminating it with a
-  // newline yet (i.e. a line we expect to redraw in place later).
+  // true while the current line has content but no trailing newline yet
   #lineActive = false;
 
   constructor(outputStream: WriteStream) {
@@ -37,11 +33,7 @@ export class Terminal {
     }
   }
 
-  // Other code (other plugins' loggers, console.log, …) can write to the same stream between our
-  // renders. If we're mid-way through an in-place line (no trailing newline yet) when that
-  // happens, their text ends up glued onto ours instead of starting on its own line. Patching
-  // the stream's own `write` lets us notice and terminate our line first, so foreign output
-  // always starts clean — without requiring every other writer to know about us.
+  // patches stream.write so foreign output (other loggers) never glues onto our in-place line
   #interceptForeignWrites() {
     if (patchedStreams.has(this.#stream)) {
       return;
@@ -61,8 +53,7 @@ export class Terminal {
     }) as WriteStream["write"];
   }
 
-  // undo the write patch installed by #interceptForeignWrites, e.g. once the report is done and
-  // this instance won't render anything else.
+  // undoes #interceptForeignWrites, e.g. once this instance won't render anything else
   detach() {
     if (patchedStreams.has(this.#stream)) {
       patchedStreams.delete(this.#stream);
