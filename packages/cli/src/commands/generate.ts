@@ -76,6 +76,14 @@ export class GenerateCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file. Read-only; quarantine is controlled separately",
+  });
+
+  quarantine = Option.String("--quarantine", {
+    description: "Path to quarantine file. Read/write quarantine issues only",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
@@ -85,7 +93,9 @@ export class GenerateCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      knownIssuesPath: this.knownIssues,
+      quarantinePath: this.quarantine,
     });
 
     await generate({

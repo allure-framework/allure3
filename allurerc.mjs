@@ -10,6 +10,8 @@ const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
+  quarantinePath: "./quarantine.json",
+  knownIssuesPath: "./known-issues.json",
   plugins: {
     awesome: {
       options: {
@@ -43,31 +45,14 @@ const config = {
       },
     },
   },
-  variables: {
-    env_variable: "unknown",
-  },
-  environments: {
-    foo: {
-      variables: {
-        env_variable: "foo",
-        env_specific_variable: "foo",
-      },
-      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
-    },
-    bar: {
-      variables: {
-        env_variable: "bar",
-        env_specific_variable: "bar",
-      },
-      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
-    },
-  },
   qualityGate: {
     rules: [
       {
         maxFailures: 0,
-        fastFail: true,
       },
+      {
+        maxQuarantine: 0,
+      }
     ],
     use: [...qualityGateDefaultRules],
   },

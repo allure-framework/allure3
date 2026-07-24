@@ -115,6 +115,8 @@ export const makeTestResult = (params?: Partial<TestResult>): TestResult => {
     stage,
     start,
     stop,
+    known: false,
+    quarantine: false,
     ...rest,
   };
 };

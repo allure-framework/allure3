@@ -3,6 +3,8 @@ import type {
   CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
+  KnownIssuesPathConfig,
+  QuarantinePathConfig,
   ReportVariables,
 } from "@allurereport/core-api";
 
@@ -17,7 +19,8 @@ export interface Config {
   hideLabels?: (string | RegExp)[];
   historyPath?: string;
   historyLimit?: number;
-  knownIssuesPath?: string;
+  knownIssuesPath?: KnownIssuesPathConfig;
+  quarantinePath?: QuarantinePathConfig;
   defaultLabels?: DefaultLabelsConfig;
   /**
    * Signals that the report's plugins shouldn't be executed, but test results should be archived
