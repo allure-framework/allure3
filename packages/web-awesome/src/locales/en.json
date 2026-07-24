@@ -234,6 +234,8 @@
     "clipboardSuccess": "Successfully copied",
     "collapse": "Collapse",
     "expand": "Expand",
+    "collapseAllTree": "Collapse all",
+    "expandAllTree": "Expand all",
     "fullscreen": "Full screen",
     "language": "Change language",
     "openInNewTab": "Open in new tab",
