@@ -58,7 +58,7 @@
     "typescript": "^5",
     "webpack": "^5",
     "webpack-cli": "^7",
-    "webpack-dev-server": "^5",
+    "webpack-dev-server": "^6",
     "webpack-manifest-plugin": "^6"
   }
 }
