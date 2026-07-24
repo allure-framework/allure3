@@ -22,7 +22,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@faker-js/faker": "^10.5.0",
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.61.1",
     "@types/lodash.times": "^4.3.9",
     "@types/node": "^20",
     "allure-js-commons": "^3",
