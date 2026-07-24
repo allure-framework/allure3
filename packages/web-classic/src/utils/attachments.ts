@@ -75,7 +75,9 @@ export const openAttachmentInNewTab = async (id: string, ext: string, contentTyp
 };
 
 export const attachmentType = (type: string) => {
-  switch (type) {
+  const normalizedType = type?.split(";")[0].trim().toLowerCase();
+
+  switch (normalizedType) {
     case "image/bmp":
     case "image/gif":
     case "image/tiff":
