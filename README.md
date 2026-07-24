@@ -212,6 +212,45 @@ The configuration file allows you to fine-tune report generation. Key options in
 - **`output`**: Defines the directory where the report will be saved.
 - **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
+- **`unifiedStorage`** *(boolean)*: When `true`, stores attachments and static assets in a shared `_shared/` directory to avoid duplication across plugins. See [Unified Storage](#unified-storage).
+
+### Unified Storage
+
+When multiple plugins are configured, each one writes its own copy of attachments (screenshots, logs, videos) and static assets (JS, CSS, fonts). This can significantly increase disk usage and generation time.
+
+Setting `unifiedStorage: true` enables a shared storage mode where all attachments and assets are written once to a `_shared/` directory and referenced by all plugins:
+
+```yaml
+name: Allure Report
+output: ./allure-report
+unifiedStorage: true
+plugins:
+  awesome:
+    options: {}
+  classic:
+    options: {}
+```
+
+**Output structure with unified storage:**
+
+```
+allure-report/
+  _shared/
+    data/attachments/   # each attachment written once
+    main.js             # shared static assets
+    styles.css
+    font.woff2
+  awesome/
+    data/test-results/  # plugin-specific data only
+    index.html
+  classic/
+    data/test-results/
+    index.html
+```
+
+This is especially useful when running multiple instances of the same plugin with different filters (e.g., per-environment reports) — identical assets are stored once regardless of how many plugins reference them.
+
+The option is fully backward-compatible: without `unifiedStorage: true`, behavior is identical to the default.
 
 ### Awesome Plugin Options
 

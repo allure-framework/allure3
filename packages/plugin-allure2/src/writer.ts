@@ -102,7 +102,10 @@ export class InMemoryReportDataWriter implements Allure2DataWriter {
 }
 
 export class ReportFileDataWriter implements Allure2DataWriter {
-  constructor(readonly reportFiles: ReportFiles) {}
+  constructor(
+    readonly reportFiles: ReportFiles,
+    readonly sharedReportFiles?: ReportFiles,
+  ) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
     await this.reportFiles.addFile(joinPosixPath("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
@@ -116,11 +119,12 @@ export class ReportFileDataWriter implements Allure2DataWriter {
     const contentBuffer = await file.asBuffer();
 
     if (!contentBuffer) {
-      // simply ignore missing files
       return;
     }
 
-    await this.reportFiles.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
+    const target = this.sharedReportFiles ?? this.reportFiles;
+
+    await target.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
   }
 
   async writeTestCase(test: Allure2TestResult): Promise<void> {
