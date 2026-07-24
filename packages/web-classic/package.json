@@ -44,7 +44,7 @@
     "split.js": "^1.6.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^8.0.1",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^7.27.1",
