@@ -136,6 +136,18 @@ jobs:
         env:
           ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
+      - name: Commit updated quarantine.json
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if git diff --quiet -- quarantine.json; then
+            exit 0
+          fi
+
+          git config user.name "${{ vars.ALLURE_CI_APP_SLUG }}[bot]"
+          git config user.email "${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com"
+          git add quarantine.json
+          git commit -m "Update quarantine.json"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
       - name: Write perf metrics summary
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         run: node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md --github-step-summary
