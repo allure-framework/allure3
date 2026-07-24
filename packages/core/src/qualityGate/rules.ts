@@ -1,4 +1,4 @@
-import { filterSuccessful, filterUnknownByKnownIssues, filterUnsuccessful } from "@allurereport/core-api";
+import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
 import { type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
 
@@ -6,9 +6,8 @@ export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
-  validate: async ({ trs, knownIssues, expected, state }) => {
-    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
-    const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
+  validate: async ({ trs, expected, state }) => {
+    const unknown = trs.filter((tr) => !tr.known);
     const failedTrs = unknown.filter(filterUnsuccessful);
     const actual = failedTrs.length + (state.getResult() ?? 0);
 
@@ -41,9 +40,8 @@ export const successRateRule: QualityGateRule<number> = {
   rule: "successRate",
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
-  validate: async ({ trs, knownIssues, expected }) => {
-    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
-    const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
+  validate: async ({ trs, expected }) => {
+    const unknown = trs.filter((tr) => !tr.known);
     const passedTrs = unknown.filter(filterSuccessful);
     const rate = trs.length === 0 ? 0 : unknown.length === 0 ? 1 : passedTrs.length / unknown.length;
 
@@ -112,6 +110,23 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   },
 };
 
+export const maxQuarantineRule: QualityGateRule<number> = {
+  rule: "maxQuarantine",
+  message: ({ actual, expected }) =>
+    `The number of tests in quarantine ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
+  validate: async ({ trs, expected, state }) => {
+    const quarantine = trs.filter((tr) => tr.quarantine);
+    const actual = quarantine.length + (state.getResult() ?? 0);
+
+    state.setResult(actual);
+
+    return {
+      success: actual <= expected,
+      actual,
+    };
+  },
+};
+
 export const qualityGateDefaultRules = [
   maxFailuresRule,
   minTestsCountRule,
@@ -119,4 +134,5 @@ export const qualityGateDefaultRules = [
   maxDurationRule,
   allTestsContainEnvRule,
   environmentsTestedRule,
+  maxQuarantineRule,
 ];

@@ -40,7 +40,7 @@ export interface AllureStore {
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
-  quarantineIssues: () => Promise<QuarantineTestFailure[]>;
+  allQuarantineIssues: () => Promise<QuarantineTestFailure[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // check data
   addCheckResult: (result: AllureCheckResult) => Promise<void>;

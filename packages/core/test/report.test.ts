@@ -283,7 +283,7 @@ describe("report", () => {
       { readerId: "report.test.ts" },
     );
 
-    expect(await allureReport.store.quarantineIssues()).toHaveLength(1);
+    expect(await allureReport.store.allQuarantineIssues()).toHaveLength(1);
     await allureReport.done();
 
     expect(writeQuarantine).toHaveBeenCalledTimes(1);
