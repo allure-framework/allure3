@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 
 import {
   type AllureHistory,
+  composeHistoryTestResultKey,
   type HistoryDataPoint,
   type HistoryTestResult,
   normalizeHistoryDataPointUrls,
@@ -52,7 +53,9 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        // the same test executed in different environments shares the historyId,
+        // so the key is composed with the environment to keep every environment entry
+        acc[composeHistoryTestResultKey(item.historyId!, item.environment)] = item;
 
         return acc;
       },
