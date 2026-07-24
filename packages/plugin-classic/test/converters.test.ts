@@ -20,6 +20,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
     flaky: false,
     muted: false,
     known: false,
+    quarantine: false,
     isRetry: false,
     labels: [],
     parameters: [],

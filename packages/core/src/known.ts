@@ -102,7 +102,7 @@ export const writeQuarantine = async (store: AllureStore, knownIssuesPath?: stri
     return;
   }
 
-  const quarantineIssues = await store.quarantineIssues();
+  const quarantineIssues = await store.allQuarantineIssues();
 
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(quarantineIssues)}\n`, "utf-8");

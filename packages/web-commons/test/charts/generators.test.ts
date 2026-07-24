@@ -38,6 +38,7 @@ const baseTestResult: Pick<
   flaky: false,
   muted: false,
   known: false,
+  quarantine: false,
   isRetry: false,
   labels: [],
   parameters: [],

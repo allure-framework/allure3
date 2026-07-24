@@ -157,8 +157,6 @@ export class RunCommand extends Command {
       quarantinePath: this.quarantine,
     });
 
-    console.log("config", config);
-
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
     const withQualityGate = !!config.qualityGate && !withRerun;

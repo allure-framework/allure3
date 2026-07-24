@@ -25,6 +25,7 @@ const itResult = (args: Partial<TestResult> & { titlePath: string[] }): TestResu
   muted: false,
   isRetry: false,
   known: false,
+  quarantine: false,
   sourceMetadata: {
     readerId: "system",
     metadata: {},
