@@ -132,7 +132,7 @@ describe("writeQuarantine", () => {
     const quarantinePath = join("known", "quarantine.json");
     const resolvedPath = resolve(cwd, quarantinePath);
     const store = {
-      quarantineIssues: async () => [
+      allQuarantineIssues: async () => [
         {
           historyId: "history-1",
           error: { message: "boom" },
@@ -161,7 +161,7 @@ describe("writeQuarantine", () => {
   it("should ignore empty path", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-quarantine-empty-"));
     const store = {
-      quarantineIssues: async () => [],
+      allQuarantineIssues: async () => [],
     } as unknown as AllureStore;
 
     process.chdir(cwd);
