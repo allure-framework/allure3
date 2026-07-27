@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { MarkdownPreview, Spinner } from "@allurereport/web-components";
+import { AttachmentTable, MarkdownPreview, Spinner } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -20,7 +20,7 @@ const componentsByAttachmentType: Record<string, any> = {
   code: AttachmentCode,
   uri: AttachmentCode,
   css: AttachmentCode,
-  table: AttachmentCode,
+  table: AttachmentTable,
   html: AttachmentCode,
   markdown: AttachmentCode,
   text: AttachmentCode,
