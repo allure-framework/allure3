@@ -109,7 +109,7 @@
     "@storybook/preact": "^8.6.17",
     "@storybook/preact-webpack5": "^8.6.17",
     "@storybook/preset-scss": "^1.0.3",
-    "@storybook/react": "^8.6.17",
+    "@storybook/react": "^10.5.3",
     "@storybook/test": "^8.6.17",
     "@storybook/theming": "^8.6.17",
     "@storybook/types": "^8.6.17",
