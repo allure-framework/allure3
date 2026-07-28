@@ -1,7 +1,7 @@
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 
-import { getBodyItems, isDisplayableTestError } from "@/components/TestResult/bodyItems";
+import { getBodyItems, hasDisplayableTestStatusDetails } from "@/components/TestResult/bodyItems";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrDescription } from "@/components/TestResult/TrDescription";
 import { TrError } from "@/components/TestResult/TrError";
@@ -32,7 +32,7 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
   );
-  const showTopError = (status === "failed" || status === "broken") && isDisplayableTestError(error);
+  const showTopError = hasDisplayableTestStatusDetails(status, error);
 
   return (
     <>
