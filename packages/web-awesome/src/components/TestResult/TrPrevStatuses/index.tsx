@@ -4,6 +4,7 @@ import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-co
 import type { FunctionalComponent } from "preact";
 import type { ReportOptions, ReportTestResult } from "types";
 
+import { getHistoryNavigationUrl } from "@/components/TestResult/historyNavigation";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
@@ -11,8 +12,9 @@ import * as styles from "./styles.scss";
 
 const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
   const reportOptions = getReportOptions<ReportOptions & { id: string }>();
+  const navigateUrl = getHistoryNavigationUrl(item.url, reportOptions.id, item.id);
 
-  if (!item.url) {
+  if (!navigateUrl) {
     return (
       <div className={styles["test-result-prev-status"]}>
         <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
@@ -20,13 +22,8 @@ const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }
     );
   }
 
-  const { origin, pathname } = new URL(item.url);
-  const navigateUrl = new URL([pathname, reportOptions.id].join("/"), origin);
-
-  navigateUrl.hash = item.id;
-
   return (
-    <a className={styles["test-result-prev-status"]} href={navigateUrl.toString()}>
+    <a className={styles["test-result-prev-status"]} href={navigateUrl}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </a>
   );

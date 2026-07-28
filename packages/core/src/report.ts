@@ -86,6 +86,16 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
 
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
 
+const getExecutorReportUrl = (executor: unknown): string | undefined => {
+  if (!executor || typeof executor !== "object" || !("reportUrl" in executor)) {
+    return undefined;
+  }
+
+  const { reportUrl } = executor as { reportUrl?: unknown };
+
+  return typeof reportUrl === "string" && reportUrl.length > 0 ? reportUrl : undefined;
+};
+
 const closeReadStream = async (stream: ReadStream): Promise<void> => {
   if (stream.closed) {
     return;
@@ -243,6 +253,21 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
+  #resolveHistoryReportUrl = async (): Promise<string> => {
+    if (this.reportUrl) {
+      return this.reportUrl;
+    }
+
+    const executorReportUrl = getExecutorReportUrl(await this.#store.metadataByKey("allure2_executor"));
+
+    if (executorReportUrl) {
+      this.reportUrl = executorReportUrl;
+      return executorReportUrl;
+    }
+
+    return "";
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -257,8 +282,9 @@ export class AllureReport {
     if (!historyPoint) {
       const allTrs = await this.#store.allTestResults();
       const allTcs = await this.#store.allTestCases();
+      const historyReportUrl = await this.#resolveHistoryReportUrl();
 
-      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, historyReportUrl);
       this.#historyDataPoint = historyPoint;
     }
 
@@ -1048,7 +1074,15 @@ export class AllureReport {
     try {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
-      this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
+      const historyReportUrl = await this.#resolveHistoryReportUrl();
+
+      this.#historyDataPoint = createHistory(
+        this.reportUuid,
+        this.reportName,
+        testCases,
+        testResults,
+        historyReportUrl,
+      );
 
       this.#realtimeChannel.close();
       try {

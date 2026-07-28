@@ -5,6 +5,7 @@ import { type FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import type { ReportOptions } from "types";
 
+import { getHistoryNavigationUrl } from "@/components/TestResult/historyNavigation";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
@@ -51,17 +52,8 @@ export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
   const { t } = useI18n("controls");
 
   const navigateUrl = useMemo(() => {
-    if (!url) {
-      return undefined;
-    }
-
-    const { origin, pathname } = new URL(url);
-    const navUrl = new URL([pathname, reportOptions.id].join("/"), origin);
-
-    navUrl.hash = id;
-
-    return navUrl.toString();
-  }, [id, url]);
+    return getHistoryNavigationUrl(url, reportOptions.id, id);
+  }, [id, reportOptions.id, url]);
 
   const renderExternalLink = () => {
     if (!navigateUrl) {
@@ -71,7 +63,7 @@ export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
     return (
       <TooltipWrapper tooltipText={t("openInNewTab")}>
         <IconButton
-          href={navigateUrl.toString()}
+          href={navigateUrl}
           target={"_blank"}
           icon={allureIcons.lineGeneralLinkExternal}
           style={"ghost"}
@@ -105,9 +97,12 @@ export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
     <div data-testid={"test-result-history-item"}>
       <div className={styles["test-result-history-item-header"]}>
         {Boolean(error) && (
-          <span onClick={() => setIsOpen(!isOpened)}>
-            <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
-          </span>
+          <ArrowButton
+            aria-label={"toggle history error"}
+            isOpened={isOpened}
+            icon={allureIcons.arrowsChevronDown}
+            onClick={() => setIsOpen((value) => !value)}
+          />
         )}
         {navigateUrl ? (
           <a href={navigateUrl} className={styles["test-result-history-item-wrap"]}>
