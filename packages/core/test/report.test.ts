@@ -1,5 +1,5 @@
 import console from "node:console";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
@@ -80,6 +80,12 @@ const createSignal = () => {
 
   return { promise, resolve };
 };
+
+const readHistoryEntries = async (historyPath: string) =>
+  (await readFile(historyPath, "utf-8"))
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 
 const readPerfMetrics = async (output: string, reportUuid: string) =>
   JSON.parse(await readFile(join(output, perfMetricsFileName(reportUuid)), "utf8"));
@@ -404,6 +410,187 @@ describe("report", () => {
 
     expect(historyContent).not.toEqual(initialHistoryContent);
     expect(historyContent.startsWith(initialHistoryContent)).toBe(true);
+  });
+
+  it("should populate appended history urls from allure2 executor reportUrl", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-executor-history-url-"));
+    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-executor-history-url-data-")), "history.jsonl");
+    const reportUrl = "https://jenkins.example/job/demo/42/allure";
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      historyPath,
+      appendHistory: true,
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitMetadata({
+      allure2_executor: {
+        reportUrl,
+      },
+    });
+    await allureReport.store.visitTestResult(
+      {
+        uuid: "executor-history-url-result",
+        name: "AdditionWorks",
+        testId: "addition-works",
+        status: "passed",
+      },
+      { readerId: "test" },
+    );
+    await allureReport.done();
+
+    const [historyPoint] = await readHistoryEntries(historyPath);
+    const [historyTestResult] = Object.values(historyPoint.testResults);
+
+    expect(allureReport.reportUrl).toBe(reportUrl);
+    expect(historyPoint.url).toBe(reportUrl);
+    expect(historyTestResult).toEqual(expect.objectContaining({ url: reportUrl }));
+  });
+
+  it("should prefer plugin reportUrl over allure2 executor reportUrl for appended history", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-plugin-history-url-"));
+    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-plugin-history-url-data-")), "history.jsonl");
+    const pluginReportUrl = "https://allure.example/reports/plugin";
+    const executorReportUrl = "https://jenkins.example/job/demo/42/allure";
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      historyPath,
+      appendHistory: true,
+    });
+
+    (p1.plugin.start as Mock).mockImplementation(async (context) => {
+      context.reportUrl = pluginReportUrl;
+    });
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitMetadata({
+      allure2_executor: {
+        reportUrl: executorReportUrl,
+      },
+    });
+    await allureReport.store.visitTestResult(
+      {
+        uuid: "plugin-history-url-result",
+        name: "AdditionWorks",
+        testId: "addition-works",
+        status: "passed",
+      },
+      { readerId: "test" },
+    );
+    await allureReport.done();
+
+    const [historyPoint] = await readHistoryEntries(historyPath);
+    const [historyTestResult] = Object.values(historyPoint.testResults);
+
+    expect(allureReport.reportUrl).toBe(pluginReportUrl);
+    expect(historyPoint.url).toBe(pluginReportUrl);
+    expect(historyTestResult).toEqual(expect.objectContaining({ url: pluginReportUrl }));
+  });
+
+  it("should expose allure2 executor reportUrl to plugin done hooks when no plugin overrides it", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-plugin-context-executor-url-"));
+    const reportUrl = "https://jenkins.example/job/demo/42/allure";
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+    });
+    let pluginDoneReportUrl: string | undefined;
+
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      pluginDoneReportUrl = context.reportUrl;
+    });
+    config.plugins = [p1];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitMetadata({
+      allure2_executor: {
+        reportUrl,
+      },
+    });
+    await allureReport.done();
+
+    expect(pluginDoneReportUrl).toBe(reportUrl);
+    expect(allureReport.reportUrl).toBe(reportUrl);
+  });
+
+  it("should expose executor reportUrl to generated single-plugin Awesome history", async () => {
+    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-data-")), "history.jsonl");
+    const reportUrl = "http://127.0.0.1:58888/job/demo/42/allure";
+    const createConfig = async (output: string) => {
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+      });
+
+      config.plugins = [
+        {
+          id: "awesome",
+          enabled: true,
+          options: {},
+          plugin: new AwesomePlugin({}),
+        },
+      ];
+
+      return config;
+    };
+    const runReport = async (output: string, uuid: string, status: TestResult["status"]) => {
+      const allureReport = new AllureReport(await createConfig(output));
+
+      await allureReport.start();
+      await allureReport.store.visitMetadata({
+        allure2_executor: {
+          reportUrl,
+        },
+      });
+      await allureReport.store.visitTestResult(
+        {
+          uuid,
+          name: "AdditionWorks",
+          testId: "addition-works",
+          status,
+        },
+        { readerId: "test" },
+      );
+      await allureReport.done();
+
+      return allureReport;
+    };
+
+    await runReport(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-first-")), "first-result", "failed");
+
+    const secondOutput = await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-second-"));
+
+    await runReport(secondOutput, "second-result", "passed");
+
+    const generatedTestResultFiles = await readdir(join(secondOutput, "data", "test-results"));
+    const generatedTestResults = await Promise.all(
+      generatedTestResultFiles.map(async (file) =>
+        JSON.parse(await readFile(join(secondOutput, "data", "test-results", file), "utf8")),
+      ),
+    );
+    const generatedTestResult = generatedTestResults.find((testResult) => testResult.name === "AdditionWorks");
+
+    expect(generatedTestResult?.history).toEqual([expect.objectContaining({ url: reportUrl })]);
+    await expect(readFile(join(secondOutput, "index.html"), "utf8")).resolves.toContain("Allure Report");
+    await expect(readFile(join(secondOutput, "awesome", "index.html"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 
   it("should read result directory files with bounded concurrency", async () => {
