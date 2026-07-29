@@ -1,0 +1,41 @@
+{
+  "name": "@allurereport/cli-commons",
+  "version": "3.14.3",
+  "description": "Collection of utilities used across the Allure CLI",
+  "keywords": [
+    "allure",
+    "testing"
+  ],
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "test": "vitest run",
+    "lint": "oxlint --import-plugin src test features stories",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+  },
+  "dependencies": {
+    "lodash.debounce": "^4.0.8"
+  },
+  "devDependencies": {
+    "@types/lodash.debounce": "^4.0.9",
+    "@vitest/runner": "^2",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
+    "tslib": "^2.7.0",
+    "typescript": "^5",
+    "vitest": "^4.1.0"
+  }
+}

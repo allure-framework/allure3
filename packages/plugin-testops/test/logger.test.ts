@@ -1,25 +1,21 @@
+import console from "node:console";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const { ProgressBarMock } = vi.hoisted(() => {
-  const mock = vi.fn(function () {
-    return {
-      tick: vi.fn(),
-      update: vi.fn(),
-      terminate: vi.fn(),
-    };
-  });
-
-  return { ProgressBarMock: mock };
-});
-
-vi.mock("progress", () => ({
-  default: ProgressBarMock,
-}));
 
 const { Logger } = await import("../src/logger.js");
 
 describe("Logger", () => {
+  let info: any;
+  let debug: any;
+  let warn: any;
+  let error: any;
+
   beforeEach(() => {
+    vi.restoreAllMocks();
+    info = vi.spyOn(console, "info");
+    debug = vi.spyOn(console, "debug");
+    warn = vi.spyOn(console, "warn");
+    error = vi.spyOn(console, "error");
     vi.clearAllMocks();
   });
 
@@ -27,36 +23,29 @@ describe("Logger", () => {
     vi.unstubAllEnvs();
   });
 
-  it("should render counter progress bars at the default info level", () => {
+  it("should log info messages with prefix", () => {
     vi.stubEnv("ALLURE_LOG_LEVEL", "info");
 
-    new Logger("TestOpsPlugin").progressBarCounter("Publishing report", 3);
+    new Logger("TestOpsPlugin").info("Publishing report");
 
-    expect(ProgressBarMock).toHaveBeenCalledWith(expect.stringContaining("Publishing report"), {
-      total: 3,
-      width: 20,
-    });
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("[TestOpsPlugin]:"));
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
   });
 
-  it("should render percentage progress bars at the default info level", () => {
+  it("should suppress logs below current level", () => {
     vi.stubEnv("ALLURE_LOG_LEVEL", "info");
 
-    new Logger("TestOpsPlugin").progressBar("Uploading test results");
+    new Logger("TestOpsPlugin").debug("Uploading test results");
 
-    expect(ProgressBarMock).toHaveBeenCalledWith(expect.stringContaining("Uploading test results"), {
-      total: 100,
-      width: 20,
-    });
+    expect(debug).not.toHaveBeenCalled();
   });
 
-  it("should suppress progress bars when logging is silent", () => {
+  it("should suppress logs in silent mode", () => {
     vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
 
-    const progressBar = new Logger("TestOpsPlugin").progressBarCounter("Publishing report", 3);
+    new Logger("TestOpsPlugin").warn("Publishing report");
 
-    progressBar.tick();
-    progressBar.terminate();
-
-    expect(ProgressBarMock).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
   });
 });

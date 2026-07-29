@@ -53,7 +53,6 @@ describe("summary utils", () => {
         status: "failed",
         duration: 10,
         stop: 100,
-        retries: [{ id: "r1" } as TestResult],
       }),
       testResult({ id: "t2", name: "two", status: "broken", duration: 20, stop: 250, flaky: true }),
       testResult({ id: "t3", name: "three", status: "passed", duration: 5, stop: 0 }),
@@ -70,6 +69,7 @@ describe("summary utils", () => {
       allTestResults: vi.fn().mockResolvedValue(allTrs),
       allNewTestResults: vi.fn().mockResolvedValue(newTrs),
       testsStatistic: vi.fn().mockResolvedValue(stats),
+      retriesByTr: vi.fn((tr: TestResult) => Promise.resolve(tr.id === "t1" ? [{ id: "r1" } as TestResult] : [])),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -109,6 +109,7 @@ describe("summary utils", () => {
       allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
     };
     const history = { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory;
     const summary = await createPluginSummary({
