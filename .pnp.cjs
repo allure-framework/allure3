@@ -881,7 +881,7 @@ const RAW_RUNTIME_STATE =
           ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.8"],\
-          ["@types/md5", "npm:2.3.5"],\
+          ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
           ["@vitest/runner", "npm:3.2.4"],\
@@ -943,7 +943,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.8"],\
-          ["@types/md5", "npm:2.3.5"],\
+          ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
           ["@types/underscore", "npm:1.13.0"],\
@@ -1086,7 +1086,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-transition", "npm:3.0.9"],\
           ["@types/lodash", "npm:4.17.24"],\
           ["@types/markdown-it", "npm:14.1.2"],\
-          ["@types/md5", "npm:2.3.5"],\
+          ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
           ["@types/prismjs", "npm:1.26.5"],\
           ["@types/sortablejs", "npm:1.15.9"],\
@@ -1219,7 +1219,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
-          ["@types/md5", "npm:2.3.5"],\
+          ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
           ["autoprefixer", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.4.20"],\
           ["babel-loader", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:10.1.1"],\
@@ -11654,10 +11654,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/md5", [\
-      ["npm:2.3.5", {\
-        "packageLocation": "./.yarn/cache/@types-md5-npm-2.3.5-bd5c825c57-a86baf0521.zip/node_modules/@types/md5/",\
+      ["npm:2.3.6", {\
+        "packageLocation": "./.yarn/cache/@types-md5-npm-2.3.6-d317be84c8-88d041abea.zip/node_modules/@types/md5/",\
         "packageDependencies": [\
-          ["@types/md5", "npm:2.3.5"]\
+          ["@types/md5", "npm:2.3.6"]\
         ],\
         "linkType": "HARD"\
       }]\
