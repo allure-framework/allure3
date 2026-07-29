@@ -294,7 +294,7 @@ export const executeAllureRun = async (params: {
     const blockingFailuresAfterInitialRun = await allureReport.store.blockingFailedTestResults();
 
     if (allFailuresAfterInitialRun.length > 0 && blockingFailuresAfterInitialRun.length === 0 && testProcessResult) {
-      testProcessResult.code = 0;
+      globalExitCode.actual = 0;
     }
 
     for (let rerun = 0; rerun < maxRerun; rerun++) {
@@ -342,7 +342,7 @@ export const executeAllureRun = async (params: {
     const blockingFailuresAfterReruns = await allureReport.store.blockingFailedTestResults();
 
     if (allFailuresAfterReruns.length > 0 && blockingFailuresAfterReruns.length === 0 && testProcessResult) {
-      testProcessResult.code = 0;
+      globalExitCode.actual = 0;
     }
 
     const trs = await allureReport.store.allTestResults({ includeRetries: false });

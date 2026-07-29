@@ -345,6 +345,37 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(1);
   });
 
+  it("should preserve raw child exit code when only known failures remain", async () => {
+    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    vi.mocked(runProcess).mockClear();
+    vi.mocked(terminationOf).mockResolvedValueOnce(7);
+
+    const { AllureReportMock } = await import("../utils.js");
+    const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
+
+    AllureReportMock.prototype.store = {
+      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1" }]),
+      blockingFailedTestResults: vi.fn().mockResolvedValue([]),
+      failedTestResults: vi.fn().mockResolvedValue([knownFailure]),
+      allTestResults: vi.fn().mockResolvedValue([]),
+    };
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
+      original: 7,
+      actual: 0,
+    });
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");

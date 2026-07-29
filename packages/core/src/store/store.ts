@@ -189,7 +189,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       identities,
       errors: configErrors,
     } = normalizeEnvironmentDescriptorMap(environmentsConfig, "environmentsConfig");
+
     errors.push(...configErrors);
+
     const forcedEnvironment = resolveEnvironmentIdentity(
       {
         environment,
@@ -197,7 +199,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       normalizedEnvironmentsConfig,
       "store constructor",
     );
+
     errors.push(...forcedEnvironment.errors);
+
     const resolvedEnvironment = forcedEnvironment.identity;
 
     if (errors.length > 0) {
@@ -300,71 +304,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   #historyIdMatches<T>(historyIdCandidates: string[], indexByHistoryId: ReadonlyMap<string, T>) {
     return historyIdCandidates.find((historyId) => indexByHistoryId.has(historyId));
-  }
-
-  #classifyFailedTestResult(testResult: TestResult, createQuarantineIssue = false) {
-    if (testResult.known) {
-      testResult.quarantine = false;
-      return;
-    }
-
-    const historyIdCandidates = getHistoryIdCandidates(testResult);
-
-    if (historyIdCandidates.length === 0) {
-      return;
-    }
-
-    const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
-
-    if (testResult.known || knownHistoryId) {
-      testResult.known = true;
-      testResult.quarantine = false;
-      return;
-    }
-
-    const quarantineHistoryId = this.#historyIdMatches(historyIdCandidates, this.#quarantine);
-
-    if (quarantineHistoryId) {
-      testResult.quarantine = true;
-
-      const existingQuarantine = this.#quarantine.get(quarantineHistoryId);
-
-      if (existingQuarantine && testResult.error) {
-        existingQuarantine.error = testResult.error;
-      }
-
-      return;
-    }
-
-    if (!createQuarantineIssue) {
-      return;
-    }
-
-    const historyId = historyIdCandidates[0];
-    const quarantineIssue: QuarantineTestFailure = {
-      historyId,
-      ...(testResult.error ? { error: testResult.error } : {}),
-    };
-
-    testResult.quarantine = true;
-    this.#quarantine.set(historyId, quarantineIssue);
-  }
-
-  #clearQuarantineIssue(historyId: string) {
-    if (!this.#quarantine.has(historyId)) {
-      return;
-    }
-
-    this.#quarantine.delete(historyId);
-  }
-
-  #hasActiveFailedResult(historyId: string) {
-    return [...this.#testResults.values()].some(
-      (testResult) =>
-        testResult.historyId === historyId &&
-        !testResult.isRetry &&
-        (testResult.status === "failed" || testResult.status === "broken"),
-    );
   }
 
   #mergeEnvironmentIdentity(
@@ -791,7 +730,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       raw,
       context,
     );
-
     const defaultLabelsNames = Object.keys(this.#defaultLabels);
 
     if (defaultLabelsNames.length) {
@@ -825,10 +763,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = environmentIdentity.name;
     this.#addEnvironments([environmentIdentity]);
+
     const parametersHash =
       typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
         ? raw.parametersHash
         : calculateParametersHash(testResult.parameters);
+
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
     const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
@@ -847,18 +787,46 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       retry.quarantine = false;
     });
 
-    if (testResult.isRetry) {
-      testResult.known = false;
-      testResult.quarantine = false;
+    const historyIdCandidates = getHistoryIdCandidates(testResult);
+    const hasError = Boolean(testResult.error?.message || testResult.error?.trace);
 
-      if (!this.#hasActiveFailedResult(testResult.historyId ?? "")) {
-        this.#clearQuarantineIssue(testResult.historyId ?? "");
+    switch (true) {
+      // retry can't be known or quarantine issue
+      case testResult.isRetry || historyIdCandidates.length === 0:
+        break;
+      // passed tests can't be in quarantine; we also need to delete related quarantine issues
+      case testResult.status === "passed": {
+        const quarantineHistoryId =
+          this.#historyIdMatches(historyIdCandidates, this.#quarantine) ??
+          this.#retriesByTr(testResult)
+            .flatMap((retry) => getHistoryIdCandidates(retry))
+            .find((historyId) => this.#quarantine.has(historyId));
+
+        if (quarantineHistoryId) {
+          this.#quarantine.delete(quarantineHistoryId);
+        }
+        break;
       }
-    } else if (testResult.status === "failed" || testResult.status === "broken") {
-      this.#classifyFailedTestResult(testResult, true);
-    } else if (testResult.historyId && !this.#hasActiveFailedResult(testResult.historyId)) {
-      this.#clearQuarantineIssue(testResult.historyId);
-      testResult.quarantine = false;
+      case testResult.status === "failed" || testResult.status === "broken": {
+        const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
+
+        testResult.known = !!knownHistoryId;
+        testResult.quarantine = !testResult.known;
+
+        const existingQuarantineHistoryId =
+          this.#historyIdMatches(historyIdCandidates, this.#quarantine) ?? historyIdCandidates[0];
+
+        // quarantine issue can't be created with no error
+        if (hasError || !!existingQuarantineHistoryId) {
+          this.#quarantine.set(existingQuarantineHistoryId, {
+            historyId: existingQuarantineHistoryId,
+            error: testResult.error,
+          });
+        }
+        break;
+      }
+      default:
+        break;
     }
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
@@ -1843,18 +1811,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#rebuildRetrySubstore();
 
     for (const testResult of this.#testResults.values()) {
-      const historyIdCandidates = getHistoryIdCandidates(testResult);
-      const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
-      const quarantineHistoryId = this.#historyIdMatches(historyIdCandidates, this.#quarantine);
-
       if (testResult.isRetry) {
         testResult.known = false;
         testResult.quarantine = false;
-        continue;
-      }
+      } else if (testResult.status === "failed" || testResult.status === "broken") {
+        const historyIdCandidates = getHistoryIdCandidates(testResult);
 
-      testResult.known = Boolean(testResult.known || knownHistoryId);
-      testResult.quarantine = Boolean(!testResult.known && (testResult.quarantine || quarantineHistoryId));
+        testResult.known = this.#historyIdMatches(historyIdCandidates, this.known) !== undefined;
+        testResult.quarantine =
+          !testResult.known && this.#historyIdMatches(historyIdCandidates, this.#quarantine) !== undefined;
+      }
     }
 
     qualityGateResults.forEach((result, index) => {
