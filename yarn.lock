@@ -172,7 +172,7 @@ __metadata:
     "@types/lodash.times": "npm:^4.3.9"
     "@types/node": "npm:^20"
     allure-js-commons: "npm:^3"
-    allure-playwright: "npm:^3.9.0"
+    allure-playwright: "npm:^3.10.2"
     lodash.times: "npm:^4.3.2"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -550,7 +550,7 @@ __metadata:
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
-    allure-playwright: "npm:^3.9.0"
+    allure-playwright: "npm:^3.10.2"
     allure-vitest: "npm:^3"
     axios: "npm:^1.18.1"
     get-port: "npm:^7.1.0"
@@ -8670,6 +8670,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"allure-js-commons@npm:3.10.2":
+  version: 3.10.2
+  resolution: "allure-js-commons@npm:3.10.2"
+  dependencies:
+    md5: "npm:^2.3.0"
+  peerDependencies:
+    allure-playwright: 3.10.2
+  peerDependenciesMeta:
+    allure-playwright:
+      optional: true
+  checksum: 10/afb8a946c1c9a36abf3b3493d669fa671743880ba9aa41bc8b5c152273569d3f657f88e072cd9eb2fa60b17eb6552fa794fd93ccf6bd3286855ddb25b56702d7
+  languageName: node
+  linkType: hard
+
 "allure-js-commons@npm:3.8.0":
   version: 3.8.0
   resolution: "allure-js-commons@npm:3.8.0"
@@ -8698,14 +8712,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-playwright@npm:^3.9.0":
-  version: 3.9.0
-  resolution: "allure-playwright@npm:3.9.0"
+"allure-playwright@npm:^3.10.2":
+  version: 3.10.2
+  resolution: "allure-playwright@npm:3.10.2"
   dependencies:
-    allure-js-commons: "npm:3.9.0"
+    allure-js-commons: "npm:3.10.2"
   peerDependencies:
     "@playwright/test": ">=1.53.0"
-  checksum: 10/7ecc45d446ebe6588934b0a48bda12773813b5dd1d5df2cbd0b6c61dadb49832765011c05fe6fab05d842750ce2c0ec1d64fb1d12965dbb7ec4496960d0c2743
+  checksum: 10/e7270965dc888f439648a72ec0aaaaeddda0f0738942e9bea6001c0c440d60db6dd9057a6454121c25e1184780944fd311f415e64e9eea359fbc7407e9448d5b
   languageName: node
   linkType: hard
 
