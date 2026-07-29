@@ -1045,6 +1045,12 @@ describe("testops plugin", () => {
     });
 
     it("should create new session", async () => {
+      // nothing to upload during start(), so the test result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1057,6 +1063,12 @@ describe("testops plugin", () => {
     });
 
     it("should upload test results", async () => {
+      // nothing to upload during start(), so the test result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1129,6 +1141,9 @@ describe("testops plugin", () => {
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       await plugin.update({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
@@ -1147,6 +1162,12 @@ describe("testops plugin", () => {
       });
 
       plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
+
+      // nothing to upload during start(), so the target result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
 
       AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
         fixtures.testResults.filter(options.filter ?? (() => true)),
@@ -1190,6 +1211,12 @@ describe("testops plugin", () => {
 
         store = new AllureStoreMock() as unknown as AllureStore;
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
 
         await plugin.done({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -1237,6 +1264,12 @@ describe("testops plugin", () => {
     });
 
     it("should create new session", async () => {
+      // nothing to upload during start(), so the test result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1249,6 +1282,12 @@ describe("testops plugin", () => {
     });
 
     it("should upload test results", async () => {
+      // nothing to upload during start(), so the test result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1268,6 +1307,11 @@ describe("testops plugin", () => {
     });
 
     it("should not call createLaunch on done", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1279,6 +1323,11 @@ describe("testops plugin", () => {
     });
 
     it("should call closeLaunch when launchId is set", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1300,6 +1349,11 @@ describe("testops plugin", () => {
     });
 
     it("should retry launch progress polling before closing", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -1329,11 +1383,6 @@ describe("testops plugin", () => {
     });
 
     it("should not check progress or close when autocloseLaunch is false", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
-      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
-      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
-      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
-
       (resolvePluginOptions as Mock).mockReturnValue({
         accessToken: fixtures.accessToken,
         endpoint: fixtures.endpoint,
@@ -1344,6 +1393,16 @@ describe("testops plugin", () => {
       });
 
       plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.done({} as PluginContext, store);
 
@@ -1364,6 +1423,12 @@ describe("testops plugin", () => {
       });
 
       plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
+
+      // nothing to upload during start(), so the target result isn't marked as already uploaded
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+      vi.clearAllMocks();
 
       AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
         fixtures.testResults.filter(options.filter ?? (() => true)),
