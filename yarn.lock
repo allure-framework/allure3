@@ -602,7 +602,7 @@ __metadata:
     "@testing-library/user-event": "npm:^14.5.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.8"
-    "@types/md5": "npm:^2.3.5"
+    "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
     "@vitest/runner": "npm:^3.2.4"
@@ -662,7 +662,7 @@ __metadata:
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.8"
-    "@types/md5": "npm:^2.3.5"
+    "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
     "@types/underscore": "npm:^1"
@@ -801,7 +801,7 @@ __metadata:
     "@types/d3-transition": "npm:^3"
     "@types/lodash": "npm:^4"
     "@types/markdown-it": "npm:^14.1.2"
-    "@types/md5": "npm:^2.3.5"
+    "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
     "@types/prismjs": "npm:^1.26.5"
     "@types/sortablejs": "npm:^1.15.9"
@@ -924,7 +924,7 @@ __metadata:
     "@preact/compat": "npm:^18.3.1"
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
-    "@types/md5": "npm:^2.3.5"
+    "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
@@ -7827,10 +7827,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/md5@npm:^2.3.5":
-  version: 2.3.5
-  resolution: "@types/md5@npm:2.3.5"
-  checksum: 10/a86baf0521006e3072488bd79089b84831780866102e5e4b4f7afabfab17e0270a3791f3331776b73efb2cc9317efd56a334fd3d2698c7929e9b18593ca3fd39
+"@types/md5@npm:^2.3.6":
+  version: 2.3.6
+  resolution: "@types/md5@npm:2.3.6"
+  checksum: 10/88d041abea4d5509ec27ae43a5e9df9caf836f29dc393e1cee0537132f732275c2bb78350d10847c1db06d068c03cb59786502f02bf06d5c1a220c1c2e6d305d
   languageName: node
   linkType: hard
 

@@ -129,7 +129,7 @@
     "@types/d3-transition": "^3",
     "@types/lodash": "^4",
     "@types/markdown-it": "^14.1.2",
-    "@types/md5": "^2.3.5",
+    "@types/md5": "^2.3.6",
     "@types/node": "^20",
     "@types/prismjs": "^1.26.5",
     "@types/sortablejs": "^1.15.9",
