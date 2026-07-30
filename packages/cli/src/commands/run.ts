@@ -1,8 +1,7 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import process, { env, exit } from "node:process";
+import process, { exit } from "node:process";
 
-import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
@@ -93,11 +92,7 @@ export class RunCommand extends Command {
 
   watch = Option.Boolean("--watch", {
     description:
-      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental). Defaults to on outside CI and off in CI; pass --once to force a single run locally",
-  });
-
-  once = Option.Boolean("--once", {
-    description: "Force a single run and exit, even outside CI where --watch is on by default",
+      "Watch source files and rerun only the changed spec file when it matches --test-match, instead of the whole suite (experimental)",
   });
 
   testMatch = Option.String("--test-match", {
@@ -169,14 +164,7 @@ export class RunCommand extends Command {
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
-
-    if (this.watch && this.once) {
-      throw new UsageError("--watch and --once cannot be used together");
-    }
-
-    const ci = detect();
-    const isCI = !isLocalCiDescriptor(ci) || env.CI === "true" || env.CI === "1";
-    const shouldWatch = this.once ? false : (this.watch ?? !isCI);
+    const shouldWatch = !!this.watch;
     const withQualityGate = !!config.qualityGate && !withRerun && !shouldWatch;
 
     if (config.qualityGate && withRerun) {
