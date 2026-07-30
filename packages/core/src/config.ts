@@ -174,6 +174,7 @@ export const validateConfig = (config: Config) => {
     "environments",
     "appendHistory",
     "qualityGate",
+    "performance",
     "allureService",
     "categories",
     "globalAttachments",
@@ -378,6 +379,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
+    performance: config.performance,
     allureService: config.allureService
       ? {
           accessToken: config.allureService.accessToken,

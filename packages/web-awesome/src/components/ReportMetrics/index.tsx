@@ -5,9 +5,9 @@ import { useI18n } from "@/stores";
 import {
   defaultMetricKey,
   metricHistoryRows,
-  metricPhaseRows,
+  metricSummaryRows,
   metricRows,
-  type MetricPhaseRow,
+  type MetricSummaryRow,
   metricsStore,
   type MetricRow,
   type MetricsWidgetData,
@@ -77,11 +77,11 @@ const Sparkline = ({ values }: { values: number[] }) => (
   </svg>
 );
 
-const groupedPhaseRows = (rows: MetricPhaseRow[]) => {
-  const groups = new Map<string, MetricPhaseRow[]>();
+const groupedMetricRows = (rows: MetricSummaryRow[]) => {
+  const groups = new Map<string, MetricSummaryRow[]>();
 
   rows.forEach((row) => {
-    const category = row.group ?? "other";
+    const category = row.groupTitle ?? row.group ?? "other";
 
     groups.set(category, [...(groups.get(category) ?? []), row]);
   });
@@ -94,20 +94,6 @@ const formatGroupLabel = (group: string) =>
     .replaceAll(".", " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^./, (char) => char.toUpperCase());
-
-const phaseMetricKey = (phase: string, field: "totalMs" | "avgMs" | "minMs" | "maxMs") => `${phase}.${field}`;
-
-const selectFallbackMetricKey = (row: MetricPhaseRow) => {
-  if (typeof row.avgMs === "number") {
-    return phaseMetricKey(row.key, "avgMs");
-  }
-
-  if (typeof row.totalMs === "number") {
-    return phaseMetricKey(row.key, "totalMs");
-  }
-
-  return row.key;
-};
 
 const MetricHistoryDetails = ({
   selectedRow,
@@ -124,7 +110,7 @@ const MetricHistoryDetails = ({
         <h2 className={styles.sectionTitle} id="metrics-history">
           {t("metrics.historyTitle")}
         </h2>
-        <span className={styles.detailsMetric}>{selectedRow.name ?? selectedRow.key}</span>
+        <span className={styles.detailsMetric}>{selectedRow.title ?? selectedRow.key}</span>
       </div>
       <div className={styles.detailsValue}>
         <span className={styles.metricValue}>{formatValue(selectedRow.value, selectedRow.unit)}</span>
@@ -173,8 +159,8 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
   const { t: tEmpty } = useI18n("empty");
   const rows = metricRows(data);
-  const phaseRows = metricPhaseRows(data);
-  const phaseGroups = groupedPhaseRows(phaseRows);
+  const summaryRows = metricSummaryRows(data);
+  const metricGroups = groupedMetricRows(summaryRows);
   const [selectedKey, setSelectedKey] = useState<string | undefined>();
   const selectedRow =
     rows.find(({ key }) => key === selectedKey) ?? rows.find(({ key }) => key === defaultMetricKey(data)) ?? rows[0];
@@ -188,16 +174,18 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
     <div className={styles.metrics} data-testid="metrics-view">
       <header className={styles.header}>
         <h1 className={styles.title}>{t("metrics.title")}</h1>
-        <span className={styles.meta}>{t("metrics.summary", { groups: phaseRows.length, metrics: rows.length })}</span>
+        <span className={styles.meta}>
+          {t("metrics.summary", { groups: summaryRows.length, metrics: rows.length })}
+        </span>
       </header>
 
-      {phaseRows.length > 0 && (
+      {summaryRows.length > 0 && (
         <div className={styles.phaseLayout}>
           <section className={styles.section} aria-labelledby="metrics-phase-summary">
             <h2 className={styles.sectionTitle} id="metrics-phase-summary">
               {t("metrics.phaseSummary")}
             </h2>
-            {phaseGroups.map(([category, categoryRows]) => (
+            {metricGroups.map(([category, categoryRows]) => (
               <div className={styles.phaseGroup} key={category}>
                 <h3 className={styles.groupTitle}>
                   {category === "other" ? t("metrics.groups.other") : formatGroupLabel(category)}
@@ -218,15 +206,15 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                     </thead>
                     <tbody>
                       {categoryRows.map((row) => (
-                        <tr key={row.key} data-selected={selectedRow?.key.startsWith(`${row.key}.`)}>
+                        <tr key={row.key} data-selected={selectedRow?.key === row.key}>
                           <td>
                             <button
                               className={styles.metricButton}
                               type="button"
-                              onClick={() => setSelectedKey(selectFallbackMetricKey(row))}
+                              onClick={() => setSelectedKey(row.key)}
                               aria-label={row.key}
                             >
-                              <span className={styles.metricName}>{row.key}</span>
+                              <span className={styles.metricName}>{row.title ?? row.key}</span>
                             </button>
                           </td>
                           <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
@@ -236,18 +224,17 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                                 <button
                                   className={styles.valueButton}
                                   type="button"
-                                  onClick={() => setSelectedKey(phaseMetricKey(row.key, field))}
-                                  aria-pressed={selectedRow?.key === phaseMetricKey(row.key, field)}
+                                  onClick={() => setSelectedKey(row.key)}
                                   aria-label={`${row.key} ${t(`metrics.table.${field.replace("Ms", "")}`)}`}
                                 >
-                                  {formatValue(row[field], "ms")}
+                                  {formatValue(row[field], row.unit)}
                                 </button>
                               ) : (
                                 ""
                               )}
                             </td>
                           ))}
-                          <td>{formatDelta({ delta: row.delta, unit: "ms", better: "lower" })}</td>
+                          <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
                           <td>
                             <Sparkline values={row.trend} />
                           </td>
@@ -266,7 +253,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
         </div>
       )}
 
-      <details className={styles.section} open={phaseRows.length === 0}>
+      <details className={styles.section} open={summaryRows.length === 0}>
         <summary className={styles.sectionTitle}>{t("metrics.currentValues")}</summary>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -283,7 +270,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                 <tr key={row.key} data-selected={selectedRow?.key === row.key}>
                   <td>
                     <button className={styles.metricButton} type="button" onClick={() => setSelectedKey(row.key)}>
-                      <span className={styles.metricName}>{row.name ?? row.key}</span>
+                      <span className={styles.metricName}>{row.title ?? row.key}</span>
                       {row.group && <span className={styles.metricGroup}>{row.group}</span>}
                     </button>
                   </td>
@@ -297,7 +284,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
         </div>
       </details>
 
-      {phaseRows.length === 0 && selectedRow && (
+      {summaryRows.length === 0 && selectedRow && (
         <div className={styles.detailsPanel}>
           <MetricHistoryDetails selectedRow={selectedRow} historyRows={historyRows} />
         </div>

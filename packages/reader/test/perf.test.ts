@@ -4,6 +4,29 @@ import { perf } from "../src/perf/index.js";
 import { readResults } from "./utils.js";
 
 describe("perf reader", () => {
+  it("reads performance result files and keeps the raw file as a global attachment", async () => {
+    const visitor = await readResults(perf, {
+      "perf/performance-result.json": "check-1-perf.json",
+    });
+
+    expect(visitor.visitMetrics).toHaveBeenCalledTimes(1);
+    expect(visitor.visitMetrics.mock.calls[0][0]).toEqual([
+      {
+        id: "check-1",
+        key: "browser.coldLoad",
+        value: 550.4,
+        start: 100,
+        stop: 650.4,
+        source: "check-1-perf.json",
+      },
+    ]);
+    expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+    expect(visitor.visitGlobals.mock.calls[0][0].attachments[0]).toMatchObject({
+      name: "check-1-perf.json",
+      originalFileName: "check-1-perf.json",
+    });
+  });
+
   it("reads explicit perf.json metric samples and keeps the raw file as a global attachment", async () => {
     const visitor = await readResults(perf, {
       "perf/explicit.json": "perf.json",
@@ -18,12 +41,10 @@ describe("perf reader", () => {
         group: "Report generation",
         source: "perf.json",
         better: "lower",
-        display: { history: true },
       }),
       expect.objectContaining({
         key: "assets.jsMb",
         value: 3.5,
-        unit: "MB",
         group: "Report generation",
         source: "perf.json",
       }),
@@ -48,7 +69,6 @@ describe("perf reader", () => {
           value: 220,
           unit: "ms",
           better: "lower",
-          display: { history: true },
         }),
         expect.objectContaining({ key: "generate.total.count", value: 1, unit: "count", better: "neutral" }),
         expect.objectContaining({ key: "generate.total.totalMs", value: 200, unit: "ms", better: "lower" }),
@@ -65,10 +85,25 @@ describe("perf reader", () => {
     });
 
     expect(visitor.visitMetrics.mock.calls[0][0]).toEqual([
-      expect.objectContaining({ key: "browser.coldLoadMs", value: 550.4, unit: "ms" }),
-      expect.objectContaining({ key: "browser.heap.usedMb", value: 42, unit: "MB" }),
+      expect.objectContaining({ key: "browser.coldLoadMs", value: 550.4 }),
+      expect.objectContaining({ key: "browser.heap.usedMb", value: 42 }),
       expect.objectContaining({ key: "lint.errors", value: 0 }),
       expect.objectContaining({ key: "lint.warnings", value: 3 }),
+    ]);
+  });
+
+  it("reads bulk performance.json files", async () => {
+    const visitor = await readResults(perf, {
+      "perf/performance-result.json": "performance.json",
+    });
+
+    expect(visitor.visitMetrics.mock.calls[0][0]).toEqual([
+      expect.objectContaining({
+        id: "check-1",
+        key: "browser.coldLoad",
+        value: 550.4,
+        source: "performance.json",
+      }),
     ]);
   });
 });

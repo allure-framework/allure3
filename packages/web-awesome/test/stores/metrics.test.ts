@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   defaultMetricKey,
   metricHistoryRows,
-  metricPhaseRows,
+  metricSummaryRows,
   metricRows,
   type MetricsWidgetData,
 } from "@/stores/metrics";
@@ -92,25 +92,38 @@ describe("metrics store helpers", () => {
     );
   });
 
-  it("should group allure perf hook fields into phase summary rows", () => {
-    expect(metricPhaseRows(data)).toEqual([
-      expect.objectContaining({
-        key: "generate.total",
-        count: 1,
-        totalMs: 180,
-        avgMs: 180,
-        minMs: 180,
-        maxMs: 180,
-        group: "generate",
-        delta: -40,
-        trend: [240, 220, 180],
-      }),
-    ]);
+  it("should build one compact summary row per metric key", () => {
+    expect(metricSummaryRows(data)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "browser.heap.usedMb",
+          count: 1,
+          totalMs: 48,
+          avgMs: 48,
+          minMs: 48,
+          maxMs: 48,
+          group: "browser",
+          delta: -2,
+          trend: [50, 48],
+        }),
+        expect.objectContaining({
+          key: "generate.total.avgMs",
+          count: 1,
+          totalMs: 180,
+          avgMs: 180,
+          minMs: 180,
+          maxMs: 180,
+          group: "generate",
+          delta: -40,
+          trend: [240, 220, 180],
+        }),
+      ]),
+    );
   });
 
-  it("should use the latest current average for phase summary deltas and trends", () => {
+  it("should average repeated current samples for summary deltas and trends", () => {
     expect(
-      metricPhaseRows({
+      metricSummaryRows({
         current: [
           { key: "generate.total.avgMs", value: 220 },
           { key: "generate.total.avgMs", value: 180 },
@@ -129,17 +142,22 @@ describe("metrics store helpers", () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        key: "generate.total",
-        avgMs: 180,
-        delta: -20,
-        trend: [200, 180],
+        key: "generate.total.avgMs",
+        count: 2,
+        avgMs: 200,
+        delta: 0,
+        trend: [200, 200],
+      }),
+      expect.objectContaining({
+        key: "generate.total.count",
+        avgMs: 1,
       }),
     ]);
   });
 
-  it("should prefer explicit metric group for phase summary rows", () => {
+  it("should prefer explicit metric group for summary rows", () => {
     expect(
-      metricPhaseRows({
+      metricSummaryRows({
         current: [
           {
             key: "parser.duration.avgMs",
@@ -153,14 +171,14 @@ describe("metrics store helpers", () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        key: "parser.duration",
+        key: "parser.duration.avgMs",
         group: "backend",
         avgMs: 20,
       }),
     ]);
   });
 
-  it("should select the largest total average metric by default", () => {
+  it("should select the largest current metric value by default", () => {
     expect(
       defaultMetricKey({
         current: [
@@ -171,7 +189,7 @@ describe("metrics store helpers", () => {
         ],
         history: [],
       }),
-    ).toBe("large.total.avgMs");
+    ).toBe("other.metric");
   });
 
   it("should prefer configured history metric by default", () => {

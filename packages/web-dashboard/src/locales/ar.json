@@ -210,15 +210,6 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
-    },
-    "metrics": {
-      "title": "مقاييس الأداء",
-      "table": {
-        "metric": "المقياس",
-        "value": "القيمة",
-        "delta": "التغيير",
-        "source": "المصدر"
-      }
     }
   },
   "transitions": {

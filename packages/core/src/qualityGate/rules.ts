@@ -1,6 +1,78 @@
-import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
+import {
+  filterSuccessful,
+  filterUnsuccessful,
+  type MetricSample,
+  type PerformanceConfig,
+} from "@allurereport/core-api";
 import { type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
+
+type MetricRuleConfig = {
+  key: string;
+  value: number;
+};
+
+type MetricHistoryPoint = {
+  uuid?: string;
+  timestamp?: number;
+  metrics?: Record<string, number>;
+};
+
+const metricValues = (metrics: MetricSample[], key: string): number[] =>
+  metrics
+    .map((metric) => (metric.key === key ? metric.value : undefined))
+    .filter((value): value is number => Number.isFinite(value));
+
+const metricAverage = (metrics: MetricSample[], key: string): number | undefined => {
+  const values = metricValues(metrics, key);
+
+  if (values.length === 0) {
+    return undefined;
+  }
+
+  return values.reduce((acc, value) => acc + value, 0) / values.length;
+};
+
+const previousMetricValue = (
+  history: MetricHistoryPoint[],
+  key: string,
+  currentReportUuid?: string,
+): number | undefined => {
+  const previousHistory = [...history]
+    .filter(({ uuid }) => uuid !== currentReportUuid)
+    .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+
+  for (const historyPoint of previousHistory) {
+    const value = historyPoint.metrics?.[key];
+
+    if (Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return undefined;
+};
+
+const metricTitle = (performance: PerformanceConfig | undefined, key: string) =>
+  performance?.metrics?.[key]?.title ?? key;
+
+const metricUnit = (performance: PerformanceConfig | undefined, key: string) => performance?.metrics?.[key]?.unit;
+
+const formatMetricValue = (value: number | undefined, unit?: string) => {
+  if (!Number.isFinite(value)) {
+    return "n/a";
+  }
+
+  const finiteValue = value as number;
+  const formatted = Number.isInteger(finiteValue) ? String(finiteValue) : String(Number(finiteValue.toFixed(3)));
+
+  return unit ? `${formatted} ${unit}` : formatted;
+};
+
+const missingMetricResult = (complete = true) => ({
+  success: !complete,
+  actual: undefined,
+});
 
 export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
@@ -132,6 +204,83 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   },
 };
 
+export const metricMaxRule: QualityGateRule<MetricRuleConfig> = {
+  rule: "metricMax",
+  message: ({ actual, expected, performance }) => {
+    const unit = metricUnit(performance, expected.key);
+
+    return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, unit))}`;
+  },
+  validate: async ({ metrics = [], expected, complete }) => {
+    const actual = metricAverage(metrics, expected.key);
+
+    return Number.isFinite(actual) ? { success: actual! <= expected.value, actual } : missingMetricResult(complete);
+  },
+};
+
+export const metricMinRule: QualityGateRule<MetricRuleConfig> = {
+  rule: "metricMin",
+  message: ({ actual, expected, performance }) => {
+    const unit = metricUnit(performance, expected.key);
+
+    return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} is below the required minimum ${bold(formatMetricValue(expected.value, unit))}`;
+  },
+  validate: async ({ metrics = [], expected, complete }) => {
+    const actual = metricAverage(metrics, expected.key);
+
+    return Number.isFinite(actual) ? { success: actual! >= expected.value, actual } : missingMetricResult(complete);
+  },
+};
+
+export const metricMaxDeltaRule: QualityGateRule<MetricRuleConfig> = {
+  rule: "metricMaxDelta",
+  message: ({ actual, expected, performance }) => {
+    const unit = metricUnit(performance, expected.key);
+
+    return `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, unit))}, which exceeds ${bold(formatMetricValue(expected.value, unit))}`;
+  },
+  validate: async ({ metrics = [], history = [], expected, currentReportUuid, complete }) => {
+    const current = metricAverage(metrics, expected.key);
+
+    if (!Number.isFinite(current)) {
+      return missingMetricResult(complete);
+    }
+
+    const previous = previousMetricValue(history, expected.key, currentReportUuid);
+
+    if (!Number.isFinite(previous)) {
+      return { success: true, actual: undefined };
+    }
+
+    const actual = current! - previous!;
+
+    return { success: Math.abs(actual) <= expected.value, actual };
+  },
+};
+
+export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
+  rule: "metricMaxDeltaPercent",
+  message: ({ actual, expected, performance }) =>
+    `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, "%"))}, which exceeds ${bold(formatMetricValue(expected.value, "%"))}`,
+  validate: async ({ metrics = [], history = [], expected, currentReportUuid, complete }) => {
+    const current = metricAverage(metrics, expected.key);
+
+    if (!Number.isFinite(current)) {
+      return missingMetricResult(complete);
+    }
+
+    const previous = previousMetricValue(history, expected.key, currentReportUuid);
+
+    if (!Number.isFinite(previous)) {
+      return { success: true, actual: undefined };
+    }
+
+    const actual = previous !== 0 ? ((current! - previous!) / Math.abs(previous!)) * 100 : undefined;
+
+    return Number.isFinite(actual) ? { success: Math.abs(actual!) <= expected.value, actual } : missingMetricResult();
+  },
+};
+
 export const qualityGateDefaultRules = [
   maxFailuresRule,
   minTestsCountRule,
@@ -139,4 +288,8 @@ export const qualityGateDefaultRules = [
   maxDurationRule,
   allTestsContainEnvRule,
   environmentsTestedRule,
+  metricMaxRule,
+  metricMinRule,
+  metricMaxDeltaRule,
+  metricMaxDeltaPercentRule,
 ];

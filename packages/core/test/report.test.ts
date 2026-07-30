@@ -7,7 +7,6 @@ import { setTimeout } from "node:timers/promises";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
-import DashboardPlugin from "@allurereport/plugin-dashboard";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
@@ -16,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
-import { PERF_METRICS_FILE, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, resetPerfMetrics } from "../src/utils/perf.js";
+import { PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, perfMetricsFileName, resetPerfMetrics } from "../src/utils/perf.js";
 import { AllureServiceClientMock } from "./utils.js";
 
 // Token payload: { "accessToken": "ELzFh8...", "url": "http://localhost:3000" }
@@ -72,6 +71,9 @@ const createSignal = () => {
 
   return { promise, resolve };
 };
+
+const readPerfMetrics = async (output: string, reportUuid: string) =>
+  JSON.parse(await readFile(join(output, perfMetricsFileName(reportUuid)), "utf8"));
 
 let previousCwd: string;
 
@@ -440,12 +442,17 @@ describe("report", () => {
     expect(readFiles).toEqual(["result.json"]);
   });
 
-  it("should generate dashboard metrics widget from perf.json", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-perf-dashboard-"));
+  it("should generate awesome metrics widget from perf.json", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-perf-awesome-"));
     const resultsDir = await mkdtemp(join(tmpdir(), "allure3-perf-results-"));
     const config = await resolveConfig({
       name: "Allure Report",
       output,
+      performance: {
+        display: {
+          historyMetric: "generate.total.avgMs",
+        },
+      },
     });
 
     await writeFile(
@@ -453,9 +460,6 @@ describe("report", () => {
       JSON.stringify({
         version: 1,
         name: "Report generation",
-        display: {
-          historyMetricKey: "generate.total.avgMs",
-        },
         metrics: [
           {
             key: "generate.total.avgMs",
@@ -469,10 +473,10 @@ describe("report", () => {
 
     config.plugins = [
       {
-        id: "dashboard",
+        id: "awesome",
         enabled: true,
         options: {},
-        plugin: new DashboardPlugin({}),
+        plugin: new AwesomePlugin({}),
       },
     ];
 
@@ -492,7 +496,9 @@ describe("report", () => {
         group: "Report generation",
         source: "perf.json",
         better: "lower",
-        display: { history: true },
+        id: "perf.json:generate.total.avgMs:0",
+        start: 0,
+        stop: 0,
       },
     ]);
     expect(widget.display).toEqual({ historyMetricKey: "generate.total.avgMs" });
@@ -526,21 +532,22 @@ describe("report", () => {
     const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
 
     expect(indexHtml).toContain('"sections":["charts","timeline","metrics"]');
-    expect(widget.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
+    expect(widget.display).toEqual({ historyMetricKey: PERF_METRIC_NAMES.allureTotal });
     expect(widget.current).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          key: `${PERF_METRIC_NAMES.allureTotal}.avgMs`,
-          source: PERF_METRICS_FILE,
-          display: { history: true },
+          key: PERF_METRIC_NAMES.allureTotal,
+          source: perfMetricsFileName(allureReport.reportUuid),
+          unit: "ms",
+          better: "lower",
         }),
       ]),
     );
     expect(await allureReport.store.allGlobalAttachments()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: PERF_METRICS_FILE,
-          originalFileName: PERF_METRICS_FILE,
+          name: perfMetricsFileName(allureReport.reportUuid),
+          originalFileName: perfMetricsFileName(allureReport.reportUuid),
         }),
       ]),
     );
@@ -604,14 +611,14 @@ describe("report", () => {
         uuid: firstReport.reportUuid,
         name: "Allure Report",
         metrics: expect.objectContaining({
-          [`${PERF_METRIC_NAMES.allureTotal}.avgMs`]: expect.any(Number),
+          [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
         }),
       }),
     ]);
     expect(secondWidget.current).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          key: `${PERF_METRIC_NAMES.allureTotal}.avgMs`,
+          key: PERF_METRIC_NAMES.allureTotal,
         }),
       ]),
     );
@@ -781,14 +788,14 @@ describe("report", () => {
     await allureReport.readDirectory(resultsDir);
     await allureReport.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
-    expect(metrics.summary).toEqual(
+    expect(metrics.results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generateReadResults, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
-        expect.objectContaining({ name: `${PERF_METRIC_PREFIXES.generatePluginDone}p1`, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
+        expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.generatePluginDone}p1`, value: expect.any(Number) }),
       ]),
     );
   });
@@ -817,10 +824,10 @@ describe("report", () => {
     await allureReport.readFile(resultsFile);
     await allureReport.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
-    expect(metrics.summary).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateReadResults, count: 1 })]),
+    expect(metrics.results).toEqual(
+      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults })]),
     );
   });
 
@@ -847,19 +854,19 @@ describe("report", () => {
     await allureReport.start();
     await allureReport.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
-    const generateTotal = metrics.spans.find(({ name }: { name: string }) => name === PERF_METRIC_NAMES.generateTotal);
-    const publishUploadTotal = metrics.spans.find(
-      ({ name }: { name: string }) => name === PERF_METRIC_NAMES.publishUploadTotal,
+    const metrics = await readPerfMetrics(output, allureReport.reportUuid);
+    const generateTotal = metrics.results.find(({ key }: { key: string }) => key === PERF_METRIC_NAMES.generateTotal);
+    const publishUploadTotal = metrics.results.find(
+      ({ key }: { key: string }) => key === PERF_METRIC_NAMES.publishUploadTotal,
     );
 
-    expect(metrics.summary).toEqual(
+    expect(metrics.results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.publishUploadTotal, count: 1 }),
-        expect.objectContaining({ name: `${PERF_METRIC_PREFIXES.publishUploadPlugin}p1`, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.publishUploadTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.publishUploadPlugin}p1`, value: expect.any(Number) }),
       ]),
     );
-    expect(generateTotal.startTimeMs + generateTotal.durationMs).toBeLessThanOrEqual(publishUploadTotal.startTimeMs);
+    expect(generateTotal.stop).toBeLessThanOrEqual(publishUploadTotal.start);
   });
 
   it("should publish refreshed plugin files after self perf metrics are added", async () => {
@@ -878,7 +885,7 @@ describe("report", () => {
     });
     (p1.plugin.refresh as Mock).mockImplementation(async (context, store) => {
       const metrics = await store.allMetrics();
-      const hasSelfMetrics = metrics.some(({ key }) => key === `${PERF_METRIC_NAMES.allureTotal}.avgMs`);
+      const hasSelfMetrics = metrics.some(({ key }) => key === PERF_METRIC_NAMES.allureTotal);
 
       await context.reportFiles.addFile(
         "index.html",
@@ -919,7 +926,7 @@ describe("report", () => {
     expect(uploadedIndexContent).toBe("after metrics");
     expect(completeReportCall?.[0].historyPoint.metrics).toEqual(
       expect.objectContaining({
-        [`${PERF_METRIC_NAMES.allureTotal}.avgMs`]: expect.any(Number),
+        [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
       }),
     );
   });

@@ -61,18 +61,21 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
     );
 };
 
-const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number> =>
-  metrics.reduce(
-    (acc, metric) => {
-      if (metric.key && Number.isFinite(metric.value)) {
-        // Keep history compact and stable: duplicate keys in one run use the latest observed value.
-        acc[metric.key] = metric.value;
-      }
+const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number> => {
+  const grouped = new Map<string, number[]>();
 
-      return acc;
-    },
-    {} as Record<string, number>,
+  for (const metric of metrics) {
+    if (!metric.key || !Number.isFinite(metric.value)) {
+      continue;
+    }
+
+    grouped.set(metric.key, [...(grouped.get(metric.key) ?? []), metric.value]);
+  }
+
+  return Object.fromEntries(
+    [...grouped.entries()].map(([key, values]) => [key, values.reduce((acc, value) => acc + value, 0) / values.length]),
   );
+};
 
 export const createHistory = (
   reportUuid: string,

@@ -2,108 +2,72 @@ import type { MetricBetter, MetricSample } from "@allurereport/core-api";
 import type { RawGlobals, ResultsReader } from "@allurereport/reader-api";
 
 const readerId = "perf";
-const supportedFiles = new Set(["perf.json", "allure-perf-metrics.json"]);
+const legacyFiles = new Set(["perf.json", "allure-perf-metrics.json"]);
 const metricBetterValues = new Set<MetricBetter>(["lower", "higher", "neutral"]);
 const perfHooksFields = ["count", "totalMs", "minMs", "maxMs", "avgMs"] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const isMetricSample = (value: unknown): value is MetricSample =>
-  isRecord(value) && typeof value.key === "string" && Number.isFinite(value.value);
+const isSupportedFile = (fileName: string) =>
+  fileName === "performance.json" || fileName.endsWith("-perf.json") || legacyFiles.has(fileName);
 
-const inferUnit = (key: string): string | undefined => {
-  const normalized = key.toLowerCase();
+const metricId = (source: string, key: string, index: number) => `${source}:${key}:${index}`;
 
-  if (normalized.endsWith("ms")) {
-    return "ms";
-  }
+const finiteNumber = (value: unknown): number | undefined => (Number.isFinite(value) ? Number(value) : undefined);
 
-  if (normalized.endsWith("sec") || normalized.endsWith("seconds")) {
-    return "s";
-  }
+const normalizeMetric = (
+  sample: Record<string, unknown>,
+  source: string,
+  index: number,
+  defaults: Partial<Pick<MetricSample, "unit" | "group" | "better">> = {},
+): MetricSample | undefined => {
+  const key = typeof sample.key === "string" ? sample.key.trim() : "";
+  const value = finiteNumber(sample.value);
 
-  if (normalized.endsWith("mb")) {
-    return "MB";
-  }
-
-  if (normalized.endsWith("bytes")) {
-    return "bytes";
-  }
-
-  if (normalized.endsWith("count")) {
-    return "count";
-  }
-
-  return undefined;
-};
-
-const normalizeTags = (tags: unknown): Record<string, string> | undefined => {
-  if (!isRecord(tags)) {
+  if (!key || value === undefined) {
     return undefined;
   }
 
-  const entries = Object.entries(tags)
-    .filter(([, value]) => typeof value === "string")
-    .map(([key, value]) => [key, value as string]);
-
-  return entries.length ? Object.fromEntries(entries) : undefined;
-};
-
-const normalizeDisplay = (display: unknown): MetricSample["display"] | undefined => {
-  if (!isRecord(display) || display.history !== true) {
-    return undefined;
-  }
-
-  return { history: true };
-};
-
-const normalizeMetric = (sample: MetricSample, fallbackSource: string): MetricSample => {
-  const key = sample.key.trim();
-  const unit = typeof sample.unit === "string" && sample.unit.trim() ? sample.unit.trim() : inferUnit(key);
-  const name = typeof sample.name === "string" ? sample.name.trim() : "";
-  const group = typeof sample.group === "string" ? sample.group.trim() : "";
-  const source = typeof sample.source === "string" && sample.source.trim() ? sample.source.trim() : fallbackSource;
-  const tags = normalizeTags(sample.tags);
-  const better = metricBetterValues.has(sample.better as MetricBetter) ? sample.better : undefined;
-  const display = normalizeDisplay(sample.display);
+  const start = finiteNumber(sample.start) ?? finiteNumber(sample.timestamp) ?? 0;
+  const stop = finiteNumber(sample.stop) ?? start;
+  const id = typeof sample.id === "string" && sample.id.trim() ? sample.id.trim() : metricId(source, key, index);
+  const title = typeof sample.title === "string" && sample.title.trim() ? sample.title.trim() : undefined;
+  const legacyName = typeof sample.name === "string" && sample.name.trim() ? sample.name.trim() : undefined;
+  const unit = typeof sample.unit === "string" && sample.unit.trim() ? sample.unit.trim() : defaults.unit;
+  const group = typeof sample.group === "string" && sample.group.trim() ? sample.group.trim() : defaults.group;
+  const rawBetter = sample.better;
+  const better = metricBetterValues.has(rawBetter as MetricBetter) ? (rawBetter as MetricBetter) : defaults.better;
 
   return {
+    id,
     key,
-    value: Number(sample.value),
-    ...(unit ? { unit } : {}),
-    ...(name ? { name } : {}),
-    ...(group ? { group } : {}),
-    ...(Number.isFinite(sample.timestamp) ? { timestamp: sample.timestamp } : {}),
-    ...(tags ? { tags } : {}),
+    value,
+    start,
+    stop,
     source,
+    ...((title ?? legacyName) ? { title: title ?? legacyName } : {}),
+    ...(unit ? { unit } : {}),
+    ...(group ? { group } : {}),
     ...(better ? { better } : {}),
-    ...(display ? { display } : {}),
   };
 };
 
-const displayHistoryMetricKey = (payload: Record<string, unknown>): string | undefined => {
-  const display = payload.display;
+const metricsFromPerformanceResults = (payload: unknown, source: string): MetricSample[] | undefined => {
+  const results = Array.isArray(payload)
+    ? payload
+    : isRecord(payload) && Array.isArray(payload.results)
+      ? payload.results
+      : undefined;
 
-  if (!isRecord(display) || typeof display.historyMetricKey !== "string") {
+  if (!results) {
     return undefined;
   }
 
-  const key = display.historyMetricKey.trim();
-
-  return key || undefined;
-};
-
-const applyDisplayConfig = (metrics: MetricSample[], payload: Record<string, unknown>): MetricSample[] => {
-  const historyMetricKey = displayHistoryMetricKey(payload);
-
-  if (!historyMetricKey) {
-    return metrics;
-  }
-
-  return metrics.map((metric) =>
-    metric.key === historyMetricKey ? { ...metric, display: { ...metric.display, history: true } } : metric,
-  );
+  return results
+    .filter(isRecord)
+    .map((result, index) => normalizeMetric(result, source, index))
+    .filter((metric): metric is MetricSample => Boolean(metric));
 };
 
 const metricsFromExplicitPayload = (payload: Record<string, unknown>, source: string): MetricSample[] | undefined => {
@@ -114,17 +78,9 @@ const metricsFromExplicitPayload = (payload: Record<string, unknown>, source: st
   const defaultGroup = typeof payload.name === "string" ? payload.name : undefined;
 
   return payload.metrics
-    .filter(isMetricSample)
-    .map((metric) =>
-      normalizeMetric(
-        {
-          ...metric,
-          group: metric.group ?? defaultGroup,
-        },
-        source,
-      ),
-    )
-    .filter(({ key }) => key.length > 0);
+    .filter(isRecord)
+    .map((metric, index) => normalizeMetric(metric, source, index, { group: defaultGroup }))
+    .filter((metric): metric is MetricSample => Boolean(metric));
 };
 
 const metricsFromPerfHooksPayload = (payload: Record<string, unknown>, source: string): MetricSample[] | undefined => {
@@ -149,20 +105,23 @@ const metricsFromPerfHooksPayload = (payload: Record<string, unknown>, source: s
       }
 
       const key = `${name}.${field}`;
-
-      metrics.push(
-        normalizeMetric(
-          {
-            key,
-            value: value as number,
-            unit: field === "count" ? "count" : "ms",
-            name: `${name} ${field}`,
-            source,
-            better: field === "count" ? "neutral" : "lower",
-          },
-          source,
-        ),
+      const metric = normalizeMetric(
+        {
+          key,
+          value,
+          title: `${name} ${field}`,
+        },
+        source,
+        metrics.length,
+        {
+          unit: field === "count" ? "count" : "ms",
+          better: field === "count" ? "neutral" : "lower",
+        },
       );
+
+      if (metric) {
+        metrics.push(metric);
+      }
     }
   });
 
@@ -171,15 +130,9 @@ const metricsFromPerfHooksPayload = (payload: Record<string, unknown>, source: s
 
 const flattenNumericLeaves = (value: unknown, source: string, prefix = ""): MetricSample[] => {
   if (Number.isFinite(value)) {
-    return [
-      normalizeMetric(
-        {
-          key: prefix,
-          value: value as number,
-        },
-        source,
-      ),
-    ].filter(({ key }) => key.length > 0);
+    const metric = normalizeMetric({ key: prefix, value }, source, 0);
+
+    return metric ? [metric] : [];
   }
 
   if (Array.isArray(value)) {
@@ -217,21 +170,18 @@ const rawAttachmentGlobals = (data: {
 };
 
 export const perf: ResultsReader = {
-  matches: (data) => supportedFiles.has(data.getOriginalFileName()),
+  matches: (data) => isSupportedFile(data.getOriginalFileName()),
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
     const payload = await data.asJson<unknown>();
 
-    if (!isRecord(payload)) {
-      return false;
-    }
-
-    const metrics = applyDisplayConfig(
-      metricsFromExplicitPayload(payload, originalFileName) ??
-        metricsFromPerfHooksPayload(payload, originalFileName) ??
-        flattenNumericLeaves(payload, originalFileName),
-      payload,
-    );
+    const metrics =
+      metricsFromPerformanceResults(payload, originalFileName) ??
+      (isRecord(payload)
+        ? (metricsFromExplicitPayload(payload, originalFileName) ??
+          metricsFromPerfHooksPayload(payload, originalFileName) ??
+          (legacyFiles.has(originalFileName) ? flattenNumericLeaves(payload, originalFileName) : []))
+        : []);
 
     if (metrics.length === 0) {
       return false;

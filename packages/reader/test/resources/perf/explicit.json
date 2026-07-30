@@ -1,9 +1,6 @@
 {
   "version": 1,
   "name": "Report generation",
-  "display": {
-    "historyMetricKey": "generate.total.avgMs"
-  },
   "metrics": [
     {
       "key": "generate.total.avgMs",

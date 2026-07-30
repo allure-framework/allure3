@@ -21,14 +21,22 @@ export type MetricsWidgetData = {
 };
 
 export type MetricRow = MetricSample & {
+  count: number;
+  total: number;
+  min: number;
+  max: number;
   previousValue?: number;
   delta?: number;
   trend: number[];
 };
 
-export type MetricPhaseRow = {
+export type MetricSummaryRow = {
   key: string;
   group?: string;
+  groupTitle?: string;
+  title?: string;
+  unit?: string;
+  better?: MetricSample["better"];
   count?: number;
   totalMs?: number;
   avgMs?: number;
@@ -48,11 +56,6 @@ export type MetricHistoryRow = {
   delta?: number;
 };
 
-const phaseFields = ["count", "totalMs", "avgMs", "minMs", "maxMs"] as const;
-type PhaseField = (typeof phaseFields)[number];
-
-const isPhaseField = (value: string): value is PhaseField => phaseFields.includes(value as PhaseField);
-
 const metricNamespace = (key: string): string | undefined => {
   const [namespace] = key.split(".");
 
@@ -64,38 +67,6 @@ export const metricsStore = signal<StoreSignalState<MetricsWidgetData>>({
   error: undefined,
   data: undefined,
 });
-
-export const latestMetricSamples = (metrics: MetricSample[]): MetricSample[] => {
-  const byKey = new Map<string, MetricSample>();
-
-  metrics.forEach((metric) => {
-    byKey.set(metric.key, metric);
-  });
-
-  return [...byKey.values()].sort((a, b) => a.key.localeCompare(b.key));
-};
-
-const latestMetricSamplesInInputOrder = (metrics: MetricSample[]): MetricSample[] => {
-  const byKey = new Map<string, MetricSample>();
-
-  metrics.forEach((metric) => {
-    byKey.set(metric.key, metric);
-  });
-
-  const seen = new Set<string>();
-
-  return metrics
-    .filter(({ key }) => {
-      if (seen.has(key)) {
-        return false;
-      }
-
-      seen.add(key);
-      return true;
-    })
-    .map(({ key }) => byKey.get(key))
-    .filter((metric): metric is MetricSample => Boolean(metric));
-};
 
 const sortedHistory = (history: MetricsHistoryPoint[]) => [...history].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -116,88 +87,64 @@ export const defaultMetricKey = (data: MetricsWidgetData): string | undefined =>
     return data.display.historyMetricKey;
   }
 
-  const phaseRows = metricPhaseRows(data);
-  const totalRows = phaseRows.filter(
-    (row): row is MetricPhaseRow & { avgMs: number } => row.key.endsWith(".total") && Number.isFinite(row.avgMs),
-  );
-  const candidates =
-    totalRows.length > 0
-      ? totalRows
-      : phaseRows.filter((row): row is MetricPhaseRow & { avgMs: number } => Number.isFinite(row.avgMs));
-  const [candidate] = [...candidates].sort((a, b) => b.avgMs - a.avgMs);
+  const rows = metricRows(data);
+  const [candidate] = [...rows].sort((a, b) => b.value - a.value);
 
-  if (candidate) {
-    return `${candidate.key}.avgMs`;
-  }
-
-  return latestMetricSamples(data.current)[0]?.key;
+  return candidate?.key;
 };
 
 export const metricRows = (data: MetricsWidgetData): MetricRow[] => {
   const history = sortedHistory(data.history);
+  const byKey = new Map<string, MetricSample[]>();
 
-  return latestMetricSamples(data.current).map((metric) => {
-    const trend = history
-      .map(({ metrics }) => metrics[metric.key])
-      .filter((value): value is number => Number.isFinite(value));
-    const previousValue = latestPreviousValue(history, metric.key);
-    const delta = Number.isFinite(previousValue) ? metric.value - previousValue : undefined;
-
-    return {
-      ...metric,
-      previousValue,
-      delta,
-      trend: [...trend, metric.value],
-    };
+  data.current.forEach((metric) => {
+    byKey.set(metric.key, [...(byKey.get(metric.key) ?? []), metric]);
   });
+
+  return [...byKey.entries()]
+    .map(([key, samples]) => {
+      const metric = samples.at(-1)!;
+      const values = samples.map(({ value }) => value);
+      const total = values.reduce((acc, value) => acc + value, 0);
+      const value = total / values.length;
+      const trend = history
+        .map(({ metrics }) => metrics[key])
+        .filter((value): value is number => Number.isFinite(value));
+      const previousValue = latestPreviousValue(history, key);
+      const delta = Number.isFinite(previousValue) ? value - previousValue : undefined;
+
+      return {
+        ...metric,
+        value,
+        count: values.length,
+        total,
+        min: Math.min(...values),
+        max: Math.max(...values),
+        previousValue,
+        delta,
+        trend: [...trend, value],
+      };
+    })
+    .sort((a, b) => a.key.localeCompare(b.key));
 };
 
-export const metricPhaseRows = (data: MetricsWidgetData): MetricPhaseRow[] => {
-  const byPhase = new Map<string, MetricPhaseRow>();
-  const latestCurrent = new Map(latestMetricSamples(data.current).map((metric) => [metric.key, metric]));
-  const history = sortedHistory(data.history);
-
-  latestMetricSamplesInInputOrder(data.current).forEach((metric) => {
-    const fieldStart = metric.key.lastIndexOf(".");
-
-    if (fieldStart < 1) {
-      return;
-    }
-
-    const field = metric.key.slice(fieldStart + 1);
-
-    if (!isPhaseField(field)) {
-      return;
-    }
-
-    const phase = metric.key.slice(0, fieldStart);
-    const row = byPhase.get(phase) ?? {
-      key: phase,
-      ...(metric.group ? { group: metric.group } : metricNamespace(phase) ? { group: metricNamespace(phase) } : {}),
-      source: metric.source,
-      trend: [],
-    };
-
-    row[field] = metric.value;
-    byPhase.set(phase, row);
-  });
-
-  return [...byPhase.values()].map((row) => {
-    const metricKey = `${row.key}.avgMs`;
-    const currentAvg = latestCurrent.get(metricKey)?.value;
-    const trend = history
-      .map(({ metrics }) => metrics[metricKey])
-      .filter((value): value is number => Number.isFinite(value));
-    const previousValue = latestPreviousValue(history, metricKey);
-    const delta =
-      typeof currentAvg === "number" && Number.isFinite(previousValue) ? currentAvg - previousValue : undefined;
-
-    return {
-      ...row,
-      delta,
-      trend: typeof currentAvg === "number" ? [...trend, currentAvg] : trend,
-    };
-  });
+export const metricSummaryRows = (data: MetricsWidgetData): MetricSummaryRow[] => {
+  return metricRows(data).map((row) => ({
+    key: row.key,
+    title: row.title,
+    group: row.group ?? metricNamespace(row.key),
+    groupTitle: row.groupTitle,
+    unit: row.unit,
+    better: row.better,
+    source: row.source,
+    count: row.count,
+    totalMs: row.total,
+    avgMs: row.value,
+    minMs: row.min,
+    maxMs: row.max,
+    delta: row.delta,
+    trend: row.trend,
+  }));
 };
 
 export const metricHistoryRows = (data: MetricsWidgetData, key: string): MetricHistoryRow[] => {

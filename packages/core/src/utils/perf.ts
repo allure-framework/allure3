@@ -2,7 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 
-export const PERF_METRICS_FILE = "allure-perf-metrics.json";
+import type { AllurePerformanceResult, PerformanceConfig } from "@allurereport/core-api";
+
+export const PERF_METRICS_FILE = "performance.json";
+export const perfMetricsFileName = (reportUuid: string) => `${reportUuid}-perf.json`;
 
 export type PerfMetricSpan = {
   name: string;
@@ -22,12 +25,7 @@ export type PerfMetricSummary = {
 export type PerfMetricsPayload = {
   version: 1;
   generatedAt: string;
-  timeOriginMs: number;
-  spans: PerfMetricSpan[];
-  summary: PerfMetricSummary[];
-  display?: {
-    historyMetricKey: string;
-  };
+  results: AllurePerformanceResult[];
 };
 
 const MARK_PREFIX = "allure:perf:";
@@ -39,6 +37,88 @@ const MEASURES = new Set<string>();
 let sequence = 0;
 
 const round = (value: number) => Number(value.toFixed(3));
+
+const SELF_PERF_GROUPS = {
+  allure: { title: "Allure" },
+  restoreState: { title: "Restore state" },
+  generate: { title: "Generate" },
+  publish: { title: "Publish" },
+  summary: { title: "Summary" },
+} satisfies NonNullable<PerformanceConfig["groups"]>;
+
+const SELF_PERF_GROUP_KEYS = Object.keys(SELF_PERF_GROUPS);
+
+const selfPerfGroup = (key: string) =>
+  SELF_PERF_GROUP_KEYS.find((group) => key === group || key.startsWith(`${group}.`));
+
+const selfPerfTitle = (key: string) =>
+  key
+    .split(".")
+    .map((part, index) =>
+      index === 0 ? (SELF_PERF_GROUPS[part as keyof typeof SELF_PERF_GROUPS]?.title ?? part) : part,
+    )
+    .join(" ");
+
+export const getPerfMetricsPerformanceConfig = (
+  payload: Pick<PerfMetricsPayload, "results">,
+): PerformanceConfig | undefined => {
+  if (payload.results.length === 0) {
+    return undefined;
+  }
+
+  const metrics = Object.fromEntries(
+    payload.results.map(({ key }) => [
+      key,
+      {
+        title: selfPerfTitle(key),
+        unit: "ms",
+        better: "lower" as const,
+        ...(selfPerfGroup(key) ? { group: selfPerfGroup(key)! } : {}),
+      },
+    ]),
+  );
+
+  return {
+    groups: SELF_PERF_GROUPS,
+    metrics,
+    display: {
+      historyMetric: PERF_METRIC_NAMES.allureTotal,
+    },
+  };
+};
+
+export const mergePerformanceConfig = (
+  base: PerformanceConfig | undefined,
+  override: PerformanceConfig | undefined,
+): PerformanceConfig | undefined => {
+  if (!base) {
+    return override;
+  }
+
+  if (!override) {
+    return base;
+  }
+
+  return {
+    groups: {
+      ...base.groups,
+      ...override.groups,
+    },
+    metrics: Object.fromEntries(
+      [...new Set([...Object.keys(base.metrics ?? {}), ...Object.keys(override.metrics ?? {})])].map((key) => [
+        key,
+        {
+          ...base.metrics?.[key],
+          ...override.metrics?.[key],
+        },
+      ]),
+    ) as PerformanceConfig["metrics"],
+    display: {
+      ...base.display,
+      ...override.display,
+    },
+  };
+};
 
 export const PERF_METRIC_NAMES = {
   allureTotal: "allure.total",
@@ -57,20 +137,6 @@ export const PERF_METRIC_PREFIXES = {
   generatePluginDone: "generate.plugin.done.",
   publishUploadPlugin: "publish.upload.plugin.",
 } as const;
-
-const summarizeSpanGroup = (name: string, group: PerfMetricSpan[]): PerfMetricSummary => {
-  const durations = group.map(({ durationMs }) => durationMs);
-  const totalMs = durations.reduce((acc, duration) => acc + duration, 0);
-
-  return {
-    name,
-    count: group.length,
-    totalMs: round(totalMs),
-    minMs: round(Math.min(...durations)),
-    maxMs: round(Math.max(...durations)),
-    avgMs: round(totalMs / group.length),
-  };
-};
 
 const getCoveredDurationSummary = (): PerfMetricSummary | undefined => {
   if (SPANS.length === 0) {
@@ -151,29 +217,35 @@ export const measurePerf = async <T>(name: string, fn: () => Promise<T>): Promis
 };
 
 export const getPerfMetricsPayload = (): PerfMetricsPayload => {
-  const byName = new Map<string, PerfMetricSpan[]>();
-
-  for (const span of SPANS) {
-    const current = byName.get(span.name) ?? [];
-
-    current.push(span);
-    byName.set(span.name, current);
-  }
-
   const totalSummary = getCoveredDurationSummary();
-  const summary = [...byName.entries()].map(([name, group]) => summarizeSpanGroup(name, group));
+  const results = SPANS.map((span, index) => ({
+    id: `${span.name}:${index}`,
+    key: span.name,
+    value: span.durationMs,
+    start: round(performance.timeOrigin + span.startTimeMs),
+    stop: round(performance.timeOrigin + span.startTimeMs + span.durationMs),
+  }));
+
+  if (totalSummary) {
+    results.unshift({
+      id: `${PERF_METRIC_NAMES.allureTotal}:0`,
+      key: PERF_METRIC_NAMES.allureTotal,
+      value: totalSummary.avgMs,
+      start: round(performance.timeOrigin + Math.min(...SPANS.map(({ startTimeMs }) => startTimeMs))),
+      stop: round(
+        performance.timeOrigin + Math.max(...SPANS.map(({ startTimeMs, durationMs }) => startTimeMs + durationMs)),
+      ),
+    });
+  }
 
   return {
     version: 1,
     generatedAt: new Date().toISOString(),
-    timeOriginMs: round(performance.timeOrigin),
-    spans: [...SPANS],
-    summary: totalSummary ? [totalSummary, ...summary] : summary,
-    ...(totalSummary ? { display: { historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` } } : {}),
+    results,
   };
 };
 
-export const writePerfMetrics = async (output: string): Promise<boolean> => {
+export const writePerfMetrics = async (output: string, fileName = PERF_METRICS_FILE): Promise<boolean> => {
   if (!isPerfMetricsEnabled()) {
     return false;
   }
@@ -181,7 +253,7 @@ export const writePerfMetrics = async (output: string): Promise<boolean> => {
   const payload = getPerfMetricsPayload();
 
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, PERF_METRICS_FILE), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  await writeFile(join(output, fileName), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   resetPerfMetrics();
 
   return true;

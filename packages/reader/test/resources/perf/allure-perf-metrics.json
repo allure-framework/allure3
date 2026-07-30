@@ -2,9 +2,6 @@
   "version": 1,
   "generatedAt": "2026-06-09T00:00:00.000Z",
   "timeOriginMs": 1,
-  "display": {
-    "historyMetricKey": "allure.total.avgMs"
-  },
   "summary": [
     {
       "name": "allure.total",

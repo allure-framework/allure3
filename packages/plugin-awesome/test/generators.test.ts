@@ -299,10 +299,10 @@ describe("generateMetricsWidget", () => {
         {
           key: "generate.total.avgMs",
           value: 200,
-          unit: "ms",
+          id: "generate-total",
+          start: 0,
+          stop: 1,
           source: "allure-perf-metrics.json",
-          better: "lower",
-          display: { history: true },
         },
       ]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([
@@ -324,17 +324,33 @@ describe("generateMetricsWidget", () => {
       ]),
     } as unknown as AllureStore;
 
-    await expect(generateMetricsWidget(writer, store)).resolves.toBe(true);
+    await expect(
+      generateMetricsWidget(writer, store, {
+        metrics: {
+          "generate.total.avgMs": {
+            title: "Generate total",
+            unit: "ms",
+            better: "lower",
+          },
+        },
+        display: {
+          historyMetric: "generate.total.avgMs",
+        },
+      }),
+    ).resolves.toBe(true);
 
     expect(writtenWidgets.get("metrics.json")).toEqual({
       current: [
         {
           key: "generate.total.avgMs",
           value: 200,
+          id: "generate-total",
+          start: 0,
+          stop: 1,
+          title: "Generate total",
           unit: "ms",
           source: "allure-perf-metrics.json",
           better: "lower",
-          display: { history: true },
         },
       ],
       display: {

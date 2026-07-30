@@ -17,7 +17,7 @@ import type {
   HistoryDataPoint,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig } from "@allurereport/core-api";
+import { normalizeCategoriesConfig, resolveMetricSamples } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -56,11 +56,13 @@ import { environmentIdentityById, environmentIdentityByName } from "./utils/envi
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
   getPerfMetricsPayload,
+  getPerfMetricsPerformanceConfig,
   isPerfMetricsEnabled,
+  mergePerformanceConfig,
   measurePerf,
-  PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
   PERF_METRIC_PREFIXES,
+  perfMetricsFileName,
   startPerfSpan,
   writePerfMetrics,
 } from "./utils/perf.js";
@@ -126,6 +128,7 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
+  #performance: FullConfig["performance"];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
   readonly #knownIssuesPath: string | undefined;
@@ -164,6 +167,7 @@ export class AllureReport {
       output,
       hideLabels,
       qualityGate,
+      performance,
       dump,
       categories,
       allureService,
@@ -199,6 +203,7 @@ export class AllureReport {
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
     this.#knownIssuesPath = resolutions?.knownIssuesPath;
+    this.#performance = performance;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -273,13 +278,15 @@ export class AllureReport {
 
     const payload = getPerfMetricsPayload();
 
-    if (payload.summary.length === 0) {
+    if (payload.results.length === 0) {
       return false;
     }
 
+    this.#performance = mergePerformanceConfig(getPerfMetricsPerformanceConfig(payload), this.#performance);
+
     const resultFile = new BufferResultFile(
       Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8"),
-      PERF_METRICS_FILE,
+      perfMetricsFileName(this.reportUuid),
     );
 
     return perf.read(this.#store, resultFile);
@@ -524,8 +531,13 @@ export class AllureReport {
     }
   };
 
-  validate = async (params: { trs: TestResult[]; state?: QualityGateState; environment?: string }) => {
-    const { trs, state, environment } = params;
+  validate = async (params: {
+    trs: TestResult[];
+    state?: QualityGateState;
+    environment?: string;
+    complete?: boolean;
+  }) => {
+    const { trs, state, environment, complete } = params;
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -536,7 +548,12 @@ export class AllureReport {
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       state,
+      metrics: resolveMetricSamples(await this.#store.allMetrics(), this.#performance),
+      history: await this.#store.allHistoryDataPoints(),
+      performance: this.#performance,
       environment: qualityGateEnvironment,
+      currentReportUuid: this.reportUuid,
+      complete,
     });
   };
 
@@ -1243,7 +1260,7 @@ export class AllureReport {
     this.#finishGeneratePerfSpan();
 
     try {
-      await writePerfMetrics(this.#output);
+      await writePerfMetrics(this.#output, perfMetricsFileName(this.reportUuid));
     } catch (err) {
       console.error("Failed to write Allure performance metrics", err);
     }
@@ -1295,6 +1312,7 @@ export class AllureReport {
         output: this.#output,
         ci: this.#ci,
         categories: this.#categories,
+        performance: this.#performance,
         history: this.#history,
       };
 

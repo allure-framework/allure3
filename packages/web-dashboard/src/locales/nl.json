@@ -210,15 +210,6 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
-    },
-    "metrics": {
-      "title": "Prestatiestatistieken",
-      "table": {
-        "metric": "Metriek",
-        "value": "Waarde",
-        "delta": "Wijziging",
-        "source": "Bron"
-      }
     }
   },
   "transitions": {

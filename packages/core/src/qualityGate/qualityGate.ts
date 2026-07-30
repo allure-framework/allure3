@@ -1,4 +1,10 @@
-import { type TestError, type TestResult } from "@allurereport/core-api";
+import {
+  type HistoryDataPoint,
+  type MetricSample,
+  type PerformanceConfig,
+  type TestError,
+  type TestResult,
+} from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
 
@@ -75,9 +81,14 @@ export class QualityGate {
   async validate(payload: {
     state?: QualityGateState;
     trs: TestResult[];
+    metrics?: MetricSample[];
+    history?: HistoryDataPoint[];
+    performance?: PerformanceConfig;
     environment?: string;
+    currentReportUuid?: string;
+    complete?: boolean;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, environment } = payload;
+    const { state, trs, metrics = [], history = [], performance, environment, currentReportUuid, complete } = payload;
     const trsToValidateById = new Map<string, TestResult>();
 
     for (const tr of trs) {
@@ -129,7 +140,12 @@ export class QualityGate {
             setResult: (value: any, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),
           },
           expected,
+          metrics,
+          history,
+          performance,
           environment,
+          currentReportUuid,
+          complete,
         });
 
         if (result.success) {
@@ -143,6 +159,7 @@ export class QualityGate {
           message: rule.message({
             actual: result.actual,
             expected,
+            performance,
           }),
           environment,
           testResults: [...new Set([...(state?.getTestResults(ruleId) ?? []), ...result.testResults])],

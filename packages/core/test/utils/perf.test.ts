@@ -4,10 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 
+import type { PerformanceConfig } from "@allurereport/core-api";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
   getPerfMetricsPayload,
+  mergePerformanceConfig,
   measurePerf,
   PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
@@ -42,7 +44,7 @@ describe("perf metrics", () => {
 
     await expect(writePerfMetrics(output)).resolves.toBe(false);
     expect(existsSync(join(output, PERF_METRICS_FILE))).toBe(false);
-    expect(getPerfMetricsPayload().spans).toEqual([]);
+    expect(getPerfMetricsPayload().results).toEqual([]);
   });
 
   it("records nested async spans when enabled", async () => {
@@ -54,14 +56,13 @@ describe("perf metrics", () => {
 
     const payload = getPerfMetricsPayload();
 
-    expect(payload.summary).toEqual(
+    expect(payload.results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
       ]),
     );
-    expect(payload.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
   });
 
   it("records spans when the measured function fails", async () => {
@@ -73,10 +74,10 @@ describe("perf metrics", () => {
       }),
     ).rejects.toThrow("generation failed");
 
-    expect(getPerfMetricsPayload().summary).toEqual(
+    expect(getPerfMetricsPayload().results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
       ]),
     );
   });
@@ -101,20 +102,55 @@ describe("perf metrics", () => {
 
     const payload = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
 
-    expect(payload.spans).toEqual([
+    expect(payload.results).toEqual([
       expect.objectContaining({
-        name: PERF_METRIC_NAMES.summaryGenerate,
-        startTimeMs: expect.any(Number),
-        durationMs: expect.any(Number),
+        key: PERF_METRIC_NAMES.allureTotal,
+        value: expect.any(Number),
+        start: expect.any(Number),
+        stop: expect.any(Number),
+      }),
+      expect.objectContaining({
+        key: PERF_METRIC_NAMES.summaryGenerate,
+        value: expect.any(Number),
+        start: expect.any(Number),
+        stop: expect.any(Number),
       }),
     ]);
-    expect(payload.summary).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.allureTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.summaryGenerate, count: 1 }),
-      ]),
-    );
-    expect(payload.display).toEqual({ historyMetricKey: `${PERF_METRIC_NAMES.allureTotal}.avgMs` });
-    expect(getPerfMetricsPayload().spans).toEqual([]);
+    expect(getPerfMetricsPayload().results).toEqual([]);
+  });
+
+  it("merges performance metric entries without dropping base metadata", () => {
+    expect(
+      mergePerformanceConfig(
+        {
+          metrics: {
+            "allure.total": {
+              title: "Allure total",
+              unit: "ms",
+              better: "lower",
+              group: "allure",
+            },
+          },
+        },
+        {
+          metrics: {
+            "allure.total": {
+              title: "Total generation",
+            },
+          },
+        } as unknown as PerformanceConfig,
+      ),
+    ).toEqual({
+      metrics: {
+        "allure.total": {
+          title: "Total generation",
+          unit: "ms",
+          better: "lower",
+          group: "allure",
+        },
+      },
+      groups: {},
+      display: {},
+    });
   });
 });

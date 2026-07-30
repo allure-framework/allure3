@@ -16,9 +16,12 @@ import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
-import { PERF_METRICS_FILE, PERF_METRIC_NAMES, resetPerfMetrics } from "../src/utils/perf.js";
+import { PERF_METRIC_NAMES, perfMetricsFileName, resetPerfMetrics } from "../src/utils/perf.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const readPerfMetrics = async (output: string, reportUuid: string) =>
+  JSON.parse(await readFile(join(output, perfMetricsFileName(reportUuid)), "utf8"));
 
 const minimalDumpJsonFiles = (
   overrides: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
@@ -151,14 +154,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
-    expect(metrics.summary).toEqual(
+    expect(metrics.results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateDump, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateAttachments, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateStoreRestore, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateDump, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateAttachments, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateStoreRestore, value: expect.any(Number) }),
       ]),
     );
   });
@@ -179,11 +182,11 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
     expect(existsSync(`${dumpPath}.zip`)).toBe(true);
-    expect(metrics.summary).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 })]),
+    expect(metrics.results).toEqual(
+      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal })]),
     );
   });
 

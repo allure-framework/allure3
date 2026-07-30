@@ -22,10 +22,12 @@ import {
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
+  getPerformanceHistoryMetricKey,
   incrementStatistic,
   joinPosixPath,
   nullsLast,
   ordinal,
+  resolveMetricSamples,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -810,14 +812,18 @@ export type AwesomeMetricsWidget = {
   }[];
 };
 
-export const generateMetricsWidget = async (writer: AwesomeDataWriter, store: AllureStore): Promise<boolean> => {
-  const current = await store.allMetrics();
+export const generateMetricsWidget = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  performance: PluginContext["performance"] = {},
+): Promise<boolean> => {
+  const current = resolveMetricSamples(await store.allMetrics(), performance);
 
   if (current.length === 0) {
     return false;
   }
 
-  const historyMetricKey = current.find(({ display }) => display?.history)?.key;
+  const historyMetricKey = getPerformanceHistoryMetricKey(current, performance);
 
   const history = (await store.allHistoryDataPoints())
     .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
