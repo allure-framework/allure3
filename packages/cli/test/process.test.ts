@@ -235,6 +235,17 @@ describe("runProcess", () => {
       rmSync(workingDirectory, { recursive: true, force: true });
     }
   });
+
+  it("resolves instead of crashing when the command can't be spawned", async () => {
+    const childProcess = runProcess({
+      command: "this-command-does-not-exist-anywhere",
+      commandArgs: [],
+      cwd: undefined,
+      logs: "ignore",
+    });
+
+    await expect(terminationOf(childProcess)).resolves.toBeNull();
+  });
 });
 
 describe("stopProcessTree", () => {

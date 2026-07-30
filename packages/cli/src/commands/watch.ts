@@ -164,6 +164,9 @@ export class WatchCommand extends Command {
 
     if (useDynamicDiscovery) {
       const perDirectoryWatchers = new Map<string, Watcher>();
+      // only the very first discovery scan reflects pre-existing directories; anything found
+      // afterwards is new by definition, so --new-only must not skip its backlog
+      let isInitialDiscovery = true;
       const discoveryWatcher = allureResultsDirectoriesWatcher(cwd, async (newDirectories, deletedDirectories) => {
         for (const deletedDir of deletedDirectories) {
           const watcher = perDirectoryWatchers.get(deletedDir);
@@ -185,13 +188,15 @@ export class WatchCommand extends Command {
             async (path) => {
               await allureReport.readResult(new PathResultFile(path));
             },
-            { ignoreInitial: this.newOnly },
+            { ignoreInitial: this.newOnly && isInitialDiscovery },
           );
 
           perDirectoryWatchers.set(newDir, watcher);
 
           await watcher.initialScan();
         }
+
+        isInitialDiscovery = false;
       });
 
       await discoveryWatcher.initialScan();
