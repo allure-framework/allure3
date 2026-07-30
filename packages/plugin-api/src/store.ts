@@ -6,7 +6,6 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
-  QuarantineTestFailure,
   ReportVariables,
   Statistic,
   TestCase,
@@ -40,7 +39,6 @@ export interface AllureStore {
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
-  allQuarantineIssues: () => Promise<QuarantineTestFailure[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // check data
   addCheckResult: (result: AllureCheckResult) => Promise<void>;
@@ -106,7 +104,6 @@ export interface AllureStoreDump {
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
   indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
-  indexQuarantineByHistoryId?: Record<string, QuarantineTestFailure[]>;
   /** Global ingest order of test result ids (append order in store). */
   testResultIdsIngestOrder: string[];
 }
@@ -127,7 +124,6 @@ export enum AllureStoreDumpFiles {
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   IndexKnownByHistoryId = "index-known-by-history-id.json",
-  IndexQuarantineByHistoryId = "index-quarantine-by-history-id.json",
   QualityGateResults = "quality-gate-results.json",
   TestResultIngestOrder = "test-result-ingest-order.json",
 }

@@ -56,11 +56,7 @@ export class CsvCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file. Read-only; quarantine is controlled separately",
-  });
-
-  quarantine = Option.String("--quarantine", {
-    description: "Path to quarantine file. Read/write quarantine issues only",
+    description: "Path to known issues file",
   });
 
   async execute() {
@@ -82,7 +78,6 @@ export class CsvCommand extends Command {
     } as CsvPluginOptions;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath: this.knownIssues,
-      quarantinePath: this.quarantine,
     });
 
     config.plugins = [

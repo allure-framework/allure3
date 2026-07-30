@@ -110,23 +110,6 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   },
 };
 
-export const maxQuarantineRule: QualityGateRule<number> = {
-  rule: "maxQuarantine",
-  message: ({ actual, expected }) =>
-    `The number of tests in quarantine ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
-  validate: async ({ trs, expected, state }) => {
-    const quarantine = trs.filter((tr) => tr.quarantine);
-    const actual = quarantine.length + (state.getResult() ?? 0);
-
-    state.setResult(actual);
-
-    return {
-      success: actual <= expected,
-      actual,
-    };
-  },
-};
-
 export const qualityGateDefaultRules = [
   maxFailuresRule,
   minTestsCountRule,
@@ -134,5 +117,4 @@ export const qualityGateDefaultRules = [
   maxDurationRule,
   allTestsContainEnvRule,
   environmentsTestedRule,
-  maxQuarantineRule,
 ];

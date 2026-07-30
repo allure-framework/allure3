@@ -13,7 +13,6 @@ import type { Mock, Mocked } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
-import { writeQuarantine } from "../src/known.js";
 import { AllureReport } from "../src/report.js";
 import { PERF_METRICS_FILE, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, resetPerfMetrics } from "../src/utils/perf.js";
 import { AllureServiceClientMock } from "./utils.js";
@@ -46,15 +45,6 @@ vi.mock("@allurereport/ci", () => ({
     jobRunBranch: "main",
   }),
 }));
-vi.mock("../src/known.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../src/known.js")>();
-
-  return {
-    ...actual,
-    writeQuarantine: vi.fn().mockResolvedValue(undefined),
-  };
-});
-
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
   const plugin: Mocked<Required<Plugin>> = {
     start: vi.fn<Required<Plugin>["start"]>(),
@@ -246,48 +236,6 @@ describe("report", () => {
 
     expect(historyContent).not.toEqual(initialHistoryContent);
     expect(historyContent.startsWith(initialHistoryContent)).toBe(true);
-  });
-
-  it("should write quarantine for default path", async () => {
-    const config = await resolveConfig({
-      name: "Allure Report",
-    });
-
-    const allureReport = new AllureReport(config);
-
-    await allureReport.start();
-    await allureReport.done();
-
-    expect(writeQuarantine).toHaveBeenCalledWith(allureReport.store, resolve("./quarantine.json"));
-  });
-
-  it("should write quarantine only from quarantine path", async () => {
-    const output = await mkdtemp(join(tmpdir(), "allure3-known-issues-"));
-    const config = await resolveConfig({
-      name: "Allure Report",
-      output,
-      knownIssuesPath: "./known-issues.json",
-      quarantinePath: "./quarantine.json",
-    });
-
-    const allureReport = new AllureReport(config);
-
-    await allureReport.start();
-    await allureReport.store.visitTestResult(
-      {
-        name: "failed test",
-        status: "failed",
-        testId: "quarantine-test",
-        message: "boom",
-      },
-      { readerId: "report.test.ts" },
-    );
-
-    expect(await allureReport.store.allQuarantineIssues()).toHaveLength(1);
-    await allureReport.done();
-
-    expect(writeQuarantine).toHaveBeenCalledTimes(1);
-    expect(writeQuarantine).toHaveBeenCalledWith(allureReport.store, resolve("./quarantine.json"));
   });
 
   it("should read result directory files with bounded concurrency", async () => {

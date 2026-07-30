@@ -48,7 +48,6 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
-import { writeQuarantine } from "./known.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -112,7 +111,6 @@ export class AllureReport {
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #appendHistory: boolean;
-  readonly #quarantinePath?: string;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
@@ -140,8 +138,6 @@ export class AllureReport {
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       known,
-      quarantine,
-      quarantinePath,
       reportFiles,
       realTime,
       historyPath,
@@ -189,7 +185,6 @@ export class AllureReport {
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
-    this.#quarantinePath = quarantinePath;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -217,7 +212,6 @@ export class AllureReport {
       environmentsConfig: environments,
       history: this.#history,
       known,
-      quarantine,
       defaultLabels,
       environment,
       allowedEnvironments,
@@ -624,7 +618,6 @@ export class AllureReport {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
-      indexQuarantineByHistoryId = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
@@ -643,7 +636,6 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
       [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
-      [AllureStoreDumpFiles.IndexQuarantineByHistoryId, indexQuarantineByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
     ];
@@ -810,9 +802,6 @@ export class AllureReport {
                 AllureStoreDumpFiles.IndexFixturesByTestResult,
               );
               const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-              const indexQuarantineByHistoryIdEntry = await optionalEntryData(
-                AllureStoreDumpFiles.IndexQuarantineByHistoryId,
-              );
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
@@ -834,7 +823,6 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexAttachmentsByFixture:
                   case AllureStoreDumpFiles.IndexFixturesByTestResult:
                   case AllureStoreDumpFiles.IndexKnownByHistoryId:
-                  case AllureStoreDumpFiles.IndexQuarantineByHistoryId:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
                     return acc;
@@ -864,9 +852,6 @@ export class AllureReport {
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
                 indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
-                indexQuarantineByHistoryId: indexQuarantineByHistoryIdEntry
-                  ? JSON.parse(indexQuarantineByHistoryIdEntry.toString("utf8"))
-                  : {},
                 qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
@@ -1138,14 +1123,6 @@ export class AllureReport {
           } else {
             throw err;
           }
-        }
-      }
-
-      if (this.#quarantinePath) {
-        try {
-          await writeQuarantine(this.#store, this.#quarantinePath);
-        } catch (err) {
-          console.error("Failed to write quarantine issues", errorDetails(err));
         }
       }
 

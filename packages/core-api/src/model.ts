@@ -60,7 +60,6 @@ export interface TestResult {
   flaky: boolean;
   muted: boolean;
   known: boolean;
-  quarantine: boolean;
 
   transition?: TestStatusTransition;
 

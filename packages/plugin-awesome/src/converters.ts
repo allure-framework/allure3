@@ -46,7 +46,6 @@ export const convertTestResult = (
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
-    quarantine: tr.quarantine,
     isRetry: tr.isRetry,
     labels,
     groupedLabels: mapLabelsByName(labels),

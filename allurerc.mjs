@@ -10,7 +10,6 @@ const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
-  quarantinePath: "./quarantine.json",
   knownIssuesPath: "./known-issues.json",
   plugins: {
     awesome: {
@@ -50,9 +49,6 @@ const config = {
       {
         maxFailures: 0,
       },
-      {
-        maxQuarantine: 0,
-      }
     ],
     use: [...qualityGateDefaultRules],
   },

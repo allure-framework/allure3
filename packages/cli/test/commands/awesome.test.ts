@@ -135,8 +135,6 @@ describe("awesome command", () => {
       "bar",
       "--known-issues",
       "baz",
-      "--quarantine",
-      "quux",
       "--history-path",
       "qux",
       "./allure-results",
@@ -147,7 +145,6 @@ describe("awesome command", () => {
       name: "foo",
       output: "bar",
       knownIssuesPath: "baz",
-      quarantinePath: "quux",
       historyPath: "qux",
     });
   });
@@ -163,7 +160,6 @@ describe("awesome command", () => {
       output: undefined,
       name: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
       historyPath: undefined,
       hideLabels: undefined,
     });
@@ -182,7 +178,6 @@ describe("awesome command", () => {
       output: undefined,
       name: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
       historyPath: undefined,
       hideLabels: ["owner", "tag"],
     });

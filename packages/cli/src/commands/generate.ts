@@ -77,11 +77,7 @@ export class GenerateCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file. Read-only; quarantine is controlled separately",
-  });
-
-  quarantine = Option.String("--quarantine", {
-    description: "Path to quarantine file. Read/write quarantine issues only",
+    description: "Path to known issues file",
   });
 
   async execute() {
@@ -95,7 +91,6 @@ export class GenerateCommand extends Command {
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
       knownIssuesPath: this.knownIssues,
-      quarantinePath: this.quarantine,
     });
 
     await generate({

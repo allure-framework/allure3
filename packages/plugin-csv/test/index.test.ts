@@ -33,7 +33,6 @@ const mockTestResult: TestResult = {
   ],
   steps: [],
   known: false,
-  quarantine: false,
 } as unknown as TestResult;
 
 describe("CsvPlugin", () => {

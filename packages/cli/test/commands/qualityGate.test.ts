@@ -261,19 +261,6 @@ describe("quality-gate command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       knownIssuesPath: "foo",
-      quarantinePath: undefined,
-    });
-  });
-
-  it("should pass quarantine override to readConfig", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({});
-
-    await run(QualityGateCommand, ["quality-gate", "--quarantine", "quarantine.json"]);
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      knownIssuesPath: undefined,
-      quarantinePath: "quarantine.json",
     });
   });
 
@@ -285,7 +272,6 @@ describe("quality-gate command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
   });
 

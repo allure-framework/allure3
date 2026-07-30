@@ -36,7 +36,6 @@ const itResult = (args: Partial<TestResult>): TestResult => ({
   muted: false,
   isRetry: false,
   known: false,
-  quarantine: false,
   sourceMetadata: {
     readerId: "system",
     metadata: {},

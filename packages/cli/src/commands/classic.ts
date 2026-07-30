@@ -66,11 +66,7 @@ export class ClassicCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file. Read-only; quarantine is controlled separately",
-  });
-
-  quarantine = Option.String("--quarantine", {
-    description: "Path to quarantine file. Read/write quarantine issues only",
+    description: "Path to known issues file",
   });
 
   async execute() {
@@ -92,7 +88,6 @@ export class ClassicCommand extends Command {
       output: this.output,
       name: this.reportName,
       knownIssuesPath: this.knownIssues,
-      quarantinePath: this.quarantine,
       historyPath: this.historyPath,
     });
 

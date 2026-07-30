@@ -81,7 +81,6 @@ describe("csv command", () => {
 
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
@@ -144,8 +143,6 @@ describe("csv command", () => {
       fixtures.output,
       "--known-issues",
       fixtures.knownIssues,
-      "--quarantine",
-      "quarantine.json",
       "--separator",
       fixtures.separator,
       "--disable-headers",
@@ -155,7 +152,6 @@ describe("csv command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
       knownIssuesPath: fixtures.knownIssues,
-      quarantinePath: "quarantine.json",
     });
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -182,7 +178,6 @@ describe("csv command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -228,7 +223,6 @@ describe("csv command", () => {
 
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, fixtures.config, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
   });
 
@@ -243,7 +237,6 @@ describe("csv command", () => {
     expect(realpath).toHaveBeenCalledWith(customCwd);
     expect(readConfig).toHaveBeenCalledWith(customCwd, undefined, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
   });
 
@@ -267,7 +260,6 @@ describe("csv command", () => {
     expect(realpath).toHaveBeenCalledWith(customCwd);
     expect(readConfig).toHaveBeenCalledWith(customCwd, fixtures.config, {
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({

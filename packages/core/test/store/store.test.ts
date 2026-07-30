@@ -827,12 +827,11 @@ describe("unknownFailedTestResults", () => {
     expect(unknownFailed).toEqual([]);
   });
 
-  it("should keep quarantine failures blocking while known failures stay suppressed", async () => {
+  it("should keep known failures suppressed", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
     const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const store = new DefaultAllureStore({
       known: [{ historyId: fallbackHistoryId }],
-      quarantine: [{ historyId: "quarantine-history", error: { message: "boom" } }],
     });
 
     await store.visitTestResult(
@@ -844,416 +843,23 @@ describe("unknownFailedTestResults", () => {
       },
       { readerId },
     );
-    await store.visitTestResult(
-      {
-        name: "quarantined failed test",
-        status: "failed",
-        testId: "quarantine-test-case-id",
-        historyId: "quarantine-history",
-      },
-      { readerId },
-    );
-
     const allKnownIssues = await store.allKnownIssues();
     const blockingFailed = await store.blockingFailedTestResults();
     const unknownFailed = await store.unknownFailedTestResults();
     const allTestResults = await store.allTestResults({ includeRetries: true });
 
     expect(allKnownIssues.map(({ historyId }) => historyId)).toEqual([fallbackHistoryId]);
-    expect(blockingFailed).toEqual([expect.objectContaining({ name: "quarantined failed test" })]);
-    expect(unknownFailed).toEqual([expect.objectContaining({ name: "quarantined failed test" })]);
+    expect(blockingFailed).toEqual([]);
+    expect(unknownFailed).toEqual([]);
     expect(allTestResults.find((tr) => tr.name === "known failed test")?.known).toBe(true);
-    expect(allTestResults.find((tr) => tr.name === "quarantined failed test")?.known).toBe(false);
-    expect(allTestResults.find((tr) => tr.name === "quarantined failed test")?.quarantine).toBe(true);
   });
 
-  it("should create quarantine for new failed test result", async () => {
-    const store = new DefaultAllureStore();
-
-    await store.visitTestResult(
-      {
-        name: "new failed test",
-        fullName: "suite new failed test",
-        status: "failed",
-      },
-      { readerId },
-    );
-
-    const [testResult] = await store.allTestResults();
-    const quarantineIssues = await store.allQuarantineIssues();
-
-    expect(testResult).toMatchObject({
-      name: "new failed test",
-      known: false,
-      quarantine: true,
-    });
-    expect(quarantineIssues).toHaveLength(1);
-    expect(quarantineIssues[0]).toMatchObject({ historyId: testResult.historyId });
-    expect(await store.blockingFailedTestResults()).toHaveLength(1);
-  });
-
-  it("should keep quarantine when later passed retry is older than active failure", async () => {
-    const store = new DefaultAllureStore();
-
-    await store.visitTestResult(
-      {
-        name: "active failed test",
-        fullName: "suite active failed test",
-        status: "failed",
-        testId: "retry-test",
-        start: 2000,
-        message: "new error",
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "older passed retry",
-        fullName: "suite active failed test",
-        status: "passed",
-        testId: "retry-test",
-        start: 1000,
-      },
-      { readerId },
-    );
-
-    const allTestResults = await store.allTestResults({ includeRetries: true });
-    const quarantineIssues = await store.allQuarantineIssues();
-
-    expect(allTestResults.find((tr) => tr.name === "active failed test")?.isRetry).toBe(false);
-    expect(allTestResults.find((tr) => tr.name === "older passed retry")?.isRetry).toBe(true);
-    expect(allTestResults.find((tr) => tr.name === "active failed test")?.quarantine).toBe(true);
-    expect(quarantineIssues).toHaveLength(1);
-    expect(quarantineIssues[0]).toMatchObject({ error: { message: "new error" } });
-  });
-
-  it("should refresh quarantine error from latest matching failure", async () => {
-    const matchedHistoryId = `${md5("quarantine-test")}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: matchedHistoryId, error: { message: "old" } }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "quarantined failed test",
-        status: "failed",
-        testId: "quarantine-test",
-        message: "new",
-      },
-      { readerId },
-    );
-
-    expect(await store.allQuarantineIssues()).toEqual([
-      {
-        historyId: matchedHistoryId,
-        error: { message: "new" },
-      },
-    ]);
-  });
-
-  it("should keep existing quarantine error when matching failure has no error", async () => {
-    const matchedHistoryId = `${md5("quarantine-test")}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: matchedHistoryId, error: { message: "old" } }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "quarantined failed test",
-        status: "failed",
-        testId: "quarantine-test",
-      },
-      { readerId },
-    );
-
-    expect(await store.allQuarantineIssues()).toEqual([
-      {
-        historyId: matchedHistoryId,
-        error: { message: undefined, trace: undefined },
-      },
-    ]);
-  });
-
-  it("should keep existing quarantine error when fallback label changes across retries", async () => {
-    const oldFallbackTestCaseId = md5("legacy-test-case-id");
-    const newFallbackTestCaseId = md5("new-legacy-test-case-id");
-    const oldHistoryId = `${oldFallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: oldHistoryId, error: { message: "old" } }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "older failed retry",
-        status: "failed",
-        testId: "quarantine-test",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: oldFallbackTestCaseId }],
-        start: 1000,
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "latest failed test",
-        status: "failed",
-        testId: "quarantine-test",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: newFallbackTestCaseId }],
-        start: 2000,
-      },
-      { readerId },
-    );
-
-    expect(await store.allQuarantineIssues()).toEqual([
-      {
-        historyId: oldHistoryId,
-        error: { message: undefined, trace: undefined },
-      },
-      {
-        historyId: `${md5("quarantine-test")}.${md5("")}`,
-        error: { message: undefined, trace: undefined },
-      },
-    ]);
-  });
-
-  it("should persist quarantine under fallback historyId candidate", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore();
-
-    await store.visitTestResult(
-      {
-        name: "fallback failed test",
-        status: "failed",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-        message: "boom",
-      },
-      { readerId },
-    );
-
-    const [testResult] = await store.allTestResults();
-
-    expect(testResult).toMatchObject({ quarantine: true, historyId: undefined });
-    expect(await store.allQuarantineIssues()).toEqual([
-      {
-        historyId: fallbackHistoryId,
-        error: { message: "boom" },
-      },
-    ]);
-  });
-
-  it("should keep quarantine for active failure in another environment", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const primaryHistoryId = `${md5("new-test-case-id")}.${md5("")}`;
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: primaryHistoryId }, { historyId: fallbackHistoryId }],
-      environmentsConfig: {
-        foo: {
-          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
-        },
-      },
-    });
-
-    await store.visitTestResult(
-      {
-        name: "foo failed test",
-        fullName: "suite migrated test",
-        status: "failed",
-        labels: [
-          { name: "env", value: "foo" },
-          { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
-        ],
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "passed migrated test",
-        fullName: "suite migrated test",
-        status: "passed",
-        testId: "new-test-case-id",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      },
-      { readerId },
-    );
-
-    expect(await store.allQuarantineIssues()).toEqual([expect.objectContaining({ historyId: fallbackHistoryId })]);
-    expect(store.dumpState().indexQuarantineByHistoryId).toEqual({
-      [fallbackHistoryId]: [{ historyId: fallbackHistoryId, error: { message: undefined, trace: undefined } }],
-    });
-  });
-
-  it("should not persist quarantine when no historyId candidates exist", async () => {
-    const store = new DefaultAllureStore();
-
-    await store.visitTestResult(
-      {
-        name: "unidentified failed test",
-        status: "failed",
-      },
-      { readerId },
-    );
-
-    const [testResult] = await store.allTestResults();
-
-    expect(testResult).toMatchObject({ quarantine: false, historyId: undefined });
-    expect(await store.allQuarantineIssues()).toEqual([]);
-  });
-
-  it("should collapse duplicate quarantine inputs by historyId", async () => {
-    const store = new DefaultAllureStore({
-      quarantine: [
-        { historyId: "duplicate-quarantine", error: { message: "old" } },
-        { historyId: "duplicate-quarantine", error: { message: "new" } },
-      ],
-    });
-
-    const quarantineIssues = await store.allQuarantineIssues();
-    const dump = store.dumpState();
-
-    expect(quarantineIssues).toHaveLength(1);
-    expect(quarantineIssues[0]).toMatchObject({
-      historyId: "duplicate-quarantine",
-      error: { message: "new" },
-    });
-    expect(dump.indexQuarantineByHistoryId?.["duplicate-quarantine"]).toEqual([
-      {
-        historyId: "duplicate-quarantine",
-        error: { message: "new" },
-      },
-    ]);
-  });
-
-  it("should update existing quarantine issue without duplicating", async () => {
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: "existing-quarantine", error: { message: "old" } }],
-    });
-
-    const dump = store.dumpState();
-    dump.indexQuarantineByHistoryId = {
-      "existing-quarantine": [{ historyId: "existing-quarantine", error: { message: "latest" } }],
-    };
-
-    await store.restoreState(dump);
-
-    const quarantineIssues = await store.allQuarantineIssues();
-
-    expect(quarantineIssues).toHaveLength(1);
-    expect(quarantineIssues[0]).toMatchObject({
-      historyId: "existing-quarantine",
-      error: { message: "latest" },
-    });
-  });
-
-  it("should drop quarantine when later pass makes failed attempt retry", async () => {
-    const store = new DefaultAllureStore();
-
-    await store.visitTestResult(
-      {
-        name: "retry failed test",
-        fullName: "suite retry failed test",
-        status: "failed",
-        testId: "retry-test",
-        start: 1000,
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "retry passed test",
-        fullName: "suite retry failed test",
-        status: "passed",
-        testId: "retry-test",
-        start: 2000,
-      },
-      { readerId },
-    );
-
-    const allTestResults = await store.allTestResults({ includeRetries: true });
-    const quarantineIssues = await store.allQuarantineIssues();
-
-    expect(allTestResults.find((tr) => tr.name === "retry failed test")?.isRetry).toBe(true);
-    expect(allTestResults.find((tr) => tr.name === "retry failed test")?.quarantine).toBe(false);
-    expect(allTestResults.find((tr) => tr.name === "retry passed test")?.quarantine).toBe(false);
-    expect(quarantineIssues).toEqual([]);
-    expect(await store.blockingFailedTestResults()).toEqual([]);
-  });
-
-  it("should clear stale quarantine alias after fallback label changes", async () => {
-    const oldFallbackTestCaseId = md5("legacy-test-case-id");
-    const newFallbackTestCaseId = md5("new-legacy-test-case-id");
-    const oldHistoryId = `${oldFallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      quarantine: [{ historyId: oldHistoryId, error: { message: "old" } }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "older failed retry",
-        status: "failed",
-        testId: "quarantine-test",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: oldFallbackTestCaseId }],
-        start: 1000,
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "latest passed test",
-        status: "passed",
-        testId: "quarantine-test",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: newFallbackTestCaseId }],
-        start: 2000,
-      },
-      { readerId },
-    );
-
-    const allTestResults = await store.allTestResults({ includeRetries: true });
-
-    expect(allTestResults.find((tr) => tr.name === "older failed retry")?.isRetry).toBe(true);
-    expect(allTestResults.find((tr) => tr.name === "latest passed test")?.isRetry).toBe(false);
-    expect(await store.allQuarantineIssues()).toEqual([]);
-  });
-
-  it("should restore missing quarantine flag and backfill from quarantine index", async () => {
-    const source = new DefaultAllureStore();
-
-    await source.visitTestResult(
-      {
-        name: "restore test",
-        fullName: "restore test",
-        status: "failed",
-      },
-      { readerId },
-    );
-
-    const dump = source.dumpState();
-    const [restoredId] = Object.keys(dump.testResults);
-    const restoredResult = dump.testResults[restoredId] as Partial<TestResult>;
-
-    delete restoredResult.quarantine;
-    delete restoredResult.known;
-
-    const target = new DefaultAllureStore();
-
-    await target.restoreState(dump);
-
-    const [restored] = await target.allTestResults();
-
-    expect(restored).toMatchObject({
-      quarantine: true,
-      known: false,
-    });
-  });
-
-  it("should merge known and quarantine indexes across restores without duplicates", async () => {
+  it("should merge known indexes across restores without duplicates", async () => {
     const source1 = new DefaultAllureStore({
       known: [{ historyId: "known-1" }],
-      quarantine: [{ historyId: "quarantine-1", error: { message: "one" } }],
     });
     const source2 = new DefaultAllureStore({
       known: [{ historyId: "known-2" }],
-      quarantine: [{ historyId: "quarantine-2", error: { message: "two" } }],
     });
 
     await source1.visitTestResult(
@@ -1261,14 +867,6 @@ describe("unknownFailedTestResults", () => {
         name: "known source test",
         status: "failed",
         historyId: "known-1",
-      },
-      { readerId },
-    );
-    await source1.visitTestResult(
-      {
-        name: "quarantine source test",
-        status: "failed",
-        historyId: "quarantine-1",
       },
       { readerId },
     );
@@ -1280,18 +878,8 @@ describe("unknownFailedTestResults", () => {
       },
       { readerId },
     );
-    await source2.visitTestResult(
-      {
-        name: "quarantine source test 2",
-        status: "failed",
-        historyId: "quarantine-2",
-      },
-      { readerId },
-    );
-
     const target = new DefaultAllureStore({
       known: [{ historyId: "known-config" }],
-      quarantine: [{ historyId: "quarantine-config", error: { message: "config" } }],
     });
 
     const dump1 = source1.dumpState();
@@ -1302,14 +890,10 @@ describe("unknownFailedTestResults", () => {
     await target.restoreState(dump2);
 
     const knownIds = (await target.allKnownIssues()).map(({ historyId }) => historyId);
-    const quarantineIds = (await target.allQuarantineIssues()).map(({ historyId }) => historyId);
 
     expect(knownIds).toHaveLength(3);
     expect(new Set(knownIds).size).toBe(knownIds.length);
     expect(knownIds).toEqual(expect.arrayContaining(["known-config", "known-1", "known-2"]));
-    expect(quarantineIds).toHaveLength(3);
-    expect(new Set(quarantineIds).size).toBe(quarantineIds.length);
-    expect(quarantineIds).toEqual(expect.arrayContaining(["quarantine-config", "quarantine-1", "quarantine-2"]));
   });
 });
 

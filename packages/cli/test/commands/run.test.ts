@@ -153,7 +153,6 @@ describe("run command", () => {
       hideLabels: ["owner"],
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -204,7 +203,6 @@ describe("run command", () => {
       hideLabels: ["owner", "tag"],
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -255,23 +253,14 @@ describe("run command", () => {
     expect(exitMock).not.toHaveBeenCalledWith(-1);
   });
 
-  it("should pass known and quarantine overrides to readConfig", async () => {
+  it("should pass known issues override to readConfig", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
       plugins: [],
     });
 
-    await run(RunCommand, [
-      "run",
-      "--known-issues",
-      "known.json",
-      "--quarantine",
-      "quarantine.json",
-      "--",
-      "npm",
-      "test",
-    ]);
+    await run(RunCommand, ["run", "--known-issues", "known.json", "--", "npm", "test"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
@@ -281,7 +270,6 @@ describe("run command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: "known.json",
-      quarantinePath: "quarantine.json",
     });
   });
 
@@ -315,34 +303,6 @@ describe("run command", () => {
     expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
     expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(0);
-  });
-
-  it("should keep exit nonzero when quarantine-only failures remain", async () => {
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
-
-    (readConfig as Mock).mockResolvedValueOnce({
-      output: "./allure-report",
-      open: false,
-      plugins: [],
-    });
-    vi.mocked(runProcess).mockClear();
-    vi.mocked(terminationOf).mockResolvedValueOnce(1);
-
-    const { AllureReportMock } = await import("../utils.js");
-    const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
-    const quarantineFailure = { fullName: "quarantine failure", status: "failed", labels: [], historyId: "block-1" };
-
-    AllureReportMock.prototype.store = {
-      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1" }]),
-      blockingFailedTestResults: vi.fn().mockResolvedValue([quarantineFailure]),
-      failedTestResults: vi.fn().mockResolvedValue([knownFailure, quarantineFailure]),
-      allTestResults: vi.fn().mockResolvedValue([]),
-    };
-
-    await run(RunCommand, ["run", "--", "npm", "test"]);
-
-    expect(runProcess).toHaveBeenCalledTimes(1);
-    expect(exitMock).toHaveBeenCalledWith(1);
   });
 
   it("should preserve raw child exit code when only known failures remain", async () => {

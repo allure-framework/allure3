@@ -1,7 +1,7 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 
-import type { KnownTestFailure, QuarantineTestFailure, TestStatus } from "@allurereport/core-api";
+import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "@allurereport/plugin-api";
 
 import { isFileNotFoundError } from "./utils/misc.js";
@@ -54,26 +54,6 @@ export const readKnownIssues = async (knownIssuePath: string): Promise<KnownTest
   }
 };
 
-export const readQuarantine = async (quarantinePath: string): Promise<QuarantineTestFailure[]> => {
-  const path = await resolveExactIssuesFilePath(quarantinePath, "quarantine");
-
-  if (!path) {
-    return [];
-  }
-
-  try {
-    const content = await readFile(path, { encoding: "utf-8" });
-
-    return JSON.parse(content);
-  } catch (e) {
-    if (isFileNotFoundError(e)) {
-      return [];
-    }
-
-    throw e;
-  }
-};
-
 export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: string) => {
   const path = await resolveExactIssuesFilePath(knownIssuesPath, "known issues");
 
@@ -93,17 +73,4 @@ export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: str
 
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(knownIssues)}\n`, "utf-8");
-};
-
-export const writeQuarantine = async (store: AllureStore, knownIssuesPath?: string) => {
-  const path = await resolveExactIssuesFilePath(knownIssuesPath, "quarantine");
-
-  if (!path) {
-    return;
-  }
-
-  const quarantineIssues = await store.allQuarantineIssues();
-
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(quarantineIssues)}\n`, "utf-8");
 };

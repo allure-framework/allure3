@@ -12,7 +12,6 @@ const makeTr = (id: string, retryHash = "same-retry"): TestResult => ({
   flaky: false,
   muted: false,
   known: false,
-  quarantine: false,
   isRetry: false,
   labels: [],
   parameters: [],

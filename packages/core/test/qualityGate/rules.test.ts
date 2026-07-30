@@ -13,7 +13,6 @@ import {
   environmentsTestedRule,
   maxDurationRule,
   maxFailuresRule,
-  maxQuarantineRule,
   minTestsCountRule,
   successRateRule,
 } from "../../src/qualityGate/rules.js";
@@ -27,7 +26,6 @@ const createTestResult = (
   labels: TestResult["labels"] = [],
   parameters: TestResult["parameters"] = [],
   known = false,
-  quarantine = false,
 ) =>
   ({
     id,
@@ -39,7 +37,6 @@ const createTestResult = (
     flaky: false,
     muted: false,
     known,
-    quarantine,
     isRetry: false,
     labels,
     parameters,
@@ -408,110 +405,6 @@ describe("maxDurationRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
-  });
-});
-
-describe("maxQuarantineRule", () => {
-  const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
-    getResult: () => 0,
-    setResult: (value) => setState(value),
-  };
-
-  it("should pass when quarantine count is less than expected", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed", undefined, undefined, undefined, [], [], false, true),
-      createTestResult("3", "failed"),
-    ];
-    const result = await maxQuarantineRule.validate({
-      trs: testResults,
-      expected: 2,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
-  });
-
-  it("should fail when quarantine count exceeds expected", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "failed", undefined, undefined, undefined, [], [], false, true),
-      createTestResult("2", "failed", undefined, undefined, undefined, [], [], false, true),
-      createTestResult("3", "passed"),
-    ];
-    const result = await maxQuarantineRule.validate({
-      trs: testResults,
-      expected: 1,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.actual).toBe(2);
-    expect(setState).toHaveBeenCalledWith(2);
-  });
-
-  it("should ignore non-quarantined tests", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "failed"),
-      createTestResult("2", "passed"),
-      createTestResult("3", "failed", undefined, undefined, undefined, [], [], false, true),
-    ];
-    const result = await maxQuarantineRule.validate({
-      trs: testResults,
-      expected: 1,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
-  });
-
-  it("should accumulate quarantine count across multiple batches using state", async () => {
-    let stored = 0;
-    const state: QualityGateRuleState<number> = {
-      getResult: () => stored,
-      setResult: (value) => {
-        stored = value;
-      },
-    };
-
-    const expected = 2;
-
-    const firstBatch: TestResult[] = [
-      createTestResult("1", "failed", undefined, undefined, undefined, [], [], false, true),
-      createTestResult("2", "passed"),
-    ];
-
-    const firstResult = await maxQuarantineRule.validate({
-      trs: firstBatch,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(firstResult.success).toBe(true);
-    expect(firstResult.actual).toBe(1);
-
-    const secondBatch: TestResult[] = [
-      createTestResult("3", "failed", undefined, undefined, undefined, [], [], false, true),
-      createTestResult("4", "failed", undefined, undefined, undefined, [], [], false, true),
-    ];
-
-    const secondResult = await maxQuarantineRule.validate({
-      trs: secondBatch,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(secondResult.success).toBe(false);
-    expect(secondResult.actual).toBe(3);
   });
 });
 

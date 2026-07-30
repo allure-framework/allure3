@@ -62,11 +62,11 @@ describe("generate command", () => {
     expect(serve).not.toHaveBeenCalled();
   });
 
-  it("should pass quarantine override to readConfig", async () => {
+  it("should pass known issues override to readConfig", async () => {
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--quarantine", "quarantine.json", "baz"]);
+    await run(GenerateCommand, ["generate", "--known-issues", "known.json", "baz"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: undefined,
@@ -75,8 +75,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
-      quarantinePath: "quarantine.json",
+      knownIssuesPath: "known.json",
     });
   });
 
@@ -126,7 +125,6 @@ describe("generate command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -154,7 +152,6 @@ describe("generate command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -181,7 +178,6 @@ describe("generate command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -220,7 +216,6 @@ describe("generate command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -256,7 +251,6 @@ describe("generate command", () => {
       hideLabels: undefined,
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -312,7 +306,6 @@ describe("generate command", () => {
       hideLabels: ["baz", "qux"],
       historyLimit: undefined,
       knownIssuesPath: undefined,
-      quarantinePath: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
