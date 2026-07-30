@@ -84,7 +84,7 @@ describe("watchDirectory", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("ignores files under node_modules and dot-directories by default", async () => {
+  it("ignores files under node_modules and .git by default", async () => {
     const handler = vi.fn();
     const unwatch = watchDirectory(fixturesDir, handler);
 
@@ -98,6 +98,36 @@ describe("watchDirectory", () => {
     expect(handler).toBeCalledWith("add", join(fixturesDir, "tracked.txt"));
     expect(handler).not.toBeCalledWith("add", join(fixturesDir, "node_modules", "file.txt"));
     expect(handler).not.toBeCalledWith("add", join(fixturesDir, ".git", "file.txt"));
+
+    unwatch();
+  });
+
+  it("doesn't ignore other dot-directories by default, since users may store test data there", async () => {
+    const handler = vi.fn();
+    const unwatch = watchDirectory(fixturesDir, handler);
+
+    await mkdir(join(fixturesDir, ".data"), { recursive: true });
+    await writeFile(join(fixturesDir, ".data", "file.txt"), "content", "utf8");
+    await sleep(200);
+
+    expect(handler).toBeCalledWith("add", join(fixturesDir, ".data", "file.txt"));
+
+    unwatch();
+  });
+
+  it("ignores directories listed in the watched directory's .gitignore", async () => {
+    await writeFile(join(fixturesDir, ".gitignore"), "generated\n", "utf8");
+
+    const handler = vi.fn();
+    const unwatch = watchDirectory(fixturesDir, handler);
+
+    await mkdir(join(fixturesDir, "generated"), { recursive: true });
+    await writeFile(join(fixturesDir, "generated", "file.txt"), "content", "utf8");
+    await writeFile(join(fixturesDir, "tracked.txt"), "content", "utf8");
+    await sleep(200);
+
+    expect(handler).toBeCalledWith("add", join(fixturesDir, "tracked.txt"));
+    expect(handler).not.toBeCalledWith("add", join(fixturesDir, "generated", "file.txt"));
 
     unwatch();
   });
