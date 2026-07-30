@@ -5,6 +5,7 @@ import type {
   EnvironmentsConfig,
   KnownIssuesPathConfig,
   ReportVariables,
+  KnownIssuesConfig,
 } from "@allurereport/core-api";
 
 import type { PluginDescriptor } from "./plugin.js";
@@ -19,6 +20,7 @@ export interface Config {
   historyPath?: string;
   historyLimit?: number;
   knownIssuesPath?: KnownIssuesPathConfig;
+  knownIssues?: KnownIssuesConfig;
   defaultLabels?: DefaultLabelsConfig;
   /**
    * Signals that the report's plugins shouldn't be executed, but test results should be archived
