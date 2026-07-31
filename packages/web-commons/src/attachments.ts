@@ -1,4 +1,4 @@
-import { fetchReportAttachment } from "./data.js";
+import { fetchReportAttachment, getReportOptions } from "./data.js";
 
 type AttachmentImageData = {
   img: string;
@@ -38,8 +38,10 @@ type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
 
 export const fetchFromUrl = async ({ id, ext, contentType }: AttachmentPayload) => {
   const fileName = `${id || "-"}${ext || ""}`;
+  const opts = getReportOptions<{ attachmentsBasePath?: string }>();
+  const basePath = opts?.attachmentsBasePath ?? "data/attachments";
 
-  return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
+  return fetchReportAttachment(`${basePath}/${fileName}?attachment`, contentType);
 };
 
 export const fetchAttachment = async (

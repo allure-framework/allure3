@@ -49,6 +49,7 @@ export type AwesomeReportOptions = {
   runSummary?: AwesomeRunSummary;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
+  attachmentsBasePath?: string;
 };
 
 export type AwesomeFixtureResult = Omit<

@@ -26,6 +26,7 @@ export type ClassicReportOptions = {
   reportUuid: string;
   allureVersion?: string;
   cacheKey?: string;
+  attachmentsBasePath?: string;
 };
 
 export type ClassicFixtureResult = Omit<
