@@ -209,12 +209,16 @@ describe("quality-gate command", () => {
       fixtures.resultsDir,
     ]);
     const onTestResults = await onTestResultsPromise;
+    const validateMock = AllureReportMock.prototype.validate as unknown as Mock;
+
+    validateMock.mockResolvedValueOnce({ results: [], fastFailed: false });
+    validateMock.mockResolvedValueOnce({ results: [], fastFailed: false });
 
     await onTestResults(["known-result"]);
     finishReadDirectory();
     await commandPromise;
 
-    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.validate).toHaveBeenCalledTimes(2);
     expect(exit).toHaveBeenCalledWith(0);
   });
 
