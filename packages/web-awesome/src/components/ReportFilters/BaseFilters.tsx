@@ -12,6 +12,7 @@ import {
   DropdownButton,
   IconButton,
   Menu,
+  SearchBox,
   Text,
   Tooltip,
   allureIcons,
@@ -282,10 +283,24 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
   label?: string;
   description?: string;
   disabled?: boolean;
+  searchable?: boolean;
 }) => {
-  const { filter, onChange, icon, label, options, counter = true, onClear, description, disabled } = props;
+  const {
+    filter,
+    onChange,
+    icon,
+    label,
+    options,
+    counter = true,
+    onClear,
+    description,
+    disabled,
+    searchable = false,
+  } = props;
   const { value, key } = filter.value;
   const { t } = useI18n("filters");
+  const { t: tSearch } = useI18n("search");
+  const [search, setSearch] = useState("");
 
   const handleOptionClick = useCallback(
     (optionKey: string, optionValue: boolean) => {
@@ -306,6 +321,11 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
 
   const checkedValuesCount = options.map(({ key: optionKey }) => optionKey).filter(isOptionChecked).length;
   const hasCheckedValues = checkedValuesCount > 0;
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleOptions =
+    searchable && normalizedSearch
+      ? options.filter((option) => (option.label ?? option.key).toLowerCase().includes(normalizedSearch))
+      : options;
 
   const errorText = t("errors.max_values", { count: MAX_ARRAY_FIELD_VALUES });
   const hasError = checkedValuesCount > MAX_ARRAY_FIELD_VALUES;
@@ -329,8 +349,13 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
         />
       )}
     >
+      {searchable && (
+        <div className={styles.search} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+          <SearchBox value={search} onChange={setSearch} placeholder={tSearch("search")} changeDebounce={0} />
+        </div>
+      )}
       <Menu.Section>
-        {options.map((option) => (
+        {visibleOptions.map((option) => (
           <Menu.ItemWithCheckmark
             closeMenuOnClick={false}
             key={option.key}
