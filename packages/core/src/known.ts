@@ -20,12 +20,18 @@ const messageMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boo
   return typeof message === "string" && new RegExp(rule.messageRegexp).test(message);
 };
 
-const testCaseMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
-  return !rule.testCaseId || rule.testCaseId === testResult.testCase?.id;
+const testCaseIdMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
+  const { id, allureId, externalId } = testResult.testCase ?? {};
+
+  return !rule.testCaseId || [id, allureId, externalId].includes(rule.testCaseId);
 };
 
-const environmentMatches = (rule: KnownIssueDescriptor, environmentId?: string): boolean => {
-  return !rule.environmentId || rule.environmentId === environmentId;
+const retryHashMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
+  return !rule.retryHash || rule.retryHash === testResult.retryHash;
+};
+
+const environmentMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
+  return !rule.environmentId || rule.environmentId === testResult.environment;
 };
 
 export const getKnownIssueByRules = (
@@ -37,19 +43,20 @@ export const getKnownIssueByRules = (
     return undefined;
   }
 
-  const rule = knownIssues!.rules.find(
-    (item) =>
-      messageMatches(item, testResult) && testCaseMatches(item, testResult) && environmentMatches(item, environmentId),
+  const matchedRule = knownIssues!.rules.find((rule) =>
+    [messageMatches, testCaseIdMatches, environmentMatches, retryHashMatches].every((matcher) =>
+      matcher(rule, testResult),
+    ),
   );
 
-  if (!rule) {
+  if (!matchedRule) {
     return undefined;
   }
 
   return {
     historyId: testResult.historyId,
-    reason: rule.decision.reason,
-    links: rule.decision.links,
+    reason: matchedRule.decision.reason,
+    links: matchedRule.decision.links,
     error: testResult.error,
   };
 };
