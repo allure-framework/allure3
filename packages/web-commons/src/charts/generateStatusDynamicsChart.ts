@@ -57,6 +57,7 @@ export const generateStatusDynamicsChart = (props: {
       ),
       id: point.uuid,
       timestamp: point.timestamp,
+      url: point.url,
     };
   });
 
