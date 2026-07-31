@@ -69,6 +69,7 @@ export interface AllureStore {
   relatedByTestResultIds: (trIds: readonly string[]) => Promise<TestResultRelatedData>;
   // aggregate api
   failedTestResults: () => Promise<TestResult[]>;
+  blockingFailedTestResults: () => Promise<TestResult[]>;
   unknownFailedTestResults: () => Promise<TestResult[]>;
   testResultsByLabel: (labelName: string) => Promise<{
     _: TestResult[];
@@ -97,13 +98,13 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
+  knownIssues: Record<string, KnownTestFailure>;
   qualityGateResults: QualityGateValidationResult[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
-  indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
   /** Global ingest order of test result ids (append order in store). */
   testResultIdsIngestOrder: string[];
 }
@@ -112,18 +113,19 @@ export enum AllureStoreDumpFiles {
   TestResults = "test-results.json",
   TestCases = "test-cases.json",
   Fixtures = "fixtures.json",
+
   GlobalErrors = "global-errors.json",
   GlobalAttachments = "global-attachments.json",
   Attachments = "attachments.json",
   CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
+  KnownIssues = "known-issues.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
   IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
   IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
-  IndexKnownByHistoryId = "index-known-by-history-id.json",
   QualityGateResults = "quality-gate-results.json",
   TestResultIngestOrder = "test-result-ingest-order.json",
 }

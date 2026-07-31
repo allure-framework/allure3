@@ -10,7 +10,6 @@ const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
-  knownIssuesPath: "./known-issues.json",
   plugins: {
     awesome: {
       options: {

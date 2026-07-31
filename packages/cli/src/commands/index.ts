@@ -7,7 +7,6 @@ export * from "./awesome.js";
 export * from "./csv.js";
 export * from "./check.js";
 export * from "./history.js";
-export * from "./knownIssue.js";
 export * from "./run.js";
 export * from "./slack.js";
 export * from "./testplan.js";

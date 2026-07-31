@@ -16,9 +16,7 @@ export interface KnownIssueDescriptor {
   testCaseId?: string;
   retryHash?: string;
   environmentId?: string;
-  decision: KnownIssueDecision & {
-    addToStats?: boolean;
-  };
+  decision: KnownIssueDecision;
 }
 
 export interface KnownIssuesConfig {

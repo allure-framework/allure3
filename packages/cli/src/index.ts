@@ -21,7 +21,6 @@ import {
   GenerateCommand,
   HistoryCommand,
   JiraClearCommand,
-  KnownIssueCommand,
   LogCommand,
   OpenCommand,
   QualityGateCommand,
@@ -62,7 +61,6 @@ cli.register(DashboardCommand);
 cli.register(GenerateCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
-cli.register(KnownIssueCommand);
 cli.register(LogCommand);
 cli.register(OpenCommand);
 cli.register(QualityGateCommand);

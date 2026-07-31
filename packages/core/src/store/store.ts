@@ -15,6 +15,7 @@ import {
   type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
+  type KnownIssuesConfig,
   type KnownTestFailure,
   type ReportVariables,
   type Statistic,
@@ -56,6 +57,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
+import { getKnownIssueByRules } from "../known.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -127,7 +129,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
-  readonly known: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
+  readonly #knownIssuesConfig: KnownIssuesConfig | undefined;
+  readonly known: Map<string, KnownTestFailure> = new Map<string, KnownTestFailure>();
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
@@ -160,6 +163,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
+    knownIssuesConfig?: KnownIssuesConfig;
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
@@ -171,6 +175,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
+      knownIssuesConfig,
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
@@ -219,8 +224,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
+    this.#knownIssuesConfig = knownIssuesConfig;
 
-    known.forEach((ktf) => index(this.known, ktf.historyId, ktf));
+    known.forEach((ktf) => this.known.set(ktf.historyId, ktf));
 
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
@@ -458,6 +464,34 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const environmentId = options?.environmentId ?? this.#environmentIdByTestResult(testResult);
     const parametersHash = options?.parametersHash ?? calculateParametersHash(testResult.parameters);
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentId);
+  }
+
+  #setKnownIssue(knownIssue: KnownTestFailure) {
+    this.known.set(knownIssue.historyId, knownIssue);
+  }
+
+  #classifyKnownIssue(testResult: TestResult, environmentId?: string) {
+    if (testResult.status !== "failed" && testResult.status !== "broken") {
+      return false;
+    }
+
+    const historyIdCandidates = getHistoryIdCandidates(testResult);
+
+    if (historyIdCandidates.length === 0) {
+      return false;
+    }
+
+    const ruleKnownIssue = getKnownIssueByRules(testResult, this.#knownIssuesConfig, environmentId);
+
+    if (ruleKnownIssue) {
+      this.#setKnownIssue(ruleKnownIssue);
+
+      return true;
+    }
+
+    const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
+
+    return !!knownHistoryId;
   }
 
   #rebuildRetrySubstore() {
@@ -772,29 +806,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testResult.flaky = isFlaky(testResult, trHistory);
     }
 
+    testResult.known = this.#classifyKnownIssue(testResult, environmentIdentity.id);
+
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
     this.#retrySubstore.recordIngestOrder(testResult.id);
     this.#retrySubstore.upsert(testResult);
-    this.#retrySubstore.retriesByTr(testResult).forEach((retry) => {
-      retry.known = false;
-    });
-
-    const historyIdCandidates = getHistoryIdCandidates(testResult);
-
-    switch (true) {
-      // retry can't be known issue
-      case testResult.isRetry || historyIdCandidates.length === 0:
-        break;
-      case testResult.status === "failed" || testResult.status === "broken": {
-        const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
-
-        testResult.known = !!knownHistoryId;
-        break;
-      }
-      default:
-        break;
-    }
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
@@ -1495,7 +1512,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
       qualityGateResults: this.#qualityGateResults,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
@@ -1516,7 +1533,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       storeDump.indexFixturesByTestResult[trId] = fixtures.map((f) => f.id);
     });
     this.known.forEach((known, historyId) => {
-      storeDump.indexKnownByHistoryId[historyId] = known;
+      storeDump.knownIssues[historyId] = known;
     });
 
     return storeDump;
@@ -1538,7 +1555,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexTestResultByTestCase = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      indexKnownByHistoryId = {},
+      knownIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
@@ -1630,14 +1647,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
-
-    Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
-      if (this.known.has(historyId)) {
-        return;
-      }
-
-      this.known.set(historyId, [...knownFailures]);
-    });
+    updateMapWithRecord(this.known, knownIssues);
 
     Object.entries(attachmentsContents).forEach(([id, content]) => {
       this.#restoreAttachmentContent(id, content);
@@ -1761,13 +1771,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#rebuildRetrySubstore();
 
     for (const testResult of this.#testResults.values()) {
-      if (testResult.isRetry) {
-        testResult.known = false;
-      } else if (testResult.status === "failed" || testResult.status === "broken") {
-        const historyIdCandidates = getHistoryIdCandidates(testResult);
-
-        testResult.known = this.#historyIdMatches(historyIdCandidates, this.known) !== undefined;
-      }
+      testResult.known = this.#classifyKnownIssue(testResult, this.#environmentIdByTestResult(testResult));
     }
 
     qualityGateResults.forEach((result, index) => {

@@ -173,6 +173,51 @@ describe("quality-gate command", () => {
     expect(exit).toHaveBeenCalledWith(1);
   });
 
+  it("should not fast-fail when realtime failures are known", async () => {
+    let resolveOnTestResults!: (cb: (ids: string[]) => Promise<void>) => void;
+    const onTestResultsPromise = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
+      resolveOnTestResults = resolve;
+    });
+    let finishReadDirectory!: () => void;
+
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: (cb: (ids: string[]) => Promise<void>) => {
+        resolveOnTestResults(cb);
+      },
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([{ historyId: "known-1", status: "failed", known: true }]),
+      testResultById: vi.fn().mockResolvedValue({ historyId: "known-1", status: "failed", known: true }),
+      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1", reason: "tracked defect" }]),
+    };
+    AllureReportMock.prototype.readDirectory = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishReadDirectory = resolve;
+        }),
+    );
+
+    const commandPromise = run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+    const onTestResults = await onTestResultsPromise;
+
+    await onTestResults(["known-result"]);
+    finishReadDirectory();
+    await commandPromise;
+
+    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
   it("should use recursive discovery when resultsDir is not provided", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["dir1/allure-results/", "dir2/allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });

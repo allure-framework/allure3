@@ -547,11 +547,40 @@ describe("resolveConfig", () => {
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
   });
 
-  it("should use default known file when not provided", async () => {
+  it("should not set default known issues path when no known issues policy is configured", async () => {
     const resolved = await resolveConfig({} as Config);
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+  });
+
+  it("should derive default known issues path when known issues rules are configured", async () => {
+    const resolved = await resolveConfig({
+      knownIssues: {
+        rules: [
+          {
+            testCaseId: "tc-1",
+            decision: {
+              reason: "tracked defect",
+            },
+          },
+        ],
+      },
+    });
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./known-issues.json"));
     expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known-issues.json"));
+  });
+
+  it("should keep known issues disabled when rules are empty and no path is configured", async () => {
+    const resolved = await resolveConfig({
+      knownIssues: {
+        rules: [],
+      },
+    });
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
   });
 
   it("should ignore empty known path", async () => {

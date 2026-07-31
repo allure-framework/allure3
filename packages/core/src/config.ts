@@ -8,7 +8,7 @@ import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { readKnownIssues, resolveExactIssuesFilePath } from "./known.js";
+import { DEFAULT_KNOWN_ISSUES_PATH, hasKnownIssueRules, readKnownIssues, resolveExactIssuesFilePath } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import {
   environmentIdentityById,
@@ -165,6 +165,7 @@ export const validateConfig = (config: Config) => {
     "historyPath",
     "historyLimit",
     "knownIssuesPath",
+    "knownIssues",
     "plugins",
     "defaultLabels",
     "variables",
@@ -320,10 +321,10 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
-  const knownIssuesPath = await resolveExactIssuesFilePath(
-    override.knownIssuesPath ?? config.knownIssuesPath ?? "known-issues.json",
-    "known issues",
-  );
+  const configuredKnownIssuesPath = override.knownIssuesPath ?? config.knownIssuesPath;
+  const knownIssuesPathInput =
+    configuredKnownIssuesPath ?? (hasKnownIssueRules(config.knownIssues) ? DEFAULT_KNOWN_ISSUES_PATH : undefined);
+  const knownIssuesPath = await resolveExactIssuesFilePath(knownIssuesPathInput, "known issues");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
   const variables = config.variables ?? {};
@@ -360,6 +361,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     hideLabels,
     knownIssuesPath,
     known,
+    knownIssues: config.knownIssues,
     environment,
     allowedEnvironments,
     variables,

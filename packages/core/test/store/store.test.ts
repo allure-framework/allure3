@@ -282,6 +282,177 @@ describe("test results", () => {
     });
   });
 
+  it("should classify failed and broken results as known during visitTestResult", async () => {
+    const failedTestId = "failed-known";
+    const brokenTestId = "broken-known";
+    const failedHistoryId = `${md5(failedTestId)}.${md5("")}`;
+    const brokenHistoryId = `${md5(brokenTestId)}.${md5("")}`;
+    const store = new DefaultAllureStore({
+      known: [
+        { historyId: failedHistoryId, reason: "failed defect" },
+        { historyId: brokenHistoryId, reason: "broken defect" },
+      ],
+    });
+
+    await store.visitTestResult(
+      {
+        name: "known failed test",
+        status: "failed",
+        testId: failedTestId,
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "known broken test",
+        status: "broken",
+        testId: brokenTestId,
+      },
+      { readerId },
+    );
+
+    const testResults = await store.allTestResults({ includeRetries: true });
+
+    expect(testResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "known failed test", known: true }),
+        expect.objectContaining({ name: "known broken test", known: true }),
+      ]),
+    );
+  });
+
+  it("should classify failed and broken results by known issues rules during visitTestResult", async () => {
+    const store = new DefaultAllureStore({
+      knownIssuesConfig: {
+        rules: [
+          {
+            testCaseId: md5("tc-1"),
+            messageRegexp: "tracked defect",
+            decision: {
+              reason: "tracked defect",
+              links: [{ type: "issue", url: "https://example.org/issue-1" }],
+            },
+          },
+          {
+            testCaseId: md5("tc-2"),
+            decision: {
+              reason: "known broken defect",
+              links: [
+                { type: "issue", url: "https://example.org/issue-2" },
+                { type: "tms", url: "https://example.org/tms-2" },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      {
+        name: "known by rule",
+        status: "failed",
+        testId: "tc-1",
+        message: "tracked defect reproduced",
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "known broken by rule",
+        status: "broken",
+        testId: "tc-2",
+      },
+      { readerId },
+    );
+
+    const testResults = await store.allTestResults({ includeRetries: true });
+    const knownIssues = await store.allKnownIssues();
+    const blockingFailed = await store.blockingFailedTestResults();
+    const failedResult = testResults.find((tr) => tr.name === "known by rule")!;
+    const brokenResult = testResults.find((tr) => tr.name === "known broken by rule")!;
+
+    expect(failedResult.known).toBe(true);
+    expect(brokenResult.known).toBe(true);
+    expect(blockingFailed).toEqual([]);
+    expect(knownIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          historyId: failedResult.historyId,
+          reason: "tracked defect",
+          links: [{ type: "issue", url: "https://example.org/issue-1" }],
+        }),
+        expect.objectContaining({
+          historyId: brokenResult.historyId,
+          reason: "known broken defect",
+          links: [
+            { type: "issue", url: "https://example.org/issue-2" },
+            { type: "tms", url: "https://example.org/tms-2" },
+          ],
+        }),
+      ]),
+    );
+  });
+
+  it("should reclassify restored known flags with current known issues config", async () => {
+    const staleKnownHistoryId = "stale-known";
+    const currentKnownHistoryId = "current-known";
+    const dump = {
+      testResults: {
+        stale: {
+          id: "stale",
+          name: "stale known test",
+          status: "failed",
+          historyId: staleKnownHistoryId,
+          known: true,
+          parameters: [],
+          environment: "default",
+        },
+        current: {
+          id: "current",
+          name: "current known test",
+          status: "failed",
+          historyId: currentKnownHistoryId,
+          known: false,
+          parameters: [],
+          environment: "default",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      checkResults: {},
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {
+        [staleKnownHistoryId]: ["stale"],
+        [currentKnownHistoryId]: ["current"],
+      },
+      indexTestResultByTestCase: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      knownIssues: {},
+      testResultIdsIngestOrder: ["stale", "current"],
+    };
+    const store = new DefaultAllureStore({
+      known: [{ historyId: currentKnownHistoryId, reason: "current defect" }],
+    });
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const testResults = await store.allTestResults({ includeRetries: true });
+
+    expect(testResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "stale", known: false }),
+        expect.objectContaining({ id: "current", known: true }),
+      ]),
+    );
+  });
+
   it("should mark retries as isRetry", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
@@ -854,19 +1025,21 @@ describe("unknownFailedTestResults", () => {
     expect(allTestResults.find((tr) => tr.name === "known failed test")?.known).toBe(true);
   });
 
-  it("should merge known indexes across restores without duplicates", async () => {
+  it("should preserve current and restored known issues across restores", async () => {
+    const known1HistoryId = `${md5("known-1")}.${md5("")}`;
+    const known2HistoryId = `${md5("known-2")}.${md5("")}`;
     const source1 = new DefaultAllureStore({
-      known: [{ historyId: "known-1" }],
+      known: [{ historyId: known1HistoryId }],
     });
     const source2 = new DefaultAllureStore({
-      known: [{ historyId: "known-2" }],
+      known: [{ historyId: known2HistoryId }],
     });
 
     await source1.visitTestResult(
       {
         name: "known source test",
         status: "failed",
-        historyId: "known-1",
+        testId: "known-1",
       },
       { readerId },
     );
@@ -874,7 +1047,7 @@ describe("unknownFailedTestResults", () => {
       {
         name: "known source test 2",
         status: "failed",
-        historyId: "known-2",
+        testId: "known-2",
       },
       { readerId },
     );
@@ -893,7 +1066,7 @@ describe("unknownFailedTestResults", () => {
 
     expect(knownIds).toHaveLength(3);
     expect(new Set(knownIds).size).toBe(knownIds.length);
-    expect(knownIds).toEqual(expect.arrayContaining(["known-config", "known-1", "known-2"]));
+    expect(knownIds).toEqual(["known-config", known1HistoryId, known2HistoryId]);
   });
 });
 
@@ -2427,7 +2600,7 @@ describe("environments", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
     const store = new DefaultAllureStore();
 
@@ -3031,7 +3204,7 @@ describe("dump state", () => {
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.knownIssues).toBeDefined();
     expect(dump.qualityGateResults).toEqual([]);
   });
 
@@ -3152,7 +3325,7 @@ describe("dump state", () => {
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.knownIssues).toBeDefined();
   });
 
   it("should restore globalAttachments and globalErrors from dump", async () => {
@@ -3211,7 +3384,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -3287,7 +3460,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
     const attachmentContent = new BufferResultFile(Buffer.from("name\tvalue", "utf-8"), "datatable.tsv");
     const store = new DefaultAllureStore();
@@ -3375,7 +3548,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3485,7 +3658,7 @@ describe("dump state", () => {
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.knownIssues).toBeDefined();
 
     const newStore = new DefaultAllureStore();
 
@@ -3554,7 +3727,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     const store = new DefaultAllureStore({
@@ -3661,7 +3834,7 @@ describe("dump state", () => {
       },
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
       checkResults: {},
     };
 
@@ -3751,7 +3924,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3860,7 +4033,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3953,7 +4126,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -3991,7 +4164,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -4029,7 +4202,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -4057,7 +4230,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).resolves.toBeUndefined();
@@ -4093,7 +4266,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -4159,7 +4332,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
     };
 
     const store = new DefaultAllureStore();

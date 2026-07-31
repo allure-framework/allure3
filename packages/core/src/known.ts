@@ -1,12 +1,58 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 
-import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
+import type { KnownIssueDescriptor, KnownIssuesConfig, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type { AllureStore } from "@allurereport/plugin-api";
 
 import { isFileNotFoundError } from "./utils/misc.js";
 
-const failedStatuses: Set<TestStatus> = new Set(["failed", "broken"]);
+export const DEFAULT_KNOWN_ISSUES_PATH = "known-issues.json";
+
+export const hasKnownIssueRules = (knownIssues?: KnownIssuesConfig): boolean => (knownIssues?.rules?.length ?? 0) > 0;
+
+const messageMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
+  if (!rule.messageRegexp) {
+    return true;
+  }
+
+  const message = testResult.error?.message;
+
+  return typeof message === "string" && new RegExp(rule.messageRegexp).test(message);
+};
+
+const testCaseMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
+  return !rule.testCaseId || rule.testCaseId === testResult.testCase?.id;
+};
+
+const environmentMatches = (rule: KnownIssueDescriptor, environmentId?: string): boolean => {
+  return !rule.environmentId || rule.environmentId === environmentId;
+};
+
+export const getKnownIssueByRules = (
+  testResult: TestResult,
+  knownIssues: KnownIssuesConfig | undefined,
+  environmentId?: string,
+): KnownTestFailure | undefined => {
+  if (!testResult.historyId || !hasKnownIssueRules(knownIssues)) {
+    return undefined;
+  }
+
+  const rule = knownIssues!.rules.find(
+    (item) =>
+      messageMatches(item, testResult) && testCaseMatches(item, testResult) && environmentMatches(item, environmentId),
+  );
+
+  if (!rule) {
+    return undefined;
+  }
+
+  return {
+    historyId: testResult.historyId,
+    reason: rule.decision.reason,
+    links: rule.decision.links,
+    error: testResult.error,
+  };
+};
 
 export const resolveExactIssuesFilePath = async (pathOrDir: string | undefined, label: string) => {
   if (!pathOrDir) {
@@ -54,23 +100,19 @@ export const readKnownIssues = async (knownIssuePath: string): Promise<KnownTest
   }
 };
 
-export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: string) => {
+const writeKnownIssueRecords = async (knownIssues: KnownTestFailure[], knownIssuesPath?: string) => {
   const path = await resolveExactIssuesFilePath(knownIssuesPath, "known issues");
 
   if (!path) {
     return;
   }
 
-  const testResults = await store.allTestResults();
-  const knownIssues: KnownTestFailure[] = testResults
-    .filter((tr) => failedStatuses.has(tr.status))
-    .filter((tr) => tr.historyId)
-    .map(({ historyId, links }) => ({
-      historyId: historyId!,
-      issues: links.filter((l) => l.type === "issue"),
-      comment: "automatically generated from failure by allure known-issue command",
-    }));
-
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(knownIssues)}\n`, "utf-8");
+};
+
+export const writeKnownIssues = async (store: AllureStore, knownIssuesPath?: string) => {
+  const knownIssues = await store.allKnownIssues();
+
+  await writeKnownIssueRecords(knownIssues, knownIssuesPath);
 };

@@ -336,6 +336,57 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
+  it("should not fast-fail quality gate when realtime failures are known", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
+    const { stopProcessTree } = await import("../../src/utils/process.js");
+    let resolveOnTestResults!: (cb: (ids: string[]) => Promise<void>) => void;
+    const onTestResultsPromise = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
+      resolveOnTestResults = resolve;
+    });
+    let finishProcess!: (code: number) => void;
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      qualityGate: {
+        rules: [{ maxFailures: 0 }],
+      },
+      plugins: [],
+    });
+    vi.mocked(runProcess).mockClear();
+    vi.mocked(terminationOf).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishProcess = resolve;
+      }),
+    );
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: vi.fn((cb) => {
+        resolveOnTestResults(cb);
+
+        return vi.fn();
+      }),
+    };
+    AllureReportMock.prototype.store = {
+      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1", reason: "tracked defect" }]),
+      blockingFailedTestResults: vi.fn().mockResolvedValue([]),
+      failedTestResults: vi.fn().mockResolvedValue([{ historyId: "known-1", status: "failed", known: true }]),
+      allTestResults: vi.fn().mockResolvedValue([{ historyId: "known-1", status: "failed", known: true }]),
+      testResultById: vi.fn().mockResolvedValue({ historyId: "known-1", status: "failed", known: true }),
+    };
+
+    const commandPromise = run(RunCommand, ["run", "--", "npm", "test"]);
+    const onTestResults = await onTestResultsPromise;
+
+    await onTestResults(["known-result"]);
+    finishProcess(7);
+    await commandPromise;
+
+    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(stopProcessTree).not.toHaveBeenCalled();
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");
