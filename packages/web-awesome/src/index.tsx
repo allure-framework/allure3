@@ -47,6 +47,10 @@ const isTestResultRoute = computed(
   () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
 );
 
+const removeInitialLoader = () => {
+  document.getElementById("allure-app-loader")?.remove();
+};
+
 const App = () => {
   const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
@@ -86,6 +90,12 @@ const App = () => {
   useEffect(() => {
     prefetchData();
   }, []);
+
+  useEffect(() => {
+    if (prefetched) {
+      removeInitialLoader();
+    }
+  }, [prefetched]);
 
   useSignalEffect(() => {
     const envId = currentEnvironment.value;
