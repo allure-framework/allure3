@@ -74,7 +74,7 @@ export class AwesomeCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+    description: "Path to known issues file",
   });
 
   groupBy = Option.String("--group-by,-g", {

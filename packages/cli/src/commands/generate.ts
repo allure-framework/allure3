@@ -76,6 +76,10 @@ export class GenerateCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
@@ -85,7 +89,8 @@ export class GenerateCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      knownIssuesPath: this.knownIssues,
     });
 
     await generate({

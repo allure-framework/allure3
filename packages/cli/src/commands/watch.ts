@@ -64,6 +64,10 @@ export class WatchCommand extends Command {
     description: "The port to serve the reports on (default: random port)",
   });
 
+  preserve = Option.Boolean("--preserve", {
+    description: "Don't clear terminal output on the data refresh",
+  });
+
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
@@ -126,7 +130,7 @@ export class WatchCommand extends Command {
           id: "watch log",
           enabled: true,
           options: {},
-          plugin: new ProgressPlugin(),
+          plugin: new ProgressPlugin({ preserve: this.preserve }),
         },
         {
           id: "server reload",

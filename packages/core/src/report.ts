@@ -48,6 +48,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
+import { writeKnownIssues } from "./known.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -117,6 +118,7 @@ export class AllureReport {
   readonly #categories: CategoryDefinition[];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
+  readonly #knownIssuesPath: FullConfig["knownIssuesPath"];
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -138,6 +140,8 @@ export class AllureReport {
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       known,
+      knownIssues,
+      knownIssuesPath,
       reportFiles,
       realTime,
       historyPath,
@@ -185,6 +189,7 @@ export class AllureReport {
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
+    this.#knownIssuesPath = knownIssuesPath;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -212,6 +217,7 @@ export class AllureReport {
       environmentsConfig: environments,
       history: this.#history,
       known,
+      knownIssuesConfig: knownIssues,
       defaultLabels,
       environment,
       allowedEnvironments,
@@ -467,6 +473,12 @@ export class AllureReport {
     environment?: string;
   }) => {
     const { trs, knownIssues, state, environment } = params;
+    const currentKnownIssues = await this.#store.allKnownIssues();
+    const effectiveKnownIssues = new Map<string, KnownTestFailure>();
+
+    [...knownIssues, ...currentKnownIssues].forEach((issue) => {
+      effectiveKnownIssues.set(issue.historyId, issue);
+    });
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -476,7 +488,7 @@ export class AllureReport {
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
-      knownIssues,
+      knownIssues: [...effectiveKnownIssues.values()],
       state,
       environment: qualityGateEnvironment,
     });
@@ -611,7 +623,7 @@ export class AllureReport {
       indexTestResultByTestCase = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      indexKnownByHistoryId = {},
+      knownIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
@@ -622,6 +634,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.KnownIssues, knownIssues],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
@@ -629,7 +642,6 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
-      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
     ];
@@ -795,7 +807,7 @@ export class AllureReport {
               const indexFixturesByTestResultEntry = await requiredEntryData(
                 AllureStoreDumpFiles.IndexFixturesByTestResult,
               );
-              const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+              const knownIssuesEntry = await requiredEntryData(AllureStoreDumpFiles.KnownIssues);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
@@ -809,6 +821,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.Fixtures:
                   case AllureStoreDumpFiles.Environments:
                   case AllureStoreDumpFiles.ReportVariables:
+                  case AllureStoreDumpFiles.KnownIssues:
                   case AllureStoreDumpFiles.GlobalAttachments:
                   case AllureStoreDumpFiles.GlobalErrors:
                   case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
@@ -816,7 +829,6 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexTestResultsByTestCase:
                   case AllureStoreDumpFiles.IndexAttachmentsByFixture:
                   case AllureStoreDumpFiles.IndexFixturesByTestResult:
-                  case AllureStoreDumpFiles.IndexKnownByHistoryId:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
                     return acc;
@@ -845,7 +857,7 @@ export class AllureReport {
                 indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-                indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+                knownIssues: JSON.parse(knownIssuesEntry.toString("utf8")),
                 qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
@@ -1073,6 +1085,10 @@ export class AllureReport {
         // recursive flag is not applicable, it can provoke the process freeze
         outputDirFiles = await readdir(this.#output);
       } catch {}
+
+      if (this.#knownIssuesPath) {
+        await writeKnownIssues(this.#store, this.#knownIssuesPath);
+      }
 
       // just do nothing if there is no reports in the output directory
       if (outputDirFiles.length === 0) {
