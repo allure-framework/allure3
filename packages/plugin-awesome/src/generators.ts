@@ -76,16 +76,16 @@ const appLoader = `
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 16px;
+        gap: 24px;
         background: #f7f8fb;
         color: #22252a;
         font: 14px/20px Arial, Helvetica, sans-serif;
       }
 
       .allure-app-loader__spinner {
-        width: 32px;
-        height: 32px;
-        border: 3px solid rgba(34, 37, 42, 0.16);
+        width: 24px;
+        height: 24px;
+        border: 2px solid rgba(34, 37, 42, 0.16);
         border-bottom-color: #3d7eff;
         border-radius: 50%;
         animation: allure-app-loader-spin 0.7s linear infinite;
