@@ -1,5 +1,7 @@
 export type DefaultLabelsConfig = Record<string, string | string[]>;
 
+export type KnownIssuesPathConfig = string;
+
 export type AllureServiceConfig = {
   accessToken?: string;
   private?: boolean;

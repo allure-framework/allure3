@@ -15,6 +15,7 @@ import {
   type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
+  type KnownIssuesConfig,
   type KnownTestFailure,
   type ReportVariables,
   type Statistic,
@@ -56,6 +57,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
+import { getKnownIssueByRules } from "../known.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -127,7 +129,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
-  readonly #known: KnownTestFailure[];
+  readonly #knownIssuesConfig: KnownIssuesConfig | undefined;
+  readonly known: Map<string, KnownTestFailure> = new Map<string, KnownTestFailure>();
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
@@ -146,7 +149,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
-  readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
   #globalAttachmentIds: string[] = [];
   #globalAttachmentIdsByEnv: Map<string, string[]> = new Map();
@@ -161,6 +163,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
+    knownIssuesConfig?: KnownIssuesConfig;
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
@@ -172,6 +175,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
+      knownIssuesConfig,
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
@@ -186,7 +190,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       identities,
       errors: configErrors,
     } = normalizeEnvironmentDescriptorMap(environmentsConfig, "environmentsConfig");
+
     errors.push(...configErrors);
+
     const forcedEnvironment = resolveEnvironmentIdentity(
       {
         environment,
@@ -194,7 +200,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       normalizedEnvironmentsConfig,
       "store constructor",
     );
+
     errors.push(...forcedEnvironment.errors);
+
     const resolvedEnvironment = forcedEnvironment.identity;
 
     if (errors.length > 0) {
@@ -216,8 +224,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
-    this.#known = [...known];
-    this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
+    this.#knownIssuesConfig = knownIssuesConfig;
+
+    known.forEach((ktf) => this.known.set(ktf.historyId, ktf));
+
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
@@ -290,6 +300,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#addGlobalAttachment(attachmentLink, attachment);
     });
+  }
+
+  #historyIdMatches<T>(historyIdCandidates: string[], indexByHistoryId: ReadonlyMap<string, T>) {
+    return historyIdCandidates.find((historyId) => indexByHistoryId.has(historyId));
   }
 
   #mergeEnvironmentIdentity(
@@ -450,6 +464,34 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const environmentId = options?.environmentId ?? this.#environmentIdByTestResult(testResult);
     const parametersHash = options?.parametersHash ?? calculateParametersHash(testResult.parameters);
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentId);
+  }
+
+  #setKnownIssue(knownIssue: KnownTestFailure) {
+    this.known.set(knownIssue.historyId, knownIssue);
+  }
+
+  #classifyKnownIssue(testResult: TestResult, environmentId?: string) {
+    if (testResult.status !== "failed" && testResult.status !== "broken") {
+      return false;
+    }
+
+    const historyIdCandidates = getHistoryIdCandidates(testResult);
+
+    if (historyIdCandidates.length === 0) {
+      return false;
+    }
+
+    const ruleKnownIssue = getKnownIssueByRules(testResult, this.#knownIssuesConfig, environmentId);
+
+    if (ruleKnownIssue) {
+      this.#setKnownIssue(ruleKnownIssue);
+
+      return true;
+    }
+
+    const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
+
+    return !!knownHistoryId;
   }
 
   #rebuildRetrySubstore() {
@@ -716,7 +758,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       raw,
       context,
     );
-
     const defaultLabelsNames = Object.keys(this.#defaultLabels);
 
     if (defaultLabelsNames.length) {
@@ -750,10 +791,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = environmentIdentity.name;
     this.#addEnvironments([environmentIdentity]);
+
     const parametersHash =
       typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
         ? raw.parametersHash
         : calculateParametersHash(testResult.parameters);
+
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
 
     const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
@@ -762,6 +805,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testResult.transition = getStatusTransition(testResult, trHistory);
       testResult.flaky = isFlaky(testResult, trHistory);
     }
+
+    testResult.known = this.#classifyKnownIssue(testResult, environmentIdentity.id);
 
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
@@ -1016,7 +1061,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
-    return this.#known;
+    return [...this.known.values()].flat();
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1237,22 +1282,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return failedTrs;
   }
 
-  async unknownFailedTestResults() {
+  async blockingFailedTestResults() {
     const failedTestResults = await this.failedTestResults();
 
-    if (!this.#known?.length) {
-      return failedTestResults;
-    }
+    return failedTestResults.filter((tr) => !tr.known);
+  }
 
-    const knownHistoryIds = new Set(this.#known.map((ktf) => ktf.historyId));
-
-    return failedTestResults.filter((tr) => {
-      const historyIdCandidates = getHistoryIdCandidates(tr);
-
-      return (
-        historyIdCandidates.length > 0 && historyIdCandidates.every((historyId) => !knownHistoryIds.has(historyId))
-      );
-    });
+  async unknownFailedTestResults() {
+    return this.blockingFailedTestResults();
   }
 
   async testResultsByLabel(labelName: string): Promise<{ _: TestResult[]; [x: string]: TestResult[] }> {
@@ -1475,7 +1512,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      knownIssues: {},
       qualityGateResults: this.#qualityGateResults,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
@@ -1495,8 +1532,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.indexFixturesByTestResult.forEach((fixtures, trId) => {
       storeDump.indexFixturesByTestResult[trId] = fixtures.map((f) => f.id);
     });
-    this.indexKnownByHistoryId.forEach((known, historyId) => {
-      storeDump.indexKnownByHistoryId[historyId] = known;
+    this.known.forEach((known, historyId) => {
+      storeDump.knownIssues[historyId] = known;
     });
 
     return storeDump;
@@ -1518,7 +1555,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexTestResultByTestCase = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      indexKnownByHistoryId = {},
+      knownIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
@@ -1589,6 +1626,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
 
     Object.values(testResults).forEach((testResult) => {
+      testResult.known ??= false;
       this.#testResults.set(testResult.id, testResult);
       const storedEnvKey = typeof testResult.environment === "string" ? testResult.environment : undefined;
       const envId =
@@ -1609,6 +1647,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
+    updateMapWithRecord(this.known, knownIssues);
+
     Object.entries(attachmentsContents).forEach(([id, content]) => {
       this.#restoreAttachmentContent(id, content);
     });
@@ -1728,17 +1768,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingFixtures.push(...(fxs as TestFixtureResult[]));
     });
-    Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
-      const existingKnown = this.indexKnownByHistoryId.get(historyId);
-
-      if (!existingKnown) {
-        this.indexKnownByHistoryId.set(historyId, knownFailures);
-        return;
-      }
-
-      existingKnown.push(...knownFailures);
-    });
     this.#rebuildRetrySubstore();
+
+    for (const testResult of this.#testResults.values()) {
+      testResult.known = this.#classifyKnownIssue(testResult, this.#environmentIdByTestResult(testResult));
+    }
 
     qualityGateResults.forEach((result, index) => {
       this.#assertAllowedStoredEnvironment(

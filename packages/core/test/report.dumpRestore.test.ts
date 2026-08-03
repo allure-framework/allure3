@@ -31,6 +31,7 @@ const minimalDumpJsonFiles = (
     [AllureStoreDumpFiles.CheckResults]: "[]",
     [AllureStoreDumpFiles.Environments]: "[]",
     [AllureStoreDumpFiles.ReportVariables]: "{}",
+    [AllureStoreDumpFiles.KnownIssues]: "{}",
     [AllureStoreDumpFiles.GlobalAttachments]: "[]",
     [AllureStoreDumpFiles.GlobalErrors]: "[]",
     [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",

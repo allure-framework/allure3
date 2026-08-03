@@ -152,8 +152,8 @@ describe("classic command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
+      name: undefined,
       knownIssuesPath: undefined,
       historyPath: undefined,
     });
