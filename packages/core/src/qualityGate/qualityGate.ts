@@ -60,6 +60,7 @@ export class QualityGate {
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, knownIssues, environment } = payload;
+    const trsWithoutRetries = trs.filter((tr) => tr.isRetry !== true);
 
     const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
     const results: QualityGateValidationResult[] = [];
@@ -91,7 +92,7 @@ export class QualityGate {
           );
         }
 
-        const trsToValidate = ruleset.filter ? trs.filter(ruleset.filter) : trs;
+        const trsToValidate = ruleset.filter ? trsWithoutRetries.filter(ruleset.filter) : trsWithoutRetries;
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
           trs: trsToValidate,

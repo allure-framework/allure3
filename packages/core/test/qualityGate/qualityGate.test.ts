@@ -10,12 +10,13 @@ import {
   stringifyQualityGateResults,
 } from "../../src/qualityGate/qualityGate.js";
 
-const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
+const createTestResult = (id: string, status: TestStatus, historyId?: string, isRetry = false) =>
   ({
     id,
     name: `Test ${id}`,
     status,
     historyId,
+    isRetry,
   }) as TestResult;
 const createValidationResult = (
   success: boolean,
@@ -291,6 +292,24 @@ describe("QualityGate", () => {
       expect(fastFailed).toBe(false);
     });
 
+    it("should ignore retries for default rules", async () => {
+      const config: QualityGateConfig = {
+        rules: [{ maxFailures: 0 }],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [
+        createTestResult("1", "passed"),
+        createTestResult("2", "failed", undefined, true),
+      ];
+      const { results, fastFailed } = await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(results).toEqual([]);
+      expect(fastFailed).toBe(false);
+    });
+
     it("should fast fail when any rules set has fastFail flag", async () => {
       const mockRule1: QualityGateRule<number> = {
         rule: "mockRule1",
@@ -512,6 +531,37 @@ describe("QualityGate", () => {
       expect(mockRule.validate).toHaveBeenCalledWith(
         expect.objectContaining({
           trs: testResults,
+        }),
+      );
+    });
+
+    it("should pass only non-retry test results to custom rules", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [
+        createTestResult("1", "passed"),
+        createTestResult("2", "failed", undefined, true),
+      ];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults.slice(0, 1),
         }),
       );
     });
