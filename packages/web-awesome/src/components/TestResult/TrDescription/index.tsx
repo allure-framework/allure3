@@ -1,6 +1,6 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
@@ -25,21 +25,19 @@ const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
 export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, descriptionHtml }) => {
   const descriptionId = typeof id === "string" ? `${id}-description` : null;
   const isOpen = !collapsedTrees.value.has(descriptionId);
-  const [blobUrl, setBlobUrl] = useState("");
   const [height, setHeight] = useState(0);
   const currentTheme = themeStore.value.current;
 
   const sanitized = useMemo(() => (descriptionHtml ? sanitizeIframeHtml(descriptionHtml) : ""), [descriptionHtml]);
 
-  useEffect(() => {
+  const iframeContent = useMemo(() => {
     if (!sanitized) {
-      setBlobUrl("");
-      return;
+      return "";
     }
 
     const iframeThemeVars = resolveCssVarDeclarations(proseStyles);
 
-    const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
     <html data-theme="${currentTheme}">
       <head>
         <meta charset="utf-8">
@@ -48,12 +46,6 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
       </head>
       <body>${sanitized}</body>
     </html>`;
-
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    setBlobUrl(url);
-
-    return () => URL.revokeObjectURL(url);
   }, [currentTheme, sanitized]);
 
   const handleLoad = (e: Event) => {
@@ -75,11 +67,11 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
         />
         {isOpen && (
           <div className={styles["test-result-description-text"]}>
-            {blobUrl && (
+            {iframeContent && (
               <iframe
                 data-testid="test-result-description-frame"
                 title="Description"
-                src={blobUrl}
+                srcDoc={iframeContent}
                 width="100%"
                 height={String(height)}
                 style={{ border: 0 }}

@@ -38,6 +38,7 @@ export class TestOpsPlugin implements Plugin {
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean = false;
+  #launchStarted: boolean = false;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
 
@@ -369,7 +370,21 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    await this.#client.createSession(env);
+    try {
+      await this.#client.createSession(env);
+    } catch (error) {
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to create TestOps session: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to create TestOps session: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to create TestOps session");
+      }
+
+      return;
+    }
+
     await this.#uploadGlobalAttachments(store);
     await this.#uploadGlobalErrors(store);
     await this.#uploadQualityGateResults(store);
@@ -516,12 +531,30 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #startUpload() {
+  /**
+   * Creates the launch and starts the CI upload session. Unlike the per-content upload
+   * methods, a failure here means there's no launch to upload anything to at all, so it's
+   * caught and reported rather than left to crash the report generation for every plugin.
+   */
+  async #startUpload(): Promise<boolean> {
     const launchGitContext = this.#gitFlow.resolve();
 
-    await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext);
+    try {
+      await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext);
+      await this.#client.startUpload(this.#ci!);
+      this.#launchStarted = true;
+    } catch (error) {
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to create TestOps launch: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to create TestOps launch: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to create TestOps launch");
+      }
+    }
 
-    await this.#client.startUpload(this.#ci!);
+    return this.#launchStarted;
   }
 
   async #stopUpload(status: TestStatus) {
@@ -535,7 +568,10 @@ export class TestOpsPlugin implements Plugin {
 
     this.#logger.verbose("Starting upload…");
 
-    await this.#startUpload();
+    if (!(await this.#startUpload())) {
+      return;
+    }
+
     await this.#upload(store, { context, stage: "start" });
 
     this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
@@ -543,6 +579,11 @@ export class TestOpsPlugin implements Plugin {
 
   async update(context: PluginContext, store: AllureStore) {
     if (!this.enabled) {
+      return;
+    }
+
+    if (!this.#launchStarted) {
+      this.#logger.verbose("Skipping update: the TestOps launch was never started");
       return;
     }
 
@@ -556,6 +597,11 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
+    if (!this.#launchStarted) {
+      this.#logger.verbose("Skipping finalization: the TestOps launch was never started");
+      return;
+    }
+
     const allTrs = await store.allTestResults({
       filter: this.options.filter,
       includeRetries: false,
@@ -566,7 +612,19 @@ export class TestOpsPlugin implements Plugin {
     this.#logger.verbose("Finalizing upload…");
 
     await this.#upload(store, { context, stage: "done" });
-    await this.#stopUpload(worstStatus || "unknown");
+
+    try {
+      await this.#stopUpload(worstStatus || "unknown");
+    } catch (error) {
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to stop TestOps upload: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to stop TestOps upload: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to stop TestOps upload");
+      }
+    }
 
     const launchId = this.#client.launchId;
 

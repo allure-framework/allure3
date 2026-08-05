@@ -146,7 +146,6 @@ describe("awesome command", () => {
       output: "bar",
       knownIssuesPath: "baz",
       historyPath: "qux",
-      hideLabels: undefined,
     });
   });
 
@@ -158,8 +157,8 @@ describe("awesome command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
+      name: undefined,
       knownIssuesPath: undefined,
       historyPath: undefined,
       hideLabels: undefined,

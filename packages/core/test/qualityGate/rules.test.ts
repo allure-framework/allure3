@@ -25,6 +25,7 @@ const createTestResult = (
   environment?: string,
   labels: TestResult["labels"] = [],
   parameters: TestResult["parameters"] = [],
+  known = false,
 ) =>
   ({
     id,
@@ -35,7 +36,7 @@ const createTestResult = (
     environment,
     flaky: false,
     muted: false,
-    known: false,
+    known,
     isRetry: false,
     labels,
     parameters,
@@ -97,10 +98,10 @@ describe("maxFailuresRule", () => {
     expect(setState).toHaveBeenCalledWith(2);
   });
 
-  it("should filter out known issues", async () => {
+  it("should filter out known failures by stored flag", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1"),
+      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
       createTestResult("3", "failed"),
     ];
     const expected = 1;
@@ -115,7 +116,7 @@ describe("maxFailuresRule", () => {
     expect(result.actual).toBe(1);
   });
 
-  it("should filter out known issues by fallback history alias", async () => {
+  it("should ignore knownIssues list alone", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
     const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
@@ -131,8 +132,8 @@ describe("maxFailuresRule", () => {
       state,
     });
 
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(0);
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
   });
 });
 
@@ -223,10 +224,38 @@ describe("successRateRule", () => {
     expect(setState).not.toHaveBeenCalled();
   });
 
-  it("should filter out known issues", async () => {
+  it("should return full success rate when no unknown tests exist", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "failed", "known-issue-1", undefined, undefined, [], [], true),
+    ];
+    const expected = 1;
+    const result = await successRateRule.validate({
+      trs: testResults,
+      expected,
+      knownIssues: [] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should fail empty suite with zero success rate", async () => {
+    const result = await successRateRule.validate({
+      trs: [],
+      expected: 1,
+      knownIssues: [] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+  });
+
+  it("should filter out known failures by stored flag", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1"),
+      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
       createTestResult("3", "failed"),
     ];
     const expected = 0.5;
@@ -240,6 +269,26 @@ describe("successRateRule", () => {
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0.5);
     expect(setState).not.toHaveBeenCalled();
+  });
+
+  it("should ignore knownIssues list alone", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const testResults: TestResult[] = [
+      createTestResult("1", "failed", "new-history-id", undefined, undefined, [
+        { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
+      ]),
+    ];
+
+    const result = await successRateRule.validate({
+      trs: testResults,
+      expected: 1,
+      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
   });
 });
 
