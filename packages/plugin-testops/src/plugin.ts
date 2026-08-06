@@ -378,10 +378,6 @@ export class TestOpsPlugin implements Plugin {
         await this.#reopenLaunchIfClosed(error);
       };
 
-      // uploadTestResults already retries each chunk in place (see client.ts) so an already
-      // acknowledged chunk is never resent. This outer retry only fires if a chunk exhausts its
-      // own retries, ponytail: rare case, still resends earlier chunks; fix with cross-call
-      // upload-id tracking if that turns out to matter in practice.
       const uploadedTrs = await withUploadRetry(
         () =>
           this.#client.uploadTestResults({

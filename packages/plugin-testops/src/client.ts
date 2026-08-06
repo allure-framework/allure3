@@ -456,8 +456,6 @@ export class TestOpsClient {
         }
       }
 
-      // Retried per chunk, not at the call level: chunks already acknowledged by TestOps must
-      // never be resent just because a later chunk failed, or they'd be created twice.
       const reportIdsToTestOpsIds = await withUploadRetry(
         async () => {
           if (chunkEnvs.size > 0) {
