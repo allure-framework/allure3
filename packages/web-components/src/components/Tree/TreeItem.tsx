@@ -14,6 +14,7 @@ interface TreeItemProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
+  known?: boolean;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   id: string;
@@ -33,6 +34,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   duration,
   retriesCount,
   flaky,
+  known,
   transition,
   transitionTooltip,
   id,
@@ -44,16 +46,18 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   ...rest
 }) => {
   const treeNodeId = focusNodeId ?? id;
+  const handleNavigate = () => navigateTo(id);
 
   return (
-    <div
+    <button
       {...rest}
       className={clsx(
         styles["tree-item"],
         marked ? styles["tree-item-marked"] : "",
         focused ? styles["tree-item-focused"] : "",
       )}
-      onClick={() => navigateTo(id)}
+      onClick={handleNavigate}
+      type="button"
       id={id}
       data-tree-node-id={treeNodeId}
       aria-current={focused ? "true" : undefined}
@@ -69,11 +73,12 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
         data-testid="tree-leaf-info"
         duration={duration}
         flaky={flaky}
+        known={known}
         retriesCount={retriesCount}
         transition={transition}
         transitionTooltip={transitionTooltip}
         tooltips={tooltips}
       />
-    </div>
+    </button>
   );
 };

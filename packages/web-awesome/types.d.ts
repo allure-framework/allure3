@@ -4,6 +4,7 @@ import type {
   DefaultTreeGroup,
   HistoryTestResult,
   TestFixtureResult,
+  TestLink,
   TestResult,
   TestStatus,
   TestStepResult,
@@ -77,6 +78,12 @@ export interface AwesomeCategory {
   flaky?: boolean;
 }
 
+export type AwesomeKnownIssue = {
+  id: string;
+  reason: string;
+  links?: TestLink[];
+};
+
 export type AwesomeTestResult = Omit<
   TestResult,
   | "runSelector"
@@ -104,11 +111,34 @@ export type AwesomeTestResult = Omit<
   categories?: AwesomeCategory[];
   environment?: string | "default";
   tooltips?: Record<string, string>;
+  knownIssues?: AwesomeKnownIssue[];
+};
+
+export type AwesomeKnownIssueTestResult = Pick<
+  AwesomeTestResult,
+  "id" | "name" | "fullName" | "status" | "duration" | "historyId" | "flaky" | "retry" | "retriesCount"
+> & {
+  start?: number;
+};
+
+export type AwesomeKnownIssues = {
+  issues: AwesomeKnownIssue[];
+  testResultsByIssueId: Record<string, AwesomeKnownIssueTestResult[]>;
 };
 
 export type AwesomeTreeLeaf = Pick<
   AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount" | "id"
+  | "duration"
+  | "name"
+  | "start"
+  | "status"
+  | "groupOrder"
+  | "flaky"
+  | "known"
+  | "transition"
+  | "retry"
+  | "retriesCount"
+  | "id"
 > & {
   nodeId: string;
   transitionTooltip?: string;

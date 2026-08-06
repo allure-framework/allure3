@@ -4,7 +4,6 @@ import {
   type AttachmentLinkLinked,
   type HistoryDataPoint,
   fallbackTestCaseIdLabelName,
-  type TestResult,
 } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
@@ -391,6 +390,74 @@ describe("test results", () => {
         }),
       ]),
     );
+  });
+
+  it("should keep all matching known issue rules for one test result", async () => {
+    const store = new DefaultAllureStore({
+      knownIssuesConfig: {
+        rules: [
+          {
+            messageRegexp: "checkout",
+            decision: {
+              reason: "BUG-1 checkout",
+            },
+          },
+          {
+            messageRegexp: "payment",
+            decision: {
+              reason: "BUG-2 payment",
+            },
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      {
+        name: "known by multiple rules",
+        status: "failed",
+        testId: "tc-multi",
+        message: "checkout payment failed",
+      },
+      { readerId },
+    );
+
+    const [testResult] = await store.allTestResults({ includeRetries: true });
+    const knownIssues = await store.allKnownIssues();
+    const dump = store.dumpState();
+
+    expect(testResult.known).toBe(true);
+    expect(knownIssues).toEqual([
+      expect.objectContaining({ historyId: testResult.historyId, reason: "BUG-1 checkout" }),
+      expect.objectContaining({ historyId: testResult.historyId, reason: "BUG-2 payment" }),
+    ]);
+    expect(dump.knownIssues[testResult.historyId!]).toEqual([
+      expect.objectContaining({ reason: "BUG-1 checkout" }),
+      expect.objectContaining({ reason: "BUG-2 payment" }),
+    ]);
+
+    const restored = new DefaultAllureStore();
+
+    await restored.restoreState(dump);
+    await expect(restored.allKnownIssues()).resolves.toEqual([
+      expect.objectContaining({ historyId: testResult.historyId, reason: "BUG-1 checkout" }),
+      expect.objectContaining({ historyId: testResult.historyId, reason: "BUG-2 payment" }),
+    ]);
+
+    const legacyRestored = new DefaultAllureStore();
+
+    await legacyRestored.restoreState({
+      ...dump,
+      knownIssues: {
+        [testResult.historyId!]: {
+          historyId: testResult.historyId!,
+          reason: "BUG-1 checkout",
+        },
+      },
+    });
+    await expect(legacyRestored.allKnownIssues()).resolves.toEqual([
+      expect.objectContaining({ historyId: testResult.historyId, reason: "BUG-1 checkout" }),
+    ]);
   });
 
   it("should reclassify restored known flags with current known issues config", async () => {

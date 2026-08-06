@@ -7,6 +7,7 @@ export const PARAMS = {
   QUERY: "query",
   STATUS: "status",
   FLAKY: "flaky",
+  KNOWN: "known",
   RETRY: "retry",
   TRANSITION: "transition",
   TAGS: "tags",

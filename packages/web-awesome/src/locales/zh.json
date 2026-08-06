@@ -21,6 +21,7 @@
     "results": "结果",
     "globalAttachments": "全局附件",
     "globalErrors": "全局错误",
+    "knownIssues": "已知问题",
     "qualityGates": "质量门",
     "categories": "分类"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "不稳定",
     "nonFlaky": "稳定",
+    "known": "已知问题",
     "retry": "重试",
     "new": "新的",
     "fixed": "已修复",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "显示不稳定的测试",
+      "known": "显示存在已知问题的测试结果",
       "retry": "显示重新运行的测试结果",
       "new": "显示在此报告中首次出现的测试结果",
       "fixed": "显示现在通过但之前\"失败\"或\"损坏\"的测试",
@@ -105,6 +108,7 @@
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
     "no-global-errors-results": "没有全局错误信息",
+    "no-known-issues-results": "没有可用的已知问题",
     "no-quality-gate-results": "没有质量门结果",
     "no-history-results": "没有历史信息",
     "no-retries-results": "没有重试信息",
@@ -144,6 +148,7 @@
     "attachments": "附件",
     "retries": "重试",
     "environments": "环境",
+    "knownIssues": "已知问题",
     "error": "错误",
     "goToStep": "跳转到步骤",
     "showLess": "显示更少",
@@ -403,7 +408,8 @@
       "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
       "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了",
       "retries": "{{count}} 次重试",
-      "flaky": "多次运行结果不一致"
+      "flaky": "多次运行结果不一致",
+      "known": "已知问题"
     },
     "new": "新的",
     "fixed": "已修复",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "报告标签页：质量门",
       "reportTabGlobalAttachments": "报告标签页：全局附件",
       "reportTabGlobalErrors": "报告标签页：全局错误",
+      "reportTabKnownIssues": "报告标签页：已知问题",
       "reportTabNext": "下一个报告标签页",
       "reportTabPrev": "上一个报告标签页",
       "nextTest": "下一个测试结果",

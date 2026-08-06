@@ -194,6 +194,12 @@ const createBindings = (): HotkeyBinding[] => [
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalErrors),
   },
   {
+    id: "report-tab-known-issues",
+    scope: "global",
+    key: "6",
+    handler: () => goToReportRootTab(REPORT_ROOT_TAB.KnownIssues),
+  },
+  {
     id: "report-tab-next",
     scope: "global",
     key: "Tab",

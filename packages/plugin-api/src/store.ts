@@ -98,7 +98,7 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
-  knownIssues: Record<string, KnownTestFailure>;
+  knownIssues: Record<string, KnownTestFailure | KnownTestFailure[]>;
   qualityGateResults: QualityGateValidationResult[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;

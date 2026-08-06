@@ -9,6 +9,7 @@ import TrEmpty from "@/components/TestResult/TrEmpty";
 import { TrEnvironmentsView } from "@/components/TestResult/TrEnvironmentsView";
 import TrHistoryView from "@/components/TestResult/TrHistory";
 import { TrInfo } from "@/components/TestResult/TrInfo";
+import { TrKnownIssuesView } from "@/components/TestResult/TrKnownIssues";
 import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
 import { TrTabs } from "@/components/TestResult/TrTabs";
@@ -35,6 +36,7 @@ const view = computed(() => {
   const viewMap: Record<string, any> = {
     overview: TrOverview,
     history: TrHistoryView,
+    knownIssues: TrKnownIssuesView,
     attachments: TrAttachmentView,
     retries: TrRetriesView,
     environments: TrEnvironmentsView,
@@ -74,6 +76,7 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
         className={clsx(styles.content, split && styles["scroll-inside"])}
         data-tr-scroll-container
         onMouseDown={() => focusTestResultPane()}
+        role="presentation"
       >
         {testResult ? <TrContent testResult={testResult} /> : <TrEmpty />}
       </div>

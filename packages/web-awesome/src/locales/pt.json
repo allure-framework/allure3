@@ -21,6 +21,7 @@
     "results": "Resultados",
     "globalAttachments": "Anexos Globais",
     "globalErrors": "Erros Globais",
+    "knownIssues": "Problemas conhecidos",
     "qualityGates": "Portões de Qualidade",
     "categories": "Categorias"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Instável",
     "nonFlaky": "Estável",
+    "known": "Problemas conhecidos",
     "retry": "Repetir",
     "new": "Novo",
     "fixed": "Corrigido",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Mostrar testes instáveis",
+      "known": "Mostrar resultados de testes com problemas conhecidos",
       "retry": "Mostra resultados de testes que foram executados novamente",
       "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
       "fixed": "Mostra testes que agora estão aprovados mas que anteriormente \"falharam\" ou \"quebraram\"",
@@ -105,6 +108,7 @@
     "clear-filters": "Limpar filtros",
     "no-attachments-results": "Nenhuma informação de anexos disponível",
     "no-global-errors-results": "Nenhuma informação de erros globais disponível",
+    "no-known-issues-results": "Nenhum problema conhecido disponível",
     "no-quality-gate-results": "Nenhum resultado de portões de qualidade disponível",
     "no-history-results": "Nenhuma informação de histórico disponível",
     "no-retries-results": "Nenhuma informação de repetições disponível",
@@ -144,6 +148,7 @@
     "attachments": "Anexos",
     "retries": "Repetições",
     "environments": "Ambientes",
+    "knownIssues": "Problemas conhecidos",
     "error": "Erro",
     "goToStep": "Ir para o passo",
     "showLess": "Mostrar menos",
@@ -403,7 +408,8 @@
       "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
       "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\"",
       "retries": "{{count}} tentativas",
-      "flaky": "Inconsistente entre execuções"
+      "flaky": "Inconsistente entre execuções",
+      "known": "Problemas conhecidos"
     },
     "new": "Novo",
     "fixed": "Corrigido",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Aba do relatório: Quality gate",
       "reportTabGlobalAttachments": "Aba do relatório: Anexos globais",
       "reportTabGlobalErrors": "Aba do relatório: Erros globais",
+      "reportTabKnownIssues": "Aba do relatório: problemas conhecidos",
       "reportTabNext": "Próxima aba do relatório",
       "reportTabPrev": "Aba anterior do relatório",
       "nextTest": "Próximo resultado de teste",

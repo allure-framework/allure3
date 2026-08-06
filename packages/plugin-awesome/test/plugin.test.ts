@@ -286,6 +286,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -375,6 +376,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -404,6 +406,120 @@ describe("plugin", () => {
       expect(JSON.parse(addedFiles.get("widgets/tree-filters.json")!.toString("utf-8"))).toEqual({
         tags: [],
         categories: [],
+      });
+    });
+
+    it("should keep raw statistics intact while excluding known unsuccessful tests from the pie chart", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-passed",
+          name: "passed test",
+          status: "passed",
+          labels: [],
+        },
+        {
+          id: "tr-failed",
+          name: "failed test",
+          status: "failed",
+          labels: [],
+        },
+        {
+          id: "tr-known-failed",
+          name: "known failed test",
+          status: "failed",
+          known: true,
+          labels: [],
+        },
+        {
+          id: "tr-known-broken",
+          name: "known broken test",
+          status: "broken",
+          known: true,
+          labels: [],
+        },
+      ] as unknown as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default"]),
+        allEnvironmentIdentities: vi
+          .fn()
+          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({ charts: [] });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 4,
+        passed: 1,
+        failed: 2,
+        broken: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/pie_chart.json")!.toString("utf-8"))).toEqual({
+        percentage: 50,
+        slices: [
+          expect.objectContaining({
+            count: 1,
+            status: "failed",
+          }),
+          expect.objectContaining({
+            count: 1,
+            status: "passed",
+          }),
+        ],
       });
     });
   });
@@ -471,6 +587,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -500,8 +617,26 @@ describe("plugin", () => {
         total: 1,
         passed: 1,
       });
+      expect(JSON.parse(addedFiles.get("widgets/staging/pie_chart.json")!.toString("utf-8"))).toEqual({
+        percentage: 100,
+        slices: [
+          expect.objectContaining({
+            count: 1,
+            status: "passed",
+          }),
+        ],
+      });
       expect(JSON.parse(addedFiles.get("widgets/default/statistic.json")!.toString("utf-8"))).toEqual({
         total: 0,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/default/pie_chart.json")!.toString("utf-8"))).toEqual({
+        percentage: 0,
+        slices: [
+          expect.objectContaining({
+            count: 1,
+            status: "__empty__",
+          }),
+        ],
       });
       expect(JSON.parse(addedFiles.get("widgets/staging/nav.json")!.toString("utf-8"))).toEqual(["tr-staging"]);
       expect(JSON.parse(addedFiles.get("widgets/default/nav.json")!.toString("utf-8"))).toEqual([]);
@@ -589,6 +724,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -714,6 +850,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -789,6 +926,7 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        allKnownIssues: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       }) as unknown as AllureStore;
 

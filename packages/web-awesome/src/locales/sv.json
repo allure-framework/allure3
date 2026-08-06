@@ -21,6 +21,7 @@
     "results": "Resultat",
     "globalAttachments": "Globala Bilagor",
     "globalErrors": "Globala Fel",
+    "knownIssues": "Kända problem",
     "qualityGates": "Kvalitetsportar",
     "categories": "Kategorier"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Ostadig",
     "nonFlaky": "Stabil",
+    "known": "Kända problem",
     "retry": "Försök igen",
     "new": "Ny",
     "fixed": "Åtgärdad",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Visa ostadiga tester",
+      "known": "Visa testresultat med kända problem",
       "retry": "Visa testresultat som kördes om",
       "new": "Visa testresultat som visas för första gången i denna rapport",
       "fixed": "Visa tester som nu är godkända men som tidigare var \"misslyckade\" eller \"trasiga\"",
@@ -105,6 +108,7 @@
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-global-errors-results": "Ingen global felinformation tillgänglig",
+    "no-known-issues-results": "Inga kända problem tillgängliga",
     "no-quality-gate-results": "Inga kvalitetsport resultat tillgängliga",
     "no-history-results": "Ingen historik information tillgänglig",
     "no-retries-results": "Ingen omtagningar information tillgänglig",
@@ -144,6 +148,7 @@
     "attachments": "Bilagor",
     "retries": "Omtagningar",
     "environments": "Miljöer",
+    "knownIssues": "Kända problem",
     "error": "Fel",
     "goToStep": "Gå till steg",
     "showLess": "Visa mindre",
@@ -403,7 +408,8 @@
       "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
       "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
       "retries": "{{count}} omkörningar",
-      "flaky": "Inkonsekvent mellan körningar"
+      "flaky": "Inkonsekvent mellan körningar",
+      "known": "Kända problem"
     },
     "new": "Ny",
     "fixed": "Åtgärdad",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Rapportflik: Quality gate",
       "reportTabGlobalAttachments": "Rapportflik: Globala bilagor",
       "reportTabGlobalErrors": "Rapportflik: Globala fel",
+      "reportTabKnownIssues": "Rapportflik: kända problem",
       "reportTabNext": "Nästa rapportflik",
       "reportTabPrev": "Föregående rapportflik",
       "nextTest": "Nästa testresultat",

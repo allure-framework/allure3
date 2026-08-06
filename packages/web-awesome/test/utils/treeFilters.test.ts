@@ -345,6 +345,51 @@ describe("utils > treeFilters", () => {
       );
     });
 
+    it("prunes groups without known leaves", () => {
+      const group = {
+        groups: ["knownGroup", "unknownGroup"],
+      };
+      const leavesById = {
+        knownTest: {
+          name: "known test",
+          known: true,
+          status: "failed",
+        } as AwesomeTestResult,
+        unknownTest: {
+          name: "unknown test",
+          known: false,
+          status: "failed",
+        } as AwesomeTestResult,
+      };
+      const groupsById = {
+        knownGroup: {
+          name: "known group",
+          leaves: ["knownTest"],
+          groups: [] as string[],
+        },
+        unknownGroup: {
+          name: "unknown group",
+          leaves: ["unknownTest"],
+          groups: [] as string[],
+        },
+      };
+
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: (leaf) => Boolean(leaf.known),
+        sortBy: "name,asc",
+      });
+
+      expect(result.trees).toEqual([
+        expect.objectContaining({
+          name: "known group",
+          leaves: [expect.objectContaining({ name: "known test" })],
+        }),
+      ]);
+    });
+
     it("sorts groups by earliest leaf groupOrder when sorting by order ascending", () => {
       const group = {
         leaves: [],

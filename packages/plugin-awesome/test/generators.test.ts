@@ -10,11 +10,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
+  generateKnownIssues,
   generateGlobals,
   generateQualityGateResults,
   generateSearchIndex,
   generateTestResults,
+  generateTree,
   getRunSummary,
+  applyKnownIssuesToTestResults,
 } from "../src/generators.js";
 
 beforeEach(async () => {
@@ -310,6 +313,152 @@ describe("generateTestResults", () => {
   });
 });
 
+describe("generateKnownIssues", () => {
+  it("should attach known issue data to converted test results by historyId", () => {
+    const tests = [
+      {
+        id: "tr-1",
+        historyId: "history-1",
+        name: "known test",
+        status: "failed",
+        isRetry: false,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    applyKnownIssuesToTestResults(tests, [
+      {
+        historyId: "history-1",
+        reason: "BUG-1 checkout issue",
+        links: [{ name: "BUG-1", url: "https://example.com/BUG-1", type: "issue" }],
+      },
+    ]);
+
+    expect(tests[0]?.knownIssues).toEqual([
+      expect.objectContaining({
+        reason: "BUG-1 checkout issue",
+        links: [{ name: "BUG-1", url: "https://example.com/BUG-1", type: "issue" }],
+      }),
+    ]);
+  });
+
+  it("should attach multiple known issues to a converted test result by historyId", () => {
+    const tests = [
+      {
+        id: "tr-1",
+        historyId: "history-1",
+        name: "known test",
+        status: "failed",
+        isRetry: false,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    applyKnownIssuesToTestResults(tests, [
+      {
+        historyId: "history-1",
+        reason: "BUG-1 checkout issue",
+      },
+      {
+        historyId: "history-1",
+        reason: "BUG-2 payment issue",
+      },
+    ]);
+
+    expect(tests[0]?.knownIssues).toEqual([
+      expect.objectContaining({ reason: "BUG-1 checkout issue" }),
+      expect.objectContaining({ reason: "BUG-2 payment issue" }),
+    ]);
+  });
+
+  it("should write issues grouped with visible linked test results", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const knownIssue = {
+      id: "issue-1",
+      reason: "BUG-1 checkout issue",
+      links: [{ name: "BUG-1", url: "https://example.com/BUG-1", type: "issue" }],
+    };
+    const secondKnownIssue = {
+      id: "issue-2",
+      reason: "BUG-2 payment issue",
+      links: [{ name: "BUG-2", url: "https://example.com/BUG-2", type: "issue" }],
+    };
+    const tests = [
+      {
+        id: "tr-1",
+        historyId: "history-1",
+        name: "first known test",
+        status: "failed",
+        start: 2,
+        isRetry: false,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+        knownIssues: [knownIssue, secondKnownIssue],
+      },
+      {
+        id: "tr-2",
+        historyId: "history-2",
+        name: "second known test",
+        status: "broken",
+        start: 1,
+        isRetry: false,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+        knownIssues: [knownIssue],
+      },
+      {
+        id: "tr-retry",
+        historyId: "history-retry",
+        name: "retry known test",
+        status: "failed",
+        isRetry: true,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+        knownIssues: [knownIssue],
+      },
+    ] as AwesomeTestResult[];
+
+    await generateKnownIssues(writer, tests, "widgets/known-issues.json");
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("widgets/known-issues.json", expect.any(Object));
+    expect(writtenWidgets.get("widgets/known-issues.json")).toEqual({
+      issues: [knownIssue, secondKnownIssue],
+      testResultsByIssueId: {
+        "issue-1": [
+          expect.objectContaining({ id: "tr-2", name: "second known test" }),
+          expect.objectContaining({ id: "tr-1", name: "first known test" }),
+        ],
+        "issue-2": [expect.objectContaining({ id: "tr-1", name: "first known test" })],
+      },
+    });
+  });
+});
+
 describe("generateGlobals", () => {
   it("should keep grouped globals by environment and exclude unwritten attachments from grouped payloads", async () => {
     const writtenWidgets = new Map<string, unknown>();
@@ -539,6 +688,55 @@ describe("generateQualityGateResults", () => {
     expect(writer.writeWidget).toHaveBeenCalledWith("quality-gate.json", {
       default: [expect.not.objectContaining({ testResultsTree: expect.anything() })],
     });
+  });
+});
+
+describe("generateTree", () => {
+  it("should write known flag to tree leaves", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const tests = [
+      {
+        id: "tr-known",
+        historyId: "history-known",
+        name: "known test",
+        status: "failed",
+        isRetry: false,
+        flaky: false,
+        known: true,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+      },
+      {
+        id: "tr-unknown",
+        historyId: "history-unknown",
+        name: "unknown test",
+        status: "failed",
+        isRetry: false,
+        flaky: false,
+        known: false,
+        retry: false,
+        labels: [],
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    await generateTree(writer, "default/tree.json", [], tests);
+
+    const tree = writtenWidgets.get("default/tree.json") as {
+      leavesById: Record<string, { known: boolean }>;
+    };
+
+    expect(tree.leavesById["tr-known"]).toMatchObject({ known: true });
+    expect(tree.leavesById["tr-unknown"]).toMatchObject({ known: false });
   });
 });
 

@@ -53,7 +53,7 @@ export const navigateToSection = (params: { section: "timeline" | "charts" }) =>
 };
 
 const sections = ["charts", "timeline"];
-const rootTabs = ["categories", "qualityGate", "globalAttachments", "globalErrors"];
+const rootTabs = ["categories", "qualityGate", "globalAttachments", "globalErrors", "knownIssues"];
 
 export const rootTabRoute = computed(() =>
   createRoute<{ rootTab: string; testResultId?: string; tab?: string }>(

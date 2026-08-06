@@ -1,6 +1,17 @@
-import type { DefaultTreeGroup, TestStatus } from "@allurereport/core-api";
+import type { DefaultTreeGroup, DefaultTreeLeaf, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 
 export type Status = TestStatus | "total";
+
+export type TreeLeaf = DefaultTreeLeaf & {
+  nodeId: string;
+  groupOrder?: number;
+  retriesCount?: number;
+  flaky?: boolean;
+  known?: boolean;
+  transition?: TestStatusTransition;
+  transitionTooltip?: string;
+  tooltips?: Record<string, string>;
+};
 
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups

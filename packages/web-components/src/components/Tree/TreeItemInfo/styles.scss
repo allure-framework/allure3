@@ -6,6 +6,10 @@
   flex: 0 0 auto;
 }
 
+.item-info-marker {
+  color: var(--color-text-secondary);
+}
+
 .item-info-time {
   flex: none;
   min-width: 72px;

@@ -3,6 +3,7 @@ import { currentTrId, trCurrentTab } from "@/stores/testResult";
 
 export const TEST_RESULT_TAB = {
   Overview: "overview",
+  KnownIssues: "knownIssues",
   History: "history",
   Retries: "retries",
   Attachments: "attachments",
@@ -13,6 +14,7 @@ export type TestResultTabId = (typeof TEST_RESULT_TAB)[keyof typeof TEST_RESULT_
 
 const TEST_RESULT_TAB_ORDER: TestResultTabId[] = [
   TEST_RESULT_TAB.Overview,
+  TEST_RESULT_TAB.KnownIssues,
   TEST_RESULT_TAB.History,
   TEST_RESULT_TAB.Retries,
   TEST_RESULT_TAB.Attachments,

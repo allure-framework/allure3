@@ -21,6 +21,7 @@
     "results": "Risultati",
     "globalAttachments": "Allegati Globali",
     "globalErrors": "Errori Globali",
+    "knownIssues": "Problemi noti",
     "qualityGates": "Porte di Qualità",
     "categories": "Categorie"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Instabili",
     "nonFlaky": "Stabili",
+    "known": "Problemi noti",
     "retry": "Ripetuti",
     "new": "Nuovi",
     "fixed": "Corretti",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Mostra test instabili",
+      "known": "Mostra risultati dei test con problemi noti",
       "retry": "Mostra i risultati dei test che sono stati rieseguiti",
       "new": "Mostra i risultati dei test che appaiono per la prima volta in questo report",
       "fixed": "Mostra test che ora sono superati ma che erano precedentemente \"falliti\" o \"danneggiati\"",
@@ -105,6 +108,7 @@
     "clear-filters": "Cancella filtri",
     "no-attachments-results": "Nessuna informazione sugli allegati disponibile",
     "no-global-errors-results": "Nessuna informazione sugli errori globali disponibile",
+    "no-known-issues-results": "Nessun problema noto disponibile",
     "no-quality-gate-results": "Nessun risultato delle porte di qualità disponibile",
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
     "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
@@ -144,6 +148,7 @@
     "attachments": "Allegati",
     "retries": "Ritentativi",
     "environments": "Ambienti",
+    "knownIssues": "Problemi noti",
     "error": "Errore",
     "goToStep": "Vai al passo",
     "showLess": "Mostra meno",
@@ -403,7 +408,8 @@
       "regressed": "Test precedentemente \"superato\" o \"danneggiato\" che ora è \"fallito\"",
       "malfunctioned": "Test precedentemente \"superato\" o \"fallito\" che ora è \"danneggiato\"",
       "retries": "{{count}} tentativi",
-      "flaky": "Incoerente tra le esecuzioni"
+      "flaky": "Incoerente tra le esecuzioni",
+      "known": "Problemi noti"
     },
     "new": "Nuovi",
     "fixed": "Corretti",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Tab report: Quality gate",
       "reportTabGlobalAttachments": "Tab report: Allegati globali",
       "reportTabGlobalErrors": "Tab report: Errori globali",
+      "reportTabKnownIssues": "Scheda report: problemi noti",
       "reportTabNext": "Tab report successivo",
       "reportTabPrev": "Tab report precedente",
       "nextTest": "Risultato test successivo",

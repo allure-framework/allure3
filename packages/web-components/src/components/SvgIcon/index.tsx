@@ -60,6 +60,7 @@ import lineHelpersFlag from "@/assets/svg/line-helpers-flag.svg";
 import lineHelpersPlayCircle from "@/assets/svg/line-helpers-play-circle.svg";
 import lineIconBomb2 from "@/assets/svg/line-icon-bomb-2.svg";
 import lineImagesImage from "@/assets/svg/line-images-image.svg";
+import lineKnownIssues from "@/assets/svg/line-known-issues.svg";
 import lineLayoutsColumn2 from "@/assets/svg/line-layouts-columns-2.svg";
 import lineLayoutsLayoutTop from "@/assets/svg/line-layouts-layout-top.svg";
 import lineLayoutsMaximize2 from "@/assets/svg/line-layouts-maximize-2.svg";
@@ -145,6 +146,7 @@ export const allureIcons = {
   lineHelpersPlayCircle: lineHelpersPlayCircle.id,
   lineIconBomb2: lineIconBomb2.id,
   lineImagesImage: lineImagesImage.id,
+  lineKnownIssues: lineKnownIssues.id,
   lineLayoutsColumn2: lineLayoutsColumn2.id,
   lineLayoutsLayoutTop: lineLayoutsLayoutTop.id,
   lineLayoutsMaximize2: lineLayoutsMaximize2.id,

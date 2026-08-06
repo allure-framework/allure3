@@ -180,6 +180,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       transitionTooltip={leaf.transitionTooltip}
       tooltips={leaf.tooltips}
       flaky={leaf.flaky}
+      known={leaf.known}
       marked={leaf.nodeId === routeId}
       focused={toScopedId(leaf.nodeId) === focusedId}
       focusNodeId={toScopedId(leaf.nodeId)}

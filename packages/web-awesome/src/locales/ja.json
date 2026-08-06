@@ -21,6 +21,7 @@
     "results": "結果",
     "globalAttachments": "グローバル添付ファイル",
     "globalErrors": "グローバルエラー",
+    "knownIssues": "既知の問題",
     "qualityGates": "品質ゲート",
     "categories": "カテゴリ"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "不安定",
     "nonFlaky": "安定",
+    "known": "既知の問題",
     "retry": "再実行",
     "new": "新規",
     "fixed": "修正済み",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "不安定なテストを表示",
+      "known": "既知の問題のテスト結果を表示",
       "retry": "再実行されたテスト結果を表示します",
       "new": "このレポートで初めて表示されるテスト結果を表示します",
       "fixed": "現在「成功」しているが、以前「失敗」または「破損」していたテストを表示します",
@@ -105,6 +108,7 @@
     "clear-filters": "フィルタをクリア",
     "no-attachments-results": "添付ファイル情報がありません",
     "no-global-errors-results": "グローバルエラー情報がありません",
+    "no-known-issues-results": "既知の問題はありません",
     "no-quality-gate-results": "品質ゲートの結果がありません",
     "no-history-results": "履歴情報がありません",
     "no-retries-results": "再試行情報が利用できません",
@@ -144,6 +148,7 @@
     "attachments": "添付ファイル",
     "retries": "再試行",
     "environments": "環境",
+    "knownIssues": "既知の問題",
     "error": "エラー",
     "goToStep": "ステップに移動",
     "showLess": "表示を減らす",
@@ -403,7 +408,8 @@
       "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
       "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった",
       "retries": "{{count}} 回の再試行",
-      "flaky": "実行ごとに結果が不安定"
+      "flaky": "実行ごとに結果が不安定",
+      "known": "既知の問題"
     },
     "new": "新規",
     "fixed": "修正済み",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "レポートタブ：品質ゲート",
       "reportTabGlobalAttachments": "レポートタブ：グローバル添付ファイル",
       "reportTabGlobalErrors": "レポートタブ：グローバルエラー",
+      "reportTabKnownIssues": "レポートタブ: 既知の問題",
       "reportTabNext": "次のレポートタブ",
       "reportTabPrev": "前のレポートタブ",
       "nextTest": "次のテスト結果",

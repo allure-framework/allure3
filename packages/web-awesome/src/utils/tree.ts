@@ -13,6 +13,7 @@ export const createLeafLocalizer =
     const tooltips = {
       transition: t.tooltip(leaf.transition),
       flaky: leaf.flaky && t.tooltip("flaky"),
+      known: leaf.known && t.tooltip("known"),
       retries: leaf.retriesCount && t.tooltip("retries", { count: leaf.retriesCount }),
     };
     return {

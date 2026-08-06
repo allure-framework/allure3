@@ -21,6 +21,7 @@
     "results": "Nəticələr",
     "globalAttachments": "Qlobal qoşmalar",
     "globalErrors": "Qlobal xətalar",
+    "knownIssues": "Bilinən problemlər",
     "qualityGates": "Keyfiyyət meyarları",
     "categories": "Kateqoriyalar"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Qeyri-sabit",
     "nonFlaky": "Stabil",
+    "known": "Bilinən problemlər",
     "retry": "Təkrar",
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Qeyri-sabit testləri göstər",
+      "known": "Bilinən problem test nəticələrini göstər",
       "retry": "Yenidən işə salınan testlərin nəticələrini göstər",
       "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstər",
       "fixed": "İndi uğurlu olan, lakin əvvəlki hesabatda \"uğursuz\" və ya \"sınıq\" olan testləri göstər",
@@ -105,6 +108,7 @@
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Qoşmalar haqqında məlumat yoxdur",
     "no-global-errors-results": "Qlobal xətalar haqqında məlumat yoxdur",
+    "no-known-issues-results": "Bilinən problem yoxdur",
     "no-quality-gate-results": "Keyfiyyət meyarları haqqında məlumat yoxdur",
     "no-history-results": "Tarixçə haqqında məlumat yoxdur",
     "no-retries-results": "Təkrar cəhdlər haqqında məlumat yoxdur",
@@ -144,6 +148,7 @@
     "attachments": "Qoşmalar",
     "retries": "Təkrar cəhdlər",
     "environments": "Mühit",
+    "knownIssues": "Bilinən problemlər",
     "error": "Xəta",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
@@ -403,7 +408,8 @@
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
-      "flaky": "İşəsalınmalar arasında qeyri-sabitdir"
+      "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
+      "known": "Bilinən problemlər"
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Hesabat nişanı: Keyfiyyət qapısı",
       "reportTabGlobalAttachments": "Hesabat nişanı: Qlobal əlavələr",
       "reportTabGlobalErrors": "Hesabat nişanı: Qlobal xətalar",
+      "reportTabKnownIssues": "Hesabat tabı: bilinən problemlər",
       "reportTabNext": "Növbəti hesabat nişanı",
       "reportTabPrev": "Əvvəlki hesabat nişanı",
       "nextTest": "Növbəti test nəticəsi",

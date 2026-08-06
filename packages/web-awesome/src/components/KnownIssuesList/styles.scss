@@ -1,0 +1,118 @@
+.known-issues-list {
+  min-height: 480px;
+  padding: 16px 0 48px;
+}
+
+.known-issues-item {
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+}
+
+.known-issues-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 8px;
+  transition: background-color 300ms;
+
+  &:hover {
+    background: var(--color-control-bg-ghost-hover);
+  }
+}
+
+.known-issues-arrow {
+  flex: 0 0 auto;
+}
+
+.known-issues-arrow-spacer {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+}
+
+.known-issues-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--color-icon-secondary);
+}
+
+.known-issues-content {
+  min-width: 0;
+}
+
+.known-issues-title {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.known-issues-reason {
+  overflow-wrap: anywhere;
+}
+
+.known-issues-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.known-issues-link {
+  color: var(--color-link-text);
+  font-size: 13px;
+  line-height: 16px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-link-text-hover);
+    text-decoration: underline;
+  }
+}
+
+.known-issues-tests {
+  padding-left: 56px;
+}
+
+.known-issues-test {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 300ms;
+
+  &:hover {
+    background: var(--color-control-bg-ghost-hover);
+  }
+}
+
+.known-issues-test-status {
+  flex: 0 0 auto;
+}
+
+.known-issues-test-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.known-issues-empty {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 48px 0;
+}

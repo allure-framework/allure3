@@ -30,6 +30,7 @@ export const shortcutGroups: ShortcutGroup[] = [
       { binding: { key: "3" }, labelKey: "items.reportTabQualityGate" },
       { binding: { key: "4" }, labelKey: "items.reportTabGlobalAttachments" },
       { binding: { key: "5" }, labelKey: "items.reportTabGlobalErrors" },
+      { binding: { key: "6" }, labelKey: "items.reportTabKnownIssues" },
       { binding: { key: "Tab" }, labelKey: "items.reportTabNext" },
       { binding: { key: "Tab", modifiers: { shift: true } }, labelKey: "items.reportTabPrev" },
     ],

@@ -21,6 +21,7 @@
     "results": "Resultados",
     "globalAttachments": "Adjuntos Globales",
     "globalErrors": "Errores Globales",
+    "knownIssues": "Problemas conocidos",
     "qualityGates": "Puertas de Calidad",
     "categories": "Categorías"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Inestable",
     "nonFlaky": "Estable",
+    "known": "Problemas conocidos",
     "retry": "Reintento",
     "new": "Nuevo",
     "fixed": "Corregido",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Mostrar pruebas inestables",
+      "known": "Mostrar resultados de pruebas con problemas conocidos",
       "retry": "Mostrar resultados de pruebas que se volvieron a ejecutar",
       "new": "Mostrar resultados de pruebas que aparecen por primera vez en este informe",
       "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
@@ -105,6 +108,7 @@
     "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
     "no-global-errors-results": "No hay información de errores globales disponible",
+    "no-known-issues-results": "No hay problemas conocidos disponibles",
     "no-quality-gate-results": "No hay resultados de puertas de calidad disponibles",
     "no-history-results": "No hay información de historial disponible",
     "no-retries-results": "No hay información de reintentos disponible",
@@ -144,6 +148,7 @@
     "attachments": "Adjuntos",
     "retries": "Reintentos",
     "environments": "Entornos",
+    "knownIssues": "Problemas conocidos",
     "error": "Error",
     "goToStep": "Ir al paso",
     "showLess": "Mostrar menos",
@@ -403,7 +408,8 @@
       "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
       "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\"",
       "retries": "{{count}} reintentos",
-      "flaky": "Resultados inconsistentes entre ejecuciones"
+      "flaky": "Resultados inconsistentes entre ejecuciones",
+      "known": "Problemas conocidos"
     },
     "new": "Nuevo",
     "fixed": "Corregido",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Pestaña informe: Quality gate",
       "reportTabGlobalAttachments": "Pestaña informe: Archivos adjuntos globales",
       "reportTabGlobalErrors": "Pestaña informe: Errores globales",
+      "reportTabKnownIssues": "Pestaña del informe: problemas conocidos",
       "reportTabNext": "Siguiente pestaña de informe",
       "reportTabPrev": "Pestaña de informe anterior",
       "nextTest": "Siguiente resultado de prueba",

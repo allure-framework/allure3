@@ -14,6 +14,7 @@ export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
+  known?: boolean;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
@@ -23,6 +24,7 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   duration,
   retriesCount,
   flaky,
+  known,
   transition,
   tooltips,
 }) => {
@@ -32,7 +34,20 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
     <div className={styles["item-info"]}>
       {flaky && (
         <TooltipWrapper data-testid="tree-leaf-flaky-tooltip" tooltipText={tooltips?.flaky}>
-          <SvgIcon data-testid="tree-leaf-flaky" id={allureIcons.lineIconBomb2} />
+          <SvgIcon
+            className={styles["item-info-marker"]}
+            data-testid="tree-leaf-flaky"
+            id={allureIcons.lineIconBomb2}
+          />
+        </TooltipWrapper>
+      )}
+      {known && (
+        <TooltipWrapper data-testid="tree-leaf-known-tooltip" tooltipText={tooltips?.known}>
+          <SvgIcon
+            className={styles["item-info-marker"]}
+            data-testid="tree-leaf-known"
+            id={allureIcons.lineKnownIssues}
+          />
         </TooltipWrapper>
       )}
       {Boolean(retriesCount) && (

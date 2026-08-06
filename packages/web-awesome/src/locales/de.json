@@ -21,6 +21,7 @@
     "results": "Ergebnisse",
     "globalAttachments": "Globale Anhänge",
     "globalErrors": "Globale Fehler",
+    "knownIssues": "Bekannte Probleme",
     "qualityGates": "Qualitätstore",
     "categories": "Kategorien"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Instabil",
     "nonFlaky": "Stabil",
+    "known": "Bekannte Probleme",
     "retry": "Wiederholt",
     "new": "Neu",
     "fixed": "Behoben",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Instabile Tests anzeigen",
+      "known": "Testergebnisse mit bekannten Problemen anzeigen",
       "retry": "Testergebnisse anzeigen, die wiederholt wurden",
       "new": "Testergebnisse anzeigen, die zum ersten Mal in diesem Bericht erscheinen",
       "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
@@ -105,6 +108,7 @@
     "clear-filters": "Filter zurücksetzen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-global-errors-results": "Keine globalen Fehlerinformationen verfügbar",
+    "no-known-issues-results": "Keine bekannten Probleme verfügbar",
     "no-quality-gate-results": "Keine Qualitätstor-Ergebnisse verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
@@ -144,6 +148,7 @@
     "attachments": "Anhänge",
     "retries": "Wiederholungen",
     "environments": "Umgebungen",
+    "knownIssues": "Bekannte Probleme",
     "error": "Fehler",
     "goToStep": "Zum Schritt gehen",
     "showLess": "Weniger anzeigen",
@@ -403,7 +408,8 @@
       "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
       "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist",
       "retries": "{{count}} Wiederholungen",
-      "flaky": "Inkonsistent über mehrere Läufe"
+      "flaky": "Inkonsistent über mehrere Läufe",
+      "known": "Bekannte Probleme"
     },
     "new": "Neu",
     "fixed": "Behoben",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Bericht-Tab: Quality Gate",
       "reportTabGlobalAttachments": "Bericht-Tab: Globale Anhänge",
       "reportTabGlobalErrors": "Bericht-Tab: Globale Fehler",
+      "reportTabKnownIssues": "Berichtsregisterkarte: bekannte Probleme",
       "reportTabNext": "Nächster Bericht-Tab",
       "reportTabPrev": "Vorheriger Bericht-Tab",
       "nextTest": "Nächstes Testergebnis",

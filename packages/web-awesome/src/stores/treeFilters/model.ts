@@ -13,6 +13,7 @@ export type Filters = {
   query?: string;
   status?: TestStatus;
   flaky?: boolean;
+  known?: boolean;
   retry?: boolean;
   transition?: TestStatusTransition[];
   tags?: string[];
@@ -45,6 +46,10 @@ export type AwesomeArrayFieldFilter = AwesomeFieldFilter & {
 
 export type AwesomeBooleanFieldFilter = AwesomeFieldFilter & {
   value: AwesomeBooleanField;
+};
+
+export type AwesomeBooleanFieldFilterByKey<Key extends keyof AwesomeTreeLeaf> = AwesomeBooleanFieldFilter & {
+  value: AwesomeBooleanField & { key: Key };
 };
 
 export type TreeFiltersData = {

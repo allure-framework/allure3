@@ -21,6 +21,7 @@
     "results": "Wyniki",
     "globalAttachments": "Globalne Załączniki",
     "globalErrors": "Globalne Błędy",
+    "knownIssues": "Znane problemy",
     "qualityGates": "Bramy Jakości",
     "categories": "Kategorie"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Niestabilne",
     "nonFlaky": "Stabilne",
+    "known": "Znane problemy",
     "retry": "Powtórne",
     "new": "Nowe",
     "fixed": "Naprawione",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Pokaż niestabilne testy",
+      "known": "Pokaż wyniki testów ze znanymi problemami",
       "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie",
       "new": "Pokaż wyniki testów, które po raz pierwszy pojawiają się w tym raporcie",
       "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
@@ -105,6 +108,7 @@
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-global-errors-results": "Brak dostępnych informacji o błędach globalnych",
+    "no-known-issues-results": "Brak dostępnych znanych problemów",
     "no-quality-gate-results": "Brak dostępnych wyników bram jakości",
     "no-history-results": "Brak dostępnych informacji o historii",
     "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
@@ -144,6 +148,7 @@
     "attachments": "Załączniki",
     "retries": "Próby ponowne",
     "environments": "Środowiska",
+    "knownIssues": "Znane problemy",
     "error": "Błąd",
     "goToStep": "Idź do kroku",
     "showLess": "Pokaż mniej",
@@ -411,7 +416,8 @@
       "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
       "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\"",
       "retries": "{{count}} ponowień",
-      "flaky": "Niespójny pomiędzy uruchomieniami"
+      "flaky": "Niespójny pomiędzy uruchomieniami",
+      "known": "Znane problemy"
     },
     "new": "Nowe",
     "fixed": "Naprawione",
@@ -483,6 +489,7 @@
       "reportTabQualityGate": "Zakładka raportu: Quality gate",
       "reportTabGlobalAttachments": "Zakładka raportu: Globalne załączniki",
       "reportTabGlobalErrors": "Zakładka raportu: Globalne błędy",
+      "reportTabKnownIssues": "Karta raportu: znane problemy",
       "reportTabNext": "Następna zakładka raportu",
       "reportTabPrev": "Poprzednia zakładka raportu",
       "nextTest": "Następny wynik testu",

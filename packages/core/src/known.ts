@@ -30,8 +30,31 @@ const retryHashMatches = (rule: KnownIssueDescriptor, testResult: TestResult): b
   return !rule.retryHash || rule.retryHash === testResult.retryHash;
 };
 
-const environmentMatches = (rule: KnownIssueDescriptor, testResult: TestResult): boolean => {
-  return !rule.environmentId || rule.environmentId === testResult.environment;
+const environmentMatches = (rule: KnownIssueDescriptor, testResult: TestResult, environmentId?: string): boolean => {
+  return !rule.environmentId || rule.environmentId === environmentId || rule.environmentId === testResult.environment;
+};
+
+export const getKnownIssuesByRules = (
+  testResult: TestResult,
+  knownIssues: KnownIssuesConfig | undefined,
+  environmentId?: string,
+): KnownTestFailure[] => {
+  if (!testResult.historyId || !hasKnownIssueRules(knownIssues)) {
+    return [];
+  }
+
+  return knownIssues!.rules
+    .filter(
+      (rule) =>
+        [messageMatches, testCaseIdMatches, retryHashMatches].every((matcher) => matcher(rule, testResult)) &&
+        environmentMatches(rule, testResult, environmentId),
+    )
+    .map((matchedRule) => ({
+      historyId: testResult.historyId!,
+      reason: matchedRule.decision.reason,
+      links: matchedRule.decision.links,
+      error: testResult.error,
+    }));
 };
 
 export const getKnownIssueByRules = (
@@ -39,26 +62,7 @@ export const getKnownIssueByRules = (
   knownIssues: KnownIssuesConfig | undefined,
   environmentId?: string,
 ): KnownTestFailure | undefined => {
-  if (!testResult.historyId || !hasKnownIssueRules(knownIssues)) {
-    return undefined;
-  }
-
-  const matchedRule = knownIssues!.rules.find((rule) =>
-    [messageMatches, testCaseIdMatches, environmentMatches, retryHashMatches].every((matcher) =>
-      matcher(rule, testResult),
-    ),
-  );
-
-  if (!matchedRule) {
-    return undefined;
-  }
-
-  return {
-    historyId: testResult.historyId,
-    reason: matchedRule.decision.reason,
-    links: matchedRule.decision.links,
-    error: testResult.error,
-  };
+  return getKnownIssuesByRules(testResult, knownIssues, environmentId)[0];
 };
 
 export const resolveExactIssuesFilePath = async (pathOrDir: string | undefined, label: string) => {

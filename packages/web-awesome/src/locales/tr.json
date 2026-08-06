@@ -21,6 +21,7 @@
     "results": "Sonuçlar",
     "globalAttachments": "Küresel Ekler",
     "globalErrors": "Küresel Hatalar",
+    "knownIssues": "Bilinen sorunlar",
     "qualityGates": "Kalite Kapıları",
     "categories": "Kategoriler"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "İstikrarsız",
     "nonFlaky": "Kararlı",
+    "known": "Bilinen sorunlar",
     "retry": "Tekrar",
     "new": "Yeni",
     "fixed": "Düzeltildi",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "İstikrarsız testleri göster",
+      "known": "Bilinen sorunlara sahip test sonuçlarını göster",
       "retry": "Yeniden çalıştırılan test sonuçlarını göster",
       "new": "Bu raporda ilk kez görünen test sonuçlarını göster",
       "fixed": "Şimdi başarılı olan ancak daha önce \"başarısız\" veya \"bozuk\" olan testleri göster",
@@ -105,6 +108,7 @@
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-global-errors-results": "Küresel hata bilgisi mevcut değil",
+    "no-known-issues-results": "Bilinen sorun yok",
     "no-quality-gate-results": "Kalite kapısı sonuçları mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
@@ -144,6 +148,7 @@
     "attachments": "Ekler",
     "retries": "Tekrar Denemeler",
     "environments": "Ortam",
+    "knownIssues": "Bilinen sorunlar",
     "error": "Hata",
     "goToStep": "Adıma git",
     "showLess": "Daha az göster",
@@ -403,7 +408,8 @@
       "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
       "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\"",
       "retries": "{{count}} yeniden deneme",
-      "flaky": "Çalıştırmalar arasında tutarsız"
+      "flaky": "Çalıştırmalar arasında tutarsız",
+      "known": "Bilinen sorunlar"
     },
     "new": "Yeni",
     "fixed": "Düzeltildi",
@@ -475,6 +481,7 @@
       "reportTabQualityGate": "Rapor sekmesi: Kalite kapısı",
       "reportTabGlobalAttachments": "Rapor sekmesi: Global ekler",
       "reportTabGlobalErrors": "Rapor sekmesi: Global hatalar",
+      "reportTabKnownIssues": "Rapor sekmesi: bilinen sorunlar",
       "reportTabNext": "Sonraki rapor sekmesi",
       "reportTabPrev": "Önceki rapor sekmesi",
       "nextTest": "Sonraki test sonucu",

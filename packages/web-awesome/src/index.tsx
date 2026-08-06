@@ -20,6 +20,7 @@ import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchGlobals } from "@/stores/globals";
+import { fetchKnownIssuesData } from "@/stores/knownIssues";
 import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
@@ -66,6 +67,7 @@ const App = () => {
         fetchGlobals,
         fetchQualityGateResults,
         fetchCategoriesData,
+        fetchKnownIssuesData,
       ];
 
       if (globalThis) {
@@ -99,7 +101,13 @@ const App = () => {
   useSignalEffect(() => {
     const envId = currentEnvironment.value;
 
-    if (!prefetched || !envId) {
+    if (!prefetched) {
+      return;
+    }
+
+    fetchKnownIssuesData(envId);
+
+    if (!envId) {
       return;
     }
 

@@ -493,7 +493,10 @@ export class AllureReport {
     const effectiveKnownIssues = new Map<string, KnownTestFailure>();
 
     [...knownIssues, ...currentKnownIssues].forEach((issue) => {
-      effectiveKnownIssues.set(issue.historyId, issue);
+      effectiveKnownIssues.set(
+        JSON.stringify({ historyId: issue.historyId, reason: issue.reason, links: issue.links ?? [] }),
+        issue,
+      );
     });
     const qualityGateEnvironment =
       environment === undefined

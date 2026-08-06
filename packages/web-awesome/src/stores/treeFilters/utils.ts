@@ -4,7 +4,7 @@ import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-c
 import { PARAMS, STATUSES, TRANSITIONS } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
-  AwesomeBooleanFieldFilter,
+  AwesomeBooleanFieldFilterByKey,
   AwesomeFilter,
   AwesomeFilterGroupSimple,
   Filters,
@@ -95,6 +95,10 @@ export const constructFilterParams = (filters: Filters) => {
     params.set(PARAMS.FLAKY, "true");
   }
 
+  if (filters.known) {
+    params.set(PARAMS.KNOWN, "true");
+  }
+
   if (filters.retry) {
     params.set(PARAMS.RETRY, "true");
   }
@@ -117,19 +121,19 @@ export const constructFilterParams = (filters: Filters) => {
     });
   }
 
-  if (filters.status) {
-    params.set(PARAMS.STATUS, filters.status);
-  }
-
   return params;
 };
 
-export const isRetryFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilter => {
+export const isRetryFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilterByKey<"retry"> => {
   return filter.type === "field" && filter.value.type === "boolean" && filter.value.key === "retry";
 };
 
-export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilter => {
+export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilterByKey<"flaky"> => {
   return filter.type === "field" && filter.value.type === "boolean" && filter.value.key === "flaky";
+};
+
+export const isKnownFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilterByKey<"known"> => {
+  return filter.type === "field" && filter.value.type === "boolean" && filter.value.key === "known";
 };
 
 export const isTagFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {

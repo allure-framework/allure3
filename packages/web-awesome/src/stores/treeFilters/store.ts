@@ -6,6 +6,7 @@ import type { AwesomeStatus } from "types";
 import {
   setCategoriesFilter,
   setFlakyFilter,
+  setKnownFilter,
   setQueryFilter,
   setRetryFilter,
   setStatusFilter,
@@ -23,6 +24,7 @@ import type {
 import {
   isCategoryFilter,
   isFlakyFilter,
+  isKnownFilter,
   isRetryFilter,
   isTagFilter,
   isTransitionFilter,
@@ -57,6 +59,7 @@ const urlStatusFilter = computed<TestStatus | undefined>(() => {
 });
 
 const urlFlakyFilter = computed(() => getParamValue(PARAMS.FLAKY) === "true");
+const urlKnownFilter = computed(() => getParamValue(PARAMS.KNOWN) === "true");
 const urlRetryFilter = computed(() => getParamValue(PARAMS.RETRY) === "true");
 
 const EMPTY_TRANSITIONS: TestStatusTransition[] = [];
@@ -142,6 +145,16 @@ const treeFlakyFilter = computed<AwesomeBooleanFieldFilter>(() => ({
   },
 }));
 
+const treeKnownFilter = computed<AwesomeBooleanFieldFilter>(() => ({
+  type: "field",
+  logicalOperator: "OR",
+  value: {
+    key: "known",
+    value: !!urlKnownFilter.value,
+    type: "boolean",
+  },
+}));
+
 const treeTransitionFilter = computed<AwesomeFilterGroupSimple>(() => ({
   type: "group",
   logicalOperator: "AND",
@@ -183,6 +196,7 @@ const treeCategoriesFilter = computed<AwesomeArrayFieldFilter>(() => ({
 export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
   treeRetryFilter.value,
   treeFlakyFilter.value,
+  treeKnownFilter.value,
   treeTransitionFilter.value,
   treeTagsFilter.value,
   treeCategoriesFilter.value,
@@ -190,26 +204,22 @@ export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
 
 export const treeNonQueryFilters = computed(() => {
   const filters: AwesomeFilter[] = [];
+  const activeMarkerFilters = [
+    urlRetryFilter.value ? treeRetryFilter.value : undefined,
+    urlFlakyFilter.value ? treeFlakyFilter.value : undefined,
+    urlKnownFilter.value ? treeKnownFilter.value : undefined,
+  ].filter((filter): filter is AwesomeBooleanFieldFilter => Boolean(filter));
 
-  const hasBothRetryAndFlaky = urlRetryFilter.value && urlFlakyFilter.value;
+  if (activeMarkerFilters.length === 1) {
+    filters.push({ ...activeMarkerFilters[0], logicalOperator: "AND" });
+  }
 
-  if (hasBothRetryAndFlaky) {
+  if (activeMarkerFilters.length > 1) {
     filters.push({
       type: "group",
       logicalOperator: "AND",
-      value: [
-        { ...treeRetryFilter.value, logicalOperator: "OR" },
-        { ...treeFlakyFilter.value, logicalOperator: "OR" },
-      ],
+      value: activeMarkerFilters,
     });
-  }
-
-  if (!hasBothRetryAndFlaky && urlRetryFilter.value) {
-    filters.push({ ...treeRetryFilter.value, logicalOperator: "AND" });
-  }
-
-  if (!hasBothRetryAndFlaky && urlFlakyFilter.value) {
-    filters.push({ ...treeFlakyFilter.value, logicalOperator: "AND" });
   }
 
   if (urlTransitionFilter.value.length > 0) {
@@ -252,6 +262,10 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
     setFlakyFilter(filter.value.value);
   }
 
+  if (isKnownFilter(filter)) {
+    setKnownFilter(filter.value.value);
+  }
+
   if (
     isTagFilter(filter) &&
     // Apply tags filter only if there are tags to filter by
@@ -279,6 +293,7 @@ export const clearTreeFilters = () => {
   setQueryFilter("");
   setRetryFilter(false);
   setFlakyFilter(false);
+  setKnownFilter(false);
   setTransitionFilter([]);
   setTagsFilter([]);
   setCategoriesFilter([]);

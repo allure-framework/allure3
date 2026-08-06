@@ -5,7 +5,13 @@ import { join } from "node:path";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getKnownIssueByRules, readKnownIssues, resolveExactIssuesFilePath, writeKnownIssues } from "../src/known.js";
+import {
+  getKnownIssueByRules,
+  getKnownIssuesByRules,
+  readKnownIssues,
+  resolveExactIssuesFilePath,
+  writeKnownIssues,
+} from "../src/known.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -136,6 +142,84 @@ describe("getKnownIssueByRules", () => {
         },
       ),
     ).toBeUndefined();
+  });
+
+  it("should match rule by resolved environment id", () => {
+    const testResult = {
+      historyId: "history-1",
+      environment: "Production",
+      error: { message: "AssertionError: expected 1 to be 2" },
+    } as any;
+
+    expect(
+      getKnownIssueByRules(
+        testResult,
+        {
+          rules: [
+            {
+              messageRegexp: "AssertionError",
+              environmentId: "prod",
+              decision: {
+                reason: "tracked defect",
+              },
+            },
+          ],
+        },
+        "prod",
+      ),
+    ).toEqual({
+      historyId: "history-1",
+      reason: "tracked defect",
+      links: undefined,
+      error: testResult.error,
+    });
+  });
+});
+
+describe("getKnownIssuesByRules", () => {
+  it("should return all matching known issue rules for the same test result", () => {
+    const testResult = {
+      historyId: "history-1",
+      error: { message: "TimeoutError while processing checkout payment" },
+    } as any;
+
+    expect(
+      getKnownIssuesByRules(testResult, {
+        rules: [
+          {
+            messageRegexp: "TimeoutError",
+            decision: {
+              reason: "BUG-1 timeout",
+            },
+          },
+          {
+            messageRegexp: "checkout payment",
+            decision: {
+              reason: "BUG-2 payment",
+            },
+          },
+          {
+            messageRegexp: "profile",
+            decision: {
+              reason: "BUG-3 profile",
+            },
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        historyId: "history-1",
+        reason: "BUG-1 timeout",
+        links: undefined,
+        error: testResult.error,
+      },
+      {
+        historyId: "history-1",
+        reason: "BUG-2 payment",
+        links: undefined,
+        error: testResult.error,
+      },
+    ]);
   });
 });
 

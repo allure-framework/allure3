@@ -8,12 +8,14 @@ import { ReportCategories } from "@/components/ReportCategories";
 import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
+import { ReportKnownIssues } from "@/components/ReportKnownIssues";
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
 import { focusTreePane } from "@/stores/keyboard";
+import { knownIssuesStore } from "@/stores/knownIssues";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
 import {
@@ -34,6 +36,7 @@ export enum ReportRootTab {
   QualityGate = "qualityGate",
   GlobalAttachments = "globalAttachments",
   GlobalErrors = "globalErrors",
+  KnownIssues = "knownIssues",
   Categories = "categories",
 }
 
@@ -46,6 +49,7 @@ const viewsByTab = {
   ),
   [ReportRootTab.GlobalAttachments]: () => <ReportGlobalAttachments />,
   [ReportRootTab.GlobalErrors]: () => <ReportGlobalErrors />,
+  [ReportRootTab.KnownIssues]: () => <ReportKnownIssues />,
   [ReportRootTab.QualityGate]: () => <ReportQualityGateResults />,
   [ReportRootTab.Categories]: () => <ReportCategories />,
 };
@@ -65,12 +69,14 @@ const MainReport = () => {
     qualityGate: ReportRootTab.QualityGate,
     globalAttachments: ReportRootTab.GlobalAttachments,
     globalErrors: ReportRootTab.GlobalErrors,
+    knownIssues: ReportRootTab.KnownIssues,
   };
   const reportTabToRootTab: Partial<Record<ReportRootTab, string>> = {
     [ReportRootTab.Categories]: "categories",
     [ReportRootTab.QualityGate]: "qualityGate",
     [ReportRootTab.GlobalAttachments]: "globalAttachments",
     [ReportRootTab.GlobalErrors]: "globalErrors",
+    [ReportRootTab.KnownIssues]: "knownIssues",
   };
   const initialTab = rootTabRoute.value.matches
     ? (rootTabToReportTab[rootTabRoute.value.params.rootTab] ?? ReportRootTab.Results)
@@ -133,6 +139,7 @@ const MainReport = () => {
     <div
       className={clsx(styles.content, isSplitMode.value && styles["scroll-inside"])}
       onMouseDown={() => focusTreePane()}
+      role="presentation"
     >
       <div className={styles["main-report-header"]}>
         <ReportHeader />
@@ -207,6 +214,16 @@ const MainReport = () => {
                           />
                         </RootTab>
                       </>
+                    );
+                  }}
+                />
+                <Loadable
+                  source={knownIssuesStore}
+                  renderData={(knownIssues) => {
+                    return (
+                      <RootTab id={ReportRootTab.KnownIssues}>
+                        {t("knownIssues")} <Counter count={knownIssues?.issues.length ?? 0} />
+                      </RootTab>
                     );
                   }}
                 />

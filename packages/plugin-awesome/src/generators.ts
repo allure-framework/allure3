@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, dirname, join } from "node:path";
@@ -8,6 +8,7 @@ import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type KnownTestFailure,
   type Statistic,
   type TestEnvGroup,
   type TestLabel,
@@ -52,6 +53,8 @@ import type {
   AwesomeCategory,
   AwesomeExecutorInfo,
   AwesomeFixtureResult,
+  AwesomeKnownIssue,
+  AwesomeKnownIssueTestResult,
   AwesomeReportOptions,
   AwesomeRunSummary,
   AwesomeSearchDocument,
@@ -151,6 +154,103 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   for (let i = 0; i < items.length; i += concurrency) {
     await Promise.all(items.slice(i, i + concurrency).map(write));
   }
+};
+
+const knownIssueId = (issue: Pick<AwesomeKnownIssue, "reason" | "links">) =>
+  createHash("md5")
+    .update(JSON.stringify({ reason: issue.reason, links: issue.links ?? [] }))
+    .digest("hex");
+
+const convertKnownIssue = ({ reason, links }: KnownTestFailure): AwesomeKnownIssue => ({
+  id: knownIssueId({ reason, links }),
+  reason,
+  links,
+});
+
+export const applyKnownIssuesToTestResults = (trs: AwesomeTestResult[], knownIssues: KnownTestFailure[]) => {
+  const knownIssuesByHistoryId = new Map<string, AwesomeKnownIssue[]>();
+
+  knownIssues.forEach((issue) => {
+    const knownIssue = convertKnownIssue(issue);
+    const knownTestIssues = knownIssuesByHistoryId.get(issue.historyId) ?? [];
+
+    if (!knownTestIssues.some(({ id }) => id === knownIssue.id)) {
+      knownIssuesByHistoryId.set(issue.historyId, [...knownTestIssues, knownIssue]);
+    }
+  });
+
+  trs.forEach((tr) => {
+    if (!tr.historyId) {
+      return;
+    }
+
+    const knownTestIssues = knownIssuesByHistoryId.get(tr.historyId);
+
+    if (knownTestIssues?.length) {
+      tr.knownIssues = knownTestIssues;
+    }
+  });
+};
+
+const knownIssueTestResultFactory = ({
+  id,
+  name,
+  fullName,
+  status,
+  duration,
+  start,
+  historyId,
+  flaky,
+  retry,
+  retriesCount,
+}: AwesomeTestResult): AwesomeKnownIssueTestResult => ({
+  id,
+  name,
+  fullName,
+  status,
+  duration,
+  start,
+  historyId,
+  flaky,
+  retry,
+  retriesCount,
+});
+
+export const generateKnownIssues = async (
+  writer: AwesomeDataWriter,
+  tests: AwesomeTestResult[],
+  filename = "known-issues.json",
+) => {
+  const issuesById = new Map<string, AwesomeKnownIssue>();
+  const testResultsByIssueId: Record<string, AwesomeKnownIssueTestResult[]> = {};
+
+  tests
+    .filter(({ isRetry }) => !isRetry)
+    .forEach((test) => {
+      if (!test.knownIssues?.length) {
+        return;
+      }
+
+      test.knownIssues.forEach((knownIssue) => {
+        const issue = issuesById.get(knownIssue.id) ?? knownIssue;
+
+        issuesById.set(issue.id, issue);
+
+        testResultsByIssueId[issue.id] ??= [];
+
+        if (!testResultsByIssueId[issue.id].some(({ id }) => id === test.id)) {
+          testResultsByIssueId[issue.id].push(knownIssueTestResultFactory(test));
+        }
+      });
+    });
+
+  const issues = [...issuesById.values()].sort((a, b) => a.reason.localeCompare(b.reason));
+
+  Object.values(testResultsByIssueId).forEach((testResults) => {
+    testResults.sort(nullsLast(compareBy("start", ordinal())));
+  });
+
+  await writer.writeWidget(filename, { issues, testResultsByIssueId });
 };
 
 export const generateTestResults = async (
@@ -456,6 +556,7 @@ const leafFactory = ({
   status,
   duration,
   flaky,
+  known,
   start,
   retry,
   retriesCount,
@@ -472,6 +573,7 @@ const leafFactory = ({
     status,
     duration,
     flaky,
+    known,
     start,
     retry,
     retriesCount,
@@ -518,23 +620,26 @@ export const generateStatistic = async (
   data: {
     stats: Statistic;
     statsByEnv: Map<string, Statistic>;
+    pieStats?: Statistic;
+    pieStatsByEnv?: Map<string, Statistic>;
     envs: EnvironmentIdentity[];
   },
 ) => {
-  const { stats, statsByEnv, envs } = data;
+  const { stats, statsByEnv, pieStats = stats, pieStatsByEnv = statsByEnv, envs } = data;
 
   await writer.writeWidget("statistic.json", stats);
-  await writer.writeWidget("pie_chart.json", getPieChartValues(stats));
+  await writer.writeWidget("pie_chart.json", getPieChartValues(pieStats));
 
   for (const env of envs) {
     const envStats = statsByEnv.get(env.id);
+    const envPieStats = pieStatsByEnv.get(env.id);
 
     if (!envStats) {
       continue;
     }
 
     await writer.writeWidget(joinPosixPath(env.id, "statistic.json"), envStats);
-    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), getPieChartValues(envPieStats ?? envStats));
   }
 };
 

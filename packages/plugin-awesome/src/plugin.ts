@@ -1,4 +1,11 @@
-import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
+import {
+  incrementStatistic,
+  type EnvironmentItem,
+  type Statistic,
+  type TestResult,
+  joinPosixPath,
+  unsuccessfulStatuses,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -12,12 +19,14 @@ import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
+  applyKnownIssuesToTestResults,
   generateAllCharts,
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateEnvirontmentsList,
   generateGlobals,
   generateHistoryDataPoints,
+  generateKnownIssues,
   generateNav,
   generateQualityGateResults,
   generateSearchIndex,
@@ -37,12 +46,13 @@ import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter 
 const statisticByTestResults = async (
   store: AllureStore,
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
+  filter: (testResult: TestResult) => boolean = () => true,
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
   const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
 
   for (const testResult of testResults) {
-    if (testResult.isRetry) {
+    if (testResult.isRetry || !filter(testResult)) {
       continue;
     }
 
@@ -64,6 +74,14 @@ const statisticByTestResults = async (
   return statistic;
 };
 
+const isKnownUnsuccessful = (testResult: TestResult) =>
+  Boolean(testResult.known && unsuccessfulStatuses.has(testResult.status));
+
+const excludeKnownUnsuccessful = (testResult: TestResult) => !isKnownUnsuccessful(testResult);
+
+const combineWithHealthFilter = (filter?: (testResult: TestResult) => boolean) => (testResult: TestResult) =>
+  (filter?.(testResult) ?? true) && excludeKnownUnsuccessful(testResult);
+
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
@@ -79,14 +97,17 @@ export class AwesomePlugin implements Plugin {
     const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const runSummary = getRunSummary(allTrs);
     const statistics = await store.testsStatistic(filter);
+    const healthStatistics = await store.testsStatistic(combineWithHealthFilter(filter));
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
+    const healthEnvStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
     const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
     const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
+    const knownIssues = await store.allKnownIssues();
     const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
     const envIdByTrId = new Map<string, string>();
 
@@ -122,19 +143,25 @@ export class AwesomePlugin implements Plugin {
 
     await Promise.all(
       environments.map(async ({ id }) => {
-        envStatistics.set(id, await statisticByTestResults(store, trsByEnvId.get(id) ?? []));
+        const envTrs = trsByEnvId.get(id) ?? [];
+
+        envStatistics.set(id, await statisticByTestResults(store, envTrs));
+        healthEnvStatistics.set(id, await statisticByTestResults(store, envTrs, excludeKnownUnsuccessful));
       }),
     );
 
     await generateStatistic(this.#writer!, {
       stats: statistics,
       statsByEnv: envStatistics,
+      pieStats: healthStatistics,
+      pieStatsByEnv: healthEnvStatistics,
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
 
+    applyKnownIssuesToTestResults(convertedTrs, knownIssues);
     applyCategoriesToTestResults(convertedTrs, categories);
     await generateCategories(this.#writer!, {
       tests: convertedTrs,
@@ -153,6 +180,7 @@ export class AwesomePlugin implements Plugin {
       : [];
 
     await generateHistoryDataPoints(this.#writer!, store);
+    await generateKnownIssues(this.#writer!, convertedTrs, "known-issues.json");
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
@@ -175,6 +203,11 @@ export class AwesomePlugin implements Plugin {
         this.#writer!,
         envConvertedTrs,
         joinPosixPath(reportEnvironment.id, "search-index.json"),
+      );
+      await generateKnownIssues(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "known-issues.json"),
       );
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,

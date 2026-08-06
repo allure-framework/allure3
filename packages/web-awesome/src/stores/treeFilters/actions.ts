@@ -26,6 +26,13 @@ export const setFlakyFilter = (flaky?: boolean) => {
   });
 };
 
+export const setKnownFilter = (known?: boolean) => {
+  setParams({
+    key: PARAMS.KNOWN,
+    value: known ? "true" : undefined,
+  });
+};
+
 export const setRetryFilter = (retry?: boolean) => {
   setParams({
     key: PARAMS.RETRY,

@@ -21,6 +21,7 @@
     "results": "Results",
     "globalAttachments": "Global Attachments",
     "globalErrors": "Global Errors",
+    "knownIssues": "Known Issues",
     "qualityGates": "Quality Gates",
     "categories": "Categories"
   },
@@ -31,6 +32,7 @@
   "filters": {
     "flaky": "Flaky",
     "nonFlaky": "Non-flaky",
+    "known": "Known issues",
     "retry": "Retry",
     "new": "New",
     "fixed": "Fixed",
@@ -50,6 +52,7 @@
     },
     "description": {
       "flaky": "Show unstable tests",
+      "known": "Show known issue test results",
       "retry": "Show test results that were rerun",
       "new": "Show test results that appear for the first time in this report",
       "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
@@ -105,6 +108,7 @@
     "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
     "no-global-errors-results": "No global errors information available",
+    "no-known-issues-results": "No known issues available",
     "no-quality-gate-results": "No quality gate results available",
     "no-history-results": "No history information available",
     "no-retries-results": "No retries information available",
@@ -144,6 +148,7 @@
     "attachments": "Attachments",
     "retries": "Retries",
     "environments": "Environments",
+    "knownIssues": "Known Issues",
     "error": "Error",
     "goToStep": "Go to step",
     "showLess": "Show less",
@@ -204,6 +209,7 @@
       "reportTabQualityGate": "Report tab: Quality gate",
       "reportTabGlobalAttachments": "Report tab: Global attachments",
       "reportTabGlobalErrors": "Report tab: Global errors",
+      "reportTabKnownIssues": "Report tab: Known issues",
       "reportTabNext": "Next report tab",
       "reportTabPrev": "Previous report tab",
       "nextTest": "Next test result",
@@ -463,7 +469,8 @@
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
-      "flaky": "Inconsistent across runs"
+      "flaky": "Inconsistent across runs",
+      "known": "Known issues"
     },
     "new": "new",
     "fixed": "fixed",

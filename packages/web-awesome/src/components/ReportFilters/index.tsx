@@ -5,6 +5,7 @@ import { setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
 import {
   isCategoryFilter,
   isFlakyFilter,
+  isKnownFilter,
   isRetryFilter,
   isTagFilter,
   isTransitionFilter,
@@ -12,7 +13,7 @@ import {
 
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
-import { RetryFlakyFilter } from "./RetryFlaky";
+import { QuickBooleanFilter } from "./QuickBoolean";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
 
@@ -22,8 +23,8 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
   const { filter, onChange } = props;
   const { value: field, type } = filter;
 
-  if (isRetryFilter(filter) || isFlakyFilter(filter)) {
-    return <RetryFlakyFilter filter={filter} onChange={onChange} />;
+  if (isRetryFilter(filter) || isFlakyFilter(filter) || isKnownFilter(filter)) {
+    return <QuickBooleanFilter filter={filter} onChange={onChange} />;
   }
 
   if (isTransitionFilter(filter)) {
