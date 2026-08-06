@@ -16,6 +16,8 @@ import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import type { RetryOptions } from "./errors.js";
+import { withUploadRetry } from "./errors.js";
 import type { LaunchGitContextDto } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type {
@@ -424,12 +426,13 @@ export class TestOpsClient {
     attachmentsResolver: AttachmentsResolver;
     fixturesResolver: FixtureResolver;
     onProgress?: () => void;
+    onRetry?: RetryOptions["onRetry"];
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry } = params;
     const projectedTrs = trs.map((tr) => ({
       ...tr,
       ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
@@ -453,13 +456,20 @@ export class TestOpsClient {
         }
       }
 
-      if (chunkEnvs.size > 0) {
-        await this.createNamedEnvs(Array.from(chunkEnvs.values()));
-      }
+      // Retried per chunk, not at the call level: chunks already acknowledged by TestOps must
+      // never be resent just because a later chunk failed, or they'd be created twice.
+      const reportIdsToTestOpsIds = await withUploadRetry(
+        async () => {
+          if (chunkEnvs.size > 0) {
+            await this.createNamedEnvs(Array.from(chunkEnvs.values()));
+          }
 
-      await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
+          await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
 
-      const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
+          return this.#postTestResultsChunk(trsChunk);
+        },
+        { onRetry },
+      );
 
       uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
 

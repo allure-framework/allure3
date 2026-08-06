@@ -373,6 +373,15 @@ export class TestOpsPlugin implements Plugin {
     try {
       logProgress(true);
 
+      const onRetry = async (error: unknown, attempt: number) => {
+        this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`);
+        await this.#reopenLaunchIfClosed(error);
+      };
+
+      // uploadTestResults already retries each chunk in place (see client.ts) so an already
+      // acknowledged chunk is never resent. This outer retry only fires if a chunk exhausts its
+      // own retries, ponytail: rare case, still resends earlier chunks; fix with cross-call
+      // upload-id tracking if that turns out to matter in practice.
       const uploadedTrs = await withUploadRetry(
         () =>
           this.#client.uploadTestResults({
@@ -381,13 +390,9 @@ export class TestOpsPlugin implements Plugin {
             environments,
             trs: trsToUpload,
             onProgress: () => incrementProgress(),
+            onRetry,
           }),
-        {
-          onRetry: async (error, attempt) => {
-            this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`);
-            await this.#reopenLaunchIfClosed(error);
-          },
-        },
+        { onRetry },
       );
 
       logProgress(true);

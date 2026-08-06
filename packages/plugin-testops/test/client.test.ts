@@ -1056,6 +1056,59 @@ describe("testops http client", () => {
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
     });
 
+    it("does not resend an already-acknowledged chunk when a later chunk fails and retries", async () => {
+      // CHUNK_SIZE is 100, so 101 test results split into a 100-item chunk and a 1-item chunk.
+      const trs = Array.from({ length: 101 }, (_, i) => ({ id: `tr-${i}`, name: `Test ${i}` }) as TestResult);
+      let secondChunkAttempts = 0;
+
+      AxiosMock.post.mockImplementation((url: string, body: any) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+
+        if (url === "/api/upload/test-result") {
+          const isSecondChunk = body.results.length === 1;
+
+          if (isSecondChunk) {
+            secondChunkAttempts += 1;
+
+            if (secondChunkAttempts === 1) {
+              return Promise.reject({ isAxiosError: true, response: { status: 503, data: {} } });
+            }
+          }
+
+          return Promise.resolve({
+            data: { results: body.results.map((r: any, i: number) => ({ id: i + 1, uuid: r.uuid })) },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      const uploaded = await client.uploadTestResults({
+        trs,
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(uploaded).toHaveLength(101);
+
+      const resultCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+      // first (100-item) chunk uploaded exactly once, second (1-item) chunk retried once
+      expect(resultCalls).toHaveLength(3);
+      expect(resultCalls.filter((call: any[]) => call[1].results.length === 100)).toHaveLength(1);
+      expect(resultCalls.filter((call: any[]) => call[1].results.length === 1)).toHaveLength(2);
+    });
+
     it("should leave results without remote ids retryable and avoid undefined requests", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
