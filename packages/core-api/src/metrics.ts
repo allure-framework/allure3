@@ -7,7 +7,7 @@ export interface PerformanceGroupConfig {
 export interface PerformanceMetricConfig {
   title: string;
   unit: string;
-  better?: Exclude<MetricBetter, "neutral">;
+  better: Exclude<MetricBetter, "neutral">;
   group?: string;
 }
 

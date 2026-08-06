@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
@@ -218,8 +219,8 @@ export const measurePerf = async <T>(name: string, fn: () => Promise<T>): Promis
 
 export const getPerfMetricsPayload = (): PerfMetricsPayload => {
   const totalSummary = getCoveredDurationSummary();
-  const results = SPANS.map((span, index) => ({
-    id: `${span.name}:${index}`,
+  const results = SPANS.map((span) => ({
+    id: randomUUID(),
     key: span.name,
     value: span.durationMs,
     start: round(performance.timeOrigin + span.startTimeMs),
@@ -228,7 +229,7 @@ export const getPerfMetricsPayload = (): PerfMetricsPayload => {
 
   if (totalSummary) {
     results.unshift({
-      id: `${PERF_METRIC_NAMES.allureTotal}:0`,
+      id: randomUUID(),
       key: PERF_METRIC_NAMES.allureTotal,
       value: totalSummary.avgMs,
       start: round(performance.timeOrigin + Math.min(...SPANS.map(({ startTimeMs }) => startTimeMs))),
