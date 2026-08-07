@@ -7,7 +7,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
+import type { AwesomeExecutorInfo, AwesomeRunSummary } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -126,6 +126,16 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
+    const runSummaryByEnv: Record<string, AwesomeRunSummary> = {};
+
+    for (const { id } of environments) {
+      const envRunSummary = getRunSummary(trsByEnvId.get(id) ?? []);
+
+      if (envRunSummary) {
+        runSummaryByEnv[id] = envRunSummary;
+      }
+    }
+
     await generateStatistic(this.#writer!, {
       stats: statistics,
       statsByEnv: envStatistics,
@@ -219,6 +229,7 @@ export class AwesomePlugin implements Plugin {
       ci: context.ci,
       executor,
       runSummary,
+      runSummaryByEnv,
       reportDataFiles,
     });
   };

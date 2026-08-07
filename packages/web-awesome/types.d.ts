@@ -47,6 +47,7 @@ export type AwesomeReportOptions = {
   ci?: CiDescriptor;
   executor?: AwesomeExecutorInfo;
   runSummary?: AwesomeRunSummary;
+  runSummaryByEnv?: Record<string, AwesomeRunSummary>;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
 };
