@@ -1,7 +1,7 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -956,6 +956,7 @@ describe("report", () => {
         success: false,
         actual: 5,
         expected: 3,
+        testResults: [],
       }),
     };
     const config = await resolveConfig({
