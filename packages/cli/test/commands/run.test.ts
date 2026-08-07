@@ -99,9 +99,11 @@ beforeEach(async () => {
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 
   const { AllureReportMock } = await import("../utils.js");
+  const { terminationOf } = await import("../../src/utils/index.js");
 
   AllureReportMock.prototype.store = {
     allKnownIssues: vi.fn().mockResolvedValue([]),
+    blockingFailedTestResults: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
   };
@@ -117,6 +119,8 @@ beforeEach(async () => {
   AllureReportMock.prototype.validate = vi.fn().mockResolvedValue({
     results: [],
   });
+  vi.mocked(terminationOf).mockReset();
+  vi.mocked(terminationOf).mockResolvedValue(0);
 });
 
 describe("run command", () => {
@@ -148,6 +152,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner"],
       historyLimit: undefined,
+      knownIssuesPath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -197,6 +202,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner", "tag"],
       historyLimit: undefined,
+      knownIssuesPath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -247,6 +253,26 @@ describe("run command", () => {
     expect(exitMock).not.toHaveBeenCalledWith(-1);
   });
 
+  it("should pass known issues override to readConfig", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--known-issues", "known.json", "--", "npm", "test"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: undefined,
+      name: undefined,
+      open: undefined,
+      port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
+      knownIssuesPath: "known.json",
+    });
+  });
+
   it("should keep configured quality gate when rerun is zero", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const qualityGate = {
@@ -276,6 +302,37 @@ describe("run command", () => {
     );
     expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
     expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should preserve raw child exit code when only known failures remain", async () => {
+    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    vi.mocked(runProcess).mockClear();
+    vi.mocked(terminationOf).mockResolvedValueOnce(7);
+
+    const { AllureReportMock } = await import("../utils.js");
+    const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
+
+    AllureReportMock.prototype.store = {
+      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1" }]),
+      blockingFailedTestResults: vi.fn().mockResolvedValue([]),
+      failedTestResults: vi.fn().mockResolvedValue([knownFailure]),
+      allTestResults: vi.fn().mockResolvedValue([]),
+    };
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
+      original: 7,
+      actual: 0,
+    });
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 

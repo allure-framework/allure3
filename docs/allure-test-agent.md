@@ -76,7 +76,7 @@ Fill only conventions that exist in this project. Durable test-design rules stay
 - Parameterized test style: use existing Vitest/Playwright conventions in the touched package
 - Smoke coverage conventions: use focused package or file-level runs for small changes; root `yarn test` is broad package health
 - Mocking and integration-test preference: follow the touched package's existing test style
-- Suppression/quarantine policy: unknown; do not present skipped or non-gating tests as proof
+- Suppression policy: unknown; do not present skipped or non-gating tests as proof
 
 ## Run Profiles
 
@@ -99,7 +99,7 @@ Do not present ignored, excluded, swallowed, advisory, or non-gating test execut
 - Default local command exclusions: root `yarn test` excludes `packages/sandbox`
 - CI test jobs: `.github/workflows/build.yml` job `test` runs across OS matrix
 - CI gating status: branch protection unknown; workflow test job appears intended as a primary validation signal
-- Known ignored, skipped, muted, quarantined, or disabled tests: package-specific and runtime-dependent; inspect run output before claiming proof
+- Known ignored, skipped, muted, or disabled tests: package-specific and runtime-dependent; inspect run output before claiming proof
 - Test artifacts retained by CI: `allure-results-<os>.zip` dumps are uploaded and later used for report generation
 
 If CI or local execution is non-gating, excludes important tests, or swallows failures, call that out before using the run as proof.
