@@ -679,6 +679,7 @@ export const generateStaticFiles = async (
     reportName: string;
     executor?: AwesomeExecutorInfo;
     runSummary?: AwesomeRunSummary;
+    runSummaryByEnv?: Record<string, AwesomeRunSummary>;
   },
 ) => {
   const {
@@ -698,6 +699,7 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
   } = payload;
@@ -760,6 +762,7 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     layout,
     allureVersion,
     sections,
