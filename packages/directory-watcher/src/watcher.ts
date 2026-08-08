@@ -40,8 +40,10 @@ export const findMatching = async (
     for await (const dirent of dir) {
       const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
-      // shouldn't be looking in private folders
-      if (dirent.name.at(0) === "." || dirent.name === "node_modules") {
+      // .git and node_modules are always skipped: this watcher re-walks repeatedly on a
+      // short interval for the life of the run, unlike a one-off glob call, so recursing
+      // into them on every pass is wasteful.
+      if (dirent.name === ".git" || dirent.name === "node_modules") {
         continue;
       }
 

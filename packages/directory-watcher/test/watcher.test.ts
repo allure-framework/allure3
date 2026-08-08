@@ -423,6 +423,53 @@ describe("findMatching", () => {
 
     expect(result).does.not.contain(dir311);
   });
+
+  it("should find allure-results under a dot-prefixed ancestor directory", async () => {
+    const dotDir = await randomDirectory(fixturesDir, ".reports");
+    const allureResults = await randomDirectory(dotDir, "allure-results");
+    const file = await randomFile(allureResults);
+
+    const result = new Set<string>();
+    await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
+
+    expect(result).toHaveLength(1);
+    expect(result).toContain(allureResults);
+  });
+
+  it("should still skip node_modules and .git", async () => {
+    const nodeModulesDir = await randomDirectory(fixturesDir, "node_modules");
+    const allureResultsInNodeModules = await randomDirectory(nodeModulesDir, "allure-results");
+    await randomFile(allureResultsInNodeModules);
+
+    const gitDir = await randomDirectory(fixturesDir, ".git");
+    const allureResultsInGit = await randomDirectory(gitDir, "allure-results");
+    await randomFile(allureResultsInGit);
+
+    const dotDir = await randomDirectory(fixturesDir, ".reports");
+    const allureResults = await randomDirectory(dotDir, "allure-results");
+    await randomFile(allureResults);
+
+    const result = new Set<string>();
+    await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
+
+    expect(result).toHaveLength(1);
+    expect(result).toContain(allureResults);
+    expect(result).does.not.contain(allureResultsInNodeModules);
+    expect(result).does.not.contain(allureResultsInGit);
+  });
+
+  it("should find allure-results under nested dot-prefixed directories", async () => {
+    const dotDir1 = await randomDirectory(fixturesDir, ".a");
+    const dotDir2 = await randomDirectory(dotDir1, ".b");
+    const allureResults = await randomDirectory(dotDir2, "allure-results");
+    await randomFile(allureResults);
+
+    const result = new Set<string>();
+    await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
+
+    expect(result).toHaveLength(1);
+    expect(result).toContain(allureResults);
+  });
 });
 
 describe("difference", () => {
