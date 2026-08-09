@@ -416,7 +416,7 @@ export class AllureReport {
 
       try {
         const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
-          .filter((dirent) => dirent.isFile())
+          .filter((dirent) => dirent.isFile() && !dirent.name.endsWith(".tmp"))
           .sort((a, b) => a.name.localeCompare(b.name));
         const limit = pLimit(readConcurrency());
 

@@ -364,6 +364,36 @@ describe("report", () => {
     }
   });
 
+  it("should ignore .tmp files when reading result directory", async () => {
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-read-directory-tmp-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const readFiles: string[] = [];
+    const reader: ResultsReader = {
+      matches: vi.fn().mockReturnValue(true),
+      read: vi.fn(async (_visitor, data) => {
+        readFiles.push(data.getOriginalFileName());
+
+        return true;
+      }),
+      readerId: () => "tmp-filter",
+    };
+
+    await writeFile(join(resultsDir, "result.json"), "{}");
+    await writeFile(join(resultsDir, "result.json.abc123.tmp"), "{}");
+
+    const allureReport = new AllureReport({
+      ...config,
+      readers: [reader],
+    });
+
+    await allureReport.start();
+    await allureReport.readDirectory(resultsDir);
+
+    expect(readFiles).toEqual(["result.json"]);
+  });
+
   it("should call plugins in specified order on start()", async () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2");
