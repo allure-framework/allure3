@@ -39,6 +39,7 @@ dist
 dist-tests
 *.tgz
 *.log
+.playwright-cli/
 .gradle
 schema
 build
