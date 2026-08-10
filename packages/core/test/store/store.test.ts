@@ -482,6 +482,52 @@ describe("test results", () => {
     );
   });
 
+  it("should not group class-level fixture failures with AS_ID placeholder as retries", async () => {
+    const store = new DefaultAllureStore();
+    const testA: RawTestResult = {
+      uuid: "test-a-result",
+      name: "TestA",
+      fullName: "org.example.TestA",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestA]",
+      historyId: "test-a-history",
+      status: "broken",
+      message: "setup failed in TestA",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestA]" },
+        { name: "suite", value: "org.example.TestA" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+    const testB: RawTestResult = {
+      uuid: "test-b-result",
+      name: "TestB",
+      fullName: "org.example.TestB",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestB]",
+      historyId: "test-b-history",
+      status: "broken",
+      message: "setup failed in TestB",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestB]" },
+        { name: "suite", value: "org.example.TestB" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+
+    await store.visitTestResult(testA, { readerId });
+    await store.visitTestResult(testB, { readerId });
+
+    const testResults = await store.allTestResults();
+    const statistic = await store.testsStatistic();
+
+    expect(testResults.map(({ name }) => name).sort()).toEqual(["TestA", "TestB"]);
+    expect(testResults.every(({ isRetry }) => !isRetry)).toBe(true);
+    expect(statistic).toMatchObject({
+      total: 2,
+      broken: 2,
+    });
+    expect(statistic.retries).toBeUndefined();
+  });
+
   it("should not mark latest environment test result as retry", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
