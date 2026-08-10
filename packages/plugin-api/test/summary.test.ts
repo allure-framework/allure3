@@ -1,7 +1,12 @@
 import { type AllureCheckResult, type AllureHistory, type TestResult, getWorstStatus } from "@allurereport/core-api";
 import { describe, expect, it, vi } from "vitest";
 
-import { convertToSummaryCheckResult, convertToSummaryTestResult, createPluginSummary } from "../src/utils/summary.js";
+import {
+  convertToSummaryCheckResult,
+  convertToTestResultSummary,
+  createPluginSummary,
+  createTestResultRegistry,
+} from "../src/utils/summary.js";
 
 const testResult = (args: Partial<TestResult> = {}): TestResult => ({
   id: "test-id",
@@ -23,14 +28,28 @@ const testResult = (args: Partial<TestResult> = {}): TestResult => ({
 });
 
 describe("summary utils", () => {
-  it("convertToSummaryTestResult maps fields", () => {
+  it("convertToTestResultSummary maps fields", () => {
     expect(
-      convertToSummaryTestResult(testResult({ id: "id-1", name: "name-1", status: "failed", duration: 123 })),
+      convertToTestResultSummary(testResult({ id: "id-1", name: "name-1", status: "failed", duration: 123 })),
     ).toEqual({
       id: "id-1",
       name: "name-1",
       status: "failed",
       duration: 123,
+    });
+  });
+
+  it("createTestResultRegistry indexes reduced test results by id", () => {
+    expect(
+      createTestResultRegistry([
+        testResult({ id: "id-1", name: "name-1", status: "failed", duration: 123 }),
+        testResult({ id: "id-2", name: "name-2", status: "passed", duration: 456 }),
+      ]),
+    ).toEqual({
+      byId: {
+        "id-1": { id: "id-1", name: "name-1", duration: 123, status: "failed" },
+        "id-2": { id: "id-2", name: "name-2", duration: 456, status: "passed" },
+      },
     });
   });
 
@@ -88,12 +107,9 @@ describe("summary utils", () => {
     expect(summary).toEqual({
       stats,
       status: getWorstStatus(allTrs.map(({ status }) => status)),
-      newTests: [
-        { id: "n1", name: "new", status: "passed", duration: 7 },
-        { id: "n2", name: "new-2", status: "failed", duration: 9 },
-      ],
-      flakyTests: [{ id: "t2", name: "two", status: "broken", duration: 20 }],
-      retryTests: [{ id: "t1", name: "one", status: "failed", duration: 10 }],
+      newTests: ["n1", "n2"],
+      flakyTests: ["t2"],
+      retryTests: ["t1"],
       checks: [{ name: "lint", status: "passed" }],
       name: "summary-name",
       duration: 35,
