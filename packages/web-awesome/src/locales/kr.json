@@ -138,6 +138,7 @@
     "category": "카테고리",
     "description": "설명",
     "links": "링크",
+    "relatedTestResults": "관련 테스트 결과 ({{count}})",
     "overview": "개요",
     "history": "기록",
     "attachments": "첨부파일",

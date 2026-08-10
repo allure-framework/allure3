@@ -309,6 +309,18 @@ export const generateTree = async (
     appendTitlePath?: boolean;
   },
 ) => {
+  const tree = generateTreeData(labels, tests, options);
+
+  await writer.writeWidget(treeFilename, tree);
+};
+
+const generateTreeData = (
+  labels: string[],
+  tests: AwesomeTestResult[],
+  options?: {
+    appendTitlePath?: boolean;
+  },
+) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
   const { appendTitlePath } = options || {};
   let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
@@ -326,7 +338,7 @@ export const generateTree = async (
     transform: (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }),
   });
 
-  await writer.writeWidget(treeFilename, tree);
+  return tree;
 };
 
 const buildTreeByLabels = (
@@ -626,8 +638,35 @@ export const generateGlobals = async (
 export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
   qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
+  options: {
+    tests?: AwesomeTestResult[];
+    labels?: string[];
+    appendTitlePath?: boolean;
+  } = {},
 ) => {
-  await writer.writeWidget("quality-gate.json", qualityGateResults);
+  const { tests = [], labels = [], appendTitlePath } = options;
+  const testsById = new Map(tests.map((test) => [test.id, test] as const));
+  const resultsWithTrees = Object.fromEntries(
+    Object.entries(qualityGateResults).map(([environment, results]) => [
+      environment,
+      results.map((result) => {
+        const relatedTests = [...new Set(result.testResults)]
+          .map((testResultId) => testsById.get(testResultId))
+          .filter((test): test is AwesomeTestResult => Boolean(test));
+
+        if (relatedTests.length === 0) {
+          return result;
+        }
+
+        return {
+          ...result,
+          testResultsTree: generateTreeData(labels, relatedTests, { appendTitlePath }),
+        };
+      }),
+    ]),
+  );
+
+  await writer.writeWidget("quality-gate.json", resultsWithTrees);
 };
 
 export const generateStaticFiles = async (

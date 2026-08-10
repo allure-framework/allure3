@@ -138,6 +138,7 @@
     "category": "Kategoria",
     "description": "Opis",
     "links": "Linki",
+    "relatedTestResults": "Powiązane wyniki testów ({{count}})",
     "overview": "Przegląd",
     "history": "Historia",
     "attachments": "Załączniki",
