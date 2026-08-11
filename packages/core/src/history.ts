@@ -2,7 +2,7 @@ import { once } from "node:events";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
-import { pipeline } from "node:stream/promises";
+import { finished, pipeline } from "node:stream/promises";
 
 import {
   type AllureHistory,
@@ -137,8 +137,6 @@ export class AllureLocalHistory implements AllureHistory {
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
 
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
       if (limit === 0 && historyExists) {
         await historyFile.truncate(0);
         return;
@@ -147,6 +145,8 @@ export class AllureLocalHistory implements AllureHistory {
       if (limit === 0 && !historyExists) {
         return;
       }
+
+      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
@@ -164,6 +164,11 @@ export class AllureLocalHistory implements AllureHistory {
       if (historyExists) {
         await historyFile.truncate(dst.bytesWritten);
       }
+
+      // FileHandle-backed write streams keep the handle ref'd until destroyed.
+      // Closing the handle before that makes Node exit with a pending appendHistory promise (see nodejs/node#48466).
+      await finished(dst);
+      dst.destroy();
     } finally {
       await historyFile.close();
 

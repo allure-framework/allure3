@@ -1,8 +1,10 @@
 import { constants } from "node:buffer";
+import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { appendFile, open, readFile, rm, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, open, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
+import { promisify } from "node:util";
 
 import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -10,6 +12,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import { AllureLocalHistory, createHistory } from "../src/history.js";
 import { getDataPath } from "./utils.js";
+
+const execFileAsync = promisify(execFile);
 
 beforeEach(async () => {
   await epic("coverage");
@@ -283,7 +287,7 @@ describe("AllureLocalHistory", () => {
     });
 
     afterEach(async () => {
-      await rm(historyPath);
+      await rm(historyPath, { force: true });
     });
 
     it("should create empty file if limit is zero", async () => {
@@ -300,6 +304,52 @@ describe("AllureLocalHistory", () => {
       await history.appendHistory(entry);
 
       await checkHistoryFile(["New entry"]);
+    });
+
+    it("should resolve appendHistory in a standalone node process", async () => {
+      const workDir = join(tmpdir(), randomUUID());
+      const historyFilePath = join(workDir, "history.jsonl");
+      const scriptPath = join(workDir, "append-history.mjs");
+      const line = `${JSON.stringify({ ...entry, name: "Standalone entry" })}\n`;
+
+      await mkdir(workDir, { recursive: true });
+      await writeFile(
+        scriptPath,
+        `
+import { finished, pipeline } from "node:stream/promises";
+import { mkdir, open } from "node:fs/promises";
+import { dirname } from "node:path";
+
+const historyPath = ${JSON.stringify(historyFilePath)};
+await mkdir(dirname(historyPath), { recursive: true });
+const historyFile = await open(historyPath, "w");
+
+try {
+  const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
+  await pipeline([${JSON.stringify(line)}], dst);
+  await finished(dst);
+  dst.destroy();
+} finally {
+  await historyFile.close();
+}
+
+console.log("append-complete");
+        `.trim(),
+        "utf-8",
+      );
+
+      try {
+        const { stdout } = await execFileAsync(process.execPath, [scriptPath], {
+          cwd: workDir,
+          timeout: 5000,
+          env: { ...process.env, NODE_NO_WARNINGS: "1" },
+        });
+
+        expect(stdout.trim()).toBe("append-complete");
+        await expect(readFile(historyFilePath, "utf-8")).resolves.toBe(line);
+      } finally {
+        await rm(workDir, { recursive: true, force: true });
+      }
     });
 
     it("should write entry to new file if limit is positive", async () => {
