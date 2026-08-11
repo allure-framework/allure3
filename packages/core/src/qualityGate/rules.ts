@@ -95,7 +95,7 @@ export const maxDurationRule: QualityGateRule<number> = {
 export const allTestsContainEnvRule: QualityGateRule<string, number> = {
   rule: "allTestsContainEnv",
   message: ({ actual, expected }) =>
-    `Not all tests contain the required environment, ${bold(`"${expected}"`)}; ${bold(actual.length === 1 ? "one" : String(actual))} ${actual.length === 1 ? "test has" : "tests have"} different or missing environment`,
+    `Not all tests contain the required "${bold(expected)}" environment, ${bold(actual)} tests have different or missing environment`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? 0;
     const testsWithoutEnv = trs.filter((tr) => (tr.environment ?? "") !== expected);

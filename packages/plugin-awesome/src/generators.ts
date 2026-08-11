@@ -650,7 +650,7 @@ export const generateQualityGateResults = async (
     Object.entries(qualityGateResults).map(([environment, results]) => [
       environment,
       results.map((result) => {
-        const relatedTests = [...new Set(result.testResults)]
+        const relatedTests = [...new Set(result.testResults ?? [])]
           .map((testResultId) => testsById.get(testResultId))
           .filter((test): test is AwesomeTestResult => Boolean(test));
 

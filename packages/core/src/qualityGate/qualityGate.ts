@@ -40,7 +40,7 @@ export const convertQualityGateResultsToTestErrors = (results: QualityGateValida
 
 export class QualityGateState {
   #state: Record<string, { result: any; testResults: string[] }> = {};
-  #seenTestResultIds = new Set<string>();
+  #processedTestResultIds = new Set<string>();
 
   setResult(rule: string, value: any, testResults: string[] = []) {
     const previousTestResults = this.#state[rule]?.testResults ?? [];
@@ -59,14 +59,12 @@ export class QualityGateState {
     return [...(this.#state[rule]?.testResults ?? [])];
   }
 
-  getUnseenTestResults(testResults: TestResult[]) {
-    const uniqueTestResults = new Map(testResults.map((testResult) => [testResult.id, testResult]));
-
-    return [...uniqueTestResults.values()].filter(({ id }) => !this.#seenTestResultIds.has(id));
+  markTestResultsProcessed(testResults: TestResult[]) {
+    testResults.forEach(({ id }) => this.#processedTestResultIds.add(id));
   }
 
-  markTestResultsSeen(testResults: TestResult[]) {
-    testResults.forEach(({ id }) => this.#seenTestResultIds.add(id));
+  isTestResultProcessed(trId: string) {
+    return this.#processedTestResultIds.has(trId);
   }
 }
 
@@ -80,10 +78,17 @@ export class QualityGate {
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, knownIssues, environment } = payload;
-    const trsWithoutRetries = trs.filter((tr) => tr.isRetry !== true);
-    const uniqueTrs = [...new Map(trsWithoutRetries.map((tr) => [tr.id, tr])).values()];
-    const trsToValidate = state?.getUnseenTestResults(uniqueTrs) ?? uniqueTrs;
+    const trsToValidateById = new Map<string, TestResult>();
 
+    for (const tr of trs) {
+      if (tr.isRetry || state?.isTestResultProcessed(tr.id)) {
+        continue;
+      }
+
+      trsToValidateById.set(tr.id, tr);
+    }
+
+    const trsToValidate = trsToValidateById.values().toArray();
     const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
@@ -151,7 +156,7 @@ export class QualityGate {
       }
     }
 
-    state?.markTestResultsSeen(trsToValidate);
+    state?.markTestResultsProcessed(trsToValidate);
 
     return {
       fastFailed,
