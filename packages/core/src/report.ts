@@ -553,7 +553,6 @@ export class AllureReport {
       performance: this.#performance,
       environment: qualityGateEnvironment,
       currentReportUuid: this.reportUuid,
-      complete,
     });
   };
 

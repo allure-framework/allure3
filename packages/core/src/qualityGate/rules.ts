@@ -69,9 +69,16 @@ const formatMetricValue = (value: number | undefined, unit?: string) => {
   return unit ? `${formatted} ${unit}` : formatted;
 };
 
-const missingMetricResult = (complete = true) => ({
-  success: !complete,
+const missingMetricResult = () => ({
+  success: false,
   actual: undefined,
+  testResults: [],
+});
+
+const metricRuleResult = (success: boolean, actual: number | undefined) => ({
+  success,
+  actual,
+  testResults: [],
 });
 
 export const maxFailuresRule: QualityGateRule<number> = {
@@ -211,10 +218,10 @@ export const metricMaxRule: QualityGateRule<MetricRuleConfig> = {
 
     return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, unit))}`;
   },
-  validate: async ({ metrics = [], expected, complete }) => {
+  validate: async ({ metrics = [], expected }) => {
     const actual = metricAverage(metrics, expected.key);
 
-    return Number.isFinite(actual) ? { success: actual! <= expected.value, actual } : missingMetricResult(complete);
+    return Number.isFinite(actual) ? metricRuleResult(actual! <= expected.value, actual) : missingMetricResult();
   },
 };
 
@@ -225,10 +232,10 @@ export const metricMinRule: QualityGateRule<MetricRuleConfig> = {
 
     return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} is below the required minimum ${bold(formatMetricValue(expected.value, unit))}`;
   },
-  validate: async ({ metrics = [], expected, complete }) => {
+  validate: async ({ metrics = [], expected }) => {
     const actual = metricAverage(metrics, expected.key);
 
-    return Number.isFinite(actual) ? { success: actual! >= expected.value, actual } : missingMetricResult(complete);
+    return Number.isFinite(actual) ? metricRuleResult(actual! >= expected.value, actual) : missingMetricResult();
   },
 };
 
@@ -239,22 +246,22 @@ export const metricMaxDeltaRule: QualityGateRule<MetricRuleConfig> = {
 
     return `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, unit))}, which exceeds ${bold(formatMetricValue(expected.value, unit))}`;
   },
-  validate: async ({ metrics = [], history = [], expected, currentReportUuid, complete }) => {
+  validate: async ({ metrics = [], history = [], expected, currentReportUuid }) => {
     const current = metricAverage(metrics, expected.key);
 
     if (!Number.isFinite(current)) {
-      return missingMetricResult(complete);
+      return missingMetricResult();
     }
 
     const previous = previousMetricValue(history, expected.key, currentReportUuid);
 
     if (!Number.isFinite(previous)) {
-      return { success: true, actual: undefined };
+      return metricRuleResult(true, undefined);
     }
 
     const actual = current! - previous!;
 
-    return { success: Math.abs(actual) <= expected.value, actual };
+    return metricRuleResult(Math.abs(actual) <= expected.value, actual);
   },
 };
 
@@ -262,22 +269,24 @@ export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMaxDeltaPercent",
   message: ({ actual, expected, performance }) =>
     `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, "%"))}, which exceeds ${bold(formatMetricValue(expected.value, "%"))}`,
-  validate: async ({ metrics = [], history = [], expected, currentReportUuid, complete }) => {
+  validate: async ({ metrics = [], history = [], expected, currentReportUuid }) => {
     const current = metricAverage(metrics, expected.key);
 
     if (!Number.isFinite(current)) {
-      return missingMetricResult(complete);
+      return missingMetricResult();
     }
 
     const previous = previousMetricValue(history, expected.key, currentReportUuid);
 
     if (!Number.isFinite(previous)) {
-      return { success: true, actual: undefined };
+      return metricRuleResult(true, undefined);
     }
 
     const actual = previous !== 0 ? ((current! - previous!) / Math.abs(previous!)) * 100 : undefined;
 
-    return Number.isFinite(actual) ? { success: Math.abs(actual!) <= expected.value, actual } : missingMetricResult();
+    return Number.isFinite(actual)
+      ? metricRuleResult(Math.abs(actual!) <= expected.value, actual)
+      : missingMetricResult();
   },
 };
 

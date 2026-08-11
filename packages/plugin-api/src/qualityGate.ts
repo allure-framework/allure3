@@ -47,7 +47,6 @@ export type QualityGateRule<T = any, K = T> = {
     performance?: PerformanceConfig;
     environment?: string;
     currentReportUuid?: string;
-    complete?: boolean;
   }) => Promise<QualityGateRuleResult>;
 };
 

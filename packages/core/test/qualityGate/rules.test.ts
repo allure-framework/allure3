@@ -555,6 +555,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: true,
       actual: 10,
+      testResults: [],
     });
   });
 
@@ -568,20 +569,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: false,
       actual: undefined,
-    });
-  });
-
-  it("should skip missing metrics during incomplete validation", async () => {
-    await expect(
-      metricMinRule.validate({
-        ...basePayload,
-        expected: { key: "bundle.size", value: 1 },
-        metrics: [],
-        complete: false,
-      }),
-    ).resolves.toEqual({
-      success: true,
-      actual: undefined,
+      testResults: [],
     });
   });
 
@@ -622,6 +610,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: true,
       actual: 2,
+      testResults: [],
     });
   });
 
@@ -636,6 +625,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: true,
       actual: undefined,
+      testResults: [],
     });
   });
 
@@ -659,6 +649,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: false,
       actual: 20,
+      testResults: [],
     });
   });
 

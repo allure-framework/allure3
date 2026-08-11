@@ -152,7 +152,6 @@ export class QualityGateCommand extends Command {
         trs: nonRetryTrs,
         environment: resolvedEnvironment?.id,
         state,
-        complete: false,
       });
 
       if (!fastFailed) {

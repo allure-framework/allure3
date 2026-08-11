@@ -173,6 +173,42 @@ export default defineConfig({
   categories: {
     rules: comboRules,
   },
+  performance: {
+    groups: {
+      data: {
+        title: "Result data",
+      },
+      report: {
+        title: "Report generation",
+      },
+      attachments: {
+        title: "Attachment demos",
+      },
+    },
+    metrics: {
+      "sandbox.results.load": {
+        title: "Load sandbox results",
+        unit: "ms",
+        better: "lower",
+        group: "data",
+      },
+      "sandbox.report.awesome": {
+        title: "Generate Awesome report",
+        unit: "ms",
+        better: "lower",
+        group: "report",
+      },
+      "sandbox.attachments.httpExchange": {
+        title: "Render HTTP exchange attachments",
+        unit: "ms",
+        better: "lower",
+        group: "attachments",
+      },
+    },
+    display: {
+      historyMetric: "sandbox.report.awesome",
+    },
+  },
   plugins: {
     allure2: {
       options: {
