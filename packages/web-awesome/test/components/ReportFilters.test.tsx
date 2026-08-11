@@ -49,8 +49,8 @@ vi.mock("@/components/ReportFilters/BaseFilters", () => ({
 }));
 
 vi.mock("@allurereport/web-components", () => ({
-  Button: (props: { text: string; onClick: () => void; dataTestId?: string }) => (
-    <button type="button" data-testid={props.dataTestId} onClick={props.onClick}>
+  Button: (props: { text: string; onClick: () => void }) => (
+    <button type="button" onClick={props.onClick}>
       {props.text}
     </button>
   ),
@@ -68,7 +68,7 @@ describe("components > ReportFilters", () => {
   it("should hide clear filters button when no filters are active", () => {
     render(<ReportFilters />);
 
-    expect(screen.queryByTestId("clear-filters-button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "clear-filters" })).not.toBeInTheDocument();
   });
 
   it("should show clear filters button when filters are active", () => {
@@ -76,7 +76,7 @@ describe("components > ReportFilters", () => {
 
     render(<ReportFilters />);
 
-    expect(screen.getByTestId("clear-filters-button")).toHaveTextContent("clear-filters");
+    expect(screen.getByRole("button", { name: "clear-filters" })).toBeInTheDocument();
   });
 
   it("should reset filters when clear filters button is clicked", () => {
@@ -84,7 +84,7 @@ describe("components > ReportFilters", () => {
 
     render(<ReportFilters />);
 
-    fireEvent.click(screen.getByTestId("clear-filters-button"));
+    fireEvent.click(screen.getByRole("button", { name: "clear-filters" }));
 
     expect(clearTreeFiltersMock).toHaveBeenCalledOnce();
   });

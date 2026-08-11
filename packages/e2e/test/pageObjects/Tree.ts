@@ -100,7 +100,7 @@ export class TreePage extends CommonPage {
     this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
 
     this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
-    this.clearFiltersButtonLocator = page.getByTestId("clear-filters-button");
+    this.clearFiltersButtonLocator = page.getByRole("button", { name: "Clear filters" });
   }
 
   getNthLeafLocator(n: number) {

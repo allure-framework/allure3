@@ -58,16 +58,7 @@ const ClearFiltersButton = () => {
     return null;
   }
 
-  return (
-    <Button
-      type="button"
-      text={t("clear-filters")}
-      size="s"
-      style="outline"
-      onClick={() => clearTreeFilters()}
-      dataTestId="clear-filters-button"
-    />
-  );
+  return <Button type="button" text={t("clear-filters")} size="s" style="outline" onClick={() => clearTreeFilters()} />;
 };
 
 export const ReportFilters = () => {
