@@ -1,7 +1,9 @@
+import { Button } from "@allurereport/web-components";
 import { For } from "@preact/signals/utils";
 
+import { useI18n } from "@/stores/locale";
 import type { AwesomeFilter } from "@/stores/treeFilters/model";
-import { setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
+import { clearTreeFilters, hasActiveTreeFilters, setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
 import {
   isCategoryFilter,
   isFlakyFilter,
@@ -49,10 +51,30 @@ const QuickFilters = () => {
   return <For each={treeQuickFilters}>{(filter) => <Filter filter={filter} onChange={setTreeFilter} />}</For>;
 };
 
+const ClearFiltersButton = () => {
+  const { t } = useI18n("empty");
+
+  if (!hasActiveTreeFilters.value) {
+    return null;
+  }
+
+  return (
+    <Button
+      type="button"
+      text={t("clear-filters")}
+      size="s"
+      style="outline"
+      onClick={() => clearTreeFilters()}
+      dataTestId="clear-filters-button"
+    />
+  );
+};
+
 export const ReportFilters = () => {
   return (
     <div className={styles.wrapper}>
       <QuickFilters />
+      <ClearFiltersButton />
     </div>
   );
 };

@@ -50,6 +50,8 @@ export class TreePage extends CommonPage {
 
   filterTooltipLocator: Locator;
 
+  clearFiltersButtonLocator: Locator;
+
   constructor(readonly page: Page) {
     super(page);
 
@@ -98,6 +100,7 @@ export class TreePage extends CommonPage {
     this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
 
     this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
+    this.clearFiltersButtonLocator = page.getByTestId("clear-filters-button");
   }
 
   getNthLeafLocator(n: number) {
@@ -339,5 +342,9 @@ export class TreePage extends CommonPage {
     await this.malfunctionedFilterLocator.click();
 
     await this.closeMenu();
+  }
+
+  async clickClearFiltersButton() {
+    await this.clearFiltersButtonLocator.click();
   }
 }

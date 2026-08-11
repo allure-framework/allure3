@@ -21,6 +21,7 @@ import type {
   AwesomeStringFieldFilter,
 } from "./model";
 import {
+  hasActiveFilters,
   isCategoryFilter,
   isFlakyFilter,
   isRetryFilter,
@@ -187,6 +188,18 @@ export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
   treeTagsFilter.value,
   treeCategoriesFilter.value,
 ]);
+
+export const hasActiveTreeFilters = computed(() =>
+  hasActiveFilters({
+    query: urlQueryFilter.value,
+    status: urlStatusFilter.value,
+    flaky: urlFlakyFilter.value,
+    retry: urlRetryFilter.value,
+    transition: urlTransitionFilter.value,
+    tags: urlTagsFilter.value,
+    categories: urlCategoriesFilter.value,
+  }),
+);
 
 export const treeNonQueryFilters = computed(() => {
   const filters: AwesomeFilter[] = [];

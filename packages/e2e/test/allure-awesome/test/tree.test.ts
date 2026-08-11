@@ -207,6 +207,20 @@ test.describe("commons", () => {
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("1 sample failed test");
   });
+
+  test("should clear all active filters with one action", async ({ page }) => {
+    await treePage.clickTreeTab("failed");
+    await treePage.searchTree("Assertion error");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.clearFiltersButtonLocator).toBeVisible();
+
+    await treePage.clickClearFiltersButton();
+
+    await expect(treePage.leafLocator).toHaveCount(5);
+    await expect(treePage.clearFiltersButtonLocator).not.toBeVisible();
+    await expect(treePage.searchLocator).toHaveValue("");
+    await expect(page).toHaveURL(bootstrap.url);
+  });
 });
 
 test.describe("SearchBox component with debounce", () => {

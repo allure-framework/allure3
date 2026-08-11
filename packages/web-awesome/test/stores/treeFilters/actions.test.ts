@@ -26,6 +26,7 @@ vi.mock("@allurereport/web-commons", async () => {
 import { ReportFetchError } from "@allurereport/web-commons";
 
 import { fetchTreeFiltersData } from "../../../src/stores/treeFilters/actions.js";
+import { clearTreeFilters } from "../../../src/stores/treeFilters/store.js";
 import { treeCategories, treeTags } from "../../../src/stores/treeFilters/store.js";
 
 describe("stores > treeFilters > actions", () => {
@@ -86,5 +87,18 @@ describe("stores > treeFilters > actions", () => {
     expect(treeCategories.value).toEqual(["seed-category"]);
     expect(consoleErrorSpy).toHaveBeenCalledOnce();
     expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch tree filters data:\n\n", error);
+  });
+
+  it("should reset all filter params when clearing tree filters", () => {
+    clearTreeFilters();
+
+    expect(setParamsMock).toHaveBeenCalledTimes(7);
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "query", value: undefined });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "retry", value: undefined });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "flaky", value: undefined });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "transition", value: [] });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "tags", value: [] });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "categories", value: [] });
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "status", value: undefined });
   });
 });
