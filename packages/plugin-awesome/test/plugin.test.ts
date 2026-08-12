@@ -296,6 +296,7 @@ describe("plugin", () => {
         allureVersion: "3.0.0",
         reportUuid: "report-uuid",
         reportName: "Test report",
+        analyticsEnable: true,
         reportFiles,
         output: "/tmp/out",
       };
@@ -385,6 +386,7 @@ describe("plugin", () => {
         allureVersion: "3.0.0",
         reportUuid: "report-uuid",
         reportName: "Test report",
+        analyticsEnable: true,
         reportFiles,
         output: "/tmp/out",
       };
@@ -481,6 +483,7 @@ describe("plugin", () => {
         allureVersion: "3.0.0",
         reportUuid: "report-uuid",
         reportName: "Test report",
+        analyticsEnable: true,
         reportFiles,
         output: "/tmp/out",
       };
@@ -599,6 +602,7 @@ describe("plugin", () => {
         allureVersion: "3.0.0",
         reportUuid: "report-uuid",
         reportName: "Test report",
+        analyticsEnable: true,
         reportFiles,
         output: "/tmp/out",
       };
@@ -724,6 +728,7 @@ describe("plugin", () => {
         allureVersion: "3.0.0",
         reportUuid: "report-uuid",
         reportName: "Test report",
+        analyticsEnable: true,
         reportFiles,
         output: "/tmp/out",
       };

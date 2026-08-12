@@ -220,6 +220,7 @@ export class AwesomePlugin implements Plugin {
       executor,
       runSummary,
       reportDataFiles,
+      analyticsEnable: context.analyticsEnable,
     });
   };
 

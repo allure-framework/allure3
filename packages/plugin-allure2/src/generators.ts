@@ -12,6 +12,7 @@ import {
   createStylesLinkTag,
 } from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import { isAnalyticsEnabled } from "@allurereport/plugin-api";
 import { findUp } from "find-up";
 import Handlebars from "handlebars";
 
@@ -124,12 +125,26 @@ export const generateStaticFiles = async (payload: {
   reportName: string;
   reportLanguage: string;
   singleFile: boolean;
+  /**
+   * Core-resolved analytics flag; also re-checked against `ALLURE_NO_ANALYTICS`.
+   * @default true
+   */
+  analyticsEnable?: boolean;
   reportFiles: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
   const packageRoot = await getPackageRoot();
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    analyticsEnable,
+    reportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+  } = payload;
   const manifest = await readTemplateManifest(packageRoot, singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
@@ -202,7 +217,7 @@ export const generateStaticFiles = async (payload: {
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
       reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      analyticsEnable: isAnalyticsEnabled(analyticsEnable),
       allureVersion,
       reportLanguage,
       reportUuid,
