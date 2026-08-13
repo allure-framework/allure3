@@ -28,3 +28,4 @@ export * from "./utils/strings.js";
 export * from "./utils/dictionary.js";
 export * from "./utils/path.js";
 export * from "./utils/url.js";
+export * from "./utils/size.js";

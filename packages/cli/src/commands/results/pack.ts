@@ -4,6 +4,7 @@ import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { exit } from "node:process";
 
+import { formatByteSize } from "@allurereport/core-api";
 import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
@@ -37,27 +38,6 @@ export class ResultsPackCommand extends Command {
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
-
-  /**
-   * Formats a size in bytes to a human-readable string with appropriate unit (B, KB, MB, GB)
-   * @param bytes
-   */
-  #formatSize(bytes: number): string {
-    const units = ["bytes", "KB", "MB", "GB"];
-    let size = bytes;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-
-    if (bytes === 0) {
-      return "0 bytes";
-    }
-
-    return unitIndex === 0 ? `${Math.round(size)} ${units[unitIndex]}` : `${size.toFixed(2)} ${units[unitIndex]}`;
-  }
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
@@ -116,7 +96,7 @@ export class ResultsPackCommand extends Command {
 
       console.log(green(`Archive created successfully: ${outputPath}`));
       console.log(
-        green(`Total size: ${this.#formatSize(stats.size)}. ${resultsFiles.size} results files have been collected`),
+        green(`Total size: ${formatByteSize(stats.size)}. ${resultsFiles.size} results files have been collected`),
       );
     } catch (err) {
       console.log(red(`Error creating archive: ${(err as Error).message}`));

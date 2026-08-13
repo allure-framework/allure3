@@ -1,7 +1,13 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ReportFetchError, fetchReportJsonData, loadReportData } from "../src/data.js";
+import {
+  ReportFetchError,
+  fetchReportJsonData,
+  loadReportData,
+  reportDataUrl,
+  sanitizeContentType,
+} from "../src/data.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -83,6 +89,8 @@ describe("fetchReportJsonData", () => {
     (globalThis as any).allureReportDataReady = true;
     (globalThis as any).allureReportData = {};
 
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 404, statusText: "Not Found" }));
+
     const error = await fetchReportJsonData("widgets/tree-filters.json").catch((e) => e);
 
     expect(error).toBeInstanceOf(ReportFetchError);
@@ -101,5 +109,49 @@ describe("fetchReportJsonData", () => {
     const result = await fetchReportJsonData<{ tags: string[] }>("widgets/tree-filters.json");
 
     expect(result.tags).toEqual(["smoke"]);
+  });
+});
+
+describe("sanitizeContentType", () => {
+  it("defaults missing and malformed types to application/octet-stream", () => {
+    expect(sanitizeContentType(undefined)).toBe("application/octet-stream");
+    expect(sanitizeContentType("")).toBe("application/octet-stream");
+    expect(sanitizeContentType("text/html;base64,PHN2Zy")).toBe("text/html");
+    expect(sanitizeContentType("text/html; charset=utf-8")).toBe("text/html");
+    expect(sanitizeContentType("image/png<script>")).toBe("application/octet-stream");
+    expect(sanitizeContentType("text/html,foo")).toBe("application/octet-stream");
+  });
+});
+
+describe("reportDataUrl", () => {
+  afterEach(() => {
+    delete (globalThis as any).allureReportDataReady;
+    delete (globalThis as any).allureReportData;
+    delete (globalThis as any).allureReportOptions;
+  });
+
+  it("builds a sanitized data URL for embedded single-file data", async () => {
+    (globalThis as any).allureReportDataReady = true;
+    (globalThis as any).allureReportData = {
+      "data/attachments/a.png": "YWJj",
+    };
+
+    await expect(reportDataUrl("data/attachments/a.png", "image/png; charset=binary")).resolves.toBe(
+      "data:image/png;base64,YWJj",
+    );
+  });
+
+  it("falls back to a relative URL when the key is missing from the single-file map", async () => {
+    (globalThis as any).allureReportDataReady = true;
+    (globalThis as any).allureReportData = {};
+
+    const url = await reportDataUrl("data/attachments/heavy.bin", "application/octet-stream");
+
+    expect(url).toContain("data/attachments/heavy.bin");
+    expect(url.startsWith("data:")).toBe(false);
+  });
+
+  it("rejects absolute paths", async () => {
+    await expect(reportDataUrl("https://evil.example/x", "text/plain")).rejects.toThrow(/absolute/i);
   });
 });
