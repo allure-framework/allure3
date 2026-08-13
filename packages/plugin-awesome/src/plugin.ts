@@ -197,7 +197,11 @@ export class AwesomePlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
-    await generateQualityGateResults(this.#writer!, qualityGateResults);
+    await generateQualityGateResults(this.#writer!, qualityGateResults, {
+      tests: convertedTrs,
+      labels: treeLabels,
+      appendTitlePath,
+    });
     await generateGlobals(this.#writer!, {
       globalAttachments,
       globalAttachmentsByEnv,

@@ -138,6 +138,7 @@
     "category": "分類",
     "description": "描述",
     "links": "連結",
+    "relatedTestResults": "相關測試結果（{{count}}）",
     "overview": "概覽",
     "history": "歷史",
     "attachments": "附件",

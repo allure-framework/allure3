@@ -1,7 +1,7 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -116,6 +116,46 @@ describe("report", () => {
       await expect(allureReport.start()).resolves.toBeUndefined();
       await expect(allureReport.done()).resolves.toBeUndefined();
     });
+  });
+
+  it("should write root test result registry and keep a single plugin report at the root", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-test-results-registry-"));
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({ name: "Allure Report", output });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitTestResult(
+      {
+        uuid: "result-1",
+        name: "failed test",
+        status: "failed",
+        duration: 123,
+      },
+      { readerId: "report.test.ts" },
+    );
+    await allureReport.done();
+
+    const registry = JSON.parse(await readFile(join(output, "test-results.json"), "utf8"));
+    const id = md5("result-1");
+
+    expect(registry).toEqual({
+      byId: {
+        [id]: {
+          id,
+          name: "failed test",
+          duration: 123,
+          status: "failed",
+        },
+      },
+    });
+    await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
   });
 
   it("should not allow call done() before start()", async () => {
@@ -608,11 +648,16 @@ describe("report", () => {
     await allureReport.done();
 
     expect(AllureServiceClientMock.prototype.createReport).toBeCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.uploadReport).toBeCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.uploadReport).toBeCalledTimes(2);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginId: "p1",
         files: expect.objectContaining({ "index.html": expect.any(String) }),
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: { "test-results.json": expect.any(String) },
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
@@ -690,7 +735,7 @@ describe("report", () => {
     await allureReport.start();
     await allureReport.done();
 
-    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledTimes(2);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginId: "p1",
@@ -700,6 +745,9 @@ describe("report", () => {
           "app.js": expect.any(String),
         }),
       }),
+    );
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({ files: { "test-results.json": expect.any(String) } }),
     );
   });
 
@@ -956,6 +1004,7 @@ describe("report", () => {
         success: false,
         actual: 5,
         expected: 3,
+        testResults: [],
       }),
     };
     const config = await resolveConfig({

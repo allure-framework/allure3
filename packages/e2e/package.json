@@ -8,8 +8,7 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "pretest": "playwright install chromium firefox safari",
-    "test": "playwright test",
+    "test": "playwright install chromium firefox webkit && playwright test",
     "test:ui": "playwright test --ui",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"

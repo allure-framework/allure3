@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+
 import { ReportSummaryCard } from "@/components/ReportSummaryCard";
 
 const meta: Meta<typeof ReportSummaryCard> = {
@@ -22,48 +23,9 @@ const defaultSummary = {
   },
   duration: 1240812,
   status: "failed",
-  newTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 2",
-      id: "2",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 3",
-      id: "3",
-      status: "passed",
-      duration: 100,
-    },
-  ],
-  flakyTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-  ],
-  retryTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 2",
-      id: "2",
-      status: "passed",
-      duration: 100,
-    },
-  ],
+  newTests: ["1", "2", "3"],
+  flakyTests: ["1"],
+  retryTests: ["1", "2"],
   createdAt: Date.now(),
 };
 

@@ -138,6 +138,7 @@
     "category": "Kategori",
     "description": "Beskrivning",
     "links": "Länkar",
+    "relatedTestResults": "Relaterade testresultat ({{count}})",
     "overview": "Översikt",
     "history": "Historik",
     "attachments": "Bilagor",

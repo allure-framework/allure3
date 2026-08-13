@@ -138,6 +138,7 @@
     "category": "Kategori",
     "description": "Açıklama",
     "links": "Bağlantılar",
+    "relatedTestResults": "İlgili test sonuçları ({{count}})",
     "overview": "Genel Bakış",
     "history": "Geçmiş",
     "attachments": "Ekler",
