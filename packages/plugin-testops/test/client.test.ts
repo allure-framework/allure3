@@ -58,6 +58,21 @@ const fixtures = {
   fixtures: [{ name: "before hook" } as TestStepResult, { name: "after hook" } as TestStepResult],
 };
 
+const axiosError = (status?: number, retryAfter?: string, code?: string) =>
+  Object.assign(new Error("request failed"), {
+    isAxiosError: true,
+    code,
+    response:
+      status === undefined
+        ? undefined
+        : {
+            status,
+            statusText: "Request failed",
+            data: {},
+            headers: retryAfter === undefined ? {} : { "retry-after": retryAfter },
+          },
+  });
+
 vi.mock("axios", async (importOriginal) => {
   const utils = await import("./utils.js");
   const original = await importOriginal<typeof import("axios")>();
@@ -77,6 +92,148 @@ beforeEach(() => {
 });
 
 describe("testops http client", () => {
+  describe("request retries", () => {
+    const clientWithLaunch = async () => {
+      AxiosMock.post.mockResolvedValue({ data: fixtures.launch });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+
+      return client;
+    };
+
+    it("should retry a safe request after Retry-After seconds", async () => {
+      const client = await clientWithLaunch();
+
+      AxiosMock.get.mockRejectedValueOnce(axiosError(429, "0")).mockResolvedValueOnce({ data: { ready: true } });
+
+      await expect(client.checkLaunchProgress()).resolves.toBe(true);
+      expect(AxiosMock.get).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry a safe request after a Retry-After date", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-08-13T10:00:00.000Z"));
+
+      try {
+        const client = await clientWithLaunch();
+        const retryAt = new Date(Date.now() + 1_000).toUTCString();
+
+        AxiosMock.get.mockRejectedValueOnce(axiosError(503, retryAt)).mockResolvedValueOnce({ data: { ready: true } });
+
+        const result = client.checkLaunchProgress();
+
+        await vi.advanceTimersByTimeAsync(1_000);
+        await expect(result).resolves.toBe(true);
+        expect(AxiosMock.get).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("should use exponential fallback delays and stop after three retries", async () => {
+      vi.useFakeTimers();
+
+      try {
+        const client = await clientWithLaunch();
+
+        AxiosMock.get.mockRejectedValue(axiosError(503));
+
+        const result = client.checkLaunchProgress();
+        const rejection = expect(result).rejects.toThrow("Allure service request failed");
+
+        await vi.advanceTimersByTimeAsync(500);
+        await vi.advanceTimersByTimeAsync(1_000);
+        await vi.advanceTimersByTimeAsync(2_000);
+        await rejection;
+        expect(AxiosMock.get).toHaveBeenCalledTimes(4);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("should use fallback delay for a network failure with an invalid Retry-After header", async () => {
+      vi.useFakeTimers();
+
+      try {
+        const client = await clientWithLaunch();
+
+        AxiosMock.get
+          .mockRejectedValueOnce(axiosError(undefined, "invalid"))
+          .mockResolvedValueOnce({ data: { ready: true } });
+
+        const result = client.checkLaunchProgress();
+
+        await vi.advanceTimersByTimeAsync(499);
+        expect(AxiosMock.get).toHaveBeenCalledTimes(1);
+
+        await vi.advanceTimersByTimeAsync(1);
+        await expect(result).resolves.toBe(true);
+        expect(AxiosMock.get).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("should not retry terminal or canceled requests", async () => {
+      const client = await clientWithLaunch();
+
+      AxiosMock.get.mockRejectedValueOnce(axiosError(401));
+      await expect(client.checkLaunchProgress()).rejects.toThrow("Allure service request failed");
+
+      AxiosMock.get.mockRejectedValueOnce(axiosError(undefined, undefined, "ERR_CANCELED"));
+      await expect(client.checkLaunchProgress()).rejects.toThrow("Allure service request failed");
+
+      expect(AxiosMock.get).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry only a failed result chunk", async () => {
+      const client = await clientWithLaunch();
+
+      AxiosMock.post.mockImplementation((url: string, body: any) => {
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          const uuid = body.results[0].uuid;
+
+          if (uuid === "result-100" && AxiosMock.post.mock.calls.filter((call) => call[0] === url).length === 2) {
+            return Promise.reject(axiosError(503, "0"));
+          }
+
+          return Promise.resolve({
+            data: { results: body.results.map((result: any, index: number) => ({ id: index + 1, uuid: result.uuid })) },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: Array.from(
+          { length: 101 },
+          (_, index) => ({ id: `result-${index}`, name: `Result ${index}` }) as TestResult,
+        ),
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const resultCalls = AxiosMock.post.mock.calls.filter((call) => call[0] === "/api/upload/test-result");
+
+      expect(resultCalls).toHaveLength(3);
+      expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-0")).toHaveLength(1);
+      expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-100")).toHaveLength(2);
+    });
+  });
+
   describe("constructor", () => {
     it("should throw an error when accessToken is not provided", () => {
       expect(

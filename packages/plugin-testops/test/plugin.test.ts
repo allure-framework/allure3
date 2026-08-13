@@ -1210,6 +1210,23 @@ describe("testops plugin", () => {
       );
     });
 
+    it("should retry a global attachment on a later update after upload failure", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+      TestOpsClientMock.prototype.uploadGlobalAttachments.mockRejectedValueOnce(new Error("upload failed"));
+
+      await plugin.start({} as PluginContext, store);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledTimes(2);
+    });
+
     it("should not re-upload the same global errors on subsequent update calls", async () => {
       const globalErrors = [{ message: "Something went wrong" }];
 
@@ -1250,6 +1267,25 @@ describe("testops plugin", () => {
       await plugin.update({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith([secondError], expect.any(Function));
+    });
+
+    it("should retry global errors on a later update after upload failure", async () => {
+      const globalErrors = [{ message: "Something went wrong" }];
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue(globalErrors);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+      TestOpsClientMock.prototype.uploadGlobalErrors.mockRejectedValueOnce(new Error("upload failed"));
+
+      await plugin.start({} as PluginContext, store);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledTimes(2);
     });
 
     it("should not call createLaunch on update", async () => {

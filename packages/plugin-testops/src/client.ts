@@ -34,7 +34,6 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
-import { UploadPacer } from "./uploadPacer.js";
 import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
@@ -58,6 +57,63 @@ class TestOpsClientError extends AxiosError<{
 
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
+const MAX_REQUEST_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 500;
+
+const axiosCause = (error: unknown) => {
+  if (isAxiosError(error)) {
+    return error;
+  }
+
+  return error instanceof Error && isAxiosError(error.cause) ? error.cause : undefined;
+};
+
+const isRetryableRequestError = (error: unknown): boolean => {
+  const cause = axiosCause(error);
+
+  if (!cause || cause.code === "ERR_CANCELED" || cause.name === "CanceledError") {
+    return false;
+  }
+
+  const status = cause.response?.status;
+
+  return status === undefined || status === 408 || status === 429 || status >= 500;
+};
+
+const retryAfterMs = (error: unknown): number | undefined => {
+  const headers = axiosCause(error)?.response?.headers;
+  const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
+  const normalized = Array.isArray(value) ? value[0] : value;
+
+  if (typeof normalized !== "string" && typeof normalized !== "number") {
+    return undefined;
+  }
+
+  const seconds = Number(normalized);
+
+  if (Number.isFinite(seconds)) {
+    return Math.max(0, seconds * 1_000);
+  }
+
+  const date = Date.parse(String(normalized));
+
+  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
+};
+
+// Caller must ensure repeating the request is safe.
+const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await request();
+    } catch (error) {
+      if (attempt >= MAX_REQUEST_RETRIES || !isRetryableRequestError(error)) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, retryAfterMs(error) ?? RETRY_BASE_DELAY_MS * 2 ** attempt));
+    }
+  }
+};
 
 export class TestOpsClient {
   #baseUrl: string;
@@ -69,7 +125,6 @@ export class TestOpsClient {
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
-  #uploadPacer: UploadPacer;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: TestOpsClientParams) {
@@ -100,8 +155,6 @@ export class TestOpsClient {
     if (params.limit) {
       this.#uploadLimit = params.limit;
     }
-
-    this.#uploadPacer = new UploadPacer(params.uploadRateLimit);
   }
 
   isTestOpsClientError(error: unknown): error is TestOpsClientError {
@@ -250,7 +303,9 @@ export class TestOpsClient {
     }
 
     this.#logger.verbose("Retrieving launch progress status…");
-    const data = await this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch.id}/progress`);
+    const data = await retryRequest(() =>
+      this.#client.get<{ ready: boolean }>(`/api/launch/${this.#launch!.id}/progress`),
+    );
 
     return data.ready;
   }
@@ -342,6 +397,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    const launchId = this.#launch.id;
     const formData = new FormData();
 
     for (const attachmentLink of attachments) {
@@ -357,16 +413,18 @@ export class TestOpsClient {
       });
     }
 
-    await this.#client.post("/api/launch/attachment", {
-      body: formData,
-      onUploadProgress(progressEvent) {
-        const total = progressEvent.total ?? 100;
-        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-        onProgress?.(percent, total);
-      },
-      params: { launchId: this.#launch.id },
-      headers: formData.getHeaders(),
-    });
+    await retryRequest(() =>
+      this.#client.post("/api/launch/attachment", {
+        body: formData,
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
+        params: { launchId },
+        headers: formData.getHeaders(),
+      }),
+    );
   }
 
   async uploadGlobalErrors(errors: TestError[], onProgress?: (percent: number, total: number) => void) {
@@ -378,17 +436,21 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    await this.#client.post("/api/launch/error/bulk", {
-      body: {
-        launchId: this.#launch.id,
-        items: errors,
-      },
-      onUploadProgress(progressEvent) {
-        const total = progressEvent.total ?? 100;
-        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-        onProgress?.(percent, total);
-      },
-    });
+    const launchId = this.#launch.id;
+
+    await retryRequest(() =>
+      this.#client.post("/api/launch/error/bulk", {
+        body: {
+          launchId,
+          items: errors,
+        },
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
+      }),
+    );
   }
 
   async uploadTestResults(params: {
@@ -430,8 +492,6 @@ export class TestOpsClient {
         if (chunkEnvs.size > 0) {
           await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
-
-        await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
 
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
@@ -490,12 +550,12 @@ export class TestOpsClient {
     });
 
     const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
-
-    const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
-      body,
-      headers: { "Content-Type": "application/json" },
-    });
-
+    const data = await retryRequest(() =>
+      this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
+        body,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     const reportIdsToTestOpsIds: Record<string, number> = {};
 
     for (const { id, uuid } of data.results ?? []) {
@@ -559,10 +619,12 @@ export class TestOpsClient {
       }
 
       try {
-        await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
-          body: formData,
-          headers: formData.getHeaders(),
-        });
+        await retryRequest(() =>
+          this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
+            body: formData,
+            headers: formData.getHeaders(),
+          }),
+        );
       } catch (error) {
         if (this.isTestOpsClientError(error)) {
           this.#logger.error(
@@ -584,9 +646,11 @@ export class TestOpsClient {
 
     const body = toUploadFixturesResultsDto(fixtures);
 
-    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
-      body,
-    });
+    await retryRequest(() =>
+      this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
+        body,
+      }),
+    );
   }
 
   async uploadQualityGateResults(
@@ -601,6 +665,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    const launchId = this.#launch.id;
     const items: Omit<TestOpsLaunchQualityGate, "id" | "launchId">[] = results.map((result) => {
       const item: Omit<TestOpsLaunchQualityGate, "id" | "launchId"> = {
         name: result.rule,
@@ -616,16 +681,18 @@ export class TestOpsClient {
       return item;
     });
 
-    await this.#client.post("/api/launch/quality-gate/bulk", {
-      body: {
-        launchId: this.#launch.id,
-        items,
-      },
-      onUploadProgress(progressEvent) {
-        const total = progressEvent.total ?? 100;
-        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-        onProgress?.(percent, total);
-      },
-    });
+    await retryRequest(() =>
+      this.#client.post("/api/launch/quality-gate/bulk", {
+        body: {
+          launchId,
+          items,
+        },
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
+      }),
+    );
   }
 }

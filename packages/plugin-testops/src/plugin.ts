@@ -15,7 +15,6 @@ import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import { withUploadRetry } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
@@ -69,7 +68,6 @@ export class TestOpsPlugin implements Plugin {
       launchName,
       launchTags,
       autocloseLaunch = true,
-      uploadRateLimit,
     } = resolvePluginOptions(options);
 
     // don't initialize the client when some options are missing
@@ -79,7 +77,6 @@ export class TestOpsPlugin implements Plugin {
         baseUrl: endpoint,
         accessToken,
         projectId,
-        uploadRateLimit,
       });
       this.#launchName = launchName;
       this.#launchTags = launchTags;
@@ -217,19 +214,12 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressLogger.log(true);
-      await withUploadRetry(
-        () =>
-          this.#client.uploadGlobalErrors(results, (percent) => {
-            if (!completed && percent >= 100) {
-              completed = true;
-              progressLogger.increment();
-            }
-          }),
-        {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying global errors upload (attempt ${attempt}): ${error}`),
-        },
-      );
+      await this.#client.uploadGlobalErrors(results, (percent) => {
+        if (!completed && percent >= 100) {
+          completed = true;
+          progressLogger.increment();
+        }
+      });
 
       if (!completed) {
         progressLogger.increment();
@@ -271,37 +261,30 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       progressLogger.log(true);
-      await withUploadRetry(
-        () =>
-          this.#client.uploadGlobalAttachments({
-            attachments,
-            attachmentsResolver: async (attachmentLink) => {
-              const content = await store.attachmentContentById(attachmentLink.id);
-              const body = await content?.readContent(async (stream) => stream);
-              const filename = uploadFilenameForLink(attachmentLink);
+      await this.#client.uploadGlobalAttachments({
+        attachments,
+        attachmentsResolver: async (attachmentLink) => {
+          const content = await store.attachmentContentById(attachmentLink.id);
+          const body = await content?.readContent(async (stream) => stream);
+          const filename = uploadFilenameForLink(attachmentLink);
 
-              if (filename === undefined || body === undefined) {
-                return undefined;
-              }
+          if (filename === undefined || body === undefined) {
+            return undefined;
+          }
 
-              return {
-                originalFileName: filename,
-                contentType: attachmentLink.contentType ?? "application/octet-stream",
-                content: body,
-              };
-            },
-            onProgress: (percent) => {
-              if (!completed && percent >= 100) {
-                completed = true;
-                progressLogger.increment();
-              }
-            },
-          }),
-        {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying global attachments upload (attempt ${attempt}): ${error}`),
+          return {
+            originalFileName: filename,
+            contentType: attachmentLink.contentType ?? "application/octet-stream",
+            content: body,
+          };
         },
-      );
+        onProgress: (percent) => {
+          if (!completed && percent >= 100) {
+            completed = true;
+            progressLogger.increment();
+          }
+        },
+      });
 
       if (!completed) {
         progressLogger.increment();
@@ -349,20 +332,13 @@ export class TestOpsPlugin implements Plugin {
     try {
       logProgress(true);
 
-      const uploadedTrs = await withUploadRetry(
-        () =>
-          this.#client.uploadTestResults({
-            attachmentsResolver: attachmentsResolverFactory(store),
-            fixturesResolver: fixturesResolverFactory(store),
-            environments,
-            trs: trsToUpload,
-            onProgress: () => incrementProgress(),
-          }),
-        {
-          onRetry: (error, attempt) =>
-            this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`),
-        },
-      );
+      const uploadedTrs = await this.#client.uploadTestResults({
+        attachmentsResolver: attachmentsResolverFactory(store),
+        fixturesResolver: fixturesResolverFactory(store),
+        environments,
+        trs: trsToUpload,
+        onProgress: () => incrementProgress(),
+      });
 
       logProgress(true);
 

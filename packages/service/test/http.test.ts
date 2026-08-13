@@ -130,6 +130,7 @@ describe("createServiceHttpClient", () => {
 
     expect(caught).toBeInstanceOf(UnknownError);
     expect((caught as Error).message).toBe("Allure service request failed: GET /api/test-report failed: Network Error");
+    expect((caught as Error).cause).toMatchObject({ isAxiosError: true, message: "Network Error" });
   });
 
   it("should authorize requests with an API token", async () => {
