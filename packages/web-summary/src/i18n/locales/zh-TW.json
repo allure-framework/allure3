@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} 個不穩定的測試",
       "retry_zero": "沒有重跑的測試",
       "retry_one": "{{count}} 個重跑的測試",
-      "retry_other": "{{count}} 個重跑的測試"
+      "retry_other": "{{count}} 個重跑的測試",
+      "known_zero": "沒有已知問題測試",
+      "known_one": "{{count}} 個已知問題測試",
+      "known_other": "{{count}} 個已知問題測試"
     }
   },
   "ui": {

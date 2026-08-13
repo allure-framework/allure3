@@ -79,8 +79,14 @@ const trimCount = (count: number) => {
   return count;
 };
 
-const Metadata = (props: { newCount?: number; flakyCount?: number; retryCount?: number; i18n: I18nProp }) => {
-  const { flakyCount = 0, newCount = 0, retryCount = 0, i18n } = props;
+const Metadata = (props: {
+  newCount?: number;
+  flakyCount?: number;
+  retryCount?: number;
+  knownCount?: number;
+  i18n: I18nProp;
+}) => {
+  const { flakyCount = 0, newCount = 0, retryCount = 0, knownCount = 0, i18n } = props;
 
   return (
     <div className={styles.metadata}>
@@ -101,6 +107,12 @@ const Metadata = (props: { newCount?: number; flakyCount?: number; retryCount?: 
         icon={allureIcons.lineGeneralZap}
       >
         {retryCount === 0 ? "-" : trimCount(retryCount)}
+      </IconLabel>
+      <IconLabel
+        tooltip={i18n("metadata.known", { count: knownCount }) ?? `${knownCount} known issue tests`}
+        icon={allureIcons.lineKnownIssues}
+      >
+        {knownCount === 0 ? "-" : trimCount(knownCount)}
       </IconLabel>
     </div>
   );
@@ -149,6 +161,7 @@ export const ReportSummaryCard = (props: ReportSummaryCardProps) => {
     newTests,
     flakyTests,
     retryTests,
+    knownTests,
     plugin: pluginName,
   } = summary;
 
@@ -200,6 +213,7 @@ export const ReportSummaryCard = (props: ReportSummaryCardProps) => {
             newCount={newTests?.length}
             flakyCount={flakyTests?.length}
             retryCount={retryTests?.length}
+            knownCount={knownTests?.length}
             i18n={i18n}
           />
         </div>

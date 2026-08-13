@@ -1529,7 +1529,14 @@ describe("testops plugin", () => {
 
       await plugin.info({} as PluginContext, store);
 
-      expect(AllureStoreMock.prototype.testsStatistic).toHaveBeenCalledWith(filter);
+      expect(AllureStoreMock.prototype.allTestResults).toHaveBeenCalledWith({ includeRetries: false, filter });
+      expect(AllureStoreMock.prototype.testsStatistic).toHaveBeenCalledWith(expect.any(Function));
+
+      const [[healthFilter]] = AllureStoreMock.prototype.testsStatistic.mock.calls;
+
+      expect(healthFilter({ id: "0-0-0-0", status: "passed" })).toBe(true);
+      expect(healthFilter({ id: "0-0-0-1", status: "passed" })).toBe(false);
+      expect(healthFilter({ id: "0-0-0-0", status: "failed", known: true })).toBe(false);
     });
   });
 });

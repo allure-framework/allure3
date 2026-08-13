@@ -26,6 +26,7 @@ const defaultSummary = {
   newTests: ["1", "2", "3"],
   flakyTests: ["1"],
   retryTests: ["1", "2"],
+  knownTests: ["1", "2"],
   createdAt: Date.now(),
 };
 
@@ -40,6 +41,7 @@ const enLocales: Record<string, string> = {
   "metadata.new": "new",
   "metadata.flaky": "flaky",
   "metadata.retry": "retry",
+  "metadata.known": "known",
 };
 
 const enI18n = (key: string, props: Record<string, any>) => {

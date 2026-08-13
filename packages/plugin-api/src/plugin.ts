@@ -84,6 +84,7 @@ export interface PluginSummary {
   newTests?: string[];
   flakyTests?: string[];
   retryTests?: string[];
+  knownTests?: string[];
   checks?: SummaryCheckResult[];
   createdAt?: number;
   /**

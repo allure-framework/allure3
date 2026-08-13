@@ -12,10 +12,10 @@ import * as styles from "./styles.scss";
 
 const VISIBLE_LINKS_LIMIT = 8;
 
-interface TrLinkProps {
-  name: string;
+export interface TrLinkProps {
+  name?: string;
   url: string;
-  type: string;
+  type?: string;
 }
 
 const linksIconMap: Record<string, string> = {
@@ -25,7 +25,7 @@ const linksIconMap: Record<string, string> = {
   github: allureIcons.github,
 };
 
-const TrLink: FunctionalComponent<{
+export const TrLink: FunctionalComponent<{
   link: TrLinkProps;
 }> = ({ link }) => {
   const { url, name, type } = link;
@@ -34,7 +34,7 @@ const TrLink: FunctionalComponent<{
 
   return (
     <div className={styles["test-result-link"]} data-testid="test-result-meta-link">
-      <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
+      <SvgIcon id={linksIconMap[type ?? "link"] ?? allureIcons.lineGeneralLink1} />
       {safeUrl ? (
         <Text
           tag={"a"}
@@ -69,7 +69,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const visibleLinks =
     links.length <= VISIBLE_LINKS_LIMIT ? links : showAll ? links : links.slice(0, VISIBLE_LINKS_LIMIT);
   const linkMap = visibleLinks.map((link, index) => {
-    return <TrLink link={link as TrLinkProps} key={index} />;
+    return <TrLink link={link} key={index} />;
   });
 
   return (

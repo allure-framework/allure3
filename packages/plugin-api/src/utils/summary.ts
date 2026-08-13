@@ -4,6 +4,7 @@ import {
   type CiDescriptor,
   type TestResult,
   getWorstStatus,
+  unsuccessfulStatuses,
 } from "@allurereport/core-api";
 
 import type { PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
@@ -37,22 +38,32 @@ export const createPluginSummary = async (params: {
 }): Promise<PluginSummary> => {
   const { name, filter, plugin, store, history, meta } = params;
   const allChecks = await store.allCheckResults();
-  const allTrs = await store.allTestResults({ filter });
+  const allTrs = await store.allTestResults({ includeRetries: false, filter });
+  const knownTrs = allTrs.filter((tr) => tr.known);
+  const isKnownUnsuccessful = (tr: TestResult) => Boolean(tr.known && unsuccessfulStatuses.has(tr.status));
+  const healthFilter = (tr: TestResult) => (filter?.(tr) ?? true) && !isKnownUnsuccessful(tr);
+  const healthTrs = allTrs.filter((tr) => !isKnownUnsuccessful(tr));
+  const stats = await store.testsStatistic(healthFilter);
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
   const retryFlags = await Promise.all(allTrs.map(async (tr) => (await store.retriesByTr(tr)).length > 0));
   const retryTrs = allTrs.filter((_, index) => retryFlags[index]);
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
   const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
-  const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+  const worstStatus = getWorstStatus(healthTrs.map(({ status }) => status));
   const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
+  if (knownTrs.length) {
+    stats.known = knownTrs.length;
+  }
+
   return {
-    stats: await store.testsStatistic(filter),
+    stats,
     status: worstStatus ?? "passed",
     newTests: newTrs.map(({ id }) => id),
     flakyTests: flakyTrs.map(({ id }) => id),
     retryTests: retryTrs.map(({ id }) => id),
+    knownTests: knownTrs.map(({ id }) => id),
     checks: allChecks.map(convertToSummaryCheckResult),
     name,
     duration,

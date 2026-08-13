@@ -3,6 +3,9 @@ import { cleanup, render, screen } from "@testing-library/preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportMetadata } from "@/components/ReportMetadata";
+import enLocale from "@/locales/en.json";
+
+const reportStatsStoreMock = vi.hoisted(() => ({ value: { data: undefined as any } }));
 
 vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -46,10 +49,16 @@ vi.mock("@allurereport/web-components", () => {
 });
 
 vi.mock("@/stores", () => ({
-  reportStatsStore: { value: { data: undefined } },
+  reportStatsStore: reportStatsStoreMock,
   statsByEnvStore: { value: { data: {} } },
-  useI18n: () => ({
-    t: (key: string) => key,
+  useI18n: (namespace: string) => ({
+    t: (key: string) => {
+      if (namespace === "testSummary") {
+        return enLocale.testSummary[key as keyof typeof enLocale.testSummary] ?? key;
+      }
+
+      return key;
+    },
   }),
 }));
 
@@ -73,6 +82,7 @@ vi.mock("@/stores/variables", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  reportStatsStoreMock.value.data = undefined;
   cleanup();
 });
 
@@ -127,5 +137,20 @@ describe("components > ReportMetadata", () => {
 
     expect(screen.queryByRole("link", { name: "TeamCity · Wrike #123" })).not.toBeInTheDocument();
     expect(screen.getByTestId("metadata-item")).toHaveTextContent("TeamCity · Wrike #123");
+  });
+
+  it("should render known metadata with a localized label", () => {
+    (getReportOptions as Mock).mockReturnValue({});
+    reportStatsStoreMock.value.data = {
+      total: 3,
+      passed: 2,
+      failed: 1,
+      known: 1,
+    };
+
+    render(<ReportMetadata />);
+
+    expect(screen.getByText("Known issue tests")).toBeInTheDocument();
+    expect(screen.queryByText("known")).not.toBeInTheDocument();
   });
 });

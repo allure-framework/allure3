@@ -82,6 +82,22 @@ const excludeKnownUnsuccessful = (testResult: TestResult) => !isKnownUnsuccessfu
 const combineWithHealthFilter = (filter?: (testResult: TestResult) => boolean) => (testResult: TestResult) =>
   (filter?.(testResult) ?? true) && excludeKnownUnsuccessful(testResult);
 
+const countKnownTestResults = (
+  testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
+  filter: (testResult: TestResult) => boolean = () => true,
+) => testResults.filter((testResult) => !testResult.isRetry && filter(testResult) && testResult.known).length;
+
+const addKnownCount = (statistic: Statistic, count: number): Statistic => {
+  if (!count) {
+    return statistic;
+  }
+
+  return {
+    ...statistic,
+    known: count,
+  };
+};
+
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
@@ -96,8 +112,12 @@ export class AwesomePlugin implements Plugin {
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const runSummary = getRunSummary(allTrs);
-    const statistics = await store.testsStatistic(filter);
-    const healthStatistics = await store.testsStatistic(combineWithHealthFilter(filter));
+    const knownTestsCount = countKnownTestResults(allTrs);
+    const statistics = addKnownCount(await store.testsStatistic(filter), knownTestsCount);
+    const healthStatistics = addKnownCount(
+      await store.testsStatistic(combineWithHealthFilter(filter)),
+      knownTestsCount,
+    );
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
     const healthEnvStatistics = new Map<string, Statistic>();
@@ -144,9 +164,13 @@ export class AwesomePlugin implements Plugin {
     await Promise.all(
       environments.map(async ({ id }) => {
         const envTrs = trsByEnvId.get(id) ?? [];
+        const envKnownTestsCount = countKnownTestResults(envTrs);
 
-        envStatistics.set(id, await statisticByTestResults(store, envTrs));
-        healthEnvStatistics.set(id, await statisticByTestResults(store, envTrs, excludeKnownUnsuccessful));
+        envStatistics.set(id, addKnownCount(await statisticByTestResults(store, envTrs), envKnownTestsCount));
+        healthEnvStatistics.set(
+          id,
+          addKnownCount(await statisticByTestResults(store, envTrs, excludeKnownUnsuccessful), envKnownTestsCount),
+        );
       }),
     );
 

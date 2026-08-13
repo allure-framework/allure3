@@ -5,7 +5,7 @@ import { TreeItemInfo } from "./index";
 
 describe("TreeItemInfo", () => {
   it("renders known issue marker", () => {
-    render(<TreeItemInfo known tooltips={{ known: "Known issue test result" }} />);
+    render(<TreeItemInfo known tooltips={{ known: "Known issue" }} />);
 
     expect(screen.getByTestId("tree-leaf-known")).not.toBeNull();
     expect(screen.getByTestId("tree-leaf-duration")).not.toBeNull();

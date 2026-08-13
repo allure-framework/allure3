@@ -1,9 +1,10 @@
-import { sanitizeExternalUrl } from "@allurereport/core-api";
-import { ArrowButton, Text, SvgIcon, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Text, SvgIcon, TreeItem, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeKnownIssue, AwesomeKnownIssueTestResult } from "types";
 
+import { TrLink } from "@/components/TestResult/TrLinks";
+import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 
 import * as styles from "./styles.scss";
@@ -43,6 +44,7 @@ const KnownIssuesItem: FunctionalComponent<{
 }> = ({ issue, showTests, testResults }) => {
   const hasTests = showTests && Boolean(testResults.length);
   const [isOpened, setIsOpened] = useState(true);
+  const { t: tTransitions } = useI18n("transitions");
   const toggle = () => setIsOpened((value) => !value);
 
   return (
@@ -68,45 +70,41 @@ const KnownIssuesItem: FunctionalComponent<{
           )}
           {Boolean(issue.links?.length) && (
             <div className={styles["known-issues-links"]}>
-              {issue.links?.map((link) => {
-                const safeUrl = sanitizeExternalUrl(link.url);
-                const label = link.name ?? link.url;
-
-                return safeUrl ? (
-                  <Text
-                    key={`${link.type ?? ""}:${link.url}`}
-                    className={styles["known-issues-link"]}
-                    href={safeUrl}
-                    rel="noopener noreferrer"
-                    tag="a"
-                    target="_blank"
-                  >
-                    {label}
-                  </Text>
-                ) : (
-                  <Text key={`${link.type ?? ""}:${link.url}`} className={styles["known-issues-link"]} tag="span">
-                    {label}
-                  </Text>
-                );
-              })}
+              {issue.links?.map((link) => (
+                <TrLink key={`${link.type ?? ""}:${link.url}`} link={link} />
+              ))}
             </div>
           )}
         </div>
       </div>
       {hasTests && isOpened && (
         <ul className={styles["known-issues-tests"]}>
-          {testResults.map((testResult) => (
-            <li key={testResult.id}>
-              <button
-                className={styles["known-issues-test"]}
-                onClick={() => navigateToTestResult({ testResultId: testResult.id })}
-                type="button"
-              >
-                <TreeItemIcon className={styles["known-issues-test-status"]} status={testResult.status} />
-                <span className={styles["known-issues-test-name"]}>{testResult.name}</span>
-              </button>
-            </li>
-          ))}
+          {testResults.map((testResult, index) => {
+            const tooltips = {
+              transition:
+                testResult.tooltips?.transition ??
+                (testResult.transition ? tTransitions(`description.${testResult.transition}`) : undefined),
+              flaky: testResult.tooltips?.flaky ?? (testResult.flaky ? tTransitions("description.flaky") : undefined),
+              known: testResult.tooltips?.known ?? (testResult.known ? tTransitions("description.known") : undefined),
+              retries:
+                testResult.tooltips?.retries ??
+                (testResult.retriesCount
+                  ? tTransitions("description.retries", { count: testResult.retriesCount })
+                  : undefined),
+            };
+
+            return (
+              <li key={testResult.id}>
+                <TreeItem
+                  {...testResult}
+                  id={`${issue.id}-${testResult.id}`}
+                  groupOrder={testResult.groupOrder ?? index + 1}
+                  navigateTo={() => navigateToTestResult({ testResultId: testResult.id })}
+                  tooltips={tooltips}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
     </li>

@@ -19,7 +19,10 @@
       "flaky_other": "{{count}}件の不安定テスト",
       "retry_zero": "再試行テストなし",
       "retry_one": "{{count}}件の再試行テスト",
-      "retry_other": "{{count}}件の再試行テスト"
+      "retry_other": "{{count}}件の再試行テスト",
+      "known_zero": "既知の問題があるテストなし",
+      "known_one": "既知の問題があるテスト {{count}} 件",
+      "known_other": "既知の問題があるテスト {{count}} 件"
     }
   },
   "ui": {

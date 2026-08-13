@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} անկայուն թեստ",
       "retry_zero": "Կրկնվող թեստեր չկան",
       "retry_one": "{{count}} կրկնվող թեստ",
-      "retry_other": "{{count}} կրկնվող թեստ"
+      "retry_other": "{{count}} կրկնվող թեստ",
+      "known_zero": "Հայտնի խնդիրներով թեստեր չկան",
+      "known_one": "{{count}} հայտնի խնդիրով թեստ",
+      "known_other": "{{count}} հայտնի խնդիրներով թեստ"
     }
   },
   "ui": {

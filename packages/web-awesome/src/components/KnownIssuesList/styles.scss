@@ -60,54 +60,17 @@
 .known-issues-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  column-gap: 24px;
+  row-gap: 4px;
   margin-top: 6px;
-}
-
-.known-issues-link {
-  color: var(--color-link-text);
-  font-size: 13px;
-  line-height: 16px;
-  text-decoration: none;
-
-  &:hover {
-    color: var(--color-link-text-hover);
-    text-decoration: underline;
-  }
 }
 
 .known-issues-tests {
   padding-left: 56px;
 }
 
-.known-issues-test {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 32px;
-  padding: 6px 8px 6px 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 300ms;
-
-  &:hover {
-    background: var(--color-control-bg-ghost-hover);
-  }
-}
-
-.known-issues-test-status {
-  flex: 0 0 auto;
-}
-
-.known-issues-test-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.known-issues-tests > li {
+  list-style: none;
 }
 
 .known-issues-empty {

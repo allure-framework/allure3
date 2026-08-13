@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} flaky tests",
       "retry_zero": "No retry tests",
       "retry_one": "{{count}} retry test",
-      "retry_other": "{{count}} retry tests"
+      "retry_other": "{{count}} retry tests",
+      "known_zero": "No known issue tests",
+      "known_one": "{{count}} known issue test",
+      "known_other": "{{count}} known issue tests"
     }
   },
   "ui": {

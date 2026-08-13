@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} test instabili",
       "retry_zero": "Nessun test ripetuto",
       "retry_one": "{{count}} test ripetuto",
-      "retry_other": "{{count}} test ripetuti"
+      "retry_other": "{{count}} test ripetuti",
+      "known_zero": "Nessun test con problemi noti",
+      "known_one": "{{count}} test con problema noto",
+      "known_other": "{{count}} test con problemi noti"
     }
   },
   "ui": {

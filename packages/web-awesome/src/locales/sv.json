@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Totalt",
     "flaky": "Ostadiga tester",
+    "known": "Tester med kända problem",
     "retries": "Omtagna tester",
     "new": "Nya tester"
   },
@@ -409,7 +410,7 @@
       "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
       "retries": "{{count}} omkörningar",
       "flaky": "Inkonsekvent mellan körningar",
-      "known": "Kända problem"
+      "known": "Känt problem"
     },
     "new": "Ny",
     "fixed": "Åtgärdad",

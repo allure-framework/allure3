@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} instabila tester",
       "retry_zero": "Inga upprepade tester",
       "retry_one": "{{count}} upprepat test",
-      "retry_other": "{{count}} upprepade tester"
+      "retry_other": "{{count}} upprepade tester",
+      "known_zero": "Inga tester med kända problem",
+      "known_one": "{{count}} test med känt problem",
+      "known_other": "{{count}} tester med kända problem"
     }
   },
   "ui": {

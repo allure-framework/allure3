@@ -25,9 +25,32 @@ vi.mock("@allurereport/web-components", () => ({
   Text: ({ children, tag: Tag = "div", ...rest }: { children: ComponentChildren; tag?: any }) => (
     <Tag {...rest}>{children}</Tag>
   ),
-  TreeItemIcon: ({ status }: { status: string }) => <span data-testid={`status-icon-${status}`} />,
+  TreeItem: ({
+    name,
+    status,
+    duration,
+    known,
+    navigateTo,
+  }: {
+    name: string;
+    status: string;
+    duration?: number;
+    known?: boolean;
+    navigateTo: () => void;
+  }) => (
+    <button aria-label={name} onClick={navigateTo} type="button">
+      <span data-testid={`status-icon-${status}`} />
+      {known && <span data-testid="known-marker" />}
+      <span>{name}</span>
+      {duration !== undefined && <span>{duration}</span>}
+    </button>
+  ),
   allureIcons: {
     lineKnownIssues: "known-issues-icon",
+    lineDevBug2: "bug-icon",
+    lineGeneralChecklist3: "tms-icon",
+    lineGeneralLink1: "link-icon",
+    github: "github-icon",
   },
 }));
 
@@ -57,8 +80,10 @@ describe("components > KnownIssues", () => {
             id: "tr-1",
             name: "checkout fails",
             status: "failed",
+            duration: 123,
             historyId: "history-1",
             flaky: false,
+            known: true,
             retry: false,
           },
         ],
@@ -80,6 +105,8 @@ describe("components > KnownIssues", () => {
     expect(screen.getByText("BUG-1 checkout issue")).toBeInTheDocument();
     expect(screen.getByText("BUG-1")).toHaveAttribute("href", "https://example.com/BUG-1");
     expect(screen.getByTestId("status-icon-failed")).toBeInTheDocument();
+    expect(screen.getByTestId("known-marker")).toBeInTheDocument();
+    expect(screen.getByText("123")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "collapse" }));
 

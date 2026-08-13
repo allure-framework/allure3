@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} kararsız test",
       "retry_zero": "Tekrar testi yok",
       "retry_one": "{{count}} tekrar testi",
-      "retry_other": "{{count}} tekrar testi"
+      "retry_other": "{{count}} tekrar testi",
+      "known_zero": "Bilinen sorunlu test yok",
+      "known_one": "{{count}} bilinen sorunlu test",
+      "known_other": "{{count}} bilinen sorunlu test"
     }
   },
   "ui": {

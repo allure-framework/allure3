@@ -100,16 +100,17 @@ describe("summary utils", () => {
     });
 
     expect(store.allCheckResults).toHaveBeenCalledTimes(1);
-    expect(store.allTestResults).toHaveBeenCalledWith({ filter });
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: false, filter });
     expect(historyReadHistory).toHaveBeenCalledWith({ branch: "" });
     expect(store.allNewTestResults).toHaveBeenCalledWith(filter, [{ branch: "main" }]);
-    expect(store.testsStatistic).toHaveBeenCalledWith(filter);
+    expect(store.testsStatistic).toHaveBeenCalledWith(expect.any(Function));
     expect(summary).toEqual({
       stats,
       status: getWorstStatus(allTrs.map(({ status }) => status)),
       newTests: ["n1", "n2"],
       flakyTests: ["t2"],
       retryTests: ["t1"],
+      knownTests: [],
       checks: [{ name: "lint", status: "passed" }],
       name: "summary-name",
       duration: 35,
@@ -117,6 +118,44 @@ describe("summary utils", () => {
       plugin: "summary-plugin",
       meta: { build: 1 },
     });
+  });
+
+  it("createPluginSummary excludes known unsuccessful tests from health stats and status", async () => {
+    const allTrs = [
+      testResult({ id: "known-failed", name: "known failed", status: "failed", known: true, duration: 10 }),
+      testResult({ id: "known-broken", name: "known broken", status: "broken", known: true, duration: 20 }),
+      testResult({ id: "passed", name: "passed", status: "passed", duration: 30 }),
+    ];
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue(allTrs),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => {
+        const filtered = allTrs.filter(filter);
+
+        return filtered.reduce(
+          (acc, tr) => {
+            acc[tr.status] = (acc[tr.status] ?? 0) + 1;
+            acc.total += 1;
+
+            return acc;
+          },
+          { total: 0 } as Record<string, number>,
+        );
+      }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+    };
+
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("passed");
+    expect(summary.stats).toEqual({ total: 1, passed: 1, known: 2 });
+    expect(summary.knownTests).toEqual(["known-failed", "known-broken"]);
   });
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
@@ -138,5 +177,6 @@ describe("summary utils", () => {
 
     expect(summary.status).toBe("passed");
     expect(store.allNewTestResults).toHaveBeenCalledWith(undefined, []);
+    expect(summary.knownTests).toEqual([]);
   });
 });

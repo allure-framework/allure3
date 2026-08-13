@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "合計",
     "flaky": "不安定なテスト",
+    "known": "既知の問題があるテスト",
     "retries": "再実行テスト",
     "new": "新しいテスト"
   },

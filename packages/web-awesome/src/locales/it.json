@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Totale",
     "flaky": "Test instabili",
+    "known": "Test con problemi noti",
     "retries": "Test ripetuti",
     "new": "Nuovi test"
   },
@@ -409,7 +410,7 @@
       "malfunctioned": "Test precedentemente \"superato\" o \"fallito\" che ora è \"danneggiato\"",
       "retries": "{{count}} tentativi",
       "flaky": "Incoerente tra le esecuzioni",
-      "known": "Problemi noti"
+      "known": "Problema noto"
     },
     "new": "Nuovi",
     "fixed": "Corretti",

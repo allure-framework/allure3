@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "總計",
     "flaky": "不穩定的測試",
+    "known": "已知問題測試",
     "retries": "重跑測試",
     "new": "新的測試"
   },

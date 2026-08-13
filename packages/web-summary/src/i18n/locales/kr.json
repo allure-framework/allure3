@@ -19,7 +19,10 @@
       "flaky_other": "{{count}}개의 불안정한 테스트",
       "retry_zero": "재시도 테스트 없음",
       "retry_one": "{{count}}개의 재시도 테스트",
-      "retry_other": "{{count}}개의 재시도 테스트"
+      "retry_other": "{{count}}개의 재시도 테스트",
+      "known_zero": "알려진 이슈가 있는 테스트 없음",
+      "known_one": "알려진 이슈가 있는 테스트 {{count}}개",
+      "known_other": "알려진 이슈가 있는 테스트 {{count}}개"
     }
   },
   "ui": {

@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} בדיקות לא יציבות",
       "retry_zero": "אין בדיקות חוזרות",
       "retry_one": "{{count}} בדיקה חוזרת",
-      "retry_other": "{{count}} בדיקות חוזרות"
+      "retry_other": "{{count}} בדיקות חוזרות",
+      "known_zero": "אין בדיקות עם בעיות ידועות",
+      "known_one": "{{count}} בדיקה עם בעיה ידועה",
+      "known_other": "{{count}} בדיקות עם בעיות ידועות"
     }
   },
   "ui": {

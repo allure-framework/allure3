@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Cəmi",
     "flaky": "Qeyri-sabit testlər",
+    "known": "Bilinən problemli testlər",
     "retries": "Təkrar testlər",
     "new": "Yeni testlər"
   },
@@ -409,7 +410,7 @@
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
       "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
-      "known": "Bilinən problemlər"
+      "known": "Bilinən problem"
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",

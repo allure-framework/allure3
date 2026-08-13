@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Wszystkie",
     "flaky": "Niestabilne testy",
+    "known": "Testy ze znanymi problemami",
     "retries": "Powtórzone testy",
     "new": "Nowe testy"
   },
@@ -417,7 +418,7 @@
       "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\"",
       "retries": "{{count}} ponowień",
       "flaky": "Niespójny pomiędzy uruchomieniami",
-      "known": "Znane problemy"
+      "known": "Znany problem"
     },
     "new": "Nowe",
     "fixed": "Naprawione",

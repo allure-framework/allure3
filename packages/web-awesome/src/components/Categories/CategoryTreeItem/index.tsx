@@ -290,6 +290,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
               node.tooltips?.transition ??
               (node.transition ? tTransitions(`description.${node.transition}`) : undefined),
             flaky: node.tooltips?.flaky ?? (node.flaky ? tTransitions("description.flaky") : undefined),
+            known: node.tooltips?.known ?? (node.known ? tTransitions("description.known") : undefined),
             retries:
               node.tooltips?.retries ??
               (node.retriesCount ? tTransitions("description.retries", { count: node.retriesCount }) : undefined),

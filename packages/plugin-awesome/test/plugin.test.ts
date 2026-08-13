@@ -128,6 +128,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        knownTests: [],
         checks: [],
         meta: {
           reportId: fixtures.context.reportUuid,
@@ -157,6 +158,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        knownTests: [],
         checks: [],
         meta: {
           reportId: fixtures.context.reportUuid,
@@ -190,6 +192,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        knownTests: [],
         checks: [
           {
             name: fixtures.checkResults[0].name,
@@ -507,6 +510,7 @@ describe("plugin", () => {
         passed: 1,
         failed: 2,
         broken: 1,
+        known: 2,
       });
       expect(JSON.parse(addedFiles.get("widgets/pie_chart.json")!.toString("utf-8"))).toEqual({
         percentage: 50,

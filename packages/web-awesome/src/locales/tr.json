@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Toplam",
     "flaky": "İstikrarsız Testler",
+    "known": "Bilinen sorunlu testler",
     "retries": "Yinelenen Testler",
     "new": "Yeni Testler"
   },
@@ -409,7 +410,7 @@
       "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\"",
       "retries": "{{count}} yeniden deneme",
       "flaky": "Çalıştırmalar arasında tutarsız",
-      "known": "Bilinen sorunlar"
+      "known": "Bilinen sorun"
     },
     "new": "Yeni",
     "fixed": "Düzeltildi",

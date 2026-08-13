@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Totaal",
     "flaky": "Onstabiele tests",
+    "known": "Tests met bekende problemen",
     "retries": "Herhaalde tests",
     "new": "Nieuwe tests"
   },
@@ -409,7 +410,7 @@
       "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
       "retries": "{{count}} pogingen",
       "flaky": "Inconsistent tussen runs",
-      "known": "Bekende problemen"
+      "known": "Bekend probleem"
     },
     "new": "Nieuw",
     "fixed": "Opgelost",

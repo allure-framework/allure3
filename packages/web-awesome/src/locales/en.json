@@ -13,6 +13,7 @@
   "testSummary": {
     "total": "Total",
     "flaky": "Flaky tests",
+    "known": "Known issue tests",
     "retries": "Retried tests",
     "new": "New tests"
   },
@@ -470,7 +471,7 @@
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
       "flaky": "Inconsistent across runs",
-      "known": "Known issues"
+      "known": "Known issue"
     },
     "new": "new",
     "fixed": "fixed",

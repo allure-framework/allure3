@@ -19,7 +19,10 @@
       "flaky_other": "{{count}} 个不稳定测试",
       "retry_zero": "无重试测试",
       "retry_one": "{{count}} 个重试测试",
-      "retry_other": "{{count}} 个重试测试"
+      "retry_other": "{{count}} 个重试测试",
+      "known_zero": "无已知问题测试",
+      "known_one": "{{count}} 个已知问题测试",
+      "known_other": "{{count}} 个已知问题测试"
     }
   },
   "ui": {

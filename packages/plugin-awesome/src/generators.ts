@@ -201,8 +201,12 @@ const knownIssueTestResultFactory = ({
   start,
   historyId,
   flaky,
+  known,
   retry,
   retriesCount,
+  groupOrder,
+  transition,
+  tooltips,
 }: AwesomeTestResult): AwesomeKnownIssueTestResult => ({
   id,
   name,
@@ -212,8 +216,12 @@ const knownIssueTestResultFactory = ({
   start,
   historyId,
   flaky,
+  known,
   retry,
   retriesCount,
+  groupOrder,
+  transition,
+  tooltips,
 });
 
 export const generateKnownIssues = async (

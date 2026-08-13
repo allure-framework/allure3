@@ -116,7 +116,19 @@ export type AwesomeTestResult = Omit<
 
 export type AwesomeKnownIssueTestResult = Pick<
   AwesomeTestResult,
-  "id" | "name" | "fullName" | "status" | "duration" | "historyId" | "flaky" | "retry" | "retriesCount"
+  | "id"
+  | "name"
+  | "fullName"
+  | "status"
+  | "duration"
+  | "historyId"
+  | "flaky"
+  | "known"
+  | "retry"
+  | "retriesCount"
+  | "groupOrder"
+  | "transition"
+  | "tooltips"
 > & {
   start?: number;
 };
