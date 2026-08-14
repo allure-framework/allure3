@@ -1,18 +1,26 @@
-import { signal } from "@preact/signals";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import type { ComponentChildren } from "preact";
 import type { AwesomeKnownIssues, AwesomeTestResult } from "types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-beforeEach(() => {
-  vi.resetModules();
-});
+import { ReportKnownIssues } from "@/components/ReportKnownIssues";
+import { TrKnownIssuesView } from "@/components/TestResult/TrKnownIssues";
 
 afterEach(() => {
   cleanup();
 });
 
 const navigateToTestResultMock = vi.hoisted(() => vi.fn());
+const knownIssuesStoreMock = vi.hoisted(() => ({
+  value: {
+    loading: false,
+    error: undefined,
+    data: {
+      issues: [],
+      testResultsByIssueId: {},
+    },
+  },
+}));
 
 vi.mock("@allurereport/web-components", () => ({
   ArrowButton: ({ isOpened, onClick }: { isOpened: boolean; onClick: () => void }) => (
@@ -60,12 +68,34 @@ vi.mock("@/stores", () => ({
   }),
 }));
 
+vi.mock("@/stores/locale", () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+vi.mock("@/stores/knownIssues", () => ({
+  knownIssuesStore: knownIssuesStoreMock,
+}));
+
 vi.mock("@/stores/router", () => ({
   navigateToTestResult: navigateToTestResultMock,
 }));
 
+beforeEach(() => {
+  navigateToTestResultMock.mockClear();
+  knownIssuesStoreMock.value = {
+    loading: false,
+    error: undefined,
+    data: {
+      issues: [],
+      testResultsByIssueId: {},
+    },
+  };
+});
+
 describe("components > KnownIssues", () => {
-  it("should render report-level known issues and navigate to linked test result", async () => {
+  it("should render report-level known issues and navigate to linked test result", () => {
     const knownIssuesData: AwesomeKnownIssues = {
       issues: [
         {
@@ -90,15 +120,11 @@ describe("components > KnownIssues", () => {
       },
     };
 
-    vi.doMock("@/stores/knownIssues", () => ({
-      knownIssuesStore: signal({
-        loading: false,
-        error: undefined,
-        data: knownIssuesData,
-      }),
-    }));
-
-    const { ReportKnownIssues } = await import("@/components/ReportKnownIssues");
+    knownIssuesStoreMock.value = {
+      loading: false,
+      error: undefined,
+      data: knownIssuesData,
+    };
 
     render(<ReportKnownIssues />);
 
@@ -119,8 +145,7 @@ describe("components > KnownIssues", () => {
     expect(navigateToTestResultMock).toHaveBeenCalledWith({ testResultId: "tr-1" });
   });
 
-  it("should render known issue tab content for a test result", async () => {
-    const { TrKnownIssuesView } = await import("@/components/TestResult/TrKnownIssues");
+  it("should render known issue tab content for a test result", () => {
     const testResult = {
       id: "tr-1",
       name: "checkout fails",
