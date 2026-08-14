@@ -6,6 +6,7 @@ import { useMemo, useRef } from "preact/hooks";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
+import { TestResultLoader } from "@/components/TestResultLoader";
 import { useI18n } from "@/stores";
 import { isSplitMode } from "@/stores/layout";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
@@ -21,14 +22,6 @@ const MainReportWrapper = () => {
   return (
     <div className={styles.wrapper} ref={containerRef} data-tree-scroll-container>
       <MainReport />
-    </div>
-  );
-};
-
-const Loader = () => {
-  return (
-    <div className={styles.content}>
-      <PageLoader />
     </div>
   );
 };
@@ -50,14 +43,14 @@ export const SplitLayout = () => {
     return isTestResultRoute.value ? (
       <Loadable
         source={testResultStore}
-        renderLoader={() => <Loader />}
+        renderLoader={() => <TestResultLoader />}
         transformData={(allResults) => {
           if (testResultId in allResults) {
             return allResults[testResultId];
           }
         }}
         renderData={(tr) => {
-          return tr ? <TestResult testResult={tr} /> : <Loader />;
+          return tr ? <TestResult testResult={tr} /> : <TestResultLoader />;
         }}
       />
     ) : (

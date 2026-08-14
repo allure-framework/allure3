@@ -10,6 +10,7 @@ import type {
   TreeData,
   WithChildren,
 } from "@allurereport/core-api";
+import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 
 export type Layout = "base" | "split";
 export type StepTreeExpansion = "collapsed" | "expand_failed_only" | "expanded";
@@ -119,6 +120,12 @@ export type AwesomeTreeLeaf = Pick<
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
 export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+
+export type AwesomeQualityGateValidationResult = QualityGateValidationResult & {
+  testResultsTree?: AwesomeTree;
+};
+
+export type AwesomeQualityGateResults = Record<string, AwesomeQualityGateValidationResult[]>;
 
 export type AwesomeSearchDocument = {
   id: string;

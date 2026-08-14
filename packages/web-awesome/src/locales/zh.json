@@ -138,6 +138,7 @@
     "category": "分类",
     "description": "描述",
     "links": "链接",
+    "relatedTestResults": "相关测试结果（{{count}}）",
     "overview": "概览",
     "history": "历史",
     "attachments": "附件",

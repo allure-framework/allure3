@@ -3,6 +3,8 @@ import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 
+import { appLoaderFaviconDataUri, appLoaderLogoSvg, appLoaderStyles } from "@allurereport/core-api";
+
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -151,6 +153,11 @@ export default (env, argv) => {
         template: "src/index.html",
         inject: "body",
         scriptLoading: "defer",
+        templateParameters: {
+          appLoaderFaviconDataUri,
+          appLoaderLogoSvg,
+          appLoaderStyles,
+        },
       }),
     );
   }

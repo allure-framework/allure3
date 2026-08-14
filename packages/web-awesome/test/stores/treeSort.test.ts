@@ -1,5 +1,5 @@
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "ALLURE_REPORT_SORT_BY";
 
@@ -11,6 +11,10 @@ beforeEach(async () => {
 });
 
 describe("stores > treeSort", () => {
+  beforeAll(async () => {
+    await import("../../src/stores/treeSort.js");
+  });
+
   beforeEach(() => {
     vi.resetModules();
     localStorage.clear();

@@ -138,6 +138,7 @@
     "category": "კატეგორია",
     "description": "აღწერა",
     "links": "ბმულები",
+    "relatedTestResults": "დაკავშირებული ტესტის შედეგები ({{count}})",
     "overview": "მიმოხილვა",
     "history": "ისტორია",
     "attachments": "დანართები",

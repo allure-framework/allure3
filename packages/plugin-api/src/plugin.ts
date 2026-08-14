@@ -55,9 +55,13 @@ export interface PluginContext {
 }
 
 /**
- * Reduced test result information that can be used in the summary
+ * Reduced test result information shared by report integrations.
  */
-export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+export type TestResultSummary = Pick<TestResult, "id" | "name" | "duration" | "status">;
+
+export interface TestResultRegistry {
+  byId: Record<string, TestResultSummary>;
+}
 
 /**
  * Reduced check result information that can be used in the summary
@@ -77,9 +81,9 @@ export interface PluginSummary {
   duration: number;
   plugin?: string;
   pluginId?: string;
-  newTests?: SummaryTestResult[];
-  flakyTests?: SummaryTestResult[];
-  retryTests?: SummaryTestResult[];
+  newTests?: string[];
+  flakyTests?: string[];
+  retryTests?: string[];
   checks?: SummaryCheckResult[];
   createdAt?: number;
   /**

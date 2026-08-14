@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-components",
-  "version": "3.14.3",
+  "version": "3.15.0",
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",
@@ -94,7 +94,7 @@
     "@nivo/scales": "^0.99.0",
     "@preact/preset-vite": "^2.9.4",
     "@rollup/plugin-alias": "^6.0.0",
-    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-json": "^6.1.0",
@@ -110,7 +110,7 @@
     "@storybook/preact-webpack5": "^8.6.17",
     "@storybook/preset-scss": "^1.0.3",
     "@storybook/react": "^10.5.3",
-    "@storybook/test": "^8.6.17",
+    "@storybook/test": "^8.6.18",
     "@storybook/theming": "^8.6.17",
     "@storybook/types": "^8.6.17",
     "@svgr/rollup": "^8.1.0",

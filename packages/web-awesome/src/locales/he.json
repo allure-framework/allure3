@@ -138,6 +138,7 @@
     "category": "קטגוריה",
     "description": "תיאור",
     "links": "קישורים",
+    "relatedTestResults": "תוצאות בדיקה קשורות ({{count}})",
     "overview": "סקירה כללית",
     "history": "היסטוריה",
     "attachments": "קבצים מצורפים",

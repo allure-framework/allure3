@@ -138,6 +138,7 @@
     "category": "カテゴリ",
     "description": "説明",
     "links": "リンク",
+    "relatedTestResults": "関連するテスト結果（{{count}}）",
     "overview": "概要",
     "history": "履歴",
     "attachments": "添付ファイル",

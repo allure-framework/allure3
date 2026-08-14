@@ -29,6 +29,7 @@ import {
   type PluginSummary,
   type ReportFiles,
   type ResultFile,
+  createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -63,6 +64,7 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
+const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -125,6 +127,7 @@ export class AllureReport {
   #executionStage: "init" | "running" | "done" = "init";
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
+  #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
   #published = false;
@@ -263,6 +266,7 @@ export class AllureReport {
       this.#historyDataPoint = historyPoint;
     }
 
+    await this.#writeTestResultRegistry();
     await this.#writeSummaryFiles();
     await this.#generateRootSummary();
 
@@ -285,7 +289,9 @@ export class AllureReport {
     const summariesSnapshot = this.#cloneSummariesByPluginId();
     const uploadProgressMessage =
       reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
-    const totalFilesToUpload = reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0);
+    const totalFilesToUpload =
+      reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0) +
+      (this.#testResultsRegistryPath ? 1 : 0);
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
@@ -328,6 +334,16 @@ export class AllureReport {
         if (uploadResult.indexHref) {
           linksByPluginId[report.pluginId] = uploadResult.indexHref;
         }
+      }
+
+      if (this.#testResultsRegistryPath) {
+        publishErrorMessage = "Test results registry upload has failed, the report won't be published";
+
+        await client.uploadReport({
+          reportUuid: this.reportUuid,
+          files: { [TEST_RESULTS_REGISTRY_FILENAME]: this.#testResultsRegistryPath },
+          onProgress: incrementUploadProgress,
+        });
       }
 
       const changedPluginIds = this.#applyPublishLinksToSummaries(linksByPluginId);
@@ -416,7 +432,7 @@ export class AllureReport {
 
       try {
         const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
-          .filter((dirent) => dirent.isFile())
+          .filter((dirent) => dirent.isFile() && !dirent.name.endsWith(".tmp"))
           .sort((a, b) => a.name.localeCompare(b.name));
         const limit = pLimit(readConcurrency());
 
@@ -1006,6 +1022,16 @@ export class AllureReport {
     });
   };
 
+  #writeTestResultRegistry = async (): Promise<void> => {
+    const testResults = await this.#store.allTestResults({ includeRetries: false });
+    const registry = createTestResultRegistry(testResults);
+
+    this.#testResultsRegistryPath = await this.#reportFiles.addFile(
+      TEST_RESULTS_REGISTRY_FILENAME,
+      Buffer.from(JSON.stringify(registry)),
+    );
+  };
+
   #generateRootSummary = async (): Promise<void> => {
     const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
@@ -1095,16 +1121,21 @@ export class AllureReport {
         return;
       }
 
-      const reportPath = join(this.#output, outputDirFiles[0]);
-      const reportStats = await lstat(reportPath);
-      const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
-      const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
+      const outputEntries = await Promise.all(
+        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+      );
+      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-      if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
+      if (outputDirectoryEntries.length === 1) {
+        const reportPath = join(this.#output, outputDirectoryEntries[0].file);
         const reportContent = await readdir(reportPath);
 
         for (const entry of reportContent) {
+          if (entry === TEST_RESULTS_REGISTRY_FILENAME) {
+            continue;
+          }
+
           const currentFilePath = join(reportPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 

@@ -14,6 +14,8 @@ import type { I18nProp, ReportSummary } from "./model";
 
 import styles from "./styles.scss";
 
+export type { ReportSummary } from "./model";
+
 export type ReportSummaryCardProps = {
   i18n: I18nProp;
   summary: ReportSummary;
