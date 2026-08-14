@@ -4,6 +4,7 @@ import { computed, signal } from "@preact/signals";
 import type { AwesomeStatus } from "types";
 
 import {
+  clearTreeFilterParams,
   setCategoriesFilter,
   setFlakyFilter,
   setQueryFilter,
@@ -33,6 +34,7 @@ import {
 
 export const treeTags = signal<string[]>([]);
 export const treeCategories = signal<string[]>([]);
+export const treeFiltersResetNonce = signal(0);
 
 const hasTreeTags = computed(() => treeTags.value.length > 0);
 const hasTreeCategories = computed(() => treeCategories.value.length > 0);
@@ -289,11 +291,6 @@ export const setTreeStatus = (status: AwesomeStatus) => {
 };
 
 export const clearTreeFilters = () => {
-  setQueryFilter("");
-  setRetryFilter(false);
-  setFlakyFilter(false);
-  setTransitionFilter([]);
-  setTagsFilter([]);
-  setCategoriesFilter([]);
-  setStatusFilter();
+  treeFiltersResetNonce.value += 1;
+  clearTreeFilterParams();
 };

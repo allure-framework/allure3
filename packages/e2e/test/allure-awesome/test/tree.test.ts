@@ -211,6 +211,7 @@ test.describe("commons", () => {
   test("should clear all active filters with one action", async ({ page }) => {
     await treePage.clickTreeTab("failed");
     await treePage.searchTree("Assertion error");
+    await expect(page).toHaveURL(/[?&]query=/);
     await expect(treePage.leafLocator).toHaveCount(1);
     await expect(treePage.clearFiltersButtonLocator).toBeVisible();
 
