@@ -15,6 +15,8 @@ export const getDefinitionID = (): string => getEnv("SYSTEM_DEFINITIONID");
 
 export const getProjectID = (): string => getEnv("SYSTEM_TEAMPROJECTID");
 
+export const isClassicRelease = (): boolean => !!getEnv("RELEASE_RELEASEID");
+
 const mapAzureRepositoryProvider = (provider: string): GitProvider | undefined => {
   switch (provider) {
     case "GitHub":
@@ -90,18 +92,34 @@ export const azure: CiDescriptor = {
   },
 
   get jobName(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_DEFINITIONNAME");
+    }
+
     return getEnv("BUILD_DEFINITIONNAME");
   },
 
   get jobRunUid(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASEID");
+    }
+
     return getBuildID();
   },
 
   get jobRunUrl(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASEWEBURL");
+    }
+
     return `${getRootURL()}/${getProjectID()}/_build/results?buildId=${getBuildID()}`;
   },
 
   get jobRunName(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASENAME");
+    }
+
     return getEnv("BUILD_BUILDNUMBER");
   },
 
