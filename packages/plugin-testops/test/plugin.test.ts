@@ -1332,6 +1332,51 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith([secondError], expect.any(Function));
     });
 
+    it("should not drop or duplicate errors when several arrive across multiple update cycles", async () => {
+      const errorA = { message: "Error A" };
+      const errorB = { message: "Error B" };
+      const errorC = { message: "Error C" };
+      const errorD = { message: "Error D" };
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([errorA]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith([errorA], expect.any(Function));
+
+      // two new errors land before the next update — neither should be dropped
+      vi.clearAllMocks();
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([errorA, errorB, errorC]);
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(
+        [errorB, errorC],
+        expect.any(Function),
+      );
+
+      // another update with no new errors — nothing already uploaded should repeat
+      vi.clearAllMocks();
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
+
+      // one more new error on top of the earlier three
+      vi.clearAllMocks();
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 3));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([errorA, errorB, errorC, errorD]);
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith([errorD], expect.any(Function));
+    });
+
     it("should retry global errors on a later update after upload failure", async () => {
       const globalErrors = [{ message: "Something went wrong" }];
 
