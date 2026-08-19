@@ -1,5 +1,5 @@
 import { useComputed, useSignal } from "@preact/signals";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize.js";
 import type { ComponentChild } from "preact";
 import { useRef } from "preact/hooks";
 

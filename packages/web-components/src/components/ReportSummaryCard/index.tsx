@@ -1,7 +1,7 @@
 import type { Statistic, TestStatus } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import { getPieChartValues } from "@allurereport/web-commons";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize.js";
 import { useMemo } from "preact/hooks";
 
 import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
