@@ -1,5 +1,5 @@
 import { batch, useSignal } from "@preact/signals";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce.js";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
