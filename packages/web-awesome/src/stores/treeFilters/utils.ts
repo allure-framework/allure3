@@ -80,6 +80,18 @@ export const migrateFilterParam = () => {
   goTo(currentUrl, { replace: true });
 };
 
+export const hasActiveFilters = (filters: Filters): boolean => {
+  return !!(
+    filters.query?.trim() ||
+    filters.status ||
+    filters.flaky ||
+    filters.retry ||
+    (filters.transition && filters.transition.length > 0) ||
+    (filters.tags && filters.tags.length > 0) ||
+    (filters.categories && filters.categories.length > 0)
+  );
+};
+
 export const constructFilterParams = (filters: Filters) => {
   const params = new URLSearchParams();
 
