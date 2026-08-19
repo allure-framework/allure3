@@ -617,6 +617,24 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
     });
 
+    it("should upload global errors and attachments without test results outside real-time mode", async () => {
+      const globalErrors = [{ message: "Something went wrong" }];
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue(globalErrors);
+      AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith(
+        expect.objectContaining({ attachments: fixtures.attachments }),
+      );
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+    });
+
     it("should call allEnvironmentIdentities from the store during upload", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([
@@ -1138,8 +1156,8 @@ describe("testops plugin", () => {
 
     it("should announce newly found test results before uploading them", async () => {
       // the outer beforeEach stubs the log level to "silent", and Logger reads the level once at
-      // construction time — so a plugin built after re-stubbing to "info" is needed here.
-      vi.stubEnv("ALLURE_LOG_LEVEL", "info");
+      // construction time — so a plugin built after re-stubbing to "verbose" is needed here.
+      vi.stubEnv("ALLURE_LOG_LEVEL", "verbose");
 
       const loudPlugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
@@ -1148,7 +1166,7 @@ describe("testops plugin", () => {
 
       await loudPlugin.start({} as PluginContext, store);
 
-      const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
@@ -1158,11 +1176,38 @@ describe("testops plugin", () => {
       await loudPlugin.update({} as PluginContext, store);
 
       // eslint-disable-next-line no-control-regex
-      const plainCalls = consoleInfoSpy.mock.calls.map(([message]) => String(message).replace(/\x1B\[\d+m/g, ""));
+      const plainCalls = consoleLogSpy.mock.calls.map(([message]) => String(message).replace(/\x1B\[\d+m/g, ""));
 
       expect(plainCalls).toContainEqual(expect.stringContaining("Found 2 new test results, uploading"));
 
-      consoleInfoSpy.mockRestore();
+      consoleLogSpy.mockRestore();
+    });
+
+    it("should defer global errors and attachments until done in real-time mode", async () => {
+      const globalErrors = [{ message: "Something went wrong" }];
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue(globalErrors);
+      AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({ realTime: true } as PluginContext, store);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+
+      await plugin.update({ realTime: true } as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).not.toHaveBeenCalled();
+
+      await plugin.done({ realTime: true } as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith(
+        expect.objectContaining({ attachments: fixtures.attachments }),
+      );
     });
 
     it("should not re-upload the same global attachment on subsequent update calls", async () => {

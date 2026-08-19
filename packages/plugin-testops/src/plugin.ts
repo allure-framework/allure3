@@ -2,7 +2,13 @@ import { env } from "node:process";
 
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { createProgressLogger } from "@allurereport/cli-commons";
-import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
+import type {
+  CategoryDefinition,
+  EnvironmentIdentity,
+  GlobalAttachmentLink,
+  TestError,
+  TestStatus,
+} from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
@@ -193,11 +199,7 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #uploadGlobalErrors(store: AllureStore) {
-    const allResults = await store.allGlobalErrors();
-    const lastResult = allResults.at(-1);
-    const results = lastResult ? [lastResult] : [];
-
+  async #uploadGlobalErrors(results: TestError[]) {
     if (results.length === 0) {
       this.#logger.verbose("No new global errors to upload");
       return;
@@ -239,10 +241,7 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #uploadGlobalAttachments(store: AllureStore) {
-    const allAttachments = await store.allGlobalAttachments();
-    const attachments = allAttachments.filter((attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id));
-
+  async #uploadGlobalAttachments(store: AllureStore, attachments: GlobalAttachmentLink[]) {
     if (attachments.length === 0) {
       this.#logger.debug("No new global attachments to upload");
       return;
@@ -367,6 +366,22 @@ export class TestOpsPlugin implements Plugin {
   ) {
     const { context, stage } = options;
     const trsToUpload = await this.#trsToUpload(store);
+    const shouldUploadGlobalArtifacts = stage === "done" || !context?.realTime;
+    let globalErrors: TestError[] = [];
+    let globalAttachments: GlobalAttachmentLink[] = [];
+
+    if (shouldUploadGlobalArtifacts) {
+      const [allGlobalErrors, allGlobalAttachments] = await Promise.all([
+        store.allGlobalErrors(),
+        store.allGlobalAttachments(),
+      ]);
+      const lastGlobalError = allGlobalErrors.at(-1);
+
+      globalErrors = lastGlobalError ? [lastGlobalError] : [];
+      globalAttachments = allGlobalAttachments.filter(
+        (attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id),
+      );
+    }
 
     if (trsToUpload.length === 0) {
       if (stage == "update") {
@@ -377,10 +392,12 @@ export class TestOpsPlugin implements Plugin {
         this.#logger.verbose("No test results to upload");
       }
 
-      return;
+      if (globalErrors.length === 0 && globalAttachments.length === 0) {
+        return;
+      }
     }
 
-    if (stage === "update") {
+    if (stage === "update" && trsToUpload.length > 0) {
       this.#logger.verbose(
         `Found ${bold(trsToUpload.length.toString())} new test ${trsToUpload.length > 1 ? "results" : "result"}, uploading…`,
       );
@@ -401,8 +418,13 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    await this.#uploadGlobalAttachments(store);
-    await this.#uploadGlobalErrors(store);
+    await this.#uploadGlobalAttachments(store, globalAttachments);
+    await this.#uploadGlobalErrors(globalErrors);
+
+    if (trsToUpload.length === 0) {
+      return;
+    }
+
     await this.#uploadQualityGateResults(store);
 
     const environments = await store.allEnvironmentIdentities();
