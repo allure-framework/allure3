@@ -1272,7 +1272,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledTimes(2);
     });
 
-    it("should upload the latest global error on subsequent update calls", async () => {
+    it("should not re-upload the same global errors on subsequent update calls", async () => {
       const globalErrors = [{ message: "Something went wrong" }];
 
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
@@ -1290,10 +1290,10 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
     });
 
-    it("should upload only the latest global error when several are pending", async () => {
+    it("should upload all pending global errors, not just the last one", async () => {
       const firstError = { message: "First error" };
       const lastError = { message: "Last error" };
 
@@ -1305,7 +1305,10 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith([lastError], expect.any(Function));
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(
+        [firstError, lastError],
+        expect.any(Function),
+      );
     });
 
     it("should upload only newly added global errors on subsequent update calls", async () => {
