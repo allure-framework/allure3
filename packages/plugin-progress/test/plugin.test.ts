@@ -1,10 +1,12 @@
+import console from "node:console";
 import { PassThrough } from "node:stream";
 
 import type { AllureStore, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgressPlugin } from "../src/plugin.js";
+import { Terminal } from "../src/terminal.js";
 
 beforeEach(async () => {
   await story("plugin");
@@ -122,6 +124,48 @@ describe("ProgressPlugin", () => {
     expect(store.callCount()).toBeLessThan(30);
   });
 
+  it("contains render failures and continues processing later updates", async () => {
+    const { stream } = createTtyStream();
+    const store = createFakeStore();
+    const { realtime, fireTestResults } = createRealtime();
+    const plugin = new ProgressPlugin({ stream: stream as any, minRenderIntervalMs: 0 });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const originalTestsStatistic = store.testsStatistic;
+
+    store.testsStatistic = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("store unavailable"))
+      .mockImplementation(originalTestsStatistic);
+
+    await plugin.start({} as PluginContext, store, realtime);
+
+    fireTestResults();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    fireTestResults();
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith("can't render progress", expect.any(Error));
+    expect(store.testsStatistic).toHaveBeenCalledTimes(3);
+  });
+
+  it("detaches the stream interceptor when the final render fails", async () => {
+    const { stream } = createTtyStream();
+    const originalWrite = stream.write;
+    const plugin = new ProgressPlugin({ stream: stream as any, minRenderIntervalMs: 0 });
+    const patchedWrite = stream.write;
+    const store = {
+      testsStatistic: vi.fn().mockRejectedValue(new Error("store unavailable")),
+    } as unknown as AllureStore;
+
+    await expect(plugin.done({} as PluginContext, store)).rejects.toThrow("store unavailable");
+
+    expect(patchedWrite).not.toBe(originalWrite);
+    expect(stream.write).not.toBe(patchedWrite);
+  });
+
   it("terminates the in-place line before foreign output so it never glues on", async () => {
     const { stream, getOutput } = createTtyStream();
     const store = createFakeStore();
@@ -168,5 +212,20 @@ describe("ProgressPlugin", () => {
 
     expect(lines.length).toBeGreaterThan(0);
     expect(lines.at(-1)).toContain("total: 5");
+  });
+});
+
+describe("Terminal", () => {
+  it("keeps the shared stream interceptor until the last terminal detaches", () => {
+    const { stream, getOutput } = createTtyStream();
+    const first = new Terminal(stream as any);
+    const second = new Terminal(stream as any);
+
+    first.write("progress");
+    second.detach();
+    stream.write("foreign\n");
+    first.detach();
+
+    expect(getOutput()).toContain("progress\nforeign\n");
   });
 });

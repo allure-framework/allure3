@@ -1,3 +1,4 @@
+import console from "node:console";
 import { createHash, randomUUID } from "node:crypto";
 import { Dirent, createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
@@ -432,7 +433,7 @@ describe("findMatching", () => {
     controller.abort();
 
     const result = new Set<string>();
-    await findMatching(
+    const completed = await findMatching(
       fixturesDir,
       result,
       (dirent) => dirent.isDirectory() && dirent.name.startsWith("allure-results"),
@@ -440,7 +441,18 @@ describe("findMatching", () => {
       controller.signal,
     );
 
+    expect(completed).toBe(false);
     expect(result.size).toEqual(0);
+  });
+
+  it("reports an incomplete scan after a directory read error", async () => {
+    const file = await randomFile(fixturesDir);
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const result = new Set<string>();
+    const completed = await findMatching(file, result, () => false);
+
+    expect(completed).toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledWith("can't read directory", expect.any(Error));
   });
 });
 

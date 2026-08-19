@@ -34,11 +34,19 @@ function getLogLevelFromEnv(): LogLevel {
 }
 
 export class Logger {
-  #level: LogLevel = getLogLevelFromEnv();
+  #level: LogLevel;
   #prefix: string;
 
-  constructor(private readonly loggerName: string) {
+  constructor(
+    private readonly loggerName: string,
+    logLevel?: LogLevel,
+  ) {
+    this.#level = logLevel ?? getLogLevelFromEnv();
     this.#prefix = cyan(bold(`[${this.loggerName}]:`));
+  }
+
+  setLogLevel(logLevel: LogLevel) {
+    this.#level = logLevel;
   }
 
   #isLogLevel(level: LogLevel) {

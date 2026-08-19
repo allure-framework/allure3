@@ -60,7 +60,7 @@ const BULK_UPLOAD_CHUNK_SIZE = 1000;
 const MAX_REQUEST_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 500;
 
-const axiosCause = (error: unknown) => {
+const getAxiosCause = (error: unknown) => {
   if (isAxiosError(error)) {
     return error;
   }
@@ -69,7 +69,7 @@ const axiosCause = (error: unknown) => {
 };
 
 const isRetryableRequestError = (error: unknown): boolean => {
-  const cause = axiosCause(error);
+  const cause = getAxiosCause(error);
 
   if (!cause || cause.code === "ERR_CANCELED" || cause.name === "CanceledError") {
     return false;
@@ -81,7 +81,7 @@ const isRetryableRequestError = (error: unknown): boolean => {
 };
 
 const retryAfterMs = (error: unknown): number | undefined => {
-  const headers = axiosCause(error)?.response?.headers;
+  const headers = getAxiosCause(error)?.response?.headers;
   const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
   const normalized = Array.isArray(value) ? value[0] : value;
 
@@ -399,6 +399,7 @@ export class TestOpsClient {
 
     const launchId = this.#launch.id;
     const formData = new FormData();
+    let hasResolvedAttachments = false;
 
     for (const attachmentLink of attachments) {
       const attachment = await attachmentsResolver(attachmentLink);
@@ -411,20 +412,25 @@ export class TestOpsClient {
         filename: attachment.originalFileName,
         contentType: attachment.contentType,
       });
+      hasResolvedAttachments = true;
     }
 
-    await retryRequest(() =>
-      this.#client.post("/api/launch/attachment", {
-        body: formData,
-        onUploadProgress(progressEvent) {
-          const total = progressEvent.total ?? 100;
-          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-          onProgress?.(percent, total);
-        },
-        params: { launchId },
-        headers: formData.getHeaders(),
-      }),
-    );
+    if (!hasResolvedAttachments) {
+      return;
+    }
+
+    // FormData consumes its streams when sent and cannot be replayed safely by retryRequest.
+    await this.#client.post("/api/launch/attachment", {
+      body: formData,
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+
+        onProgress?.(percent, total);
+      },
+      params: { launchId },
+      headers: formData.getHeaders(),
+    });
   }
 
   async uploadGlobalErrors(errors: TestError[], onProgress?: (percent: number, total: number) => void) {
@@ -438,19 +444,18 @@ export class TestOpsClient {
 
     const launchId = this.#launch.id;
 
-    await retryRequest(() =>
-      this.#client.post("/api/launch/error/bulk", {
-        body: {
-          launchId,
-          items: errors,
-        },
-        onUploadProgress(progressEvent) {
-          const total = progressEvent.total ?? 100;
-          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
-          onProgress?.(percent, total);
-        },
-      }),
-    );
+    await this.#client.post("/api/launch/error/bulk", {
+      body: {
+        launchId,
+        items: errors,
+      },
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+
+        onProgress?.(percent, total);
+      },
+    });
   }
 
   async uploadTestResults(params: {
@@ -619,12 +624,11 @@ export class TestOpsClient {
       }
 
       try {
-        await retryRequest(() =>
-          this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
-            body: formData,
-            headers: formData.getHeaders(),
-          }),
-        );
+        // FormData consumes its streams when sent and cannot be replayed safely by retryRequest.
+        await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
+          body: formData,
+          headers: formData.getHeaders(),
+        });
       } catch (error) {
         if (this.isTestOpsClientError(error)) {
           this.#logger.error(

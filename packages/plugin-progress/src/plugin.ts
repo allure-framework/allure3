@@ -1,3 +1,4 @@
+import console from "node:console";
 import * as process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 import type { WriteStream } from "node:tty";
@@ -44,16 +45,18 @@ export class ProgressPlugin implements Plugin {
   };
 
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
-    // wait for any in-flight render first, then force a final unthrottled one with fresh numbers
-    await this.#pumpDone;
-    await this.#render(store);
+    try {
+      // wait for any in-flight render first, then force a final unthrottled one with fresh numbers
+      await this.#pumpDone;
+      await this.#render(store);
+    } finally {
+      // commit the in-place line so later output doesn't glue onto it
+      if (this.#terminal?.isTTY()) {
+        this.#terminal.newline();
+      }
 
-    // commit the in-place line so later output doesn't glue onto it
-    if (this.#terminal?.isTTY()) {
-      this.#terminal.newline();
+      this.#terminal?.detach();
     }
-
-    this.#terminal?.detach();
   };
 
   // coalesces bursty result events into at most one #render in flight, spaced #minRenderIntervalMs apart
@@ -74,7 +77,11 @@ export class ProgressPlugin implements Plugin {
         this.#pendingStore = undefined;
         this.#lastRenderAt = Date.now();
 
-        await this.#render(store);
+        try {
+          await this.#render(store);
+        } catch (error) {
+          console.error("can't render progress", error);
+        }
       }
     } finally {
       this.#pumping = false;

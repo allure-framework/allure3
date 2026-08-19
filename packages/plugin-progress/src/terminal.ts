@@ -1,8 +1,13 @@
 import { clearLine, clearScreenDown, cursorTo, moveCursor } from "node:readline";
 import type { WriteStream } from "node:tty";
 
-// streams with write-interception already installed, so multiple Terminals don't double-patch
-const patchedStreams = new WeakSet<WriteStream>();
+type PatchedStream = {
+  originalWrite: WriteStream["write"];
+  owners: Set<Terminal>;
+};
+
+// shared patch state keeps multiple Terminals on one stream from restoring each other's wrappers
+const patchedStreams = new WeakMap<WriteStream, PatchedStream>();
 
 // Taken from https://github.com/npkgz/cli-progress
 // low-level terminal interactions
@@ -19,7 +24,7 @@ export class Terminal {
 
   constructor(outputStream: WriteStream) {
     this.#stream = outputStream;
-    this.#originalWrite = outputStream.write.bind(outputStream);
+    this.#originalWrite = patchedStreams.get(outputStream)?.originalWrite ?? outputStream.write.bind(outputStream);
     this.#rawStream = { write: this.#originalWrite };
 
     // default: line wrapping enabled
@@ -35,18 +40,25 @@ export class Terminal {
 
   // patches stream.write so foreign output (other loggers) never glues onto our in-place line
   #interceptForeignWrites() {
-    if (patchedStreams.has(this.#stream)) {
+    const existing = patchedStreams.get(this.#stream);
+
+    if (existing) {
+      existing.owners.add(this);
       return;
     }
 
-    patchedStreams.add(this.#stream);
-
     const originalWrite = this.#originalWrite;
+    const owners = new Set([this]);
+
+    patchedStreams.set(this.#stream, { originalWrite, owners });
 
     this.#stream.write = ((...args: Parameters<WriteStream["write"]>) => {
-      if (this.#lineActive) {
+      if ([...owners].some((owner) => owner.#lineActive)) {
         originalWrite("\n");
-        this.#lineActive = false;
+
+        for (const owner of owners) {
+          owner.#lineActive = false;
+        }
       }
 
       return originalWrite(...args);
@@ -55,9 +67,18 @@ export class Terminal {
 
   // undoes #interceptForeignWrites, e.g. once this instance won't render anything else
   detach() {
-    if (patchedStreams.has(this.#stream)) {
+    const state = patchedStreams.get(this.#stream);
+
+    if (!state) {
+      return;
+    }
+
+    state.owners.delete(this);
+
+    if (state.owners.size === 0) {
       patchedStreams.delete(this.#stream);
-      this.#stream.write = this.#originalWrite;
+
+      this.#stream.write = state.originalWrite;
     }
   }
 

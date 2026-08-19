@@ -38,7 +38,6 @@ export class TestOpsPlugin implements Plugin {
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #uploadedGlobalAttachmentIds: Set<string> = new Set();
-  #uploadedGlobalErrorsCount = 0;
   #autocloseLaunch: boolean = false;
   #launchStarted: boolean = false;
   #gitFlow!: LaunchGitFlow;
@@ -196,8 +195,8 @@ export class TestOpsPlugin implements Plugin {
 
   async #uploadGlobalErrors(store: AllureStore) {
     const allResults = await store.allGlobalErrors();
-    // append-only store, so anything before the already-uploaded count is a repeat
-    const results = allResults.slice(this.#uploadedGlobalErrorsCount);
+    const lastResult = allResults.at(-1);
+    const results = lastResult ? [lastResult] : [];
 
     if (results.length === 0) {
       this.#logger.verbose("No new global errors to upload");
@@ -224,8 +223,6 @@ export class TestOpsPlugin implements Plugin {
       if (!completed) {
         progressLogger.increment();
       }
-
-      this.#uploadedGlobalErrorsCount = allResults.length;
 
       progressLogger.log(true);
     } catch (error) {
@@ -313,10 +310,13 @@ export class TestOpsPlugin implements Plugin {
     store: AllureStore,
     trsToUpload: TestOpsPluginTestResult[],
     environments: EnvironmentIdentity[],
+    options?: {
+      silent?: boolean;
+    },
   ) {
     const totalCount = trsToUpload.length;
 
-    this.#logger.info(
+    this.#logger.verbose(
       `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}`,
     );
 
@@ -325,22 +325,21 @@ export class TestOpsPlugin implements Plugin {
       message: "Uploading test results",
       unitLabel: totalCount === 1 ? "test result uploaded" : "test results uploaded",
       prefix: "[TestOpsPlugin]",
+      silent: !!options?.silent,
     });
-    const logProgress = progressLogger.log;
-    const incrementProgress = progressLogger.increment;
 
     try {
-      logProgress(true);
+      progressLogger.log(true);
 
       const uploadedTrs = await this.#client.uploadTestResults({
         attachmentsResolver: attachmentsResolverFactory(store),
         fixturesResolver: fixturesResolverFactory(store),
         environments,
         trs: trsToUpload,
-        onProgress: () => incrementProgress(),
+        onProgress: () => progressLogger.increment(),
       });
 
-      logProgress(true);
+      progressLogger.log(true);
 
       uploadedTrs.forEach((tr) => {
         this.#uploadedTestResultsIds.add(tr.id);
@@ -349,11 +348,11 @@ export class TestOpsPlugin implements Plugin {
       const uploadedCount = uploadedTrs.length;
 
       if (uploadedCount === 0) {
-        this.#logger.warn("No test results were uploaded");
+        this.#logger.verbose("No test results were uploaded");
         return;
       }
 
-      this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+      this.#logger.verbose(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
     } finally {
       progressLogger.cancel?.();
     }
@@ -371,18 +370,18 @@ export class TestOpsPlugin implements Plugin {
 
     if (trsToUpload.length === 0) {
       if (stage == "update") {
-        this.#logger.info("No new test results to upload");
+        this.#logger.verbose("No new test results to upload");
       }
 
       if (stage === "done") {
-        this.#logger.info("No test results to upload");
+        this.#logger.verbose("No test results to upload");
       }
 
       return;
     }
 
     if (stage === "update") {
-      this.#logger.info(
+      this.#logger.verbose(
         `Found ${bold(trsToUpload.length.toString())} new test ${trsToUpload.length > 1 ? "results" : "result"}, uploading…`,
       );
     }
@@ -411,7 +410,9 @@ export class TestOpsPlugin implements Plugin {
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
 
     await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
-    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
+    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments, {
+      silent: !!context?.realTime,
+    });
   }
 
   async #trsToUpload(store: AllureStore) {
@@ -581,6 +582,10 @@ export class TestOpsPlugin implements Plugin {
   async start(context: PluginContext, store: AllureStore) {
     if (!this.enabled) {
       return;
+    }
+
+    if (context.realTime) {
+      this.#logger.setLogLevel("info");
     }
 
     this.#logger.verbose("Starting upload…");

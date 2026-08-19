@@ -192,6 +192,20 @@ describe("testops http client", () => {
       expect(AxiosMock.get).toHaveBeenCalledTimes(2);
     });
 
+    it("should not retry global error uploads", async () => {
+      const client = await clientWithLaunch();
+
+      AxiosMock.post.mockResolvedValueOnce({ data: { id: 1 } });
+
+      await client.createSession();
+
+      AxiosMock.post.mockRejectedValueOnce(axiosError(503));
+
+      await expect(client.uploadGlobalErrors([{ message: "failed" }])).rejects.toThrow("Allure service request failed");
+
+      expect(AxiosMock.post.mock.calls.filter(([url]) => url === "/api/launch/error/bulk")).toHaveLength(1);
+    });
+
     it("should retry only a failed result chunk", async () => {
       const client = await clientWithLaunch();
 
@@ -828,14 +842,7 @@ describe("testops http client", () => {
       await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
 
       expect(attachmentsResolver).toHaveBeenCalledTimes(1);
-      expect(AxiosMock.post).toHaveBeenCalledWith(
-        "/api/launch/attachment",
-        expect.any(FormData),
-        expect.objectContaining({
-          params: { launchId: fixtures.launch.id },
-          onUploadProgress: expect.any(Function),
-        }),
-      );
+      expect(AxiosMock.post.mock.calls.some(([url]) => url === "/api/launch/attachment")).toBe(false);
     });
   });
 
