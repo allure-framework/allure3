@@ -44,7 +44,7 @@ export class TestOpsPlugin implements Plugin {
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
   #uploadedGlobalAttachmentIds: Set<string> = new Set();
-  #uploadedGlobalErrorsCount = 0;
+  #uploadedGlobalErrors: Set<TestError> = new Set();
   #autocloseLaunch: boolean = false;
   #launchStarted: boolean = false;
   #gitFlow!: LaunchGitFlow;
@@ -227,7 +227,9 @@ export class TestOpsPlugin implements Plugin {
         progressLogger.increment();
       }
 
-      this.#uploadedGlobalErrorsCount += results.length;
+      results.forEach((error) => {
+        this.#uploadedGlobalErrors.add(error);
+      });
 
       progressLogger.log(true);
     } catch (error) {
@@ -378,8 +380,7 @@ export class TestOpsPlugin implements Plugin {
         store.allGlobalErrors(),
         store.allGlobalAttachments(),
       ]);
-      // append-only store, so anything before the already-uploaded count is a repeat
-      globalErrors = allGlobalErrors.slice(this.#uploadedGlobalErrorsCount);
+      globalErrors = allGlobalErrors.filter((error) => !this.#uploadedGlobalErrors.has(error));
       globalAttachments = allGlobalAttachments.filter(
         (attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id),
       );
