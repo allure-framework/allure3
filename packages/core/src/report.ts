@@ -17,7 +17,7 @@ import type {
   HistoryDataPoint,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig, resolveMetricSamples } from "@allurereport/core-api";
+import { normalizeCategoriesConfig } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -234,6 +234,7 @@ export class AllureReport {
       defaultLabels,
       environment,
       allowedEnvironments,
+      performance,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
@@ -283,6 +284,7 @@ export class AllureReport {
     }
 
     this.#performance = mergePerformanceConfig(getPerfMetricsPerformanceConfig(payload), this.#performance);
+    this.#store.setPerformanceConfig(this.#performance);
 
     const resultFile = new BufferResultFile(
       Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8"),
@@ -535,9 +537,8 @@ export class AllureReport {
     trs: TestResult[];
     state?: QualityGateState;
     environment?: string;
-    complete?: boolean;
   }) => {
-    const { trs, state, environment, complete } = params;
+    const { trs, state, environment } = params;
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -548,9 +549,8 @@ export class AllureReport {
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       state,
-      metrics: resolveMetricSamples(await this.#store.allMetrics(), this.#performance),
+      metrics: await this.#store.allMetrics(),
       history: await this.#store.allHistoryDataPoints(),
-      performance: this.#performance,
       environment: qualityGateEnvironment,
       currentReportUuid: this.reportUuid,
     });

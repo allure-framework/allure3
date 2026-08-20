@@ -21,9 +21,6 @@ describe("metrics", () => {
         value: 123,
         start: 0,
         stop: 1,
-        unit: "ms",
-        source: "perf.json",
-        better: "lower",
       },
     ]);
 
@@ -34,9 +31,6 @@ describe("metrics", () => {
         value: 123,
         start: 0,
         stop: 1,
-        unit: "ms",
-        source: "perf.json",
-        better: "lower",
       },
     ]);
 

@@ -157,6 +157,8 @@ type SummaryValueField = "totalMs" | "avgMs" | "minMs" | "maxMs";
 type MetricRowScope = "current" | "summary";
 
 const metricRowId = (scope: MetricRowScope, key: string) => `${scope}:${key}`;
+const metricDetailsId = (scope: MetricRowScope, key: string) =>
+  `metrics-${scope}-history-${encodeURIComponent(key).replaceAll("%", "_")}`;
 
 const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
@@ -234,6 +236,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                     {categoryRows.map((row) => {
                       const metricRow = rowsByKey.get(row.key);
                       const rowId = metricRowId("summary", row.key);
+                      const detailsId = metricDetailsId("summary", row.key);
                       const isExpanded = expandedKeys.has(rowId);
 
                       return (
@@ -245,7 +248,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                           >
                             <td>
                               <button
-                                aria-controls={`metrics-summary-history-${row.key}`}
+                                aria-controls={detailsId}
                                 aria-expanded={isExpanded}
                                 className={styles.metricButton}
                                 type="button"
@@ -270,9 +273,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                               <Sparkline values={row.trend} />
                             </td>
                           </tr>
-                          {isExpanded &&
-                            metricRow &&
-                            renderHistoryRow(metricRow, 8, `metrics-summary-history-${row.key}`)}
+                          {isExpanded && metricRow && renderHistoryRow(metricRow, 8, detailsId)}
                         </Fragment>
                       );
                     })}
@@ -299,6 +300,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
             <tbody>
               {rows.map((row) => {
                 const rowId = metricRowId("current", row.key);
+                const detailsId = metricDetailsId("current", row.key);
                 const isExpanded = expandedKeys.has(rowId);
 
                 return (
@@ -306,7 +308,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                     <tr className={styles.expandableRow} data-expanded={isExpanded} onClick={() => toggleRow(rowId)}>
                       <td>
                         <button
-                          aria-controls={`metrics-current-history-${row.key}`}
+                          aria-controls={detailsId}
                           aria-expanded={isExpanded}
                           className={styles.metricButton}
                           type="button"
@@ -322,7 +324,7 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                       <td>{formatDelta(row)}</td>
                       <td>{row.source ?? ""}</td>
                     </tr>
-                    {isExpanded && renderHistoryRow(row, 4, `metrics-current-history-${row.key}`)}
+                    {isExpanded && renderHistoryRow(row, 4, detailsId)}
                   </Fragment>
                 );
               })}

@@ -1,9 +1,4 @@
-import {
-  filterSuccessful,
-  filterUnsuccessful,
-  type MetricSample,
-  type PerformanceConfig,
-} from "@allurereport/core-api";
+import { filterSuccessful, filterUnsuccessful, type MetricSample } from "@allurereport/core-api";
 import { type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
 
@@ -33,6 +28,9 @@ const metricAverage = (metrics: MetricSample[], key: string): number | undefined
   return values.reduce((acc, value) => acc + value, 0) / values.length;
 };
 
+const metricSample = (metrics: MetricSample[] | undefined, key: string) =>
+  metrics?.find((metric) => metric.key === key);
+
 const previousMetricValue = (
   history: MetricHistoryPoint[],
   key: string,
@@ -52,11 +50,6 @@ const previousMetricValue = (
 
   return undefined;
 };
-
-const metricTitle = (performance: PerformanceConfig | undefined, key: string) =>
-  performance?.metrics?.[key]?.title ?? key;
-
-const metricUnit = (performance: PerformanceConfig | undefined, key: string) => performance?.metrics?.[key]?.unit;
 
 const formatMetricValue = (value: number | undefined, unit?: string) => {
   if (!Number.isFinite(value)) {
@@ -213,10 +206,10 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
 
 export const metricMaxRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMax",
-  message: ({ actual, expected, performance }) => {
-    const unit = metricUnit(performance, expected.key);
+  message: ({ actual, expected, metrics }) => {
+    const metric = metricSample(metrics, expected.key);
 
-    return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, unit))}`;
+    return `${bold(metric?.title ?? expected.key)} ${bold(formatMetricValue(actual, metric?.unit))} exceeds the allowed maximum ${bold(formatMetricValue(expected.value, metric?.unit))}`;
   },
   validate: async ({ metrics = [], expected }) => {
     const actual = metricAverage(metrics, expected.key);
@@ -227,10 +220,10 @@ export const metricMaxRule: QualityGateRule<MetricRuleConfig> = {
 
 export const metricMinRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMin",
-  message: ({ actual, expected, performance }) => {
-    const unit = metricUnit(performance, expected.key);
+  message: ({ actual, expected, metrics }) => {
+    const metric = metricSample(metrics, expected.key);
 
-    return `${bold(metricTitle(performance, expected.key))} ${bold(formatMetricValue(actual, unit))} is below the required minimum ${bold(formatMetricValue(expected.value, unit))}`;
+    return `${bold(metric?.title ?? expected.key)} ${bold(formatMetricValue(actual, metric?.unit))} is below the required minimum ${bold(formatMetricValue(expected.value, metric?.unit))}`;
   },
   validate: async ({ metrics = [], expected }) => {
     const actual = metricAverage(metrics, expected.key);
@@ -241,10 +234,10 @@ export const metricMinRule: QualityGateRule<MetricRuleConfig> = {
 
 export const metricMaxDeltaRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMaxDelta",
-  message: ({ actual, expected, performance }) => {
-    const unit = metricUnit(performance, expected.key);
+  message: ({ actual, expected, metrics }) => {
+    const metric = metricSample(metrics, expected.key);
 
-    return `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, unit))}, which exceeds ${bold(formatMetricValue(expected.value, unit))}`;
+    return `${bold(metric?.title ?? expected.key)} changed by ${bold(formatMetricValue(actual, metric?.unit))}, which exceeds ${bold(formatMetricValue(expected.value, metric?.unit))}`;
   },
   validate: async ({ metrics = [], history = [], expected, currentReportUuid }) => {
     const current = metricAverage(metrics, expected.key);
@@ -267,8 +260,8 @@ export const metricMaxDeltaRule: QualityGateRule<MetricRuleConfig> = {
 
 export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
   rule: "metricMaxDeltaPercent",
-  message: ({ actual, expected, performance }) =>
-    `${bold(metricTitle(performance, expected.key))} changed by ${bold(formatMetricValue(actual, "%"))}, which exceeds ${bold(formatMetricValue(expected.value, "%"))}`,
+  message: ({ actual, expected, metrics }) =>
+    `${bold(metricSample(metrics, expected.key)?.title ?? expected.key)} changed by ${bold(formatMetricValue(actual, "%"))}, which exceeds ${bold(formatMetricValue(expected.value, "%"))}`,
   validate: async ({ metrics = [], history = [], expected, currentReportUuid }) => {
     const current = metricAverage(metrics, expected.key);
 

@@ -653,19 +653,11 @@ describe("metric quality gate rules", () => {
     });
   });
 
-  it("should use configured metric title and unit in messages", () => {
+  it("should use metric sample title and unit in messages", () => {
     const message = metricMaxRule.message({
       actual: 12,
       expected: { key: "bundle.size", value: 10 },
-      performance: {
-        metrics: {
-          "bundle.size": {
-            title: "Bundle size",
-            unit: "MB",
-            better: "lower",
-          },
-        },
-      },
+      metrics: [{ id: "1", key: "bundle.size", value: 12, start: 0, stop: 1, title: "Bundle size", unit: "MB" }],
     });
 
     expect(message).toContain("Bundle size");

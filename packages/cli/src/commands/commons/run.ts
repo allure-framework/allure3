@@ -180,7 +180,6 @@ export const runTests = async (params: {
         trs: filteredTrs,
         state: qualityGateState,
         environment,
-        complete: false,
       });
 
       // process only fast-failed checks here

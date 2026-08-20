@@ -442,27 +442,37 @@ describe("report", () => {
     expect(readFiles).toEqual(["result.json"]);
   });
 
-  it("should generate awesome metrics widget from perf.json", async () => {
+  it("should generate awesome metrics widget from performance result files", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-perf-awesome-"));
     const resultsDir = await mkdtemp(join(tmpdir(), "allure3-perf-results-"));
     const config = await resolveConfig({
       name: "Allure Report",
       output,
+      performance: {
+        groups: {
+          report: {
+            title: "Report generation",
+          },
+        },
+        metrics: {
+          "generate.total.avgMs": {
+            title: "Generate report",
+            unit: "ms",
+            better: "lower",
+            group: "report",
+          },
+        },
+      },
     });
 
     await writeFile(
-      join(resultsDir, "perf.json"),
+      join(resultsDir, "generate-total-perf.json"),
       JSON.stringify({
-        version: 1,
-        name: "Report generation",
-        metrics: [
-          {
-            key: "generate.total.avgMs",
-            value: 123.45,
-            unit: "ms",
-            better: "lower",
-          },
-        ],
+        id: "generate-total",
+        key: "generate.total.avgMs",
+        value: 123.45,
+        start: 0,
+        stop: 123.45,
       }),
     );
 
@@ -487,13 +497,15 @@ describe("report", () => {
       {
         key: "generate.total.avgMs",
         value: 123.45,
+        title: "Generate report",
         unit: "ms",
-        group: "Report generation",
-        source: "perf.json",
+        group: "report",
+        groupTitle: "Report generation",
+        source: "generate-total-perf.json",
         better: "lower",
-        id: "perf.json:generate.total.avgMs:0",
+        id: "generate-total",
         start: 0,
-        stop: 0,
+        stop: 123.45,
       },
     ]);
     expect(widget.display).toBeUndefined();

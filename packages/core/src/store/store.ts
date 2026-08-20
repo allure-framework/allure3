@@ -4,6 +4,7 @@ import { extname } from "node:path";
 import {
   type AllureCheckResult,
   type AllureHistory,
+  type AllurePerformanceResult,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -18,6 +19,7 @@ import {
   type ResolutionIssue,
   type ResolutionsConfig,
   type MetricSample,
+  type PerformanceConfig,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -33,6 +35,7 @@ import {
   normalizeHistoryDataPoint,
   ordinal,
   reverse,
+  resolveMetricSamples,
   selectHistoryTestResults,
   validateEnvironmentId,
   validateEnvironmentName,
@@ -161,6 +164,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
   #metrics: MetricSample[] = [];
+  #performance: PerformanceConfig = {};
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
 
@@ -174,6 +178,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     allowedEnvironments?: string[];
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
+    performance?: PerformanceConfig;
   }) {
     const {
       history,
@@ -185,6 +190,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       allowedEnvironments,
       environmentsConfig = {},
       reportVariables = {},
+      performance = {},
     } = params ?? {};
     const errors: string[] = [];
     const {
@@ -227,6 +233,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
     this.#resolutionsConfig = resolutionsConfig;
+    this.#performance = performance;
 
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
@@ -756,8 +763,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
-  async visitMetrics(metrics: MetricSample[]): Promise<void> {
-    this.#metrics.push(...metrics);
+  setPerformanceConfig(performance: PerformanceConfig = {}) {
+    this.#performance = performance;
+  }
+
+  async visitMetrics(metrics: AllurePerformanceResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
+    const source = context.metadata?.originalFileName;
+
+    this.#metrics.push(
+      ...resolveMetricSamples(
+        metrics.map((metric) => ({
+          ...metric,
+          ...(source ? { source } : {}),
+        })),
+        this.#performance,
+      ),
+    );
   }
 
   /**

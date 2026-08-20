@@ -811,8 +811,12 @@ export type AwesomeMetricsWidget = {
 export const generateMetricsWidget = async (
   writer: AwesomeDataWriter,
   store: AllureStore,
-  performance: PluginContext["performance"] = {},
+  options: {
+    currentReportUuid?: string;
+    performance?: PluginContext["performance"];
+  } = {},
 ): Promise<boolean> => {
+  const { currentReportUuid, performance = {} } = options;
   const current = resolveMetricSamples(await store.allMetrics(), performance);
 
   if (current.length === 0) {
@@ -820,6 +824,7 @@ export const generateMetricsWidget = async (
   }
 
   const history = (await store.allHistoryDataPoints())
+    .filter(({ uuid }) => uuid !== currentReportUuid)
     .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
     .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
       uuid,

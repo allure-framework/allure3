@@ -722,18 +722,18 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const zipPath = `${dumpPath}.zip`;
     const metrics = [
       {
+        id: "generate-total",
         key: "generate.total.avgMs",
         value: 128.5,
-        unit: "ms",
-        source: "perf.json",
-        better: "lower" as const,
+        start: 0,
+        stop: 128.5,
       },
       {
+        id: "browser-cold-load",
         key: "browser.coldLoadMs",
         value: 640,
-        unit: "ms",
-        source: "perf.json",
-        better: "lower" as const,
+        start: 200,
+        stop: 840,
       },
     ];
 

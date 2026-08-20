@@ -302,10 +302,18 @@ describe("generateMetricsWidget", () => {
           id: "generate-total",
           start: 0,
           stop: 1,
-          source: "allure-perf-metrics.json",
+          source: "generate-total-performance.json",
         },
       ]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([
+        {
+          uuid: "current-report",
+          name: "Current report",
+          timestamp: 1_700_000_002_000,
+          metrics: {
+            "generate.total.avgMs": 200,
+          },
+        },
         {
           uuid: "history-1",
           name: "Previous report",
@@ -326,11 +334,14 @@ describe("generateMetricsWidget", () => {
 
     await expect(
       generateMetricsWidget(writer, store, {
-        metrics: {
-          "generate.total.avgMs": {
-            title: "Generate total",
-            unit: "ms",
-            better: "lower",
+        currentReportUuid: "current-report",
+        performance: {
+          metrics: {
+            "generate.total.avgMs": {
+              title: "Generate total",
+              unit: "ms",
+              better: "lower",
+            },
           },
         },
       }),
@@ -346,7 +357,7 @@ describe("generateMetricsWidget", () => {
           stop: 1,
           title: "Generate total",
           unit: "ms",
-          source: "allure-perf-metrics.json",
+          source: "generate-total-performance.json",
           better: "lower",
         },
       ],
