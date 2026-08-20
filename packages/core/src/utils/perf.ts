@@ -82,9 +82,6 @@ export const getPerfMetricsPerformanceConfig = (
   return {
     groups: SELF_PERF_GROUPS,
     metrics,
-    display: {
-      historyMetric: PERF_METRIC_NAMES.allureTotal,
-    },
   };
 };
 
@@ -114,10 +111,6 @@ export const mergePerformanceConfig = (
         },
       ]),
     ) as PerformanceConfig["metrics"],
-    display: {
-      ...base.display,
-      ...override.display,
-    },
   };
 };
 

@@ -14,9 +14,6 @@ export interface PerformanceMetricConfig {
 export interface PerformanceConfig {
   groups?: Record<string, PerformanceGroupConfig>;
   metrics?: Record<string, PerformanceMetricConfig>;
-  display?: {
-    historyMetric?: string;
-  };
 }
 
 export interface AllurePerformanceResult {
@@ -58,19 +55,4 @@ export const resolveMetricSamples = (
       ...(metricConfig?.better ? { better: metricConfig.better } : {}),
     };
   });
-};
-
-export const getPerformanceHistoryMetricKey = (
-  metrics: readonly MetricSample[],
-  performance: PerformanceConfig = {},
-): string | undefined => {
-  const configuredMetric = performance.display?.historyMetric;
-
-  if (configuredMetric && metrics.some(({ key }) => key === configuredMetric)) {
-    return configuredMetric;
-  }
-
-  const configuredMetrics = Object.keys(performance.metrics ?? {});
-
-  return configuredMetrics.find((key) => metrics.some((metric) => metric.key === key)) ?? metrics[0]?.key;
 };

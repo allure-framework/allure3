@@ -22,7 +22,6 @@ import {
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
-  getPerformanceHistoryMetricKey,
   incrementStatistic,
   joinPosixPath,
   nullsLast,
@@ -800,9 +799,6 @@ export const generateAllCharts = async (
 
 export type AwesomeMetricsWidget = {
   current: MetricSample[];
-  display?: {
-    historyMetricKey: string;
-  };
   history: {
     uuid: string;
     name: string;
@@ -823,8 +819,6 @@ export const generateMetricsWidget = async (
     return false;
   }
 
-  const historyMetricKey = getPerformanceHistoryMetricKey(current, performance);
-
   const history = (await store.allHistoryDataPoints())
     .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
     .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
@@ -837,7 +831,6 @@ export const generateMetricsWidget = async (
 
   await writer.writeWidget("metrics.json", {
     current,
-    ...(historyMetricKey ? { display: { historyMetricKey } } : {}),
     history,
   } satisfies AwesomeMetricsWidget);
   return true;

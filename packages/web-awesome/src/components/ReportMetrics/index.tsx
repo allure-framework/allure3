@@ -1,9 +1,9 @@
-import { Loadable, PageLoader } from "@allurereport/web-components";
+import { ArrowButton, Loadable, PageLoader } from "@allurereport/web-components";
+import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 
 import { useI18n } from "@/stores";
 import {
-  defaultMetricKey,
   metricHistoryRows,
   metricSummaryRows,
   metricRows,
@@ -96,27 +96,25 @@ const formatGroupLabel = (group: string) =>
     .replace(/^./, (char) => char.toUpperCase());
 
 const MetricHistoryDetails = ({
-  selectedRow,
+  row,
   historyRows,
 }: {
-  selectedRow: MetricRow;
+  row: MetricRow;
   historyRows: ReturnType<typeof metricHistoryRows>;
 }) => {
   const { t } = useI18n("charts");
 
   return (
-    <section className={styles.section} aria-labelledby="metrics-history">
+    <section className={styles.historyDetails} aria-label={`${t("metrics.historyTitle")} ${row.title ?? row.key}`}>
       <div className={styles.detailsHeader}>
-        <h2 className={styles.sectionTitle} id="metrics-history">
-          {t("metrics.historyTitle")}
-        </h2>
-        <span className={styles.detailsMetric}>{selectedRow.title ?? selectedRow.key}</span>
+        <span className={styles.sectionTitle}>{t("metrics.historyTitle")}</span>
+        <span className={styles.detailsMetric}>{row.title ?? row.key}</span>
       </div>
       <div className={styles.detailsValue}>
-        <span className={styles.metricValue}>{formatValue(selectedRow.value, selectedRow.unit)}</span>
-        {formatDelta(selectedRow)}
+        <span className={styles.metricValue}>{formatValue(row.value, row.unit)}</span>
+        {formatDelta(row)}
       </div>
-      <Sparkline values={selectedRow.trend} />
+      <Sparkline values={row.trend} />
       {historyRows.length === 0 ? (
         <div className={styles.emptyInline}>{t("metrics.noHistory")}</div>
       ) : (
@@ -131,20 +129,20 @@ const MetricHistoryDetails = ({
               </tr>
             </thead>
             <tbody>
-              {historyRows.map((row) => (
-                <tr key={row.uuid}>
+              {historyRows.map((historyRow) => (
+                <tr key={historyRow.uuid}>
                   <td>
-                    {row.url ? (
-                      <a href={row.url} target="_blank" rel="noreferrer">
-                        {row.name}
+                    {historyRow.url ? (
+                      <a href={historyRow.url} target="_blank" rel="noreferrer">
+                        {historyRow.name}
                       </a>
                     ) : (
-                      row.name
+                      historyRow.name
                     )}
                   </td>
-                  <td>{t("metrics.date", { timestamp: row.timestamp })}</td>
-                  <td>{formatValue(row.value, selectedRow.unit)}</td>
-                  <td>{formatDelta({ delta: row.delta, unit: selectedRow.unit, better: selectedRow.better })}</td>
+                  <td>{t("metrics.date", { timestamp: historyRow.timestamp })}</td>
+                  <td>{formatValue(historyRow.value, row.unit)}</td>
+                  <td>{formatDelta({ delta: historyRow.delta, unit: row.unit, better: row.better })}</td>
                 </tr>
               ))}
             </tbody>
@@ -155,16 +153,45 @@ const MetricHistoryDetails = ({
   );
 };
 
+type SummaryValueField = "totalMs" | "avgMs" | "minMs" | "maxMs";
+type MetricRowScope = "current" | "summary";
+
+const metricRowId = (scope: MetricRowScope, key: string) => `${scope}:${key}`;
+
 const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
   const { t } = useI18n("charts");
   const { t: tEmpty } = useI18n("empty");
   const rows = metricRows(data);
+  const rowsByKey = new Map(rows.map((row) => [row.key, row]));
   const summaryRows = metricSummaryRows(data);
   const metricGroups = groupedMetricRows(summaryRows);
-  const [selectedKey, setSelectedKey] = useState<string | undefined>();
-  const selectedRow =
-    rows.find(({ key }) => key === selectedKey) ?? rows.find(({ key }) => key === defaultMetricKey(data)) ?? rows[0];
-  const historyRows = selectedRow ? metricHistoryRows(data, selectedRow.key) : [];
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set());
+
+  const toggleRow = (id: string) => {
+    setExpandedKeys((current) => {
+      const next = new Set(current);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
+      return next;
+    });
+  };
+
+  const renderHistoryRow = (row: MetricRow, colSpan: number, id: string) => {
+    return (
+      <tr aria-label={`${t("metrics.historyTitle")} ${row.title ?? row.key}`} className={styles.expandedRow} id={id}>
+        <td colSpan={colSpan}>
+          <div className={styles.expandedContent}>
+            <MetricHistoryDetails row={row} historyRows={metricHistoryRows(data, row.key)} />
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   if (rows.length === 0) {
     return <div className={styles.empty}>{tEmpty("no-metrics-results")}</div>;
@@ -180,77 +207,81 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
       </header>
 
       {summaryRows.length > 0 && (
-        <div className={styles.phaseLayout}>
-          <section className={styles.section} aria-labelledby="metrics-phase-summary">
-            <h2 className={styles.sectionTitle} id="metrics-phase-summary">
-              {t("metrics.phaseSummary")}
-            </h2>
-            {metricGroups.map(([category, categoryRows]) => (
-              <div className={styles.phaseGroup} key={category}>
-                <h3 className={styles.groupTitle}>
-                  {category === "other" ? t("metrics.groups.other") : formatGroupLabel(category)}
-                </h3>
-                <div className={styles.tableWrap}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>{t("metrics.table.phase")}</th>
-                        <th>{t("metrics.table.count")}</th>
-                        <th>{t("metrics.table.total")}</th>
-                        <th>{t("metrics.table.avg")}</th>
-                        <th>{t("metrics.table.min")}</th>
-                        <th>{t("metrics.table.max")}</th>
-                        <th>{t("metrics.table.delta")}</th>
-                        <th>{t("metrics.table.trend")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {categoryRows.map((row) => (
-                        <tr key={row.key} data-selected={selectedRow?.key === row.key}>
-                          <td>
-                            <button
-                              className={styles.metricButton}
-                              type="button"
-                              onClick={() => setSelectedKey(row.key)}
-                              aria-label={row.key}
-                            >
-                              <span className={styles.metricName}>{row.title ?? row.key}</span>
-                            </button>
-                          </td>
-                          <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
-                          {(["totalMs", "avgMs", "minMs", "maxMs"] as const).map((field) => (
-                            <td key={field}>
-                              {typeof row[field] === "number" ? (
-                                <button
-                                  className={styles.valueButton}
-                                  type="button"
-                                  onClick={() => setSelectedKey(row.key)}
-                                  aria-label={`${row.key} ${t(`metrics.table.${field.replace("Ms", "")}`)}`}
-                                >
-                                  {formatValue(row[field], row.unit)}
-                                </button>
-                              ) : (
-                                ""
-                              )}
-                            </td>
-                          ))}
-                          <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
-                          <td>
-                            <Sparkline values={row.trend} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
-          </section>
+        <section className={styles.section} aria-labelledby="metrics-phase-summary">
+          <h2 className={styles.sectionTitle} id="metrics-phase-summary">
+            {t("metrics.phaseSummary")}
+          </h2>
+          {metricGroups.map(([category, categoryRows]) => (
+            <div className={styles.phaseGroup} key={category}>
+              <h3 className={styles.groupTitle}>
+                {category === "other" ? t("metrics.groups.other") : formatGroupLabel(category)}
+              </h3>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>{t("metrics.table.phase")}</th>
+                      <th>{t("metrics.table.count")}</th>
+                      <th>{t("metrics.table.total")}</th>
+                      <th>{t("metrics.table.avg")}</th>
+                      <th>{t("metrics.table.min")}</th>
+                      <th>{t("metrics.table.max")}</th>
+                      <th>{t("metrics.table.delta")}</th>
+                      <th>{t("metrics.table.trend")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categoryRows.map((row) => {
+                      const metricRow = rowsByKey.get(row.key);
+                      const rowId = metricRowId("summary", row.key);
+                      const isExpanded = expandedKeys.has(rowId);
 
-          <div className={styles.detailsPanel}>
-            {selectedRow && <MetricHistoryDetails selectedRow={selectedRow} historyRows={historyRows} />}
-          </div>
-        </div>
+                      return (
+                        <Fragment key={row.key}>
+                          <tr
+                            className={styles.expandableRow}
+                            data-expanded={isExpanded}
+                            onClick={() => toggleRow(rowId)}
+                          >
+                            <td>
+                              <button
+                                aria-controls={`metrics-summary-history-${row.key}`}
+                                aria-expanded={isExpanded}
+                                className={styles.metricButton}
+                                type="button"
+                              >
+                                <ArrowButton
+                                  className={styles.rowArrow}
+                                  isOpened={isExpanded}
+                                  tag="span"
+                                  buttonSize="s"
+                                />
+                                <span className={styles.metricName}>{row.title ?? row.key}</span>
+                              </button>
+                            </td>
+                            <td>{typeof row.count === "number" ? formatValue(row.count) : ""}</td>
+                            {(["totalMs", "avgMs", "minMs", "maxMs"] as SummaryValueField[]).map((field) => (
+                              <td key={field}>
+                                {typeof row[field] === "number" ? formatValue(row[field], row.unit) : ""}
+                              </td>
+                            ))}
+                            <td>{formatDelta({ delta: row.delta, unit: row.unit, better: row.better })}</td>
+                            <td>
+                              <Sparkline values={row.trend} />
+                            </td>
+                          </tr>
+                          {isExpanded &&
+                            metricRow &&
+                            renderHistoryRow(metricRow, 8, `metrics-summary-history-${row.key}`)}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </section>
       )}
 
       <details className={styles.section} open={summaryRows.length === 0}>
@@ -266,29 +297,39 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.key} data-selected={selectedRow?.key === row.key}>
-                  <td>
-                    <button className={styles.metricButton} type="button" onClick={() => setSelectedKey(row.key)}>
-                      <span className={styles.metricName}>{row.title ?? row.key}</span>
-                      {row.group && <span className={styles.metricGroup}>{row.group}</span>}
-                    </button>
-                  </td>
-                  <td>{formatValue(row.value, row.unit)}</td>
-                  <td>{formatDelta(row)}</td>
-                  <td>{row.source ?? ""}</td>
-                </tr>
-              ))}
+              {rows.map((row) => {
+                const rowId = metricRowId("current", row.key);
+                const isExpanded = expandedKeys.has(rowId);
+
+                return (
+                  <Fragment key={row.key}>
+                    <tr className={styles.expandableRow} data-expanded={isExpanded} onClick={() => toggleRow(rowId)}>
+                      <td>
+                        <button
+                          aria-controls={`metrics-current-history-${row.key}`}
+                          aria-expanded={isExpanded}
+                          className={styles.metricButton}
+                          type="button"
+                        >
+                          <ArrowButton className={styles.rowArrow} isOpened={isExpanded} tag="span" buttonSize="s" />
+                          <span>
+                            <span className={styles.metricName}>{row.title ?? row.key}</span>
+                            {row.group && <span className={styles.metricGroup}>{row.group}</span>}
+                          </span>
+                        </button>
+                      </td>
+                      <td>{formatValue(row.value, row.unit)}</td>
+                      <td>{formatDelta(row)}</td>
+                      <td>{row.source ?? ""}</td>
+                    </tr>
+                    {isExpanded && renderHistoryRow(row, 4, `metrics-current-history-${row.key}`)}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </details>
-
-      {summaryRows.length === 0 && selectedRow && (
-        <div className={styles.detailsPanel}>
-          <MetricHistoryDetails selectedRow={selectedRow} historyRows={historyRows} />
-        </div>
-      )}
     </div>
   );
 };

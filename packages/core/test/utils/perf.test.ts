@@ -150,7 +150,6 @@ describe("perf metrics", () => {
         },
       },
       groups: {},
-      display: {},
     });
   });
 });

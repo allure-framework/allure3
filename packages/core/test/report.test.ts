@@ -448,11 +448,6 @@ describe("report", () => {
     const config = await resolveConfig({
       name: "Allure Report",
       output,
-      performance: {
-        display: {
-          historyMetric: "generate.total.avgMs",
-        },
-      },
     });
 
     await writeFile(
@@ -501,7 +496,7 @@ describe("report", () => {
         stop: 0,
       },
     ]);
-    expect(widget.display).toEqual({ historyMetricKey: "generate.total.avgMs" });
+    expect(widget.display).toBeUndefined();
     expect(widget.history).toEqual([]);
   });
 
@@ -532,7 +527,7 @@ describe("report", () => {
     const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
 
     expect(indexHtml).toContain('"sections":["charts","timeline","metrics"]');
-    expect(widget.display).toEqual({ historyMetricKey: PERF_METRIC_NAMES.allureTotal });
+    expect(widget.display).toBeUndefined();
     expect(widget.current).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

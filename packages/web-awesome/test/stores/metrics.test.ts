@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  defaultMetricKey,
-  metricHistoryRows,
-  metricSummaryRows,
-  metricRows,
-  type MetricsWidgetData,
-} from "@/stores/metrics";
+import { metricHistoryRows, metricSummaryRows, metricRows, type MetricsWidgetData } from "@/stores/metrics";
 
 const data: MetricsWidgetData = {
   current: [
@@ -176,35 +170,6 @@ describe("metrics store helpers", () => {
         avgMs: 20,
       }),
     ]);
-  });
-
-  it("should select the largest current metric value by default", () => {
-    expect(
-      defaultMetricKey({
-        current: [
-          { key: "small.total.avgMs", value: 10 },
-          { key: "large.total.avgMs", value: 20 },
-          { key: "large.total.count", value: 1 },
-          { key: "other.metric", value: 100 },
-        ],
-        history: [],
-      }),
-    ).toBe("other.metric");
-  });
-
-  it("should prefer configured history metric by default", () => {
-    expect(
-      defaultMetricKey({
-        display: {
-          historyMetricKey: "browser.heap.usedMb",
-        },
-        current: [
-          { key: "large.total.avgMs", value: 200 },
-          { key: "browser.heap.usedMb", value: 48 },
-        ],
-        history: [],
-      }),
-    ).toBe("browser.heap.usedMb");
   });
 
   it("should return sorted drilldown rows for one metric", () => {

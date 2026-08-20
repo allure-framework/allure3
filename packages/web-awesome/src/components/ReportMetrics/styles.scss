@@ -22,13 +22,6 @@
   color: var(--color-text-secondary);
 }
 
-.phaseLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 30vw);
-  gap: 20px;
-  align-items: start;
-}
-
 .phaseGroup {
   &:not(:first-of-type) {
     margin-top: 18px;
@@ -142,11 +135,6 @@ summary.sectionTitle {
 
   tbody tr {
     transition: background-color var(--color-change-transition-duration);
-
-    &:hover,
-    &[data-selected="true"] {
-      background: var(--color-row-bg-hover);
-    }
   }
 
   td:not(:first-child) {
@@ -154,41 +142,63 @@ summary.sectionTitle {
   }
 }
 
-.metricButton,
-.valueButton {
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
+.expandableRow {
   cursor: pointer;
-}
-
-.valueButton {
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: inherit;
-  font: inherit;
-  font-variant-numeric: tabular-nums;
 
   &:hover,
-  &[aria-pressed="true"] {
+  &:focus-within,
+  &[data-expanded="true"] {
     background: var(--color-row-bg-hover);
   }
 }
 
-.detailsPanel {
-  position: sticky;
-  top: 12px;
-  padding: 14px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  background: var(--color-bg-primary);
+.metricButton {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 
-  .section {
-    margin: 0;
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
   }
+}
+
+.rowArrow {
+  margin-top: 1px;
+}
+
+.expandedRow {
+  > td {
+    padding: 0 8px;
+    border-bottom: 0;
+    background: var(--color-row-bg-hover);
+  }
+
+  &[data-expanded="true"] > td {
+    padding-bottom: 12px;
+  }
+}
+
+.expandedContent {
+  display: grid;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-bg-primary);
+}
+
+.historyDetails {
+  min-height: 0;
+  overflow: hidden;
 
   .table {
     min-width: 0;
@@ -265,8 +275,7 @@ summary.sectionTitle {
 [dir="rtl"] {
   .table th,
   .table td,
-  .metricButton,
-  .valueButton {
+  .metricButton {
     text-align: right;
   }
 }
@@ -274,13 +283,5 @@ summary.sectionTitle {
 @media (max-width: 960px) {
   .metrics {
     padding: 16px;
-  }
-
-  .phaseLayout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .detailsPanel {
-    position: static;
   }
 }

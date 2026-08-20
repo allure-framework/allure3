@@ -14,9 +14,6 @@ export type MetricsHistoryPoint = {
 
 export type MetricsWidgetData = {
   current: MetricSample[];
-  display?: {
-    historyMetricKey: string;
-  };
   history: MetricsHistoryPoint[];
 };
 
@@ -80,17 +77,6 @@ const latestPreviousValue = (history: MetricsHistoryPoint[], key: string): numbe
   }
 
   return undefined;
-};
-
-export const defaultMetricKey = (data: MetricsWidgetData): string | undefined => {
-  if (data.display?.historyMetricKey && data.current.some(({ key }) => key === data.display?.historyMetricKey)) {
-    return data.display.historyMetricKey;
-  }
-
-  const rows = metricRows(data);
-  const [candidate] = [...rows].sort((a, b) => b.value - a.value);
-
-  return candidate?.key;
 };
 
 export const metricRows = (data: MetricsWidgetData): MetricRow[] => {

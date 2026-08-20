@@ -333,9 +333,6 @@ describe("generateMetricsWidget", () => {
             better: "lower",
           },
         },
-        display: {
-          historyMetric: "generate.total.avgMs",
-        },
       }),
     ).resolves.toBe(true);
 
@@ -353,9 +350,6 @@ describe("generateMetricsWidget", () => {
           better: "lower",
         },
       ],
-      display: {
-        historyMetricKey: "generate.total.avgMs",
-      },
       history: [
         {
           uuid: "history-1",

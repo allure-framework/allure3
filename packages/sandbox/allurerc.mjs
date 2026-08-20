@@ -205,9 +205,6 @@ export default defineConfig({
         group: "attachments",
       },
     },
-    display: {
-      historyMetric: "sandbox.report.awesome",
-    },
   },
   plugins: {
     allure2: {
