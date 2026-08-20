@@ -39,7 +39,6 @@ export const getAvailableReportRootTabs = (): ReportRootTabId[] => {
     tabs.push(REPORT_ROOT_TAB.Categories);
   }
 
-  tabs.push(REPORT_ROOT_TAB.QualityGate);
 
   tabs.push(REPORT_ROOT_TAB.GlobalAttachments, REPORT_ROOT_TAB.GlobalErrors);
 
