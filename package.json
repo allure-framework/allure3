@@ -6,7 +6,10 @@
   "keywords": [],
   "license": "Apache-2.0",
   "author": "Qameta Software",
-  "repository": "https://github.com/allure-framework/allure3",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allure-framework/allure3.git"
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -23,7 +26,9 @@
     "lint:type": "yarn oxlint --type-aware --import-plugin packages --quiet",
     "verify": "yarn format:check && yarn lint && yarn lint:type --quiet",
     "format:check": "node ./scripts/run-oxfmt.cjs --check",
-    "format:write": "node ./scripts/run-oxfmt.cjs --write"
+    "format:write": "node ./scripts/run-oxfmt.cjs --write",
+    "allure:size": "node ./scripts/allure-bundle-size.mjs --progress --emojis --include-closure",
+    "allure:size:docker": "bash ./scripts/run-allure-bundle-size-docker.sh"
   },
   "devDependencies": {
     "@types/node": "^20",
