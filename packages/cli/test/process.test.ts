@@ -1,4 +1,6 @@
+import type { ChildProcess } from "node:child_process";
 import { execFile, fork } from "node:child_process";
+import { EventEmitter } from "node:events";
 import { rmSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -234,6 +236,17 @@ describe("runProcess", () => {
     } finally {
       rmSync(workingDirectory, { recursive: true, force: true });
     }
+  });
+
+  it("resolves instead of crashing when the process emits 'error' (e.g. a spawn failure)", async () => {
+    // spawn 'error' behavior differs by platform (Windows spawns through a shell by default,
+    // so a bad command exits normally instead of erroring) — emit it directly to test terminationOf
+    const fakeProcess = new EventEmitter() as unknown as ChildProcess;
+    const termination = terminationOf(fakeProcess);
+
+    fakeProcess.emit("error", new Error("spawn ENOENT"));
+
+    await expect(termination).resolves.toBeNull();
   });
 });
 

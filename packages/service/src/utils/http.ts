@@ -17,8 +17,8 @@ import { isReportDataFile } from "./files.js";
 export class KnownError extends Error {
   status?: number;
 
-  constructor(message: string, status?: number) {
-    super(message);
+  constructor(message: string, status?: number, options?: ErrorOptions) {
+    super(message, options);
     this.name = "KnownError";
     this.status = status;
   }
@@ -31,8 +31,8 @@ export class KnownError extends Error {
 export class UnknownError extends Error {
   stack?: string;
 
-  constructor(message: string, stack?: string) {
-    super(message);
+  constructor(message: string, stack?: string, options?: ErrorOptions) {
+    super(message, options);
     this.name = "UnknownError";
     this.stack = stack;
   }
@@ -235,10 +235,10 @@ export const createServiceHttpClient = (
         });
 
         if (responseStatus < 500) {
-          throw new KnownError(errorMessage, responseStatus);
+          throw new KnownError(errorMessage, responseStatus, { cause: err });
         }
 
-        throw new UnknownError(errorMessage, err.stack);
+        throw new UnknownError(errorMessage, err.stack, { cause: err });
       }
     };
 

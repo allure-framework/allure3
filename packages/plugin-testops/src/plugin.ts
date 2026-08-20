@@ -2,7 +2,13 @@ import { env } from "node:process";
 
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { createProgressLogger } from "@allurereport/cli-commons";
-import type { CategoryDefinition, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
+import type {
+  CategoryDefinition,
+  EnvironmentIdentity,
+  GlobalAttachmentLink,
+  TestError,
+  TestStatus,
+} from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
@@ -37,6 +43,8 @@ export class TestOpsPlugin implements Plugin {
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: Set<string> = new Set();
+  #uploadedGlobalAttachmentIds: Set<string> = new Set();
+  #uploadedGlobalErrors: Set<TestError> = new Set();
   #autocloseLaunch: boolean = false;
   #launchStarted: boolean = false;
   #gitFlow!: LaunchGitFlow;
@@ -192,11 +200,9 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #uploadGlobalErrors(store: AllureStore) {
-    const results = await store.allGlobalErrors();
-
+  async #uploadGlobalErrors(results: TestError[]) {
     if (results.length === 0) {
-      this.#logger.verbose("No global errors to upload");
+      this.#logger.verbose("No new global errors to upload");
       return;
     }
 
@@ -221,6 +227,10 @@ export class TestOpsPlugin implements Plugin {
         progressLogger.increment();
       }
 
+      results.forEach((error) => {
+        this.#uploadedGlobalErrors.add(error);
+      });
+
       progressLogger.log(true);
     } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
@@ -236,11 +246,9 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #uploadGlobalAttachments(store: AllureStore) {
-    const attachments = await store.allGlobalAttachments();
-
+  async #uploadGlobalAttachments(store: AllureStore, attachments: GlobalAttachmentLink[]) {
     if (attachments.length === 0) {
-      this.#logger.debug("No global attachments to upload");
+      this.#logger.debug("No new global attachments to upload");
       return;
     }
 
@@ -283,6 +291,10 @@ export class TestOpsPlugin implements Plugin {
         progressLogger.increment();
       }
 
+      attachments.forEach((attachment) => {
+        this.#uploadedGlobalAttachmentIds.add(attachment.id);
+      });
+
       progressLogger.log(true);
     } catch (error) {
       if (this.#client.isTestOpsClientError(error)) {
@@ -302,10 +314,13 @@ export class TestOpsPlugin implements Plugin {
     store: AllureStore,
     trsToUpload: TestOpsPluginTestResult[],
     environments: EnvironmentIdentity[],
+    options?: {
+      silent?: boolean;
+    },
   ) {
     const totalCount = trsToUpload.length;
 
-    this.#logger.info(
+    this.#logger.verbose(
       `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}`,
     );
 
@@ -314,22 +329,21 @@ export class TestOpsPlugin implements Plugin {
       message: "Uploading test results",
       unitLabel: totalCount === 1 ? "test result uploaded" : "test results uploaded",
       prefix: "[TestOpsPlugin]",
+      silent: !!options?.silent,
     });
-    const logProgress = progressLogger.log;
-    const incrementProgress = progressLogger.increment;
 
     try {
-      logProgress(true);
+      progressLogger.log(true);
 
       const uploadedTrs = await this.#client.uploadTestResults({
         attachmentsResolver: attachmentsResolverFactory(store),
         fixturesResolver: fixturesResolverFactory(store),
         environments,
         trs: trsToUpload,
-        onProgress: () => incrementProgress(),
+        onProgress: () => progressLogger.increment(),
       });
 
-      logProgress(true);
+      progressLogger.log(true);
 
       uploadedTrs.forEach((tr) => {
         this.#uploadedTestResultsIds.add(tr.id);
@@ -338,11 +352,11 @@ export class TestOpsPlugin implements Plugin {
       const uploadedCount = uploadedTrs.length;
 
       if (uploadedCount === 0) {
-        this.#logger.warn("No test results were uploaded");
+        this.#logger.verbose("No test results were uploaded");
         return;
       }
 
-      this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+      this.#logger.verbose(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
     } finally {
       progressLogger.cancel?.();
     }
@@ -357,17 +371,39 @@ export class TestOpsPlugin implements Plugin {
   ) {
     const { context, stage } = options;
     const trsToUpload = await this.#trsToUpload(store);
+    const shouldUploadGlobalArtifacts = stage === "done" || !context?.realTime;
+    let globalErrors: TestError[] = [];
+    let globalAttachments: GlobalAttachmentLink[] = [];
+
+    if (shouldUploadGlobalArtifacts) {
+      const [allGlobalErrors, allGlobalAttachments] = await Promise.all([
+        store.allGlobalErrors(),
+        store.allGlobalAttachments(),
+      ]);
+      globalErrors = allGlobalErrors.filter((error) => !this.#uploadedGlobalErrors.has(error));
+      globalAttachments = allGlobalAttachments.filter(
+        (attachment) => !this.#uploadedGlobalAttachmentIds.has(attachment.id),
+      );
+    }
 
     if (trsToUpload.length === 0) {
       if (stage == "update") {
-        this.#logger.info("No new test results to upload");
+        this.#logger.verbose("No new test results to upload");
       }
 
       if (stage === "done") {
-        this.#logger.info("No test results to upload");
+        this.#logger.verbose("No test results to upload");
       }
 
-      return;
+      if (globalErrors.length === 0 && globalAttachments.length === 0) {
+        return;
+      }
+    }
+
+    if (stage === "update" && trsToUpload.length > 0) {
+      this.#logger.verbose(
+        `Found ${bold(trsToUpload.length.toString())} new test ${trsToUpload.length > 1 ? "results" : "result"}, uploading…`,
+      );
     }
 
     try {
@@ -385,8 +421,13 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    await this.#uploadGlobalAttachments(store);
-    await this.#uploadGlobalErrors(store);
+    await this.#uploadGlobalAttachments(store, globalAttachments);
+    await this.#uploadGlobalErrors(globalErrors);
+
+    if (trsToUpload.length === 0) {
+      return;
+    }
+
     await this.#uploadQualityGateResults(store);
 
     const environments = await store.allEnvironmentIdentities();
@@ -394,7 +435,9 @@ export class TestOpsPlugin implements Plugin {
     const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
 
     await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
-    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
+    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments, {
+      silent: !!context?.realTime,
+    });
   }
 
   async #trsToUpload(store: AllureStore) {
@@ -564,6 +607,10 @@ export class TestOpsPlugin implements Plugin {
   async start(context: PluginContext, store: AllureStore) {
     if (!this.enabled) {
       return;
+    }
+
+    if (context.realTime) {
+      this.#logger.setLogLevel("info");
     }
 
     this.#logger.verbose("Starting upload…");

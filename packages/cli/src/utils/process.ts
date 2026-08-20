@@ -115,6 +115,9 @@ export const runProcess = (params: {
 export const terminationOf = (testProcess: ChildProcess): Promise<number | null> =>
   new Promise((resolve) => {
     testProcess.on("exit", (code) => resolve(code));
+    // a spawn failure (e.g. ENOENT) emits 'error' instead of 'exit'; without this listener
+    // it's unhandled and crashes the whole process (watch mode included)
+    testProcess.on("error", () => resolve(null));
   });
 
 /**

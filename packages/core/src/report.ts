@@ -300,6 +300,7 @@ export class AllureReport {
       message: uploadProgressMessage,
       unitLabel: "files uploaded",
       prefix: "[AllureReport]",
+      silent: !!this.#realTime,
     });
     const endPublishPerfSpan = startPerfSpan(PERF_METRIC_NAMES.publishUploadTotal);
     const logUploadProgress = progressLogger.log;

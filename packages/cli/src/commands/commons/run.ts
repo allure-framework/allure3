@@ -140,6 +140,7 @@ export const runTests = async (params: {
     environmentVariables,
     logs,
   });
+
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
