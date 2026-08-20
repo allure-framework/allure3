@@ -6,7 +6,7 @@ import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, t
 
 const DEFAULT_SECTION = "default";
 
-type Section = SectionRouteName | "default";
+type Section = SectionRouteName | DEFAULT_SECTION;
 
 const reportOptions = getReportOptions<AwesomeReportOptions>();
 
