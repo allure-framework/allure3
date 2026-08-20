@@ -21,11 +21,11 @@
   text-overflow: ellipsis;
   width: 100%;
   font-weight: 400;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-fullName-icon {
-  --allure-btn-icon-color: var(--on-icon-secondary);
+  --allure-btn-icon-color: var(--color-icon-secondary);
 }
 
 .test-result-navigator {
@@ -36,7 +36,7 @@
 }
 
 .test-result-navigator-numbers {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 

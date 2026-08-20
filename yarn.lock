@@ -291,6 +291,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-classic@workspace:packages/plugin-classic"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"

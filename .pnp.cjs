@@ -539,6 +539,7 @@ const RAW_RUNTIME_STATE =
       ["workspace:packages/plugin-classic", {\
         "packageLocation": "./packages/plugin-classic/",\
         "packageDependencies": [\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-classic", "workspace:packages/plugin-classic"],\
