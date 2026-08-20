@@ -5,7 +5,7 @@ import { isAbsolute, join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
-import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
+import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
@@ -45,7 +45,6 @@ vi.mock("@allurereport/ci", () => ({
     jobRunBranch: "main",
   }),
 }));
-
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
   const plugin: Mocked<Required<Plugin>> = {
     start: vi.fn<Required<Plugin>["start"]>(),
@@ -119,6 +118,46 @@ describe("report", () => {
     });
   });
 
+  it("should write root test result registry and keep a single plugin report at the root", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-test-results-registry-"));
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({ name: "Allure Report", output });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitTestResult(
+      {
+        uuid: "result-1",
+        name: "failed test",
+        status: "failed",
+        duration: 123,
+      },
+      { readerId: "report.test.ts" },
+    );
+    await allureReport.done();
+
+    const registry = JSON.parse(await readFile(join(output, "test-results.json"), "utf8"));
+    const id = md5("result-1");
+
+    expect(registry).toEqual({
+      byId: {
+        [id]: {
+          id,
+          name: "failed test",
+          duration: 123,
+          status: "failed",
+        },
+      },
+    });
+    await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
   it("should not allow call done() before start()", async () => {
     const config = await resolveConfig({
       name: "Allure Report",
@@ -162,6 +201,83 @@ describe("report", () => {
     await expect(() => allureReport.readResult(resultFile)).rejects.toThrowError(
       "report is not initialised. Call the start() method first",
     );
+  });
+
+  it("should not write known issues file when no active known issues path exists", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-known-policy-disabled-"));
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output: join(cwd, "out"),
+      },
+      { plugins: {} },
+    );
+
+    process.chdir(cwd);
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitTestResult(
+      {
+        name: "failed test",
+        status: "failed",
+        historyId: "history-1",
+      },
+      { readerId: "report.test.ts" },
+    );
+    await allureReport.done();
+
+    await expect(readFile(join(cwd, "known-issues.json"), "utf-8")).rejects.toThrow();
+  });
+
+  it("should write known issues file when active known issues policy derives default path", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-known-policy-active-"));
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output: join(cwd, "out"),
+        knownIssues: {
+          rules: [
+            {
+              testCaseId: md5("tc-1"),
+              decision: {
+                reason: "tracked defect",
+                links: [{ type: "issue", url: "https://example.org/issue-1" }],
+              },
+            },
+          ],
+        },
+      },
+      { plugins: {} },
+    );
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.store.visitTestResult(
+      {
+        name: "failed test",
+        status: "failed",
+        testId: "tc-1",
+      },
+      { readerId: "report.test.ts" },
+    );
+    await allureReport.done();
+
+    const content = await readFile(join(cwd, "known-issues.json"), "utf-8");
+
+    expect(content.endsWith("\n")).toBe(true);
+    expect(JSON.parse(content)).toEqual([
+      {
+        error: {},
+        historyId: expect.any(String),
+        links: [{ type: "issue", url: "https://example.org/issue-1" }],
+        reason: "tracked defect",
+      },
+    ]);
   });
 
   it("should skip readers whose matcher rejects the result file", async () => {
@@ -286,6 +402,36 @@ describe("report", () => {
         process.env.ALLURE_READ_CONCURRENCY = previousConcurrency;
       }
     }
+  });
+
+  it("should ignore .tmp files when reading result directory", async () => {
+    const resultsDir = await mkdtemp(join(tmpdir(), "allure3-read-directory-tmp-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const readFiles: string[] = [];
+    const reader: ResultsReader = {
+      matches: vi.fn().mockReturnValue(true),
+      read: vi.fn(async (_visitor, data) => {
+        readFiles.push(data.getOriginalFileName());
+
+        return true;
+      }),
+      readerId: () => "tmp-filter",
+    };
+
+    await writeFile(join(resultsDir, "result.json"), "{}");
+    await writeFile(join(resultsDir, "result.json.abc123.tmp"), "{}");
+
+    const allureReport = new AllureReport({
+      ...config,
+      readers: [reader],
+    });
+
+    await allureReport.start();
+    await allureReport.readDirectory(resultsDir);
+
+    expect(readFiles).toEqual(["result.json"]);
   });
 
   it("should call plugins in specified order on start()", async () => {
@@ -532,11 +678,16 @@ describe("report", () => {
     await allureReport.done();
 
     expect(AllureServiceClientMock.prototype.createReport).toBeCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.uploadReport).toBeCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.uploadReport).toBeCalledTimes(2);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginId: "p1",
         files: expect.objectContaining({ "index.html": expect.any(String) }),
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: { "test-results.json": expect.any(String) },
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
@@ -614,7 +765,7 @@ describe("report", () => {
     await allureReport.start();
     await allureReport.done();
 
-    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledTimes(2);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginId: "p1",
@@ -624,6 +775,9 @@ describe("report", () => {
           "app.js": expect.any(String),
         }),
       }),
+    );
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({ files: { "test-results.json": expect.any(String) } }),
     );
   });
 
@@ -880,6 +1034,7 @@ describe("report", () => {
         success: false,
         actual: 5,
         expected: 3,
+        testResults: [],
       }),
     };
     const config = await resolveConfig({

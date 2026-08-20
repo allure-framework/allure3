@@ -63,6 +63,10 @@ export const isDisplayableTestError = (error?: TestErrorLike) => {
   );
 };
 
+export const hasDisplayableTestStatusDetails = (status: TestStatus | undefined, error?: TestErrorLike) => {
+  return (status === "failed" || status === "broken" || status === "skipped") && isDisplayableTestError(error);
+};
+
 const canHostSyntheticError = (step: DefaultTestStepResult, error: TestErrorLike) => {
   if (step.status !== "failed" && step.status !== "broken") {
     return false;
@@ -161,10 +165,9 @@ export const getBodyItems = (
     return [];
   }
 
-  const syntheticErrorItem =
-    (testResult.status === "failed" || testResult.status === "broken") && isDisplayableTestError(testResult.error)
-      ? createTestLevelErrorItem(testResult.id, testResult.status, testResult.error, fallbackTitle)
-      : undefined;
+  const syntheticErrorItem = hasDisplayableTestStatusDetails(testResult.status, testResult.error)
+    ? createTestLevelErrorItem(testResult.id, testResult.status, testResult.error, fallbackTitle)
+    : undefined;
 
   const { bodyItems, didPlaceSyntheticError } = buildStepBodyItems(testResult.steps, syntheticErrorItem);
 

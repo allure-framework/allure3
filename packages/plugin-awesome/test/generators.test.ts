@@ -3,7 +3,7 @@ import { ChartType } from "@allurereport/charts-api";
 import type { AttachmentLink, EnvironmentIdentity, TestFixtureResult, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
+import type { AwesomeQualityGateResults, AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,6 +11,7 @@ import {
   generateAllCharts,
   generateAttachmentsFiles,
   generateGlobals,
+  generateQualityGateResults,
   generateSearchIndex,
   generateTestResults,
   getRunSummary,
@@ -460,6 +461,84 @@ describe("generateSearchIndex", () => {
     expect(documents[0]?.labels).not.toContain("ignored");
     expect(documents[0]?.parameters).not.toContain("secret-token");
     expect(documents[0]?.parameters).not.toContain("hidden-value");
+  });
+});
+
+describe("generateQualityGateResults", () => {
+  it("should embed a tree containing only related test results", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const tests = [
+      {
+        ...mockTestResult("tr-related", "related test", "failed"),
+        groupedLabels: {},
+      },
+      {
+        ...mockTestResult("tr-unrelated", "unrelated test", "passed"),
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    await generateQualityGateResults(
+      writer,
+      {
+        default: [
+          {
+            rule: "maxFailures",
+            success: false,
+            expected: 0,
+            actual: 1,
+            message: "Too many failures",
+            testResults: ["tr-related", "tr-related", "tr-missing"],
+          },
+        ],
+      },
+      { tests },
+    );
+
+    const results = writtenWidgets.get("quality-gate.json") as AwesomeQualityGateResults;
+    const [result] = results.default;
+
+    expect(result.testResults).toEqual(["tr-related", "tr-related", "tr-missing"]);
+    expect(Object.keys(result.testResultsTree?.leavesById ?? {})).toEqual(["tr-related"]);
+    expect(result.testResultsTree?.leavesById["tr-related"]).toMatchObject({
+      nodeId: "tr-related",
+      name: "related test",
+      status: "failed",
+    });
+  });
+
+  it("should omit the tree when no related test result can be resolved", async () => {
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await generateQualityGateResults(writer, {
+      default: [
+        {
+          rule: "maxFailures",
+          success: false,
+          expected: 0,
+          actual: 0,
+          message: "Too many failures",
+          testResults: [],
+        },
+      ],
+    });
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("quality-gate.json", {
+      default: [expect.not.objectContaining({ testResultsTree: expect.anything() })],
+    });
   });
 });
 

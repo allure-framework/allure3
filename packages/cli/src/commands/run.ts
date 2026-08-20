@@ -86,6 +86,10 @@ export class RunCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -144,8 +148,10 @@ export class RunCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      knownIssuesPath: this.knownIssues,
     });
+
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
     const withQualityGate = !!config.qualityGate && !withRerun;

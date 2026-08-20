@@ -1,7 +1,7 @@
 import type { Statistic, TestStatus } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import { getPieChartValues } from "@allurereport/web-commons";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize.js";
 import { useMemo } from "preact/hooks";
 
 import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
@@ -13,6 +13,8 @@ import { MetadataItem, MetadataTestType } from "./components/MetadataItem";
 import type { I18nProp, ReportSummary } from "./model";
 
 import styles from "./styles.scss";
+
+export type { ReportSummary } from "./model";
 
 export type ReportSummaryCardProps = {
   i18n: I18nProp;

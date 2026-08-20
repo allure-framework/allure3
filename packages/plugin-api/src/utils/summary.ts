@@ -6,14 +6,18 @@ import {
   getWorstStatus,
 } from "@allurereport/core-api";
 
-import type { PluginSummary, SummaryCheckResult, SummaryTestResult } from "../plugin.js";
+import type { PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
 import type { AllureStore } from "../store.js";
 
-export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult => ({
+export const convertToTestResultSummary = (tr: TestResult): TestResultSummary => ({
   id: tr.id,
   name: tr.name,
-  status: tr.status,
   duration: tr.duration,
+  status: tr.status,
+});
+
+export const createTestResultRegistry = (testResults: TestResult[]): TestResultRegistry => ({
+  byId: Object.fromEntries(testResults.map((testResult) => [testResult.id, convertToTestResultSummary(testResult)])),
 });
 
 export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCheckResult => ({
@@ -46,9 +50,9 @@ export const createPluginSummary = async (params: {
   return {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
-    newTests: newTrs.map(convertToSummaryTestResult),
-    flakyTests: flakyTrs.map(convertToSummaryTestResult),
-    retryTests: retryTrs.map(convertToSummaryTestResult),
+    newTests: newTrs.map(({ id }) => id),
+    flakyTests: flakyTrs.map(({ id }) => id),
+    retryTests: retryTrs.map(({ id }) => id),
     checks: allChecks.map(convertToSummaryCheckResult),
     name,
     duration,

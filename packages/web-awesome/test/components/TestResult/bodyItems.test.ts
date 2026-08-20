@@ -74,6 +74,32 @@ describe("components > TestResult > bodyItems", () => {
     ]);
   });
 
+  it("should append test-level status details for skipped tests", () => {
+    const bodyItems = getBodyItems(
+      makeTestResult({
+        status: "skipped",
+        error: { message: "Temporarily disabled until the upstream fix lands" },
+      }),
+      "Error",
+    );
+
+    expect(bodyItems).toEqual([
+      {
+        type: "step",
+        item: sampleStep,
+        bodyItems: [],
+        suppressInlineError: false,
+      },
+      {
+        type: "error",
+        id: getTestLevelErrorId("test-result-id"),
+        title: "Temporarily disabled until the upstream fix lands",
+        status: "skipped",
+        error: { message: "Temporarily disabled until the upstream fix lands" },
+      },
+    ]);
+  });
+
   it("should nest the synthetic error into the deepest matching broken step", () => {
     const step3: DefaultTestStepResult = {
       type: "step",

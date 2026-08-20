@@ -138,6 +138,7 @@
     "category": "الفئة",
     "description": "الوصف",
     "links": "الروابط",
+    "relatedTestResults": "نتائج الاختبارات ذات الصلة ({{count}})",
     "overview": "نظرة عامة",
     "history": "السجل",
     "attachments": "المرفقات",

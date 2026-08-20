@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-classic",
-  "version": "3.14.3",
+  "version": "3.15.0",
   "description": "The classic version of Allure HTML report",
   "keywords": [
     "allure",

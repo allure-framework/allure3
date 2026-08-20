@@ -7,6 +7,7 @@ export type QualityGateValidationResult = {
   rule: string;
   message: string;
   environment?: string;
+  testResults: string[];
 };
 
 export type QualityGateRules = Record<string, any> & {
@@ -21,11 +22,12 @@ export type QualityGateRules = Record<string, any> & {
 export type QualityGateRuleResult = {
   success: boolean;
   actual: any;
+  testResults: string[];
 };
 
 export interface QualityGateRuleState<T> {
   getResult(): T | undefined;
-  setResult(value: T): void;
+  setResult(value: T, testResults: QualityGateRuleResult["testResults"]): void;
 }
 
 export type QualityGateRule<T = any, K = T> = {

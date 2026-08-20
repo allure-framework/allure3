@@ -1,5 +1,5 @@
 import type { ComponentChild } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import searchIcon from "@/assets/svg/line-general-search-md.svg";
 import closeIcon from "@/assets/svg/line-general-x-close.svg";
@@ -29,6 +29,14 @@ export const SearchBox = (props: Props) => {
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeDebounced = useDebouncedCallback(onChange, changeDebounce);
+  const onChangeDebouncedRef = useRef(onChangeDebounced);
+  onChangeDebouncedRef.current = onChangeDebounced;
+
+  useEffect(() => {
+    setLocalValue(value ?? "");
+    onChangeDebouncedRef.current.cancel();
+  }, [value]);
+
   const handleChange = (e: Event) => {
     const newValue = (e.target as HTMLInputElement).value;
     setLocalValue(newValue);
@@ -39,7 +47,8 @@ export const SearchBox = (props: Props) => {
     e.preventDefault();
     e.stopPropagation();
     setLocalValue("");
-    onChangeDebounced("");
+    onChangeDebounced.cancel();
+    onChange("");
   };
   const showClear = !!localValue;
   const hasError = !!error;

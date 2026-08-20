@@ -10,12 +10,13 @@ import {
   stringifyQualityGateResults,
 } from "../../src/qualityGate/qualityGate.js";
 
-const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
+const createTestResult = (id: string, status: TestStatus, historyId?: string, isRetry = false) =>
   ({
     id,
     name: `Test ${id}`,
     status,
     historyId,
+    isRetry,
   }) as TestResult;
 const createValidationResult = (
   success: boolean,
@@ -29,6 +30,7 @@ const createValidationResult = (
   actual,
   expected,
   message,
+  testResults: [],
 });
 
 beforeEach(async () => {
@@ -160,6 +162,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -179,7 +182,64 @@ describe("QualityGate", () => {
       expect(results[0].actual).toBe(5);
       expect(results[0].expected).toBe(3);
       expect(results[0].message).toBe("Mock rule failed with 5 vs 3");
+      expect(results[0].testResults).toEqual([]);
       expect(fastFailed).toBe(false);
+    });
+
+    it("should populate evidence ids for maxFailures default rule", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0 }],
+      });
+      const testResults: TestResult[] = [
+        createTestResult("1", "passed"),
+        createTestResult("2", "failed"),
+        createTestResult("3", "broken"),
+        { ...createTestResult("4", "failed"), known: true } as TestResult,
+      ];
+
+      const { results } = await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].rule).toBe("maxFailures");
+      expect(results[0].testResults).toEqual(["2", "3"]);
+    });
+
+    it("should populate evidence ids for maxDuration default rule", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxDuration: 10 }],
+      });
+      const testResults: TestResult[] = [
+        { ...createTestResult("1", "passed"), duration: 10 } as TestResult,
+        { ...createTestResult("2", "passed"), duration: 11 } as TestResult,
+        { ...createTestResult("3", "failed"), duration: 20 } as TestResult,
+      ];
+
+      const { results } = await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].rule).toBe("maxDuration");
+      expect(results[0].testResults).toEqual(["2", "3"]);
+    });
+
+    it("should return empty evidence ids for default rules without direct evidence", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ minTestsCount: 2 }],
+      });
+
+      const { results } = await qualityGate.validate({
+        trs: [createTestResult("1", "passed")],
+        knownIssues: [],
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].rule).toBe("minTestsCount");
+      expect(results[0].testResults).toEqual([]);
     });
 
     it("should preserve passed environment values in failed results", async () => {
@@ -190,6 +250,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const qualityGate = new QualityGate({
@@ -223,6 +284,7 @@ describe("QualityGate", () => {
           success: true,
           actual: 2,
           expected: 3,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -248,6 +310,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const mockRule2: QualityGateRule<number> = {
@@ -257,6 +320,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -291,6 +355,305 @@ describe("QualityGate", () => {
       expect(fastFailed).toBe(false);
     });
 
+    it("should ignore retries for default rules", async () => {
+      const config: QualityGateConfig = {
+        rules: [{ maxFailures: 0 }],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [
+        createTestResult("1", "passed"),
+        createTestResult("2", "failed", undefined, true),
+      ];
+      const { results, fastFailed } = await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(results).toEqual([]);
+      expect(fastFailed).toBe(false);
+    });
+
+    it("should keep accumulators stable when the same gate validates the same batch twice", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0 }],
+      });
+      const state = new QualityGateState();
+      const testResults: TestResult[] = [createTestResult("1", "failed")];
+
+      const first = await qualityGate.validate({ state, trs: testResults, knownIssues: [] });
+      const second = await qualityGate.validate({ state, trs: testResults, knownIssues: [] });
+
+      expect(first.results[0].actual).toBe(1);
+      expect(first.results[0].testResults).toEqual(["1"]);
+      expect(second.results[0].actual).toBe(1);
+      expect(second.results[0].testResults).toEqual(["1"]);
+    });
+
+    it("should consume only new ids from overlapping batches with the same gate", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ minTestsCount: 3 }],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "passed"), createTestResult("2", "passed")],
+        knownIssues: [],
+      });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
+        knownIssues: [],
+      });
+
+      expect(results).toEqual([]);
+      expect(state.getResult("minTestsCount")).toBe(3);
+    });
+
+    it("should not consume retry id before non-retry with same id arrives", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0 }],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed", undefined, true)], knownIssues: [] });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "failed")],
+        knownIssues: [],
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].actual).toBe(1);
+      expect(results[0].testResults).toEqual(["1"]);
+    });
+
+    it("should accumulate evidence ids across multiple validate calls", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0 }],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [createTestResult("2", "broken")],
+        knownIssues: [],
+      });
+
+      expect(results[0].actual).toBe(2);
+      expect(results[0].testResults).toEqual(["1", "2"]);
+    });
+
+    it("should include accumulated evidence when fast fail stops validation", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0, fastFail: true }, { minTestsCount: 10 }],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      const { results, fastFailed } = await qualityGate.validate({
+        state,
+        trs: [createTestResult("2", "failed")],
+        knownIssues: [],
+      });
+
+      expect(fastFailed).toBe(true);
+      expect(results).toHaveLength(1);
+      expect(results[0].testResults).toEqual(["1", "2"]);
+    });
+
+    it("should reset dedupe for a new gate instance", async () => {
+      const config: QualityGateConfig = {
+        rules: [{ maxFailures: 0 }],
+      };
+      const testResults: TestResult[] = [createTestResult("1", "failed")];
+
+      await new QualityGate(config).validate({ trs: testResults, knownIssues: [] });
+      const { results } = await new QualityGate(config).validate({ trs: testResults, knownIssues: [] });
+
+      expect(results[0].actual).toBe(1);
+      expect(results[0].testResults).toEqual(["1"]);
+    });
+
+    it("should keep seen-id dedupe in shared state across gate instances", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const state = new QualityGateState();
+      const testResults: TestResult[] = [createTestResult("1", "passed")];
+
+      await new QualityGate(config).validate({ state, trs: testResults, knownIssues: [] });
+      await new QualityGate(config).validate({ state, trs: testResults, knownIssues: [] });
+
+      expect(mockRule.validate).toHaveBeenNthCalledWith(1, expect.objectContaining({ trs: testResults }));
+      expect(mockRule.validate).toHaveBeenNthCalledWith(2, expect.objectContaining({ trs: [] }));
+    });
+
+    it("should pass unseen batch test results to custom rules", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "passed"), createTestResult("2", "passed")],
+        knownIssues: [],
+      });
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: "3" })],
+        }),
+      );
+    });
+
+    it("should pass same deduped batch to all rules in the same ruleset", async () => {
+      const mockRule1: QualityGateRule<number> = {
+        rule: "mockRule1",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const mockRule2: QualityGateRule<number> = {
+        rule: "mockRule2",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule1: 0, mockRule2: 0 }],
+        use: [mockRule1, mockRule2],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "passed"), createTestResult("1", "failed"), createTestResult("2", "passed")],
+        knownIssues: [],
+      });
+
+      const expectedTrs = [expect.objectContaining({ id: "1" }), expect.objectContaining({ id: "2" })];
+
+      expect(mockRule1.validate).toHaveBeenCalledWith(expect.objectContaining({ trs: expectedTrs }));
+      expect(mockRule2.validate).toHaveBeenCalledWith(expect.objectContaining({ trs: expectedTrs }));
+    });
+
+    it("should keep same-call ids available across rulesets and dedupe later calls with the same gate", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [
+          { id: "one", mockRule: 0 },
+          { id: "two", mockRule: 0 },
+        ],
+        use: [mockRule],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "passed")],
+        knownIssues: [],
+      });
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "passed")],
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ trs: [expect.objectContaining({ id: "1" })] }),
+      );
+      expect(mockRule.validate).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ trs: [expect.objectContaining({ id: "1" })] }),
+      );
+      expect(mockRule.validate).toHaveBeenNthCalledWith(3, expect.objectContaining({ trs: [] }));
+      expect(mockRule.validate).toHaveBeenNthCalledWith(4, expect.objectContaining({ trs: [] }));
+    });
+
+    it("should run ruleset filter before global dedupe", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [
+          { id: "filtered", mockRule: 0, filter: (tr) => tr.status === "passed" },
+          { id: "all", mockRule: 0 },
+        ],
+        use: [mockRule],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [createTestResult("1", "failed"), createTestResult("2", "passed")],
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ trs: [expect.objectContaining({ id: "2" })] }),
+      );
+      expect(mockRule.validate).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ trs: [expect.objectContaining({ id: "1" }), expect.objectContaining({ id: "2" })] }),
+      );
+    });
+
+    it("should accumulate newly affected test results through atomic rule state", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn(async ({ state, trs }) => {
+          const actual = (state.getResult() ?? 0) + trs.length;
+          const testResults = trs.map(({ id }) => id);
+
+          state.setResult(actual, testResults);
+
+          return { success: false, actual, testResults };
+        }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [createTestResult("2", "failed")],
+        knownIssues: [],
+      });
+
+      expect(results[0].actual).toBe(2);
+      expect(results[0].testResults).toEqual(["1", "2"]);
+    });
+
     it("should fast fail when any rules set has fastFail flag", async () => {
       const mockRule1: QualityGateRule<number> = {
         rule: "mockRule1",
@@ -299,6 +662,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -326,6 +690,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const mockRule2: QualityGateRule<number> = {
@@ -335,6 +700,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 10,
           expected: 5,
+          testResults: [],
         }),
       };
       const validateSpy1 = vi.spyOn(mockRule1, "validate");
@@ -376,6 +742,7 @@ describe("QualityGate", () => {
             success: true,
             expected: 3,
             actual,
+            testResults: [],
           };
         },
       };
@@ -412,6 +779,7 @@ describe("QualityGate", () => {
           success: true,
           actual: 0,
           expected: 0,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -454,6 +822,7 @@ describe("QualityGate", () => {
           success: false,
           actual: 5,
           expected: 3,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -495,6 +864,7 @@ describe("QualityGate", () => {
         validate: vi.fn().mockResolvedValue({
           success: true,
           actual: 1,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {
@@ -516,6 +886,66 @@ describe("QualityGate", () => {
       );
     });
 
+    it("should pass only non-retry test results to custom rules", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+          testResults: [],
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [
+        createTestResult("1", "passed"),
+        createTestResult("2", "failed", undefined, true),
+      ];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults.slice(0, 1),
+        }),
+      );
+    });
+
+    it("should dedupe duplicate ids within a single call without shared state", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+          testResults: [],
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+
+      await qualityGate.validate({
+        trs: [createTestResult("1", "passed"), createTestResult("1", "failed")],
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: "1", status: "failed" })],
+        }),
+      );
+    });
+
     it("should filter test results when filter function is provided", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
@@ -523,6 +953,7 @@ describe("QualityGate", () => {
         validate: vi.fn().mockResolvedValue({
           success: true,
           actual: 1,
+          testResults: [],
         }),
       };
       const config: QualityGateConfig = {

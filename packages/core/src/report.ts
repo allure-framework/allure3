@@ -29,6 +29,7 @@ import {
   type PluginSummary,
   type ReportFiles,
   type ResultFile,
+  createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -48,6 +49,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
+import { writeKnownIssues } from "./known.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -62,6 +64,7 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
+const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -117,12 +120,14 @@ export class AllureReport {
   readonly #categories: CategoryDefinition[];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
+  readonly #knownIssuesPath: FullConfig["knownIssuesPath"];
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
   #executionStage: "init" | "running" | "done" = "init";
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
+  #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
   #published = false;
@@ -138,6 +143,8 @@ export class AllureReport {
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       known,
+      knownIssues,
+      knownIssuesPath,
       reportFiles,
       realTime,
       historyPath,
@@ -185,6 +192,7 @@ export class AllureReport {
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
+    this.#knownIssuesPath = knownIssuesPath;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -212,6 +220,7 @@ export class AllureReport {
       environmentsConfig: environments,
       history: this.#history,
       known,
+      knownIssuesConfig: knownIssues,
       defaultLabels,
       environment,
       allowedEnvironments,
@@ -257,6 +266,7 @@ export class AllureReport {
       this.#historyDataPoint = historyPoint;
     }
 
+    await this.#writeTestResultRegistry();
     await this.#writeSummaryFiles();
     await this.#generateRootSummary();
 
@@ -279,7 +289,9 @@ export class AllureReport {
     const summariesSnapshot = this.#cloneSummariesByPluginId();
     const uploadProgressMessage =
       reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
-    const totalFilesToUpload = reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0);
+    const totalFilesToUpload =
+      reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0) +
+      (this.#testResultsRegistryPath ? 1 : 0);
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
@@ -322,6 +334,16 @@ export class AllureReport {
         if (uploadResult.indexHref) {
           linksByPluginId[report.pluginId] = uploadResult.indexHref;
         }
+      }
+
+      if (this.#testResultsRegistryPath) {
+        publishErrorMessage = "Test results registry upload has failed, the report won't be published";
+
+        await client.uploadReport({
+          reportUuid: this.reportUuid,
+          files: { [TEST_RESULTS_REGISTRY_FILENAME]: this.#testResultsRegistryPath },
+          onProgress: incrementUploadProgress,
+        });
       }
 
       const changedPluginIds = this.#applyPublishLinksToSummaries(linksByPluginId);
@@ -410,7 +432,7 @@ export class AllureReport {
 
       try {
         const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
-          .filter((dirent) => dirent.isFile())
+          .filter((dirent) => dirent.isFile() && !dirent.name.endsWith(".tmp"))
           .sort((a, b) => a.name.localeCompare(b.name));
         const limit = pLimit(readConcurrency());
 
@@ -467,6 +489,12 @@ export class AllureReport {
     environment?: string;
   }) => {
     const { trs, knownIssues, state, environment } = params;
+    const currentKnownIssues = await this.#store.allKnownIssues();
+    const effectiveKnownIssues = new Map<string, KnownTestFailure>();
+
+    [...knownIssues, ...currentKnownIssues].forEach((issue) => {
+      effectiveKnownIssues.set(issue.historyId, issue);
+    });
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -476,7 +504,7 @@ export class AllureReport {
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
-      knownIssues,
+      knownIssues: [...effectiveKnownIssues.values()],
       state,
       environment: qualityGateEnvironment,
     });
@@ -611,7 +639,7 @@ export class AllureReport {
       indexTestResultByTestCase = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      indexKnownByHistoryId = {},
+      knownIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
@@ -622,6 +650,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.KnownIssues, knownIssues],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
@@ -629,7 +658,6 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
-      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
     ];
@@ -795,7 +823,7 @@ export class AllureReport {
               const indexFixturesByTestResultEntry = await requiredEntryData(
                 AllureStoreDumpFiles.IndexFixturesByTestResult,
               );
-              const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+              const knownIssuesEntry = await requiredEntryData(AllureStoreDumpFiles.KnownIssues);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
@@ -809,6 +837,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.Fixtures:
                   case AllureStoreDumpFiles.Environments:
                   case AllureStoreDumpFiles.ReportVariables:
+                  case AllureStoreDumpFiles.KnownIssues:
                   case AllureStoreDumpFiles.GlobalAttachments:
                   case AllureStoreDumpFiles.GlobalErrors:
                   case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
@@ -816,7 +845,6 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexTestResultsByTestCase:
                   case AllureStoreDumpFiles.IndexAttachmentsByFixture:
                   case AllureStoreDumpFiles.IndexFixturesByTestResult:
-                  case AllureStoreDumpFiles.IndexKnownByHistoryId:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
                     return acc;
@@ -845,7 +873,7 @@ export class AllureReport {
                 indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-                indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+                knownIssues: JSON.parse(knownIssuesEntry.toString("utf8")),
                 qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
@@ -994,6 +1022,16 @@ export class AllureReport {
     });
   };
 
+  #writeTestResultRegistry = async (): Promise<void> => {
+    const testResults = await this.#store.allTestResults({ includeRetries: false });
+    const registry = createTestResultRegistry(testResults);
+
+    this.#testResultsRegistryPath = await this.#reportFiles.addFile(
+      TEST_RESULTS_REGISTRY_FILENAME,
+      Buffer.from(JSON.stringify(registry)),
+    );
+  };
+
   #generateRootSummary = async (): Promise<void> => {
     const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
@@ -1074,21 +1112,30 @@ export class AllureReport {
         outputDirFiles = await readdir(this.#output);
       } catch {}
 
+      if (this.#knownIssuesPath) {
+        await writeKnownIssues(this.#store, this.#knownIssuesPath);
+      }
+
       // just do nothing if there is no reports in the output directory
       if (outputDirFiles.length === 0) {
         return;
       }
 
-      const reportPath = join(this.#output, outputDirFiles[0]);
-      const reportStats = await lstat(reportPath);
-      const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
-      const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
+      const outputEntries = await Promise.all(
+        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+      );
+      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-      if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
+      if (outputDirectoryEntries.length === 1) {
+        const reportPath = join(this.#output, outputDirectoryEntries[0].file);
         const reportContent = await readdir(reportPath);
 
         for (const entry of reportContent) {
+          if (entry === TEST_RESULTS_REGISTRY_FILENAME) {
+            continue;
+          }
+
           const currentFilePath = join(reportPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 

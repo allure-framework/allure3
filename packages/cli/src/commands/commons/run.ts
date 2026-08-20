@@ -28,6 +28,7 @@ export type TestProcessResult = {
   stdout: string;
   stderr: string;
   qualityGateResults: QualityGateValidationResult[];
+  fastFailed: boolean;
 };
 
 export type RunLogsMode = "pipe" | "inherit" | "ignore";
@@ -142,11 +143,16 @@ export const runTests = async (params: {
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
+  let fastFailTriggered = false;
   let testProcessStdout = "";
   let testProcessStderr = "";
 
   if (withQualityGate) {
     qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+      if (fastFailTriggered) {
+        return;
+      }
+
       const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
       const filteredTrs = trs.filter((tr) => tr !== undefined);
 
@@ -166,8 +172,11 @@ export const runTests = async (params: {
         return;
       }
 
-      allureReport.realtimeDispatcher.sendQualityGateResults(results);
+      qualityGateUnsub?.();
+
+      fastFailTriggered = true;
       qualityGateResults = results;
+      qualityGateUnsub = undefined;
 
       try {
         await stopProcessTree(testProcess.pid!);
@@ -230,6 +239,7 @@ export const runTests = async (params: {
     stdout: testProcessStdout,
     stderr: testProcessStderr,
     qualityGateResults,
+    fastFailed: fastFailTriggered,
   };
 };
 
@@ -290,8 +300,15 @@ export const executeAllureRun = async (params: {
       logProcessExit,
     });
 
-    for (let rerun = 0; rerun < maxRerun; rerun++) {
-      const failed = await allureReport.store.failedTestResults();
+    const allFailuresAfterInitialRun = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterInitialRun = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterInitialRun.length > 0 && blockingFailuresAfterInitialRun.length === 0 && testProcessResult) {
+      globalExitCode.actual = 0;
+    }
+
+    for (let rerun = 0; rerun < maxRerun && testProcessResult && !testProcessResult.fastFailed; rerun++) {
+      const failed = await allureReport.store.blockingFailedTestResults();
 
       if (failed.length === 0) {
         console.log("no failed tests is detected.");
@@ -329,6 +346,13 @@ export const executeAllureRun = async (params: {
       await rm(tmpDir, { recursive: true });
 
       logTests(await allureReport.store.allTestResults());
+    }
+
+    const allFailuresAfterReruns = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterReruns = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterReruns.length > 0 && blockingFailuresAfterReruns.length === 0 && testProcessResult) {
+      globalExitCode.actual = 0;
     }
 
     const trs = await allureReport.store.allTestResults({ includeRetries: false });

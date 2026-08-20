@@ -6,6 +6,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { executeAllureRun } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
@@ -99,9 +100,11 @@ beforeEach(async () => {
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 
   const { AllureReportMock } = await import("../utils.js");
+  const { terminationOf } = await import("../../src/utils/index.js");
 
   AllureReportMock.prototype.store = {
     allKnownIssues: vi.fn().mockResolvedValue([]),
+    blockingFailedTestResults: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
   };
@@ -117,6 +120,8 @@ beforeEach(async () => {
   AllureReportMock.prototype.validate = vi.fn().mockResolvedValue({
     results: [],
   });
+  vi.mocked(terminationOf).mockReset();
+  vi.mocked(terminationOf).mockResolvedValue(0);
 });
 
 describe("run command", () => {
@@ -148,6 +153,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner"],
       historyLimit: undefined,
+      knownIssuesPath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -197,6 +203,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner", "tag"],
       historyLimit: undefined,
+      knownIssuesPath: undefined,
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -247,6 +254,26 @@ describe("run command", () => {
     expect(exitMock).not.toHaveBeenCalledWith(-1);
   });
 
+  it("should pass known issues override to readConfig", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--known-issues", "known.json", "--", "npm", "test"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: undefined,
+      name: undefined,
+      open: undefined,
+      port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
+      knownIssuesPath: "known.json",
+    });
+  });
+
   it("should keep configured quality gate when rerun is zero", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const qualityGate = {
@@ -276,6 +303,107 @@ describe("run command", () => {
     );
     expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
     expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should stop, skip reruns, and publish only the first realtime fast-fail result", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
+    const { stopProcessTree } = await import("../../src/utils/process.js");
+    const unsubscribe = vi.fn();
+    let resolveOnTestResults!: (callback: (ids: string[]) => Promise<void>) => void;
+    const onTestResultsReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
+      resolveOnTestResults = resolve;
+    });
+    let finishTestProcess!: (code: number | null) => void;
+    const testProcessTermination = new Promise<number | null>((resolve) => {
+      finishTestProcess = resolve;
+    });
+    const firstResult = {
+      success: false,
+      expected: 0,
+      actual: 1,
+      rule: "maxFailures",
+      message: "Too many failures",
+      testResults: ["tr-1"],
+    };
+    const laterResult = {
+      ...firstResult,
+      actual: 2,
+      testResults: ["tr-1", "tr-2"],
+    };
+
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: vi.fn((callback: (ids: string[]) => Promise<void>) => {
+        resolveOnTestResults(callback);
+        return unsubscribe;
+      }),
+    };
+    AllureReportMock.prototype.store = {
+      allKnownIssues: vi.fn().mockResolvedValue([]),
+      blockingFailedTestResults: vi.fn().mockResolvedValue([]),
+      failedTestResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(async (id: string) => ({ id })),
+    };
+    AllureReportMock.prototype.validate = vi
+      .fn()
+      .mockResolvedValueOnce({ results: [firstResult], fastFailed: true })
+      .mockResolvedValue({ results: [laterResult], fastFailed: true });
+    vi.mocked(terminationOf).mockReturnValueOnce(testProcessTermination);
+
+    const commandPromise = executeAllureRun({
+      allureReport: new AllureReportMock() as never,
+      knownIssues: [],
+      cwd: "/cwd",
+      command: "npm",
+      commandArgs: ["test"],
+      withQualityGate: true,
+      maxRerun: 1,
+    });
+    const onTestResults = await onTestResultsReady;
+
+    await onTestResults(["tr-1"]);
+    await onTestResults(["tr-2"]);
+    finishTestProcess(1);
+    await commandPromise;
+
+    expect(AllureReportMock.prototype.validate).toHaveBeenCalledTimes(1);
+    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(stopProcessTree).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([firstResult]);
+  });
+
+  it("should preserve raw child exit code when only known failures remain", async () => {
+    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    vi.mocked(runProcess).mockClear();
+    vi.mocked(terminationOf).mockResolvedValueOnce(7);
+
+    const { AllureReportMock } = await import("../utils.js");
+    const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
+
+    AllureReportMock.prototype.store = {
+      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1" }]),
+      blockingFailedTestResults: vi.fn().mockResolvedValue([]),
+      failedTestResults: vi.fn().mockResolvedValue([knownFailure]),
+      allTestResults: vi.fn().mockResolvedValue([]),
+    };
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
+      original: 7,
+      actual: 0,
+    });
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
