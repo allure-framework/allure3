@@ -1,0 +1,429 @@
+# Measures PR HEAD and commits .github/allure-bundle-size.baseline.json.
+# Trigger: workflow_dispatch only (trusted actors). Slash command front door is
+# update-allure-bundle-baseline-command.yml — keeps issue_comment from checking
+# out / executing PR code (CodeQL actions/untrusted-checkout).
+name: Update Allure bundle size baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to update the baseline on"
+        required: true
+        type: string
+      requester:
+        description: "GitHub login that requested the update (defaults to the user who started the workflow)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: update-bundle-baseline-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Validate request
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.resolve.outputs.should_run }}
+      pr_number: ${{ steps.resolve.outputs.pr_number }}
+      head_ref: ${{ steps.resolve.outputs.head_ref }}
+      head_sha: ${{ steps.resolve.outputs.head_sha }}
+      actor: ${{ steps.resolve.outputs.actor }}
+    steps:
+      - name: Resolve PR and authorize
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          REQUESTER: ${{ inputs.requester || github.actor }}
+        run: |
+          set -euo pipefail
+
+          if ! [[ "${PR_NUMBER}" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::pr_number must be a positive integer (got: ${PR_NUMBER})"
+            exit 1
+          fi
+          if [[ -z "${REQUESTER}" ]]; then
+            echo "::error::requester is required"
+            exit 1
+          fi
+
+          perm_json="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${REQUESTER}/permission" 2>/dev/null || true)"
+          perm="$(printf '%s' "${perm_json}" | jq -r '.permission // empty')"
+          case "${perm}" in
+            admin|maintain|write) ;;
+            *)
+              echo "Denied: @${REQUESTER} lacks write access (permission=${perm:-none})."
+              echo "should_run=false" >> "${GITHUB_OUTPUT}"
+              exit 0
+              ;;
+          esac
+
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+          state="$(printf '%s' "${pr_json}" | jq -r '.state')"
+          head_ref="$(printf '%s' "${pr_json}" | jq -r '.head.ref')"
+          head_sha="$(printf '%s' "${pr_json}" | jq -r '.head.sha')"
+          head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
+          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
+
+          if [[ "${state}" != "open" ]]; then
+            message="Cannot update baseline: PR #${PR_NUMBER} is not open (state=${state})."
+            echo "::error::${message}"
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
+            echo "should_run=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
+            message="Cannot update baseline on fork PRs. Push a baseline commit from the fork, or re-open as a same-repo branch."
+            echo "::error::${message}"
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
+            echo "should_run=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          {
+            echo "should_run=true"
+            echo "pr_number=${PR_NUMBER}"
+            echo "head_ref=${head_ref}"
+            echo "head_sha=${head_sha}"
+            echo "actor=${REQUESTER}"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "Authorized @${REQUESTER} for PR #${PR_NUMBER} (${head_ref}@${head_sha})"
+
+  measure:
+    name: Measure and write baseline
+    needs: gate
+    if: needs.gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: node:24-bookworm
+    outputs:
+      changed: ${{ steps.measure.outputs.changed }}
+      before_self_mb: ${{ steps.measure.outputs.before_self_mb }}
+      before_deps_mb: ${{ steps.measure.outputs.before_deps_mb }}
+      before_total_mb: ${{ steps.measure.outputs.before_total_mb }}
+      after_self_mb: ${{ steps.measure.outputs.after_self_mb }}
+      after_deps_mb: ${{ steps.measure.outputs.after_deps_mb }}
+      after_total_mb: ${{ steps.measure.outputs.after_total_mb }}
+      delta_self_mb: ${{ steps.measure.outputs.delta_self_mb }}
+      delta_deps_mb: ${{ steps.measure.outputs.delta_deps_mb }}
+      delta_total_mb: ${{ steps.measure.outputs.delta_total_mb }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.gate.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Install deps
+        run: |
+          corepack enable >/dev/null 2>&1 || true
+          yarn install --immutable
+
+      - name: Build
+        run: yarn build
+
+      - name: Update baseline
+        id: measure
+        run: |
+          set -euo pipefail
+
+          BASELINE_PATH=".github/allure-bundle-size.baseline.json"
+          if [[ ! -f "${BASELINE_PATH}" ]]; then
+            echo "::error::Missing baseline file: ${BASELINE_PATH}"
+            exit 1
+          fi
+
+          bytes_to_mb() {
+            node -e "process.stdout.write((Number(process.argv[1]) / 1024 / 1024).toFixed(2))" "$1"
+          }
+
+          signed_mb() {
+            node -e '
+              const n = Number(process.argv[1]);
+              const text = n.toFixed(2);
+              process.stdout.write(n > 0 ? `+${text}` : text);
+            ' "$1"
+          }
+
+          before_self="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.selfBytes))')"
+          before_deps="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.depsBytes))')"
+          before_total="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.totalBytes))')"
+
+          cp "${BASELINE_PATH}" /tmp/baseline.before.json
+
+          node ./scripts/allure-bundle-size.mjs \
+            --progress \
+            --include-closure \
+            --update-baseline "${BASELINE_PATH}" \
+            --output .github/allure-bundle-size.report.json
+
+          after_self="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.selfBytes))')"
+          after_deps="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.depsBytes))')"
+          after_total="$(node -e 'const b=require("./.github/allure-bundle-size.baseline.json"); process.stdout.write(String(b.totalBytes))')"
+
+          before_self_mb="$(bytes_to_mb "${before_self}")"
+          before_deps_mb="$(bytes_to_mb "${before_deps}")"
+          before_total_mb="$(bytes_to_mb "${before_total}")"
+          after_self_mb="$(bytes_to_mb "${after_self}")"
+          after_deps_mb="$(bytes_to_mb "${after_deps}")"
+          after_total_mb="$(bytes_to_mb "${after_total}")"
+
+          delta_self_mb="$(node -e 'process.stdout.write((Number(process.argv[1]) - Number(process.argv[2])).toFixed(2))' "${after_self_mb}" "${before_self_mb}")"
+          delta_deps_mb="$(node -e 'process.stdout.write((Number(process.argv[1]) - Number(process.argv[2])).toFixed(2))' "${after_deps_mb}" "${before_deps_mb}")"
+          delta_total_mb="$(node -e 'process.stdout.write((Number(process.argv[1]) - Number(process.argv[2])).toFixed(2))' "${after_total_mb}" "${before_total_mb}")"
+
+          if cmp -s /tmp/baseline.before.json "${BASELINE_PATH}"; then
+            changed=false
+          else
+            changed=true
+          fi
+
+          {
+            echo "changed=${changed}"
+            echo "before_self_mb=${before_self_mb}"
+            echo "before_deps_mb=${before_deps_mb}"
+            echo "before_total_mb=${before_total_mb}"
+            echo "after_self_mb=${after_self_mb}"
+            echo "after_deps_mb=${after_deps_mb}"
+            echo "after_total_mb=${after_total_mb}"
+            echo "delta_self_mb=$(signed_mb "${delta_self_mb}")"
+            echo "delta_deps_mb=$(signed_mb "${delta_deps_mb}")"
+            echo "delta_total_mb=$(signed_mb "${delta_total_mb}")"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Stage baseline artifact
+        if: steps.measure.outputs.changed == 'true'
+        run: |
+          mkdir -p .ci-artifacts
+          cp .github/allure-bundle-size.baseline.json .ci-artifacts/allure-bundle-size.baseline.json
+
+      - name: Upload updated baseline
+        if: steps.measure.outputs.changed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: updated-allure-bundle-size-baseline
+          path: .ci-artifacts/
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-bundle-size-update-report
+          path: .github/allure-bundle-size.report.json
+
+  notify-measure-failure:
+    name: Comment on measure failure
+    needs: [gate, measure]
+    # cancelled() in the expression drops implicit success(); !cancelled()
+    # still skips cancelled runs.
+    if: >
+      !cancelled() &&
+      needs.gate.result == 'success' &&
+      needs.gate.outputs.should_run == 'true' &&
+      needs.measure.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          ACTOR: ${{ needs.gate.outputs.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
+          Failed to measure/update the Allure bundle size baseline for @${ACTOR}.
+
+          See the workflow run for logs: ${RUN_URL}
+
+          Re-run \`/update-bundle-baseline\` after fixing the failure.
+          EOF
+          )"
+
+  commit:
+    name: Commit baseline to PR branch
+    needs: [gate, measure]
+    if: needs.gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment when baseline unchanged
+        if: needs.measure.outputs.changed != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          ACTOR: ${{ needs.gate.outputs.actor }}
+          SELF: ${{ needs.measure.outputs.after_self_mb }}
+          DEPS: ${{ needs.measure.outputs.after_deps_mb }}
+          TOTAL: ${{ needs.measure.outputs.after_total_mb }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
+          Baseline already matches the current measurement for this PR head.
+
+          | Metric | Size |
+          | --- | ---: |
+          | Allure code | ${SELF} MB |
+          | Deps | ${DEPS} MB |
+          | Total | ${TOTAL} MB |
+
+          Requested by @${ACTOR}.
+          EOF
+          )"
+
+      - name: Create GitHub App token
+        id: app-token
+        if: needs.measure.outputs.changed == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.ALLURE_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ALLURE_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Re-check PR still open and same-repo
+        if: needs.measure.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          EXPECTED_REF: ${{ needs.gate.outputs.head_ref }}
+          EXPECTED_SHA: ${{ needs.gate.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+          state="$(printf '%s' "${pr_json}" | jq -r '.state')"
+          head_ref="$(printf '%s' "${pr_json}" | jq -r '.head.ref')"
+          head_sha="$(printf '%s' "${pr_json}" | jq -r '.head.sha')"
+          head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
+          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
+
+          if [[ "${state}" != "open" ]]; then
+            echo "::error::PR #${PR_NUMBER} is no longer open (state=${state})."
+            exit 1
+          fi
+          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
+            echo "::error::PR #${PR_NUMBER} is no longer a same-repo PR."
+            exit 1
+          fi
+          if [[ "${head_ref}" != "${EXPECTED_REF}" ]]; then
+            echo "::error::PR head ref changed (${EXPECTED_REF} -> ${head_ref}). Re-run /update-bundle-baseline."
+            exit 1
+          fi
+          if [[ "${head_sha}" != "${EXPECTED_SHA}" ]]; then
+            echo "::error::PR head moved (${EXPECTED_SHA} -> ${head_sha}). Re-run /update-bundle-baseline."
+            exit 1
+          fi
+
+      - name: Checkout PR head
+        if: needs.measure.outputs.changed == 'true'
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ needs.gate.outputs.head_sha }}
+
+      - name: Download updated baseline
+        if: needs.measure.outputs.changed == 'true'
+        uses: actions/download-artifact@v7
+        with:
+          name: updated-allure-bundle-size-baseline
+          path: .ci-artifacts
+
+      - name: Commit and push baseline
+        id: push
+        if: needs.measure.outputs.changed == 'true'
+        env:
+          GIT_COMMIT_AUTHOR_NAME: ${{ vars.ALLURE_CI_APP_SLUG }}[bot]
+          GIT_COMMIT_AUTHOR_EMAIL: ${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com
+          HEAD_REF: ${{ needs.gate.outputs.head_ref }}
+          HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+
+          echo "push_failed=false" >> "${GITHUB_OUTPUT}"
+
+          cp .ci-artifacts/allure-bundle-size.baseline.json .github/allure-bundle-size.baseline.json
+
+          git config user.name "${GIT_COMMIT_AUTHOR_NAME}"
+          git config user.email "${GIT_COMMIT_AUTHOR_EMAIL}"
+
+          git add -- .github/allure-bundle-size.baseline.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git commit -m "chore: update allure bundle size baseline"
+          if ! git push origin "HEAD:refs/heads/${HEAD_REF}"; then
+            echo "push_failed=true" >> "${GITHUB_OUTPUT}"
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+            echo "::error::Failed to push baseline update to ${HEAD_REF} (head may have moved from ${HEAD_SHA}). Re-run /update-bundle-baseline."
+            exit 1
+          fi
+
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+
+      - name: Comment push failure
+        if: failure() && !cancelled() && steps.push.outputs.push_failed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          HEAD_REF: ${{ needs.gate.outputs.head_ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "${PR_NUMBER}" --body "Failed to push baseline update to \`${HEAD_REF}\` (branch likely moved). Re-run \`/update-bundle-baseline\`. Logs: ${RUN_URL}"
+
+      - name: Comment other commit failure
+        if: >
+          failure() &&
+          !cancelled() &&
+          needs.measure.outputs.changed == 'true' &&
+          steps.push.outputs.push_failed != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "${PR_NUMBER}" --body "Failed to commit the updated Allure bundle size baseline. See logs: ${RUN_URL}"
+
+      - name: Comment success
+        if: needs.measure.outputs.changed == 'true' && steps.push.outcome == 'success' && steps.push.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          ACTOR: ${{ needs.gate.outputs.actor }}
+          HEAD_REF: ${{ needs.gate.outputs.head_ref }}
+          COMMIT_SHA: ${{ steps.push.outputs.commit_sha }}
+          BEFORE_SELF: ${{ needs.measure.outputs.before_self_mb }}
+          BEFORE_DEPS: ${{ needs.measure.outputs.before_deps_mb }}
+          BEFORE_TOTAL: ${{ needs.measure.outputs.before_total_mb }}
+          AFTER_SELF: ${{ needs.measure.outputs.after_self_mb }}
+          AFTER_DEPS: ${{ needs.measure.outputs.after_deps_mb }}
+          AFTER_TOTAL: ${{ needs.measure.outputs.after_total_mb }}
+          DELTA_SELF: ${{ needs.measure.outputs.delta_self_mb }}
+          DELTA_DEPS: ${{ needs.measure.outputs.delta_deps_mb }}
+          DELTA_TOTAL: ${{ needs.measure.outputs.delta_total_mb }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
+          Updated \`.github/allure-bundle-size.baseline.json\` on \`${HEAD_REF}\` (\`${COMMIT_SHA}\`).
+
+          | Metric | Before | After | Δ |
+          | --- | ---: | ---: | ---: |
+          | Allure code | ${BEFORE_SELF} MB | ${AFTER_SELF} MB | ${DELTA_SELF} MB |
+          | Deps | ${BEFORE_DEPS} MB | ${AFTER_DEPS} MB | ${DELTA_DEPS} MB |
+          | Total | ${BEFORE_TOTAL} MB | ${AFTER_TOTAL} MB | ${DELTA_TOTAL} MB |
+
+          Triggered by @${ACTOR} via \`/update-bundle-baseline\`.
+          EOF
+          )"
