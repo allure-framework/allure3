@@ -1,17 +1,21 @@
-# Updates .github/allure-bundle-size.baseline.json on a same-repo PR.
-# Slash commands only work after this workflow exists on the default branch
-# (issue_comment always uses the default-branch workflow file).
+# Measures PR HEAD and commits .github/allure-bundle-size.baseline.json.
+# Trigger: workflow_dispatch only (trusted actors). Slash command front door is
+# update-allure-bundle-baseline-command.yml — keeps issue_comment from checking
+# out / executing PR code (CodeQL actions/untrusted-checkout).
 name: Update Allure bundle size baseline
 
 on:
-  issue_comment:
-    types: [created]
   workflow_dispatch:
     inputs:
       pr_number:
         description: "PR number to update the baseline on"
         required: true
         type: string
+      requester:
+        description: "GitHub login that requested the update (defaults to the user who started the workflow)"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -19,19 +23,12 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: update-bundle-baseline-${{ github.event.issue.number || inputs.pr_number }}
+  group: update-bundle-baseline-${{ inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
   gate:
     name: Validate request
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        startsWith(github.event.comment.body, '/update-bundle-baseline')
-      )
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.resolve.outputs.should_run }}
@@ -44,49 +41,32 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
-          COMMENT_BODY: ${{ github.event.comment.body || '' }}
-          COMMENT_ID: ${{ github.event.comment.id || '' }}
-          COMMENT_USER: ${{ github.event.comment.user.login || '' }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
-          DISPATCH_PR: ${{ inputs.pr_number || '' }}
-          ACTOR: ${{ github.actor }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          REQUESTER: ${{ inputs.requester || github.actor }}
         run: |
           set -euo pipefail
 
-          pr_number=""
-          actor=""
-
-          if [[ "${EVENT_NAME}" == "issue_comment" ]]; then
-            if ! [[ "${COMMENT_BODY}" =~ ^/update-bundle-baseline[[:space:]]*$ ]]; then
-              echo "Comment is not an exact /update-bundle-baseline command; skipping."
-              echo "should_run=false" >> "${GITHUB_OUTPUT}"
-              exit 0
-            fi
-            pr_number="${ISSUE_NUMBER}"
-            actor="${COMMENT_USER}"
-          else
-            pr_number="${DISPATCH_PR}"
-            actor="${ACTOR}"
-            if ! [[ "${pr_number}" =~ ^[1-9][0-9]*$ ]]; then
-              echo "::error::pr_number must be a positive integer (got: ${pr_number})"
-              exit 1
-            fi
+          if ! [[ "${PR_NUMBER}" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::pr_number must be a positive integer (got: ${PR_NUMBER})"
+            exit 1
+          fi
+          if [[ -z "${REQUESTER}" ]]; then
+            echo "::error::requester is required"
+            exit 1
           fi
 
-          perm_json="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${actor}/permission" 2>/dev/null || true)"
+          perm_json="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${REQUESTER}/permission" 2>/dev/null || true)"
           perm="$(printf '%s' "${perm_json}" | jq -r '.permission // empty')"
           case "${perm}" in
             admin|maintain|write) ;;
             *)
-              # Silent deny: avoid PR comment spam from non-writers.
-              echo "Denied: @${actor} lacks write access (permission=${perm:-none})."
+              echo "Denied: @${REQUESTER} lacks write access (permission=${perm:-none})."
               echo "should_run=false" >> "${GITHUB_OUTPUT}"
               exit 0
               ;;
           esac
 
-          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}")"
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
           state="$(printf '%s' "${pr_json}" | jq -r '.state')"
           head_ref="$(printf '%s' "${pr_json}" | jq -r '.head.ref')"
           head_sha="$(printf '%s' "${pr_json}" | jq -r '.head.sha')"
@@ -94,9 +74,9 @@ jobs:
           is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
 
           if [[ "${state}" != "open" ]]; then
-            message="Cannot update baseline: PR #${pr_number} is not open (state=${state})."
+            message="Cannot update baseline: PR #${PR_NUMBER} is not open (state=${state})."
             echo "::error::${message}"
-            gh pr comment "${pr_number}" --body "${message}" || true
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
             echo "should_run=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
@@ -104,29 +84,20 @@ jobs:
           if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
             message="Cannot update baseline on fork PRs. Push a baseline commit from the fork, or re-open as a same-repo branch."
             echo "::error::${message}"
-            gh pr comment "${pr_number}" --body "${message}" || true
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
             echo "should_run=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          if [[ "${EVENT_NAME}" == "issue_comment" && -n "${COMMENT_ID}" ]]; then
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}/reactions" \
-              -f content='eyes' >/dev/null || true
-          fi
-
           {
             echo "should_run=true"
-            echo "pr_number=${pr_number}"
+            echo "pr_number=${PR_NUMBER}"
             echo "head_ref=${head_ref}"
             echo "head_sha=${head_sha}"
-            echo "actor=${actor}"
+            echo "actor=${REQUESTER}"
           } >> "${GITHUB_OUTPUT}"
 
-          echo "Authorized @${actor} for PR #${pr_number} (${head_ref}@${head_sha})"
+          echo "Authorized @${REQUESTER} for PR #${PR_NUMBER} (${head_ref}@${head_sha})"
 
   measure:
     name: Measure and write baseline
@@ -151,6 +122,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.gate.outputs.head_sha }}
+          persist-credentials: false
 
       - name: Install deps
         run: |
