@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { allureResultsDirectoriesGlobWatcher } from "../../../src/commands/commons/resultsDiscovery.js";
+import { normalizeResultsDirectoryPath } from "../../../src/utils/resultsPatterns.js";
 
 const { watchMock, differenceMock, findDirectoriesByGlobsMock } = vi.hoisted(() => ({
   watchMock: vi.fn((initial: () => Promise<void>) => {
@@ -51,7 +52,7 @@ describe("allureResultsDirectoriesGlobWatcher", () => {
     // second poll via the same callback path used by watch()
     await (watchMock.mock.calls[0][1] as () => Promise<void>)();
 
-    expect(updates[0]?.added).toEqual([expect.stringMatching(/results$/)]);
+    expect(updates[0]?.added).toEqual([normalizeResultsDirectoryPath("/tmp/results/")]);
     expect(updates[1]?.added).toEqual([]);
     expect(updates[1]?.deleted).toEqual([]);
   });
@@ -70,8 +71,13 @@ describe("allureResultsDirectoriesGlobWatcher", () => {
     await watcher.initialScan();
     await (watchMock.mock.calls.at(-1)?.[1] as () => Promise<void>)();
 
+    const expectedAdded = [
+      normalizeResultsDirectoryPath("/tmp/other-results/"),
+      normalizeResultsDirectoryPath("/tmp/results/"),
+    ].sort();
+
     expect(updates[0]?.added).toEqual([]);
-    expect(updates[1]?.added).toEqual([expect.stringMatching(/other-results$/), expect.stringMatching(/\/results$/)]);
+    expect(updates[1]?.added).toEqual(expectedAdded);
     expect(updates[1]?.deleted).toEqual([]);
   });
 });
