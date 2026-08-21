@@ -251,6 +251,17 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow resultsDir", () => {
+    expect(validateConfig({ resultsDir: "./allure-results" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+    expect(validateConfig({ resultsDir: ["./a", "./b"] })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should return array of unsupported fields if the config contains them", () => {
     // @ts-ignore
     expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
@@ -400,6 +411,14 @@ describe("resolveConfig", () => {
     });
 
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
+  });
+
+  it("normalizes resultsDir string and array; omits empty values", async () => {
+    expect((await resolveConfig({ resultsDir: "./a" })).resultsDir).toEqual(["./a"]);
+    expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual(["./a", "./b"]);
+    expect((await resolveConfig({ resultsDir: "" })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: [] })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toBeUndefined();
   });
 
   it("does not inject storage plugin and preserves allureService config", async () => {

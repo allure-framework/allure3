@@ -7,7 +7,7 @@ import DashboardPlugin, { type DashboardPluginOptions } from "@allurereport/plug
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class DashboardCommand extends Command {
   static paths = [["dashboard"]];
@@ -34,7 +34,7 @@ export class DashboardCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {
@@ -71,14 +71,6 @@ export class DashboardCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
-    if (!resultDirectories.length) {
-      console.error(red(`No test results directories found matching pattern: ${patterns}`));
-      exit(1);
-      return;
-    }
-
     const before = new Date().getTime();
     const defaultDashboardOptions = {
       singleFile: this.singleFile ?? false,
@@ -90,6 +82,13 @@ export class DashboardCommand extends Command {
       output: this.output,
       name: this.reportName,
     });
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
+
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
+      exit(1);
+      return;
+    }
 
     config.plugins = [
       {

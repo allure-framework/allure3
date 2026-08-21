@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("classic");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("classic command", () => {

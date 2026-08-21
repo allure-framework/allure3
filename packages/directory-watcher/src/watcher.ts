@@ -181,7 +181,7 @@ export interface Watcher {
   watchEnd: () => Promise<void>;
 }
 
-const watch = (
+export const watch = (
   initialCallback: () => Promise<void>,
   iterationCallback: () => Promise<void>,
   doneCallback: () => Promise<void>,

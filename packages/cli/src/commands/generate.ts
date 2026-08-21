@@ -34,7 +34,7 @@ export class GenerateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {

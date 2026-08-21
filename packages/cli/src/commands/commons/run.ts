@@ -22,6 +22,7 @@ import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
+import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -51,6 +52,20 @@ export const executeNestedAllureCommand = async (params: {
   return await terminationOf(nestedProcess);
 };
 
+const attachResultsDirectoryWatchers = (params: {
+  cwd: string;
+  resultsPatterns: readonly string[];
+  onUpdate: (newDirs: Set<string>, deletedDirs: Set<string>) => Promise<void>;
+}): Watcher => {
+  if (params.resultsPatterns.length > 0) {
+    return allureResultsDirectoriesGlobWatcher(params.cwd, params.resultsPatterns, params.onUpdate, {
+      indexDelay: 600,
+    });
+  }
+
+  return allureResultsDirectoriesWatcher(params.cwd, params.onUpdate, { indexDelay: 600 });
+};
+
 export const runTests = async (params: {
   allureReport: AllureReport;
   knownIssues: KnownTestFailure[];
@@ -63,6 +78,7 @@ export const runTests = async (params: {
   silent?: boolean;
   logs?: RunLogsMode;
   logProcessExit?: boolean;
+  resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
   const {
     allureReport,
@@ -76,6 +92,7 @@ export const runTests = async (params: {
     withQualityGate,
     silent,
     logProcessExit = true,
+    resultsPatterns = [],
   } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
@@ -88,9 +105,10 @@ export const runTests = async (params: {
       minProcessingDelay: 1_000,
     },
   );
-  const allureResultsWatch = allureResultsDirectoriesWatcher(
+  const allureResultsWatch = attachResultsDirectoryWatchers({
     cwd,
-    async (newAllureResults, deletedAllureResults) => {
+    resultsPatterns,
+    onUpdate: async (newAllureResults, deletedAllureResults) => {
       for (const delAr of deletedAllureResults) {
         const watcher = allureResultsWatchers.get(delAr);
 
@@ -125,8 +143,7 @@ export const runTests = async (params: {
         await watcher.initialScan();
       }
     },
-    { indexDelay: 600 },
-  );
+  });
 
   await allureResultsWatch.initialScan();
 
@@ -258,6 +275,7 @@ export const executeAllureRun = async (params: {
   ignoreLogs?: boolean;
   maxRerun?: number;
   logProcessExit?: boolean;
+  resultsPatterns?: readonly string[];
 }): Promise<{
   globalExitCode: ExitCode;
   testProcessResult: TestProcessResult | null;
@@ -276,6 +294,7 @@ export const executeAllureRun = async (params: {
     ignoreLogs,
     maxRerun = 0,
     logProcessExit = true,
+    resultsPatterns = [],
   } = params;
   await allureReport.start();
 
@@ -299,6 +318,7 @@ export const executeAllureRun = async (params: {
       environmentVariables,
       withQualityGate,
       logProcessExit,
+      resultsPatterns,
     });
 
     const allFailuresAfterInitialRun = await allureReport.store.failedTestResults();
@@ -342,6 +362,7 @@ export const executeAllureRun = async (params: {
         },
         withQualityGate,
         logProcessExit,
+        resultsPatterns,
       });
 
       await rm(tmpDir, { recursive: true });

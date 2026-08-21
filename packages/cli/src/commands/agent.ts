@@ -40,6 +40,8 @@ import {
 } from "@allurereport/plugin-agent";
 import { Command, Option, UsageError } from "clipanion";
 
+import { parseRunCommand } from "../utils/resultsPatterns.js";
+
 export { AGENT_TASK_MAP_HELP, createAgentCapabilities, isAgentTaskMapHelpRequest };
 
 const readOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
@@ -203,13 +205,18 @@ export class AgentCommand extends Command {
   static usage = Command.Usage({
     description: "Run specified command in Allure agent mode",
     details:
-      "This command runs the specified command with an agent-mode Allure profile and optional human-readable report output. With the default --report auto mode, runs with 1000 or fewer stored visible logical results also write a single-file Awesome report at <output>/awesome/index.html and record its status in <output>/manifest/human-report.json. If a user asks for the report after a run, use `allure agent latest` to recover the output directory and check the human-report manifest before regenerating anything.",
+      "This command runs the specified command with an agent-mode Allure profile and optional human-readable report output. With the default --report auto mode, runs with 1000 or fewer stored visible logical results also write a single-file Awesome report at <output>/awesome/index.html and record its status in <output>/manifest/human-report.json. If a user asks for the report after a run, use `allure agent latest` to recover the output directory and check the human-report manifest before regenerating anything. " +
+      "Override results discovery with repeated `--results-dir` (CLI overrides `config.resultsDir`). Quote globs in the shell. When neither is set, directories named `allure-results` are discovered dynamically.",
     examples: [
       ["agent -- npm test", "Run npm test and capture agent-mode output with the default human report policy"],
       ["agent --report off -- npm test", "Run npm test and capture only the agent-mode artifacts"],
       [
         "agent --expectations ./expected.yaml -- npm test",
         "Run npm test with agent-mode expectations loaded from ./expected.yaml",
+      ],
+      [
+        "agent --results-dir './artifacts/**/allure-results' -- npm test",
+        "Override results discovery with a quoted glob",
       ],
     ],
   });
@@ -313,19 +320,29 @@ export class AgentCommand extends Command {
     description: "Filter rerun selection by exact label name=value. Repeat the option for multiple filters",
   });
 
+  resultsDir = Option.Array("--results-dir", {
+    description:
+      "Glob pattern or path for Allure results directories (repeatable). Overrides config.resultsDir. Quote globs in the shell",
+  });
+
+  /**
+   * Nested test command after `--`. Nested `--` inside the command argv are preserved when present.
+   */
   commandToRun = Option.Rest();
 
   async execute() {
-    const args = this.commandToRun.filter((arg) => arg !== "--") as string[];
+    const { command, commandArgs } = parseRunCommand(this.commandToRun as string[]);
+
+    if (!command) {
+      throw new UsageError("expecting command to be specified after --, e.g. allure agent -- npm run test");
+    }
+
+    const args = [command, ...commandArgs];
     const configPath = readOptionalString(this.config);
     const configuredCwd = readOptionalString(this.cwd);
     const output = readOptionalString(this.output);
     const reportMode = normalizeAgentHumanReportMode(readOptionalString(this.report));
     const expectations = readOptionalString(this.expectations);
-
-    if (!args.length) {
-      throw new UsageError("expecting command to be specified after --, e.g. allure agent -- npm run test");
-    }
 
     try {
       // Reject an unsafe explicit --output before any code path (including the invalid-expectation
@@ -380,6 +397,7 @@ export class AgentCommand extends Command {
         rerunLabels: readOptionalStringArray(this.rerunLabels),
         reportMode,
         args,
+        resultsPatterns: this.resultsDir ?? [],
       });
     } catch (error) {
       if (!isAgentExpectationUsageError(error)) {
@@ -448,7 +466,7 @@ export class AgentInspectCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {

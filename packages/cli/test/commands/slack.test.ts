@@ -46,6 +46,7 @@ beforeEach(async () => {
   await story("slack");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("slack command", () => {

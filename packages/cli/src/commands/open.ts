@@ -10,6 +10,7 @@ import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 import { findFilesByGlobs } from "./../utils/fileSystem.js";
+import { resolveResultsPatterns } from "./../utils/resultsPatterns.js";
 import { notifySignals, waitForAbort } from "./../utils/signals.js";
 import { generate } from "./commons/generate.js";
 
@@ -34,7 +35,7 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "A report to open or a pattern to match test results directories in the current working directory (default: configured output)",
+    name: "A report to open, or results patterns (CLI > config.resultsDir; empty Rest serves configured output)",
   });
 
   config = Option.String("--config,-c", {
@@ -61,6 +62,7 @@ export class OpenCommand extends Command {
       port: this.port,
     });
     const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
+    const resolvedPatterns = resolveResultsPatterns(this.resultsDir, config.resultsDir);
 
     if (await this.reportExists(servePath)) {
       await serve({
@@ -68,7 +70,7 @@ export class OpenCommand extends Command {
         servePath,
         open: true,
       });
-    } else if (this.resultsDir.length) {
+    } else if (resolvedPatterns.length) {
       const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
@@ -76,7 +78,6 @@ export class OpenCommand extends Command {
         hideLabels,
       });
 
-      // At this point, resultsDir contains at least one pattern
       await generate({
         resultsDir: this.resultsDir,
         cwd,
