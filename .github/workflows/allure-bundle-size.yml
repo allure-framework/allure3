@@ -43,6 +43,7 @@ jobs:
         run: yarn build
 
       - name: Enforce bundle size budgets (Self + Deps)
+        id: budgets
         run: |
           node ./scripts/allure-bundle-size.mjs --ci \
             --progress \
@@ -51,6 +52,20 @@ jobs:
             --max-self-delta-mb 0.25 \
             --max-deps-delta-mb 0.15 \
             --output .github/allure-bundle-size.report.json
+
+      - name: Hint baseline update command
+        if: failure() && steps.budgets.conclusion == 'failure' && !cancelled()
+        run: |
+          {
+            echo ""
+            echo "### Accept new baseline"
+            echo "Maintainers with write access can comment \`/update-bundle-baseline\` on this PR"
+            echo "to measure in CI and commit an updated \`.github/allure-bundle-size.baseline.json\`."
+            echo "Manual alternative:"
+            echo "\`\`\`bash"
+            echo "bash ./scripts/run-allure-bundle-size-docker.sh --ci --update-baseline .github/allure-bundle-size.baseline.json"
+            echo "\`\`\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload report
         if: ${{ !cancelled() }}
