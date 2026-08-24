@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import process, { exit } from "node:process";
 
-import { AllureReport, readConfig, resolveConfig } from "@allurereport/core";
+import { AllureReport, readRawConfig, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
@@ -31,7 +31,7 @@ export class HistoryCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   historyPath = Option.String("--history-path,-h", {
@@ -48,12 +48,8 @@ export class HistoryCommand extends Command {
 
   async execute() {
     const cwd = process.cwd();
-    const fileConfig = await readConfig(cwd);
-    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(
-      cwd,
-      this.resultsDir,
-      fileConfig.resultsDir,
-    );
+    const rawConfig = await readRawConfig(cwd);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, rawConfig.resultsDir);
 
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));

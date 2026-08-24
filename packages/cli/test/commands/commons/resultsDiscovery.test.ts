@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { allureResultsDirectoriesGlobWatcher } from "../../../src/commands/commons/resultsDiscovery.js";
-import { normalizeResultsDirectoryPath } from "../../../src/utils/resultsPatterns.js";
 
 const { watchMock, differenceMock, findDirectoriesByGlobsMock } = vi.hoisted(() => ({
   watchMock: vi.fn((initial: () => Promise<void>) => {
@@ -39,24 +38,6 @@ vi.mock("../../../src/utils/fileSystem.js", () => ({
 }));
 
 describe("allureResultsDirectoriesGlobWatcher", () => {
-  it("normalizes trailing separators so mark:true paths do not churn", async () => {
-    const updates: Array<{ added: string[]; deleted: string[] }> = [];
-
-    findDirectoriesByGlobsMock.mockResolvedValueOnce(["/tmp/results/"]).mockResolvedValueOnce(["/tmp/results"]);
-
-    const watcher = allureResultsDirectoriesGlobWatcher("/cwd", ["./results"], async (added, deleted) => {
-      updates.push({ added: [...added], deleted: [...deleted] });
-    });
-
-    await watcher.initialScan();
-    // second poll via the same callback path used by watch()
-    await (watchMock.mock.calls[0][1] as () => Promise<void>)();
-
-    expect(updates[0]?.added).toEqual([normalizeResultsDirectoryPath("/tmp/results/")]);
-    expect(updates[1]?.added).toEqual([]);
-    expect(updates[1]?.deleted).toEqual([]);
-  });
-
   it("reports directories that appear on a later poll", async () => {
     const updates: Array<{ added: string[]; deleted: string[] }> = [];
 
@@ -71,13 +52,8 @@ describe("allureResultsDirectoriesGlobWatcher", () => {
     await watcher.initialScan();
     await (watchMock.mock.calls.at(-1)?.[1] as () => Promise<void>)();
 
-    const expectedAdded = [
-      normalizeResultsDirectoryPath("/tmp/other-results/"),
-      normalizeResultsDirectoryPath("/tmp/results/"),
-    ].sort();
-
     expect(updates[0]?.added).toEqual([]);
-    expect(updates[1]?.added).toEqual(expectedAdded);
+    expect(updates[1]?.added).toEqual(["/tmp/other-results/", "/tmp/results/"].sort());
     expect(updates[1]?.deleted).toEqual([]);
   });
 });

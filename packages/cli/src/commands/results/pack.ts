@@ -4,7 +4,7 @@ import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { exit } from "node:process";
 
-import { readConfig } from "@allurereport/core";
+import { readRawConfig } from "@allurereport/core";
 import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
 import { green, red } from "yoctocolors";
@@ -29,7 +29,7 @@ export class ResultsPackCommand extends Command {
 
   resultsDir = Option.String({
     required: false,
-    name: "Pattern to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
+    name: "Pattern to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   name = Option.String("--name", {
@@ -37,7 +37,7 @@ export class ResultsPackCommand extends Command {
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -67,9 +67,9 @@ export class ResultsPackCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const config = await readConfig(cwd, this.config);
+    const rawConfig = await readRawConfig(cwd, this.config);
     const cliPatterns = this.resultsDir ? [this.resultsDir] : [];
-    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, cliPatterns, config.resultsDir);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, cliPatterns, rawConfig.resultsDir);
     const archiveName = this.name ?? "allure-results.zip";
     const resultsFiles = new Set<string>();
 

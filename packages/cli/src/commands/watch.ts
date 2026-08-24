@@ -46,11 +46,11 @@ export class WatchCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories (CLI > config.resultsDir; empty → name-based discovery)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Empty patterns use name-based discovery.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {

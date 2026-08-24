@@ -28,7 +28,7 @@ export interface FullConfig
   categories?: CategoriesConfig;
   globalAttachments?: string[];
   /**
-   * Normalized results directory patterns from config (unset when empty / whitespace-only).
+   * Normalized results directory patterns from config (unset when empty / only empty-string entries).
    */
   resultsDir?: string[];
 }

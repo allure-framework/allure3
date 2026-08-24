@@ -34,11 +34,11 @@ export class ClassicCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories (CLI > config.resultsDir; when both empty: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {

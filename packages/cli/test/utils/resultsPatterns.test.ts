@@ -8,17 +8,18 @@ import {
 } from "../../src/utils/resultsPatterns.js";
 
 describe("normalizeResultsDir", () => {
-  it("returns empty for undefined, empty string, whitespace, and empty array", () => {
+  it("returns empty for undefined, empty string, and empty array", () => {
     expect(normalizeResultsDir(undefined)).toEqual([]);
     expect(normalizeResultsDir("")).toEqual([]);
-    expect(normalizeResultsDir("   ")).toEqual([]);
     expect(normalizeResultsDir([])).toEqual([]);
-    expect(normalizeResultsDir(["", "  "])).toEqual([]);
+    expect(normalizeResultsDir(["", ""])).toEqual([]);
   });
 
-  it("normalizes string and array inputs", () => {
+  it("preserves whitespace-only and spaced paths; drops only empty string", () => {
+    expect(normalizeResultsDir("   ")).toEqual(["   "]);
     expect(normalizeResultsDir("./a")).toEqual(["./a"]);
-    expect(normalizeResultsDir([" ./a ", "./b"])).toEqual(["./a", "./b"]);
+    expect(normalizeResultsDir([" ./a ", "./b"])).toEqual([" ./a ", "./b"]);
+    expect(normalizeResultsDir(["", "  "])).toEqual(["  "]);
   });
 });
 

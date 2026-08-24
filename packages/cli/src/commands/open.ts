@@ -35,11 +35,11 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "A report to open, or results patterns (CLI > config.resultsDir; empty Rest serves configured output)",
+    name: "A report path to open, or results patterns. Overrides config.resultsDir. Empty Rest serves the configured output.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   port = Option.String("--port", {

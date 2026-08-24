@@ -4,7 +4,6 @@ import { findAllureResultDirectories } from "./fileSystem.js";
 
 /**
  * Normalize Config.resultsDir / CLI patterns to a non-empty string[].
- * Drops "", whitespace-only entries, and empty arrays — treated as unset → [].
  */
 export const normalizeResultsDir = (value?: string | readonly string[]): string[] => {
   if (value === undefined) {
@@ -13,7 +12,7 @@ export const normalizeResultsDir = (value?: string | readonly string[]): string[
 
   const values = typeof value === "string" ? [value] : [...value];
 
-  return values.map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+  return values.filter((entry) => entry.length > 0);
 };
 
 /**

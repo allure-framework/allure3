@@ -415,10 +415,10 @@ describe("resolveConfig", () => {
 
   it("normalizes resultsDir string and array; omits empty values", async () => {
     expect((await resolveConfig({ resultsDir: "./a" })).resultsDir).toEqual(["./a"]);
-    expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual(["./a", "./b"]);
+    expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual([" ./a ", "./b"]);
     expect((await resolveConfig({ resultsDir: "" })).resultsDir).toBeUndefined();
     expect((await resolveConfig({ resultsDir: [] })).resultsDir).toBeUndefined();
-    expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toEqual(["  "]);
   });
 
   it("does not inject storage plugin and preserves allureService config", async () => {

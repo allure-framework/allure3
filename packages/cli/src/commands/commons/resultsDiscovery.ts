@@ -2,11 +2,10 @@ import type { Watcher } from "@allurereport/directory-watcher";
 import { difference, watch } from "@allurereport/directory-watcher";
 
 import { findDirectoriesByGlobs } from "../../utils/fileSystem.js";
-import { normalizeResultsDirectoryPath } from "../../utils/resultsPatterns.js";
 
 /**
  * Live re-glob discovery for patterned results dirs.
- * Uses directory-watcher `watch()` so polls never overlap; paths are normalized before set diff.
+ * Uses directory-watcher `watch()` so polls never overlap.
  */
 export const allureResultsDirectoriesGlobWatcher = (
   cwd: string,
@@ -23,7 +22,7 @@ export const allureResultsDirectoriesGlobWatcher = (
     }
 
     const matched = await findDirectoriesByGlobs(cwd, patterns);
-    const currentAllureResults = new Set(matched.map(normalizeResultsDirectoryPath));
+    const currentAllureResults = new Set(matched);
     const [added, deleted] = difference(previousAllureResults, currentAllureResults);
 
     await update(added, deleted);
