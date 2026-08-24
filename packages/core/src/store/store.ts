@@ -463,15 +463,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #classifyResolution(testResult: TestResult) {
     const rule = getResolutionByRules(testResult, this.#resolutionsConfig);
 
-    testResult.resolution = rule?.category;
+    testResult.resolution = rule?.resolution;
 
     this.#removeResolutionIssueAssociation(testResult.id);
 
-    if (rule?.category !== "issue") {
+    if (rule?.resolution !== "issue") {
       return;
     }
 
-    const resolutionIssue: ResolutionIssue = { id: rule.id, issue: rule.issue, comment: rule.comment };
+    const resolutionIssue: ResolutionIssue = { ...rule.issue, comment: rule.comment };
 
     this.#associateResolutionIssue(resolutionIssue, testResult.id);
   }

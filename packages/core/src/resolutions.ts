@@ -100,25 +100,19 @@ const validateIssueRule = (
   rule: IssueResolutionRule,
   path: string,
   config: ResolutionsConfig,
-  ids: Set<string>,
+  issueIds: Set<string>,
   errors: string[],
 ) => {
-  if (!nonEmpty(rule.id)) {
-    errors.push(`${path}.id must be a non-empty string`);
-  }
-
-  if (nonEmpty(rule.id) && ids.has(rule.id)) {
-    errors.push(`${path}.id must be unique`);
-  }
-
-  if (nonEmpty(rule.id)) {
-    ids.add(rule.id);
-  }
-
   if (!nonEmpty(rule.issue?.id) || !nonEmpty(rule.issue?.type)) {
     errors.push(`${path}.issue.id and ${path}.issue.type must be non-empty strings`);
     return;
   }
+
+  if (issueIds.has(rule.issue.id)) {
+    errors.push(`${path}.issue.id must be unique`);
+  }
+
+  issueIds.add(rule.issue.id);
 
   const template = config.links?.[rule.issue.type];
 
@@ -151,7 +145,7 @@ export const validateResolutionsConfig = (config?: ResolutionsConfig): void => {
     validateLinkTemplate(type, template, errors);
   }
 
-  const ids = new Set<string>();
+  const issueIds = new Set<string>();
 
   config.rules.forEach((rule, index) => {
     const path = `resolutions.rules[${index}]`;
@@ -159,17 +153,17 @@ export const validateResolutionsConfig = (config?: ResolutionsConfig): void => {
 
     validateMatcher(matcher, path, errors);
 
-    if (matcher.category === "issue") {
-      validateIssueRule(matcher, path, config, ids, errors);
+    if (matcher.resolution === "issue") {
+      validateIssueRule(matcher, path, config, issueIds, errors);
       return;
     }
 
-    if (matcher.category === "muted" || matcher.category === "accepted") {
+    if (matcher.resolution === "muted" || matcher.resolution === "accepted") {
       validateIgnoredRule(matcher, path, errors);
       return;
     }
 
-    errors.push(`${path}.category must be issue, muted, or accepted`);
+    errors.push(`${path}.resolution must be issue, muted, or accepted`);
   });
 
   if (errors.length > 0) {

@@ -263,14 +263,13 @@ describe("test results", () => {
         links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
         rules: [
           {
-            id: "issue-1",
-            category: "issue",
+            resolution: "issue",
             issue: { id: "SHOP-1", type: "jira" },
             testCaseId: [md5("tc-1")],
             messageRegexp: "tracked defect",
           },
           {
-            category: "muted",
+            resolution: "muted",
             comment: "noise",
             testCaseId: [md5("tc-2")],
           },
@@ -307,9 +306,9 @@ describe("test results", () => {
     expect(testResults.find((tr) => tr.name === "muted by rule")?.resolution).toBe("muted");
     expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
     expect(blockingFailed).toEqual([issueResult]);
-    expect(resolutionIssues).toEqual([{ id: "issue-1", issue: { id: "SHOP-1", type: "jira" } }]);
+    expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira" }]);
     await expect(store.resolutionIssueByTestResultId(issueResult.id)).resolves.toEqual(resolutionIssues[0]);
-    await expect(store.testResultsByResolutionIssueId("issue-1")).resolves.toEqual([issueResult]);
+    await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });
 
   it("should restore resolution issue associations from the dump index", async () => {
@@ -317,8 +316,7 @@ describe("test results", () => {
       links: { jira: { urlTemplate: "https://example.org/%s" } },
       rules: [
         {
-          id: "issue-1",
-          category: "issue" as const,
+          resolution: "issue" as const,
           issue: { id: "SHOP-1", type: "jira" },
           testCaseId: [md5("tc-1")],
         },
@@ -329,17 +327,17 @@ describe("test results", () => {
     const dump = source.dumpState();
     const target = new DefaultAllureStore();
 
-    expect(dump.indexTestResultByResolutionIssue).toEqual({ "issue-1": [expect.any(String)] });
+    expect(dump.indexTestResultByResolutionIssue).toEqual({ "SHOP-1": [expect.any(String)] });
 
     await target.restoreState(dump);
     const [restored] = await target.allTestResults();
 
     expect(restored.resolution).toBe("issue");
     await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toEqual({
-      id: "issue-1",
-      issue: { id: "SHOP-1", type: "jira" },
+      id: "SHOP-1",
+      type: "jira",
     });
-    await expect(target.testResultsByResolutionIssueId("issue-1")).resolves.toEqual([restored]);
+    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([restored]);
 
     await target.restoreState({
       ...dump,
@@ -349,7 +347,7 @@ describe("test results", () => {
     });
 
     await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toBeUndefined();
-    await expect(target.testResultsByResolutionIssueId("issue-1")).resolves.toEqual([]);
+    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
   });
 
   it("should mark retries as isRetry", async () => {

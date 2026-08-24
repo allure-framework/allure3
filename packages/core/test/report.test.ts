@@ -244,8 +244,7 @@ describe("report", () => {
           links: { jira: { urlTemplate: "https://example.org/%s" } },
           rules: [
             {
-              id: "resolution-1",
-              category: "issue",
+              resolution: "issue",
               issue: { id: "issue-1", type: "jira" },
               testCaseId: [md5("tc-1")],
             },
@@ -274,8 +273,8 @@ describe("report", () => {
     expect(parsed).toMatchObject({
       resolutionIssues: [
         {
-          id: "resolution-1",
-          issue: { id: "issue-1", type: "jira" },
+          id: "issue-1",
+          type: "jira",
         },
       ],
     });

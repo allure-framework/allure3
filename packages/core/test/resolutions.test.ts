@@ -24,8 +24,7 @@ const config = {
   links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://jira.example/browse/%s" } },
   rules: [
     {
-      id: "checkout-defect",
-      category: "issue" as const,
+      resolution: "issue" as const,
       issue: { id: "SHOP-42", type: "jira" },
       testCaseId: ["tc-1", "tc-2"],
       environment: ["prod", "staging"],
@@ -64,7 +63,7 @@ describe("resolution config validation", () => {
 
   it("requires comments for muted and accepted rules", () => {
     expect(() =>
-      validateResolutionsConfig({ rules: [{ category: "muted", comment: "", retryHash: ["hash"] }] }),
+      validateResolutionsConfig({ rules: [{ resolution: "muted", comment: "", retryHash: ["hash"] }] }),
     ).toThrow(/comment must be a non-empty string/);
   });
 
@@ -72,10 +71,19 @@ describe("resolution config validation", () => {
     expect(() => validateResolutionsConfig({ ...config, links: {} })).toThrow(/must reference resolutions.links/);
   });
 
+  it("requires issue ids to be unique", () => {
+    expect(() =>
+      validateResolutionsConfig({
+        ...config,
+        rules: [...config.rules, { ...config.rules[0] }],
+      }),
+    ).toThrow(/issue.id must be unique/);
+  });
+
   it("rejects empty matcher arrays and invalid regular expressions", () => {
     expect(() =>
       validateResolutionsConfig({
-        rules: [{ category: "accepted", comment: "expected", retryHash: [], messageRegexp: "[" }],
+        rules: [{ resolution: "accepted", comment: "expected", retryHash: [], messageRegexp: "[" }],
       }),
     ).toThrow(/non-empty array.*valid regular expression/);
   });
@@ -85,7 +93,7 @@ describe("known issues snapshot", () => {
   it("writes only current non-retry issue failures keyed by retry hash", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-known-write-"));
     const path = join(cwd, "known.json");
-    const resolutionIssue = { id: "checkout-defect", issue: { id: "SHOP-42", type: "jira" } };
+    const resolutionIssue = { id: "SHOP-42", type: "jira" };
     const issueResult = {
       id: "tr-1",
       name: "checkout",

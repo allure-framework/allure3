@@ -566,8 +566,7 @@ describe("resolveConfig", () => {
         links: { jira: { urlTemplate: "https://jira.example/%s" } },
         rules: [
           {
-            id: "issue-1",
-            category: "issue",
+            resolution: "issue",
             issue: { id: "SHOP-1", type: "jira" },
             testCaseId: ["tc-1"],
           },

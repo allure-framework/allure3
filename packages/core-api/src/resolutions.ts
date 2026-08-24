@@ -15,14 +15,13 @@ export interface ResolutionMatcher {
 }
 
 export interface IssueResolutionRule extends ResolutionMatcher {
-  id: string;
-  category: "issue";
+  resolution: "issue";
   issue: { id: string; type: string };
   comment?: string;
 }
 
 export interface IgnoredResolutionRule extends ResolutionMatcher {
-  category: "muted" | "accepted";
+  resolution: "muted" | "accepted";
   comment: string;
 }
 
@@ -36,7 +35,7 @@ export interface ResolutionsConfig {
 
 export interface ResolutionIssue {
   id: string;
-  issue: { id: string; type: string };
+  type: string;
   comment?: string;
 }
 
