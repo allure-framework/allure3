@@ -69,7 +69,7 @@ export class CsvCommand extends Command {
       fileName: this.output && isAbsolute(this.output) ? this.output : this.output ? join(cwd, this.output) : undefined,
     } as CsvPluginOptions;
     const config = await readConfig(cwd, this.config, {
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 

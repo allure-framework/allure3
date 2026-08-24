@@ -144,7 +144,7 @@ describe("awesome command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: "foo",
       output: "bar",
-      knownIssuesPath: "baz",
+      resolutions: { knownIssuesPath: "baz" },
       historyPath: "qux",
     });
   });
@@ -159,7 +159,7 @@ describe("awesome command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
       name: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
       historyPath: undefined,
       hideLabels: undefined,
     });
@@ -177,7 +177,7 @@ describe("awesome command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
       name: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
       historyPath: undefined,
       hideLabels: ["owner", "tag"],
     });

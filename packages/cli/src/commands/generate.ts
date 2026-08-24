@@ -90,7 +90,7 @@ export class GenerateCommand extends Command {
       port: this.port,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
 
     await generate({

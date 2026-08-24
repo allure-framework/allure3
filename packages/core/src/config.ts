@@ -8,8 +8,8 @@ import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { DEFAULT_KNOWN_ISSUES_PATH, hasKnownIssueRules, readKnownIssues, resolveExactIssuesFilePath } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
+import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -32,7 +32,7 @@ export interface ConfigOverride {
   hideLabels?: Config["hideLabels"];
   historyPath?: Config["historyPath"];
   historyLimit?: Config["historyLimit"];
-  knownIssuesPath?: Config["knownIssuesPath"];
+  resolutions?: Pick<NonNullable<Config["resolutions"]>, "knownIssuesPath">;
   plugins?: Config["plugins"];
 }
 
@@ -165,8 +165,7 @@ export const validateConfig = (config: Config) => {
     "hideLabels",
     "historyPath",
     "historyLimit",
-    "knownIssuesPath",
-    "knownIssues",
+    "resolutions",
     "plugins",
     "defaultLabels",
     "variables",
@@ -314,6 +313,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
   }
 
+  validateResolutionsConfig(config.resolutions);
+
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 
   const name = override.name ?? config.name ?? "Allure Report";
@@ -323,12 +324,15 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
-  const configuredKnownIssuesPath = override.knownIssuesPath ?? config.knownIssuesPath;
+  const configuredKnownIssuesPath = override.resolutions?.knownIssuesPath ?? config.resolutions?.knownIssuesPath;
   const knownIssuesPathInput =
-    configuredKnownIssuesPath ?? (hasKnownIssueRules(config.knownIssues) ? DEFAULT_KNOWN_ISSUES_PATH : undefined);
+    configuredKnownIssuesPath ?? (config.resolutions ? DEFAULT_KNOWN_ISSUES_PATH : undefined);
   const knownIssuesPath = await resolveExactIssuesFilePath(knownIssuesPathInput, "known issues");
+  const resolutions =
+    config.resolutions || override.resolutions?.knownIssuesPath !== undefined
+      ? { ...(config.resolutions ?? { rules: [] }), knownIssuesPath }
+      : undefined;
   const output = resolve(override.output ?? config.output ?? "./allure-report");
-  const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
   const variables = config.variables ?? {};
   const resultsDir = normalizeResultsDir(config.resultsDir);
   let pluginInstances: PluginInstance[] = [];
@@ -362,9 +366,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     open,
     port,
     hideLabels,
-    knownIssuesPath,
-    known,
-    knownIssues: config.knownIssues,
+    resolutions,
     environment,
     allowedEnvironments,
     variables,

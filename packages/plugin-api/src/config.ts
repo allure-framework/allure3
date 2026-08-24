@@ -3,9 +3,8 @@ import type {
   CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
-  KnownIssuesPathConfig,
   ReportVariables,
-  KnownIssuesConfig,
+  ResolutionsConfig,
 } from "@allurereport/core-api";
 
 import type { PluginDescriptor } from "./plugin.js";
@@ -19,8 +18,7 @@ export interface Config {
   hideLabels?: (string | RegExp)[];
   historyPath?: string;
   historyLimit?: number;
-  knownIssuesPath?: KnownIssuesPathConfig;
-  knownIssues?: KnownIssuesConfig;
+  resolutions?: ResolutionsConfig;
   defaultLabels?: DefaultLabelsConfig;
   /**
    * Signals that the report's plugins shouldn't be executed, but test results should be archived

@@ -167,7 +167,7 @@ export class RunCommand extends Command {
       port: this.port,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
@@ -207,10 +207,8 @@ export class RunCommand extends Command {
             ]),
       ],
     });
-    const knownIssues = await allureReport.store.allKnownIssues();
     const { globalExitCode } = await executeAllureRun({
       allureReport,
-      knownIssues,
       cwd,
       command,
       commandArgs,

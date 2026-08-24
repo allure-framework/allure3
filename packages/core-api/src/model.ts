@@ -1,4 +1,5 @@
 import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
+import type { ResolutionCategory } from "./resolutions.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
@@ -59,7 +60,7 @@ export interface TestResult {
 
   flaky: boolean;
   muted: boolean;
-  known: boolean;
+  resolution?: ResolutionCategory;
 
   transition?: TestStatusTransition;
 

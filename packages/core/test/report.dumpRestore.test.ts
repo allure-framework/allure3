@@ -31,15 +31,15 @@ const minimalDumpJsonFiles = (
     [AllureStoreDumpFiles.CheckResults]: "[]",
     [AllureStoreDumpFiles.Environments]: "[]",
     [AllureStoreDumpFiles.ReportVariables]: "{}",
-    [AllureStoreDumpFiles.KnownIssues]: "{}",
+    [AllureStoreDumpFiles.ResolutionIssues]: "{}",
     [AllureStoreDumpFiles.GlobalAttachments]: "[]",
     [AllureStoreDumpFiles.GlobalErrors]: "[]",
     [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",
     [AllureStoreDumpFiles.IndexTestResultsByHistoryId]: "{}",
     [AllureStoreDumpFiles.IndexTestResultsByTestCase]: "{}",
+    [AllureStoreDumpFiles.IndexTestResultsByResolutionIssue]: "{}",
     [AllureStoreDumpFiles.IndexAttachmentsByFixture]: "{}",
     [AllureStoreDumpFiles.IndexFixturesByTestResult]: "{}",
-    [AllureStoreDumpFiles.IndexKnownByHistoryId]: "{}",
     [AllureStoreDumpFiles.QualityGateResults]: "[]",
     [AllureStoreDumpFiles.TestResultIngestOrder]: "[]",
   };
@@ -641,10 +641,12 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     try {
       const checkResultsEntry = await archive.entryData(AllureStoreDumpFiles.CheckResults);
+      const resolutionIssueIndexEntry = await archive.entryData(AllureStoreDumpFiles.IndexTestResultsByResolutionIssue);
 
       expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual({
         [checkResult.id]: checkResult,
       });
+      expect(JSON.parse(resolutionIssueIndexEntry.toString("utf8"))).toEqual({});
     } finally {
       await archive.close();
     }

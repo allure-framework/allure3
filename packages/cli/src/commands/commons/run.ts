@@ -6,7 +6,7 @@ import { join, resolve } from "node:path";
 import process from "node:process";
 
 import { AllureReport, QualityGateState, stringifyQualityGateResults } from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
+import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -68,7 +68,6 @@ const attachResultsDirectoryWatchers = (params: {
 
 export const runTests = async (params: {
   allureReport: AllureReport;
-  knownIssues: KnownTestFailure[];
   cwd: string;
   command: string;
   commandArgs: string[];
@@ -82,7 +81,6 @@ export const runTests = async (params: {
 }): Promise<TestProcessResult | null> => {
   const {
     allureReport,
-    knownIssues,
     cwd,
     command,
     commandArgs,
@@ -182,7 +180,6 @@ export const runTests = async (params: {
         trs: filteredTrs,
         state: qualityGateState,
         environment,
-        knownIssues,
       });
 
       // process only fast-failed checks here
@@ -263,7 +260,6 @@ export const runTests = async (params: {
 
 export const executeAllureRun = async (params: {
   allureReport: AllureReport;
-  knownIssues: KnownTestFailure[];
   cwd: string;
   command: string;
   commandArgs: string[];
@@ -282,7 +278,6 @@ export const executeAllureRun = async (params: {
 }> => {
   const {
     allureReport,
-    knownIssues,
     cwd,
     command,
     commandArgs,
@@ -310,7 +305,6 @@ export const executeAllureRun = async (params: {
       logs,
       silent,
       allureReport,
-      knownIssues,
       cwd,
       command,
       commandArgs,
@@ -350,7 +344,6 @@ export const executeAllureRun = async (params: {
         silent,
         logs,
         allureReport,
-        knownIssues,
         cwd,
         command,
         commandArgs,
@@ -383,7 +376,6 @@ export const executeAllureRun = async (params: {
     if (withQualityGate && !qualityGateResults.length) {
       const { results } = await allureReport.validate({
         trs,
-        knownIssues,
         environment,
       });
 

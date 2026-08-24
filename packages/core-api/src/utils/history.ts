@@ -60,21 +60,6 @@ export const getHistoryIdCandidates = (tr: Pick<TestResult, "historyId" | "label
   return result;
 };
 
-export const filterUnknownByKnownIssues = (
-  trs: TestResult[],
-  knownIssueHistoryIds: ReadonlySet<string>,
-): TestResult[] => {
-  return trs.filter((tr) => {
-    const historyIdCandidates = getHistoryIdCandidates(tr);
-
-    if (historyIdCandidates.length === 0) {
-      return true;
-    }
-
-    return historyIdCandidates.every((historyId) => !knownIssueHistoryIds.has(historyId));
-  });
-};
-
 export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => ({
   ...historyDataPoint,
   knownTestCaseIds: Array.isArray(historyDataPoint.knownTestCaseIds) ? historyDataPoint.knownTestCaseIds : [],

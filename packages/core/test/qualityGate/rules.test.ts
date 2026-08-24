@@ -1,9 +1,4 @@
-import {
-  type KnownTestFailure,
-  type TestResult,
-  type TestStatus,
-  fallbackTestCaseIdLabelName,
-} from "@allurereport/core-api";
+import { type TestResult, type TestStatus, fallbackTestCaseIdLabelName } from "@allurereport/core-api";
 import { type QualityGateRuleState, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -25,7 +20,6 @@ const createTestResult = (
   environment?: string,
   labels: TestResult["labels"] = [],
   parameters: TestResult["parameters"] = [],
-  known = false,
 ) =>
   ({
     id,
@@ -36,7 +30,6 @@ const createTestResult = (
     environment,
     flaky: false,
     muted: false,
-    known,
     isRetry: false,
     labels,
     parameters,
@@ -70,7 +63,6 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -90,7 +82,6 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -100,28 +91,8 @@ describe("maxFailuresRule", () => {
     expect(setState).toHaveBeenCalledWith(2, ["2", "3"]);
   });
 
-  it("should filter out known failures by stored flag", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 1;
-    const result = await maxFailuresRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
-    expect(result.testResults).toEqual(["3"]);
-  });
-
-  it("should ignore knownIssues list alone", async () => {
+  it("should count an unresolved failure", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
       createTestResult("1", "failed", "new-history-id", undefined, undefined, [
         { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
@@ -131,7 +102,6 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected: 0,
-      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
       state,
     });
 
@@ -158,7 +128,6 @@ describe("minTestsCountRule", () => {
     const result = await minTestsCountRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -173,7 +142,6 @@ describe("minTestsCountRule", () => {
     const result = await minTestsCountRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -185,8 +153,8 @@ describe("minTestsCountRule", () => {
 
 describe("successRateRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<{ totalCount: number; unknownCount: number; passedCount: number }> = {
-    getResult: () => ({ totalCount: 0, unknownCount: 0, passedCount: 0 }),
+  const state: QualityGateRuleState<{ totalCount: number; passedCount: number }> = {
+    getResult: () => ({ totalCount: 0, passedCount: 0 }),
     setResult: (value, testResults) => setState(value, testResults),
   };
 
@@ -200,14 +168,13 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
     expect(result.testResults).toEqual(["3"]);
-    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 3, passedCount: 2 }, ["3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 2 }, ["3"]);
   });
 
   it("should fail when success rate is less than expected", async () => {
@@ -220,37 +187,19 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
     expect(result.testResults).toEqual(["2", "3"]);
-    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 3, passedCount: 1 }, ["2", "3"]);
-  });
-
-  it("should return full success rate when no unknown tests exist", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "failed", "known-issue-1", undefined, undefined, [], [], true),
-    ];
-    const expected = 1;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 1 }, ["2", "3"]);
   });
 
   it("should fail empty suite with zero success rate", async () => {
     const result = await successRateRule.validate({
       trs: [],
       expected: 1,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -258,29 +207,8 @@ describe("successRateRule", () => {
     expect(result.actual).toBe(0);
   });
 
-  it("should filter out known failures by stored flag", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 0.5;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(0.5);
-    expect(result.testResults).toEqual(["3"]);
-    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 2, passedCount: 1 }, ["3"]);
-  });
-
-  it("should ignore knownIssues list alone", async () => {
+  it("should count an unresolved failure", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
       createTestResult("1", "failed", "new-history-id", undefined, undefined, [
         { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
@@ -290,7 +218,6 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected: 1,
-      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
       state,
     });
 
@@ -317,7 +244,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -336,7 +262,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -355,7 +280,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -373,7 +297,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -391,7 +314,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -399,7 +321,7 @@ describe("maxDurationRule", () => {
     expect(result.actual).toBe(0);
   });
 
-  it("should not filter out known issues", async () => {
+  it("should use every result provided to the rule", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed", undefined, 100),
       createTestResult("2", "failed", "known-issue-1", 500),
@@ -409,7 +331,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
       state,
     });
 
@@ -433,7 +354,6 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
@@ -449,7 +369,6 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
@@ -466,7 +385,6 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
@@ -479,7 +397,6 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: [],
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
@@ -503,7 +420,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -524,7 +440,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -542,7 +457,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -559,7 +473,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: [createTestResult("1", "passed", undefined, undefined, "staging")],
       expected: [],
-      knownIssues: [],
       state,
     });
 
@@ -589,7 +502,6 @@ describe("environmentsTestedRule", () => {
     const firstResult = await environmentsTestedRule.validate({
       trs: firstBatch,
       expected,
-      knownIssues: [],
       state,
     });
 
@@ -606,7 +518,6 @@ describe("environmentsTestedRule", () => {
     const secondResult = await environmentsTestedRule.validate({
       trs: secondBatch,
       expected,
-      knownIssues: [],
       state,
     });
 

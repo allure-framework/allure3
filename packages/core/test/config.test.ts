@@ -21,7 +21,6 @@ import {
   resolvePlugin,
   validateConfig,
 } from "../src/config.js";
-import { readKnownIssues as readKnownIssuesFn } from "../src/known.js";
 import { importWrapper } from "../src/utils/module.js";
 import { isWindows } from "../src/utils/windows.js";
 
@@ -30,17 +29,6 @@ class PluginFixture {}
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
-vi.mock("../src/known.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../src/known.js")>();
-
-  return {
-    ...actual,
-    readKnownIssues: vi.fn().mockResolvedValue([]),
-  };
-});
-
-const mockedReadKnownIssues = vi.mocked(readKnownIssuesFn);
-
 beforeEach(async () => {
   vi.clearAllMocks();
   await epic("coverage");
@@ -569,80 +557,74 @@ describe("resolveConfig", () => {
   it("should not set default known issues path when no known issues policy is configured", async () => {
     const resolved = await resolveConfig({} as Config);
 
-    expect(resolved.knownIssuesPath).toBeUndefined();
-    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
   });
 
   it("should derive default known issues path when known issues rules are configured", async () => {
     const resolved = await resolveConfig({
-      knownIssues: {
+      resolutions: {
+        links: { jira: { urlTemplate: "https://jira.example/%s" } },
         rules: [
           {
-            testCaseId: "tc-1",
-            decision: {
-              reason: "tracked defect",
-            },
+            id: "issue-1",
+            category: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: ["tc-1"],
           },
         ],
       },
     });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./known-issues.json"));
-    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known-issues.json"));
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known-issues.json"));
   });
 
-  it("should keep known issues disabled when rules are empty and no path is configured", async () => {
+  it("should derive default known issues path when resolutions are configured", async () => {
     const resolved = await resolveConfig({
-      knownIssues: {
+      resolutions: {
         rules: [],
       },
     });
 
-    expect(resolved.knownIssuesPath).toBeUndefined();
-    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known-issues.json"));
   });
 
   it("should ignore empty known path", async () => {
     const resolved = await resolveConfig({
-      knownIssuesPath: "",
+      resolutions: { knownIssuesPath: "", rules: [] },
     });
 
-    expect(resolved.knownIssuesPath).toBeUndefined();
-    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
   });
 
   it("should read known file from provided exact file path", async () => {
     const fixture = {
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     };
     const resolved = await resolveConfig(fixture);
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
-    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known.json"));
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known.json"));
   });
 
   it("should allow to override given exact known path", async () => {
     const fixture = {
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     };
     const resolved = await resolveConfig(fixture, {
-      knownIssuesPath: "./custom-known.json",
+      resolutions: { knownIssuesPath: "./custom-known.json" },
     });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./custom-known.json"));
-    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./custom-known.json"));
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./custom-known.json"));
   });
 
   it("should leave paths undefined when override is empty", async () => {
     const resolved = await resolveConfig(
       {
-        knownIssuesPath: "./known.json",
+        resolutions: { knownIssuesPath: "./known.json", rules: [] },
       },
-      { knownIssuesPath: "" },
+      { resolutions: { knownIssuesPath: "" } },
     );
 
-    expect(resolved.knownIssuesPath).toBeUndefined();
-    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
   });
 
   it("should allow to override given history limit", async () => {
@@ -1225,7 +1207,9 @@ describe("loadYamlConfig", () => {
     const configPath = join(fixturesDir, "config.yaml");
     const yamlContent = `name: Test Report
 historyPath: ./history.jsonl
-knownIssuesPath: ./known.json`;
+resolutions:
+  knownIssuesPath: ./known.json
+  rules: []`;
     await writeFile(configPath, yamlContent, "utf-8");
 
     const config = await loadYamlConfig(configPath);
@@ -1233,7 +1217,7 @@ knownIssuesPath: ./known.json`;
     expect(config).toEqual({
       name: "Test Report",
       historyPath: "./history.jsonl",
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     });
   });
 
