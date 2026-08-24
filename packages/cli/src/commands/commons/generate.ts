@@ -5,18 +5,19 @@ import { AllureReport } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories, findFilesByGlobs } from "../../utils/fileSystem.js";
+import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
+import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
 
-export const generate = async (params: { cwd: string; config: FullConfig; resultsDir: string[]; dump?: string[] }) => {
+export const generate = async (params: { cwd: string; config: FullConfig; resultsDir?: string[]; dump?: string[] }) => {
   const dumpFiles: string[] = params?.dump?.length ? await findFilesByGlobs(params.cwd, params.dump) : [];
-
-  // don't read allure results directories without the parameter when dump file has been found
-  // or read allure results directory when it is explicitly provided
-  const { resultDirectories = [], patterns = params.resultsDir } =
-    !!params?.resultsDir || dumpFiles.length === 0
-      ? await findAllureResultDirectories(params.cwd, params.resultsDir)
-      : {};
+  const cliPatterns = params.resultsDir ?? [];
+  const resolvedPatterns = resolveResultsPatterns(cliPatterns, params.config.resultsDir);
+  // dumps-only: skip default results read only when CLI empty AND config unset AND dumps present
+  const shouldReadResults = resolvedPatterns.length > 0 || dumpFiles.length === 0;
+  const { resultDirectories = [], patterns = resolvedPatterns } = shouldReadResults
+    ? await resolveAndFindResultsDirs(params.cwd, cliPatterns, params.config.resultsDir)
+    : {};
 
   if (resultDirectories.length === 0 && dumpFiles.length === 0) {
     // eslint-disable-next-line no-console

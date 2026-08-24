@@ -1,11 +1,11 @@
 import * as console from "node:console";
 import process, { exit } from "node:process";
 
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, readRawConfig, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class HistoryCommand extends Command {
   static paths = [["history"]];
@@ -31,7 +31,7 @@ export class HistoryCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   historyPath = Option.String("--history-path,-h", {
@@ -47,7 +47,10 @@ export class HistoryCommand extends Command {
   });
 
   async execute() {
-    const { resultDirectories, patterns } = await findAllureResultDirectories(process.cwd(), this.resultsDir);
+    const cwd = process.cwd();
+    const rawConfig = await readRawConfig(cwd);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, rawConfig.resultsDir);
+
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);

@@ -411,6 +411,55 @@ describe("agent command", () => {
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
   });
 
+  it("should pass --results-dir into executeAllureRun and prefer it over config.resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      name: "Allure Report",
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config"],
+    });
+
+    await run(AgentCommand, [
+      "agent",
+      "--report",
+      "off",
+      "--results-dir",
+      "./cli/**/allure-results",
+      "--results-dir",
+      "./other/allure-results",
+      "--",
+      "npm",
+      "test",
+    ]);
+
+    expect(executeAllureRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npm",
+        commandArgs: ["test"],
+        resultsPatterns: ["./cli/**/allure-results", "./other/allure-results"],
+      }),
+    );
+  });
+
+  it("should pass config.resultsDir into executeAllureRun when --results-dir is omitted", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      name: "Allure Report",
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config/**/allure-results"],
+    });
+
+    await run(AgentCommand, ["agent", "--report", "off", "--", "npm", "test"]);
+
+    expect(executeAllureRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsPatterns: ["./from-config/**/allure-results"],
+      }),
+    );
+  });
+
   it("should translate plugin-agent expectation file validation failures to usage errors", async () => {
     const command = new AgentCommand();
 

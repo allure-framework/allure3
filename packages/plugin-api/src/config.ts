@@ -70,6 +70,12 @@ export interface Config {
    * Array of glob patterns or full paths to match files in the working directory which should be attached to allure report as global attachments
    */
   globalAttachments?: string[];
+  /**
+   * Glob patterns or paths used when reading Allure results directories.
+   * Applies to generate-family and live commands when CLI patterns are omitted.
+   * Empty string / empty array are treated as unset.
+   */
+  resultsDir?: string | string[];
 }
 
 export const defineConfig = (allureConfig: Config): Config => {
