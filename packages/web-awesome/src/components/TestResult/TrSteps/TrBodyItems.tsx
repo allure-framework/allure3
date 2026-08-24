@@ -20,18 +20,15 @@ const getBodyItemKey = (item: TrBodyItem, index: number) => {
 
 export type TrBodyItemsProps = {
   bodyItems: TrBodyItem[];
-  isTopLevel?: boolean;
 };
 
-export const TrBodyItems: FunctionalComponent<TrBodyItemsProps> = ({ bodyItems, isTopLevel }) => {
+export const TrBodyItems: FunctionalComponent<TrBodyItemsProps> = ({ bodyItems }) => {
   return (
     <>
       {bodyItems.map((item, index) => {
         switch (item.type) {
           case "step":
-            return (
-              <TrStep item={item} stepIndex={index + 1} isTopLevel={isTopLevel} key={getBodyItemKey(item, index)} />
-            );
+            return <TrStep item={item} stepIndex={index + 1} key={getBodyItemKey(item, index)} />;
           case "attachment":
             return <TrAttachment item={item} stepIndex={index + 1} key={getBodyItemKey(item, index)} />;
           case "error":
