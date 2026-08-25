@@ -121,7 +121,7 @@ describe("report", () => {
   it("should write root test result registry and keep a single plugin report at the root", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-test-results-registry-"));
     const p1 = createPlugin("p1");
-    const config = await resolveConfig({ name: "Allure Report", output });
+    const config = await resolveConfig({ name: "Allure Report", output, environment: "chrome" });
 
     config.plugins = [p1];
     (p1.plugin.done as Mock).mockImplementation(async (context) => {
@@ -151,11 +151,44 @@ describe("report", () => {
           id,
           name: "failed test",
           duration: 123,
+          environment: "chrome",
           status: "failed",
         },
       },
     });
     await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
+  it("should write quality gate results with related test ids", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-resolved-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      qualityGate: {
+        rules: [],
+      },
+    });
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    const testResultId = "result-1";
+    const qualityGateResult = {
+      success: false,
+      expected: 0,
+      actual: 1,
+      rule: "maxFailures",
+      message: "Failed tests exceed threshold",
+      testResults: [testResultId],
+    };
+
+    allureReport.realtimeDispatcher.sendQualityGateResults([qualityGateResult]);
+    await allureReport.done();
+
+    const qualityGateResults = JSON.parse(await readFile(join(output, "quality-gate.json"), "utf8"));
+
+    expect(qualityGateResults).toEqual({
+      default: [qualityGateResult],
+    });
   });
 
   it("should not allow call done() before start()", async () => {
@@ -781,6 +814,48 @@ describe("report", () => {
     );
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({ files: { "test-results.json": expect.any(String) } }),
+    );
+  });
+
+  it("should upload quality gate artifacts with root report files", async () => {
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({
+      name: "Allure Report",
+      qualityGate: {
+        rules: [],
+      },
+    });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    allureReport.realtimeDispatcher.sendQualityGateResults([
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "maxFailures",
+        message: "Failed tests exceed threshold",
+        testResults: [],
+      },
+    ]);
+    await allureReport.done();
+
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: {
+          "test-results.json": expect.any(String),
+          "quality-gate.json": expect.any(String),
+        },
+      }),
     );
   });
 

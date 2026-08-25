@@ -64,6 +64,8 @@ const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start()
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
+const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
+const ROOT_INTEGRATION_FILENAMES = new Set([TEST_RESULTS_REGISTRY_FILENAME, QUALITY_GATE_RESULTS_FILENAME]);
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -127,6 +129,7 @@ export class AllureReport {
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
   #testResultsRegistryPath?: string;
+  #qualityGateResultsPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
   #published = false;
@@ -263,6 +266,9 @@ export class AllureReport {
     }
 
     await this.#writeTestResultRegistry();
+    if (this.#qualityGate) {
+      await this.#writeQualityGateFiles();
+    }
     await this.#writeSummaryFiles();
     await this.#generateRootSummary();
 
@@ -285,9 +291,10 @@ export class AllureReport {
     const summariesSnapshot = this.#cloneSummariesByPluginId();
     const uploadProgressMessage =
       reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
+    const rootReportFiles = this.#getRootReportFiles();
     const totalFilesToUpload =
       reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0) +
-      (this.#testResultsRegistryPath ? 1 : 0);
+      Object.keys(rootReportFiles).length;
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
@@ -333,12 +340,12 @@ export class AllureReport {
         }
       }
 
-      if (this.#testResultsRegistryPath) {
-        publishErrorMessage = "Test results registry upload has failed, the report won't be published";
+      if (Object.keys(rootReportFiles).length > 0) {
+        publishErrorMessage = "Report integration artifacts upload has failed, the report won't be published";
 
         await client.uploadReport({
           reportUuid: this.reportUuid,
-          files: { [TEST_RESULTS_REGISTRY_FILENAME]: this.#testResultsRegistryPath },
+          files: rootReportFiles,
           onProgress: incrementUploadProgress,
         });
       }
@@ -1026,6 +1033,20 @@ export class AllureReport {
     );
   };
 
+  #getRootReportFiles = (): Record<string, string> => ({
+    ...(this.#testResultsRegistryPath ? { [TEST_RESULTS_REGISTRY_FILENAME]: this.#testResultsRegistryPath } : {}),
+    ...(this.#qualityGateResultsPath ? { [QUALITY_GATE_RESULTS_FILENAME]: this.#qualityGateResultsPath } : {}),
+  });
+
+  #writeQualityGateFiles = async (): Promise<void> => {
+    const qualityGateResults = await this.#store.qualityGateResultsByEnv();
+
+    this.#qualityGateResultsPath = await this.#reportFiles.addFile(
+      QUALITY_GATE_RESULTS_FILENAME,
+      Buffer.from(JSON.stringify(qualityGateResults)),
+    );
+  };
+
   #generateRootSummary = async (): Promise<void> => {
     const summaries = [...this.#summariesByPluginId.values()].map(clonePluginSummary);
 
@@ -1126,7 +1147,7 @@ export class AllureReport {
         const reportContent = await readdir(reportPath);
 
         for (const entry of reportContent) {
-          if (entry === TEST_RESULTS_REGISTRY_FILENAME) {
+          if (ROOT_INTEGRATION_FILENAMES.has(entry)) {
             continue;
           }
 
@@ -1168,14 +1189,6 @@ export class AllureReport {
           console.info(`- ${href}`);
         });
       }
-
-      if (!this.#qualityGate) {
-        return;
-      }
-
-      const qualityGateResults = await this.#store.qualityGateResultsByEnv();
-
-      await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
     } finally {
       await this.#finishPerfMetrics();
     }

@@ -57,7 +57,7 @@ export interface PluginContext {
 /**
  * Reduced test result information shared by report integrations.
  */
-export type TestResultSummary = Pick<TestResult, "id" | "name" | "duration" | "status">;
+export type TestResultSummary = Pick<TestResult, "id" | "name" | "duration" | "environment" | "status">;
 
 export interface TestResultRegistry {
   byId: Record<string, TestResultSummary>;
