@@ -48,4 +48,24 @@ describe("Logger", () => {
     expect(warn).not.toHaveBeenCalled();
     expect(error).not.toHaveBeenCalled();
   });
+
+  it("should prefer the constructor log level over environment variables", () => {
+    vi.stubEnv("LOG_LEVEL", "silent");
+    vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
+
+    new Logger("TestOpsPlugin", "info").info("Publishing report");
+
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
+  });
+
+  it("should change the log level at runtime", () => {
+    const logger = new Logger("TestOpsPlugin", "info");
+
+    logger.debug("Before change");
+    logger.setLogLevel("debug");
+    logger.debug("After change");
+
+    expect(debug).not.toHaveBeenCalledWith(expect.stringContaining("Before change"));
+    expect(debug).toHaveBeenCalledWith(expect.stringContaining("After change"));
+  });
 });

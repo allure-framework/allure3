@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.15.0",
+  "version": "3.16.0",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
@@ -21,7 +21,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@faker-js/faker": "^10.5.0",
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.62.1",
     "@types/lodash.times": "^4.3.9",
     "@types/node": "^20",
     "allure-js-commons": "^3",

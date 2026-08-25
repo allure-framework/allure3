@@ -25,13 +25,15 @@ vi.mock("@allurereport/web-commons", async () => {
 
 import { ReportFetchError } from "@allurereport/web-commons";
 
-import { fetchTreeFiltersData } from "../../../src/stores/treeFilters/actions.js";
-import { treeCategories, treeTags } from "../../../src/stores/treeFilters/store.js";
+import { clearTreeFilterParams, fetchTreeFiltersData } from "../../../src/stores/treeFilters/actions.js";
+import { clearTreeFilters } from "../../../src/stores/treeFilters/store.js";
+import { treeCategories, treeFiltersResetNonce, treeTags } from "../../../src/stores/treeFilters/store.js";
 
 describe("stores > treeFilters > actions", () => {
   beforeEach(() => {
     treeTags.value = [];
     treeCategories.value = [];
+    treeFiltersResetNonce.value = 0;
     fetchReportJsonDataMock.mockReset();
     setParamsMock.mockReset();
   });
@@ -39,6 +41,7 @@ describe("stores > treeFilters > actions", () => {
   afterEach(() => {
     treeTags.value = [];
     treeCategories.value = [];
+    treeFiltersResetNonce.value = 0;
     vi.restoreAllMocks();
   });
 
@@ -86,5 +89,28 @@ describe("stores > treeFilters > actions", () => {
     expect(treeCategories.value).toEqual(["seed-category"]);
     expect(consoleErrorSpy).toHaveBeenCalledOnce();
     expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch tree filters data:\n\n", error);
+  });
+
+  it("should reset all filter params when clearing tree filters", () => {
+    clearTreeFilters();
+
+    expect(treeFiltersResetNonce.value).toBe(1);
+    expect(setParamsMock).toHaveBeenCalledTimes(1);
+    expect(setParamsMock).toHaveBeenCalledWith(
+      { key: "query", value: undefined },
+      { key: "retry", value: undefined },
+      { key: "flaky", value: undefined },
+      { key: "transition", value: [] },
+      { key: "tags", value: [] },
+      { key: "categories", value: [] },
+      { key: "status", value: undefined },
+    );
+  });
+
+  it("should reset filter params in a single URL update", () => {
+    clearTreeFilterParams();
+
+    expect(setParamsMock).toHaveBeenCalledTimes(1);
+    expect(setParamsMock.mock.calls[0]).toHaveLength(7);
   });
 });

@@ -1,7 +1,9 @@
+import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -21,6 +23,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type PluginContext,
   type ReportFiles,
   type ResultFile,
   createTreeByCategories,
@@ -34,7 +37,7 @@ import type {
   ClassicTreeGroup,
   ClassicTreeLeaf,
 } from "@allurereport/web-classic";
-import { getPieChartValues } from "@allurereport/web-commons";
+import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { matchCategories } from "./categories.js";
@@ -231,6 +234,20 @@ export const generatePieChart = async (writer: ClassicDataWriter, statistic: Sta
   const chartData = getPieChartValues(statistic);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
+};
+
+export const generateAllCharts = async (
+  writer: ClassicDataWriter,
+  store: AllureStore,
+  options: ClassicOptions,
+  context: PluginContext,
+) => {
+  const { filter } = options;
+  const generatedChartsData = await generateCharts(defaultChartsConfig, store, context.reportName, randomUUID, filter);
+
+  if (Object.keys(generatedChartsData.general).length > 0) {
+    await writer.writeWidget("charts.json", generatedChartsData);
+  }
 };
 
 export const generateAttachmentsFiles = async (

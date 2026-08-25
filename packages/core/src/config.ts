@@ -19,6 +19,7 @@ import {
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
+import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
 
 type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
@@ -177,6 +178,7 @@ export const validateConfig = (config: Config) => {
     "allureService",
     "categories",
     "globalAttachments",
+    "resultsDir",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -328,6 +330,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
   const variables = config.variables ?? {};
+  const resultsDir = normalizeResultsDir(config.resultsDir);
   let pluginInstances: PluginInstance[] = [];
   const hasPluginsOverride = override.plugins !== undefined;
 
@@ -396,6 +399,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
       : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
+    ...(resultsDir.length ? { resultsDir } : {}),
   };
 };
 

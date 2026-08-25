@@ -13,7 +13,7 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port">,
+    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port" | "resultsDir">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
@@ -27,4 +27,8 @@ export interface FullConfig
   allureService?: ResolvedAllureServiceConfig;
   categories?: CategoriesConfig;
   globalAttachments?: string[];
+  /**
+   * Normalized results directory patterns from config (unset when empty / only empty-string entries).
+   */
+  resultsDir?: string[];
 }

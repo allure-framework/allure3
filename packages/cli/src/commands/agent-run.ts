@@ -26,7 +26,8 @@ import {
 
 import { normalizeCommandEnvironmentOptions, resolveCommandEnvironment } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { findAllureResultDirectories, findFilesByGlobs } from "../utils/fileSystem.js";
+import { findFilesByGlobs } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { createAgentHumanReportConfig } from "./agent-human-report.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
@@ -150,6 +151,7 @@ export type ExecuteAgentModeParams = {
   rerunLabels?: string[];
   reportMode: AgentHumanReportMode;
   args: string[];
+  resultsPatterns?: readonly string[];
 };
 
 export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
@@ -169,6 +171,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
     rerunLabels,
     reportMode,
     args,
+    resultsPatterns: cliResultsPatterns = [],
   } = params;
   const command = args[0];
   const commandArgs = args.slice(1);
@@ -294,6 +297,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       plugins: [...humanReport.plugins, ...(config.plugins ?? [])],
     });
     const knownIssues = await allureReport.store.allKnownIssues();
+    const resultsPatterns = resolveResultsPatterns(cliResultsPatterns, config.resultsDir);
 
     const { globalExitCode } = await executeAllureRun({
       allureReport,
@@ -310,6 +314,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       silent: true,
       ignoreLogs: false,
       logProcessExit: false,
+      resultsPatterns,
     });
 
     await persistAgentRunState({
@@ -380,14 +385,18 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
   } = params;
   const cwd = await realpath(configuredCwd ?? process.cwd());
   const dumpFiles = dumps.length ? await findFilesByGlobs(cwd, dumps) : [];
-  const shouldReadResults = resultsDir.length > 0 || dumps.length === 0;
-  const { resultDirectories = [], patterns = resultsDir } = shouldReadResults
-    ? await findAllureResultDirectories(cwd, resultsDir)
-    : {};
 
   if (dumps.length > 0 && dumpFiles.length === 0) {
     throw new AgentUsageError(`No dump files found matching pattern: ${dumps.join(", ")}`);
   }
+
+  const resultsConfig = await readConfig(cwd, configPath);
+  const resolvedPatterns = resolveResultsPatterns(resultsDir, resultsConfig.resultsDir);
+  // dumps-only: skip default results read only when CLI empty AND config unset AND dumps present
+  const shouldReadResults = resolvedPatterns.length > 0 || dumpFiles.length === 0;
+  const { resultDirectories = [], patterns = resolvedPatterns } = shouldReadResults
+    ? await resolveAndFindResultsDirs(cwd, resultsDir, resultsConfig.resultsDir)
+    : {};
 
   if (resultDirectories.length === 0 && dumpFiles.length === 0) {
     const inspectedPatterns = [...(patterns ?? []), ...dumps];

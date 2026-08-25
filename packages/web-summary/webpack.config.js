@@ -6,7 +6,6 @@ const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const SpriteLoaderPlugin = require("svg-sprite-loader/plugin");
 const webpack = require("webpack");
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
@@ -50,7 +49,7 @@ export default (env, argv) => {
         },
         {
           test: /\.svg$/,
-          loader: "svg-sprite-loader",
+          type: "asset/inline",
         },
         {
           test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
@@ -77,7 +76,6 @@ export default (env, argv) => {
       new MiniCssExtractPlugin({
         filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
-      new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
         publicPath: "",
       }),

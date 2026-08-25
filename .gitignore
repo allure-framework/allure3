@@ -39,6 +39,7 @@ dist
 dist-tests
 *.tgz
 *.log
+.playwright-cli/
 .gradle
 schema
 build
@@ -61,3 +62,6 @@ docs/kb/.obsidian/
 
 .tmp
 .agent-workspace
+
+bench
+allure-production-deps.no-axios-handlebars.reachable.ndjson

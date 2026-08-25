@@ -99,7 +99,14 @@ const App = () => {
   useSignalEffect(() => {
     const envId = currentEnvironment.value;
 
-    if (!prefetched || !envId) {
+    if (!prefetched) {
+      return;
+    }
+
+    fetchPieChartData(envId);
+    fetchCategoriesData(envId);
+
+    if (!envId) {
       return;
     }
 

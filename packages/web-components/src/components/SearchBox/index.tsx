@@ -1,10 +1,8 @@
 import type { ComponentChild } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
-import searchIcon from "@/assets/svg/line-general-search-md.svg";
-import closeIcon from "@/assets/svg/line-general-x-close.svg";
 import { IconButton } from "@/components/Button";
-import { SvgIcon } from "@/components/SvgIcon";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
@@ -20,15 +18,19 @@ type Props = {
   trailingSlot?: ComponentChild;
 };
 
-const stopPropagation = (e: MouseEvent) => {
-  e.stopPropagation();
-};
-
 export const SearchBox = (props: Props) => {
   const { placeholder, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeDebounced = useDebouncedCallback(onChange, changeDebounce);
+  const onChangeDebouncedRef = useRef(onChangeDebounced);
+  onChangeDebouncedRef.current = onChangeDebounced;
+
+  useEffect(() => {
+    setLocalValue(value ?? "");
+    onChangeDebouncedRef.current.cancel();
+  }, [value]);
+
   const handleChange = (e: Event) => {
     const newValue = (e.target as HTMLInputElement).value;
     setLocalValue(newValue);
@@ -39,7 +41,18 @@ export const SearchBox = (props: Props) => {
     e.preventDefault();
     e.stopPropagation();
     setLocalValue("");
-    onChangeDebounced("");
+    onChangeDebounced.cancel();
+    onChange("");
+  };
+  const handleWrapClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    if (target.closest("[data-search-box-slot]")) {
+      e.stopPropagation();
+      return;
+    }
+
+    inputRef.current?.focus();
   };
   const showClear = !!localValue;
   const hasError = !!error;
@@ -50,14 +63,14 @@ export const SearchBox = (props: Props) => {
       type="ui"
       size="m"
       tag="div"
-      onClick={() => inputRef.current?.focus()}
+      onClick={handleWrapClick}
       data-invalid={hasError || undefined}
     >
       <div className={styles.leadingIcon}>
-        <SvgIcon id={searchIcon.id} size="s" />
+        <SvgIcon id={allureIcons.lineGeneralSearchMd} size="s" />
       </div>
       {leadingSlot && (
-        <div className={styles.slot} onClick={stopPropagation}>
+        <div className={styles.slot} data-search-box-slot>
           {leadingSlot}
         </div>
       )}
@@ -72,15 +85,22 @@ export const SearchBox = (props: Props) => {
         autocomplete="off"
         data-testid="search-input"
         aria-invalid={hasError || undefined}
+        aria-label={placeholder ?? "Search"}
       />
       {trailingSlot && (
-        <div className={styles.slot} onClick={stopPropagation}>
+        <div className={styles.slot} data-search-box-slot>
           {trailingSlot}
         </div>
       )}
       {showClear && (
         <div className={styles.clearButton}>
-          {<IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" data-testid="clear-button" />}
+          <IconButton
+            size="s"
+            icon={allureIcons.lineGeneralXClose}
+            onClick={handleClear}
+            style="ghost"
+            data-testid="clear-button"
+          />
         </div>
       )}
     </Text>

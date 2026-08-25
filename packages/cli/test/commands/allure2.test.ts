@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("allure2");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("allure2 command", () => {

@@ -23,6 +23,22 @@ const config = {
         publish: true,
       },
     },
+    classic: {
+      options: {
+        singleFile: false,
+        reportLanguage: "en",
+        reportName: "Allure 3 Report (plugin-classic)",
+        publish: true,
+      },
+    },
+    allure2: {
+      options: {
+        singleFile: false,
+        reportLanguage: "en",
+        reportName: "Allure 3 Report (plugin-allure2)",
+        publish: true,
+      },
+    },
     log: {
       options: {
         groupBy: "none",

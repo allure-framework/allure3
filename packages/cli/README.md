@@ -56,7 +56,15 @@ To hide specific labels use `--hide-labels` option:
 npx allure run --hide-labels=owner --hide-labels=tag -- npm test
 ```
 
-To successfully generate a report, ensure that your test setup outputs results into an `allure-results` directory, which is automatically detected by Allure 3. This directory can be placed at any nested level within your project (e.g., `out/tests/allure-results`), provided it retains the correct name.
+To successfully generate a report, ensure that your test setup outputs results into an `allure-results` directory. With `allure run` / `allure agent` / empty `allure watch`, directories named `allure-results` are discovered dynamically (name-based watcher). With one-shot commands such as `allure generate`, an empty CLI and unset `config.resultsDir` default to the `./**/allure-results` glob. Quote globs in the shell so they are not expanded early.
+
+You can also set `resultsDir` in the Allure config (`string | string[]`) or pass `--results-dir` on `run` / `agent`:
+
+```bash
+npx allure run --open --results-dir './artifacts/**/allure-results' -- npm test
+```
+
+Repeat `--results-dir` for multiple patterns. CLI overrides `config.resultsDir`.
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
 
@@ -191,7 +199,7 @@ export default defineConfig({
 });
 ```
 
-In this example, the generated report is named *Allure Report Example* and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
+In this example, the generated report is named _Allure Report Example_ and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
 
 ### TypeScript Configuration File
 
@@ -214,17 +222,18 @@ The configuration file allows you to fine-tune report generation. Key options in
 
 - **`name`**: Specifies the report’s display name.
 - **`output`**: Defines the directory where the report will be saved.
-- **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
+- **`resultsDir`** _(`string | string[]`)_: Glob patterns or paths used when reading Allure results directories. For one-shot commands, CLI positionals override this value. For `allure run` / `allure agent`, use repeated `--results-dir` (same override priority). When both CLI and `resultsDir` are empty, one-shot commands (`generate`, etc.) use `./**/allure-results`, while live commands (`run`, `agent`, empty `watch`) use name-based discovery of directories named `allure-results`. Quote globs in the shell.
+- **`hideLabels`** _(`(string | RegExp)[]`)_: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
 
 ### Awesome Plugin Options
 
 The **Awesome** plugin offers several customizable options:
 
-- **`singleFile`** *(boolean)*: If set to `true`, generates the report as a single standalone HTML file.
-- **`reportName`** *(string)*: Overrides the default report name.
-- **`open`** *(boolean)*: Automatically opens the report after generation if enabled.
-- **`reportLanguage`** *(string)*: Sets the UI language of the report. Supported languages include:
+- **`singleFile`** _(boolean)_: If set to `true`, generates the report as a single standalone HTML file.
+- **`reportName`** _(string)_: Overrides the default report name.
+- **`open`** _(boolean)_: Automatically opens the report after generation if enabled.
+- **`reportLanguage`** _(string)_: Sets the UI language of the report. Supported languages include:
 
   `az`, `br`, `de`, `en`, `es`, `fr`, `he`, `ja`, `kr`, `nl`, `pl`, `ru`, `sv`, `tr`, `zh`.
 

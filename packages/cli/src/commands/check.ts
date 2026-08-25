@@ -144,7 +144,7 @@ export class CheckCommand extends Command {
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {

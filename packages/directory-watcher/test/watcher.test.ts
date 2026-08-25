@@ -1,3 +1,4 @@
+import console from "node:console";
 import { createHash, randomUUID } from "node:crypto";
 import { Dirent, createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
@@ -422,6 +423,36 @@ describe("findMatching", () => {
     await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results", 1);
 
     expect(result).does.not.contain(dir311);
+  });
+
+  it("stops scanning once the signal is aborted", async () => {
+    const dir1 = await randomDirectory(fixturesDir, "allure-results");
+    const dir2 = await randomDirectory(fixturesDir, "allure-results-2");
+
+    const controller = new AbortController();
+    controller.abort();
+
+    const result = new Set<string>();
+    const completed = await findMatching(
+      fixturesDir,
+      result,
+      (dirent) => dirent.isDirectory() && dirent.name.startsWith("allure-results"),
+      5,
+      controller.signal,
+    );
+
+    expect(completed).toBe(false);
+    expect(result.size).toEqual(0);
+  });
+
+  it("reports an incomplete scan after a directory read error", async () => {
+    const file = await randomFile(fixturesDir);
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const result = new Set<string>();
+    const completed = await findMatching(file, result, () => false);
+
+    expect(completed).toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledWith("can't read directory", expect.any(Error));
   });
 });
 

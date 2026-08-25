@@ -10,16 +10,22 @@ import { executeAllureRun } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
-const { exitMock, processStream } = vi.hoisted(() => {
+const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted(() => {
   const exitMock = vi.fn();
   const processStream = {
     setEncoding: vi.fn().mockReturnThis(),
     on: vi.fn().mockReturnThis(),
   };
+  const watcher = () => ({
+    initialScan: vi.fn().mockResolvedValue(undefined),
+    abort: vi.fn().mockResolvedValue(undefined),
+  });
 
   return {
     exitMock,
     processStream,
+    nameWatcherMock: vi.fn(() => watcher()),
+    globWatcherMock: vi.fn(() => watcher()),
   };
 });
 
@@ -57,16 +63,21 @@ vi.mock("@allurereport/core", async () => {
     isFileNotFoundError: vi.fn().mockReturnValue(false),
   };
 });
+vi.mock("../../src/commands/commons/resultsDiscovery.js", () => ({
+  allureResultsDirectoriesGlobWatcher: globWatcherMock,
+}));
 vi.mock("@allurereport/directory-watcher", () => ({
-  allureResultsDirectoriesWatcher: vi.fn(() => ({
-    initialScan: vi.fn().mockResolvedValue(undefined),
-    abort: vi.fn().mockResolvedValue(undefined),
-  })),
+  allureResultsDirectoriesWatcher: nameWatcherMock,
   delayedFileProcessingWatcher: vi.fn(() => ({
     addFile: vi.fn().mockResolvedValue(undefined),
     abort: vi.fn().mockResolvedValue(undefined),
   })),
   newFilesInDirectoryWatcher: vi.fn(() => ({
+    initialScan: vi.fn().mockResolvedValue(undefined),
+    abort: vi.fn().mockResolvedValue(undefined),
+  })),
+  difference: vi.fn((before: Set<string>, after: Set<string>) => [new Set(), new Set()]),
+  watch: vi.fn(() => ({
     initialScan: vi.fn().mockResolvedValue(undefined),
     abort: vi.fn().mockResolvedValue(undefined),
   })),
@@ -131,6 +142,122 @@ describe("run command", () => {
     command.commandToRun = [];
 
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+  });
+
+  it("should treat a path-like executable as the nested command", async () => {
+    const { runProcess } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+
+    const command = new RunCommand();
+
+    command.resultsDir = undefined;
+    command.commandToRun = ["./script.sh", "--flag"];
+
+    await command.execute();
+
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "./script.sh",
+        commandArgs: ["--flag"],
+      }),
+    );
+  });
+
+  it("should accept --results-dir and still run the nested command", async () => {
+    const { runProcess } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config"],
+    });
+
+    await run(RunCommand, ["run", "--results-dir", "./custom/**/allure-results", "--", "npm", "test"]);
+
+    expect(readConfig).toHaveBeenCalled();
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npm",
+        commandArgs: ["test"],
+      }),
+    );
+    expect(globWatcherMock).toHaveBeenCalledWith(
+      "/cwd",
+      ["./custom/**/allure-results"],
+      expect.any(Function),
+      expect.objectContaining({ indexDelay: 600 }),
+    );
+    expect(nameWatcherMock).not.toHaveBeenCalled();
+  });
+
+  it("should prefer repeated --results-dir over config.resultsDir for live discovery", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config"],
+    });
+
+    await run(RunCommand, [
+      "run",
+      "--results-dir",
+      "./a/**/allure-results",
+      "--results-dir",
+      "./b/allure-results",
+      "--",
+      "npm",
+      "test",
+    ]);
+
+    expect(globWatcherMock).toHaveBeenCalledWith(
+      "/cwd",
+      ["./a/**/allure-results", "./b/allure-results"],
+      expect.any(Function),
+      expect.objectContaining({ indexDelay: 600 }),
+    );
+    expect(nameWatcherMock).not.toHaveBeenCalled();
+  });
+
+  it("should use config.resultsDir for live re-glob when --results-dir is omitted", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config/**/allure-results"],
+    });
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(globWatcherMock).toHaveBeenCalledWith(
+      "/cwd",
+      ["./from-config/**/allure-results"],
+      expect.any(Function),
+      expect.objectContaining({ indexDelay: 600 }),
+    );
+    expect(nameWatcherMock).not.toHaveBeenCalled();
+  });
+
+  it("should use name-based discovery when CLI and config resultsDir are empty", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(nameWatcherMock).toHaveBeenCalledWith(
+      "/cwd",
+      expect.any(Function),
+      expect.objectContaining({ indexDelay: 600 }),
+    );
+    expect(globWatcherMock).not.toHaveBeenCalled();
   });
 
   it("should pass hideLabels override to readConfig and apply normalized value to default awesome plugin", async () => {
