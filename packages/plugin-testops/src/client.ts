@@ -1,5 +1,6 @@
 import type { ClientRequest } from "http";
 
+import { CiType } from "@allurereport/core-api";
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -54,6 +55,20 @@ class TestOpsClientError extends AxiosError<{
   // @ts-expect-error this is for types
   request: ClientRequest;
 }
+
+/** The few providers TestOps names differently from our CiType. */
+const TESTOPS_CI_TYPE: Partial<Record<CiType, string>> = {
+  [CiType.Amazon]: "aws",
+  [CiType.Circle]: "circleci",
+};
+
+const ciEndpoint = (ci: CiDescriptor): string | undefined => {
+  try {
+    return new URL(ci.jobUrl).origin;
+  } catch {
+    return undefined;
+  }
+};
 
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
@@ -238,19 +253,25 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    const endpoint = ciEndpoint(ci);
+
     this.#logger.verbose(`Starting CI upload (${ci.type})…`);
     await this.#client.post<unknown>("/api/upload/start", {
       body: {
         projectId: this.#projectId,
         ci: {
-          name: ci.type,
+          type: TESTOPS_CI_TYPE[ci.type] ?? ci.type,
+          ...(endpoint ? { endpoint } : {}),
         },
         job: {
-          name: ci.jobUid,
+          name: ci.jobName || ci.jobUid,
           uid: ci.jobUid,
+          ...(ci.jobUrl ? { url: ci.jobUrl } : {}),
         },
         jobRun: {
           uid: ci.jobRunUid,
+          ...(ci.jobRunName ? { name: ci.jobRunName } : {}),
+          ...(ci.jobRunUrl ? { url: ci.jobRunUrl } : {}),
         },
         launch: {
           id: this.#launch.id,

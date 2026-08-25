@@ -37,6 +37,8 @@ const fixtures = {
     jobRunName: "run",
     jobUid: "job-uid",
     jobRunUid: "job-run-uid",
+    jobUrl: "https://ci.example.com/job/1",
+    jobRunUrl: "https://ci.example.com/job/1/run/2",
   } as unknown as CiDescriptor,
   uploadStatus: "broken" as TestStatus,
   testResults: [
@@ -418,14 +420,39 @@ describe("testops http client", () => {
         "/api/upload/start",
         {
           projectId: fixtures.projectId,
-          ci: { name: fixtures.ci.type },
-          job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
-          jobRun: { uid: fixtures.ci.jobRunUid },
+          ci: { type: fixtures.ci.type, endpoint: "https://ci.example.com" },
+          job: { name: fixtures.ci.jobName, uid: fixtures.ci.jobUid, url: fixtures.ci.jobUrl },
+          jobRun: { uid: fixtures.ci.jobRunUid, name: fixtures.ci.jobRunName, url: fixtures.ci.jobRunUrl },
           launch: { id: fixtures.launch.id },
         },
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
+      );
+    });
+
+    it("should send the integration type name TestOps knows for renamed providers", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload({ ...fixtures.ci, type: "circle" } as unknown as CiDescriptor);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({ ci: { type: "circleci", endpoint: "https://ci.example.com" } }),
+        expect.anything(),
       );
     });
   });
