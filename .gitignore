@@ -44,6 +44,7 @@ dist-tests
 schema
 build
 **/allure-results
+!packages/sandbox/allure-results/
 **/.nyc_output
 **/package.tgz
 **/wallaby.js

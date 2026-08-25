@@ -817,7 +817,10 @@ export const generateMetricsWidget = async (
   } = {},
 ): Promise<boolean> => {
   const { currentReportUuid, performance = {} } = options;
-  const current = resolveMetricSamples(await store.allMetrics(), performance);
+  const current = resolveMetricSamples(
+    typeof store.allMetrics === "function" ? await store.allMetrics() : [],
+    performance,
+  );
 
   if (current.length === 0) {
     return false;

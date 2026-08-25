@@ -467,13 +467,15 @@ describe("report", () => {
 
     await writeFile(
       join(resultsDir, "generate-total-perf.json"),
-      JSON.stringify({
-        id: "generate-total",
-        key: "generate.total.avgMs",
-        value: 123.45,
-        start: 0,
-        stop: 123.45,
-      }),
+      JSON.stringify([
+        {
+          id: "generate-total",
+          key: "generate.total.avgMs",
+          value: 123.45,
+          start: 0,
+          stop: 123.45,
+        },
+      ]),
     );
 
     config.plugins = [
@@ -797,7 +799,7 @@ describe("report", () => {
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
-    expect(metrics.results).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
@@ -833,7 +835,7 @@ describe("report", () => {
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
-    expect(metrics.results).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults })]),
     );
   });
@@ -862,12 +864,10 @@ describe("report", () => {
     await allureReport.done();
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
-    const generateTotal = metrics.results.find(({ key }: { key: string }) => key === PERF_METRIC_NAMES.generateTotal);
-    const publishUploadTotal = metrics.results.find(
-      ({ key }: { key: string }) => key === PERF_METRIC_NAMES.publishUploadTotal,
-    );
+    const generateTotal = metrics.find(({ key }: { key: string }) => key === PERF_METRIC_NAMES.generateTotal);
+    const publishUploadTotal = metrics.find(({ key }: { key: string }) => key === PERF_METRIC_NAMES.publishUploadTotal);
 
-    expect(metrics.results).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.publishUploadTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.publishUploadPlugin}p1`, value: expect.any(Number) }),

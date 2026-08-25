@@ -1,7 +1,9 @@
-{
-  "id": "00000000-0000-4000-8000-000000000103",
-  "key": "sandbox.attachments.httpExchange",
-  "value": 31.9,
-  "start": 1786500001520,
-  "stop": 1786500001551.9
-}
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000103",
+    "key": "sandbox.attachments.httpExchange",
+    "value": 31.9,
+    "start": 1786500001520,
+    "stop": 1786500001551.9
+  }
+]

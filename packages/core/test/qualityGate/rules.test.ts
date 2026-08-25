@@ -554,7 +554,10 @@ describe("metric quality gate rules", () => {
       }),
     ).resolves.toEqual({
       success: true,
-      actual: 10,
+      actual: {
+        title: "bundle.size",
+        value: 10,
+      },
       testResults: [],
     });
   });
@@ -568,7 +571,10 @@ describe("metric quality gate rules", () => {
       }),
     ).resolves.toEqual({
       success: false,
-      actual: undefined,
+      actual: {
+        title: "bundle.size",
+        value: undefined,
+      },
       testResults: [],
     });
   });
@@ -579,16 +585,7 @@ describe("metric quality gate rules", () => {
         ...basePayload,
         expected: { key: "bundle.size", value: 5 },
         metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
-        currentReportUuid: "current",
-        history: [
-          {
-            uuid: "current",
-            name: "current",
-            timestamp: 3,
-            knownTestCaseIds: [],
-            testResults: {},
-            metrics: { "bundle.size": 112 },
-          },
+        previousHistory: [
           {
             uuid: "new",
             name: "new",
@@ -609,7 +606,10 @@ describe("metric quality gate rules", () => {
       }),
     ).resolves.toEqual({
       success: true,
-      actual: 2,
+      actual: {
+        title: "bundle.size",
+        value: 2,
+      },
       testResults: [],
     });
   });
@@ -620,7 +620,7 @@ describe("metric quality gate rules", () => {
         ...basePayload,
         expected: { key: "bundle.size", value: 5 },
         metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
-        history: [],
+        previousHistory: [],
       }),
     ).resolves.toEqual({
       success: true,
@@ -635,7 +635,7 @@ describe("metric quality gate rules", () => {
         ...basePayload,
         expected: { key: "bundle.size", value: 10 },
         metrics: [{ id: "1", key: "bundle.size", value: 120, start: 0, stop: 1 }],
-        history: [
+        previousHistory: [
           {
             uuid: "previous",
             name: "previous",
@@ -648,16 +648,23 @@ describe("metric quality gate rules", () => {
       }),
     ).resolves.toEqual({
       success: false,
-      actual: 20,
+      actual: {
+        title: "bundle.size",
+        value: 20,
+      },
       testResults: [],
     });
   });
 
-  it("should use metric sample title and unit in messages", () => {
-    const message = metricMaxRule.message({
-      actual: 12,
+  it("should format metric rule messages from expected and enriched actual values", async () => {
+    const result = await metricMaxRule.validate({
+      ...basePayload,
       expected: { key: "bundle.size", value: 10 },
       metrics: [{ id: "1", key: "bundle.size", value: 12, start: 0, stop: 1, title: "Bundle size", unit: "MB" }],
+    });
+    const message = metricMaxRule.message({
+      actual: result.actual,
+      expected: { key: "bundle.size", value: 10 },
     });
 
     expect(message).toContain("Bundle size");

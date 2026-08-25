@@ -247,7 +247,7 @@ export const writePerfMetrics = async (output: string, fileName = PERF_METRICS_F
   const payload = getPerfMetricsPayload();
 
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, fileName), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  await writeFile(join(output, fileName), `${JSON.stringify(payload.results, null, 2)}\n`, "utf8");
   resetPerfMetrics();
 
   return true;

@@ -1,8 +1,8 @@
 import {
   type HistoryDataPoint,
   type MetricSample,
-  type TestResult,
   type TestError,
+  type TestResult,
 } from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
@@ -81,11 +81,10 @@ export class QualityGate {
     state?: QualityGateState;
     trs: TestResult[];
     metrics?: MetricSample[];
-    history?: HistoryDataPoint[];
+    previousHistory?: HistoryDataPoint[];
     environment?: string;
-    currentReportUuid?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, metrics = [], history = [], environment, currentReportUuid } = payload;
+    const { state, trs, metrics = [], previousHistory = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
 
     for (const tr of trs) {
@@ -138,9 +137,8 @@ export class QualityGate {
           },
           expected,
           metrics,
-          history,
+          previousHistory,
           environment,
-          currentReportUuid,
         });
 
         if (result.success) {
@@ -154,7 +152,6 @@ export class QualityGate {
           message: rule.message({
             actual: result.actual,
             expected,
-            metrics,
           }),
           environment,
           testResults: [...new Set([...(state?.getTestResults(ruleId) ?? []), ...result.testResults])],

@@ -156,7 +156,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     const metrics = await readPerfMetrics(output, report.reportUuid);
 
-    expect(metrics.results).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateDump, value: expect.any(Number) }),
@@ -185,7 +185,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const metrics = await readPerfMetrics(output, report.reportUuid);
 
     expect(existsSync(`${dumpPath}.zip`)).toBe(true);
-    expect(metrics.results).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal })]),
     );
   });

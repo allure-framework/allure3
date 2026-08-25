@@ -36,15 +36,14 @@ export interface QualityGateRuleState<T> {
 
 export type QualityGateRule<T = any, K = T> = {
   rule: string;
-  message: (payload: { expected: T; actual: any; metrics?: MetricSample[] }) => string;
+  message: (payload: { expected: T; actual: any }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
     state: QualityGateRuleState<K>;
     metrics?: MetricSample[];
-    history?: HistoryDataPoint[];
+    previousHistory?: HistoryDataPoint[];
     environment?: string;
-    currentReportUuid?: string;
   }) => Promise<QualityGateRuleResult>;
 };
 

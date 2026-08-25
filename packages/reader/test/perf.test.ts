@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { perf } from "../src/perf/index.js";
+import { allure2 } from "../src/allure2/index.js";
 import { readResults } from "./utils.js";
 
-describe("perf reader", () => {
-  it("reads a single performance result file and keeps the raw file as a global attachment", async () => {
-    const visitor = await readResults(perf, {
-      "perf/single-performance-result.json": "check-1-perf.json",
+describe("allure2 performance reader", () => {
+  it("reads a performance result file and keeps the raw file as a global attachment", async () => {
+    const visitor = await readResults(allure2, {
+      "perf/performance-result.json": "check-1-perf.json",
     });
 
     expect(visitor.visitMetrics).toHaveBeenCalledTimes(1);
@@ -20,7 +20,7 @@ describe("perf reader", () => {
       },
     ]);
     expect(visitor.visitMetrics.mock.calls[0][1]).toEqual({
-      readerId: "perf",
+      readerId: "allure2",
       metadata: {
         originalFileName: "check-1-perf.json",
       },
@@ -33,7 +33,7 @@ describe("perf reader", () => {
   });
 
   it("reads a bulk performance.json file", async () => {
-    const visitor = await readResults(perf, {
+    const visitor = await readResults(allure2, {
       "perf/performance-results.json": "performance.json",
     });
 
@@ -58,7 +58,7 @@ describe("perf reader", () => {
 
   it("ignores performance files without required result fields", async () => {
     const visitor = await readResults(
-      perf,
+      allure2,
       {
         "perf/invalid-performance-result.json": "invalid-perf.json",
       },

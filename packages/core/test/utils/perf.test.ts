@@ -100,9 +100,9 @@ describe("perf metrics", () => {
 
     await expect(writePerfMetrics(output)).resolves.toBe(true);
 
-    const payload = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
 
-    expect(payload.results).toEqual([
+    expect(metrics).toEqual([
       expect.objectContaining({
         key: PERF_METRIC_NAMES.allureTotal,
         value: expect.any(Number),

@@ -6,7 +6,7 @@ import { navigateToRoot, navigateToSection, SECTION_ROUTE_NAMES, sectionRoute, t
 
 const DEFAULT_SECTION = "default";
 
-type Section = SectionRouteName | DEFAULT_SECTION;
+type Section = SectionRouteName | "default";
 
 const reportOptions = getReportOptions<AwesomeReportOptions>();
 
@@ -15,7 +15,7 @@ const isKnownSection = (value: unknown): value is SectionRouteName =>
 
 const configuredSections = Array.isArray(reportOptions?.sections) ? reportOptions.sections : [];
 
-export const availableSections = configuredSections.filter(isKnownSection);
+export const availableSections = [...new Set(configuredSections.filter(isKnownSection))];
 
 const normalizeSection = (value: unknown): Section =>
   value === DEFAULT_SECTION || (isKnownSection(value) && availableSections.includes(value)) ? value : DEFAULT_SECTION;

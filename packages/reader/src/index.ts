@@ -4,5 +4,4 @@ export * from "./cucumberjson/index.js";
 export * from "./junitxml/index.js";
 export * from "./xcresult/index.js";
 export * from "./attachments/index.js";
-export * from "./perf/index.js";
 export type * from "./model.js";

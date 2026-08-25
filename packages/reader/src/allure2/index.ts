@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, type AllurePerformanceResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -67,6 +67,8 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
 const matchesAllure2File = (fileName: string): boolean => {
   if (fileName.endsWith("-result.json")) return true;
   if (fileName.endsWith("-check.json")) return true;
+  if (fileName.endsWith("-perf.json")) return true;
+  if (fileName === "performance.json") return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
   if (isAllure2AttachmentFileName(fileName)) return true;
@@ -89,6 +91,25 @@ export const allure2: ResultsReader = {
         if (parsed && isStringAnyRecord(parsed)) {
           await processCheckResult(visitor, parsed, originalFileName);
         }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
+    }
+
+    if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
+      try {
+        const results = performanceResults(await data.asJson<unknown>());
+
+        if (results.length === 0) {
+          return false;
+        }
+
+        await visitor.visitAttachmentFile(data, { readerId });
+        await visitor.visitGlobals(rawAttachmentGlobals(originalFileName, data.getContentType()), { readerId });
+        await visitor.visitMetrics(results, { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {
@@ -264,6 +285,49 @@ const processCheckResult = async (
     { readerId, metadata: { originalFileName } },
   );
 };
+
+const finiteNumber = (value: unknown): number | undefined => (Number.isFinite(value) ? Number(value) : undefined);
+
+const normalizePerformanceResult = (result: Record<string, unknown>): AllurePerformanceResult | undefined => {
+  const id = typeof result.id === "string" ? result.id.trim() : "";
+  const key = typeof result.key === "string" ? result.key.trim() : "";
+  const value = finiteNumber(result.value);
+
+  if (!id || !key || value === undefined) {
+    return undefined;
+  }
+
+  const start = finiteNumber(result.start) ?? 0;
+  const stop = finiteNumber(result.stop) ?? start;
+
+  return {
+    id,
+    key,
+    value,
+    start,
+    stop,
+  };
+};
+
+const performanceResults = (payload: unknown): AllurePerformanceResult[] => {
+  if (!isStringAnyRecordArray(payload)) {
+    return [];
+  }
+
+  return payload.map(normalizePerformanceResult).filter((result): result is AllurePerformanceResult => Boolean(result));
+};
+
+const rawAttachmentGlobals = (originalFileName: string, contentType?: string) => ({
+  errors: [],
+  attachments: [
+    {
+      type: "attachment" as const,
+      name: originalFileName,
+      originalFileName,
+      contentType: contentType ?? "application/json",
+    },
+  ],
+});
 
 const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
   await visitor.visitMetadata(

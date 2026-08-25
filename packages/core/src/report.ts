@@ -30,7 +30,7 @@ import {
   type ResultFile,
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml, perf, readXcResultBundle } from "@allurereport/reader";
+import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
@@ -151,7 +151,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, junitXml, perf, attachments],
+      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       resolutions,
       reportFiles,
@@ -287,11 +287,11 @@ export class AllureReport {
     this.#store.setPerformanceConfig(this.#performance);
 
     const resultFile = new BufferResultFile(
-      Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8"),
+      Buffer.from(`${JSON.stringify(payload.results, null, 2)}\n`, "utf8"),
       perfMetricsFileName(this.reportUuid),
     );
 
-    return perf.read(this.#store, resultFile);
+    return allure2.read(this.#store, resultFile);
   };
 
   #refreshPlugins = async (): Promise<void> => {
@@ -550,9 +550,8 @@ export class AllureReport {
       trs: trs.filter(Boolean),
       state,
       metrics: await this.#store.allMetrics(),
-      history: await this.#store.allHistoryDataPoints(),
+      previousHistory: (await this.#store.allHistoryDataPoints()).filter(({ uuid }) => uuid !== this.reportUuid),
       environment: qualityGateEnvironment,
-      currentReportUuid: this.reportUuid,
     });
   };
 
