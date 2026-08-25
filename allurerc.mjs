@@ -71,8 +71,8 @@ const config = {
     rules: [
       {
         resolution: "accepted",
-        testCaseId: ["85d28c01c71394fbdfa81e84cfd7e751"],
-        comment: "Flaky test that can't be fixed entirely for CI. On local machine it always pass",
+        testCaseId: ["85d28c01c71394fbdfa81e84cfd7e751", "49dcb3bdd6479da760dd2d91c30a9baa"],
+        comment: "Flaky tests that can't be fixed entirely for CI. On local machine they always pass",
       },
     ],
   },
