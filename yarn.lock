@@ -807,7 +807,7 @@ __metadata:
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.9.0"
+    allure-js-commons: "npm:^3.10.2"
     allure-vitest: "npm:3.8.0"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
@@ -8668,7 +8668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.10.2":
+"allure-js-commons@npm:3.10.2, allure-js-commons@npm:^3.10.2":
   version: 3.10.2
   resolution: "allure-js-commons@npm:3.10.2"
   dependencies:
@@ -8696,7 +8696,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.9.0, allure-js-commons@npm:^3, allure-js-commons@npm:^3.9.0":
+"allure-js-commons@npm:3.9.0, allure-js-commons@npm:^3":
   version: 3.9.0
   resolution: "allure-js-commons@npm:3.9.0"
   dependencies:
