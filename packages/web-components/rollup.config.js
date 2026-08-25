@@ -9,13 +9,15 @@ import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
+import svgr from "@svgr/rollup";
 import autoprefixer from "autoprefixer";
 import postcssImport from "postcss-import";
 import { defineConfig } from "rollup";
 import copy from "rollup-plugin-copy";
 import dts from "rollup-plugin-dts";
 import postcss from "rollup-plugin-postcss";
-import svg from "rollup-plugin-svg-sprites";
+
+import { svgrOptions } from "./svgr.config.js";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
@@ -62,7 +64,7 @@ export default defineConfig([
         extensions: [".js", ".jsx", ".ts", ".tsx"],
         exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
-      svg(),
+      svgr(svgrOptions),
       postcss({
         modules: true,
         extract: true,
