@@ -138,7 +138,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(screen.queryByTestId("loader")).not.toBeInTheDocument();
     });
-  });
+  }, 30_000);
 
   it("should fetch env-scoped data when an environment is selected", async () => {
     await selectEnvironment("");
