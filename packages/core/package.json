@@ -55,7 +55,7 @@
     "zip-stream": "^7.0.5"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/zip-stream": "^7.0.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",

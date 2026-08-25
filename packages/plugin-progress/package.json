@@ -36,7 +36,7 @@
     "yoctocolors": "^2.1.2"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3",

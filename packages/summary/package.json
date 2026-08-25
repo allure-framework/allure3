@@ -36,7 +36,7 @@
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

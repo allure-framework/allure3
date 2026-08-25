@@ -32,7 +32,7 @@
     "@allurereport/core-api": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2",
     "allure-vitest": "^3",

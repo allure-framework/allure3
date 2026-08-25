@@ -52,7 +52,7 @@
     "@types/babel__core": "^7.20.5",
     "@types/d3-shape": "^3.1.8",
     "@types/md5": "^2.3.6",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/prismjs": "^1.26.5",
     "@types/underscore": "^1",
     "@vitest/runner": "^2",

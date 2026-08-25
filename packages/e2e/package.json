@@ -23,7 +23,7 @@
     "@faker-js/faker": "^10.5.0",
     "@playwright/test": "^1.62.1",
     "@types/lodash.times": "^4.3.9",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "allure-js-commons": "^3",
     "allure-playwright": "^3.10.2",
     "lodash.times": "^4.3.2",

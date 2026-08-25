@@ -131,7 +131,7 @@
     "@types/lodash": "^4",
     "@types/markdown-it": "^14.1.2",
     "@types/md5": "^2.3.6",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/prismjs": "^1.26.5",
     "@types/sortablejs": "^1.15.9",
     "@vitest/runner": "^2.1.9",
