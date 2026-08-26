@@ -23,12 +23,6 @@ export type PerfMetricSummary = {
   avgMs: number;
 };
 
-export type PerfMetricsPayload = {
-  version: 1;
-  generatedAt: string;
-  results: AllurePerformanceResult[];
-};
-
 const MARK_PREFIX = "allure:perf:";
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 const SPANS: PerfMetricSpan[] = [];
@@ -135,7 +129,7 @@ export const measurePerf = async <T>(name: string, fn: () => Promise<T>): Promis
   }
 };
 
-export const getPerfMetricsPayload = (): PerfMetricsPayload => {
+export const getPerfMetricsResults = (): AllurePerformanceResult[] => {
   const totalSummary = getCoveredDurationSummary();
   const results = SPANS.map((span) => ({
     id: randomUUID(),
@@ -157,11 +151,7 @@ export const getPerfMetricsPayload = (): PerfMetricsPayload => {
     });
   }
 
-  return {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    results,
-  };
+  return results;
 };
 
 export const writePerfMetrics = async (output: string, fileName = PERF_METRICS_FILE): Promise<boolean> => {
@@ -169,10 +159,10 @@ export const writePerfMetrics = async (output: string, fileName = PERF_METRICS_F
     return false;
   }
 
-  const payload = getPerfMetricsPayload();
+  const results = getPerfMetricsResults();
 
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, fileName), `${JSON.stringify(payload.results, null, 2)}\n`, "utf8");
+  await writeFile(join(output, fileName), `${JSON.stringify(results, null, 2)}\n`, "utf8");
   resetPerfMetrics();
 
   return true;

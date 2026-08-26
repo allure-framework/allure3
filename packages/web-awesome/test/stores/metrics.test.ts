@@ -5,43 +5,61 @@ import { metricHistoryRows, metricSummaryRows, metricRows, type MetricsWidgetDat
 const data: MetricsWidgetData = {
   current: [
     {
+      id: "generate-total-avg",
       key: "generate.total.avgMs",
       value: 180,
+      start: 100,
+      stop: 280,
       unit: "ms",
       source: "generate-total-performance.json",
       better: "lower",
     },
     {
+      id: "generate-total-count",
       key: "generate.total.count",
       value: 1,
+      start: 100,
+      stop: 280,
       unit: "count",
       source: "generate-total-performance.json",
       better: "neutral",
     },
     {
+      id: "generate-total-total",
       key: "generate.total.totalMs",
       value: 180,
+      start: 100,
+      stop: 280,
       unit: "ms",
       source: "generate-total-performance.json",
       better: "lower",
     },
     {
+      id: "generate-total-min",
       key: "generate.total.minMs",
       value: 180,
+      start: 100,
+      stop: 280,
       unit: "ms",
       source: "generate-total-performance.json",
       better: "lower",
     },
     {
+      id: "generate-total-max",
       key: "generate.total.maxMs",
       value: 180,
+      start: 100,
+      stop: 280,
       unit: "ms",
       source: "generate-total-performance.json",
       better: "lower",
     },
     {
+      id: "browser-heap",
       key: "browser.heap.usedMb",
       value: 48,
+      start: 300,
+      stop: 331,
       unit: "MB",
       source: "performance.json",
       better: "lower",
@@ -119,9 +137,9 @@ describe("metrics store helpers", () => {
     expect(
       metricSummaryRows({
         current: [
-          { key: "generate.total.avgMs", value: 220 },
-          { key: "generate.total.avgMs", value: 180 },
-          { key: "generate.total.count", value: 1 },
+          { id: "avg-1", key: "generate.total.avgMs", value: 220, start: 0, stop: 220 },
+          { id: "avg-2", key: "generate.total.avgMs", value: 180, start: 250, stop: 430 },
+          { id: "count", key: "generate.total.count", value: 1, start: 0, stop: 430 },
         ],
         history: [
           {
@@ -154,8 +172,11 @@ describe("metrics store helpers", () => {
       metricSummaryRows({
         current: [
           {
+            id: "parser-duration",
             key: "parser.duration.avgMs",
             value: 20,
+            start: 0,
+            stop: 20,
             unit: "ms",
             group: "backend",
             source: "performance.json",

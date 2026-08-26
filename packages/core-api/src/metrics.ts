@@ -40,6 +40,14 @@ export interface MetricSample extends AllurePerformanceResult {
 export type ResolvableMetric = AllurePerformanceResult &
   Partial<Pick<MetricSample, "source" | "title" | "unit" | "group" | "groupTitle" | "better">>;
 
+const isValidMetricResult = (metric: ResolvableMetric) =>
+  typeof metric.id === "string" &&
+  metric.id !== "" &&
+  typeof metric.key === "string" &&
+  metric.key !== "" &&
+  Number.isFinite(metric.start) &&
+  Number.isFinite(metric.stop);
+
 export const resolveMetricSamples = (
   metrics: readonly ResolvableMetric[],
   performance: PerformanceConfig = {},
@@ -50,7 +58,7 @@ export const resolveMetricSamples = (
   return metrics.reduce<MetricSample[]>((acc, metric) => {
     const value = Number.isFinite(metric.value) ? Number(metric.value) : undefined;
 
-    if (value === undefined) {
+    if (value === undefined || !isValidMetricResult(metric)) {
       return acc;
     }
 

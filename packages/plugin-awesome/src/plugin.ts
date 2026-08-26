@@ -141,10 +141,7 @@ export class AwesomePlugin implements Plugin {
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
-    const hasMetrics = await generateMetricsWidget(this.#writer!, store, {
-      currentReportUuid: context.reportUuid,
-      performance: context.performance,
-    });
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
 
@@ -226,11 +223,14 @@ export class AwesomePlugin implements Plugin {
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
+    const configuredSections = this.options.sections ?? ["charts", "timeline"];
+    const sections = hasMetrics
+      ? [...new Set([...configuredSections, "metrics"])]
+      : configuredSections.filter((section) => section !== "metrics");
+
     await generateStaticFiles({
       ...this.options,
-      sections: hasMetrics
-        ? [...new Set([...(this.options.sections ?? ["charts", "timeline"]), "metrics"])]
-        : this.options.sections,
+      sections,
       id: context.id,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,

@@ -7,7 +7,7 @@ import { performance } from "node:perf_hooks";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  getPerfMetricsPayload,
+  getPerfMetricsResults,
   measurePerf,
   PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
@@ -42,7 +42,7 @@ describe("perf metrics", () => {
 
     await expect(writePerfMetrics(output)).resolves.toBe(false);
     expect(existsSync(join(output, PERF_METRICS_FILE))).toBe(false);
-    expect(getPerfMetricsPayload().results).toEqual([]);
+    expect(getPerfMetricsResults()).toEqual([]);
   });
 
   it("records nested async spans when enabled", async () => {
@@ -52,9 +52,9 @@ describe("perf metrics", () => {
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {});
     });
 
-    const payload = getPerfMetricsPayload();
+    const results = getPerfMetricsResults();
 
-    expect(payload.results).toEqual(
+    expect(results).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
@@ -72,7 +72,7 @@ describe("perf metrics", () => {
       }),
     ).rejects.toThrow("generation failed");
 
-    expect(getPerfMetricsPayload().results).toEqual(
+    expect(getPerfMetricsResults()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
@@ -114,6 +114,6 @@ describe("perf metrics", () => {
         stop: expect.any(Number),
       }),
     ]);
-    expect(getPerfMetricsPayload().results).toEqual([]);
+    expect(getPerfMetricsResults()).toEqual([]);
   });
 });

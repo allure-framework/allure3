@@ -1,6 +1,11 @@
 import { filterSuccessful, filterUnsuccessful, type MetricSample } from "@allurereport/core-api";
-import { type QualityGateRule } from "@allurereport/plugin-api";
+import { type QualityGateMetricHistoryPoint, type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
+
+type SuccessRateState = {
+  totalCount: number;
+  passedCount: number;
+};
 
 type MetricRuleConfig = {
   key: string;
@@ -9,10 +14,22 @@ type MetricRuleConfig = {
   unit?: string;
 };
 
-type MetricHistoryPoint = {
-  uuid?: string;
-  timestamp?: number;
-  metrics?: Record<string, number>;
+const numberStateValue = (value: unknown): number => (Number.isFinite(value) ? Number(value) : 0);
+
+const stringArrayStateValue = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+const successRateStateValue = (value: unknown): SuccessRateState => {
+  if (typeof value !== "object" || value === null) {
+    return { totalCount: 0, passedCount: 0 };
+  }
+
+  const state = value as Partial<SuccessRateState>;
+
+  return {
+    totalCount: numberStateValue(state.totalCount),
+    passedCount: numberStateValue(state.passedCount),
+  };
 };
 
 const metricValues = (metrics: MetricSample[], key: string): number[] =>
@@ -30,7 +47,7 @@ const metricAverage = (metrics: MetricSample[], key: string): number | undefined
   return values.reduce((acc, value) => acc + value, 0) / values.length;
 };
 
-const previousMetricValue = (history: MetricHistoryPoint[], key: string): number | undefined => {
+const previousMetricValue = (history: QualityGateMetricHistoryPoint[], key: string): number | undefined => {
   const previousHistory = [...history].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
 
   for (const historyPoint of previousHistory) {
@@ -87,7 +104,7 @@ export const maxFailuresRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
-    const previous = state.getResult() ?? 0;
+    const previous = numberStateValue(state.getResult());
     const failedTrs = trs.filter(filterUnsuccessful);
     const testResults = failedTrs.map((tr) => tr.id);
     const actual = previous + failedTrs.length;
@@ -107,7 +124,7 @@ export const minTestsCountRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `The total number of tests ${bold(String(actual))} is less than the expected threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
-    const actual = trs.length + (state.getResult() ?? 0);
+    const actual = trs.length + numberStateValue(state.getResult());
 
     state.setResult(actual, []);
 
@@ -119,12 +136,12 @@ export const minTestsCountRule: QualityGateRule<number> = {
   },
 };
 
-export const successRateRule: QualityGateRule<number, { totalCount: number; passedCount: number }> = {
+export const successRateRule: QualityGateRule<number> = {
   rule: "successRate",
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
-    const previous = state.getResult() ?? { totalCount: 0, passedCount: 0 };
+    const previous = successRateStateValue(state.getResult());
     const passedTrs = trs.filter(filterSuccessful);
     const notPassedTrs = trs.filter((tr) => !filterSuccessful(tr));
     const totalCount = previous.totalCount + trs.length;
@@ -147,7 +164,7 @@ export const maxDurationRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `Maximum duration of some tests exceed the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
-    const previous = state.getResult() ?? 0;
+    const previous = numberStateValue(state.getResult());
     const actual = Math.max(previous, ...trs.map((tr) => tr.duration ?? 0));
     const tooLongTrs = trs.filter((tr) => (tr.duration ?? 0) > expected);
     const testResults = tooLongTrs.map((tr) => tr.id);
@@ -166,12 +183,12 @@ export const maxDurationRule: QualityGateRule<number> = {
  * Fails if any test in the run does not have the given environment.
  * Expected: environment name (string).
  */
-export const allTestsContainEnvRule: QualityGateRule<string, number, number> = {
+export const allTestsContainEnvRule: QualityGateRule<string, number> = {
   rule: "allTestsContainEnv",
   message: ({ actual, expected }) =>
     `Not all tests contain the required "${bold(expected)}" environment, ${bold(String(actual))} tests have different or missing environment`,
   validate: async ({ trs, expected, state }) => {
-    const previous = state.getResult() ?? 0;
+    const previous = numberStateValue(state.getResult());
     const testsWithoutEnv = trs.filter((tr) => (tr.environment ?? "") !== expected);
     const testResults = testsWithoutEnv.map((tr) => tr.id);
     const actual = testsWithoutEnv.length + previous;
@@ -195,7 +212,7 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   message: ({ actual, expected }) =>
     `The following environments were not tested: "${actual.join('", "')}"; expected all of: "${expected.join('", "')}"`,
   validate: async ({ trs, expected, state }) => {
-    const previouslyTested = new Set(state.getResult() ?? []);
+    const previouslyTested = new Set(stringArrayStateValue(state.getResult()));
     const batchTested = trs.map((tr) => tr.environment).filter((env): env is string => env != null && env !== "");
 
     const testedEnvs = new Set([...previouslyTested, ...batchTested]);

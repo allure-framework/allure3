@@ -933,6 +933,53 @@ describe("plugin", () => {
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
     });
 
+    it("should expose metrics section only when current metrics exist", async () => {
+      const testResults = [
+        { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
+      ] as unknown as TestResult[];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ sections: ["metrics"], singleFile: true });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+      const reportOptions = extractReportOptions(indexHtml);
+      const embeddedData = extractEmbeddedData(indexHtml);
+
+      expect(reportOptions.sections).not.toContain("metrics");
+      expect(embeddedData["widgets/metrics.json"]).toBeUndefined();
+
+      const metricsStore = {
+        ...makeSingleFileStore(testResults),
+        allMetrics: vi.fn().mockResolvedValue([
+          {
+            id: "metric-1",
+            key: "sandbox.report.awesome",
+            value: 120,
+            start: 0,
+            stop: 120,
+          },
+        ]),
+      } as unknown as AllureStore;
+
+      addedFiles.clear();
+      await plugin.done(makeSingleFileContext(reportFiles), metricsStore);
+
+      const metricsIndexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+      const metricsReportOptions = extractReportOptions(metricsIndexHtml);
+      const metricsEmbeddedData = extractEmbeddedData(metricsIndexHtml);
+
+      expect(metricsReportOptions.sections).toContain("metrics");
+      expect(metricsEmbeddedData["widgets/metrics.json"]).toBeDefined();
+    });
+
     it("should include launch timing and allure2 executor metadata in report options", async () => {
       const testResults: TestResult[] = [
         {

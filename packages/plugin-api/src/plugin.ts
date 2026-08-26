@@ -5,7 +5,6 @@ import type {
   CiDescriptor,
   GlobalAttachmentLink,
   HistoryDataPoint,
-  PerformanceConfig,
   Statistic,
   TestError,
   TestResult,
@@ -52,7 +51,6 @@ export interface PluginContext {
   output: string;
   ci?: CiDescriptor;
   categories?: CategoryDefinition[];
-  performance?: PerformanceConfig;
   history?: AllureHistory;
 }
 

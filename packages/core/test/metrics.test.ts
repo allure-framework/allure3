@@ -41,6 +41,51 @@ describe("metrics", () => {
     expect(await target.allMetrics()).toEqual(await source.allMetrics());
   });
 
+  it("ignores malformed metric results", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitMetrics([
+      {
+        id: "",
+        key: "bundle.size",
+        value: 10,
+        start: 0,
+        stop: 1,
+      },
+      {
+        id: "missing-key",
+        key: "",
+        value: 10,
+        start: 0,
+        stop: 1,
+      },
+      {
+        id: "missing-timing",
+        key: "bundle.size",
+        value: 10,
+        start: Number.NaN,
+        stop: 1,
+      },
+      {
+        id: "valid",
+        key: "bundle.size",
+        value: 10,
+        start: 0,
+        stop: 1,
+      },
+    ]);
+
+    expect(await store.allMetrics()).toEqual([
+      {
+        id: "valid",
+        key: "bundle.size",
+        value: 10,
+        start: 0,
+        stop: 1,
+      },
+    ]);
+  });
+
   it("writes average metric values into history metrics", () => {
     const historyPoint = createHistory("report-1", "Report", [], [], "", [
       {

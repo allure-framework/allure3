@@ -1,8 +1,4 @@
-import type {
-  HistoryDataPoint,
-  MetricSample,
-  TestResult,
-} from "@allurereport/core-api";
+import type { MetricSample, TestResult } from "@allurereport/core-api";
 
 export type QualityGateValidationResult = {
   success: boolean;
@@ -29,22 +25,28 @@ export type QualityGateRuleResult<T = unknown> = {
   testResults: string[];
 };
 
-export interface QualityGateRuleState<T> {
-  getResult(): T | undefined;
-  setResult(value: T, testResults: QualityGateRuleResult["testResults"]): void;
+export interface QualityGateRuleState {
+  getResult(): unknown;
+  setResult(value: unknown, testResults: string[]): void;
 }
 
-export type QualityGateRule<T = unknown, K = T, A = T> = {
+export type QualityGateMetricHistoryPoint = {
+  uuid?: string;
+  timestamp?: number;
+  metrics?: Record<string, number>;
+};
+
+export type QualityGateRule<T = unknown, K = T> = {
   rule: string;
-  message: (payload: { expected: T; actual: A }) => string;
+  message: (payload: { expected: T; actual: K }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
-    state: QualityGateRuleState<K>;
+    state: QualityGateRuleState;
     metrics?: MetricSample[];
-    previousHistory?: HistoryDataPoint[];
+    previousHistory?: QualityGateMetricHistoryPoint[];
     environment?: string;
-  }) => Promise<QualityGateRuleResult<A>>;
+  }) => Promise<QualityGateRuleResult<K>>;
 };
 
 export type QualityGateConfig = {

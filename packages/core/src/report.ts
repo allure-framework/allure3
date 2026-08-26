@@ -31,7 +31,7 @@ import {
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
-import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
   AllureServiceClient,
@@ -55,7 +55,7 @@ import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
-  getPerfMetricsPayload,
+  getPerfMetricsResults,
   isPerfMetricsEnabled,
   measurePerf,
   PERF_METRIC_NAMES,
@@ -126,7 +126,7 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
-  readonly #performance: FullConfig["performance"];
+  #performance: FullConfig["performance"];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
   readonly #knownIssuesPath: string | undefined;
@@ -275,18 +275,20 @@ export class AllureReport {
       return false;
     }
 
-    const payload = getPerfMetricsPayload();
+    const results = getPerfMetricsResults();
 
-    if (payload.results.length === 0) {
+    if (results.length === 0) {
       return false;
     }
 
-    const resultFile = new BufferResultFile(
-      Buffer.from(`${JSON.stringify(payload.results, null, 2)}\n`, "utf8"),
-      perfMetricsFileName(this.reportUuid),
-    );
+    const originalFileName = perfMetricsFileName(this.reportUuid);
 
-    return allure2.read(this.#store, resultFile);
+    await this.#store.visitMetrics(results, {
+      readerId: "api",
+      metadata: { originalFileName },
+    });
+
+    return true;
   };
 
   #refreshPlugins = async (): Promise<void> => {
@@ -1305,7 +1307,6 @@ export class AllureReport {
         output: this.#output,
         ci: this.#ci,
         categories: this.#categories,
-        performance: this.#performance,
         history: this.#history,
       };
 

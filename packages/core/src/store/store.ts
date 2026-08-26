@@ -763,10 +763,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
-  setPerformanceConfig(performance: PerformanceConfig = {}) {
-    this.#performance = performance;
-  }
-
   async visitMetrics(metrics: AllurePerformanceResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
     const source = context.metadata?.originalFileName;
 

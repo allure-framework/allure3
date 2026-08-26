@@ -588,18 +588,12 @@ describe("metric quality gate rules", () => {
         previousHistory: [
           {
             uuid: "new",
-            name: "new",
             timestamp: 2,
-            knownTestCaseIds: [],
-            testResults: {},
             metrics: { "bundle.size": 110 },
           },
           {
             uuid: "old",
-            name: "old",
             timestamp: 1,
-            knownTestCaseIds: [],
-            testResults: {},
             metrics: { "bundle.size": 100 },
           },
         ],
@@ -641,10 +635,7 @@ describe("metric quality gate rules", () => {
         previousHistory: [
           {
             uuid: "previous",
-            name: "previous",
             timestamp: 1,
-            knownTestCaseIds: [],
-            testResults: {},
             metrics: { "bundle.size": 100 },
           },
         ],

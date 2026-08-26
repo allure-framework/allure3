@@ -26,7 +26,6 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
-  resolveMetricSamples,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -808,26 +807,14 @@ export type AwesomeMetricsWidget = {
   }[];
 };
 
-export const generateMetricsWidget = async (
-  writer: AwesomeDataWriter,
-  store: AllureStore,
-  options: {
-    currentReportUuid?: string;
-    performance?: PluginContext["performance"];
-  } = {},
-): Promise<boolean> => {
-  const { currentReportUuid, performance = {} } = options;
-  const current = resolveMetricSamples(
-    typeof store.allMetrics === "function" ? await store.allMetrics() : [],
-    performance,
-  );
+export const generateMetricsWidget = async (writer: AwesomeDataWriter, store: AllureStore): Promise<boolean> => {
+  const current = await store.allMetrics();
 
   if (current.length === 0) {
     return false;
   }
 
   const history = (await store.allHistoryDataPoints())
-    .filter(({ uuid }) => uuid !== currentReportUuid)
     .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
     .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
       uuid,
