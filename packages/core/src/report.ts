@@ -1039,7 +1039,7 @@ export class AllureReport {
   });
 
   #writeQualityGateFiles = async (): Promise<void> => {
-    const qualityGateResults = await this.#store.qualityGateResultsByEnv();
+    const qualityGateResults = await this.#store.qualityGateResults();
 
     this.#qualityGateResultsPath = await this.#reportFiles.addFile(
       QUALITY_GATE_RESULTS_FILENAME,

@@ -186,9 +186,7 @@ describe("report", () => {
 
     const qualityGateResults = JSON.parse(await readFile(join(output, "quality-gate.json"), "utf8"));
 
-    expect(qualityGateResults).toEqual({
-      default: [qualityGateResult],
-    });
+    expect(qualityGateResults).toEqual([qualityGateResult]);
   });
 
   it("should not allow call done() before start()", async () => {

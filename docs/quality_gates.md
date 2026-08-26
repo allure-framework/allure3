@@ -39,23 +39,21 @@ Use `--rerun=0` or remove `--rerun` when the quality gate should validate the ru
 
 ## Generated artifacts
 
-When quality gates are enabled, Allure writes `quality-gate.json` to the generated report root. The file contains rule
-results and keeps related tests as report-scoped IDs in `testResults`.
+When quality gates are enabled, Allure writes `quality-gate.json` to the generated report root. The file contains a flat
+list of rule results and keeps related tests as report-scoped IDs in `testResults`.
 
 ```json
-{
-  "chrome": [
-    {
-      "success": false,
-      "expected": 0,
-      "actual": 1,
-      "rule": "maxFailures",
-      "message": "The number of failed tests 1 exceeds the allowed threshold value 0",
-      "environment": "chrome",
-      "testResults": ["4f1c2d"]
-    }
-  ]
-}
+[
+  {
+    "success": false,
+    "expected": 0,
+    "actual": 1,
+    "rule": "maxFailures",
+    "message": "The number of failed tests 1 exceeds the allowed threshold value 0",
+    "environment": "chrome",
+    "testResults": ["4f1c2d"]
+  }
+]
 ```
 
 Use the generated report root `test-results.json` to resolve these IDs. The registry contains compact test details that
