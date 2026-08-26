@@ -47,50 +47,66 @@ const isTestResultRoute = computed(
   () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
 );
 
+const removeInitialLoader = () => {
+  document.getElementById("allure-app-loader")?.remove();
+};
+
 const App = () => {
   const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
 
   const prefetchData = async () => {
-    const fns = [
-      ensureReportDataReady,
-      fetchReportStats,
-      fetchPieChartData,
-      fetchEnvironments,
-      fetchEnvInfo,
-      fetchGlobals,
-      fetchQualityGateResults,
-      fetchCategoriesData,
-    ];
+    try {
+      const fns = [
+        ensureReportDataReady,
+        fetchReportStats,
+        fetchPieChartData,
+        fetchEnvironments,
+        fetchEnvInfo,
+        fetchGlobals,
+        fetchQualityGateResults,
+        fetchCategoriesData,
+      ];
 
-    if (globalThis) {
-      fns.unshift(getLocale);
+      if (globalThis) {
+        fns.unshift(getLocale);
+      }
+
+      await waitForI18next;
+      await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
+
+      const environmentIds = environmentsStore.value.data.map(({ id }) => id).filter((id): id is string => Boolean(id));
+
+      if (currentEnvironment.value) {
+        await fetchEnvTreesData([currentEnvironment.value]);
+        await fetchEnvStats(environmentIds);
+      } else {
+        await fetchEnvTreesData(environmentIds);
+        await fetchEnvStats(environmentIds);
+      }
+    } finally {
+      setPrefetched(true);
     }
-
-    await waitForI18next;
-    await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
-
-    const environmentIds = environmentsStore.value.data.map(({ id }) => id).filter((id): id is string => Boolean(id));
-
-    if (currentEnvironment.value) {
-      await fetchEnvTreesData([currentEnvironment.value]);
-      await fetchEnvStats(environmentIds);
-    } else {
-      await fetchEnvTreesData(environmentIds);
-      await fetchEnvStats(environmentIds);
-    }
-
-    setPrefetched(true);
   };
 
   useEffect(() => {
+    // Hand control over to the app-level Loader immediately: if prefetchData never
+    // settles (hangs rather than rejects), the fixed HTML loader must not stay on top forever.
+    removeInitialLoader();
     prefetchData();
   }, []);
 
   useSignalEffect(() => {
     const envId = currentEnvironment.value;
 
-    if (!prefetched || !envId) {
+    if (!prefetched) {
+      return;
+    }
+
+    fetchPieChartData(envId);
+    fetchCategoriesData(envId);
+
+    if (!envId) {
       return;
     }
 

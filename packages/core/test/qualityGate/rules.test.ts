@@ -25,6 +25,7 @@ const createTestResult = (
   environment?: string,
   labels: TestResult["labels"] = [],
   parameters: TestResult["parameters"] = [],
+  known = false,
 ) =>
   ({
     id,
@@ -35,7 +36,7 @@ const createTestResult = (
     environment,
     flaky: false,
     muted: false,
-    known: false,
+    known,
     isRetry: false,
     labels,
     parameters,
@@ -56,7 +57,7 @@ describe("maxFailuresRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when failures count is less than expected", async () => {
@@ -75,7 +76,8 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
+    expect(result.testResults).toEqual(["3"]);
+    expect(setState).toHaveBeenCalledWith(1, ["3"]);
   });
 
   it("should fail when failures count is greater than expected", async () => {
@@ -94,13 +96,14 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(2);
-    expect(setState).toHaveBeenCalledWith(2);
+    expect(result.testResults).toEqual(["2", "3"]);
+    expect(setState).toHaveBeenCalledWith(2, ["2", "3"]);
   });
 
-  it("should filter out known issues", async () => {
+  it("should filter out known failures by stored flag", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1"),
+      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
       createTestResult("3", "failed"),
     ];
     const expected = 1;
@@ -113,9 +116,10 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["3"]);
   });
 
-  it("should filter out known issues by fallback history alias", async () => {
+  it("should ignore knownIssues list alone", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
     const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
@@ -131,8 +135,9 @@ describe("maxFailuresRule", () => {
       state,
     });
 
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(0);
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["1"]);
   });
 });
 
@@ -140,7 +145,7 @@ describe("minTestsCountRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when test count is greater than expected", async () => {
@@ -159,7 +164,7 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(3);
-    expect(setState).toHaveBeenCalledWith(3);
+    expect(setState).toHaveBeenCalledWith(3, []);
   });
 
   it("should fail when test count is less than expected", async () => {
@@ -174,15 +179,15 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
+    expect(setState).toHaveBeenCalledWith(1, []);
   });
 });
 
 describe("successRateRule", () => {
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
-    getResult: () => 0,
-    setResult: (value) => setState(value),
+  const state: QualityGateRuleState<{ totalCount: number; unknownCount: number; passedCount: number }> = {
+    getResult: () => ({ totalCount: 0, unknownCount: 0, passedCount: 0 }),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when success rate is greater than expected", async () => {
@@ -201,7 +206,8 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
-    expect(setState).not.toHaveBeenCalled();
+    expect(result.testResults).toEqual(["3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 3, passedCount: 2 }, ["3"]);
   });
 
   it("should fail when success rate is less than expected", async () => {
@@ -220,13 +226,42 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
-    expect(setState).not.toHaveBeenCalled();
+    expect(result.testResults).toEqual(["2", "3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 3, passedCount: 1 }, ["2", "3"]);
   });
 
-  it("should filter out known issues", async () => {
+  it("should return full success rate when no unknown tests exist", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "failed", "known-issue-1", undefined, undefined, [], [], true),
+    ];
+    const expected = 1;
+    const result = await successRateRule.validate({
+      trs: testResults,
+      expected,
+      knownIssues: [] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should fail empty suite with zero success rate", async () => {
+    const result = await successRateRule.validate({
+      trs: [],
+      expected: 1,
+      knownIssues: [] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+  });
+
+  it("should filter out known failures by stored flag", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1"),
+      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
       createTestResult("3", "failed"),
     ];
     const expected = 0.5;
@@ -239,7 +274,29 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0.5);
-    expect(setState).not.toHaveBeenCalled();
+    expect(result.testResults).toEqual(["3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, unknownCount: 2, passedCount: 1 }, ["3"]);
+  });
+
+  it("should ignore knownIssues list alone", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const testResults: TestResult[] = [
+      createTestResult("1", "failed", "new-history-id", undefined, undefined, [
+        { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
+      ]),
+    ];
+
+    const result = await successRateRule.validate({
+      trs: testResults,
+      expected: 1,
+      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual(["1"]);
   });
 });
 
@@ -247,7 +304,7 @@ describe("maxDurationRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when max duration is less than expected", async () => {
@@ -266,6 +323,7 @@ describe("maxDurationRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(200);
+    expect(result.testResults).toEqual([]);
   });
 
   it("should fail when max duration exceeds expected", async () => {
@@ -284,6 +342,7 @@ describe("maxDurationRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should pass when max duration equals expected", async () => {
@@ -356,11 +415,12 @@ describe("maxDurationRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
+    expect(result.testResults).toEqual(["2"]);
   });
 });
 
 describe("allTestsContainEnvRule", () => {
-  const state: QualityGateRuleState<string> = {
+  const state: QualityGateRuleState<number> = {
     getResult: () => undefined,
     setResult: () => {},
   };
@@ -395,6 +455,7 @@ describe("allTestsContainEnvRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should fail when some tests have no environment", async () => {
@@ -411,6 +472,7 @@ describe("allTestsContainEnvRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should pass when no tests and expected env is given", async () => {
@@ -423,6 +485,7 @@ describe("allTestsContainEnvRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual([]);
   });
 });
 
@@ -532,7 +595,7 @@ describe("environmentsTestedRule", () => {
 
     expect(firstResult.success).toBe(false);
     expect(firstResult.actual).toEqual(["prod"]);
-    expect(setState).toHaveBeenLastCalledWith(["staging"]);
+    expect(setState).toHaveBeenLastCalledWith(["staging"], []);
 
     // Second batch: only "prod" is present, but state already contains "staging"
     const secondBatch: TestResult[] = [
@@ -549,6 +612,6 @@ describe("environmentsTestedRule", () => {
 
     expect(secondResult.success).toBe(true);
     expect(secondResult.actual).toEqual([]);
-    expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]));
+    expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]), []);
   });
 });

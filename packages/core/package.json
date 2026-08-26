@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.14.3",
+  "version": "3.16.0",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@allurereport/ci": "workspace:*",
+    "@allurereport/cli-commons": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-agent": "workspace:*",
     "@allurereport/plugin-allure2": "workspace:*",

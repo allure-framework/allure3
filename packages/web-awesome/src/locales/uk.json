@@ -138,6 +138,7 @@
     "category": "Категорія",
     "description": "Опис",
     "links": "Посилання",
+    "relatedTestResults": "Пов’язані результати тестів ({{count}})",
     "overview": "Огляд",
     "history": "Історія",
     "attachments": "Вкладення",

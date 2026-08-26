@@ -1,9 +1,4 @@
-import type { Statistic, TestResult, TestStatus } from "@allurereport/core-api";
-
-/**
- * Reduced test result information that can be used in summary
- */
-type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 
 export type ReportSummary = {
   href?: string;
@@ -15,9 +10,9 @@ export type ReportSummary = {
   status: TestStatus;
   duration: number;
   plugin?: string;
-  newTests?: SummaryTestResult[];
-  flakyTests?: SummaryTestResult[];
-  retryTests?: SummaryTestResult[];
+  newTests?: string[];
+  flakyTests?: string[];
+  retryTests?: string[];
   createdAt?: number;
 };
 

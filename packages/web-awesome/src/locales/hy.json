@@ -138,6 +138,7 @@
     "category": "Կատեգորիա",
     "description": "Նկարագրություն",
     "links": "Հղումներ",
+    "relatedTestResults": "Առնչվող թեստի արդյունքներ ({{count}})",
     "overview": "Ակնարկ",
     "history": "Պատմություն",
     "attachments": "Կցորդներ",

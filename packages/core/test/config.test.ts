@@ -21,6 +21,7 @@ import {
   resolvePlugin,
   validateConfig,
 } from "../src/config.js";
+import { readKnownIssues as readKnownIssuesFn } from "../src/known.js";
 import { importWrapper } from "../src/utils/module.js";
 import { isWindows } from "../src/utils/windows.js";
 
@@ -29,8 +30,19 @@ class PluginFixture {}
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
+vi.mock("../src/known.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/known.js")>();
+
+  return {
+    ...actual,
+    readKnownIssues: vi.fn().mockResolvedValue([]),
+  };
+});
+
+const mockedReadKnownIssues = vi.mocked(readKnownIssuesFn);
 
 beforeEach(async () => {
+  vi.clearAllMocks();
   await epic("coverage");
   await feature("report-config");
   await story("config");
@@ -239,6 +251,17 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow resultsDir", () => {
+    expect(validateConfig({ resultsDir: "./allure-results" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+    expect(validateConfig({ resultsDir: ["./a", "./b"] })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should return array of unsupported fields if the config contains them", () => {
     // @ts-ignore
     expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
@@ -390,6 +413,14 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("normalizes resultsDir string and array; omits empty values", async () => {
+    expect((await resolveConfig({ resultsDir: "./a" })).resultsDir).toEqual(["./a"]);
+    expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual([" ./a ", "./b"]);
+    expect((await resolveConfig({ resultsDir: "" })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: [] })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toEqual(["  "]);
+  });
+
   it("does not inject storage plugin and preserves allureService config", async () => {
     const resolved = await resolveConfig({
       allureService: {
@@ -535,29 +566,83 @@ describe("resolveConfig", () => {
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
   });
 
-  it("should set default known issues path if it's not provided", async () => {
-    const fixture = {} as Config;
-    const resolved = await resolveConfig(fixture);
+  it("should not set default known issues path when no known issues policy is configured", async () => {
+    const resolved = await resolveConfig({} as Config);
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./allure/known.json"));
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
   });
 
-  it("should return provided known issues path", async () => {
+  it("should derive default known issues path when known issues rules are configured", async () => {
+    const resolved = await resolveConfig({
+      knownIssues: {
+        rules: [
+          {
+            testCaseId: "tc-1",
+            decision: {
+              reason: "tracked defect",
+            },
+          },
+        ],
+      },
+    });
+
+    expect(resolved.knownIssuesPath).toEqual(resolve("./known-issues.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known-issues.json"));
+  });
+
+  it("should keep known issues disabled when rules are empty and no path is configured", async () => {
+    const resolved = await resolveConfig({
+      knownIssues: {
+        rules: [],
+      },
+    });
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+  });
+
+  it("should ignore empty known path", async () => {
+    const resolved = await resolveConfig({
+      knownIssuesPath: "",
+    });
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
+  });
+
+  it("should read known file from provided exact file path", async () => {
     const fixture = {
       knownIssuesPath: "./known.json",
     };
     const resolved = await resolveConfig(fixture);
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./known.json"));
   });
 
-  it("should allow to override given known issues path", async () => {
+  it("should allow to override given exact known path", async () => {
     const fixture = {
       knownIssuesPath: "./known.json",
     };
-    const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
+    const resolved = await resolveConfig(fixture, {
+      knownIssuesPath: "./custom-known.json",
+    });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
+    expect(resolved.knownIssuesPath).toEqual(resolve("./custom-known.json"));
+    expect(mockedReadKnownIssues).toHaveBeenCalledWith(resolve("./custom-known.json"));
+  });
+
+  it("should leave paths undefined when override is empty", async () => {
+    const resolved = await resolveConfig(
+      {
+        knownIssuesPath: "./known.json",
+      },
+      { knownIssuesPath: "" },
+    );
+
+    expect(resolved.knownIssuesPath).toBeUndefined();
+    expect(mockedReadKnownIssues).not.toHaveBeenCalled();
   });
 
   it("should allow to override given history limit", async () => {

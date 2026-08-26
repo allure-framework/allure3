@@ -138,6 +138,7 @@
     "category": "Categorie",
     "description": "Beschrijving",
     "links": "Links",
+    "relatedTestResults": "Gerelateerde testresultaten ({{count}})",
     "overview": "Overzicht",
     "history": "Geschiedenis",
     "attachments": "Bijlagen",

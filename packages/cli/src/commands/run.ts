@@ -14,14 +14,22 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
+
+const missingRunCommandUsageError = () =>
+  new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
 
 export class RunCommand extends Command {
   static paths = [["run"]];
 
   static usage = Command.Usage({
     description: "Run specified command",
-    details: "This command runs the specified command and collects Allure results.",
+    details:
+      "This command runs the specified command and collects Allure results. " +
+      "Override results discovery with repeated `--results-dir` (CLI overrides `config.resultsDir`). " +
+      "When neither is set, directories named `allure-results` are discovered dynamically. " +
+      "Quote globs in the shell so they are not expanded early.",
     examples: [
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
@@ -29,11 +37,15 @@ export class RunCommand extends Command {
         "run --dump=my-dump -- npm run test",
         "Run npm run test and pack inner report state into my-dump.zip archive to restore the state in the next run",
       ],
+      [
+        "run --results-dir './artifacts/**/allure-results' -- npm test",
+        "Override results discovery with a quoted glob",
+      ],
     ],
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -86,6 +98,18 @@ export class RunCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file",
+  });
+
+  resultsDir = Option.Array("--results-dir", {
+    description:
+      "Glob pattern or path for Allure results directories (repeatable). Overrides config.resultsDir. Quote globs in the shell",
+  });
+
+  /**
+   * Nested test command after `--`. Nested `--` inside the command argv are preserved when present.
+   */
   commandToRun = Option.Rest();
 
   get logs() {
@@ -97,10 +121,10 @@ export class RunCommand extends Command {
   }
 
   async execute() {
-    const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
+    const { command, commandArgs } = parseRunCommand(this.commandToRun as string[]);
 
-    if (!args || !args.length) {
-      throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
+    if (!command) {
+      throw missingRunCommandUsageError();
     }
 
     const before = new Date().getTime();
@@ -111,8 +135,6 @@ export class RunCommand extends Command {
       console.log(`exit code ${exitCode} (${after - before}ms)`);
     });
 
-    const command = args[0];
-    const commandArgs = args.slice(1);
     const cwd = await realpath(this.cwd ?? process.cwd());
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
@@ -144,8 +166,11 @@ export class RunCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      knownIssuesPath: this.knownIssues,
     });
+    const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
+
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withRerun = maxRerun > 0;
     const withQualityGate = !!config.qualityGate && !withRerun;
@@ -196,6 +221,7 @@ export class RunCommand extends Command {
       silent: this.silent,
       ignoreLogs: this.ignoreLogs,
       maxRerun,
+      resultsPatterns,
     });
 
     if (config.open) {

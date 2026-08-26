@@ -138,6 +138,7 @@
     "category": "Kateqoriya",
     "description": "Təsvir",
     "links": "Keçidlər",
+    "relatedTestResults": "Əlaqəli test nəticələri ({{count}})",
     "overview": "Ümumi baxış",
     "history": "Tarixçə",
     "attachments": "Qoşmalar",

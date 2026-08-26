@@ -9,11 +9,11 @@ export interface PluginInstance {
   options: Record<string, any>;
 }
 
-type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "open" | "knownIssuesPath">>;
+type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "open">>;
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port">,
+    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port" | "resultsDir">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
@@ -21,9 +21,14 @@ export interface FullConfig
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
   known?: KnownTestFailure[];
+  knownIssuesPath?: Config["knownIssuesPath"];
   realTime?: any;
   qualityGate?: Config["qualityGate"];
   allureService?: ResolvedAllureServiceConfig;
   categories?: CategoriesConfig;
   globalAttachments?: string[];
+  /**
+   * Normalized results directory patterns from config (unset when empty / only empty-string entries).
+   */
+  resultsDir?: string[];
 }

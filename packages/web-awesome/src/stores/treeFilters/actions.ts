@@ -54,6 +54,18 @@ export const setCategoriesFilter = (categories: string[]) => {
   });
 };
 
+export const clearTreeFilterParams = () => {
+  setParams(
+    { key: PARAMS.QUERY, value: undefined },
+    { key: PARAMS.RETRY, value: undefined },
+    { key: PARAMS.FLAKY, value: undefined },
+    { key: PARAMS.TRANSITION, value: [] },
+    { key: PARAMS.TAGS, value: [] },
+    { key: PARAMS.CATEGORIES, value: [] },
+    { key: PARAMS.STATUS, value: undefined },
+  );
+};
+
 export const fetchTreeFiltersData = async () => {
   try {
     const response = await fetchReportJsonData<TreeFiltersData>("widgets/tree-filters.json", { bustCache: true });

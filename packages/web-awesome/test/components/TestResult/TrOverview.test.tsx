@@ -125,6 +125,21 @@ describe("components > TestResult > TrOverview", () => {
     expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
   });
 
+  it("should render skipped status details in the overview and test body", () => {
+    render(
+      <TrOverview
+        testResult={makeTestResult({
+          status: "skipped",
+          error: { message: "Temporarily disabled until the upstream fix lands" },
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("test-result-error")).toBeInTheDocument();
+    expect(screen.getByTestId("tr-steps")).toBeInTheDocument();
+    expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
+  });
+
   it("should render the empty state when there are no body items", () => {
     render(<TrOverview testResult={makeTestResult()} />);
 

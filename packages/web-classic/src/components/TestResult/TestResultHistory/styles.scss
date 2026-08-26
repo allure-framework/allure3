@@ -22,7 +22,7 @@
   align-items: flex-start;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-hover);
   }
 }
 
@@ -40,15 +40,15 @@
 .item-time {
   margin-left: auto;
   line-height: 20px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-history-item-link {
   :root {
-    --allure-btn-icon-color: var(--bg-control-flat);
+    --allure-btn-icon-color: var(--color-control-bg);
   }
 
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }
 
 .test-result-history-item-status {

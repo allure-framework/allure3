@@ -1,0 +1,89 @@
+# Slash-command front door only. Does NOT check out PR code.
+# issue_comment is a privileged trigger; measuring PR HEAD belongs in the
+# workflow_dispatch runner (update-allure-bundle-baseline.yml) so CodeQL
+# actions/untrusted-checkout stays clean.
+#
+# Slash commands only work after THIS file exists on the default branch.
+name: Update Allure bundle size baseline (command)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: update-bundle-baseline-command-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Authorize and dispatch
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/update-bundle-baseline')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate and dispatch runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          if ! [[ "${COMMENT_BODY}" =~ ^/update-bundle-baseline[[:space:]]*$ ]]; then
+            echo "Comment is not an exact /update-bundle-baseline command; skipping."
+            exit 0
+          fi
+
+          perm_json="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENT_USER}/permission" 2>/dev/null || true)"
+          perm="$(printf '%s' "${perm_json}" | jq -r '.permission // empty')"
+          case "${perm}" in
+            admin|maintain|write) ;;
+            *)
+              echo "Denied: @${COMMENT_USER} lacks write access (permission=${perm:-none})."
+              exit 0
+              ;;
+          esac
+
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+          state="$(printf '%s' "${pr_json}" | jq -r '.state')"
+          head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
+          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
+
+          if [[ "${state}" != "open" ]]; then
+            message="Cannot update baseline: PR #${PR_NUMBER} is not open (state=${state})."
+            echo "::error::${message}"
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
+            exit 0
+          fi
+
+          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
+            message="Cannot update baseline on fork PRs. Push a baseline commit from the fork, or re-open as a same-repo branch."
+            echo "::error::${message}"
+            gh pr comment "${PR_NUMBER}" --body "${message}" || true
+            exit 0
+          fi
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}/reactions" \
+            -f content='eyes' >/dev/null || true
+
+          gh workflow run update-allure-bundle-baseline.yml \
+            --ref "${DEFAULT_BRANCH}" \
+            -f "pr_number=${PR_NUMBER}" \
+            -f "requester=${COMMENT_USER}"
+
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/update-allure-bundle-baseline.yml"
+          gh pr comment "${PR_NUMBER}" --body "Queued Allure bundle size baseline update for @${COMMENT_USER}. Runner: ${run_url}"

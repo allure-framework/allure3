@@ -2,7 +2,6 @@ import console from "node:console";
 import { env } from "node:process";
 import { inspect } from "node:util";
 
-import ProgressBar from "progress";
 import { blue, bold, cyan, dim, gray, red, yellow } from "yoctocolors";
 
 type LogLevel = "silent" | "verbose" | "debug" | "info" | "warn" | "error";
@@ -35,11 +34,19 @@ function getLogLevelFromEnv(): LogLevel {
 }
 
 export class Logger {
-  #level: LogLevel = getLogLevelFromEnv();
+  #level: LogLevel;
   #prefix: string;
 
-  constructor(private readonly loggerName: string) {
+  constructor(
+    private readonly loggerName: string,
+    logLevel?: LogLevel,
+  ) {
+    this.#level = logLevel ?? getLogLevelFromEnv();
     this.#prefix = cyan(bold(`[${this.loggerName}]:`));
+  }
+
+  setLogLevel(logLevel: LogLevel) {
+    this.#level = logLevel;
   }
 
   #isLogLevel(level: LogLevel) {
@@ -48,37 +55,6 @@ export class Logger {
 
   #isSilent() {
     return this.#level === "silent";
-  }
-
-  progressBarCounter(message: string, total: number) {
-    if (this.#isSilent()) {
-      return {
-        tick: () => {},
-        update: () => {},
-        terminate: () => {},
-      };
-    }
-
-    const progressBar = new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :current/:total`, {
-      total,
-      width: 20,
-    });
-
-    return progressBar;
-  }
-  progressBar(message: string) {
-    if (this.#isSilent()) {
-      return {
-        update: () => {},
-        terminate: () => {},
-      };
-    }
-
-    const progressBar = new ProgressBar(`${this.#prefix} ${blue(message)} [:bar] :percent`, {
-      total: 100,
-      width: 20,
-    });
-    return progressBar;
   }
 
   verbose(message: string | JSONMessage) {

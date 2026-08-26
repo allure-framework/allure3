@@ -3,11 +3,12 @@ import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 
+import { appLoaderFaviconDataUri, appLoaderLogoSvg, appLoaderStyles } from "@allurereport/core-api";
+
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const SpriteLoaderPlugin = require("svg-sprite-loader/plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
@@ -70,7 +71,7 @@ export default (env, argv) => {
         },
         {
           test: /\.svg$/,
-          loader: "svg-sprite-loader",
+          type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
         },
         {
           test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
@@ -108,7 +109,6 @@ export default (env, argv) => {
       new MiniCssExtractPlugin({
         filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
-      new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
         publicPath: "",
       }),
@@ -151,6 +151,11 @@ export default (env, argv) => {
         template: "src/index.html",
         inject: "body",
         scriptLoading: "defer",
+        templateParameters: {
+          appLoaderFaviconDataUri,
+          appLoaderLogoSvg,
+          appLoaderStyles,
+        },
       }),
     );
   }

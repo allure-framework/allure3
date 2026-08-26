@@ -55,6 +55,7 @@ beforeEach(async () => {
   await story("csv");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
   (realpath as Mock).mockResolvedValue(fixtures.cwd);
 });
 

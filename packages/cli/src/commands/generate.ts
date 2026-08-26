@@ -34,11 +34,11 @@ export class GenerateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   output = Option.String("--output,-o", {
@@ -76,6 +76,10 @@ export class GenerateCommand extends Command {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
@@ -85,7 +89,8 @@ export class GenerateCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      knownIssuesPath: this.knownIssues,
     });
 
     await generate({

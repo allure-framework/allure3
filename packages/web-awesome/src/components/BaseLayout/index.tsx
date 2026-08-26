@@ -2,6 +2,7 @@ import { Loadable, PageLoader } from "@allurereport/web-components";
 
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
+import { TestResultLoader } from "@/components/TestResultLoader";
 import { focusTestResultPane, focusTreePane } from "@/stores/keyboard";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
@@ -30,7 +31,11 @@ export const BaseLayout = () => {
       >
         <Loadable
           source={testResultStore}
-          renderLoader={() => <PageLoader />}
+          renderLoader={() => (
+            <div className={styles.wrapper}>
+              <TestResultLoader />
+            </div>
+          )}
           transformData={(data) => data[testResultId]}
           renderData={(testResult) => (
             <>

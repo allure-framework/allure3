@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("allure2");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("allure2 command", () => {
@@ -151,8 +152,8 @@ describe("allure2 command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
+      name: undefined,
       knownIssuesPath: undefined,
       historyPath: undefined,
     });

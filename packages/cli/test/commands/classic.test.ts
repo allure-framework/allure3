@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("classic");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("classic command", () => {
@@ -152,8 +153,8 @@ describe("classic command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
+      name: undefined,
       knownIssuesPath: undefined,
       historyPath: undefined,
     });

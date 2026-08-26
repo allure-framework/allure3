@@ -8,7 +8,7 @@ import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { readKnownIssues } from "./known.js";
+import { DEFAULT_KNOWN_ISSUES_PATH, hasKnownIssueRules, readKnownIssues, resolveExactIssuesFilePath } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import {
   environmentIdentityById,
@@ -19,6 +19,7 @@ import {
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
+import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
 
 type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
@@ -165,6 +166,7 @@ export const validateConfig = (config: Config) => {
     "historyPath",
     "historyLimit",
     "knownIssuesPath",
+    "knownIssues",
     "plugins",
     "defaultLabels",
     "variables",
@@ -176,6 +178,7 @@ export const validateConfig = (config: Config) => {
     "allureService",
     "categories",
     "globalAttachments",
+    "resultsDir",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -320,10 +323,14 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
-  const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
+  const configuredKnownIssuesPath = override.knownIssuesPath ?? config.knownIssuesPath;
+  const knownIssuesPathInput =
+    configuredKnownIssuesPath ?? (hasKnownIssueRules(config.knownIssues) ? DEFAULT_KNOWN_ISSUES_PATH : undefined);
+  const knownIssuesPath = await resolveExactIssuesFilePath(knownIssuesPathInput, "known issues");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
-  const known = await readKnownIssues(knownIssuesPath);
+  const known = knownIssuesPath ? await readKnownIssues(knownIssuesPath) : undefined;
   const variables = config.variables ?? {};
+  const resultsDir = normalizeResultsDir(config.resultsDir);
   let pluginInstances: PluginInstance[] = [];
   const hasPluginsOverride = override.plugins !== undefined;
 
@@ -357,6 +364,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     hideLabels,
     knownIssuesPath,
     known,
+    knownIssues: config.knownIssues,
     environment,
     allowedEnvironments,
     variables,
@@ -391,6 +399,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
       : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
+    ...(resultsDir.length ? { resultsDir } : {}),
   };
 };
 

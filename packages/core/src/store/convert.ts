@@ -341,7 +341,9 @@ const convertLink = (link: RawTestLink): TestLink => ({
 });
 
 const calculateTestId = (raw: RawTestResult): [string | undefined, string | undefined] => {
-  const maybeAllureId = raw.labels?.find((label) => label.name === "ALLURE_ID" || label.name === "AS_ID")?.value;
+  const maybeAllureId = raw.labels?.find(
+    (label) => (label.name === "ALLURE_ID" || label.name === "AS_ID") && label.value !== "-1",
+  )?.value;
   if (maybeAllureId) {
     return [md5(`ALLURE_ID=${maybeAllureId}`), maybeAllureId];
   }

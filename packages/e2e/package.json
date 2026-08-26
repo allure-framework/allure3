@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.14.3",
+  "version": "3.16.0",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
@@ -8,8 +8,7 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "pretest": "playwright install chromium firefox safari",
-    "test": "playwright test",
+    "test": "playwright install chromium firefox webkit && playwright test",
     "test:ui": "playwright test --ui",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
@@ -22,11 +21,11 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@faker-js/faker": "^10.5.0",
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.62.1",
     "@types/lodash.times": "^4.3.9",
     "@types/node": "^20",
     "allure-js-commons": "^3",
-    "allure-playwright": "^3.9.0",
+    "allure-playwright": "^3.10.2",
     "lodash.times": "^4.3.2",
     "rimraf": "^6",
     "typescript": "^5"

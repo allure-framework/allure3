@@ -32,6 +32,7 @@ const mockTestResult: TestResult = {
     { name: "suite", value: "s" },
   ],
   steps: [],
+  known: false,
 } as unknown as TestResult;
 
 describe("CsvPlugin", () => {
