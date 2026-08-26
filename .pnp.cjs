@@ -879,7 +879,7 @@ const RAW_RUNTIME_STATE =
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@testing-library/jest-dom", "npm:6.9.1"],\
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
-          ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.1"],\
+          ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.6"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/md5", "npm:2.3.6"],\
@@ -10763,10 +10763,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["npm:14.6.1", {\
-        "packageLocation": "./.yarn/cache/@testing-library-user-event-npm-14.6.1-5da7e1d4e2-34b74fff56.zip/node_modules/@testing-library/user-event/",\
+      ["npm:14.6.6", {\
+        "packageLocation": "./.yarn/cache/@testing-library-user-event-npm-14.6.6-1d4888f5f7-6049d2e705.zip/node_modules/@testing-library/user-event/",\
         "packageDependencies": [\
-          ["@testing-library/user-event", "npm:14.6.1"]\
+          ["@testing-library/user-event", "npm:14.6.6"]\
         ],\
         "linkType": "SOFT"\
       }],\
@@ -10783,11 +10783,11 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.1", {\
-        "packageLocation": "./.yarn/__virtual__/@testing-library-user-event-virtual-fa81d0d883/0/cache/@testing-library-user-event-npm-14.6.1-5da7e1d4e2-34b74fff56.zip/node_modules/@testing-library/user-event/",\
+      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.6", {\
+        "packageLocation": "./.yarn/__virtual__/@testing-library-user-event-virtual-17c670934a/0/cache/@testing-library-user-event-npm-14.6.6-1d4888f5f7-6049d2e705.zip/node_modules/@testing-library/user-event/",\
         "packageDependencies": [\
           ["@testing-library/dom", null],\
-          ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.1"],\
+          ["@testing-library/user-event", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:14.6.6"],\
           ["@types/testing-library__dom", null]\
         ],\
         "packagePeers": [\
