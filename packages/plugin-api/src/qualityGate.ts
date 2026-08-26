@@ -23,9 +23,9 @@ export type QualityGateRules = Record<string, any> & {
   filter?: (tr: TestResult) => boolean;
 };
 
-export type QualityGateRuleResult = {
+export type QualityGateRuleResult<T = unknown> = {
   success: boolean;
-  actual: any;
+  actual: T;
   testResults: string[];
 };
 
@@ -34,9 +34,9 @@ export interface QualityGateRuleState<T> {
   setResult(value: T, testResults: QualityGateRuleResult["testResults"]): void;
 }
 
-export type QualityGateRule<T = any, K = T> = {
+export type QualityGateRule<T = unknown, K = T, A = T> = {
   rule: string;
-  message: (payload: { expected: T; actual: any }) => string;
+  message: (payload: { expected: T; actual: A }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
@@ -44,7 +44,7 @@ export type QualityGateRule<T = any, K = T> = {
     metrics?: MetricSample[];
     previousHistory?: HistoryDataPoint[];
     environment?: string;
-  }) => Promise<QualityGateRuleResult>;
+  }) => Promise<QualityGateRuleResult<A>>;
 };
 
 export type QualityGateConfig = {

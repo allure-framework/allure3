@@ -12,18 +12,5 @@
     "value": 246.8,
     "start": 700,
     "stop": 946.8
-  },
-  {
-    "id": "ignored",
-    "key": "ignored.nonNumeric",
-    "value": "123",
-    "start": 100,
-    "stop": 200
-  },
-  {
-    "key": "ignored.missingId",
-    "value": 123,
-    "start": 100,
-    "stop": 200
   }
 ]

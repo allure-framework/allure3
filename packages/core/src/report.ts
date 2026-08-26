@@ -56,9 +56,7 @@ import { environmentIdentityById, environmentIdentityByName } from "./utils/envi
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
   getPerfMetricsPayload,
-  getPerfMetricsPerformanceConfig,
   isPerfMetricsEnabled,
-  mergePerformanceConfig,
   measurePerf,
   PERF_METRIC_NAMES,
   PERF_METRIC_PREFIXES,
@@ -128,7 +126,7 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
-  #performance: FullConfig["performance"];
+  readonly #performance: FullConfig["performance"];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
   readonly #knownIssuesPath: string | undefined;
@@ -282,9 +280,6 @@ export class AllureReport {
     if (payload.results.length === 0) {
       return false;
     }
-
-    this.#performance = mergePerformanceConfig(getPerfMetricsPerformanceConfig(payload), this.#performance);
-    this.#store.setPerformanceConfig(this.#performance);
 
     const resultFile = new BufferResultFile(
       Buffer.from(`${JSON.stringify(payload.results, null, 2)}\n`, "utf8"),

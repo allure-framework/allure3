@@ -101,15 +101,13 @@ export const allure2: ResultsReader = {
 
     if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
       try {
-        const results = performanceResults(await data.asJson<unknown>());
+        const results = await data.asJson<unknown>();
 
-        if (results.length === 0) {
+        if (!Array.isArray(results)) {
           return false;
         }
 
-        await visitor.visitAttachmentFile(data, { readerId });
-        await visitor.visitGlobals(rawAttachmentGlobals(originalFileName, data.getContentType()), { readerId });
-        await visitor.visitMetrics(results, { readerId, metadata: { originalFileName } });
+        await visitor.visitMetrics(results as AllurePerformanceResult[], { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {
@@ -285,49 +283,6 @@ const processCheckResult = async (
     { readerId, metadata: { originalFileName } },
   );
 };
-
-const finiteNumber = (value: unknown): number | undefined => (Number.isFinite(value) ? Number(value) : undefined);
-
-const normalizePerformanceResult = (result: Record<string, unknown>): AllurePerformanceResult | undefined => {
-  const id = typeof result.id === "string" ? result.id.trim() : "";
-  const key = typeof result.key === "string" ? result.key.trim() : "";
-  const value = finiteNumber(result.value);
-
-  if (!id || !key || value === undefined) {
-    return undefined;
-  }
-
-  const start = finiteNumber(result.start) ?? 0;
-  const stop = finiteNumber(result.stop) ?? start;
-
-  return {
-    id,
-    key,
-    value,
-    start,
-    stop,
-  };
-};
-
-const performanceResults = (payload: unknown): AllurePerformanceResult[] => {
-  if (!isStringAnyRecordArray(payload)) {
-    return [];
-  }
-
-  return payload.map(normalizePerformanceResult).filter((result): result is AllurePerformanceResult => Boolean(result));
-};
-
-const rawAttachmentGlobals = (originalFileName: string, contentType?: string) => ({
-  errors: [],
-  attachments: [
-    {
-      type: "attachment" as const,
-      name: originalFileName,
-      originalFileName,
-      contentType: contentType ?? "application/json",
-    },
-  ],
-});
 
 const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
   await visitor.visitMetadata(

@@ -547,19 +547,10 @@ describe("report", () => {
         expect.objectContaining({
           key: PERF_METRIC_NAMES.allureTotal,
           source: perfMetricsFileName(allureReport.reportUuid),
-          unit: "ms",
-          better: "lower",
         }),
       ]),
     );
-    expect(await allureReport.store.allGlobalAttachments()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: perfMetricsFileName(allureReport.reportUuid),
-          originalFileName: perfMetricsFileName(allureReport.reportUuid),
-        }),
-      ]),
-    );
+    expect(await allureReport.store.allGlobalAttachments()).toEqual([]);
   });
 
   it("should expose previous self perf metrics from local history in the next awesome report", async () => {

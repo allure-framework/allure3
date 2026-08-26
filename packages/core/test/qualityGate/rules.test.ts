@@ -555,7 +555,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: true,
       actual: {
-        title: "bundle.size",
+        key: "bundle.size",
         value: 10,
       },
       testResults: [],
@@ -572,8 +572,8 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: false,
       actual: {
-        title: "bundle.size",
-        value: undefined,
+        key: "bundle.size",
+        value: Number.NaN,
       },
       testResults: [],
     });
@@ -607,7 +607,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: true,
       actual: {
-        title: "bundle.size",
+        key: "bundle.size",
         value: 2,
       },
       testResults: [],
@@ -624,7 +624,10 @@ describe("metric quality gate rules", () => {
       }),
     ).resolves.toEqual({
       success: true,
-      actual: undefined,
+      actual: {
+        key: "bundle.size",
+        value: 0,
+      },
       testResults: [],
     });
   });
@@ -649,7 +652,7 @@ describe("metric quality gate rules", () => {
     ).resolves.toEqual({
       success: false,
       actual: {
-        title: "bundle.size",
+        key: "bundle.size",
         value: 20,
       },
       testResults: [],

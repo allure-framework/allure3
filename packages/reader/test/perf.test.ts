@@ -4,7 +4,7 @@ import { allure2 } from "../src/allure2/index.js";
 import { readResults } from "./utils.js";
 
 describe("allure2 performance reader", () => {
-  it("reads a performance result file and keeps the raw file as a global attachment", async () => {
+  it("reads a performance result file", async () => {
     const visitor = await readResults(allure2, {
       "perf/performance-result.json": "check-1-perf.json",
     });
@@ -25,11 +25,8 @@ describe("allure2 performance reader", () => {
         originalFileName: "check-1-perf.json",
       },
     });
-    expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
-    expect(visitor.visitGlobals.mock.calls[0][0].attachments[0]).toMatchObject({
-      name: "check-1-perf.json",
-      originalFileName: "check-1-perf.json",
-    });
+    expect(visitor.visitAttachmentFile).not.toHaveBeenCalled();
+    expect(visitor.visitGlobals).not.toHaveBeenCalled();
   });
 
   it("reads a bulk performance.json file", async () => {
@@ -56,16 +53,9 @@ describe("allure2 performance reader", () => {
     ]);
   });
 
-  it("ignores performance files without required result fields", async () => {
-    const visitor = await readResults(
-      allure2,
-      {
-        "perf/invalid-performance-result.json": "invalid-perf.json",
-      },
-      false,
-    );
+  it("ignores non-array performance files", async () => {
+    const visitor = await readResults(allure2, { "perf/not-performance-results.json": "invalid-perf.json" }, false);
 
     expect(visitor.visitMetrics).not.toHaveBeenCalled();
-    expect(visitor.visitAttachmentFile).not.toHaveBeenCalled();
   });
 });

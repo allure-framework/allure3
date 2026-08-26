@@ -4,12 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 
-import type { PerformanceConfig } from "@allurereport/core-api";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
   getPerfMetricsPayload,
-  mergePerformanceConfig,
   measurePerf,
   PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
@@ -117,39 +115,5 @@ describe("perf metrics", () => {
       }),
     ]);
     expect(getPerfMetricsPayload().results).toEqual([]);
-  });
-
-  it("merges performance metric entries without dropping base metadata", () => {
-    expect(
-      mergePerformanceConfig(
-        {
-          metrics: {
-            "allure.total": {
-              title: "Allure total",
-              unit: "ms",
-              better: "lower",
-              group: "allure",
-            },
-          },
-        },
-        {
-          metrics: {
-            "allure.total": {
-              title: "Total generation",
-            },
-          },
-        } as unknown as PerformanceConfig,
-      ),
-    ).toEqual({
-      metrics: {
-        "allure.total": {
-          title: "Total generation",
-          unit: "ms",
-          better: "lower",
-          group: "allure",
-        },
-      },
-      groups: {},
-    });
   });
 });

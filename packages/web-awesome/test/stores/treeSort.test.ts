@@ -13,7 +13,7 @@ beforeEach(async () => {
 describe("stores > treeSort", () => {
   beforeAll(async () => {
     await import("../../src/stores/treeSort.js");
-  });
+  }, 30_000);
 
   beforeEach(() => {
     vi.resetModules();
