@@ -253,6 +253,20 @@ describe("RetrySubstore", () => {
       expect(other.isRetry).toBe(true);
     });
 
+    it("does not return a duplicate retry when the same id is upserted again", () => {
+      const rs = new RetrySubstore();
+      const first = { ...makeTr("same"), start: 100 };
+      const other = { ...makeTr("other"), start: 200 };
+
+      upsertInOrder(rs, first, other);
+
+      const updated = { ...first, start: 500 };
+
+      rs.upsert(updated);
+
+      expect(rs.retriesByTr(updated).map(({ id }) => id)).toEqual(["other"]);
+    });
+
     it("does not index attempts without retryHash", () => {
       const rs = new RetrySubstore();
       const tr = { ...makeTr("solo"), retryHash: undefined };
