@@ -121,7 +121,7 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
       />
       {isOpened && (
         <div data-testid="test-result-steps-root" className={styles["test-result-steps-root"]}>
-          <TrBodyItems bodyItems={bodyItems} isTopLevel={true} />
+          <TrBodyItems bodyItems={bodyItems} />
         </div>
       )}
     </div>
