@@ -188,7 +188,5 @@ export interface Plugin {
 
   done?(context: PluginContext, store: AllureStore): Promise<void>;
 
-  refresh?(context: PluginContext, store: AllureStore): Promise<void>;
-
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined>;
 }

@@ -55,10 +55,6 @@ export class DashboardPlugin implements Plugin {
     await this.#generateAfterStart(context, store);
   };
 
-  refresh = async (context: PluginContext, store: AllureStore) => {
-    await this.#generateAfterStart(context, store);
-  };
-
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
     return createPluginSummary({
       name: this.options.reportName || context.reportName,

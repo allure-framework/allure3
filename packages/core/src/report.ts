@@ -270,15 +270,15 @@ export class AllureReport {
     );
   };
 
-  #ingestSelfPerfMetrics = async (): Promise<boolean> => {
+  #ingestSelfPerfMetrics = async (): Promise<void> => {
     if (!isPerfMetricsEnabled()) {
-      return false;
+      return;
     }
 
     const results = getPerfMetricsResults();
 
     if (results.length === 0) {
-      return false;
+      return;
     }
 
     const originalFileName = perfMetricsFileName(this.reportUuid);
@@ -286,14 +286,6 @@ export class AllureReport {
     await this.#store.visitMetrics(results, {
       readerId: "api",
       metadata: { originalFileName },
-    });
-
-    return true;
-  };
-
-  #refreshPlugins = async (): Promise<void> => {
-    await this.#eachPlugin(false, async (plugin, context) => {
-      await plugin.refresh?.(context, this.#store);
     });
   };
 
@@ -1133,9 +1125,7 @@ export class AllureReport {
       });
       this.#finishGeneratePerfSpan();
 
-      if (await this.#ingestSelfPerfMetrics()) {
-        await this.#refreshPlugins();
-      }
+      await this.#ingestSelfPerfMetrics();
 
       this.#historyDataPoint = await this.#createHistoryDataPoint();
 

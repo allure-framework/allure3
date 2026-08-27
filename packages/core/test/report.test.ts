@@ -51,7 +51,6 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     start: vi.fn<Required<Plugin>["start"]>(),
     update: vi.fn<Required<Plugin>["update"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
-    refresh: vi.fn<Required<Plugin>["refresh"]>(),
     info: vi.fn<Required<Plugin>["info"]>(),
   };
 
@@ -514,13 +513,16 @@ describe("report", () => {
     expect(widget.history).toEqual([]);
   });
 
-  it("should expose opt-in self perf metrics in awesome report files", async () => {
+  it("should keep opt-in self perf metrics in raw output and report history without rewriting plugin files", async () => {
     process.env.ALLURE_PERF_METRICS = "1";
 
     const output = await mkdtemp(join(tmpdir(), "allure3-self-perf-awesome-"));
+    const historyDir = await mkdtemp(join(tmpdir(), "allure3-self-perf-history-"));
+    const historyPath = join(historyDir, "history.jsonl");
     const config = await resolveConfig({
       name: "Allure Report",
       output,
+      historyPath,
     });
 
     config.plugins = [
@@ -538,22 +540,37 @@ describe("report", () => {
     await allureReport.done();
 
     const indexHtml = await readFile(join(output, "index.html"), "utf8");
-    const widget = JSON.parse(await readFile(join(output, "widgets", "metrics.json"), "utf8"));
+    const metrics = await readPerfMetrics(output, allureReport.reportUuid);
+    const history = (await readFile(historyPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
 
-    expect(indexHtml).toContain('"sections":["charts","timeline","metrics"]');
-    expect(widget.display).toBeUndefined();
-    expect(widget.current).toEqual(
+    expect(indexHtml).toContain('"sections":["charts","timeline"]');
+    await expect(readFile(join(output, "widgets", "metrics.json"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           key: PERF_METRIC_NAMES.allureTotal,
-          source: perfMetricsFileName(allureReport.reportUuid),
+        }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_PREFIXES.generatePluginDone}awesome`,
         }),
       ]),
+    );
+    expect(history).toHaveLength(1);
+    expect(history[0].metrics).toEqual(
+      expect.objectContaining({
+        [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
+        [`${PERF_METRIC_PREFIXES.generatePluginDone}awesome`]: expect.any(Number),
+      }),
     );
     expect(await allureReport.store.allGlobalAttachments()).toEqual([]);
   });
 
-  it("should expose previous self perf metrics from local history in the next awesome report", async () => {
+  it("should append opt-in self perf metrics to local history across reports", async () => {
     process.env.ALLURE_PERF_METRICS = "1";
 
     const historyDir = await mkdtemp(join(tmpdir(), "allure3-self-perf-history-"));
@@ -579,10 +596,6 @@ describe("report", () => {
     await firstReport.start();
     await firstReport.done();
 
-    const firstWidget = JSON.parse(await readFile(join(firstOutput, "widgets", "metrics.json"), "utf8"));
-
-    expect(firstWidget.history).toEqual([]);
-
     const secondOutput = await mkdtemp(join(tmpdir(), "allure3-self-perf-second-"));
     const secondConfig = await resolveConfig({
       name: "Allure Report",
@@ -604,24 +617,25 @@ describe("report", () => {
     await secondReport.start();
     await secondReport.done();
 
-    const secondWidget = JSON.parse(await readFile(join(secondOutput, "widgets", "metrics.json"), "utf8"));
+    const history = (await readFile(historyPath, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
 
-    expect(secondWidget.history).toEqual([
+    expect(history).toEqual([
       expect.objectContaining({
         uuid: firstReport.reportUuid,
-        name: "Allure Report",
+        metrics: expect.objectContaining({
+          [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
+        }),
+      }),
+      expect.objectContaining({
+        uuid: secondReport.reportUuid,
         metrics: expect.objectContaining({
           [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
         }),
       }),
     ]);
-    expect(secondWidget.current).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          key: PERF_METRIC_NAMES.allureTotal,
-        }),
-      ]),
-    );
   });
 
   it("should not expose self perf metrics in awesome report files when disabled", async () => {
@@ -865,68 +879,6 @@ describe("report", () => {
       ]),
     );
     expect(generateTotal.stop).toBeLessThanOrEqual(publishUploadTotal.start);
-  });
-
-  it("should publish refreshed plugin files after self perf metrics are added", async () => {
-    process.env.ALLURE_PERF_METRICS = "1";
-
-    const output = await mkdtemp(join(tmpdir(), "allure3-perf-refresh-publish-"));
-    const p1 = createPlugin("p1", true, { publish: true });
-    const config = await resolveConfig({
-      name: "Allure Report",
-      output,
-    });
-    let uploadedIndexContent = "";
-
-    (p1.plugin.done as Mock).mockImplementation(async (context) => {
-      await context.reportFiles.addFile("index.html", Buffer.from("before metrics"));
-    });
-    (p1.plugin.refresh as Mock).mockImplementation(async (context, store) => {
-      const metrics = await store.allMetrics();
-      const hasSelfMetrics = metrics.some(({ key }) => key === PERF_METRIC_NAMES.allureTotal);
-
-      await context.reportFiles.addFile(
-        "index.html",
-        Buffer.from(hasSelfMetrics ? "after metrics" : "missing metrics"),
-      );
-    });
-    (AllureServiceClientMock.prototype.uploadReport as Mock).mockImplementation(
-      async ({ pluginId, files }: { pluginId?: string; files: Record<string, string> }) => {
-        if (pluginId === "p1" && files["index.html"]) {
-          uploadedIndexContent = await readFile(files["index.html"], "utf8");
-        }
-
-        return {
-          indexHref:
-            pluginId && files["index.html"]
-              ? `https://example.org/${pluginId}/index.html`
-              : files["index.html"]
-                ? "https://example.org/index.html"
-                : undefined,
-          hrefs: {},
-        };
-      },
-    );
-    config.plugins = [p1];
-
-    const allureReport = new AllureReport({
-      ...config,
-      allureService: allureServiceConfig(),
-    });
-
-    await allureReport.start();
-    await allureReport.done();
-
-    const completeReportCall = (AllureServiceClientMock.prototype.completeReport as Mock).mock.calls.at(-1);
-
-    expect(p1.plugin.done).toHaveBeenCalledTimes(1);
-    expect(p1.plugin.refresh).toHaveBeenCalledTimes(1);
-    expect(uploadedIndexContent).toBe("after metrics");
-    expect(completeReportCall?.[0].historyPoint.metrics).toEqual(
-      expect.objectContaining({
-        [PERF_METRIC_NAMES.allureTotal]: expect.any(Number),
-      }),
-    );
   });
 
   it("should upload report files only for plugins with options.publish", async () => {
