@@ -248,6 +248,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -265,6 +266,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -282,6 +284,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -299,6 +302,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -315,6 +319,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -337,6 +342,7 @@ describe("resolvePluginOptions", () => {
         projectId: "option-project",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -354,6 +360,7 @@ describe("resolvePluginOptions", () => {
         projectId: "env-project",
         launchName: "Allure Report",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -372,6 +379,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Environment Launch",
         launchTags: [],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -390,6 +398,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2", "tag3"],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -419,6 +428,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2"],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -436,6 +446,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Allure Report",
         launchTags: ["tag1", "tag2", "tag3"],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -457,6 +468,7 @@ describe("resolvePluginOptions", () => {
         projectId: "12345",
         launchName: "Option Launch",
         launchTags: ["option-tag1", "option-tag2"],
+        reopenClosedLaunch: false,
       });
     });
 
@@ -478,6 +490,56 @@ describe("resolvePluginOptions", () => {
       } as any);
 
       expect(result.launchTags).toEqual([]);
+    });
+
+    it("should not set launchId when not provided", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.launchId).toBeUndefined();
+    });
+
+    it("should accept launchId from options", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchId: 42,
+      } as any);
+
+      expect(result.launchId).toBe(42);
+    });
+
+    it("should use ALLURE_LAUNCH_ID as fallback for launchId", () => {
+      process.env.ALLURE_LAUNCH_ID = "99";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.launchId).toBe(99);
+
+      delete process.env.ALLURE_LAUNCH_ID;
+    });
+
+    it("should prefer launchId from options over ALLURE_LAUNCH_ID", () => {
+      process.env.ALLURE_LAUNCH_ID = "99";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchId: 7,
+      } as any);
+
+      expect(result.launchId).toBe(7);
+
+      delete process.env.ALLURE_LAUNCH_ID;
     });
   });
 });

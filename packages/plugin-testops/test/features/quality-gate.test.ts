@@ -170,4 +170,63 @@ describe("Quality Gate upload", () => {
 
     expect(uploadQualityGateResultsRequest).not.toHaveBeenCalled();
   });
+
+  test("retries quality gate upload once after a transient failure", async () => {
+    const { uploadQualityGateResultsRequest } = mockRequests();
+
+    uploadQualityGateResultsRequest.mockRejectedValueOnce({
+      isAxiosError: true,
+      response: { status: 503, data: {} },
+    });
+
+    const plugin = new TestOpsPlugin({
+      accessToken: "test",
+      endpoint: "http://example.com",
+      projectId: "12345",
+      launchName: "Test Launch",
+      launchTags: [],
+      autocloseLaunch: true,
+      filter: () => true,
+      limit: 10,
+    });
+
+    const store = mockAllureStore();
+
+    store.allTestResults.mockResolvedValue([
+      {
+        id: "tr-1",
+        name: "Sample test",
+        fullName: "suite Sample test",
+        status: "passed",
+        stage: "finished",
+        start: 1,
+        stop: 2,
+        steps: [],
+      } as unknown as TestResult,
+    ]);
+    store.qualityGateResults.mockResolvedValue([
+      {
+        rule: "coverage",
+        message: "Coverage below threshold",
+        success: false,
+      } as QualityGateValidationResult,
+    ]);
+
+    await plugin.start(
+      {
+        allureVersion: "3.0.0",
+        reportUuid: "test-uuid",
+        reportName: "Test Report",
+        output: "/tmp/out",
+        categories: [],
+        publish: true,
+        id: "test",
+        reportFiles: [] as any,
+        state: {} as PluginState,
+      },
+      store as unknown as AllureStore,
+    );
+
+    expect(uploadQualityGateResultsRequest).toHaveBeenCalledTimes(2);
+  });
 });

@@ -6,3 +6,6 @@ node_modules/
 history.jsonl
 .DS_Store
 foo.zip
+
+# local TestOps credentials, never commit
+.env.testops

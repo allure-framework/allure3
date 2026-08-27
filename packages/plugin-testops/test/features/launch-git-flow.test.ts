@@ -104,6 +104,7 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
+      githubCi,
     );
   });
 
@@ -117,6 +118,7 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
+      githubCi,
     );
   });
 
@@ -124,12 +126,13 @@ describe("Launch git flow", () => {
     const commit = "a".repeat(40);
     const parent = "b".repeat(40);
 
-    (detect as Mock).mockReturnValue({
+    const ci = {
       ...githubCi,
       provider: GitProvider.Github,
       repository: { slug: "myorg/myrepo" },
       sourceBranch: "feature",
-    });
+    };
+    (detect as Mock).mockReturnValue(ci);
     vi.mocked(collectGitFacts).mockReturnValue({
       commit,
       firstParentAncestors: [parent],
@@ -137,23 +140,28 @@ describe("Launch git flow", () => {
 
     await startPlugin({ gitFlow: true } as TestOpsPluginOptions);
 
-    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(fixtures.launchName, fixtures.launchTags, {
-      contextType: "branch",
-      repository: {
-        providerType: "github",
-        name: "myorg/myrepo",
-        url: "https://github.com/myorg/myrepo.git",
+    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(
+      fixtures.launchName,
+      fixtures.launchTags,
+      {
+        contextType: "branch",
+        repository: {
+          providerType: "github",
+          name: "myorg/myrepo",
+          url: "https://github.com/myorg/myrepo.git",
+        },
+        commit: {
+          hash: commit,
+          url: `https://github.com/myorg/myrepo/commit/${commit}`,
+          lineage: [parent],
+        },
+        branch: {
+          name: "feature",
+          url: "https://github.com/myorg/myrepo/tree/feature",
+        },
       },
-      commit: {
-        hash: commit,
-        url: `https://github.com/myorg/myrepo/commit/${commit}`,
-        lineage: [parent],
-      },
-      branch: {
-        name: "feature",
-        url: "https://github.com/myorg/myrepo/tree/feature",
-      },
-    });
+      ci,
+    );
   });
 
   it("does not send standalone metadata on branch context", async () => {
@@ -209,6 +217,7 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       expect.any(Object),
+      expect.any(Object),
     );
 
     expect(TestOpsClientMock.prototype.createLaunch.mock.calls[0][2]).toMatchObject({
@@ -227,13 +236,14 @@ describe("Launch git flow", () => {
   });
 
   it("omits git context when pull request branches are incomplete", async () => {
-    (detect as Mock).mockReturnValue({
+    const ci = {
       ...githubCi,
       provider: GitProvider.Github,
       repository: { slug: "org/repo" },
       sourceBranch: "feature",
       pullRequest: { id: "9" },
-    });
+    };
+    (detect as Mock).mockReturnValue(ci);
     vi.mocked(collectGitFacts).mockReturnValue({
       commit: "c".repeat(40),
       firstParentAncestors: [],
@@ -245,6 +255,7 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
+      ci,
     );
   });
 

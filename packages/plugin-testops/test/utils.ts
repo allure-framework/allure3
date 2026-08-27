@@ -8,6 +8,7 @@ export const TestOpsClientMock = vi.fn(function () {});
 TestOpsClientMock.prototype = {
   uploadTestResult: vi.fn(),
   createLaunch: vi.fn(),
+  attachToLaunch: vi.fn(),
   createSession: vi.fn(),
   createNamedEnvs: vi.fn(),
   uploadTestResults: vi.fn().mockImplementation(async ({ trs }) => trs),
@@ -22,6 +23,7 @@ TestOpsClientMock.prototype = {
   stopUpload: vi.fn(),
   createLaunchCategoriesBulk: vi.fn().mockResolvedValue([]),
   closeLaunch: vi.fn(),
+  reopenLaunch: vi.fn(),
   getNamedEnvFor: vi.fn().mockReturnValue(undefined),
 };
 
@@ -54,9 +56,10 @@ export const AxiosMock = {
       use: vi.fn(),
     },
   },
-  get: vi.fn(),
+  get: vi.fn().mockResolvedValue({ data: { closed: false } }),
   post: vi.fn(),
   postForm: vi.fn(),
+  patch: vi.fn(),
 };
 
 export const AxiosCreateMock = vi.fn(() => AxiosMock);

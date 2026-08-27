@@ -73,6 +73,18 @@ export const mockRequests = () => {
 
   vi.spyOn(axios, "create").mockReturnValue(axiosTestInstanse);
 
+  const getLaunchRequest = vi
+    .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<TestOpsLaunch>>>()
+    .mockResolvedValue({ data: { closed: false } } as AxiosResponse<TestOpsLaunch>);
+
+  vi.spyOn(axiosTestInstanse, "get").mockImplementation((...[url, config]: [string, AxiosRequestConfig?]) => {
+    if (/^\/api\/launch\/\d+$/.test(url)) {
+      return getLaunchRequest(url, undefined, config);
+    }
+
+    return Promise.resolve({ data: {} } as AxiosResponse);
+  });
+
   vi.spyOn(axiosTestInstanse, "post").mockImplementation((...[url, data, config]: AxiosPostArgs) => {
     if (url.startsWith("/api/launch/") && url.endsWith("/close")) {
       return closeLaunchRequest(url, data, config);
@@ -135,6 +147,7 @@ export const mockRequests = () => {
   });
 
   return {
+    getLaunchRequest,
     closeLaunchRequest,
     createLaunchCategoriesBulkRequest,
     startUploadRequest,

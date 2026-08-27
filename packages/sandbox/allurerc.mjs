@@ -4,6 +4,8 @@ const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
 const sandboxTestopsEnabled = process.env.SANDBOX_ENABLE_TESTOPS === "true";
 const sandboxTestopsToken = process.env.TESTOPS_SANDBOX_TOKEN;
+const sandboxTestopsEndpoint = process.env.TESTOPS_SANDBOX_ENDPOINT || "http://localhost:8080";
+const sandboxTestopsProjectId = process.env.TESTOPS_SANDBOX_PROJECT_ID || "1";
 
 const chartLayout = [
   {
@@ -222,8 +224,8 @@ export default defineConfig({
           testops: {
             options: {
               accessToken: sandboxTestopsToken,
-              projectId: "1",
-              endpoint: "http://localhost:8080",
+              projectId: sandboxTestopsProjectId,
+              endpoint: sandboxTestopsEndpoint,
             },
           },
         }

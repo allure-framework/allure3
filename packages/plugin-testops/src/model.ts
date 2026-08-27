@@ -210,11 +210,24 @@ export type LaunchCategoryBulkResult = {
   externalId: string;
 };
 
+/**
+ * Caps how fast uploads are sent to TestOps within a rolling time window. Each budget is
+ * optional and independent — unset ones don't pace anything. Paced with sane defaults
+ * (see `DEFAULT_UPLOAD_RATE_LIMIT`) unless explicitly overridden; pass `false` to disable pacing.
+ */
+export type UploadRateLimit = {
+  windowMs: number;
+  maxRequestsPerWindow?: number;
+  maxFilesPerWindow?: number;
+  maxBytesPerWindow?: number;
+};
+
 export type TestOpsClientParams = {
   baseUrl: string;
   projectId: string;
   accessToken: string;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
 };
 
 export type AttachmentForUpload = {
@@ -233,12 +246,17 @@ export type TestOpsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   autocloseLaunch?: boolean;
+  /** Reopen a closed launch instead of failing to upload to it. Default: false */
+  reopenClosedLaunch?: boolean;
+  /** Attach to an existing launch by id instead of creating a new one. Skipped when a job run id is resolved. */
+  launchId?: number;
   /** When false, Git Flow metadata is never collected or sent. Default: false */
   gitFlow?: boolean;
   /** First-parent ancestor limit (server N). Default: 100 */
   ancestorLimit?: number;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
 };
 
 export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
@@ -255,6 +273,25 @@ export type TestOpsSession = {
   jobRunId: number;
   launchId: number;
   projectId: number;
+};
+
+/** `/api/upload/start` response body. */
+export type ExternalRunStartResponse = {
+  projectId: number;
+  launchId: number;
+  jobId?: number;
+  jobRunId?: number;
+};
+
+export type TestOpsJobParameter = {
+  name: string;
+  defaultValue: string;
+};
+
+export type TestOpsJob = {
+  id: number;
+  externalId: string;
+  parameters: TestOpsJobParameter[];
 };
 
 export type TestOpsLaunch = {
