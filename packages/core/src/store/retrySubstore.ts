@@ -99,7 +99,14 @@ export class RetrySubstore {
       return;
     }
 
-    results.push(testResult);
+    const existingIndex = results.findIndex((attempt) => attempt.id === testResult.id);
+
+    if (existingIndex !== -1) {
+      results.splice(existingIndex, 1, testResult);
+    } else {
+      results.push(testResult);
+    }
+
     results.sort((first, second) => this.#compareResults(first, second));
 
     results.forEach((attempt, index) => {
