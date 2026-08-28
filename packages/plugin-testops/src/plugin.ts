@@ -3,7 +3,6 @@ import { env } from "node:process";
 import { detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { createProgressLogger } from "@allurereport/cli-commons";
 import type {
-  CategoryDefinition,
   CiDescriptor,
   EnvironmentIdentity,
   GlobalAttachmentLink,
@@ -25,21 +24,18 @@ import { TestOpsClient } from "./client.js";
 import { isClosedLaunchError } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
-import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
+import type { TestOpsPluginTestResult, TestOpsPluginOptions } from "./model.js";
 import { UploadQueue } from "./uploadQueue.js";
 import { uploadFilenameForLink } from "./utils/attachments.js";
-import { toUploadCategory } from "./utils/categories.js";
 import { applyAllureCiEnv } from "./utils/ciEnv.js";
 import { applyCiOverrides } from "./utils/ciOverrides.js";
+import { enrichWithCategories, syncLaunchCategories } from "./utils/launchCategories.js";
 import { resolvePluginOptions } from "./utils/options.js";
-import { attachmentsResolverFactory, fixturesResolverFactory, unwrapStepsAttachments } from "./utils/resolvers.js";
+import { attachmentsResolverFactory, fixturesResolverFactory } from "./utils/resolvers.js";
 import { validateExecutableName } from "./utils/validation.js";
 
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
 const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
-
-const categoryDisplayName = (cat: UploadCategory): string =>
-  cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
 
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
@@ -546,9 +542,9 @@ export class TestOpsPlugin implements Plugin {
 
     const environments = await store.allEnvironmentIdentities();
     const contextCategories = context?.categories ?? [];
-    const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
+    const trsEnrichedWithCategories = await enrichWithCategories(store, trsToUpload, contextCategories);
 
-    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
+    await syncLaunchCategories(this.#client, trsEnrichedWithCategories, contextCategories);
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments, {
       silent: !!context?.realTime,
     });
@@ -570,122 +566,6 @@ export class TestOpsPlugin implements Plugin {
     });
 
     return filteredTrs;
-  }
-
-  async #enrichWithCategories(
-    store: AllureStore,
-    trs: TestOpsPluginTestResult[],
-    contextCategories: CategoryDefinition[],
-  ): Promise<TestOpsPluginTestResult[]> {
-    return Promise.all(
-      trs.map(async (tr) => {
-        const environmentId = await store.environmentIdByTrId(tr.id);
-        const base = {
-          ...tr,
-          ...(environmentId ? { environment: environmentId } : {}),
-          steps: unwrapStepsAttachments(tr.steps),
-        };
-        const category = toUploadCategory(base, contextCategories ?? []);
-
-        if (category) {
-          base.category = category;
-        }
-
-        return base;
-      }),
-    );
-  }
-
-  async #syncLaunchCategories(trs: TestOpsPluginTestResult[], contextCategories: CategoryDefinition[]): Promise<void> {
-    const categoryNamesByExternalId = this.#collectCategoryNamesByExternalId(trs);
-
-    if (categoryNamesByExternalId.size === 0) {
-      return;
-    }
-
-    const bulkItems: { externalId: string; name: string; hide?: boolean; expand?: boolean }[] = [];
-    const seenExternalIds = new Set<string>();
-
-    for (const tr of trs) {
-      const cat = tr.category;
-      if (!cat?.externalId) continue;
-      if (seenExternalIds.has(cat.externalId)) continue;
-      seenExternalIds.add(cat.externalId);
-
-      bulkItems.push({
-        externalId: cat.externalId,
-        name: categoryNamesByExternalId.get(cat.externalId) ?? categoryDisplayName(cat),
-        hide: cat.hide,
-        expand: cat.expand,
-      });
-    }
-
-    const rankByExternalId = new Map<string, number>();
-    for (const c of contextCategories) {
-      // Prefer canonical ids, but allow ordering by name for categories originating from `tr.categories`
-      if (!rankByExternalId.has(c.id)) {
-        rankByExternalId.set(c.id, c.index);
-      }
-      if (!rankByExternalId.has(c.name)) {
-        rankByExternalId.set(c.name, c.index);
-      }
-    }
-
-    const ranked = bulkItems.map((item, i) => ({
-      item,
-      i,
-      rank: rankByExternalId.get(item.externalId),
-    }));
-
-    ranked.sort((a, b) => {
-      const ar = a.rank ?? Number.POSITIVE_INFINITY;
-      const br = b.rank ?? Number.POSITIVE_INFINITY;
-      if (ar !== br) return ar - br;
-      return a.i - b.i; // stable for unknown ranks
-    });
-
-    const orderedBulkItems = ranked.map((r) => r.item);
-
-    const launchId = this.#client.launchId;
-
-    try {
-      const created = await this.#client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
-      const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
-
-      this.#assignCreatedCategoryIds(trs, categoryIdByExternalId);
-    } catch {
-      // ignore
-    }
-  }
-
-  #collectCategoryNamesByExternalId(trs: TestOpsPluginTestResult[]): Map<string, string> {
-    const map = new Map<string, string>();
-
-    for (const tr of trs) {
-      const cat = tr.category;
-
-      if (cat?.externalId) {
-        map.set(cat.externalId, categoryDisplayName(cat));
-      }
-    }
-
-    return map;
-  }
-
-  #assignCreatedCategoryIds(trs: TestOpsPluginTestResult[], idByExternalId: Map<string, number>): void {
-    for (const tr of trs) {
-      const cat = tr.category;
-
-      if (!cat?.externalId) {
-        continue;
-      }
-
-      const id = idByExternalId.get(cat.externalId);
-
-      if (typeof id === "number") {
-        tr.category = { ...cat, id };
-      }
-    }
   }
 
   /**

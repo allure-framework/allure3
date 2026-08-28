@@ -1,8 +1,6 @@
 import type { ClientRequest } from "http";
-import { env } from "node:process";
 
 import { isLocalCiDescriptor } from "@allurereport/ci";
-import { CiType } from "@allurereport/core-api";
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -32,7 +30,6 @@ import type {
   LaunchCategoryBulkResult,
   TestOpsClientParams,
   TestOpsJob,
-  TestOpsJobParameter,
   TestOpsLaunch,
   TestOpsLaunchQualityGate,
   TestOpsNamedEnv,
@@ -44,6 +41,8 @@ import type {
 import type { TestOpsFixtureResult } from "./model.js";
 import { UploadPacer } from "./uploadPacer.js";
 import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
+import { attachmentByteLength, retryRequest } from "./utils/httpRetry.js";
+import { TESTOPS_CI_TYPE, ciEndpoint, externalParameters } from "./utils/jobParameters.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
 import { validateExecutableName } from "./utils/validation.js";
@@ -64,136 +63,8 @@ class TestOpsClientError extends AxiosError<{
   request: ClientRequest;
 }
 
-/** The few providers TestOps names differently from our CiType. */
-const TESTOPS_CI_TYPE: Partial<Record<CiType, string>> = {
-  [CiType.Amazon]: "aws",
-  [CiType.Circle]: "circleci",
-};
-
-const ciEndpoint = (ci: CiDescriptor): string | undefined => {
-  try {
-    return new URL(ci.jobUrl).origin;
-  } catch {
-    return undefined;
-  }
-};
-
-/**
- * Job/job-run parameters TestOps needs to run the job correctly from its side:
- * Branch (so a re-triggered build targets the branch results came from, not the
- * pipeline's default) and, on Bitbucket only, CustomName (a run label Bitbucket
- * pipelines set via that literal env var).
- *
- * `existingJobParameters` are the job's already-configured parameters (fetched
- * before this call): job.parameters is sent as a full replacement, not a merge,
- * so every existing entry has to be restated here or TestOps would drop it.
- */
-const externalParameters = (
-  ci: CiDescriptor,
-  existingJobParameters: TestOpsJobParameter[] = [],
-): { job: { name: string; defaultValue: string }[]; jobRun: { name: string; value: string }[] } => {
-  const jobParams: Record<string, string> = {};
-  const jobRunParams: Record<string, string> = {};
-
-  if (ci.jobRunBranch) {
-    jobParams.Branch = ci.jobRunBranch;
-    jobRunParams.Branch = ci.jobRunBranch;
-  }
-
-  if (ci.type === CiType.Bitbucket && env.CustomName) {
-    jobParams.CustomName = env.CustomName;
-    jobRunParams.CustomName = env.CustomName;
-  }
-
-  for (const { name, defaultValue } of existingJobParameters) {
-    jobParams[name] = defaultValue;
-
-    if (env[name]) {
-      jobRunParams[name] = env[name] as string;
-    } else if (ci.type === CiType.Bitbucket && name === "CustomName" && defaultValue) {
-      jobRunParams[name] = defaultValue;
-    }
-  }
-
-  return {
-    job: Object.entries(jobParams).map(([name, defaultValue]) => ({ name, defaultValue })),
-    jobRun: Object.entries(jobRunParams).map(([name, value]) => ({ name, value })),
-  };
-};
-
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
-const MAX_REQUEST_RETRIES = 3;
-const RETRY_BASE_DELAY_MS = 500;
-
-const getAxiosCause = (error: unknown) => {
-  if (isAxiosError(error)) {
-    return error;
-  }
-
-  return error instanceof Error && isAxiosError(error.cause) ? error.cause : undefined;
-};
-
-const isRetryableRequestError = (error: unknown): boolean => {
-  const cause = getAxiosCause(error);
-
-  if (!cause || cause.code === "ERR_CANCELED" || cause.name === "CanceledError") {
-    return false;
-  }
-
-  const status = cause.response?.status;
-
-  return status === undefined || status === 408 || status === 429 || status >= 500;
-};
-
-const retryAfterMs = (error: unknown): number | undefined => {
-  const headers = getAxiosCause(error)?.response?.headers;
-  const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
-  const normalized = Array.isArray(value) ? value[0] : value;
-
-  if (typeof normalized !== "string" && typeof normalized !== "number") {
-    return undefined;
-  }
-
-  const seconds = Number(normalized);
-
-  if (Number.isFinite(seconds)) {
-    return Math.max(0, seconds * 1_000);
-  }
-
-  const date = Date.parse(String(normalized));
-
-  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
-};
-
-// Caller must ensure repeating the request is safe.
-const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => {
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      return await request();
-    } catch (error) {
-      if (attempt >= MAX_REQUEST_RETRIES || !isRetryableRequestError(error)) {
-        throw error;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, retryAfterMs(error) ?? RETRY_BASE_DELAY_MS * 2 ** attempt));
-    }
-  }
-};
-
-// best-effort: a Buffer/Blob's size is known upfront, a stream's isn't without consuming it,
-// so streamed attachments just don't contribute to the byte budget
-const attachmentByteLength = (content: AttachmentForUpload["content"]): number => {
-  if (Buffer.isBuffer(content)) {
-    return content.length;
-  }
-
-  if (typeof Blob !== "undefined" && content instanceof Blob) {
-    return content.size;
-  }
-
-  return 0;
-};
 
 export class TestOpsClient {
   #baseUrl: string;
