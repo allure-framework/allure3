@@ -586,7 +586,7 @@ export class TestOpsPlugin implements Plugin {
         } else {
           const launchGitContext = this.#gitFlow.resolve();
 
-          await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext, this.#ci!);
+          await this.#client.createLaunch(this.#launchName, this.#launchTags, launchGitContext);
         }
       }
 

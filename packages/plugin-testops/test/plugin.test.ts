@@ -390,9 +390,7 @@ describe("testops plugin", () => {
 
       await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", [], undefined, {
-        type: "github",
-      });
+      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", [], undefined);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
     });
@@ -419,7 +417,6 @@ describe("testops plugin", () => {
         "Custom Launch",
         fixtures.launchTags,
         undefined,
-        { type: "github" },
       );
     });
 

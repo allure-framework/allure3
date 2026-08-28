@@ -309,7 +309,7 @@ export class TestOpsClient {
     this.#logger.verbose(`CI upload stopped (status: ${status})`);
   }
 
-  async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto, ci?: CiDescriptor) {
+  async createLaunch(launchName: string, launchTags: string[], gitContext?: LaunchGitContextDto) {
     this.#logger.verbose("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
@@ -319,10 +319,6 @@ export class TestOpsClient {
         external: true,
         tags: launchTags.map((tag) => ({ name: tag })),
         ...(gitContext ? { gitContext } : {}),
-        // No job/job-run gets created for a local (non-CI) run, so this is the only place
-        // TestOps learns the results came from the allure3 plugin - shown in the job-runs
-        // section in place of a real job run.
-        ...(ci && isLocalCiDescriptor(ci) ? { reporterType: "allure3", reporterName: "Allure Report" } : {}),
       },
     });
 

@@ -104,7 +104,6 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
-      githubCi,
     );
   });
 
@@ -118,7 +117,6 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
-      githubCi,
     );
   });
 
@@ -140,28 +138,23 @@ describe("Launch git flow", () => {
 
     await startPlugin({ gitFlow: true } as TestOpsPluginOptions);
 
-    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(
-      fixtures.launchName,
-      fixtures.launchTags,
-      {
-        contextType: "branch",
-        repository: {
-          providerType: "github",
-          name: "myorg/myrepo",
-          url: "https://github.com/myorg/myrepo.git",
-        },
-        commit: {
-          hash: commit,
-          url: `https://github.com/myorg/myrepo/commit/${commit}`,
-          lineage: [parent],
-        },
-        branch: {
-          name: "feature",
-          url: "https://github.com/myorg/myrepo/tree/feature",
-        },
+    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(fixtures.launchName, fixtures.launchTags, {
+      contextType: "branch",
+      repository: {
+        providerType: "github",
+        name: "myorg/myrepo",
+        url: "https://github.com/myorg/myrepo.git",
       },
-      ci,
-    );
+      commit: {
+        hash: commit,
+        url: `https://github.com/myorg/myrepo/commit/${commit}`,
+        lineage: [parent],
+      },
+      branch: {
+        name: "feature",
+        url: "https://github.com/myorg/myrepo/tree/feature",
+      },
+    });
   });
 
   it("does not send standalone metadata on branch context", async () => {
@@ -217,7 +210,6 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       expect.any(Object),
-      expect.any(Object),
     );
 
     expect(TestOpsClientMock.prototype.createLaunch.mock.calls[0][2]).toMatchObject({
@@ -255,7 +247,6 @@ describe("Launch git flow", () => {
       fixtures.launchName,
       fixtures.launchTags,
       undefined,
-      ci,
     );
   });
 

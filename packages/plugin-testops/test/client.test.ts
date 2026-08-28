@@ -1005,57 +1005,6 @@ describe("testops http client", () => {
       );
     });
 
-    it("should not tag the launch as an allure3 reporter for a real CI", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/launch") {
-          return Promise.resolve({ data: fixtures.launch });
-        }
-
-        return Promise.resolve({ data: {} });
-      });
-
-      const client = new TestOpsClient({
-        accessToken: fixtures.accessToken,
-        projectId: fixtures.projectId,
-        baseUrl: fixtures.endpoint,
-      });
-
-      await client.createLaunch(fixtures.launchName, fixtures.launchTags, undefined, fixtures.ci);
-
-      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/launch");
-      expect(call?.[1]).not.toHaveProperty("reporterType");
-      expect(call?.[1]).not.toHaveProperty("reporterName");
-    });
-
-    it("should tag the launch as an allure3 reporter for a local (non-CI) run", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
-        if (url === "/api/launch") {
-          return Promise.resolve({ data: fixtures.launch });
-        }
-
-        return Promise.resolve({ data: {} });
-      });
-
-      const client = new TestOpsClient({
-        accessToken: fixtures.accessToken,
-        projectId: fixtures.projectId,
-        baseUrl: fixtures.endpoint,
-      });
-
-      const localCi = { type: "local" } as unknown as CiDescriptor;
-
-      await client.createLaunch(fixtures.launchName, fixtures.launchTags, undefined, localCi);
-
-      expect(AxiosMock.post).toHaveBeenCalledWith(
-        "/api/launch",
-        expect.objectContaining({
-          reporterType: "allure3",
-          reporterName: "Allure Report",
-        }),
-        expect.anything(),
-      );
-    });
-
     it("should include gitContext on /api/launch when provided", async () => {
       const gitContext = {
         contextType: "standalone" as const,
