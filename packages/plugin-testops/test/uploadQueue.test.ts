@@ -55,6 +55,9 @@ describe("UploadQueue", () => {
 
       expect(result).toEqual({ deferred: false, value: "ok" });
       expect(secondTask).toHaveBeenCalledTimes(1);
+      // A later direct success must clear the stale entry the earlier failure left behind,
+      // or flush() at finalization would re-run the stale (superseded) task and re-upload it.
+      expect(queue.pendingNames).toEqual([]);
     });
 
     it("suspends further uploads without hitting the network once a resource-recoverable error survives retries", async () => {

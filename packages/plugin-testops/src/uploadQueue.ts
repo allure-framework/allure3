@@ -42,6 +42,9 @@ export class UploadQueue {
 
     try {
       const value = await withUploadRetry(task, retryOptions);
+      // Clears a stale entry left by an earlier failed call for the same name - otherwise
+      // flush() would re-run it at finalization and re-upload data this call already sent.
+      this.#pending.delete(name);
       return { deferred: false, value };
     } catch (error) {
       if (!shouldRetryUpload(error)) {
