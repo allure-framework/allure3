@@ -188,6 +188,27 @@ export class TestOpsPlugin implements Plugin {
     );
   }
 
+  #retryHooks(label: string) {
+    return {
+      onRetry: async (error: unknown, attempt: number) => {
+        this.#logger.debug(`Retrying ${label} upload (attempt ${attempt}): ${error}`);
+        await this.#reopenLaunchIfClosed(error);
+      },
+      onDeferred: (error?: unknown) => this.#logDeferredUpload(label, error),
+    };
+  }
+
+  #logUploadFailure(label: string, error: unknown) {
+    if (this.#client.isTestOpsClientError(error)) {
+      this.#logger.error(`Failed to upload ${label}: ${error.response.data.message}`);
+      this.#logger.debug(error.response?.data);
+    } else if (error instanceof Error) {
+      this.#logger.error(`Failed to upload ${label}: ${error.message}`);
+    } else {
+      this.#logger.error(`Failed to upload ${label}`);
+    }
+  }
+
   async #uploadQualityGateResults(store: AllureStore) {
     const results = await store.qualityGateResults();
     const uniqueResults = uniqBy(
@@ -222,13 +243,7 @@ export class TestOpsPlugin implements Plugin {
               progressLogger.increment();
             }
           }),
-        {
-          onRetry: async (error, attempt) => {
-            this.#logger.debug(`Retrying quality gate results upload (attempt ${attempt}): ${error}`);
-            await this.#reopenLaunchIfClosed(error);
-          },
-          onDeferred: (error) => this.#logDeferredUpload("quality gate results", error),
-        },
+        this.#retryHooks("quality gate results"),
       );
 
       if (result.deferred) {
@@ -241,14 +256,7 @@ export class TestOpsPlugin implements Plugin {
 
       progressLogger.log(true);
     } catch (error) {
-      if (this.#client.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
-        this.#logger.debug(error.response?.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload quality gate results: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload quality gate results");
-      }
+      this.#logUploadFailure("quality gate results", error);
     } finally {
       progressLogger.cancel?.();
     }
@@ -279,13 +287,7 @@ export class TestOpsPlugin implements Plugin {
               progressLogger.increment();
             }
           }),
-        {
-          onRetry: async (error, attempt) => {
-            this.#logger.debug(`Retrying global errors upload (attempt ${attempt}): ${error}`);
-            await this.#reopenLaunchIfClosed(error);
-          },
-          onDeferred: (error) => this.#logDeferredUpload("global errors", error),
-        },
+        this.#retryHooks("global errors"),
       );
 
       if (result.deferred) {
@@ -302,14 +304,7 @@ export class TestOpsPlugin implements Plugin {
 
       progressLogger.log(true);
     } catch (error) {
-      if (this.#client.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
-        this.#logger.debug(error.response?.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload global errors: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload global errors");
-      }
+      this.#logUploadFailure("global errors", error);
     } finally {
       progressLogger.cancel?.();
     }
@@ -358,13 +353,7 @@ export class TestOpsPlugin implements Plugin {
               }
             },
           }),
-        {
-          onRetry: async (error, attempt) => {
-            this.#logger.debug(`Retrying global attachments upload (attempt ${attempt}): ${error}`);
-            await this.#reopenLaunchIfClosed(error);
-          },
-          onDeferred: (error) => this.#logDeferredUpload("global attachments", error),
-        },
+        this.#retryHooks("global attachments"),
       );
 
       if (result.deferred) {
@@ -381,14 +370,7 @@ export class TestOpsPlugin implements Plugin {
 
       progressLogger.log(true);
     } catch (error) {
-      if (this.#client.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
-        this.#logger.debug(error.response?.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload global attachments: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload global attachments");
-      }
+      this.#logUploadFailure("global attachments", error);
     } finally {
       progressLogger.cancel?.();
     }
@@ -419,10 +401,7 @@ export class TestOpsPlugin implements Plugin {
     try {
       progressLogger.log(true);
 
-      const onRetry = async (error: unknown, attempt: number) => {
-        this.#logger.debug(`Retrying test results upload (attempt ${attempt}): ${error}`);
-        await this.#reopenLaunchIfClosed(error);
-      };
+      const { onRetry, onDeferred } = this.#retryHooks("test results");
 
       const result = await this.#uploadQueue.run(
         "test-results",
@@ -435,7 +414,7 @@ export class TestOpsPlugin implements Plugin {
             onProgress: () => progressLogger.increment(),
             onRetry,
           }),
-        { onRetry, onDeferred: (error) => this.#logDeferredUpload("test results", error) },
+        { onRetry, onDeferred },
       );
 
       if (result.deferred) {
@@ -459,14 +438,7 @@ export class TestOpsPlugin implements Plugin {
 
       this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
     } catch (error) {
-      if (this.#client.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload test results: ${error.response.data.message}`);
-        this.#logger.debug(error.response?.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload test results: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload test results");
-      }
+      this.#logUploadFailure("test results", error);
     } finally {
       progressLogger.cancel?.();
     }
