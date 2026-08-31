@@ -15,7 +15,6 @@ import type {
   CategoryDefinition,
   CiDescriptor,
   HistoryDataPoint,
-  KnownTestFailure,
   TestResult,
 } from "@allurereport/core-api";
 import { normalizeCategoriesConfig } from "@allurereport/core-api";
@@ -49,9 +48,9 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
-import { writeKnownIssues } from "./known.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
+import { writeKnownIssues } from "./resolutions.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
@@ -120,7 +119,7 @@ export class AllureReport {
   readonly #categories: CategoryDefinition[];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
-  readonly #knownIssuesPath: FullConfig["knownIssuesPath"];
+  readonly #knownIssuesPath: string | undefined;
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -142,9 +141,7 @@ export class AllureReport {
       name,
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
-      known,
-      knownIssues,
-      knownIssuesPath,
+      resolutions,
       reportFiles,
       realTime,
       historyPath,
@@ -192,7 +189,7 @@ export class AllureReport {
     this.#environments = environments ?? {};
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
-    this.#knownIssuesPath = knownIssuesPath;
+    this.#knownIssuesPath = resolutions?.knownIssuesPath;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -219,8 +216,7 @@ export class AllureReport {
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
-      known,
-      knownIssuesConfig: knownIssues,
+      resolutionsConfig: resolutions,
       defaultLabels,
       environment,
       allowedEnvironments,
@@ -483,19 +479,8 @@ export class AllureReport {
     }
   };
 
-  validate = async (params: {
-    trs: TestResult[];
-    knownIssues: KnownTestFailure[];
-    state?: QualityGateState;
-    environment?: string;
-  }) => {
-    const { trs, knownIssues, state, environment } = params;
-    const currentKnownIssues = await this.#store.allKnownIssues();
-    const effectiveKnownIssues = new Map<string, KnownTestFailure>();
-
-    [...knownIssues, ...currentKnownIssues].forEach((issue) => {
-      effectiveKnownIssues.set(issue.historyId, issue);
-    });
+  validate = async (params: { trs: TestResult[]; state?: QualityGateState; environment?: string }) => {
+    const { trs, state, environment } = params;
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -505,7 +490,6 @@ export class AllureReport {
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
-      knownIssues: [...effectiveKnownIssues.values()],
       state,
       environment: qualityGateEnvironment,
     });
@@ -638,9 +622,10 @@ export class AllureReport {
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
+      indexTestResultByResolutionIssue = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      knownIssues = {},
+      resolutionIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
@@ -651,12 +636,13 @@ export class AllureReport {
       [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
-      [AllureStoreDumpFiles.KnownIssues, knownIssues],
+      [AllureStoreDumpFiles.ResolutionIssues, resolutionIssues],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
       [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
+      [AllureStoreDumpFiles.IndexTestResultsByResolutionIssue, indexTestResultByResolutionIssue],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
@@ -818,13 +804,16 @@ export class AllureReport {
               const indexTestResultsByTestCaseEntry = await requiredEntryData(
                 AllureStoreDumpFiles.IndexTestResultsByTestCase,
               );
+              const indexTestResultsByResolutionIssueEntry = await optionalEntryData(
+                AllureStoreDumpFiles.IndexTestResultsByResolutionIssue,
+              );
               const indexAttachmentsByFixtureEntry = await requiredEntryData(
                 AllureStoreDumpFiles.IndexAttachmentsByFixture,
               );
               const indexFixturesByTestResultEntry = await requiredEntryData(
                 AllureStoreDumpFiles.IndexFixturesByTestResult,
               );
-              const knownIssuesEntry = await requiredEntryData(AllureStoreDumpFiles.KnownIssues);
+              const resolutionIssuesEntry = await optionalEntryData(AllureStoreDumpFiles.ResolutionIssues);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
@@ -838,12 +827,13 @@ export class AllureReport {
                   case AllureStoreDumpFiles.Fixtures:
                   case AllureStoreDumpFiles.Environments:
                   case AllureStoreDumpFiles.ReportVariables:
-                  case AllureStoreDumpFiles.KnownIssues:
+                  case AllureStoreDumpFiles.ResolutionIssues:
                   case AllureStoreDumpFiles.GlobalAttachments:
                   case AllureStoreDumpFiles.GlobalErrors:
                   case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
                   case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
                   case AllureStoreDumpFiles.IndexTestResultsByTestCase:
+                  case AllureStoreDumpFiles.IndexTestResultsByResolutionIssue:
                   case AllureStoreDumpFiles.IndexAttachmentsByFixture:
                   case AllureStoreDumpFiles.IndexFixturesByTestResult:
                   case AllureStoreDumpFiles.QualityGateResults:
@@ -872,9 +862,12 @@ export class AllureReport {
                 indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
                 indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
                 indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
+                indexTestResultByResolutionIssue: indexTestResultsByResolutionIssueEntry
+                  ? JSON.parse(indexTestResultsByResolutionIssueEntry.toString("utf8"))
+                  : {},
                 indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
                 indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-                knownIssues: JSON.parse(knownIssuesEntry.toString("utf8")),
+                resolutionIssues: resolutionIssuesEntry ? JSON.parse(resolutionIssuesEntry.toString("utf8")) : {},
                 qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))

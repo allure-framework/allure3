@@ -75,7 +75,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: "known.json",
+      resolutions: { knownIssuesPath: "known.json" },
     });
   });
 
@@ -124,7 +124,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -151,7 +151,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -177,7 +177,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -215,7 +215,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -250,7 +250,7 @@ describe("generate command", () => {
       port: "10201",
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -305,7 +305,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: ["baz", "qux"],
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({

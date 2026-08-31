@@ -82,6 +82,12 @@ vi.mock("@/stores/treeFilters/actions", () => ({ fetchTreeFiltersData: fetchTree
 vi.mock("@/stores/treeFilters/utils", () => ({ migrateFilterParam: migrateFilterParamMock }));
 
 // Stubs for the UI rendered by the App — only the loader and the data fetching effects matter here.
+// Keep the shared UI bundle out of the timed app import; the real loader shell stays in App.
+vi.mock("@allurereport/web-components", () => ({
+  Spinner: () => null,
+  SvgIcon: () => null,
+  allureIcons: { reportLogo: "report-logo" },
+}));
 vi.mock("@/components/Footer", () => ({ Footer: () => null }));
 vi.mock("@/components/Header", () => ({ Header: () => null }));
 vi.mock("@/components/HotkeysProvider", () => ({ HotkeysProvider: () => null }));

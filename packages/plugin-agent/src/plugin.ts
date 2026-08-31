@@ -1895,7 +1895,7 @@ const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
     `- Started: ${formatTimestamp(tr.start)}`,
     `- Stopped: ${formatTimestamp(tr.stop)}`,
     `- Flaky: ${String(tr.flaky)}`,
-    `- Known: ${String(tr.known)}`,
+    `- Resolution: ${tr.resolution ?? "none"}`,
     `- Muted: ${String(tr.muted)}`,
     `- Retries in This Run: ${Math.max(attempts.length - 1, 0)}`,
   ];

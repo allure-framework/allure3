@@ -8,8 +8,7 @@ export const maxFailuresRule: QualityGateRule<number> = {
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? 0;
-    const unknown = trs.filter((tr) => !tr.known);
-    const failedTrs = unknown.filter(filterUnsuccessful);
+    const failedTrs = trs.filter(filterUnsuccessful);
     const testResults = failedTrs.map((tr) => tr.id);
     const actual = previous + failedTrs.length;
 
@@ -40,25 +39,20 @@ export const minTestsCountRule: QualityGateRule<number> = {
   },
 };
 
-export const successRateRule: QualityGateRule<
-  number,
-  { totalCount: number; unknownCount: number; passedCount: number }
-> = {
+export const successRateRule: QualityGateRule<number, { totalCount: number; passedCount: number }> = {
   rule: "successRate",
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
-    const previous = state.getResult() ?? { totalCount: 0, unknownCount: 0, passedCount: 0 };
-    const unknown = trs.filter((tr) => !tr.known);
-    const passedTrs = unknown.filter(filterSuccessful);
-    const notPassedTrs = unknown.filter((tr) => !filterSuccessful(tr));
+    const previous = state.getResult() ?? { totalCount: 0, passedCount: 0 };
+    const passedTrs = trs.filter(filterSuccessful);
+    const notPassedTrs = trs.filter((tr) => !filterSuccessful(tr));
     const totalCount = previous.totalCount + trs.length;
-    const unknownCount = previous.unknownCount + unknown.length;
     const passedCount = previous.passedCount + passedTrs.length;
     const testResults = notPassedTrs.map((tr) => tr.id);
-    const rate = totalCount === 0 ? 0 : unknownCount === 0 ? 1 : passedCount / unknownCount;
+    const rate = totalCount === 0 ? 0 : passedCount / totalCount;
 
-    state.setResult({ totalCount, unknownCount, passedCount }, testResults);
+    state.setResult({ totalCount, passedCount }, testResults);
 
     return {
       success: rate >= expected,

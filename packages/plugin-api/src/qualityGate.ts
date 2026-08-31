@@ -1,4 +1,4 @@
-import type { KnownTestFailure, TestResult } from "@allurereport/core-api";
+import type { TestResult } from "@allurereport/core-api";
 
 export type QualityGateValidationResult = {
   success: boolean;
@@ -36,7 +36,6 @@ export type QualityGateRule<T = any, K = T> = {
   validate: (payload: {
     expected: T;
     trs: TestResult[];
-    knownIssues: KnownTestFailure[];
     state: QualityGateRuleState<K>;
     environment?: string;
   }) => Promise<QualityGateRuleResult>;

@@ -36,6 +36,18 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
+  it("keeps identifiers used by test result copy actions", () => {
+    const result = convertTestResult(
+      createTestResult({
+        retryHash: "retry-hash",
+        testCase: { id: "test-case-id", name: "name" },
+      }),
+    );
+
+    expect(result.testCase?.id).toBe("test-case-id");
+    expect(result.retryHash).toBe("retry-hash");
+  });
+
   it("converts markdown description to html when descriptionHtml is missing", () => {
     const result = convertTestResult(createTestResult({ description: "**bold** text" }));
 

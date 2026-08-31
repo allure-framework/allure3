@@ -240,14 +240,13 @@ describe("report", () => {
       {
         name: "Allure Report",
         output: join(cwd, "out"),
-        knownIssues: {
+        resolutions: {
+          links: { jira: { urlTemplate: "https://example.org/%s" } },
           rules: [
             {
-              testCaseId: md5("tc-1"),
-              decision: {
-                reason: "tracked defect",
-                links: [{ type: "issue", url: "https://example.org/issue-1" }],
-              },
+              resolution: "issue",
+              issue: { id: "issue-1", type: "jira" },
+              testCaseId: [md5("tc-1")],
             },
           ],
         },
@@ -270,13 +269,17 @@ describe("report", () => {
     const content = await readFile(join(cwd, "known-issues.json"), "utf-8");
 
     expect(content.endsWith("\n")).toBe(true);
-    expect(JSON.parse(content)).toEqual([
-      {
-        error: {},
-        historyId: expect.any(String),
-        links: [{ type: "issue", url: "https://example.org/issue-1" }],
-        reason: "tracked defect",
-      },
+    const parsed = JSON.parse(content);
+    expect(parsed).toMatchObject({
+      resolutionIssues: [
+        {
+          id: "issue-1",
+          type: "jira",
+        },
+      ],
+    });
+    expect(Object.values(parsed.resolutionIssues[0].testResults)).toEqual([
+      expect.objectContaining({ name: "failed test", status: "failed" }),
     ]);
   });
 
@@ -1061,7 +1064,6 @@ describe("report", () => {
           status: "failed",
         } as TestResult,
       ],
-      knownIssues: [],
       environment: config.environment,
     });
 

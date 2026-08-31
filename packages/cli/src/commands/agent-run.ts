@@ -296,12 +296,9 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
       realTime: false,
       plugins: [...humanReport.plugins, ...(config.plugins ?? [])],
     });
-    const knownIssues = await allureReport.store.allKnownIssues();
     const resultsPatterns = resolveResultsPatterns(cliResultsPatterns, config.resultsDir);
-
     const { globalExitCode } = await executeAllureRun({
       allureReport,
-      knownIssues,
       cwd,
       command,
       commandArgs,

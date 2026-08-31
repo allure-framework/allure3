@@ -1,7 +1,8 @@
-import { type KnownTestFailure, type TestError, type TestResult } from "@allurereport/core-api";
+import { type TestError, type TestResult } from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
 
+import { isIgnoredFailure } from "../resolutions.js";
 import { qualityGateDefaultRules } from "./rules.js";
 
 /**
@@ -74,14 +75,13 @@ export class QualityGate {
   async validate(payload: {
     state?: QualityGateState;
     trs: TestResult[];
-    knownIssues: KnownTestFailure[];
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, knownIssues, environment } = payload;
+    const { state, trs, environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
 
     for (const tr of trs) {
-      if (tr.isRetry || state?.isTestResultProcessed(tr.id)) {
+      if (tr.isRetry || isIgnoredFailure(tr) || state?.isTestResultProcessed(tr.id)) {
         continue;
       }
 
@@ -129,7 +129,6 @@ export class QualityGate {
             setResult: (value: any, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),
           },
           expected,
-          knownIssues,
           environment,
         });
 

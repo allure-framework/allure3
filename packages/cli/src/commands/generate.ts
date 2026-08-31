@@ -77,7 +77,9 @@ export class GenerateCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file",
+    description:
+      "Path to known issues file. " +
+      "Allure loads the file and updates it every time with the actual resolutions data of type `issue`",
   });
 
   async execute() {
@@ -90,7 +92,7 @@ export class GenerateCommand extends Command {
       port: this.port,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
 
     await generate({
