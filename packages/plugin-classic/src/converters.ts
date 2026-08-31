@@ -33,7 +33,6 @@ export const convertTestResult = (tr: TestResult): ReportTestResult => {
     duration: tr.duration,
     status: tr.status,
     fullName: tr.fullName,
-    historyId: tr.historyId,
     flaky: tr.flaky,
     muted: tr.muted,
     isRetry: tr.isRetry,

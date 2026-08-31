@@ -286,7 +286,7 @@ const createOutputBundle = (overrides: Partial<AgentOutputBundle> = {}): AgentOu
   tests: [
     {
       environment_id: "default",
-      history_id: "history-1",
+      retry_hash: "history-1",
       test_result_id: "tr-1",
       full_name: "suite should pass",
       package: "test.index.test.ts",
@@ -741,7 +741,7 @@ describe("agent enrichment harness", () => {
     });
     const testResult = createTestResult({
       id: "tr-clean",
-      historyId: "clean-history",
+      retryHash: "clean-history",
       fullName: "feature clean run",
       labels: [
         {
@@ -813,6 +813,32 @@ describe("agent enrichment harness", () => {
     expect(bundle.expected).toBeUndefined();
   });
 
+  it("normalizes legacy history_id values when loading existing agent output", async () => {
+    const outputDir = join(tempDir, "legacy-output");
+    const { retry_hash: retryHash, ...test } = createOutputBundle().tests[0];
+
+    await mkdir(join(outputDir, "manifest"), { recursive: true });
+    await writeFile(
+      join(outputDir, "manifest", "run.json"),
+      JSON.stringify({
+        paths: { expected_manifest: null, human_report_manifest: null },
+        expectations_present: false,
+      }),
+      "utf-8",
+    );
+    await writeFile(
+      join(outputDir, "manifest", "tests.jsonl"),
+      `${JSON.stringify({ ...test, history_id: retryHash })}\n`,
+      "utf-8",
+    );
+    await writeFile(join(outputDir, "manifest", "findings.jsonl"), "", "utf-8");
+
+    const bundle = await loadAgentOutput(outputDir);
+
+    expect(bundle.tests[0]).toEqual({ ...test, retry_hash: retryHash });
+    expect(bundle.tests[0]).not.toHaveProperty("history_id");
+  });
+
   it("fails with a recovery hint when the output directory has no run manifest", async () => {
     const outputDir = join(tempDir, "missing-output");
     await mkdir(outputDir, { recursive: true });
@@ -834,7 +860,7 @@ describe("agent enrichment harness", () => {
     const expectationsPath = join(tempDir, "expected-scope.json");
     const matching = createTestResult({
       id: "tr-match",
-      historyId: "feature-a-history",
+      retryHash: "feature-a-history",
       name: "feature A should work",
       fullName: "feature A should work",
       labels: [
@@ -846,7 +872,7 @@ describe("agent enrichment harness", () => {
     });
     const forbidden = createTestResult({
       id: "tr-forbidden",
-      historyId: "feature-b-history",
+      retryHash: "feature-b-history",
       name: "feature B should not run",
       fullName: "feature B should not run",
       labels: [
@@ -908,7 +934,7 @@ describe("agent enrichment harness", () => {
     // fix it produced both a forbidden finding and a spurious expected-label metadata mismatch.
     const forbidden = createTestResult({
       id: "tr-forbidden-meta",
-      historyId: "forbidden-meta-history",
+      retryHash: "forbidden-meta-history",
       name: "feature checkout should not run",
       fullName: "feature checkout should not run",
       labels: [{ name: "feature", value: "legacy" }],

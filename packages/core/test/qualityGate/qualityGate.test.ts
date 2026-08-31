@@ -10,12 +10,12 @@ import {
   stringifyQualityGateResults,
 } from "../../src/qualityGate/qualityGate.js";
 
-const createTestResult = (id: string, status: TestStatus, historyId?: string, isRetry = false) =>
+const createTestResult = (id: string, status: TestStatus, retryHash?: string, isRetry = false) =>
   ({
     id,
     name: `Test ${id}`,
     status,
-    historyId,
+    retryHash,
     isRetry,
   }) as TestResult;
 const createValidationResult = (

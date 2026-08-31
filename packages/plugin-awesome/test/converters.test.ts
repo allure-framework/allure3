@@ -19,7 +19,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
     duration: 1,
     flaky: false,
     muted: false,
-    known: false,
+    parametersHash: "parameters-hash",
     isRetry: false,
     labels: [],
     parameters: [],
@@ -46,6 +46,7 @@ describe("convertTestResult", () => {
 
     expect(result.testCase?.id).toBe("test-case-id");
     expect(result.retryHash).toBe("retry-hash");
+    expect(result).not.toHaveProperty("historyId");
   });
 
   it("converts markdown description to html when descriptionHtml is missing", () => {

@@ -162,7 +162,7 @@ const createTestResult = (overrides: Partial<TestResult> & { status?: TestStatus
 };
 
 const createHistoryTestResult = (
-  overrides: Partial<HistoryTestResult> & { status: TestStatus; historyId: string },
+  overrides: Partial<HistoryTestResult> & { status: TestStatus; retryHash: string },
 ): HistoryTestResult => ({
   id: "tr-1",
   name: "Test",
@@ -216,21 +216,21 @@ describe("generateStabilityDistributionChart", () => {
   });
 
   it("should group by feature label and compute average stability rate", () => {
-    const historyId = "hid-1";
+    const retryHash = "hid-1";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "passed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "passed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-2",
           timestamp: 2000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
       ],
@@ -238,7 +238,7 @@ describe("generateStabilityDistributionChart", () => {
         createTestResult({
           id: "tr-1",
           status: "passed",
-          historyId,
+          retryHash,
           labels: [{ name: "feature", value: "Auth" }],
         }),
       ],
@@ -298,8 +298,8 @@ describe("generateStabilityDistributionChart", () => {
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            h1: createHistoryTestResult({ historyId: "h1", status: "passed" }),
-            h2: createHistoryTestResult({ historyId: "h2", status: "passed" }),
+            h1: createHistoryTestResult({ retryHash: "h1", status: "passed" }),
+            h2: createHistoryTestResult({ retryHash: "h2", status: "passed" }),
           },
         }),
       ],
@@ -307,13 +307,13 @@ describe("generateStabilityDistributionChart", () => {
         createTestResult({
           id: "tr-1",
           status: "passed",
-          historyId: "h1",
+          retryHash: "h1",
           labels: [{ name: "feature", value: "Auth" }],
         }),
         createTestResult({
           id: "tr-2",
           status: "passed",
-          historyId: "h2",
+          retryHash: "h2",
           labels: [{ name: "feature", value: "Billing" }],
         }),
       ],
@@ -336,7 +336,7 @@ describe("generateStabilityDistributionChart", () => {
   });
 
   it("should average stability scores per group (Example 6-like scenario)", () => {
-    const historyId = "hid-1";
+    const retryHash = "hid-1";
     const statuses: TestStatus[] = [
       "passed",
       "broken",
@@ -355,7 +355,7 @@ describe("generateStabilityDistributionChart", () => {
           uuid: `run-${i}`,
           timestamp: 1000 + i,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status }),
+            [retryHash]: createHistoryTestResult({ retryHash, status }),
           },
         }),
       ),
@@ -363,7 +363,7 @@ describe("generateStabilityDistributionChart", () => {
         createTestResult({
           id: "tr-1",
           status: statuses[statuses.length - 1],
-          historyId,
+          retryHash,
           labels: [{ name: "feature", value: "Flaky" }],
         }),
       ],
@@ -381,7 +381,7 @@ describe("generateStabilityDistributionChart", () => {
   });
 
   it("should use only the most recent contiguous history block when test is absent in a point", () => {
-    const historyId = "hid-1";
+    const retryHash = "hid-1";
     // Point 1: test passed; Point 2: test absent (gap); Point 3: test failed; Current: passed.
     // With contiguous block we only use [failed, passed] → one transition → Rule 4 → score 1.
     const storeData = createStoreData({
@@ -390,7 +390,7 @@ describe("generateStabilityDistributionChart", () => {
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "passed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "passed" }),
           },
         }),
         createHistoryDataPoint({
@@ -402,7 +402,7 @@ describe("generateStabilityDistributionChart", () => {
           uuid: "run-3",
           timestamp: 3000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
       ],
@@ -410,7 +410,7 @@ describe("generateStabilityDistributionChart", () => {
         createTestResult({
           id: "tr-1",
           status: "passed",
-          historyId,
+          retryHash,
           labels: [{ name: "feature", value: "Auth" }],
         }),
       ],
