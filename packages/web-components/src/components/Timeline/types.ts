@@ -2,7 +2,7 @@ import type { TestResult } from "@allurereport/core-api";
 
 export type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "flaky" | "isRetry" | "environment" | "start" | "duration" | "historyId"
+  "id" | "name" | "status" | "flaky" | "isRetry" | "environment" | "start" | "duration" | "retryHash"
 > & {
   host: string;
   thread: string;

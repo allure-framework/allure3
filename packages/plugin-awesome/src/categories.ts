@@ -163,11 +163,12 @@ const buildGroupLevels = (
   const groupEnvironments = computeGroupEnvironments(category, environmentCount, isSingleEnvironmentSelected);
 
   if (groupEnvironments) {
-    const testKeyValue = testResult.historyId ?? testResult.id;
+    const testKeyValue = testResult.retryHash ?? testResult.id;
     const testDisplayName = testResult.name ?? testKeyValue;
+
     levels.push({
       type: "history",
-      key: "historyId",
+      key: "retryHash",
       value: testKeyValue,
       name: testDisplayName,
     });
@@ -261,14 +262,15 @@ export const generateCategories = async (
 
     for (const level of levels) {
       const levelId = `${level.type}:${md5(`${parentId}\n${level.key}\n${level.value}`)}`;
-      const historyId = level.type === "history" ? level.value : undefined;
+      const retryHash = level.type === "history" ? level.value : undefined;
+
       duplicateChecker({
         id: levelId,
         type: level.type,
         name: level.name,
         key: level.key,
         value: level.value,
-        historyId,
+        retryHash,
         statistic: emptyStat(),
         childrenIds: [],
       });

@@ -278,9 +278,9 @@ describe("report", () => {
         },
       ],
     });
-    expect(Object.values(parsed.resolutionIssues[0].testResults)).toEqual([
-      expect.objectContaining({ name: "failed test", status: "failed" }),
-    ]);
+    expect(parsed.resolutionIssues[0].testResults).toEqual({
+      [`${md5("tc-1")}.${md5("")}`]: expect.objectContaining({ name: "failed test", status: "failed" }),
+    });
   });
 
   it("should skip readers whose matcher rejects the result file", async () => {

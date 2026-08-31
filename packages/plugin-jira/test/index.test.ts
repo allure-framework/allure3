@@ -47,7 +47,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     id: "test-1",
     name: "Test 1",
     status: "passed",
-    historyId: "hist-1",
+    retryHash: "hist-1",
     stop: Date.now(),
     links: [],
     parameters: [],
@@ -151,7 +151,7 @@ describe("JiraPlugin", () => {
     it("should include parameters that have same values across different environments", async () => {
       const testResult1 = createJiraTestResult("Test with same params");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-same";
+      testResult1.retryHash = "hist-same";
       testResult1.environment = "dev";
       testResult1.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -160,7 +160,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Test with same params");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-same";
+      testResult2.retryHash = "hist-same";
       testResult2.environment = "prod";
       testResult2.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -203,7 +203,7 @@ describe("JiraPlugin", () => {
     it("should exclude parameters that have different values across environments", async () => {
       const testResult1 = createJiraTestResult("Test with different params");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-diff";
+      testResult1.retryHash = "hist-diff";
       testResult1.environment = "dev";
       testResult1.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -212,7 +212,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Test with different params");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-diff";
+      testResult2.retryHash = "hist-diff";
       testResult2.environment = "prod";
       testResult2.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -286,7 +286,7 @@ describe("JiraPlugin", () => {
     it("should handle multiple test entries with mixed parameter scenarios", async () => {
       const testResult1 = createJiraTestResult("Complex test");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-complex";
+      testResult1.retryHash = "hist-complex";
       testResult1.environment = "env1";
       testResult1.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -296,7 +296,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Complex test");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-complex";
+      testResult2.retryHash = "hist-complex";
       testResult2.environment = "env2";
       testResult2.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -306,7 +306,7 @@ describe("JiraPlugin", () => {
 
       const testResult3 = createJiraTestResult("Complex test");
       testResult3.id = "test-3";
-      testResult3.historyId = "hist-complex";
+      testResult3.retryHash = "hist-complex";
       testResult3.environment = "env3";
       testResult3.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -389,7 +389,7 @@ describe("JiraPlugin", () => {
           id: "test-2",
           name: "Test without Jira link",
           status: "failed",
-          historyId: "hist-2",
+          retryHash: "hist-2",
           links: [
             {
               name: "GitHub Issue",
@@ -401,7 +401,7 @@ describe("JiraPlugin", () => {
         createTestResult({
           id: "test-3",
           name: "Test with invalid Jira URL",
-          historyId: "hist-3",
+          retryHash: "hist-3",
           links: [
             {
               name: "Invalid Jira",

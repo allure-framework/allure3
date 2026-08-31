@@ -200,7 +200,6 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     uid: test.id,
     name: test.name,
     fullName: test.fullName,
-    historyId: test.historyId,
     testId: test.testCase?.id,
     time: {
       start: test.start,

@@ -15,7 +15,7 @@ import {
 const createTestResult = (
   id: string,
   status: TestStatus,
-  historyId?: string,
+  retryHash?: string,
   duration?: number,
   environment?: string,
   labels: TestResult["labels"] = [],
@@ -24,7 +24,7 @@ const createTestResult = (
   ({
     id,
     name: `Test ${id}`,
-    historyId,
+    retryHash,
     status,
     duration,
     environment,

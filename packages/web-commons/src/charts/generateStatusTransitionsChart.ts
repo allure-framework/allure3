@@ -108,7 +108,7 @@ export const generateStatusTransitionsChart = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
+          acc[testResult.retryHash ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,

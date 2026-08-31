@@ -666,7 +666,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
       links: [],
       steps: [],
       sourceMetadata: { readerId: "system", metadata: {} },
-      testCase: { id: testCaseId },
+      testCase: { id: testCaseId, externalId: testCaseId },
     });
     const firstAttempt = makeTr("yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy", "failed", "tc-shared");
     const secondAttempt = makeTr("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "passed", "tc-shared");

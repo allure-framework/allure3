@@ -1,19 +1,12 @@
-import { createHash } from "node:crypto";
-
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { fallbackTestCaseIdLabelName, type HistoryDataPoint, type TestParameter } from "../../src/index.js";
+import type { HistoryDataPoint } from "../../src/index.js";
 import {
-  getFallbackHistoryId,
-  getHistoryIdCandidates,
   normalizeHistoryDataPoint,
   normalizeHistoryDataPointUrls,
   selectHistoryTestResults,
-  stringifyHistoryParams,
 } from "../../src/utils/history.js";
-
-const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
 beforeEach(async () => {
   await epic("coverage");
@@ -23,57 +16,6 @@ beforeEach(async () => {
 });
 
 describe("history utils", () => {
-  it("should sort and exclude parameters in stringifyHistoryParams", () => {
-    const parameters: TestParameter[] = [
-      { name: "b", value: "2" },
-      { name: "a", value: "1" },
-      { name: "c", value: "3", excluded: true },
-    ];
-
-    expect(stringifyHistoryParams(parameters)).toBe("a:1,b:2");
-  });
-
-  it("should build fallback history id from label and params", () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = getFallbackHistoryId({
-      labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      parameters: [
-        { name: "z", value: "9" },
-        { name: "a", value: "1" },
-      ],
-    });
-
-    expect(fallbackHistoryId).toBe(`${fallbackTestCaseId}.${md5("a:1,z:9")}`);
-  });
-
-  it("should return primary and fallback history ids in order", () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const primaryHistoryId = "primary-history-id";
-
-    expect(
-      getHistoryIdCandidates({
-        historyId: primaryHistoryId,
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      }),
-    ).toEqual([primaryHistoryId, `${fallbackTestCaseId}.${md5("")}`]);
-  });
-
-  it("should deduplicate equal history id candidates", () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const equalHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-
-    expect(
-      getHistoryIdCandidates({
-        historyId: equalHistoryId,
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      }),
-    ).toEqual([equalHistoryId]);
-  });
-
-  it("should return empty array when both history id candidates are missing", () => {
-    expect(getHistoryIdCandidates({})).toEqual([]);
-  });
-
   it("should select the first matching history candidate for each datapoint", () => {
     const primaryHistoryResult = { id: "primary", name: "primary", status: "passed", url: "https://primary" };
     const fallbackHistoryResult = { id: "fallback", name: "fallback", status: "failed", url: "https://fallback" };
@@ -165,10 +107,34 @@ describe("history utils", () => {
       testResults: {
         primary: {
           ...historyTestResult,
+          retryHash: "primary",
           url: "https://history",
         },
       },
     });
+  });
+
+  it("normalizes legacy history entries to their map retry hash", () => {
+    const normalized = normalizeHistoryDataPoint({
+      uuid: "first",
+      name: "Entry 1",
+      timestamp: 1,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+      testResults: {
+        canonical: {
+          id: "result",
+          name: "test",
+          status: "passed",
+          url: "",
+          historyId: "legacy",
+        } as never,
+      },
+    });
+
+    expect(normalized.testResults.canonical).toMatchObject({ retryHash: "canonical" });
+    expect(normalized.testResults.canonical).not.toHaveProperty("historyId");
   });
 
   it("should normalize missing history fields", () => {
