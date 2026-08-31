@@ -263,15 +263,20 @@ describe("test results", () => {
         links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
         rules: [
           {
-            resolution: "issue",
-            issue: { id: "SHOP-1", type: "jira" },
-            testCaseId: [md5("tc-1")],
-            messageRegexp: "tracked defect",
+            resolution: "accepted",
+            comment: "Accepted risk",
+            testCaseId: [md5("tc-1"), md5("tc-2"), md5("tc-3")],
           },
           {
             resolution: "muted",
             comment: "noise",
-            testCaseId: [md5("tc-2")],
+            testCaseId: [md5("tc-1"), md5("tc-2")],
+          },
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-1")],
+            messageRegexp: "tracked defect",
           },
         ],
       },
@@ -295,6 +300,7 @@ describe("test results", () => {
       { readerId },
     );
     await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-2" }, { readerId });
+    await store.visitTestResult({ name: "accepted by rule", status: "failed", testId: "tc-3" }, { readerId });
 
     const testResults = await store.allTestResults({ includeRetries: true });
     const resolutionIssues = await store.allResolutionIssues();
@@ -304,6 +310,7 @@ describe("test results", () => {
     expect(issueResult.resolution).toBe("issue");
     expect(issueResult.links).toEqual([]);
     expect(testResults.find((tr) => tr.name === "muted by rule")?.resolution).toBe("muted");
+    expect(testResults.find((tr) => tr.name === "accepted by rule")?.resolution).toBe("accepted");
     expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
     expect(blockingFailed).toEqual([issueResult]);
     expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira" }]);

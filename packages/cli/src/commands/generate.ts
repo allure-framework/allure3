@@ -77,7 +77,9 @@ export class GenerateCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file",
+    description:
+      "Path to known issues file. " +
+      "Allure loads the file and updates it every time with the actual resolutions data of type `issue`",
   });
 
   async execute() {

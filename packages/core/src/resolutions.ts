@@ -191,7 +191,18 @@ export const getResolutionByRules = (
     return undefined;
   }
 
-  return config.rules.find((rule) => matches(rule, testResult));
+  // Resolution priority overrides config order; ties keep the first matching rule.
+  for (const resolution of ["issue", "muted", "accepted"] as const) {
+    const rule = config.rules.find(
+      (candidate) => candidate.resolution === resolution && matches(candidate, testResult),
+    );
+
+    if (rule) {
+      return rule;
+    }
+  }
+
+  return undefined;
 };
 
 export const isIgnoredFailure = (testResult: TestResult): boolean =>
