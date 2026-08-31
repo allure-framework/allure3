@@ -99,6 +99,18 @@ const metricRuleResult = (success: boolean, actual: MetricRuleConfig) => ({
   testResults: [],
 });
 
+const metricDeltaWithinThreshold = (delta: number, threshold: number, better?: MetricSample["better"]): boolean => {
+  if (better === "lower") {
+    return delta <= threshold;
+  }
+
+  if (better === "higher") {
+    return -delta <= threshold;
+  }
+
+  return Math.abs(delta) <= threshold;
+};
+
 export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
@@ -272,8 +284,9 @@ export const metricMaxDeltaRule: QualityGateRule<MetricRuleConfig> = {
 
     const value = current - previous;
     const actual = metricActual(metrics, expected.key, value);
+    const better = metrics.find((metric) => metric.key === expected.key)?.better;
 
-    return metricRuleResult(Math.abs(value) <= expected.value, actual);
+    return metricRuleResult(metricDeltaWithinThreshold(value, expected.value, better), actual);
   },
 };
 
@@ -296,9 +309,10 @@ export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
 
     const value = previous !== 0 ? ((current - previous) / Math.abs(previous)) * 100 : Number.NaN;
     const actual = metricActual(metrics, expected.key, value);
+    const better = metrics.find((metric) => metric.key === expected.key)?.better;
 
     return Number.isFinite(value)
-      ? metricRuleResult(Math.abs(value) <= expected.value, actual)
+      ? metricRuleResult(metricDeltaWithinThreshold(value, expected.value, better), actual)
       : missingMetricResult(actual);
   },
 };

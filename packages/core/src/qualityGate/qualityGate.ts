@@ -1,8 +1,4 @@
-import {
-  type MetricSample,
-  type TestError,
-  type TestResult,
-} from "@allurereport/core-api";
+import { type MetricSample, type TestError, type TestResult } from "@allurereport/core-api";
 import type {
   QualityGateConfig,
   QualityGateMetricHistoryPoint,

@@ -522,11 +522,7 @@ export class AllureReport {
     }
   };
 
-  validate = async (params: {
-    trs: TestResult[];
-    state?: QualityGateState;
-    environment?: string;
-  }) => {
+  validate = async (params: { trs: TestResult[]; state?: QualityGateState; environment?: string }) => {
     const { trs, state, environment } = params;
     const qualityGateEnvironment =
       environment === undefined

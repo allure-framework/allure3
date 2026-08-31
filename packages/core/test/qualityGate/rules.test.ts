@@ -626,6 +626,95 @@ describe("metric quality gate rules", () => {
     });
   });
 
+  it.each([
+    {
+      name: "lower improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+    {
+      name: "lower improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+  ])("should evaluate $name", async ({ rule, better, current, success, actual }) => {
+    await expect(
+      rule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: current, start: 0, stop: 1, better }],
+        previousHistory: [
+          {
+            uuid: "previous",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success,
+      actual: {
+        key: "bundle.size",
+        value: actual,
+      },
+      testResults: [],
+    });
+  });
+
   it("should fail when the percent delta exceeds the configured threshold", async () => {
     await expect(
       metricMaxDeltaPercentRule.validate({
