@@ -1,13 +1,12 @@
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { highlightAllUnder } from "prismjs";
 import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
-import { trCurrentTab } from "@/stores/testResult";
 import { testResultNavStore } from "@/stores/testResults";
+import { getTestResultTabForTestResultId } from "@/stores/testResultTabs";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
@@ -36,7 +35,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
         icon={icon}
         style="ghost"
         data-testid={testId}
-        onClick={() => navigateToTestResult({ testResultId: trId, tab: trCurrentTab.value })}
+        onClick={() => navigateToTestResult({ testResultId: trId, tab: getTestResultTabForTestResultId(trId) })}
       />
     </TooltipWrapper>
   );

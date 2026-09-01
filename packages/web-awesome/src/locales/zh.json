@@ -22,7 +22,8 @@
     "globalAttachments": "全局附件",
     "globalErrors": "全局错误",
     "qualityGates": "质量门",
-    "categories": "分类"
+    "categories": "分类",
+    "resolutionCategories": "Resolution Categories"
   },
   "search": {
     "search": "搜索",
@@ -56,7 +57,18 @@
       "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
       "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果",
       "tags": "显示具有指定标签的测试结果",
-      "categories": "显示具有指定分类的测试结果"
+      "categories": "显示具有指定分类的测试结果",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "没有测试用例结果",
     "no-environments-results": "没有环境信息",
     "no-categories-results": "暂无可用的分类结果",
-    "no-metrics-results": "没有可用指标"
+    "no-metrics-results": "没有可用指标",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "阻断",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
+    "resolutionCategories": "Resolution Categories"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",
@@ -432,7 +446,12 @@
       "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
       "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了",
       "retries": "{{count}} 次重试",
-      "flaky": "多次运行结果不一致"
+      "flaky": "多次运行结果不一致",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "新的",
     "fixed": "已修复",
@@ -511,6 +530,7 @@
       "testTabNext": "下一个测试标签页",
       "testTabPrev": "上一个测试标签页",
       "tabOverview": "概览标签页",
+      "tabResolutionCategories": "Resolution Categories tab",
       "tabHistory": "历史标签页",
       "tabRetries": "重试标签页",
       "tabAttachments": "附件标签页",
@@ -518,7 +538,8 @@
       "toggleLabels": "显示/隐藏标签",
       "toggleParameters": "显示/隐藏参数",
       "toggleLinks": "显示/隐藏链接",
-      "backToTree": "返回树形结构"
+      "backToTree": "返回树形结构",
+      "reportTabResolutionCategories": "Report tab: Resolution categories"
     }
   }
 }

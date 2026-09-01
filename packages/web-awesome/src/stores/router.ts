@@ -56,7 +56,7 @@ export const navigateToSection = (params: { section: SectionRouteName }) => {
   routerNavigateTo({ path: "/:section", params, keepSearchParams: true, replace: false });
 };
 
-const rootTabs = ["categories", "qualityGate", "globalAttachments", "globalErrors"];
+const rootTabs = ["categories", "qualityGate", "globalAttachments", "globalErrors", "resolutionCategories"];
 
 export const rootTabRoute = computed(() =>
   createRoute<{ rootTab: string; testResultId?: string; tab?: string }>(

@@ -22,7 +22,8 @@
     "globalAttachments": "Globala Bilagor",
     "globalErrors": "Globala Fel",
     "qualityGates": "Kvalitetsportar",
-    "categories": "Kategorier"
+    "categories": "Kategorier",
+    "resolutionCategories": "Resolution Categories"
   },
   "search": {
     "search": "Sök",
@@ -56,7 +57,18 @@
       "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
       "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status",
       "tags": "Visa testresultat som har de angivna taggarna",
-      "categories": "Visa testresultat som har de angivna kategorierna"
+      "categories": "Visa testresultat som har de angivna kategorierna",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "Inga testfallresultat",
     "no-environments-results": "Ingen miljöinformation tillgänglig",
     "no-categories-results": "Inga kategoriresultat tillgängliga",
-    "no-metrics-results": "Inga mått tillgängliga"
+    "no-metrics-results": "Inga mått tillgängliga",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blockerare",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
+    "resolutionCategories": "Resolution Categories"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",
@@ -432,7 +446,12 @@
       "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
       "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
       "retries": "{{count}} omkörningar",
-      "flaky": "Inkonsekvent mellan körningar"
+      "flaky": "Inkonsekvent mellan körningar",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Ny",
     "fixed": "Åtgärdad",
@@ -511,6 +530,7 @@
       "testTabNext": "Nästa testflik",
       "testTabPrev": "Föregående testflik",
       "tabOverview": "Flik översikt",
+      "tabResolutionCategories": "Resolution Categories tab",
       "tabHistory": "Flik historik",
       "tabRetries": "Flik omförsök",
       "tabAttachments": "Flik bilagor",
@@ -518,7 +538,8 @@
       "toggleLabels": "Visa/dölj etiketter",
       "toggleParameters": "Visa/dölj parametrar",
       "toggleLinks": "Visa/dölj länkar",
-      "backToTree": "Tillbaka till trädet"
+      "backToTree": "Tillbaka till trädet",
+      "reportTabResolutionCategories": "Report tab: Resolution categories"
     }
   }
 }

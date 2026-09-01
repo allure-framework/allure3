@@ -22,7 +22,8 @@
     "globalAttachments": "전역 첨부파일",
     "globalErrors": "전역 오류",
     "qualityGates": "품질 게이트",
-    "categories": "카테고리"
+    "categories": "카테고리",
+    "resolutionCategories": "Resolution Categories"
   },
   "search": {
     "search": "검색",
@@ -56,7 +57,18 @@
       "regressed": "\"통과\" 또는 \"손상됨\" 상태에서 \"실패\" 상태로 변경된 테스트 결과를 표시합니다",
       "malfunctioned": "\"통과\" 또는 \"실패\" 상태에서 \"손상됨\" 상태로 변경된 테스트 결과를 표시합니다",
       "tags": "지정된 태그가 있는 테스트 결과를 표시합니다",
-      "categories": "지정된 카테고리가 있는 테스트 결과를 표시합니다"
+      "categories": "지정된 카테고리가 있는 테스트 결과를 표시합니다",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "테스트 케이스 결과가 없습니다",
     "no-environments-results": "환경 정보를 사용할 수 없습니다",
     "no-categories-results": "사용 가능한 카테고리가 없습니다",
-    "no-metrics-results": "사용 가능한 메트릭이 없습니다"
+    "no-metrics-results": "사용 가능한 메트릭이 없습니다",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "차단자",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "브라우저가 Playwright Trace Viewer 열기를 차단했습니다.",
     "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})",
+    "resolutionCategories": "Resolution Categories"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",
@@ -432,7 +446,12 @@
       "regressed": "이전에 \"통과\" 또는 \"손상됨\"이었던 테스트가 이제 \"실패\"됨",
       "malfunctioned": "이전에 \"통과\" 또는 \"실패\"였던 테스트가 이제 \"손상됨\"됨",
       "retries": "{{count}}회 재시도",
-      "flaky": "실행마다 결과가 불안정함"
+      "flaky": "실행마다 결과가 불안정함",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "새로운",
     "fixed": "수정됨",
@@ -511,6 +530,7 @@
       "testTabNext": "다음 테스트 탭",
       "testTabPrev": "이전 테스트 탭",
       "tabOverview": "개요 탭",
+      "tabResolutionCategories": "Resolution Categories tab",
       "tabHistory": "기록 탭",
       "tabRetries": "재시도 탭",
       "tabAttachments": "첨부 파일 탭",
@@ -518,7 +538,8 @@
       "toggleLabels": "레이블 표시/숨기기",
       "toggleParameters": "파라미터 표시/숨기기",
       "toggleLinks": "링크 표시/숨기기",
-      "backToTree": "트리로 돌아가기"
+      "backToTree": "트리로 돌아가기",
+      "reportTabResolutionCategories": "Report tab: Resolution categories"
     }
   }
 }

@@ -22,7 +22,8 @@
     "globalAttachments": "Qlobal qoşmalar",
     "globalErrors": "Qlobal xətalar",
     "qualityGates": "Keyfiyyət meyarları",
-    "categories": "Kateqoriyalar"
+    "categories": "Kateqoriyalar",
+    "resolutionCategories": "Resolution Categories"
   },
   "search": {
     "search": "Axtar",
@@ -56,7 +57,18 @@
       "regressed": "Statusu \"uğurlu\" və ya \"sınıq\"dan \"uğursuz\"a dəyişən test nəticələrini göstər",
       "malfunctioned": "Statusu \"uğurlu\" və ya \"uğursuz\"dan \"sınıq\"a dəyişən test nəticələrini göstər",
       "tags": "Göstərilən teqləri olan test nəticələrini göstər",
-      "categories": "Göstərilən kateqoriyaları olan test nəticələrini göstər"
+      "categories": "Göstərilən kateqoriyaları olan test nəticələrini göstər",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "Test halları üzrə nəticə yoxdur",
     "no-environments-results": "Mühitlər haqqında məlumat yoxdur",
     "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur",
-    "no-metrics-results": "Metrik yoxdur"
+    "no-metrics-results": "Metrik yoxdur",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
+    "resolutionCategories": "Resolution Categories"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",
@@ -432,7 +446,12 @@
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
-      "flaky": "İşəsalınmalar arasında qeyri-sabitdir"
+      "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
@@ -511,6 +530,7 @@
       "testTabNext": "Növbəti test nişanı",
       "testTabPrev": "Əvvəlki test nişanı",
       "tabOverview": "İcmal nişanı",
+      "tabResolutionCategories": "Resolution Categories tab",
       "tabHistory": "Tarixçə nişanı",
       "tabRetries": "Yenidən cəhdlər nişanı",
       "tabAttachments": "Əlavələr nişanı",
@@ -518,7 +538,8 @@
       "toggleLabels": "Etiketləri göstər/gizlət",
       "toggleParameters": "Parametrləri göstər/gizlət",
       "toggleLinks": "Bağlantıları göstər/gizlət",
-      "backToTree": "Ağaca qayıt"
+      "backToTree": "Ağaca qayıt",
+      "reportTabResolutionCategories": "Report tab: Resolution categories"
     }
   }
 }

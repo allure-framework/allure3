@@ -22,7 +22,8 @@
     "globalAttachments": "全域附件",
     "globalErrors": "全域錯誤",
     "qualityGates": "品質卡點",
-    "categories": "分類"
+    "categories": "分類",
+    "resolutionCategories": "Resolution Categories"
   },
   "search": {
     "search": "搜尋",
@@ -56,7 +57,18 @@
       "regressed": "顯示從「通過」或「損壞」狀態變為「失敗」狀態的測試結果",
       "malfunctioned": "顯示從「通過」或「失敗」狀態變為「損壞」狀態的測試結果",
       "tags": "顯示具有指定標籤的測試結果",
-      "categories": "顯示具有指定分類的測試結果"
+      "categories": "顯示具有指定分類的測試結果",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "沒有測試案例結果",
     "no-environments-results": "沒有環境資訊",
     "no-categories-results": "暫無可用的分類結果",
-    "no-metrics-results": "沒有可用指標"
+    "no-metrics-results": "沒有可用指標",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "阻礙",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "瀏覽器封鎖了開啟 Playwright Trace Viewer。",
     "pwTracePopupBlockedHint": "請允許彈出視窗後重試。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，結束代碼 {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}，結束代號 {{actual}}（原始 {{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}，結束代號 {{actual}}（原始 {{original}}）",
+    "resolutionCategories": "Resolution Categories"
   },
   "controls": {
     "newTabAttachment": "在新分頁中開啟附件",
@@ -432,7 +446,12 @@
       "regressed": "之前「通過」或「損壞」的測試現在「失敗」了",
       "malfunctioned": "之前「通過」或「失敗」的測試現在「損壞」了",
       "retries": "{{count}} 次重試",
-      "flaky": "多次執行結果不一致"
+      "flaky": "多次執行結果不一致",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "新的",
     "fixed": "已修復",
@@ -511,6 +530,7 @@
       "testTabNext": "下一個測試標籤",
       "testTabPrev": "上一個測試標籤",
       "tabOverview": "概覽標籤",
+      "tabResolutionCategories": "Resolution Categories tab",
       "tabHistory": "歷史標籤",
       "tabRetries": "重試標籤",
       "tabAttachments": "附件標籤",
@@ -518,7 +538,8 @@
       "toggleLabels": "顯示/隱藏標籤",
       "toggleParameters": "顯示/隱藏參數",
       "toggleLinks": "顯示/隱藏連結",
-      "backToTree": "返回樹狀結構"
+      "backToTree": "返回樹狀結構",
+      "reportTabResolutionCategories": "Report tab: Resolution categories"
     }
   }
 }

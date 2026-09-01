@@ -1,4 +1,4 @@
-import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { ReportFetchError, fetchReportJsonData, setParams } from "@allurereport/web-commons";
 
 import { PARAMS } from "./constants";
@@ -33,6 +33,13 @@ export const setRetryFilter = (retry?: boolean) => {
   });
 };
 
+export const setResolutionFilter = (resolution: ResolutionCategory[]) => {
+  setParams({
+    key: PARAMS.RESOLUTION,
+    value: resolution,
+  });
+};
+
 export const setTransitionFilter = (transitions: TestStatusTransition[]) => {
   setParams({
     key: PARAMS.TRANSITION,
@@ -59,6 +66,7 @@ export const clearTreeFilterParams = () => {
     { key: PARAMS.QUERY, value: undefined },
     { key: PARAMS.RETRY, value: undefined },
     { key: PARAMS.FLAKY, value: undefined },
+    { key: PARAMS.RESOLUTION, value: [] },
     { key: PARAMS.TRANSITION, value: [] },
     { key: PARAMS.TAGS, value: [] },
     { key: PARAMS.CATEGORIES, value: [] },

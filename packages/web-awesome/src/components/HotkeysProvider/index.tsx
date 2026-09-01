@@ -194,6 +194,12 @@ const createBindings = (): HotkeyBinding[] => [
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalErrors),
   },
   {
+    id: "report-tab-resolution-categories",
+    scope: "global",
+    key: "6",
+    handler: () => goToReportRootTab(REPORT_ROOT_TAB.ResolutionCategories),
+  },
+  {
     id: "report-tab-next",
     scope: "global",
     key: "Tab",
@@ -452,27 +458,33 @@ const createBindings = (): HotkeyBinding[] => [
     handler: () => goToTestResultTab(TEST_RESULT_TAB.Overview),
   },
   {
-    id: "test-result-tab-history",
+    id: "test-result-tab-resolution-categories",
     scope: "testResult",
     key: "2",
+    handler: () => goToTestResultTab(TEST_RESULT_TAB.ResolutionCategories),
+  },
+  {
+    id: "test-result-tab-history",
+    scope: "testResult",
+    key: "3",
     handler: () => goToTestResultTab(TEST_RESULT_TAB.History),
   },
   {
     id: "test-result-tab-retries",
     scope: "testResult",
-    key: "3",
+    key: "4",
     handler: () => goToTestResultTab(TEST_RESULT_TAB.Retries),
   },
   {
     id: "test-result-tab-attachments",
     scope: "testResult",
-    key: "4",
+    key: "5",
     handler: () => goToTestResultTab(TEST_RESULT_TAB.Attachments),
   },
   {
     id: "test-result-tab-environments",
     scope: "testResult",
-    key: "5",
+    key: "6",
     handler: () => goToTestResultTab(TEST_RESULT_TAB.Environments),
   },
   {

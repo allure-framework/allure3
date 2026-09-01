@@ -9,6 +9,7 @@ import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportMetadata } from "@/components/ReportMetadata";
+import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
 import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
@@ -16,6 +17,7 @@ import { globalsStore } from "@/stores/globals";
 import { focusTreePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
+import { resolutionCategoriesStore } from "@/stores/resolutionCategories";
 import {
   navigateToPlainTestResult,
   navigateToRoot,
@@ -35,6 +37,7 @@ export enum ReportRootTab {
   GlobalAttachments = "globalAttachments",
   GlobalErrors = "globalErrors",
   Categories = "categories",
+  ResolutionCategories = "resolutionCategories",
 }
 
 const viewsByTab = {
@@ -48,6 +51,7 @@ const viewsByTab = {
   [ReportRootTab.GlobalErrors]: () => <ReportGlobalErrors />,
   [ReportRootTab.QualityGate]: () => <ReportQualityGateResults />,
   [ReportRootTab.Categories]: () => <ReportCategories />,
+  [ReportRootTab.ResolutionCategories]: () => <ReportResolutionCategories />,
 };
 
 const MainReportContent = () => {
@@ -65,12 +69,14 @@ const MainReport = () => {
     qualityGate: ReportRootTab.QualityGate,
     globalAttachments: ReportRootTab.GlobalAttachments,
     globalErrors: ReportRootTab.GlobalErrors,
+    resolutionCategories: ReportRootTab.ResolutionCategories,
   };
   const reportTabToRootTab: Partial<Record<ReportRootTab, string>> = {
     [ReportRootTab.Categories]: "categories",
     [ReportRootTab.QualityGate]: "qualityGate",
     [ReportRootTab.GlobalAttachments]: "globalAttachments",
     [ReportRootTab.GlobalErrors]: "globalErrors",
+    [ReportRootTab.ResolutionCategories]: "resolutionCategories",
   };
   const initialTab = rootTabRoute.value.matches
     ? (rootTabToReportTab[rootTabRoute.value.params.rootTab] ?? ReportRootTab.Results)
@@ -133,6 +139,7 @@ const MainReport = () => {
     <div
       className={clsx(styles.content, isSplitMode.value && styles["scroll-inside"])}
       onMouseDown={() => focusTreePane()}
+      role="presentation"
     >
       <div className={styles["main-report-header"]}>
         <ReportHeader />
@@ -207,6 +214,20 @@ const MainReport = () => {
                           />
                         </RootTab>
                       </>
+                    );
+                  }}
+                />
+                <Loadable
+                  source={resolutionCategoriesStore}
+                  renderData={(resolutionCategories) => {
+                    if (!resolutionCategories?.groups.length) {
+                      return null;
+                    }
+
+                    return (
+                      <RootTab id={ReportRootTab.ResolutionCategories}>
+                        {t("resolutionCategories")} <Counter count={resolutionCategories.groups.length} />
+                      </RootTab>
                     );
                   }}
                 />
