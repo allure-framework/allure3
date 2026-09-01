@@ -23,14 +23,27 @@ export const DEFAULT_UPLOAD_RATE_LIMIT: UploadRateLimit = {
 
 const isBudgetEnabled = (budget: RateBudget): boolean => budget.windowMs > 0 && budget.limit > 0;
 
-// oversized batches are charged as one full window so one large batch can still make progress
-// instead of reserving many windows up front
 const scaledWindowCost = (windowMs: number, cost: number, limit: number): number => {
   if (windowMs <= 0 || cost <= 0 || limit <= 0) {
     return 0;
   }
 
   return (windowMs * Math.min(cost, limit)) / limit;
+};
+
+const resolveRateLimit = (rateLimit: UploadRateLimit | false | undefined): UploadRateLimit | undefined => {
+  const rateLimitUnset = rateLimit === undefined;
+  const rateLimitDisabled = rateLimit === false;
+
+  if (rateLimitUnset) {
+    return DEFAULT_UPLOAD_RATE_LIMIT;
+  }
+
+  if (rateLimitDisabled) {
+    return undefined;
+  }
+
+  return rateLimit;
 };
 
 export class UploadPacer {
@@ -40,12 +53,12 @@ export class UploadPacer {
   readonly #now: () => number;
 
   constructor(rateLimit: UploadRateLimit | false | undefined, now: () => number = Date.now) {
-    const resolved = rateLimit === undefined ? DEFAULT_UPLOAD_RATE_LIMIT : rateLimit || undefined;
-    const windowMs = resolved?.windowMs ?? 0;
+    const resolvedRateLimit = resolveRateLimit(rateLimit);
+    const windowMs = resolvedRateLimit?.windowMs ?? 0;
 
-    this.#requests = { limit: resolved?.maxRequestsPerWindow ?? 0, windowMs, next: 0 };
-    this.#files = { limit: resolved?.maxFilesPerWindow ?? 0, windowMs, next: 0 };
-    this.#bytes = { limit: resolved?.maxBytesPerWindow ?? 0, windowMs, next: 0 };
+    this.#requests = { limit: resolvedRateLimit?.maxRequestsPerWindow ?? 0, windowMs, next: 0 };
+    this.#files = { limit: resolvedRateLimit?.maxFilesPerWindow ?? 0, windowMs, next: 0 };
+    this.#bytes = { limit: resolvedRateLimit?.maxBytesPerWindow ?? 0, windowMs, next: 0 };
     this.#now = now;
   }
 
