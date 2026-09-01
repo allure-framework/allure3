@@ -1,0 +1,151 @@
+/* High Contrast — WCAG AAA (≥7:1) for low vision and achromatopsia.
+   Light: dark saturated colors on white. Dark: vivid colors on near-black. */
+
+:root[data-color-scheme="allure-high-contrast-light"],
+:root[data-color-scheme="allure-high-contrast-dark"] {
+  color-scheme: light dark;
+}
+
+:root[data-color-scheme="allure-high-contrast-light"] {
+  --color-bg-canvas: #ffffff;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-raised: #ffffff;
+  --color-bg-neutral: #d0d0d0;
+
+  --color-text-primary: #000000;
+  --color-text-secondary: #1a1a1a;
+  --color-text-muted: #555555;
+  --color-icon-primary: #1a1a1a;
+  --color-icon-secondary: #555555;
+
+  --color-border-subtle: rgba(0, 0, 0, 0.1);
+  --color-border-default: rgba(0, 0, 0, 0.35);
+  --color-border-medium: rgba(0, 0, 0, 0.55);
+  --color-border-control: rgba(0, 0, 0, 0.45);
+  --color-border-strong: #000000;
+
+  --color-status-failed-bg: #b30000;
+  --color-status-failed-bg-subtle: rgba(179, 0, 0, 0.1);
+  --color-status-failed-text: #b30000;
+  --color-status-failed-border: #b30000;
+  --color-status-failed-on-bg: #ffffff;
+  --color-status-failed-chart: #b30000;
+  --color-status-failed-chart-fill: #b30000;
+
+  --color-status-passed-bg: #006600;
+  --color-status-passed-bg-subtle: rgba(0, 102, 0, 0.1);
+  --color-status-passed-text: #006600;
+  --color-status-passed-border: #006600;
+  --color-status-passed-on-bg: #ffffff;
+  --color-status-passed-chart: #006600;
+  --color-status-passed-chart-fill: #006600;
+
+  --color-status-broken-bg: #804000;
+  --color-status-broken-bg-subtle: rgba(128, 64, 0, 0.1);
+  --color-status-broken-text: #804000;
+  --color-status-broken-border: #804000;
+  --color-status-broken-on-bg: #ffffff;
+  --color-status-broken-chart: #804000;
+  --color-status-broken-chart-fill: #804000;
+
+  --color-status-skipped-bg: #505050;
+  --color-status-skipped-bg-subtle: rgba(80, 80, 80, 0.12);
+  --color-status-skipped-text: #404040;
+  --color-status-skipped-border: #707070;
+  --color-status-skipped-on-bg: #ffffff;
+  --color-status-skipped-chart: #606060;
+  --color-status-skipped-chart-fill: #707070;
+
+  --color-intent-danger-bg: #b30000;
+  --color-intent-danger-bg-hover: #990000;
+  --color-intent-danger-bg-active: #800000;
+  --color-intent-danger-bg-subtle: rgba(179, 0, 0, 0.1);
+  --color-intent-danger-bg-subtle-hover: rgba(179, 0, 0, 0.16);
+  --color-intent-danger-bg-subtle-active: rgba(179, 0, 0, 0.22);
+  --color-intent-danger-text: #b30000;
+  --color-intent-danger-border: #b30000;
+  --color-intent-danger-on-bg: #ffffff;
+
+  --color-intent-success-bg: #006600;
+  --color-intent-success-bg-hover: #005200;
+  --color-intent-success-bg-active: #003e00;
+  --color-intent-success-bg-subtle: rgba(0, 102, 0, 0.1);
+  --color-intent-success-bg-subtle-hover: rgba(0, 102, 0, 0.16);
+  --color-intent-success-bg-subtle-active: rgba(0, 102, 0, 0.22);
+  --color-intent-success-text: #006600;
+  --color-intent-success-border: #006600;
+  --color-intent-success-on-bg: #ffffff;
+}
+
+:root[data-color-scheme="allure-high-contrast-dark"] {
+  --color-bg-canvas: #0a0a0a;
+  --color-bg-primary: #111111;
+  --color-bg-secondary: #0a0a0a;
+  --color-bg-raised: #1a1a1a;
+  --color-bg-neutral: #2a2a2a;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e0e0e0;
+  --color-text-muted: #aaaaaa;
+  --color-icon-primary: #e0e0e0;
+  --color-icon-secondary: #aaaaaa;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.12);
+  --color-border-default: rgba(255, 255, 255, 0.35);
+  --color-border-medium: rgba(255, 255, 255, 0.55);
+  --color-border-control: rgba(255, 255, 255, 0.45);
+  --color-border-strong: #ffffff;
+
+  --color-status-failed-bg: #ff5050;
+  --color-status-failed-bg-subtle: rgba(255, 80, 80, 0.18);
+  --color-status-failed-text: #ff5050;
+  --color-status-failed-border: #ff5050;
+  --color-status-failed-on-bg: #000000;
+  --color-status-failed-chart: #ff5050;
+  --color-status-failed-chart-fill: #ff5050;
+
+  --color-status-passed-bg: #60ff80;
+  --color-status-passed-bg-subtle: rgba(96, 255, 128, 0.18);
+  --color-status-passed-text: #60ff80;
+  --color-status-passed-border: #60ff80;
+  --color-status-passed-on-bg: #000000;
+  --color-status-passed-chart: #60ff80;
+  --color-status-passed-chart-fill: #60ff80;
+
+  --color-status-broken-bg: #ffd060;
+  --color-status-broken-bg-subtle: rgba(255, 208, 96, 0.18);
+  --color-status-broken-text: #ffd060;
+  --color-status-broken-border: #ffd060;
+  --color-status-broken-on-bg: #000000;
+  --color-status-broken-chart: #ffd060;
+  --color-status-broken-chart-fill: #ffd060;
+
+  --color-status-skipped-bg: #c0c0c0;
+  --color-status-skipped-bg-subtle: rgba(192, 192, 192, 0.18);
+  --color-status-skipped-text: #d0d0d0;
+  --color-status-skipped-border: #c0c0c0;
+  --color-status-skipped-on-bg: #000000;
+  --color-status-skipped-chart: #c0c0c0;
+  --color-status-skipped-chart-fill: #b0b0b0;
+
+  --color-intent-danger-bg: #ff5050;
+  --color-intent-danger-bg-hover: #ff6060;
+  --color-intent-danger-bg-active: #ff7070;
+  --color-intent-danger-bg-subtle: rgba(255, 80, 80, 0.18);
+  --color-intent-danger-bg-subtle-hover: rgba(255, 80, 80, 0.26);
+  --color-intent-danger-bg-subtle-active: rgba(255, 80, 80, 0.34);
+  --color-intent-danger-text: #ff5050;
+  --color-intent-danger-border: #ff5050;
+  --color-intent-danger-on-bg: #000000;
+
+  --color-intent-success-bg: #60ff80;
+  --color-intent-success-bg-hover: #70ff90;
+  --color-intent-success-bg-active: #80ffa0;
+  --color-intent-success-bg-subtle: rgba(96, 255, 128, 0.18);
+  --color-intent-success-bg-subtle-hover: rgba(96, 255, 128, 0.26);
+  --color-intent-success-bg-subtle-active: rgba(96, 255, 128, 0.34);
+  --color-intent-success-text: #60ff80;
+  --color-intent-success-border: #60ff80;
+  --color-intent-success-on-bg: #000000;
+}
