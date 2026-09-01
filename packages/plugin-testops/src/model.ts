@@ -128,7 +128,6 @@ export type UploadTestResultDto = {
   trace?: string;
   hostId?: string;
   threadId?: string;
-  environment?: string;
   category?: UploadTestResultCategoryDto;
   namedEnv?: UploadTestResultNamedEnvDto;
   steps?: UploadTestResultStepDto[];

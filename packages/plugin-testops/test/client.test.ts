@@ -1005,6 +1005,30 @@ describe("testops http client", () => {
       );
     });
 
+    it("should trim launch names longer than the 255 chars the server accepts", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch("a".repeat(300), []);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch",
+        expect.objectContaining({ name: "a".repeat(255) }),
+        expect.anything(),
+      );
+    });
+
     it("should include gitContext on /api/launch when provided", async () => {
       const gitContext = {
         contextType: "standalone" as const,
@@ -1579,7 +1603,50 @@ describe("testops http client", () => {
         {
           launchId: 777,
           jobRunId: 491277,
-          items: errors,
+          items: [{ message: "Something went wrong", trace: undefined }],
+        },
+        expect.objectContaining({
+          onUploadProgress: expect.any(Function),
+        }),
+      );
+    });
+
+    it("should replace blank error messages so the batch isn't rejected", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadGlobalErrors([
+        { trace: "at foo.ts:1" } as TestError,
+        { message: "   ", trace: "at bar.ts:2" } as TestError,
+        { message: "Something went wrong" } as TestError,
+      ]);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/error/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { message: "Unknown error", trace: "at foo.ts:1" },
+            { message: "Unknown error", trace: "at bar.ts:2" },
+            { message: "Something went wrong", trace: undefined },
+          ],
         },
         expect.objectContaining({
           onUploadProgress: expect.any(Function),
@@ -1745,7 +1812,6 @@ describe("testops http client", () => {
           uuid: "tr-1",
           name: "Test",
           status: "passed",
-          environment: "chrome",
           category: {
             externalId: "123",
             grouping: [{ key: "status", value: "passed", name: "status: passed" }],
@@ -2174,7 +2240,7 @@ describe("testops http client", () => {
       expect(uploadCall).toBeTruthy();
       const uploadBody = uploadCall?.[1] as any;
       expect(uploadBody.testSessionId).toBe(1);
-      expect(uploadBody.results?.[0]?.environment).toBe("chrome");
+      expect(uploadBody.results?.[0]).not.toHaveProperty("environment");
     });
 
     it("should create distinct named environments for different env ids sharing one display name", async () => {
@@ -2256,7 +2322,7 @@ describe("testops http client", () => {
       const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
       expect(uploadCall).toBeTruthy();
       const uploadBody = uploadCall?.[1] as any;
-      expect(uploadBody.results?.[0]?.environment).toBe("qa_a");
+      expect(uploadBody.results?.[0]).not.toHaveProperty("environment");
     });
 
     it("should not create named environments when test results have no environment", async () => {

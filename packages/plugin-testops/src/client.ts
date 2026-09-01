@@ -63,6 +63,8 @@ class TestOpsClientError extends AxiosError<{
   request: ClientRequest;
 }
 
+const UNKNOWN_ERROR_MESSAGE = "Unknown error";
+const MAX_LAUNCH_NAME_LENGTH = 255;
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
 
@@ -313,7 +315,7 @@ export class TestOpsClient {
     this.#logger.verbose("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
-        name: launchName,
+        name: launchName.slice(0, MAX_LAUNCH_NAME_LENGTH),
         projectId: this.#projectId,
         autoclose: true,
         external: true,
@@ -502,7 +504,7 @@ export class TestOpsClient {
       body: {
         launchId,
         ...(this.#session.jobRunId ? { jobRunId: this.#session.jobRunId } : {}),
-        items: errors,
+        items: errors.map(({ message, trace }) => ({ message: message?.trim() || UNKNOWN_ERROR_MESSAGE, trace })),
       },
       onUploadProgress(progressEvent) {
         const total = progressEvent.total ?? 100;
