@@ -67,6 +67,31 @@ const failedStepWithContent = {
   bodyItems: [nestedPassedStep],
 } satisfies TrBodyItem;
 
+const createTopLevelStep = (index: number, status: "passed" | "failed"): TrBodyItem => ({
+  type: "step",
+  item: {
+    stepId: `step-${index}`,
+    name: `${status} step ${index}`,
+    status,
+    parameters: [],
+    message: status === "failed" ? "failed" : "",
+    trace: status === "failed" ? "trace" : "",
+    hasSimilarErrorInSubSteps: false,
+  },
+  suppressInlineError: false,
+  bodyItems: [
+    {
+      type: "attachment",
+      link: {
+        id: `attachment-${index}`,
+        source: `attachment-${index}.png`,
+        name: `attachment ${index}`,
+        contentType: "image/png",
+      },
+    },
+  ],
+});
+
 describe("components > TestResult > TrSteps", () => {
   beforeEach(() => {
     cleanup();
@@ -81,15 +106,15 @@ describe("components > TestResult > TrSteps", () => {
     expect(view.getByTestId("test-result-steps-root")).toBeInTheDocument();
   });
 
-  it("opens top-level passed steps by default even with expand_failed_only", () => {
-    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+  it("collapses top-level passed steps by default with expand_failed_only", () => {
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} />);
 
-    expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
+    expect(view.queryByTestId("test-result-step-content")).not.toBeInTheDocument();
   });
 
   it("collapses top-level steps when policy is collapsed", () => {
     globalThis.allureReportOptions = { stepTreeExpansion: "collapsed" } as any;
-    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} />);
 
     expect(view.queryByTestId("test-result-step-content")).not.toBeInTheDocument();
   });
@@ -100,8 +125,20 @@ describe("components > TestResult > TrSteps", () => {
     expect(view.getByTestId("test-result-step-content")).toBeInTheDocument();
   });
 
+  it("opens only failed top-level steps by default in large flat step lists", () => {
+    const bodyItems = Array.from({ length: 750 }, (_, index) =>
+      createTopLevelStep(index, index % 25 === 0 ? "failed" : "passed"),
+    );
+    const view = render(<TrSteps id="large-test" bodyItems={bodyItems} />);
+
+    expect(view.getAllByTestId("test-result-step")).toHaveLength(750);
+    expect(view.getAllByTestId("test-result-step-content")).toHaveLength(30);
+    expect(view.getAllByTestId("test-result-attachment")).toHaveLength(30);
+  });
+
   it("collapses nested passed steps by default with expand_failed_only", () => {
-    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} isTopLevel={true} />);
+    expandedTrees.value = new Set(["passed-step"]);
+    const view = render(<TrStep item={passedStepWithContent} stepIndex={1} />);
 
     expect(view.queryAllByTestId("test-result-step-content")).toHaveLength(1);
   });

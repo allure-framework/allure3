@@ -114,7 +114,6 @@ beforeEach(async () => {
   const { terminationOf } = await import("../../src/utils/index.js");
 
   AllureReportMock.prototype.store = {
-    allKnownIssues: vi.fn().mockResolvedValue([]),
     blockingFailedTestResults: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
@@ -280,7 +279,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner"],
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -330,7 +329,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: ["owner", "tag"],
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -397,7 +396,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: "known.json",
+      resolutions: { knownIssuesPath: "known.json" },
     });
   });
 
@@ -467,7 +466,6 @@ describe("run command", () => {
       }),
     };
     AllureReportMock.prototype.store = {
-      allKnownIssues: vi.fn().mockResolvedValue([]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue([]),
@@ -481,7 +479,6 @@ describe("run command", () => {
 
     const commandPromise = executeAllureRun({
       allureReport: new AllureReportMock() as never,
-      knownIssues: [],
       cwd: "/cwd",
       command: "npm",
       commandArgs: ["test"],
@@ -518,7 +515,6 @@ describe("run command", () => {
     const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
 
     AllureReportMock.prototype.store = {
-      allKnownIssues: vi.fn().mockResolvedValue([{ historyId: "known-1" }]),
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
       failedTestResults: vi.fn().mockResolvedValue([knownFailure]),
       allTestResults: vi.fn().mockResolvedValue([]),

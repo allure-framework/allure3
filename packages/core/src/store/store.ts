@@ -15,8 +15,8 @@ import {
   type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
-  type KnownIssuesConfig,
-  type KnownTestFailure,
+  type ResolutionIssue,
+  type ResolutionsConfig,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -57,7 +57,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
-import { getKnownIssueByRules } from "../known.js";
+import { getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -129,8 +129,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
-  readonly #knownIssuesConfig: KnownIssuesConfig | undefined;
-  readonly known: Map<string, KnownTestFailure> = new Map<string, KnownTestFailure>();
+  readonly #resolutionsConfig: ResolutionsConfig | undefined;
+  readonly #resolutionIssues: Map<string, ResolutionIssue> = new Map();
+  readonly #testResultIdsByResolutionIssueId: Map<string, Set<string>> = new Map();
+  readonly #resolutionIssueIdByTestResultId: Map<string, string> = new Map();
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
@@ -162,8 +164,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   constructor(params?: {
     history?: AllureHistory;
-    known?: KnownTestFailure[];
-    knownIssuesConfig?: KnownIssuesConfig;
+    resolutionsConfig?: ResolutionsConfig;
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
@@ -174,8 +175,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }) {
     const {
       history,
-      known = [],
-      knownIssuesConfig,
+      resolutionsConfig,
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
@@ -224,9 +224,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
-    this.#knownIssuesConfig = knownIssuesConfig;
-
-    known.forEach((ktf) => this.known.set(ktf.historyId, ktf));
+    this.#resolutionsConfig = resolutionsConfig;
 
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
@@ -300,10 +298,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#addGlobalAttachment(attachmentLink, attachment);
     });
-  }
-
-  #historyIdMatches<T>(historyIdCandidates: string[], indexByHistoryId: ReadonlyMap<string, T>) {
-    return historyIdCandidates.find((historyId) => indexByHistoryId.has(historyId));
   }
 
   #mergeEnvironmentIdentity(
@@ -466,32 +460,53 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentId);
   }
 
-  #setKnownIssue(knownIssue: KnownTestFailure) {
-    this.known.set(knownIssue.historyId, knownIssue);
+  #classifyResolution(testResult: TestResult) {
+    const rule = getResolutionByRules(testResult, this.#resolutionsConfig);
+
+    testResult.resolution = rule?.resolution;
+
+    this.#removeResolutionIssueAssociation(testResult.id);
+
+    if (rule?.resolution !== "issue") {
+      return;
+    }
+
+    const resolutionIssue: ResolutionIssue = { ...rule.issue, comment: rule.comment };
+
+    this.#associateResolutionIssue(resolutionIssue, testResult.id);
   }
 
-  #classifyKnownIssue(testResult: TestResult, environmentId?: string) {
-    if (testResult.status !== "failed" && testResult.status !== "broken") {
-      return false;
+  #associateResolutionIssue(resolutionIssue: ResolutionIssue, testResultId: string) {
+    this.#removeResolutionIssueAssociation(testResultId);
+    this.#resolutionIssues.set(resolutionIssue.id, resolutionIssue);
+
+    const testResultIds = this.#testResultIdsByResolutionIssueId.get(resolutionIssue.id) ?? new Set<string>();
+
+    testResultIds.add(testResultId);
+
+    this.#testResultIdsByResolutionIssueId.set(resolutionIssue.id, testResultIds);
+    this.#resolutionIssueIdByTestResultId.set(testResultId, resolutionIssue.id);
+  }
+
+  #removeResolutionIssueAssociation(testResultId: string) {
+    const resolutionIssueId = this.#resolutionIssueIdByTestResultId.get(testResultId);
+
+    if (!resolutionIssueId) {
+      return;
     }
 
-    const historyIdCandidates = getHistoryIdCandidates(testResult);
+    this.#resolutionIssueIdByTestResultId.delete(testResultId);
 
-    if (historyIdCandidates.length === 0) {
-      return false;
+    const testResultIds = this.#testResultIdsByResolutionIssueId.get(resolutionIssueId);
+
+    testResultIds?.delete(testResultId);
+
+    if (testResultIds?.size) {
+      return;
     }
 
-    const ruleKnownIssue = getKnownIssueByRules(testResult, this.#knownIssuesConfig, environmentId);
-
-    if (ruleKnownIssue) {
-      this.#setKnownIssue(ruleKnownIssue);
-
-      return true;
-    }
-
-    const knownHistoryId = this.#historyIdMatches(historyIdCandidates, this.known);
-
-    return !!knownHistoryId;
+    this.#testResultIdsByResolutionIssueId.delete(resolutionIssueId);
+    this.#resolutionIssues.delete(resolutionIssueId);
   }
 
   #rebuildRetrySubstore() {
@@ -806,7 +821,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testResult.flaky = isFlaky(testResult, trHistory);
     }
 
-    testResult.known = this.#classifyKnownIssue(testResult, environmentIdentity.id);
+    this.#classifyResolution(testResult);
 
     this.#testResults.set(testResult.id, testResult);
     this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
@@ -1060,8 +1075,26 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }, [] as HistoryDataPoint[]);
   }
 
-  async allKnownIssues(): Promise<KnownTestFailure[]> {
-    return [...this.known.values()].flat();
+  async allResolutionIssues(): Promise<ResolutionIssue[]> {
+    return [...this.#resolutionIssues.values()];
+  }
+
+  async resolutionIssueByTestResultId(trId: string): Promise<ResolutionIssue | undefined> {
+    const issueId = this.#resolutionIssueIdByTestResultId.get(trId);
+
+    return issueId ? this.#resolutionIssues.get(issueId) : undefined;
+  }
+
+  async testResultsByResolutionIssueId(resolutionIssueId: string): Promise<TestResult[]> {
+    const testResultIds = this.#testResultIdsByResolutionIssueId.get(resolutionIssueId);
+
+    if (!testResultIds) {
+      return [];
+    }
+
+    return [...testResultIds]
+      .map((testResultId) => this.#testResults.get(testResultId))
+      .filter(Boolean) as TestResult[];
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1285,7 +1318,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async blockingFailedTestResults() {
     const failedTestResults = await this.failedTestResults();
 
-    return failedTestResults.filter((tr) => !tr.known);
+    return failedTestResults.filter((tr) => !isIgnoredFailure(tr));
   }
 
   async unknownFailedTestResults() {
@@ -1510,9 +1543,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
+      indexTestResultByResolutionIssue: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: mapToObject(this.#resolutionIssues),
       qualityGateResults: this.#qualityGateResults,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
@@ -1529,13 +1563,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.indexTestResultByTestCase.forEach((trs, tcId) => {
       storeDump.indexTestResultByTestCase[tcId] = trs.map((tr) => tr.id);
     });
+    this.#testResultIdsByResolutionIssueId.forEach((trIds, resolutionIssueId) => {
+      storeDump.indexTestResultByResolutionIssue[resolutionIssueId] = [...trIds];
+    });
     this.indexFixturesByTestResult.forEach((fixtures, trId) => {
       storeDump.indexFixturesByTestResult[trId] = fixtures.map((f) => f.id);
     });
-    this.known.forEach((known, historyId) => {
-      storeDump.knownIssues[historyId] = known;
-    });
-
     return storeDump;
   }
 
@@ -1553,9 +1586,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
+      indexTestResultByResolutionIssue = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
-      knownIssues = {},
+      resolutionIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
@@ -1626,7 +1660,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
 
     Object.values(testResults).forEach((testResult) => {
-      testResult.known ??= false;
+      this.#removeResolutionIssueAssociation(testResult.id);
       this.#testResults.set(testResult.id, testResult);
       const storedEnvKey = typeof testResult.environment === "string" ? testResult.environment : undefined;
       const envId =
@@ -1647,7 +1681,21 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
-    updateMapWithRecord(this.known, knownIssues);
+    updateMapWithRecord(this.#resolutionIssues, resolutionIssues);
+
+    Object.entries(indexTestResultByResolutionIssue).forEach(([resolutionIssueId, testResultIds]) => {
+      const resolutionIssue = this.#resolutionIssues.get(resolutionIssueId);
+
+      if (!resolutionIssue) {
+        return;
+      }
+
+      testResultIds.forEach((testResultId) => {
+        if (this.#testResults.has(testResultId)) {
+          this.#associateResolutionIssue(resolutionIssue, testResultId);
+        }
+      });
+    });
 
     Object.entries(attachmentsContents).forEach(([id, content]) => {
       this.#restoreAttachmentContent(id, content);
@@ -1770,8 +1818,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
     this.#rebuildRetrySubstore();
 
-    for (const testResult of this.#testResults.values()) {
-      testResult.known = this.#classifyKnownIssue(testResult, this.#environmentIdByTestResult(testResult));
+    if (this.#resolutionsConfig) {
+      this.#resolutionIssues.clear();
+      this.#testResultIdsByResolutionIssueId.clear();
+      this.#resolutionIssueIdByTestResultId.clear();
+
+      for (const testResult of this.#testResults.values()) {
+        this.#classifyResolution(testResult);
+      }
     }
 
     qualityGateResults.forEach((result, index) => {

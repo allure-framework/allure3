@@ -89,7 +89,7 @@ export class QualityGateCommand extends Command {
     const cwd = await realpath(this.cwd ?? processCwd());
     const { maxFailures, minTestsCount, successRate, fastFail } = this;
     const config = await readConfig(cwd, this.config, {
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const rules: Record<string, any> = {};
@@ -143,7 +143,6 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    const knownIssues = await allureReport.store.allKnownIssues();
     const state = new QualityGateState();
 
     allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
@@ -152,7 +151,6 @@ export class QualityGateCommand extends Command {
       const { results, fastFailed } = await allureReport.validate({
         trs: nonRetryTrs,
         environment: resolvedEnvironment?.id,
-        knownIssues,
         state,
       });
 
@@ -177,7 +175,6 @@ export class QualityGateCommand extends Command {
     const allTrs = await allureReport.store.allTestResults({ includeRetries: false });
     const validationResults = await allureReport.validate({
       trs: allTrs,
-      knownIssues,
       environment: resolvedEnvironment?.id,
     });
 

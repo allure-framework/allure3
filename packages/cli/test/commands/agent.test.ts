@@ -207,9 +207,7 @@ beforeEach(async () => {
     generatedAt: "2026-06-10T16:00:00.000Z",
   });
   (readRawConfig as Mock).mockResolvedValue({ plugins: {} });
-  AllureReportMock.prototype.store = {
-    allKnownIssues: vi.fn().mockResolvedValue([]),
-  };
+  AllureReportMock.prototype.store = {};
   (readConfig as Mock).mockResolvedValue({
     output: "./allure-report",
     open: true,

@@ -147,7 +147,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toEqual([]);
@@ -173,7 +172,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -194,12 +192,12 @@ describe("QualityGate", () => {
         createTestResult("1", "passed"),
         createTestResult("2", "failed"),
         createTestResult("3", "broken"),
-        { ...createTestResult("4", "failed"), known: true } as TestResult,
+        { ...createTestResult("4", "failed"), resolution: "muted" } as TestResult,
+        { ...createTestResult("5", "broken"), resolution: "accepted" } as TestResult,
       ];
 
       const { results } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -219,7 +217,6 @@ describe("QualityGate", () => {
 
       const { results } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -234,7 +231,6 @@ describe("QualityGate", () => {
 
       const { results } = await qualityGate.validate({
         trs: [createTestResult("1", "passed")],
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -260,7 +256,6 @@ describe("QualityGate", () => {
 
       const { results } = await qualityGate.validate({
         trs: [createTestResult("1", "passed")],
-        knownIssues: [],
         environment: "foo/bar",
       });
 
@@ -295,7 +290,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "passed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toEqual([]);
@@ -331,7 +325,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -347,7 +340,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -366,7 +358,6 @@ describe("QualityGate", () => {
       ];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toEqual([]);
@@ -380,8 +371,8 @@ describe("QualityGate", () => {
       const state = new QualityGateState();
       const testResults: TestResult[] = [createTestResult("1", "failed")];
 
-      const first = await qualityGate.validate({ state, trs: testResults, knownIssues: [] });
-      const second = await qualityGate.validate({ state, trs: testResults, knownIssues: [] });
+      const first = await qualityGate.validate({ state, trs: testResults });
+      const second = await qualityGate.validate({ state, trs: testResults });
 
       expect(first.results[0].actual).toBe(1);
       expect(first.results[0].testResults).toEqual(["1"]);
@@ -398,12 +389,10 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "passed"), createTestResult("2", "passed")],
-        knownIssues: [],
       });
       const { results } = await qualityGate.validate({
         state,
         trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
-        knownIssues: [],
       });
 
       expect(results).toEqual([]);
@@ -416,11 +405,10 @@ describe("QualityGate", () => {
       });
       const state = new QualityGateState();
 
-      await qualityGate.validate({ state, trs: [createTestResult("1", "failed", undefined, true)], knownIssues: [] });
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed", undefined, true)] });
       const { results } = await qualityGate.validate({
         state,
         trs: [createTestResult("1", "failed")],
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -434,11 +422,10 @@ describe("QualityGate", () => {
       });
       const state = new QualityGateState();
 
-      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")] });
       const { results } = await qualityGate.validate({
         state,
         trs: [createTestResult("2", "broken")],
-        knownIssues: [],
       });
 
       expect(results[0].actual).toBe(2);
@@ -451,11 +438,10 @@ describe("QualityGate", () => {
       });
       const state = new QualityGateState();
 
-      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")] });
       const { results, fastFailed } = await qualityGate.validate({
         state,
         trs: [createTestResult("2", "failed")],
-        knownIssues: [],
       });
 
       expect(fastFailed).toBe(true);
@@ -469,8 +455,8 @@ describe("QualityGate", () => {
       };
       const testResults: TestResult[] = [createTestResult("1", "failed")];
 
-      await new QualityGate(config).validate({ trs: testResults, knownIssues: [] });
-      const { results } = await new QualityGate(config).validate({ trs: testResults, knownIssues: [] });
+      await new QualityGate(config).validate({ trs: testResults });
+      const { results } = await new QualityGate(config).validate({ trs: testResults });
 
       expect(results[0].actual).toBe(1);
       expect(results[0].testResults).toEqual(["1"]);
@@ -489,8 +475,8 @@ describe("QualityGate", () => {
       const state = new QualityGateState();
       const testResults: TestResult[] = [createTestResult("1", "passed")];
 
-      await new QualityGate(config).validate({ state, trs: testResults, knownIssues: [] });
-      await new QualityGate(config).validate({ state, trs: testResults, knownIssues: [] });
+      await new QualityGate(config).validate({ state, trs: testResults });
+      await new QualityGate(config).validate({ state, trs: testResults });
 
       expect(mockRule.validate).toHaveBeenNthCalledWith(1, expect.objectContaining({ trs: testResults }));
       expect(mockRule.validate).toHaveBeenNthCalledWith(2, expect.objectContaining({ trs: [] }));
@@ -511,17 +497,42 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "passed"), createTestResult("2", "passed")],
-        knownIssues: [],
       });
       await qualityGate.validate({
         state,
         trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenLastCalledWith(
         expect.objectContaining({
           trs: [expect.objectContaining({ id: "3" })],
+        }),
+      );
+    });
+
+    it("should omit accepted and muted results from every quality gate rule", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "Done",
+        validate: vi.fn().mockResolvedValue({ success: true, actual: 0, testResults: [] }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      });
+
+      await qualityGate.validate({
+        trs: [
+          { ...createTestResult("accepted", "failed"), resolution: "accepted" },
+          { ...createTestResult("muted", "broken"), resolution: "muted" },
+          { ...createTestResult("issue", "failed"), resolution: "issue" },
+          createTestResult("unresolved", "broken"),
+        ],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [expect.objectContaining({ id: "issue" }), expect.objectContaining({ id: "unresolved" })],
         }),
       );
     });
@@ -546,7 +557,6 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "passed"), createTestResult("1", "failed"), createTestResult("2", "passed")],
-        knownIssues: [],
       });
 
       const expectedTrs = [expect.objectContaining({ id: "1" }), expect.objectContaining({ id: "2" })];
@@ -573,12 +583,10 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "passed")],
-        knownIssues: [],
       });
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "passed")],
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenNthCalledWith(
@@ -611,7 +619,6 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state,
         trs: [createTestResult("1", "failed"), createTestResult("2", "passed")],
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenNthCalledWith(
@@ -643,11 +650,10 @@ describe("QualityGate", () => {
       });
       const state = new QualityGateState();
 
-      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")], knownIssues: [] });
+      await qualityGate.validate({ state, trs: [createTestResult("1", "failed")] });
       const { results } = await qualityGate.validate({
         state,
         trs: [createTestResult("2", "failed")],
-        knownIssues: [],
       });
 
       expect(results[0].actual).toBe(2);
@@ -673,7 +679,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -719,7 +724,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(validateSpy1).toHaveBeenCalled();
@@ -757,13 +761,11 @@ describe("QualityGate", () => {
       await qualityGate.validate({
         state: qgState,
         trs: testResults,
-        knownIssues: [],
       });
 
       const { fastFailed } = await qualityGate.validate({
         state: qgState,
         trs: testResults,
-        knownIssues: [],
       });
 
       // rule had been called twice, so the rule state incremented twice
@@ -790,7 +792,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed")];
       const result = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(result.results).toHaveLength(0);
@@ -807,7 +808,6 @@ describe("QualityGate", () => {
       await expect(
         qualityGate.validate({
           trs: testResults,
-          knownIssues: [],
         }),
       ).rejects.toThrow(
         'Rule unknownRule is not provided. Make sure you have provided it in the "use" field of the quality gate config!',
@@ -833,7 +833,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -849,7 +848,6 @@ describe("QualityGate", () => {
       const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
       const { results, fastFailed } = await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(results).toHaveLength(1);
@@ -876,7 +874,6 @@ describe("QualityGate", () => {
 
       await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenCalledWith(
@@ -908,7 +905,6 @@ describe("QualityGate", () => {
 
       await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenCalledWith(
@@ -936,7 +932,6 @@ describe("QualityGate", () => {
 
       await qualityGate.validate({
         trs: [createTestResult("1", "passed"), createTestResult("1", "failed")],
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenCalledWith(
@@ -965,7 +960,6 @@ describe("QualityGate", () => {
 
       await qualityGate.validate({
         trs: testResults,
-        knownIssues: [],
       });
 
       expect(mockRule.validate).toHaveBeenCalledWith(

@@ -92,7 +92,7 @@ export class AwesomeCommand extends Command {
     const config = await readConfig(cwd, this.config, {
       output: this.output,
       name: this.reportName,
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
       historyPath: this.historyPath,
       hideLabels,
     });
