@@ -218,20 +218,12 @@ export class TestOpsClient {
     }
   }
 
-  /**
-   * @param jobRunId - the id of a job run TestOps already created (e.g. by triggering the
-   * pipeline itself). When given, TestOps resolves the launch from that job run and ignores
-   * every other field, so createLaunch isn't called first and #launch is set from the response.
-   * That launch keeps whatever name TestOps gave it when creating the job run — left alone here.
-   */
   async startUpload(ci: CiDescriptor, jobRunId?: number) {
     if (!jobRunId && !this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    if (isLocalCiDescriptor(ci)) {
-      // No CI detected: upload straight into the launch created above - no job/job-run
-      // gets synthesized in TestOps for a local run.
+    if (!jobRunId && isLocalCiDescriptor(ci)) {
       this.#uploadInProgress = true;
       this.#logger.verbose("CI upload started (manual, no CI detected)");
       return;
@@ -241,9 +233,22 @@ export class TestOpsClient {
     const existingJob = await this.#getExistingJob(ci);
     const parameters = externalParameters(ci, existingJob?.parameters);
 
+    const jobPayload = {
+      name: ci.jobName || ci.jobUid,
+      uid: ci.jobUid,
+      ...(existingJob?.id ? { id: existingJob.id } : {}),
+      ...(ci.jobUrl ? { url: ci.jobUrl } : {}),
+      ...(parameters.job.length ? { parameters: parameters.job } : {}),
+    };
+    const jobRunPayload = {
+      ...(jobRunId ? { id: jobRunId } : {}),
+      uid: ci.jobRunUid,
+      ...(ci.jobRunName ? { name: ci.jobRunName } : {}),
+      ...(ci.jobRunUrl ? { url: ci.jobRunUrl } : {}),
+      ...(parameters.jobRun.length ? { parameters: parameters.jobRun } : {}),
+    };
+
     this.#logger.verbose(`Starting CI upload (${ci.type})…`);
-    // Safe to retry: the server upserts job/jobRun by (projectId, uid) rather than inserting
-    // blindly, so a retried call after a lost response resolves the same rows, not duplicates.
     const data = await retryRequest(() =>
       this.#client.post<ExternalRunStartResponse>("/api/upload/start", {
         body: {
@@ -252,28 +257,14 @@ export class TestOpsClient {
             type: TESTOPS_CI_TYPE[ci.type] ?? ci.type,
             ...(endpoint ? { endpoint } : {}),
           },
-          job: {
-            name: ci.jobName || ci.jobUid,
-            uid: ci.jobUid,
-            ...(existingJob?.id ? { id: existingJob.id } : {}),
-            ...(ci.jobUrl ? { url: ci.jobUrl } : {}),
-            ...(parameters.job.length ? { parameters: parameters.job } : {}),
-          },
-          jobRun: {
-            ...(jobRunId ? { id: jobRunId } : {}),
-            uid: ci.jobRunUid,
-            ...(ci.jobRunName ? { name: ci.jobRunName } : {}),
-            ...(ci.jobRunUrl ? { url: ci.jobRunUrl } : {}),
-            ...(parameters.jobRun.length ? { parameters: parameters.jobRun } : {}),
-          },
+          job: jobPayload,
+          jobRun: jobRunPayload,
           ...(this.#launch ? { launch: { id: this.#launch.id } } : {}),
         },
       }),
     );
 
     if (data?.jobRunId) {
-      // Lets createSession bind the session to this job run instead of a manual one, which is
-      // what makes rerun and test plan matching work: they key off test_result.job_run_id.
       this.#jobRunId = data.jobRunId;
     }
 
@@ -282,8 +273,6 @@ export class TestOpsClient {
         throw new Error("TestOps didn't return a launch id for the job run");
       }
 
-      // The launch already has whatever name TestOps gave it when it created the job run;
-      // that name is intentionally left alone here.
       this.#launch = { id: data.launchId } as TestOpsLaunch;
     }
 
@@ -585,7 +574,6 @@ export class TestOpsClient {
     const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
       const extendedTestResult: TestOpsPluginTestResult = {
         ...testResult,
-        // pass the report id to TestOps to be able to match the test result with the report
         uuid: testResult.id,
       };
 
@@ -609,16 +597,13 @@ export class TestOpsClient {
     });
 
     const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
-    const data = await retryRequest(() =>
-      this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
-        body,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
+      body,
+      headers: { "Content-Type": "application/json" },
+    });
     const reportIdsToTestOpsIds: Record<string, number> = {};
 
     for (const { id, uuid } of data.results ?? []) {
-      // "uuid" here is the test result id that was passed to TestOps by us
       if (typeof uuid === "string" && typeof id === "number") {
         reportIdsToTestOpsIds[uuid] = id;
       }

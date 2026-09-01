@@ -480,6 +480,27 @@ describe("testops http client", () => {
       expect(AxiosMock.post).not.toHaveBeenCalledWith("/api/upload/start", expect.anything(), expect.anything());
     });
 
+    it("should still attach to the job run when TestOps triggered it on an undetected CI", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload({ type: "local" } as unknown as CiDescriptor, 491277);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/start", expect.anything(), expect.anything());
+      expect(client.launchId).toBe(777);
+    });
+
     it("should send the integration type name TestOps knows for renamed providers", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") {

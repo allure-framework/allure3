@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { applyAllureCiEnv } from "../src/utils/ciEnv.js";
+import { applyAllureCiEnv } from "../src/ciEnv.js";
 
 beforeEach(async () => {
   await epic("coverage");

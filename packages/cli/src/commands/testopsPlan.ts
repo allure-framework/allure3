@@ -3,6 +3,7 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { env, exit } from "node:process";
 
+import { applyAllureCiEnv } from "@allurereport/ci";
 import type { TestPlan } from "@allurereport/core-api";
 import { createServiceHttpClient } from "@allurereport/service";
 import { Command, Option } from "clipanion";
@@ -33,6 +34,8 @@ export class TestOpsPlanCommand extends Command {
   });
 
   async execute() {
+    applyAllureCiEnv();
+
     const jobRunId = Number(env.ALLURE_JOB_RUN_ID);
 
     if (!Number.isInteger(jobRunId) || jobRunId <= 0) {
@@ -57,9 +60,6 @@ export class TestOpsPlanCommand extends Command {
         params: { expected: "true" },
       });
     } catch (error) {
-      // TestOps itself falls back to running everything when it can't resolve a scoped plan for
-      // a job run, so a transient failure here shouldn't hard-block the whole pipeline either —
-      // log it and continue without a test plan instead of failing the step.
       const message = error instanceof Error ? error.message : String(error);
 
       console.error(red(`Could not fetch the test plan for job run ${jobRunId}, continuing without one: ${message}`));

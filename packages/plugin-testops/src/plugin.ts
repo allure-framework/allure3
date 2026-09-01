@@ -1,6 +1,6 @@
 import { env } from "node:process";
 
-import { detect, isLocalCiDescriptor } from "@allurereport/ci";
+import { applyAllureCiEnv, detect, isLocalCiDescriptor } from "@allurereport/ci";
 import { createProgressLogger } from "@allurereport/cli-commons";
 import type {
   CiDescriptor,
@@ -27,7 +27,6 @@ import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions } from "./model.js";
 import { UploadQueue } from "./uploadQueue.js";
 import { uploadFilenameForLink } from "./utils/attachments.js";
-import { applyAllureCiEnv } from "./utils/ciEnv.js";
 import { applyCiOverrides } from "./utils/ciOverrides.js";
 import { enrichWithCategories, syncLaunchCategories } from "./utils/launchCategories.js";
 import { resolvePluginOptions } from "./utils/options.js";
