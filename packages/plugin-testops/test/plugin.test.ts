@@ -312,6 +312,25 @@ describe("testops plugin", () => {
         expect(plugin.enabled).toBe(false);
       });
 
+      it("should return true from enabled getter when ci is local but ALLURE_JOB_RUN_ID is set", () => {
+        vi.stubEnv("ALLURE_JOB_RUN_ID", "491277");
+
+        (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: fixtures.launchTags,
+        });
+
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        expect(plugin.enabled).toBe(true);
+
+        vi.unstubAllEnvs();
+      });
+
       it("should return true from enabled getter when enabled in config and ci is local", () => {
         (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
         (resolvePluginOptions as Mock).mockReturnValue({

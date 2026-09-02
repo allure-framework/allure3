@@ -36,6 +36,12 @@ import { validateExecutableName } from "./utils/validation.js";
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
 const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
 
+const resolveJobRunIdFromEnv = (): number | undefined => {
+  const jobRunId = Number(env.ALLURE_JOB_RUN_ID);
+
+  return Number.isInteger(jobRunId) && jobRunId > 0 ? jobRunId : undefined;
+};
+
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
   #ci: CiDescriptor;
@@ -137,7 +143,7 @@ export class TestOpsPlugin implements Plugin {
       return ["true", "1"].includes(value);
     };
 
-    return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI);
+    return isEnabled(env.ALLURE_TESTOPS_ENABLED) || isEnabled(env.CI) || resolveJobRunIdFromEnv() !== undefined;
   }
 
   get isManuallyEnabled(): boolean {
@@ -545,8 +551,7 @@ export class TestOpsPlugin implements Plugin {
    * caught and reported rather than left to crash the report generation for every plugin.
    */
   async #startUpload(): Promise<boolean> {
-    const existingJobRunId = Number(env.ALLURE_JOB_RUN_ID);
-    const jobRunId = Number.isInteger(existingJobRunId) && existingJobRunId > 0 ? existingJobRunId : undefined;
+    const jobRunId = resolveJobRunIdFromEnv();
 
     try {
       if (!jobRunId) {
