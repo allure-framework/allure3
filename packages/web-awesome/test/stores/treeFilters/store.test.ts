@@ -9,7 +9,7 @@ import {
   treeNonQueryFilters,
   treeQuickFilters,
 } from "../../../src/stores/treeFilters/store.js";
-import { isSeverityFilter } from "../../../src/stores/treeFilters/utils.js";
+import { isSeverityFilter, isTransitionFilter } from "../../../src/stores/treeFilters/utils.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -130,5 +130,36 @@ describe("stores > treeFilters > severity", () => {
 
       expect(statusLeaves.filter(predicate).map(({ nodeId }) => nodeId)).toEqual(["1", "3"]);
     });
+  });
+});
+
+describe("stores > treeFilters > transition", () => {
+  beforeEach(() => {
+    setSearch("");
+  });
+
+  const leaves = [
+    { nodeId: "1", transition: "new" },
+    { nodeId: "2", transition: "fixed" },
+    { nodeId: "3", transition: "regressed" },
+  ];
+
+  const matchingNodeIds = () => {
+    const predicate = buildFilterPredicate(treeNonQueryFilters.value);
+
+    return leaves.filter(predicate).map(({ nodeId }) => nodeId);
+  };
+
+  it("should match a single selected transition", () => {
+    setSearch("?transition=new");
+
+    expect(matchingNodeIds()).toEqual(["1"]);
+  });
+
+  it("should match any of the selected transitions", () => {
+    setSearch("?transition=new&transition=fixed");
+
+    expect(treeNonQueryFilters.value.filter(isTransitionFilter)).toHaveLength(1);
+    expect(matchingNodeIds()).toEqual(["1", "2"]);
   });
 });

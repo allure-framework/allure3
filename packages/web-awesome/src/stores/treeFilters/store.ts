@@ -166,11 +166,11 @@ const treeTransitionFilter = computed<AwesomeFilterGroupSimple>(() => ({
   fieldKey: "transition",
   value: urlTransitionFilter.value.map((transition) => ({
     type: "field",
+    logicalOperator: "OR",
     value: {
       key: "transition",
       value: transition,
       type: "string",
-      logicalOperator: "OR",
       strict: true,
     },
   })),
