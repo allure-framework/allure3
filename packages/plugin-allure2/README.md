@@ -1,4 +1,4 @@
-# Classic Plugin
+# Allure 2 Plugin
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -12,16 +12,17 @@
 
 ## Overview
 
-The plugin generates a classic Allure Report.
+The plugin generates an Allure 2-compatible report using the Allure 2.46.0 UI built from
+the checked-in `@allurereport/web-allure2` sources and embedded in the plugin package.
 
 ## Install
 
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/plugin-classic
-yarn add @allurereport/plugin-classic
-pnpm add @allurereport/plugin-classic
+npm add @allurereport/plugin-allure2
+yarn add @allurereport/plugin-allure2
+pnpm add @allurereport/plugin-allure2
 ```
 
 Then, add the plugin to the Allure configuration file:
@@ -34,7 +35,7 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-+    classic: {
++    allure2: {
 +      options: {
 +        reportName: "HelloWorld",
 +      },
@@ -47,8 +48,8 @@ export default defineConfig({
 
 The plugin accepts the following options:
 
-| Option           | Description                                     | Type                                                         | Default         |
-|------------------|-------------------------------------------------|--------------------------------------------------------------|-----------------|
-| `reportName`     | Name of the report                              | `string`                                                     | `Allure Report` |
-| `singleFile`     | Writes the report as a single `index.html` file | `boolean`                                                    | `false`         |
-| `reportLanguage` | Default language of the report                  | `string`                                                     | OS language     |
+| Option           | Description                                     | Type      | Default         |
+| ---------------- | ----------------------------------------------- | --------- | --------------- |
+| `reportName`     | Name of the report                              | `string`  | `Allure Report` |
+| `singleFile`     | Writes the report as a single `index.html` file | `boolean` | `false`         |
+| `reportLanguage` | Default language of the report                  | `string`  | OS language     |

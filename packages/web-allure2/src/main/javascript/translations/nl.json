@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "Er is niets te tonen",
+      "name": "Duur"
+    },
+    "severity": {
+      "name": "Ernst"
+    },
+    "status": {
+      "name": "Toestand"
+    },
+    "trend": {
+      "empty": "Er is niets te tonen",
+      "reportLink": "Rapport voor {{name}} openen"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Verberg testresultaten gemarkeerd als ‘{{mark}}’",
+      "showCases": "Toon testresultaten gemarkeerd als ‘{{mark}}’"
+    },
+    "statusToggle": {
+      "hideCases": "Verberg testresultaten met status ‘{{status}}’",
+      "showCases": "Toon testresultaten met status ‘{{status}}’"
+    },
+    "tree": {
+      "download": "CSV downloaden",
+      "empty": "Er zijn geen items",
+      "filter": "Statusfilter",
+      "filter-marks": "Markeringen",
+      "filtered": {
+        "shown": "{{count}} getoond",
+        "total": "{{count}} testresultaat",
+        "total_one": "{{count}} testresultaat",
+        "total_other": "{{count}} testresultaten"
+      },
+      "groups": "Groepsinformatie tonen/verbergen",
+      "time": {
+        "max": {
+          "name": "Langste",
+          "tooltip": "Duur van de langste test"
+        },
+        "sum": {
+          "name": "Som",
+          "tooltip": "Opgetelde duur van alle tests"
+        },
+        "total": {
+          "name": "Totaal",
+          "tooltip": "Doorloop van eerste test gestart tot laatste test beëindigd"
+        }
+      },
+      "unknown": "<Leeg>",
+      "noItemSelected": "Geen item geselecteerd",
+      "search": "Testresultaten zoeken"
+    },
+    "widgetStatus": {
+      "showAll": "Toon alle",
+      "total": "{{count}} item in totaal",
+      "total_one": "{{count}} item in totaal",
+      "total_other": "{{count}} items in totaal"
+    },
+    "attachment": {
+      "download": "Klik om de bijlage te downloaden",
+      "videoNotSupported": "Je browser ondersteunt de videotag niet",
+      "htmlPreviewTitle": "Voorbeeld van HTML-bijlage: {{name}}",
+      "previewSizeExceeded": "De bijlagevoorvertoning is uitgeschakeld omdat de bijlage groter is dan {{size}}.",
+      "htmlPreviewSizeExceeded": "De HTML-voorvertoning is uitgeschakeld omdat de bijlage groter is dan {{size}}.",
+      "htmlPreviewInvalid": "De HTML-voorvertoning is uitgeschakeld omdat de bijlage niet op HTML lijkt."
+    },
+    "screenDiff": {
+      "empty": "Geen diffgegevens opgegeven",
+      "name": "Schermverschil",
+      "showDiff": "Diff tonen",
+      "showOverlay": "Overlay tonen"
+    }
+  },
+  "controls": {
+    "backto": "Terug naar",
+    "clipboard": "Kopieer naar klembord",
+    "clipboardError": "Kan niet kopiëren naar klembord. De browser lijkt deze functionaliteit niet te ondersteunen.",
+    "clipboardSuccess": "Gekopieerd naar klembord",
+    "collapse": "Inklappen",
+    "expand": "Uitklappen",
+    "fullscreen": "Volledig scherm",
+    "language": "Taal wijzigen",
+    "languageShort": "Taal",
+    "lightTheme": "Licht thema",
+    "darkTheme": "Donker thema",
+    "loading": "Laden...",
+    "close": "Sluiten"
+  },
+  "errors": {
+    "missedAttachment": "Bijlage niet gevonden",
+    "notFound": "Niet gevonden",
+    "loadingFailed": "Kan gegevens niet laden",
+    "tabNotFound": "Tab \"{{tab}}\" niet gevonden",
+    "testResultNotFound": "Testresultaat met uid \"{{uid}}\" niet gevonden"
+  },
+  "marks": {
+    "flaky": "Instabiel",
+    "newBroken": "Nieuw gebroken",
+    "newFailed": "Nieuw gefaald",
+    "newPassed": "Nieuw geslaagd",
+    "retriesStatusChange": "Status gewijzigd na opnieuw proberen"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "duur",
+    "name": "naam",
+    "order": "volgorde",
+    "status": "toestand"
+  },
+  "status": {
+    "broken": "Defect",
+    "failed": "Gefaald",
+    "passed": "Succes",
+    "skipped": "Overgeslagen",
+    "unknown": "Onbekend"
+  },
+  "tab": {
+    "categories": {
+      "name": "Categorieën"
+    },
+    "behaviors": {
+      "name": "Functionaliteit"
+    },
+    "graph": {
+      "name": "Grafieken"
+    },
+    "overview": {
+      "name": "Overzicht"
+    },
+    "packages": {
+      "name": "Pakketten"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Testreeksen"
+    },
+    "timeline": {
+      "name": "Tijdlijn",
+      "selected": "{{count}} test ({{percent}}%) geselecteerd met een duur van meer dan {{duration}}",
+      "selected_one": "{{count}} test ({{percent}}%) geselecteerd met een duur van meer dan {{duration}}",
+      "selected_other": "{{count}} tests ({{percent}}%) geselecteerd met een duur van meer dan {{duration}}",
+      "resultLink": "Testresultaat {{name}} openen, status {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Categorieën"
+    },
+    "description": {
+      "name": "Omschrijving"
+    },
+    "duration": {
+      "name": "Duur"
+    },
+    "execution": {
+      "body": "Testinhoud",
+      "downloadAttachment": {
+        "tooltip": "Bijlage in een nieuw tabblad openen"
+      },
+      "name": "Uitvoering",
+      "setup": "Voorbereiding",
+      "teardown": "Afronding",
+      "empty": "Geen informatie over de testuitvoering beschikbaar."
+    },
+    "history": {
+      "empty": "Geen historische gegevens beschikbaar.",
+      "name": "Geschiedenis",
+      "statistic": "{{passed}} van {{total}}",
+      "successRate": "Slagingsratio",
+      "time": "{{date}} om {{time}}"
+    },
+    "links": {
+      "name": "Koppelingen"
+    },
+    "overview": {
+      "name": "Overzicht"
+    },
+    "owner": {
+      "name": "Eigenaar"
+    },
+    "parameters": {
+      "name": "Testparameters"
+    },
+    "retries": {
+      "empty": "Geen informatie beschikbaar.",
+      "name": "Pogingen",
+      "time": "{{date}} om {{time}}"
+    },
+    "severity": {
+      "name": "Ernst",
+      "blocker": "blokkerend",
+      "critical": "kritiek",
+      "normal": "normaal",
+      "minor": "klein",
+      "trivial": "triviaal"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} bijlage",
+        "parameters": "{{count}} testparameter",
+        "steps": "{{count}} substap",
+        "attachments_one": "{{count}} bijlage",
+        "attachments_other": "{{count}} bijlagen",
+        "parameters_one": "{{count}} testparameter",
+        "parameters_other": "{{count}} testparameters",
+        "steps_one": "{{count}} substap",
+        "steps_other": "{{count}} substappen"
+      }
+    },
+    "status": {
+      "empty": "Lege statusdetails",
+      "trace": "Toon trace"
+    },
+    "tags": {
+      "name": "Labels"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Categorieën"
+    },
+    "behaviors": {
+      "name": "Features en story’s",
+      "showAll": "Toon alle"
+    },
+    "categoriesTrend": {
+      "name": "Trend categorieën"
+    },
+    "durationTrend": {
+      "name": "Trend duur"
+    },
+    "environment": {
+      "empty": "Er zijn geen omgevingsvariabelen",
+      "name": "Omgeving",
+      "showAll": "Toon alles"
+    },
+    "executors": {
+      "empty": "Er is geen informatie over testuitvoerders",
+      "name": "Uitvoerders",
+      "unknown": "Onbekend"
+    },
+    "launches": {
+      "empty": "Er is geen informatie over starts",
+      "name": "Start"
+    },
+    "retryTrend": {
+      "name": "Trend nieuwe pogingen"
+    },
+    "suites": {
+      "name": "Testreeksen"
+    },
+    "summary": {
+      "aggregatedName": "Geaggregeerd rapport",
+      "launches": "start",
+      "testResults": "testgeval",
+      "launches_one": "start",
+      "launches_other": "starts",
+      "testResults_one": "testgeval",
+      "testResults_other": "testgevallen"
+    },
+    "trend": {
+      "name": "Tendens"
+    }
+  }
+}

@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "Տվյալներ չկան",
+      "name": "Ժամանակահատվածը"
+    },
+    "severity": {
+      "name": "Կարևորությունը"
+    },
+    "status": {
+      "name": "Կարգավիճակ"
+    },
+    "trend": {
+      "empty": "Տվյալներ չկան",
+      "reportLink": "Բացել {{name}} հաշվետվությունը"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Թաքցնել {{mark}} թեստի արդյունքը",
+      "showCases": "Ցույց տալ {{mark}} թեստի արդյունքը"
+    },
+    "statusToggle": {
+      "hideCases": "Թաքցնել {{status}} կարգավիճակով թեստի արյունքը",
+      "showCases": "Ցույց տալ {{status}} կարգավիճակով թեստի արյունքը"
+    },
+    "tree": {
+      "download": "Բեռնել CSV",
+      "empty": "Տվյալներ չկան",
+      "filter": "Կարգիվիճակ",
+      "filter-marks": "Նշումներ",
+      "filtered": {
+        "shown": "Ցուցադրվում է {{count}}",
+        "total": "{{count}} թեստի արդյունքը",
+        "total_one": "{{count}} թեստի արդյունքը",
+        "total_other": "{{count}} թեստերի արդյունքը"
+      },
+      "groups": "Տեղեկություն խմբերի մասին",
+      "time": {
+        "max": {
+          "name": "Մաքսիմում",
+          "tooltip": "Ամենաերկար թեստը"
+        },
+        "sum": {
+          "name": "Գումարային",
+          "tooltip": "Բոլոր թեստերի գումարային տևողությունը"
+        },
+        "total": {
+          "name": "Ընդամենը",
+          "tooltip": "Թեստի տևողությունը՝ առաջին թեստից մինչև վերջինը"
+        }
+      },
+      "unknown": "<անհայտ>",
+      "noItemSelected": "Ոչ մի տարր ընտրված չէ",
+      "search": "Որոնել թեստի արդյունքները"
+    },
+    "widgetStatus": {
+      "showAll": "Ցույց տալ բոլորը",
+      "total": "Ընդհանուր {{count}} էլեմենտ",
+      "total_one": "Ընդհանուր {{count}} էլեմենտ",
+      "total_other": "Ընդհանուր {{count}} էլեմենտներ"
+    },
+    "attachment": {
+      "download": "Սեղմեք կցված ֆայլը ներբեռնելու համար",
+      "videoNotSupported": "Ձեր դիտարկիչը չի աջակցում video պիտակը",
+      "htmlPreviewTitle": "HTML կցված ֆայլի նախադիտում՝ {{name}}",
+      "previewSizeExceeded": "Կցորդի նախադիտումն անջատված է, քանի որ կցորդը {{size}}-ից մեծ է։",
+      "htmlPreviewSizeExceeded": "HTML նախադիտումն անջատված է, քանի որ կցորդը {{size}}-ից մեծ է։",
+      "htmlPreviewInvalid": "HTML նախադիտումն անջատված է, քանի որ կցորդը HTML-ի նման չէ։"
+    },
+    "screenDiff": {
+      "empty": "Տարբերությունների տվյալներ չկան",
+      "name": "Էկրանի տարբերություն",
+      "showDiff": "Ցույց տալ տարբերությունը",
+      "showOverlay": "Ցույց տալ վերադրված տեսքը"
+    }
+  },
+  "controls": {
+    "backto": "Հետ գնալ",
+    "clipboard": "Պատճենել clipboard-ում",
+    "clipboardError": "Հնարավոր չէ պատճենել clipboard-ում: Հնարավոր է, որ այս գործառույթը չի ապահովվում դիտարկիչում",
+    "clipboardSuccess": "Պատճենումն հաջողվեց",
+    "collapse": "Ծալել",
+    "expand": "Մեծացնել",
+    "fullscreen": "Ամբողջ էկրան",
+    "language": "Փոխեք լեզուն",
+    "languageShort": "Լեզու",
+    "lightTheme": "Լուսավոր թեմա",
+    "darkTheme": "Մուգ թեմա",
+    "loading": "Բեռնվում է...",
+    "close": "Փակել"
+  },
+  "errors": {
+    "missedAttachment": "Կցված ֆայլը չի գտնվել",
+    "notFound": "Չի գտնվել",
+    "loadingFailed": "Տվյալները բեռնելը ձախողվեց",
+    "tabNotFound": "«{{tab}}» ներդիրը չի գտնվել",
+    "testResultNotFound": "{{uid}} uid-ով թեստի արդյունքը չի գտնվել"
+  },
+  "marks": {
+    "flaky": "Անկայուն",
+    "newBroken": "Նոր փչացած",
+    "newFailed": "Նոր ձախողված",
+    "newPassed": "Նոր հաջողված",
+    "retriesStatusChange": "Կարգավիճակը փոխվեց կրկնելուց հետո"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "տևողություն",
+    "name": "անուն",
+    "order": "հերթականություն",
+    "status": "կարգավիճակ"
+  },
+  "status": {
+    "broken": "Փչացած",
+    "failed": "Ձախողված",
+    "passed": "Հաջողված",
+    "skipped": "Բաց թողնված",
+    "unknown": "Անհայտ"
+  },
+  "tab": {
+    "categories": {
+      "name": "Կատեգորիաներ"
+    },
+    "behaviors": {
+      "name": "Վարքագծեր"
+    },
+    "graph": {
+      "name": "Գրաֆիկները"
+    },
+    "overview": {
+      "name": "Ընդհանուր"
+    },
+    "packages": {
+      "name": "Փաթեթներ"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Թեստի փաթեթներ"
+    },
+    "timeline": {
+      "name": "Ժամանակային աղյուսակ",
+      "selected": "Ընտրվել է {{count}} թեստ ({{percent}}%) {{duration}}-ից բարձր տևողությամբ",
+      "selected_one": "Ընտրվել է {{count}} թեստ ({{percent}}%) {{duration}}-ից բարձր տևողությամբ",
+      "selected_other": "Ընտրվել են {{count}} թեստեր ({{percent}}%) {{duration}}-ից բարձր տևողությամբ",
+      "resultLink": "Բացել {{name}} թեստի արդյունքը, կարգավիճակ՝ {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Կատեգորիաներ"
+    },
+    "description": {
+      "name": "Նկարագրություն"
+    },
+    "duration": {
+      "name": "Տևողությունը"
+    },
+    "execution": {
+      "body": "Հիմնական մասը",
+      "downloadAttachment": {
+        "tooltip": "Բացել կցված ֆայլը նոր ներդիրում"
+      },
+      "name": "Կատարումը",
+      "setup": "Նախապատրաստում",
+      "teardown": "Ավարտը",
+      "empty": "Թեստի կատարման մասին տեղեկություն չկա։"
+    },
+    "history": {
+      "empty": "Պատմությունը հասանելի չէ։",
+      "name": "Պատմություն",
+      "statistic": "{{passed}}-ը {{total}}-ից",
+      "successRate": "Հաջողության ցուցանիշը",
+      "time": "{{date}} {{time}}-ին"
+    },
+    "links": {
+      "name": "Հղումներ"
+    },
+    "overview": {
+      "name": "Ընդհանուր"
+    },
+    "owner": {
+      "name": "Սեփականատեր"
+    },
+    "parameters": {
+      "name": "Պարամետրեր"
+    },
+    "retries": {
+      "empty": "Թեստերի կրկնության մասին տվյալները հասանելի չեն",
+      "name": "Կրկնությունների քանակ",
+      "time": "{{date}} {{time}}-ին"
+    },
+    "severity": {
+      "name": "Կարևորությունը",
+      "blocker": "Բլոկավարող",
+      "critical": "Կրիտիկական",
+      "normal": "Նորմալ",
+      "minor": "Մինոր",
+      "trivial": "Տրիվիալ"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} կցված ֆայլեր",
+        "parameters": "{{count}} պարամետրեր",
+        "steps": "{{count}} ենթաքայլ",
+        "attachments_one": "{{count}} կցված ֆայլեր",
+        "attachments_other": "{{count}} կցված ֆայլեր",
+        "parameters_one": "{{count}} պարամետրեր",
+        "parameters_other": "{{count}} պարամետրեր",
+        "steps_one": "{{count}} ենթաքայլ",
+        "steps_other": "{{count}} ենթաքայլեր"
+      }
+    },
+    "status": {
+      "empty": "Կարգավիճակի մանրամասները հասանելի չեն",
+      "trace": "Ցույց տալ trace-ը"
+    },
+    "tags": {
+      "name": "Թեգեր"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Կատեգորիաներ"
+    },
+    "behaviors": {
+      "name": "Ֆիչրները ըստ պատմությունների",
+      "showAll": "ցույց տալ բոլորը"
+    },
+    "categoriesTrend": {
+      "name": "Կատեգորիաներ թրենդ"
+    },
+    "durationTrend": {
+      "name": "Տևողության թրենդ"
+    },
+    "environment": {
+      "empty": "Միջավայրի փոփոխականներ չկան",
+      "name": "Միջավայր",
+      "showAll": "Ցույց տալ բոլորը"
+    },
+    "executors": {
+      "empty": "Թեստերը կատարողների հանձնողի մասին տեղեկություն չկա",
+      "name": "Թեստերը կատարողներ",
+      "unknown": "Անհայտ"
+    },
+    "launches": {
+      "empty": "Գործարկիչների մասին տեղեկություններ չկան",
+      "name": "Գործարկիչներ"
+    },
+    "retryTrend": {
+      "name": "Կրկնությունների թրենդ"
+    },
+    "suites": {
+      "name": "Թեստի փաթեթներ"
+    },
+    "summary": {
+      "aggregatedName": "Հաշվետվությունների համախումբ",
+      "launches": "գործարկիչ",
+      "testResults": "թեստ քեյս",
+      "launches_one": "գործարկիչ",
+      "launches_other": "գործարկիչներ",
+      "testResults_one": "թեստ քեյս",
+      "testResults_other": "թեստ քեյսեր"
+    },
+    "trend": {
+      "name": "Թրենդ"
+    }
+  }
+}
