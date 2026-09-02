@@ -526,7 +526,11 @@ export class TestOpsPlugin implements Plugin {
     const contextCategories = context?.categories ?? [];
     const trsEnrichedWithCategories = await enrichWithCategories(store, trsToUpload, contextCategories);
 
-    await syncLaunchCategories(this.#client, trsEnrichedWithCategories, contextCategories);
+    const categoriesError = await syncLaunchCategories(this.#client, trsEnrichedWithCategories, contextCategories);
+
+    if (categoriesError) {
+      this.#logger.warn(`Uploading test results without launch categories: ${categoriesError.message}`);
+    }
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments, {
       silent: !!context?.realTime,
     });

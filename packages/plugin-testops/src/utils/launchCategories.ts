@@ -67,11 +67,11 @@ export const syncLaunchCategories = async (
   client: TestOpsClient,
   trs: TestOpsPluginTestResult[],
   contextCategories: CategoryDefinition[],
-): Promise<void> => {
+): Promise<Error | undefined> => {
   const categoryNamesByExternalId = collectCategoryNamesByExternalId(trs);
 
   if (categoryNamesByExternalId.size === 0) {
-    return;
+    return undefined;
   }
 
   const bulkItems: { externalId: string; name: string; hide?: boolean; expand?: boolean }[] = [];
@@ -118,12 +118,18 @@ export const syncLaunchCategories = async (
 
   const launchId = client.launchId;
 
+  if (launchId === undefined) {
+    return new Error("Launch isn't created, skipping launch categories");
+  }
+
   try {
-    const created = await client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
+    const created = await client.createLaunchCategoriesBulk(launchId, orderedBulkItems);
     const categoryIdByExternalId = new Map(created.map((result) => [result.externalId, result.id]));
 
     assignCreatedCategoryIds(trs, categoryIdByExternalId);
-  } catch {
-    return;
+
+    return undefined;
+  } catch (error) {
+    return error instanceof Error ? error : new Error(String(error));
   }
 };
