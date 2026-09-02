@@ -415,9 +415,12 @@ export class TestOpsPlugin implements Plugin {
             attachmentsResolver: attachmentsResolverFactory(store),
             fixturesResolver: fixturesResolverFactory(store),
             environments,
-            trs: trsToUpload,
+            trs: trsToUpload.filter((tr) => !this.#uploadedTestResultsIds.has(tr.id)),
             onProgress: () => progressLogger.increment(),
             onRetry,
+            onChunkUploaded: (uploadedChunkTrs) => {
+              uploadedChunkTrs.forEach((tr) => this.#uploadedTestResultsIds.add(tr.id));
+            },
           }),
         { onRetry, onDeferred },
       );

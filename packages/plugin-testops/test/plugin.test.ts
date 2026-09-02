@@ -1742,6 +1742,34 @@ describe("testops plugin", () => {
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(5);
       }, 15_000);
 
+      it("does not resend a chunk already acknowledged by TestOps when a later chunk fails and the whole call is retried", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        const [firstTr, secondTr] = fixtures.testResults;
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([firstTr, secondTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.uploadTestResults.mockImplementationOnce(async (params) => {
+          params.onChunkUploaded?.([{ id: firstTr.id }]);
+          throw serviceDownError;
+        });
+        TestOpsClientMock.prototype.uploadTestResults.mockResolvedValueOnce([{ id: secondTr.id }]);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+
+        const secondCallTrs = TestOpsClientMock.prototype.uploadTestResults.mock.calls[1][0].trs;
+
+        expect(secondCallTrs.map((tr: { id: string }) => tr.id)).toEqual([secondTr.id]);
+      });
+
       it("reports the upload as still pending when it keeps failing through finalization too", async () => {
         AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
 

@@ -500,12 +500,13 @@ export class TestOpsClient {
     fixturesResolver: FixtureResolver;
     onProgress?: () => void;
     onRetry?: RetryOptions["onRetry"];
+    onChunkUploaded?: (uploadedChunkTrs: TestResult[]) => void;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } = params;
     const projectedTrs = trs.map((tr) => ({
       ...tr,
       ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
@@ -542,7 +543,10 @@ export class TestOpsClient {
         { onRetry },
       );
 
-      uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+      const uploadedChunkTrs = trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number");
+
+      uploadedTrs.push(...uploadedChunkTrs);
+      onChunkUploaded?.(uploadedChunkTrs);
 
       await this.#uploadChunkAttachmentsAndFixtures(
         trsChunk,
