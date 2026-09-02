@@ -4,6 +4,7 @@ import type { AttachmentForUpload } from "../model.js";
 
 const MAX_REQUEST_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 500;
+const MAX_RETRY_AFTER_DELAY_MS = 60_000;
 
 const getAxiosCause = (error: unknown) => {
   if (isAxiosError(error)) {
@@ -25,7 +26,7 @@ const isRetryableRequestError = (error: unknown): boolean => {
   return status === undefined || status === 408 || status === 429 || status >= 500;
 };
 
-export const retryAfterMs = (error: unknown): number | undefined => {
+const parseRetryAfterMs = (error: unknown): number | undefined => {
   const headers = getAxiosCause(error)?.response?.headers;
   const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
   const normalized = Array.isArray(value) ? value[0] : value;
@@ -43,6 +44,12 @@ export const retryAfterMs = (error: unknown): number | undefined => {
   const date = Date.parse(String(normalized));
 
   return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
+};
+
+export const retryAfterMs = (error: unknown): number | undefined => {
+  const requestedDelayMs = parseRetryAfterMs(error);
+
+  return requestedDelayMs === undefined ? undefined : Math.min(requestedDelayMs, MAX_RETRY_AFTER_DELAY_MS);
 };
 
 export const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => {

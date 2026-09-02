@@ -29,18 +29,14 @@ import { UploadQueue } from "./uploadQueue.js";
 import { uploadFilenameForLink } from "./utils/attachments.js";
 import { applyCiOverrides } from "./utils/ciOverrides.js";
 import { enrichWithCategories, syncLaunchCategories } from "./utils/launchCategories.js";
-import { resolvePluginOptions } from "./utils/options.js";
+import { resolvePluginOptions, toPositiveInteger } from "./utils/options.js";
 import { attachmentsResolverFactory, fixturesResolverFactory } from "./utils/resolvers.js";
 import { validateExecutableName } from "./utils/validation.js";
 
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
 const LAUNCH_PROGRESS_ATTEMPTS_LIMIT = 10;
 
-const resolveJobRunIdFromEnv = (): number | undefined => {
-  const jobRunId = Number(env.ALLURE_JOB_RUN_ID);
-
-  return Number.isInteger(jobRunId) && jobRunId > 0 ? jobRunId : undefined;
-};
+const resolveJobRunIdFromEnv = (): number | undefined => toPositiveInteger(env.ALLURE_JOB_RUN_ID);
 
 export class TestOpsPlugin implements Plugin {
   #logger = new Logger("TestOpsPlugin");
@@ -349,6 +345,7 @@ export class TestOpsPlugin implements Plugin {
                 originalFileName: filename,
                 contentType: attachmentLink.contentType ?? "application/octet-stream",
                 content: body,
+                contentLength: content?.getContentLength(),
               };
             },
             onProgress: (percent) => {

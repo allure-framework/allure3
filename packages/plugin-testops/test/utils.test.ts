@@ -204,6 +204,7 @@ describe("resolvePluginOptions", () => {
     delete process.env.ALLURE_PROJECT_ID;
     delete process.env.ALLURE_LAUNCH_TAGS;
     delete process.env.ALLURE_LAUNCH_NAME;
+    delete process.env.ALLURE_LAUNCH_ID;
   });
 
   describe("validation", () => {
@@ -325,6 +326,22 @@ describe("resolvePluginOptions", () => {
         launchTags: [],
         reopenClosedLaunch: false,
       });
+    });
+
+    it("should take a positive integer launchId from ALLURE_LAUNCH_ID", () => {
+      process.env.ALLURE_LAUNCH_ID = "555";
+
+      expect(resolvePluginOptions({} as any).launchId).toBe(555);
+    });
+
+    it.each(["0", "-5", "1.5", "abc", ""])("should ignore the invalid launchId %o", (value) => {
+      process.env.ALLURE_LAUNCH_ID = value;
+
+      expect(resolvePluginOptions({} as any)).not.toHaveProperty("launchId");
+    });
+
+    it("should ignore an invalid launchId passed as an option, not just from env", () => {
+      expect(resolvePluginOptions({ launchId: -5 } as any)).not.toHaveProperty("launchId");
     });
 
     it("should prefer options over environment variables", () => {
