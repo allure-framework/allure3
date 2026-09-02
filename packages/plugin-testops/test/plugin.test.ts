@@ -1741,9 +1741,12 @@ describe("testops plugin", () => {
 
         await plugin.done({} as PluginContext, store);
 
-        // nothing throws, done() still completes, and the launch still gets stopped/closed
+        // nothing throws and done() still completes, but the launch is left open since some
+        // results never made it to TestOps - autoclosing would report an incomplete launch as
+        // finished
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(8);
         expect(TestOpsClientMock.prototype.stopUpload).toHaveBeenCalledTimes(1);
+        expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
       }, 15_000);
     });
 

@@ -674,6 +674,13 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
+    if (stillPending.length > 0) {
+      this.#logger.warn(
+        `Not closing launch ${launchId}: some uploads never made it to TestOps, closing now would report an incomplete launch as finished.`,
+      );
+      return;
+    }
+
     let launchIsReady = false;
 
     for (let attempt = 0; attempt < LAUNCH_PROGRESS_ATTEMPTS_LIMIT; attempt += 1) {
