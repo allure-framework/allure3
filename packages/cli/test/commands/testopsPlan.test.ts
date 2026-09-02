@@ -1,5 +1,5 @@
 import * as console from "node:console";
-import { readFile, rm } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { exit } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
@@ -100,6 +100,18 @@ describe("testops-plan command", () => {
 
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Could not fetch the test plan"));
     expect(exit).not.toHaveBeenCalled();
+    await expect(readFile(fixtures.output, "utf-8")).rejects.toThrow();
+  });
+
+  it("should remove a stale test plan left over from an earlier run when the request fails", async () => {
+    vi.stubEnv("ALLURE_JOB_RUN_ID", fixtures.jobRunId);
+    vi.stubEnv("ALLURE_ENDPOINT", fixtures.endpoint);
+    vi.stubEnv("ALLURE_TOKEN", fixtures.token);
+    await writeFile(fixtures.output, JSON.stringify({ version: "1.0", tests: [{ id: "stale" }] }), "utf-8");
+    getMock.mockRejectedValueOnce(new Error("network error"));
+
+    await run(TestOpsPlanCommand, ["testops-plan", "--output", fixtures.output]);
+
     await expect(readFile(fixtures.output, "utf-8")).rejects.toThrow();
   });
 

@@ -1,5 +1,5 @@
 import * as console from "node:console";
-import { writeFile } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { env, exit } from "node:process";
 
@@ -53,6 +53,7 @@ export class TestOpsPlanCommand extends Command {
     }
 
     const client = createServiceHttpClient(endpoint, { apiToken: accessToken });
+    const output = resolve(this.output ?? "./testplan.json");
     let tests: TestOpsTestCaseInfo[] | undefined;
 
     try {
@@ -62,6 +63,7 @@ export class TestOpsPlanCommand extends Command {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
+      await rm(output, { force: true });
       console.error(red(`Could not fetch the test plan for job run ${jobRunId}, continuing without one: ${message}`));
       return;
     }
@@ -73,8 +75,6 @@ export class TestOpsPlanCommand extends Command {
         ...(selector !== undefined ? { selector } : {}),
       })),
     };
-
-    const output = resolve(this.output ?? "./testplan.json");
 
     await writeFile(output, JSON.stringify(testPlan), "utf-8");
 
