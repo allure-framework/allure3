@@ -23,6 +23,10 @@ describe("attachmentType", () => {
   it("recognizes Playwright trace attachments as archives", () => {
     expect(attachmentType("application/vnd.allure.playwright-trace")).toBe("archive");
   });
+
+  it("recognizes image attachments including webp", () => {
+    expect(attachmentType("image/webp")).toBe("image");
+  });
 });
 
 describe("blobAttachment", () => {
