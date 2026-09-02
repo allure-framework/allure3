@@ -118,7 +118,8 @@
     "critical": "kritik",
     "normal": "normal",
     "minor": "kiçik",
-    "trivial": "əhəmiyyətsiz"
+    "trivial": "əhəmiyyətsiz",
+    "none": "ciddilik dərəcəsi yoxdur"
   },
   "execution": {
     "name": "İcra",

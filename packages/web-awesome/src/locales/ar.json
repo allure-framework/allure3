@@ -118,7 +118,8 @@
     "critical": "خطورة عالية",
     "normal": "عادي",
     "minor": "ثانوي",
-    "trivial": "بسيط"
+    "trivial": "بسيط",
+    "none": "بدون خطورة"
   },
   "execution": {
     "name": "التنفيذ",

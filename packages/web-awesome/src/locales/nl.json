@@ -118,7 +118,8 @@
     "critical": "kritiek",
     "normal": "normaal",
     "minor": "klein",
-    "trivial": "onbeduidend"
+    "trivial": "onbeduidend",
+    "none": "geen ernst"
   },
   "execution": {
     "name": "Uitvoering",

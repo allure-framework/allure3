@@ -115,6 +115,10 @@ export type AwesomeTreeLeaf = Pick<
   tooltips?: Record<string, string>;
   tags?: string[];
   categories?: string[];
+  /**
+   * Value of the test result's `severity` label, or `"none"` when the label is absent.
+   */
+  severity?: string;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

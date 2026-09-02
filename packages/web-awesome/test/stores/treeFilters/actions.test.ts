@@ -25,7 +25,11 @@ vi.mock("@allurereport/web-commons", async () => {
 
 import { ReportFetchError } from "@allurereport/web-commons";
 
-import { clearTreeFilterParams, fetchTreeFiltersData } from "../../../src/stores/treeFilters/actions.js";
+import {
+  clearTreeFilterParams,
+  fetchTreeFiltersData,
+  setSeverityFilter,
+} from "../../../src/stores/treeFilters/actions.js";
 import { clearTreeFilters } from "../../../src/stores/treeFilters/store.js";
 import { treeCategories, treeFiltersResetNonce, treeTags } from "../../../src/stores/treeFilters/store.js";
 
@@ -103,14 +107,27 @@ describe("stores > treeFilters > actions", () => {
       { key: "transition", value: [] },
       { key: "tags", value: [] },
       { key: "categories", value: [] },
+      { key: "severity", value: [] },
       { key: "status", value: undefined },
     );
+  });
+
+  it("should write severity values to the url as a repeated param", () => {
+    setSeverityFilter(["blocker", "none"]);
+
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "severity", value: ["blocker", "none"] });
+  });
+
+  it("should clear the severity param when no severity is selected", () => {
+    setSeverityFilter([]);
+
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "severity", value: [] });
   });
 
   it("should reset filter params in a single URL update", () => {
     clearTreeFilterParams();
 
     expect(setParamsMock).toHaveBeenCalledTimes(1);
-    expect(setParamsMock.mock.calls[0]).toHaveLength(7);
+    expect(setParamsMock.mock.calls[0]).toHaveLength(8);
   });
 });

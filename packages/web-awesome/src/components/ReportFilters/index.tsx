@@ -8,6 +8,7 @@ import {
   isCategoryFilter,
   isFlakyFilter,
   isRetryFilter,
+  isSeverityFilter,
   isTagFilter,
   isTransitionFilter,
 } from "@/stores/treeFilters/utils";
@@ -15,6 +16,7 @@ import {
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
 import { RetryFlakyFilter } from "./RetryFlaky";
+import { SeverityFilter } from "./SeverityFilter";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
 
@@ -30,6 +32,10 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
 
   if (isTransitionFilter(filter)) {
     return <TransitionFilter group={filter} onChange={onChange} />;
+  }
+
+  if (isSeverityFilter(filter)) {
+    return <SeverityFilter group={filter} onChange={onChange} />;
   }
 
   if (type === "field" && field.type === "boolean") {

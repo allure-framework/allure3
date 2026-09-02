@@ -26,8 +26,10 @@ import {
   createStylesLinkTag,
   incrementStatistic,
   joinPosixPath,
+  noSeverityValue,
   nullsLast,
   ordinal,
+  severityLabelName,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -477,6 +479,7 @@ const leafFactory = ({
     retriesCount,
     transition,
     tooltips,
+    severity: groupedLabels[severityLabelName]?.[0] ?? noSeverityValue,
   };
 
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {

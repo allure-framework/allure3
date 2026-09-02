@@ -118,7 +118,8 @@
     "critical": "קריטי",
     "normal": "רגיל",
     "minor": "קל",
-    "trivial": "פעוט"
+    "trivial": "פעוט",
+    "none": "ללא חומרה"
   },
   "execution": {
     "name": "ביצוע",
