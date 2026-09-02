@@ -501,6 +501,31 @@ describe("testops http client", () => {
       expect(client.launchId).toBe(777);
     });
 
+    it("should still bind the session to the requested job run when the response omits jobRunId", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload({ type: "local" } as unknown as CiDescriptor, 491277);
+      await client.createSession();
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/session",
+        expect.objectContaining({ jobRunId: 491277 }),
+        expect.anything(),
+      );
+    });
+
     it("should send the integration type name TestOps knows for renamed providers", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") {

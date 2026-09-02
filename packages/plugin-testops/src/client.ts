@@ -264,9 +264,7 @@ export class TestOpsClient {
       }),
     );
 
-    if (data?.jobRunId) {
-      this.#jobRunId = data.jobRunId;
-    }
+    this.#jobRunId = data?.jobRunId ?? jobRunId;
 
     if (jobRunId) {
       if (typeof data?.launchId !== "number") {
