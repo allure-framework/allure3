@@ -59,7 +59,13 @@ export const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => 
   }
 };
 
-export const attachmentByteLength = (content: AttachmentForUpload["content"]): number => {
+export const attachmentByteLength = (attachment: Pick<AttachmentForUpload, "content" | "contentLength">): number => {
+  const { content, contentLength } = attachment;
+
+  if (typeof contentLength === "number") {
+    return contentLength;
+  }
+
   if (Buffer.isBuffer(content)) {
     return content.length;
   }

@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks";
+import { Readable } from "node:stream";
 
 import type {
   AttachmentLink,
@@ -1518,6 +1519,46 @@ describe("testops http client", () => {
       expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
     });
 
+    it("should pace by contentLength when the attachment content is a stream, not just a Buffer/Blob", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const windowMs = 100;
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+        uploadRateLimit: { windowMs, maxBytesPerWindow: 1 },
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue({
+        originalFileName: "file.txt",
+        contentType: "text/plain",
+        content: Readable.from(["stream content"]),
+        contentLength: 30,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      const start = performance.now();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
+    });
+
     it("should include jobRunId when the session is bound to a job run", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/upload/start") {
@@ -2122,6 +2163,7 @@ describe("testops http client", () => {
 
       const attachmentContentById = vi.fn().mockResolvedValue({
         readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+        getContentLength: vi.fn().mockReturnValue(7),
       });
       const attachmentsResolver = attachmentsResolverFactory({
         attachmentsByTrId: vi.fn().mockResolvedValue([

@@ -101,6 +101,7 @@ describe("attachmentsResolverFactory", () => {
   it("does not read attachments from removed step subtrees", async () => {
     const attachmentContentById = vi.fn().mockResolvedValue({
       readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+      getContentLength: vi.fn().mockReturnValue(7),
     });
     const resolver = attachmentsResolverFactory({
       attachmentsByTrId: vi.fn().mockResolvedValue([
@@ -132,6 +133,7 @@ describe("attachmentsResolverFactory", () => {
   it("excludes attachments from invalid fixture trees", async () => {
     const attachmentContentById = vi.fn().mockResolvedValue({
       readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+      getContentLength: vi.fn().mockReturnValue(7),
     });
     const resolver = attachmentsResolverFactory({
       attachmentsByTrId: vi.fn().mockResolvedValue([{ id: "invalid", originalFileName: "invalid.txt" }]),
@@ -152,6 +154,7 @@ describe("attachmentsResolverFactory", () => {
   it("retains attachments referenced only by valid fixtures", async () => {
     const attachmentContentById = vi.fn().mockResolvedValue({
       readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+      getContentLength: vi.fn().mockReturnValue(7),
     });
     const resolver = attachmentsResolverFactory({
       attachmentsByTrId: vi.fn().mockResolvedValue([]),
@@ -178,6 +181,7 @@ describe("attachmentsResolverFactory", () => {
   it("retains attachments listed directly on test results", async () => {
     const attachmentContentById = vi.fn().mockResolvedValue({
       readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+      getContentLength: vi.fn().mockReturnValue(7),
     });
     const resolver = attachmentsResolverFactory({
       attachmentsByTrId: vi.fn().mockResolvedValue([]),

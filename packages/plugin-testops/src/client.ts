@@ -436,7 +436,7 @@ export class TestOpsClient {
         continue;
       }
 
-      totalBytes += attachmentByteLength(attachment.content);
+      totalBytes += attachmentByteLength(attachment);
 
       formData.append("file", attachment.content, {
         filename: attachment.originalFileName,
@@ -662,7 +662,7 @@ export class TestOpsClient {
       let chunkBytes = 0;
 
       for (const att of attachmentsChunk) {
-        chunkBytes += attachmentByteLength(att.content);
+        chunkBytes += attachmentByteLength(att);
 
         formData.append("file", att.content, {
           filename: att.originalFileName,

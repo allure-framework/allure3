@@ -228,6 +228,7 @@ export type AttachmentForUpload = {
   originalFileName: string;
   contentType: string;
   content: Buffer | Blob | ReadableStream | Readable;
+  contentLength?: number;
 };
 
 export type FixtureResolver = (tr: TestResult) => Promise<TestOpsFixtureResult[]>;
