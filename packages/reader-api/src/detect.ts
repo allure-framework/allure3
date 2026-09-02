@@ -84,6 +84,28 @@ const rawMagics: RawMagic[] = [
     extensions: [".png"],
   },
   {
+    name: "image/webp",
+    priority: 50,
+    clause: {
+      clause: "and",
+      nested: [
+        {
+          clause: "match",
+          value: "RIFF",
+          type: "string",
+          offset: "0",
+        },
+        {
+          clause: "match",
+          value: "WEBP",
+          type: "string",
+          offset: "8",
+        },
+      ],
+    },
+    extensions: [".webp"],
+  },
+  {
     name: "application/x-gtar",
     priority: 50,
     clause: {
