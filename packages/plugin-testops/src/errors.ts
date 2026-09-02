@@ -82,9 +82,16 @@ export const isClosedLaunchError = (error: unknown): boolean => {
   return false;
 };
 
+const isCanceledError = (error: unknown): boolean =>
+  isAxiosError(error) && (error.code === "ERR_CANCELED" || error.name === "CanceledError");
+
 export const classifyError = (error: unknown): ErrorKind => {
   if (!error) {
     return ErrorKind.None;
+  }
+
+  if (isCanceledError(error)) {
+    return ErrorKind.Unknown;
   }
 
   if (isAxiosError(error)) {

@@ -34,6 +34,11 @@ describe("classifyError", () => {
     expect(classifyError(axiosError(undefined))).toBe(ErrorKind.ServiceTransient);
   });
 
+  it("does not classify a canceled request as retryable", () => {
+    expect(classifyError({ isAxiosError: true, code: "ERR_CANCELED" })).toBe(ErrorKind.Unknown);
+    expect(classifyError({ isAxiosError: true, name: "CanceledError" })).toBe(ErrorKind.Unknown);
+  });
+
   it("classifies HTTP 423 as resource recoverable", () => {
     expect(classifyError(axiosError(423))).toBe(ErrorKind.ResourceRecoverable);
   });
