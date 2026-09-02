@@ -363,13 +363,7 @@ export class TestOpsClient {
   }
 
   getNamedEnvFor(id: string) {
-    for (const [, env] of this.#namedEnvsIdsByEnv) {
-      if (env.externalId === id) {
-        return env;
-      }
-    }
-
-    return undefined;
+    return this.#namedEnvsIdsByEnv.get(id);
   }
 
   async createNamedEnvs(environments: EnvironmentIdentity[], onProgress?: (percent: number, total: number) => void) {
@@ -532,8 +526,12 @@ export class TestOpsClient {
 
       const reportIdsToTestOpsIds = await withUploadRetry(
         async () => {
-          if (chunkEnvs.size > 0) {
-            await this.createNamedEnvs(Array.from(chunkEnvs.values()));
+          const envsToCreate = Array.from(chunkEnvs.values()).filter(
+            (environment) => !this.#namedEnvsIdsByEnv.has(environment.id),
+          );
+
+          if (envsToCreate.length > 0) {
+            await this.createNamedEnvs(envsToCreate);
           }
 
           await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });

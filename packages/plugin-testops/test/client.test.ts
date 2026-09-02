@@ -252,6 +252,46 @@ describe("testops http client", () => {
       expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-0")).toHaveLength(1);
       expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-100")).toHaveLength(2);
     });
+
+    it("does not re-create named environments when the chunk it created them for is retried", async () => {
+      const client = await clientWithLaunch();
+      let resultAttempts = 0;
+
+      AxiosMock.post.mockImplementation((url: string, body: any) => {
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: [{ id: 10, externalId: "chrome" }] });
+        }
+
+        if (url === "/api/upload/test-result") {
+          resultAttempts += 1;
+
+          if (resultAttempts === 1) {
+            return Promise.reject(axiosError(503, "0"));
+          }
+
+          return Promise.resolve({
+            data: { results: body.results.map((result: any, index: number) => ({ id: index + 1, uuid: result.uuid })) },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "result-0", name: "Result 0", environment: "chrome" } as TestResult],
+        environments: [{ id: "chrome", name: "chrome" }],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(resultAttempts).toBe(2);
+      expect(AxiosMock.post.mock.calls.filter((call) => call[0] === "/api/launch/named-env/bulk")).toHaveLength(1);
+    });
   });
 
   describe("constructor", () => {
