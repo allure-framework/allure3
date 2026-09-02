@@ -75,9 +75,6 @@ export const isClosedLaunchError = (error: unknown): boolean => {
     return isLaunchClosedMessage(responseMessage(error));
   }
 
-  // TestOpsClient never sees a raw AxiosError: @allurereport/service's createServiceHttpClient
-  // already unwraps it into a KnownError/UnknownError, formatting the response message into
-  // `.message` in the process — so the "launch is closed" text still survives there
   if (error instanceof KnownError || error instanceof UnknownError) {
     return isLaunchClosedMessage(error.message);
   }
@@ -97,12 +94,9 @@ export const classifyError = (error: unknown): ErrorKind => {
 
     const status = responseStatus(error);
 
-    // no response at all: network error, DNS failure, connection reset, request timeout, ...
     return status === undefined ? ErrorKind.ServiceTransient : classifyHttpStatus(status);
   }
 
-  // real TestOpsClient calls surface a KnownError (status < 500, response known) or an
-  // UnknownError (status >= 500, or no response at all) — see the comment on isClosedLaunchError
   if (error instanceof KnownError) {
     if (isLaunchClosedMessage(error.message)) {
       return ErrorKind.ResourceRecoverable;
@@ -116,7 +110,6 @@ export const classifyError = (error: unknown): ErrorKind => {
       return ErrorKind.ResourceRecoverable;
     }
 
-    // UnknownError only ever represents a 5xx response or a request that never got one
     return ErrorKind.ServiceTransient;
   }
 
@@ -160,11 +153,6 @@ const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_BASE_DELAY_MS = 500;
 const DEFAULT_MAX_DELAY_MS = 5_000;
 
-/**
- * Retries an upload operation with exponential backoff, but only for errors classified as
- * retryable (transient service errors, a recoverable "launch is closed" race). Terminal errors
- * (auth, validation, payload too large, ...) fail fast on the first attempt.
- */
 export const withUploadRetry = async <T>(operation: () => Promise<T>, options: RetryOptions = {}): Promise<T> => {
   const {
     maxRetries = DEFAULT_MAX_RETRIES,

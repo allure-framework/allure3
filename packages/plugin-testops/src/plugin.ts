@@ -549,8 +549,6 @@ export class TestOpsPlugin implements Plugin {
     const jobRunId = Number.isInteger(existingJobRunId) && existingJobRunId > 0 ? existingJobRunId : undefined;
 
     try {
-      // When TestOps started this job run itself (e.g. via its "Run" button), it passes the
-      // run's id in and resolves the launch from it, so no launch is created here.
       if (!jobRunId) {
         if (this.#launchId) {
           this.#client.attachToLaunch(this.#launchId);

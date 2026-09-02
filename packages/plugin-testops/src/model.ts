@@ -209,11 +209,6 @@ export type LaunchCategoryBulkResult = {
   externalId: string;
 };
 
-/**
- * Caps how fast uploads are sent to TestOps within a rolling time window. Each budget is
- * optional and independent — unset ones don't pace anything. Paced with sane defaults
- * (see `DEFAULT_UPLOAD_RATE_LIMIT`) unless explicitly overridden; pass `false` to disable pacing.
- */
 export type UploadRateLimit = {
   windowMs: number;
   maxRequestsPerWindow?: number;
@@ -245,9 +240,7 @@ export type TestOpsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   autocloseLaunch?: boolean;
-  /** Reopen a closed launch instead of failing to upload to it. Default: false */
   reopenClosedLaunch?: boolean;
-  /** Attach to an existing launch by id instead of creating a new one. Skipped when a job run id is resolved. */
   launchId?: number;
   /** When false, Git Flow metadata is never collected or sent. Default: false */
   gitFlow?: boolean;
@@ -274,7 +267,6 @@ export type TestOpsSession = {
   projectId: number;
 };
 
-/** `/api/upload/start` response body. */
 export type ExternalRunStartResponse = {
   projectId: number;
   launchId: number;

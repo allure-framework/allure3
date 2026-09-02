@@ -196,12 +196,6 @@ export class TestOpsClient {
     return results;
   }
 
-  /**
-   * The job's existing record (id + already-configured parameters), or undefined if it doesn't
-   * exist yet. Only a 404 is treated as "doesn't exist" — any other failure (auth, network,
-   * TestOps down) is rethrown, since silently treating it as "no job" would make startUpload()
-   * omit the job's real parameters and wipe them server-side (job.parameters is a full replace).
-   */
   async #getExistingJob(ci: CiDescriptor): Promise<TestOpsJob | undefined> {
     try {
       return await retryRequest(() =>
@@ -315,7 +309,6 @@ export class TestOpsClient {
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
   }
 
-  /** Attaches to an existing launch by id instead of creating a new one, for manual re-upload. */
   attachToLaunch(launchId: number): void {
     this.#launch = { id: launchId } as TestOpsLaunch;
   }
@@ -353,8 +346,6 @@ export class TestOpsClient {
       value: String(value),
     }));
 
-    // Binding the session to the job run (rather than a manual one) is what makes
-    // test_result.job_run_id get set, which rerun and test plan matching rely on.
     const data = this.#jobRunId
       ? await this.#client.post<TestOpsSession>("/api/upload/session", {
           body: { jobRunId: this.#jobRunId, environment: sessionEnvironment },
@@ -639,8 +630,6 @@ export class TestOpsClient {
             await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
             await this.#uploadFixturesForResult(testOpsId, fixtures);
           } catch (error) {
-            // a subordinate failure (resolver or fixture upload) shouldn't invalidate the test
-            // result itself, which TestOps has already acknowledged by this point
             if (this.isTestOpsClientError(error)) {
               this.#logger.error(`Failed to upload fixtures for result ${testOpsId}: ${error.response?.data.message}`);
             } else if (error instanceof Error) {

@@ -92,39 +92,38 @@ export const syncLaunchCategories = async (
   }
 
   const rankByExternalId = new Map<string, number>();
-  for (const c of contextCategories) {
-    // Prefer canonical ids, but allow ordering by name for categories originating from `tr.categories`
-    if (!rankByExternalId.has(c.id)) {
-      rankByExternalId.set(c.id, c.index);
+  for (const category of contextCategories) {
+    if (!rankByExternalId.has(category.id)) {
+      rankByExternalId.set(category.id, category.index);
     }
-    if (!rankByExternalId.has(c.name)) {
-      rankByExternalId.set(c.name, c.index);
+    if (!rankByExternalId.has(category.name)) {
+      rankByExternalId.set(category.name, category.index);
     }
   }
 
-  const ranked = bulkItems.map((item, i) => ({
+  const ranked = bulkItems.map((item, originalIndex) => ({
     item,
-    i,
+    originalIndex,
     rank: rankByExternalId.get(item.externalId),
   }));
 
-  ranked.sort((a, b) => {
-    const ar = a.rank ?? Number.POSITIVE_INFINITY;
-    const br = b.rank ?? Number.POSITIVE_INFINITY;
-    if (ar !== br) return ar - br;
-    return a.i - b.i; // stable for unknown ranks
+  ranked.sort((first, second) => {
+    const firstRank = first.rank ?? Number.POSITIVE_INFINITY;
+    const secondRank = second.rank ?? Number.POSITIVE_INFINITY;
+    if (firstRank !== secondRank) return firstRank - secondRank;
+    return first.originalIndex - second.originalIndex;
   });
 
-  const orderedBulkItems = ranked.map((r) => r.item);
+  const orderedBulkItems = ranked.map((rankedItem) => rankedItem.item);
 
   const launchId = client.launchId;
 
   try {
     const created = await client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
-    const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
+    const categoryIdByExternalId = new Map(created.map((result) => [result.externalId, result.id]));
 
     assignCreatedCategoryIds(trs, categoryIdByExternalId);
   } catch {
-    // ignore
+    return;
   }
 };

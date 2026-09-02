@@ -45,7 +45,6 @@ const retryAfterMs = (error: unknown): number | undefined => {
   return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
 };
 
-// Caller must ensure repeating the request is safe.
 export const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => {
   for (let attempt = 0; ; attempt += 1) {
     try {
@@ -60,8 +59,6 @@ export const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => 
   }
 };
 
-// best-effort: a Buffer/Blob's size is known upfront, a stream's isn't without consuming it,
-// so streamed attachments just don't contribute to the byte budget
 export const attachmentByteLength = (content: AttachmentForUpload["content"]): number => {
   if (Buffer.isBuffer(content)) {
     return content.length;

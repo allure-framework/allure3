@@ -2,11 +2,6 @@ import { env } from "node:process";
 
 import type { CiDescriptor } from "@allurereport/core-api";
 
-/**
- * Lets `ALLURE_`-prefixed env vars override any CI-detected field: when a detector gets it
- * wrong or the CI is exotic, the user can force individual fields without touching
- * `packages/ci`.
- */
 type OverridableField = "jobUid" | "jobUrl" | "jobName" | "jobRunUid" | "jobRunUrl" | "jobRunName" | "jobRunBranch";
 
 const OVERRIDABLE_FIELDS: readonly [OverridableField, string][] = [
