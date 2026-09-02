@@ -84,27 +84,20 @@ describe("UploadPacer", () => {
     expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
   });
 
-  it("charges an oversized batch as a single window instead of scaling past it", async () => {
-    const windowMs = 80;
-    const smallPacer = new UploadPacer({ windowMs, maxFilesPerWindow: 10 });
-    const bigPacer = new UploadPacer({ windowMs, maxFilesPerWindow: 10 });
+  it("charges an oversized batch proportionally instead of clamping it to a single window", async () => {
+    const windowMs = 40;
+    const limit = 5;
+    const pacer = new UploadPacer({ windowMs, maxFilesPerWindow: limit });
 
-    await smallPacer.wait({ files: 10 }); // exactly at the limit
-    await bigPacer.wait({ files: 1000 }); // far beyond the limit
+    await pacer.wait({ files: limit * 3 });
 
-    const smallStart = performance.now();
+    const start = performance.now();
 
-    await smallPacer.wait({ files: 1 });
+    await pacer.wait({ files: 1 });
 
-    const smallElapsed = performance.now() - smallStart;
-    const bigStart = performance.now();
+    const elapsed = performance.now() - start;
 
-    await bigPacer.wait({ files: 1 });
-
-    const bigElapsed = performance.now() - bigStart;
-
-    // both batches, however oversized, only reserve a single window — not proportionally more
-    expect(Math.abs(bigElapsed - smallElapsed)).toBeLessThan(windowMs * 1.5);
+    expect(elapsed).toBeGreaterThanOrEqual(windowMs * 2.5);
   });
 
   it("aborts the wait when the given signal is aborted", async () => {

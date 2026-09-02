@@ -28,7 +28,7 @@ const scaledWindowCost = (windowMs: number, cost: number, limit: number): number
     return 0;
   }
 
-  return (windowMs * Math.min(cost, limit)) / limit;
+  return (windowMs * cost) / limit;
 };
 
 const resolveRateLimit = (rateLimit: UploadRateLimit | false | undefined): UploadRateLimit | undefined => {
