@@ -6,7 +6,7 @@ import {
   isStep,
   redactParameters,
 } from "@allurereport/core-api";
-import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/web-classic";
+import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();

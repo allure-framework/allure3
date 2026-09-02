@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import type { CategoryDefinition } from "@allurereport/core-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
+import type { AwesomeTestResult } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

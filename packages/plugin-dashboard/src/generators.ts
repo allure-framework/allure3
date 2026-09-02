@@ -1,7 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
@@ -13,15 +10,24 @@ import {
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type DashboardReportOptions,
+  type PluginContext,
+  type ReportFiles,
+} from "@allurereport/plugin-api";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import { generateCharts } from "@allurereport/web-commons";
-import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import Handlebars from "handlebars";
 
 import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -60,13 +66,10 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-dashboard/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
 export const generateAllCharts = async (
@@ -103,7 +106,6 @@ export const generateStaticFiles = async (
   const {
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "light",
     reportFiles,
@@ -112,16 +114,14 @@ export const generateStaticFiles = async (
     allureVersion,
   } = payload;
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-dashboard/dist", singleFile ? "single" : "multi", fileName),
-      );
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -133,20 +133,20 @@ export const generateStaticFiles = async (
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
-
-      // we don't need to handle another files in single file mode
-      if (singleFile) {
-        continue;
-      }
-
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
     }
+
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-dashboard/dist/single/${mainJs}`);
-    const mainJsContentBuffer = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }

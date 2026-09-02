@@ -1,13 +1,13 @@
 import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type AwesomeExecutorInfo,
   type Plugin,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";

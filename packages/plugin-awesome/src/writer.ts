@@ -2,8 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { joinPosixPath } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
+import type { AwesomeTestResult, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 
 export interface ReportFile {
   name: string;

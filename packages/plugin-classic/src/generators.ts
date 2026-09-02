@@ -1,7 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
@@ -23,6 +20,11 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ClassicFixtureResult,
+  type ClassicReportOptions,
+  type ClassicTestResult,
+  type ClassicTreeGroup,
+  type ClassicTreeLeaf,
   type PluginContext,
   type ReportFiles,
   type ResultFile,
@@ -30,13 +32,11 @@ import {
   createTreeByLabels,
   processTree,
 } from "@allurereport/plugin-api";
-import type {
-  ClassicFixtureResult,
-  ClassicReportOptions,
-  ClassicTestResult,
-  ClassicTreeGroup,
-  ClassicTreeLeaf,
-} from "@allurereport/web-classic";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
@@ -45,7 +45,7 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -92,13 +92,10 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
 const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
@@ -294,7 +291,6 @@ export const generateStaticFiles = async (
   const {
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "auto",
     groupBy,
@@ -303,16 +299,14 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
   } = payload;
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName),
-      );
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -324,20 +318,20 @@ export const generateStaticFiles = async (
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
-
-      // we don't need to handle another files in single file mode
-      if (singleFile) {
-        continue;
-      }
-
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
     }
+
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-classic/dist/single/${mainJs}`);
-    const mainJsContentBuffer = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }

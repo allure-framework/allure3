@@ -8,7 +8,7 @@ import {
   redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
-import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
+import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();

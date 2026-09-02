@@ -1,7 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { readFile, readdir } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, dirname, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
@@ -31,6 +28,15 @@ import {
 } from "@allurereport/core-api";
 import type {
   AllureStore,
+  AwesomeCategory,
+  AwesomeExecutorInfo,
+  AwesomeFixtureResult,
+  AwesomeReportOptions,
+  AwesomeRunSummary,
+  AwesomeSearchDocument,
+  AwesomeTestResult,
+  AwesomeTreeGroup,
+  AwesomeTreeLeaf,
   GlobalAttachmentLink,
   ExitCode,
   PluginContext,
@@ -48,17 +54,11 @@ import {
   preciseTreeLabels,
   processTree,
 } from "@allurereport/plugin-api";
-import type {
-  AwesomeCategory,
-  AwesomeExecutorInfo,
-  AwesomeFixtureResult,
-  AwesomeReportOptions,
-  AwesomeRunSummary,
-  AwesomeSearchDocument,
-  AwesomeTestResult,
-  AwesomeTreeGroup,
-  AwesomeTreeLeaf,
-} from "@allurereport/web-awesome";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
@@ -66,7 +66,7 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -109,13 +109,10 @@ const template = `<!DOCTYPE html>
 
 const compiledTemplate = Handlebars.compile(template);
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-awesome/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
 const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
@@ -685,7 +682,6 @@ export const generateStaticFiles = async (
     id,
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "auto",
     groupBy,
@@ -701,17 +697,13 @@ export const generateStaticFiles = async (
     stepTreeExpansion,
     defaultSortBy,
   } = payload;
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = ["charts", "timeline"];
 
   if (!payload.singleFile) {
-    const manifestPath = require.resolve(
-      join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", "manifest.json"),
-    );
-    const templateDir = dirname(manifestPath);
-
     for (const key in manifest) {
       const fileName = manifest[key];
 
@@ -728,20 +720,18 @@ export const generateStaticFiles = async (
       }
     }
 
-    for (const fileName of await readdir(templateDir)) {
-      if (fileName === "manifest.json") {
-        continue;
-      }
-
-      const filePath = join(templateDir, fileName);
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
-    }
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
-    const mainJsContent = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
   }

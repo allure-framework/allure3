@@ -2,8 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { joinPosixPath } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
+import type { ClassicTestResult, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 
 export interface ReportFile {
   name: string;
@@ -15,7 +14,7 @@ export interface ClassicDataWriter {
 
   writeWidget(fileName: string, data: any): Promise<void>;
 
-  writeTestCase(test: AwesomeTestResult): Promise<void>;
+  writeTestCase(test: ClassicTestResult): Promise<void>;
 
   writeAttachment(source: string, file: ResultFile): Promise<void>;
 }
@@ -51,7 +50,7 @@ export class FileSystemReportDataWriter implements ClassicDataWriter {
     await writeFile(resolve(this.#widgetsDir, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ClassicTestResult): Promise<void> {
     await this.#testResultsDirReady;
     await writeFile(resolve(this.#testResultsDir, `${test.id}.json`), JSON.stringify(test), { encoding: "utf-8" });
   }
@@ -77,7 +76,7 @@ export class InMemoryReportDataWriter implements ClassicDataWriter {
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ClassicTestResult): Promise<void> {
     const dist = joinPosixPath("data", "test-results", `${test.id}.json`);
 
     this.#data[dist] = Buffer.from(JSON.stringify(test), "utf-8");
@@ -122,7 +121,7 @@ export class ReportFileDataWriter implements ClassicDataWriter {
     await this.reportFiles.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ClassicTestResult): Promise<void> {
     await this.reportFiles.addFile(
       joinPosixPath("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),

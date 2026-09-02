@@ -16,8 +16,7 @@ import {
   incrementStatistic,
   matchCategory,
 } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
+import { type AwesomeTestResult, md5 } from "@allurereport/plugin-api";
 
 import type { AwesomeDataWriter } from "./writer.js";
 

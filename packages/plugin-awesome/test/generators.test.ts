@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
 import type { AttachmentLink, EnvironmentIdentity, TestFixtureResult, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import type { ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeQualityGateResults, AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
+import type {
+  AllureStore,
+  AwesomeQualityGateResults,
+  AwesomeSearchDocument,
+  AwesomeTestResult,
+  PluginContext,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
