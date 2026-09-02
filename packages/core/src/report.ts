@@ -126,7 +126,6 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
-  #performance: FullConfig["performance"];
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
   readonly #knownIssuesPath: string | undefined;
@@ -201,7 +200,6 @@ export class AllureReport {
     this.#globalAttachments = globalAttachments;
     this.#appendHistory = appendHistory ?? true;
     this.#knownIssuesPath = resolutions?.knownIssuesPath;
-    this.#performance = performance;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
