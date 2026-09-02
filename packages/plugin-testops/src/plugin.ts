@@ -558,7 +558,7 @@ export class TestOpsPlugin implements Plugin {
 
     try {
       if (!jobRunId) {
-        if (this.#launchId) {
+        if (this.#launchId !== undefined) {
           this.#client.attachToLaunch(this.#launchId);
         } else {
           const launchGitContext = this.#gitFlow.resolve();

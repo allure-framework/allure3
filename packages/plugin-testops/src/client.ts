@@ -634,13 +634,7 @@ export class TestOpsClient {
             await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
             await this.#uploadFixturesForResult(testOpsId, fixtures);
           } catch (error) {
-            if (this.isTestOpsClientError(error)) {
-              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}: ${error.response?.data.message}`);
-            } else if (error instanceof Error) {
-              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}: ${error.message}`);
-            } else {
-              this.#logger.error(`Failed to upload fixtures for result ${testOpsId}`);
-            }
+            this.#logResultUploadFailure("fixtures", testOpsId, error);
           } finally {
             onProgress?.();
           }
@@ -679,18 +673,19 @@ export class TestOpsClient {
           headers: formData.getHeaders(),
         });
       } catch (error) {
-        if (this.isTestOpsClientError(error)) {
-          this.#logger.error(
-            `Failed to upload attachments for result ${testOpsResultId}: ${error.response?.data.message}`,
-          );
-        } else if (error instanceof Error) {
-          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}: ${error.message}`);
-        } else {
-          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}`);
-        }
-
+        this.#logResultUploadFailure("attachments", testOpsResultId, error);
         this.#logger.inspect(formData);
       }
+    }
+  }
+
+  #logResultUploadFailure(label: string, testOpsResultId: number, error: unknown): void {
+    if (this.isTestOpsClientError(error)) {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}: ${error.response?.data.message}`);
+    } else if (error instanceof Error) {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}: ${error.message}`);
+    } else {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}`);
     }
   }
 

@@ -23,12 +23,10 @@ describe("UploadPacer", () => {
     const pacer = new UploadPacer(undefined);
     const start = performance.now();
 
-    // one request well within the default per-second budgets: shouldn't wait
     await pacer.wait({ requests: 1, files: 1 });
 
     expect(performance.now() - start).toBeLessThan(20);
 
-    // exhausting the default request budget in one shot should start pacing the next call
     await pacer.wait({ requests: DEFAULT_UPLOAD_RATE_LIMIT.maxRequestsPerWindow });
 
     let resolved = false;
@@ -39,7 +37,6 @@ describe("UploadPacer", () => {
     await Promise.resolve();
     expect(resolved).toBe(false);
 
-    // avoid leaving a dangling real-timer wait past the end of the test
     await pending.catch(() => {});
   });
 
@@ -74,7 +71,6 @@ describe("UploadPacer", () => {
       maxBytesPerWindow: 10,
     });
 
-    // well within the requests/files budgets, but exhausts the bytes budget
     await pacer.wait({ requests: 1, files: 1, bytes: 10 });
 
     const start = performance.now();

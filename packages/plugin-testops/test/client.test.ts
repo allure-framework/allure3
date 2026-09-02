@@ -94,9 +94,6 @@ vi.mock("axios", async (importOriginal) => {
 beforeEach(() => {
   vi.clearAllMocks();
   AxiosMock.postForm.mockImplementation((...args) => AxiosMock.post(...args));
-  // clearAllMocks only resets call history, not implementations set with mockRejectedValue/
-  // mockResolvedValue (no "Once"), so a prior test's permanent GET mock would otherwise leak
-  // into createSession's launch-state check here.
   AxiosMock.get.mockResolvedValue({ data: { closed: false } });
 });
 
@@ -1509,7 +1506,6 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
 
-      // first call establishes the byte budget usage, well past the 1-byte-per-window limit
       await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
 
       const start = performance.now();
@@ -1848,9 +1844,7 @@ describe("testops http client", () => {
         id: "tr-1",
         name: "Test",
         status: "passed",
-        // should be used to resolve named env but not be sent as `environment`
         environment: "chrome",
-        // should be converted to string in payload
         category: {
           externalId: 123,
           grouping: [{ key: "status", value: "passed", name: "status: passed" }],
@@ -1952,7 +1946,6 @@ describe("testops http client", () => {
           return { data: { results: fixtures.testOpsResults } };
         }
 
-        // simulate async work for attachment uploads to make per-TR concurrency observable
         concurrentCount++;
         maxConcurrentCount = Math.max(maxConcurrentCount, concurrentCount);
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1988,8 +1981,10 @@ describe("testops http client", () => {
     });
 
     it("does not resend an already-acknowledged chunk when a later chunk fails and retries", async () => {
-      // CHUNK_SIZE is 100, so 101 test results split into a 100-item chunk and a 1-item chunk.
-      const trs = Array.from({ length: 101 }, (_, i) => ({ id: `tr-${i}`, name: `Test ${i}` }) as TestResult);
+      const trs = Array.from(
+        { length: 101 },
+        (_, index) => ({ id: `tr-${index}`, name: `Test ${index}` }) as TestResult,
+      );
       let secondChunkAttempts = 0;
 
       AxiosMock.post.mockImplementation((url: string, body: any) => {
@@ -2008,7 +2003,12 @@ describe("testops http client", () => {
           }
 
           return Promise.resolve({
-            data: { results: body.results.map((r: any, i: number) => ({ id: i + 1, uuid: r.uuid })) },
+            data: {
+              results: body.results.map((submittedResult: any, index: number) => ({
+                id: index + 1,
+                uuid: submittedResult.uuid,
+              })),
+            },
           });
         }
 
@@ -2034,7 +2034,6 @@ describe("testops http client", () => {
       expect(uploaded).toHaveLength(101);
 
       const resultCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
-      // first (100-item) chunk uploaded exactly once, second (1-item) chunk retried once
       expect(resultCalls).toHaveLength(3);
       expect(resultCalls.filter((call: any[]) => call[1].results.length === 100)).toHaveLength(1);
       expect(resultCalls.filter((call: any[]) => call[1].results.length === 1)).toHaveLength(2);

@@ -173,7 +173,7 @@ export const withUploadRetry = async <T>(operation: () => Promise<T>, options: R
     try {
       return await operation();
     } catch (error) {
-      if (!shouldRetryUpload(error) || isTerminalUploadError(error, attempt, maxRetries)) {
+      if (!shouldRetryUpload(error) || attempt >= maxRetries) {
         throw error;
       }
 

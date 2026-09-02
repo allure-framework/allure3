@@ -55,8 +55,6 @@ describe("UploadQueue", () => {
 
       expect(result).toEqual({ deferred: false, value: "ok" });
       expect(secondTask).toHaveBeenCalledTimes(1);
-      // A later direct success must clear the stale entry the earlier failure left behind,
-      // or flush() at finalization would re-run the stale (superseded) task and re-upload it.
       expect(queue.pendingNames).toEqual([]);
     });
 
@@ -106,7 +104,6 @@ describe("UploadQueue", () => {
       await queue.run("global-attachments", vi.fn().mockResolvedValue("ok"), { baseDelayMs: 0 });
 
       const trTask = vi.fn().mockResolvedValue("ok");
-      // re-queue the previously suspended stream via a fresh call, as the plugin would on done()
       await queue.run("test-results", trTask, { baseDelayMs: 0 });
 
       const stillPending = await queue.flush({ baseDelayMs: 0 });

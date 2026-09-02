@@ -71,9 +71,6 @@ describe("classifyError", () => {
     expect(classifyError(new Error("boom"))).toBe(ErrorKind.Unknown);
   });
 
-  // TestOpsClient never sees a raw AxiosError in practice: @allurereport/service's
-  // createServiceHttpClient wraps every HTTP failure into a KnownError (status < 500) or an
-  // UnknownError (status >= 500 / no response), so classifyError must recognize those directly.
   it("classifies a KnownError by its status code", () => {
     expect(classifyError(new KnownError("boom", 401))).toBe(ErrorKind.AuthTerminal);
     expect(classifyError(new KnownError("boom", 429))).toBe(ErrorKind.ServiceTransient);

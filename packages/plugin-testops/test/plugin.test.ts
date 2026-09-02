@@ -1101,7 +1101,6 @@ describe("testops plugin", () => {
         await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
 
         expect(TestOpsClientMock.prototype.reopenLaunch).not.toHaveBeenCalled();
-        // still retries: "launch is closed" is a resource-recoverable error kind regardless of the reopen option
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
       });
     });
@@ -1728,8 +1727,6 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        // fails through the entire hot-retry budget (1 initial + 3 retries), then succeeds once
-        // more when the deferred batch is retried during finalization
         TestOpsClientMock.prototype.uploadTestResults
           .mockRejectedValueOnce(serviceDownError)
           .mockRejectedValueOnce(serviceDownError)
@@ -1780,17 +1777,12 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
-        // 1 initial + 3 retries during the normal upload, then 1 more + 3 retries during
-        // finalization: still down the whole time
-        for (let i = 0; i < 8; i += 1) {
+        for (let attempt = 0; attempt < 8; attempt += 1) {
           TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(serviceDownError);
         }
 
         await plugin.done({} as PluginContext, store);
 
-        // nothing throws and done() still completes, but the launch is left open since some
-        // results never made it to TestOps - autoclosing would report an incomplete launch as
-        // finished
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(8);
         expect(TestOpsClientMock.prototype.stopUpload).toHaveBeenCalledTimes(1);
         expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
