@@ -32,12 +32,12 @@
     "fast-xml-parser": "^5.7.0"
   },
   "devDependencies": {
-    "@types/archiver": "^6.0.3",
+    "@types/archiver": "^8.0.0",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "rimraf": "^6",
     "typescript": "^5",
     "vitest": "^4.1.0"
