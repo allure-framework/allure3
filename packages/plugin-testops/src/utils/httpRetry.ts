@@ -25,7 +25,7 @@ const isRetryableRequestError = (error: unknown): boolean => {
   return status === undefined || status === 408 || status === 429 || status >= 500;
 };
 
-const retryAfterMs = (error: unknown): number | undefined => {
+export const retryAfterMs = (error: unknown): number | undefined => {
   const headers = getAxiosCause(error)?.response?.headers;
   const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
   const normalized = Array.isArray(value) ? value[0] : value;

@@ -3,6 +3,8 @@ import { setTimeout as delay } from "node:timers/promises";
 import { KnownError, UnknownError } from "@allurereport/service";
 import { isAxiosError } from "axios";
 
+import { retryAfterMs } from "./utils/httpRetry.js";
+
 export enum ErrorKind {
   None = "none",
   ServiceTransient = "service_transient",
@@ -180,7 +182,7 @@ export const withUploadRetry = async <T>(operation: () => Promise<T>, options: R
       attempt += 1;
       await onRetry?.(error, attempt);
 
-      const backoffMs = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
+      const backoffMs = retryAfterMs(error) ?? Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
 
       await delay(backoffMs);
     }

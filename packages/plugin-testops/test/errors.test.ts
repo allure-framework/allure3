@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import { KnownError, UnknownError } from "@allurereport/service";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -168,6 +170,20 @@ describe("withUploadRetry", () => {
 
     await expect(withUploadRetry(operation, { baseDelayMs: 0 })).rejects.toEqual(axiosError(401));
     expect(operation).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits the server-mandated Retry-After delay instead of the default backoff", async () => {
+    const retryAfterError = {
+      isAxiosError: true,
+      response: { status: 429, data: {}, headers: { "retry-after": "1" } },
+    };
+    const operation = vi.fn().mockRejectedValueOnce(retryAfterError).mockResolvedValueOnce("ok");
+
+    const start = performance.now();
+
+    await withUploadRetry(operation, { baseDelayMs: 0 });
+
+    expect(performance.now() - start).toBeGreaterThanOrEqual(950);
   });
 
   it("gives up after maxRetries and rethrows the last error", async () => {
