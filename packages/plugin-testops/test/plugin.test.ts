@@ -1767,6 +1767,24 @@ describe("testops plugin", () => {
         expect(secondCallTrs.map((tr: { id: string }) => tr.id)).toEqual([secondTr.id]);
       });
 
+      it("does not close the launch when the finalization upload was skipped because the session could not be created", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.createSession.mockRejectedValueOnce(serviceDownError);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
+      });
+
       it("reports the upload as still pending when it keeps failing through finalization too", async () => {
         AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
 

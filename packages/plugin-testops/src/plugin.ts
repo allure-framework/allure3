@@ -50,6 +50,7 @@ export class TestOpsPlugin implements Plugin {
   #autocloseLaunch: boolean = false;
   #launchStarted: boolean = false;
   #reopenClosedLaunch: boolean = false;
+  #skippedUploadCycle: boolean = false;
   #launchId?: number;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
@@ -496,6 +497,8 @@ export class TestOpsPlugin implements Plugin {
     try {
       await this.#client.createSession(env, this.#reopenClosedLaunch);
     } catch (error) {
+      this.#skippedUploadCycle = true;
+
       if (this.#client.isTestOpsClientError(error)) {
         this.#logger.error(`Failed to create TestOps session: ${error.response.data.message}`);
         this.#logger.debug(error.response?.data);
@@ -507,6 +510,8 @@ export class TestOpsPlugin implements Plugin {
 
       return;
     }
+
+    this.#skippedUploadCycle = false;
 
     await this.#uploadGlobalAttachments(store, globalAttachments);
     await this.#uploadGlobalErrors(globalErrors);
@@ -677,7 +682,7 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    if (stillPending.length > 0) {
+    if (stillPending.length > 0 || this.#skippedUploadCycle) {
       this.#logger.warn(
         `Not closing launch ${launchId}: some uploads never made it to TestOps, closing now would report an incomplete launch as finished.`,
       );
