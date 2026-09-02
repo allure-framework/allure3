@@ -42,6 +42,15 @@ describe("applyAllureCiEnv", () => {
     expect(process.env.ALLURE_OTHER_DECODED_VAR).toBe("two");
   });
 
+  it("lets the bundle win over an ALLURE_ variable already set in the environment", () => {
+    vi.stubEnv("ALLURE_DECODED_VAR", "set-directly-on-the-step");
+    vi.stubEnv("ALLURE_CI_ENV", encode({ ALLURE_DECODED_VAR: "from-ci-env" }));
+
+    applyAllureCiEnv();
+
+    expect(process.env.ALLURE_DECODED_VAR).toBe("from-ci-env");
+  });
+
   it("ignores non-ALLURE_ keys in the decoded bundle", () => {
     vi.stubEnv("ALLURE_CI_ENV", encode({ NOT_ALLURE_PREFIXED: "should-be-ignored" }));
 
