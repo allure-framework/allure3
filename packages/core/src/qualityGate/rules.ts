@@ -6,6 +6,8 @@ export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
+  successMessage: ({ actual, expected }) =>
+    `The number of failed tests ${bold(String(actual))} is within the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? 0;
     const failedTrs = trs.filter(filterUnsuccessful);
@@ -26,6 +28,8 @@ export const minTestsCountRule: QualityGateRule<number> = {
   rule: "minTestsCount",
   message: ({ actual, expected }) =>
     `The total number of tests ${bold(String(actual))} is less than the expected threshold value ${bold(String(expected))}`,
+  successMessage: ({ actual, expected }) =>
+    `The total number of tests ${bold(String(actual))} meets the expected threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const actual = trs.length + (state.getResult() ?? 0);
 
@@ -43,6 +47,8 @@ export const successRateRule: QualityGateRule<number, { totalCount: number; pass
   rule: "successRate",
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
+  successMessage: ({ actual, expected }) =>
+    `Success rate ${bold(String(actual))} is not less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? { totalCount: 0, passedCount: 0 };
     const passedTrs = trs.filter(filterSuccessful);
@@ -66,6 +72,8 @@ export const maxDurationRule: QualityGateRule<number> = {
   rule: "maxDuration",
   message: ({ actual, expected }) =>
     `Maximum duration of some tests exceed the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
+  successMessage: ({ actual, expected }) =>
+    `Maximum duration of the tests is within the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? 0;
     const actual = Math.max(previous, ...trs.map((tr) => tr.duration ?? 0));
@@ -90,6 +98,7 @@ export const allTestsContainEnvRule: QualityGateRule<string, number> = {
   rule: "allTestsContainEnv",
   message: ({ actual, expected }) =>
     `Not all tests contain the required "${bold(expected)}" environment, ${bold(actual)} tests have different or missing environment`,
+  successMessage: ({ expected }) => `All tests contain the required "${bold(expected)}" environment`,
   validate: async ({ trs, expected, state }) => {
     const previous = state.getResult() ?? 0;
     const testsWithoutEnv = trs.filter((tr) => (tr.environment ?? "") !== expected);
@@ -114,6 +123,7 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   rule: "environmentsTested",
   message: ({ actual, expected }) =>
     `The following environments were not tested: "${actual.join('", "')}"; expected all of: "${expected.join('", "')}"`,
+  successMessage: ({ expected }) => `All expected environments were tested: "${expected.join('", "')}"`,
   validate: async ({ trs, expected, state }) => {
     const previouslyTested = new Set(state.getResult() ?? []);
     const batchTested = trs.map((tr) => tr.environment).filter((env): env is string => env != null && env !== "");

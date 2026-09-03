@@ -21,5 +21,6 @@ export {
   allTestsContainEnvRule,
   environmentsTestedRule,
   convertQualityGateResultsToTestErrors,
+  filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "./qualityGate/index.js";

@@ -526,3 +526,32 @@ describe("environmentsTestedRule", () => {
     expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]), []);
   });
 });
+
+// default rule messages are highlighted with ANSI codes whenever the terminal supports colors
+const ansiPattern = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
+const stripAnsi = (value: string) => value.replaceAll(ansiPattern, "");
+
+describe("default rules success messages", () => {
+  it.each([
+    [
+      maxFailuresRule,
+      { actual: 0, expected: 1 },
+      "The number of failed tests 0 is within the allowed threshold value 1",
+    ],
+    [minTestsCountRule, { actual: 2, expected: 1 }, "The total number of tests 2 meets the expected threshold value 1"],
+    [successRateRule, { actual: 1, expected: 0.9 }, "Success rate 1 is not less, than expected 0.9"],
+    [
+      maxDurationRule,
+      { actual: 100, expected: 200 },
+      "Maximum duration of the tests is within the defined limit; actual 100, expected 200",
+    ],
+    [allTestsContainEnvRule, { actual: 0, expected: "prod" }, 'All tests contain the required "prod" environment'],
+    [
+      environmentsTestedRule,
+      { actual: [], expected: ["prod", "staging"] },
+      'All expected environments were tested: "prod", "staging"',
+    ],
+  ])("should provide a success message for the %# default rule", (rule, payload, expectedMessage) => {
+    expect(stripAnsi(rule.successMessage?.(payload as any) ?? "")).toBe(expectedMessage);
+  });
+});

@@ -145,6 +145,7 @@
     "retries": "Próby ponowne",
     "environments": "Środowiska",
     "error": "Błąd",
+    "success": "Sukces",
     "goToStep": "Idź do kroku",
     "showLess": "Pokaż mniej",
     "showMore": "Pokaż więcej",

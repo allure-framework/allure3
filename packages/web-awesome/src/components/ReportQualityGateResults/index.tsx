@@ -1,5 +1,6 @@
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { Loadable, SvgIcon, Text, Tree, allureIcons } from "@allurereport/web-components";
+import clsx from "clsx";
 import { useMemo, useState } from "preact/hooks";
 import type { AwesomeQualityGateValidationResult, AwesomeTree, AwesomeTreeGroup } from "types";
 
@@ -82,12 +83,23 @@ const QualityGateTestResultsTree = ({ tree }: { tree: AwesomeTree }) => {
 };
 
 const QualityGateResultsList = ({ results }: { results: AwesomeQualityGateValidationResult[] }) => {
+  const { t } = useI18n("ui");
+
   return (
     <ul className={styles["report-quality-gate-results-list"]} data-testid={"quality-gate-results-section-env-content"}>
       {results.map((result) => (
-        <li key={result.rule} data-testid="quality-gate-result">
+        <li key={result.rule} data-testid="quality-gate-result" data-success={String(Boolean(result.success))}>
           <div className={styles["report-quality-gate-result"]}>
-            <SvgIcon id={allureIcons.solidXCircle} className={styles["report-quality-gate-result-icon"]} />
+            <SvgIcon
+              id={result.success ? allureIcons.solidCheckCircle : allureIcons.solidXCircle}
+              className={clsx(
+                styles["report-quality-gate-result-icon"],
+                styles[
+                  result.success ? "report-quality-gate-result-icon-passed" : "report-quality-gate-result-icon-failed"
+                ],
+              )}
+              data-testid={result.success ? "quality-gate-result-passed-icon" : "quality-gate-result-failed-icon"}
+            />
             <div className={styles["report-quality-gate-result-content"]}>
               <Text tag="p" size="l" type="ui" bold data-testid="quality-gate-result-rule">
                 {result.rule}
@@ -95,6 +107,8 @@ const QualityGateResultsList = ({ results }: { results: AwesomeQualityGateValida
               <TrError
                 className={styles["report-quality-gate-result-error"]}
                 message={result.message}
+                status={result.success ? "passed" : "failed"}
+                title={result.success ? t("success") : undefined}
                 data-testid="quality-gate-result-message"
               />
               {result.testResultsTree && <QualityGateTestResultsTree tree={result.testResultsTree} />}

@@ -12,7 +12,7 @@ beforeEach(async () => {
   await label("coverage", "ui-components");
 });
 
-const setupQualityGateComponent = async (testResults: string[]) => {
+const setupQualityGateComponent = async (testResults: string[], extraResults: Record<string, unknown>[] = []) => {
   vi.resetModules();
   navigateToTestResult.mockClear();
 
@@ -56,6 +56,7 @@ const setupQualityGateComponent = async (testResults: string[]) => {
                 }
               : undefined,
         },
+        ...extraResults,
       ],
     },
   });
@@ -101,7 +102,7 @@ const setupQualityGateComponent = async (testResults: string[]) => {
         source: { value: { data: unknown } };
         renderData: (data: any) => unknown;
       }) => renderData(source.value.data),
-      SvgIcon: () => <span />,
+      SvgIcon: ({ id, ...props }: { id?: string; [key: string]: unknown }) => <span data-icon={id} {...props} />,
       Text: ({
         tag: Tag = "span",
         children,
@@ -118,14 +119,19 @@ const setupQualityGateComponent = async (testResults: string[]) => {
         [key: string]: unknown;
       }) => <Tag {...props}>{children}</Tag>,
       Tree,
-      allureIcons: { solidXCircle: "solid-x-circle" },
+      allureIcons: { solidXCircle: "solid-x-circle", solidCheckCircle: "solid-check-circle" },
     };
   });
   vi.doMock("@/components/MetadataButton", () => ({
     MetadataButton: () => <div />,
   }));
   vi.doMock("@/components/TestResult/TrError", () => ({
-    TrError: ({ message }: { message: string }) => <div>{message}</div>,
+    TrError: ({ message, status, title }: { message: string; status?: string; title?: string }) => (
+      <div data-testid="tr-error" data-status={status}>
+        {title ? <span data-testid="tr-error-title">{title}</span> : null}
+        {message}
+      </div>
+    ),
   }));
   vi.doMock("@/stores", () => ({
     useI18n: (namespace: string) => ({
@@ -165,6 +171,35 @@ describe("components > Report quality gate results", () => {
     fireEvent.click(screen.getByRole("button", { name: "Failed checkout" }));
 
     expect(navigateToTestResult).toHaveBeenCalledWith({ testResultId: "test-result-1" });
+  }, 15000);
+
+  it("should render passed rules next to the failed ones", async () => {
+    await setupQualityGateComponent(
+      [],
+      [
+        {
+          success: true,
+          expected: 1,
+          actual: 2,
+          rule: "minTestsCount",
+          message: "Enough tests have been run",
+          testResults: [],
+        },
+      ],
+    );
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    const results = screen.getAllByTestId("quality-gate-result");
+
+    expect(results).toHaveLength(2);
+    expect(results[0]).toHaveAttribute("data-success", "false");
+    expect(results[1]).toHaveAttribute("data-success", "true");
+    expect(screen.getByTestId("quality-gate-result-failed-icon")).toBeInTheDocument();
+    expect(screen.getByTestId("quality-gate-result-passed-icon")).toBeInTheDocument();
+    expect(screen.getByText("Enough tests have been run")).toBeInTheDocument();
+    expect(screen.getByTestId("tr-error-title")).toHaveTextContent("success");
   }, 15000);
 
   it("should not render related test results section when ids are absent", async () => {

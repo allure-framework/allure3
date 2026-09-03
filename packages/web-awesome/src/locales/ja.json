@@ -145,6 +145,7 @@
     "retries": "再試行",
     "environments": "環境",
     "error": "エラー",
+    "success": "成功",
     "goToStep": "ステップに移動",
     "showLess": "表示を減らす",
     "showMore": "もっと見る",

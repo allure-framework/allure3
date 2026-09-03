@@ -102,6 +102,59 @@ test.describe("quality gates", () => {
     await qualityGatesPage.attachScreenshot();
   });
 
+  test("should render both passed and failed rules of the same run", async ({ page }) => {
+    const fixture = {
+      qualityGateResults: [
+        {
+          rule: "successRate",
+          message: "Success rate 0.66 is less, than expected 0.9",
+          success: false,
+          actual: 0.66,
+          expected: 0.9,
+        },
+        {
+          rule: "maxFailures",
+          message: "The number of failed tests 1 is within the allowed threshold value 2",
+          success: true,
+          actual: 1,
+          expected: 2,
+        },
+      ] as QualityGateValidationResult[],
+    };
+    bootstrap = await bootstrapReport({
+      reportConfig: makeReportConfig({
+        name: "Test Report",
+        appendHistory: false,
+      }),
+      testResults: [],
+      qualityGateResults: fixture.qualityGateResults,
+    });
+
+    await page.goto(bootstrap.url);
+
+    await qualityGatesPage.qualityGatesTabLocator.click();
+
+    // the tab counts every evaluated rule, but stays failed as long as at least one of them has been failed
+    await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("2");
+    await expect(qualityGatesPage.qualityGatesResultLocator).toHaveCount(2);
+    await expect(qualityGatesPage.qualityGatesFailedResultLocator).toHaveCount(1);
+    await expect(qualityGatesPage.qualityGatesPassedResultLocator).toHaveCount(1);
+
+    const failedResult = qualityGatesPage.qualityGatesResultLocator.nth(0);
+    const passedResult = qualityGatesPage.qualityGatesResultLocator.nth(1);
+
+    await expect(failedResult.getByTestId("quality-gate-result-rule")).toHaveText("successRate");
+    await expect(failedResult.getByTestId("quality-gate-result-message")).toContainText(
+      fixture.qualityGateResults[0].message,
+    );
+    await expect(passedResult.getByTestId("quality-gate-result-rule")).toHaveText("maxFailures");
+    await expect(passedResult.getByTestId("quality-gate-result-message")).toContainText(
+      fixture.qualityGateResults[1].message,
+    );
+
+    await qualityGatesPage.attachScreenshot();
+  });
+
   test("should render quality gate sections with environments from validation results", async ({ page }) => {
     const fixture = {
       qualityGateResults: [

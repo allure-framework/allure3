@@ -172,12 +172,13 @@ const MainReport = () => {
                     const currentEnvResults = currentEnvironment.value
                       ? (results[currentEnvironment.value] ?? [])
                       : Object.values(results).flatMap((envResults) => envResults);
+                    const failedCount = currentEnvResults.filter(({ success }) => !success).length;
 
                     return (
                       <RootTab id={ReportRootTab.QualityGate}>
                         {t("qualityGates")}{" "}
                         <Counter
-                          status={currentEnvResults.length > 0 ? "failed" : undefined}
+                          status={failedCount > 0 ? "failed" : currentEnvResults.length > 0 ? "passed" : undefined}
                           count={currentEnvResults.length}
                         />
                       </RootTab>

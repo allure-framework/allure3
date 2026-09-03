@@ -33,6 +33,11 @@ export interface QualityGateRuleState<T> {
 export type QualityGateRule<T = any, K = T> = {
   rule: string;
   message: (payload: { expected: T; actual: T }) => string;
+  /**
+   * Message which is used when the rule has been passed.
+   * When it's not provided, a generic message is generated instead.
+   */
+  successMessage?: (payload: { expected: T; actual: T }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
