@@ -18,7 +18,6 @@ TestOpsClientMock.prototype = {
   checkLaunchProgress: vi.fn().mockResolvedValue(true),
   launchUrl: undefined,
   launchId: 123,
-  namedEnvs: [],
   startUpload: vi.fn(),
   stopUpload: vi.fn(),
   createLaunchCategoriesBulk: vi.fn().mockResolvedValue([]),

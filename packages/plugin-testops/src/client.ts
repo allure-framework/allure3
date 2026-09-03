@@ -358,10 +358,6 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  get namedEnvs() {
-    return this.#namedEnvsIdsByEnv.values();
-  }
-
   getNamedEnvFor(id: string) {
     return this.#namedEnvsIdsByEnv.get(id);
   }
