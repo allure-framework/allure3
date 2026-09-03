@@ -32,6 +32,25 @@ export interface Allure2Attachment {
   size?: number;
 }
 
+export interface Allure2GlobalError {
+  timestamp?: number;
+  message?: string;
+  trace?: string;
+  actual?: string;
+  expected?: string;
+}
+
+export interface Allure2GlobalAttachment extends Allure2Attachment {
+  source: string;
+  type: string;
+  timestamp?: number;
+}
+
+export interface Allure2GlobalsData {
+  errors: Allure2GlobalError[];
+  attachments: Allure2GlobalAttachment[];
+}
+
 export interface Allure2Step {
   name: string;
   time: Allure2Time;
@@ -70,7 +89,7 @@ export interface Allure2TestResult {
   retriesStatusChange: boolean;
 
   beforeStages: Allure2StageResult[];
-  testStage: Allure2StageResult;
+  testStage: Allure2StageResult | null;
   afterStages: Allure2StageResult[];
 
   labels: Allure2Label[];
@@ -87,7 +106,7 @@ export interface Allure2TestResult {
 
 // report related models
 
-export const statisticKeys: (keyof Statistic)[] = ["failed", "broken", "passed", "skipped", "unknown", "total"];
+export const statisticKeys: (keyof Statistic)[] = ["failed", "broken", "skipped", "passed", "unknown", "total"];
 
 export interface GroupTime {
   start?: number;
@@ -134,7 +153,7 @@ export interface Allure2RetryItem {
 
 export interface Allure2HistoryItem {
   uid: string;
-  reportUrl: string;
+  reportUrl?: string;
   status: Allure2Status;
   statusDetails?: string;
   time: Allure2Time;
@@ -151,6 +170,24 @@ export interface Allure2HistoryTrendItem {
   reportUrl?: string;
   reportName?: string;
 }
+
+export interface Allure2LegacyHistoryTrendItem extends Omit<Allure2HistoryTrendItem, "data"> {
+  data?: Statistic;
+  statistic?: Statistic;
+}
+
+export interface Allure2TrendItem<T extends Record<string, number> = Record<string, number>> {
+  data: T;
+  buildOrder?: number;
+  reportUrl?: string;
+  reportName?: string;
+}
+
+export type Allure2DurationTrendItem = Allure2TrendItem<{ duration: number }>;
+export type Allure2RetryTrendItem = Allure2TrendItem<{ run: number; retry: number }>;
+export type Allure2CategoriesTrendItem = Allure2TrendItem<Record<string, number>>;
+
+export type Allure2LegacyHistory = Record<string, Allure2HistoryData>;
 
 export type Allure2Options = {
   reportName?: string;

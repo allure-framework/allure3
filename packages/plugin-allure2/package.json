@@ -1,7 +1,7 @@
 {
   "name": "@allurereport/plugin-allure2",
   "version": "3.16.0",
-  "description": "The classic version of Allure HTML report",
+  "description": "The Allure 2-compatible HTML report",
   "keywords": [
     "allure",
     "html",
@@ -13,8 +13,7 @@
   "author": "Qameta Software",
   "repository": "https://github.com/allure-framework/allure3",
   "files": [
-    "./dist",
-    "./static"
+    "./dist"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -24,7 +23,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-allure2/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
     "lint": "oxlint --import-plugin src test features stories",
@@ -33,10 +32,10 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "find-up": "^8.0.0",
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
+    "@allurereport/web-allure2": "workspace:*",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",

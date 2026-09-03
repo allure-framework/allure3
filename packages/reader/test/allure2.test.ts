@@ -227,6 +227,19 @@ describe("allure2 reader", () => {
         },
       ]),
     );
+    expect(visitor.visitTestResult.mock.calls[0][1]).toMatchObject({
+      readerId: "allure2",
+      metadata: {
+        allure2_links: [
+          { name: "Default link", url: "https://example.org/" },
+          { url: "https://example.org/without-name" },
+          { type: "issue", name: "Issue link", url: "https://example.org/issue" },
+          { type: "tms", name: "Tms link", url: "https://example.org/tms" },
+          { type: "custom", name: "Custom link", url: "https://example.org/custom" },
+          { name: "https://example.org/name-as-url" },
+        ],
+      },
+    });
   });
 
   it("should parse parameters", async () => {
@@ -606,6 +619,47 @@ describe("allure2 reader", () => {
         }),
       ]),
     });
+    expect(visitor.visitTestResult.mock.calls[0][1]).toMatchObject({
+      metadata: {
+        allure2_top_level_attachment_count: 4,
+      },
+    });
+  });
+
+  it("should expose legacy history metadata", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/legacy-history.json": "history.json",
+    });
+
+    expect(visitor.visitMetadata).toHaveBeenCalledWith(
+      {
+        allure2_history: {
+          "history-id": {
+            statistic: { failed: 1, passed: 2, total: 3 },
+            items: [{ uid: "previous", status: "passed", time: { duration: 10 } }],
+          },
+        },
+      },
+      { readerId: "allure2" },
+    );
+  });
+
+  it.each([
+    ["history-trend.json", "allure2_history_trend"],
+    ["duration-trend.json", "allure2_duration_trend"],
+    ["retry-trend.json", "allure2_retry_trend"],
+    ["categories-trend.json", "allure2_categories_trend"],
+  ])("should expose %s metadata", async (fileName, metadataKey) => {
+    const visitor = await readResults(allure2, {
+      "allure2data/legacy-trend.json": fileName,
+    });
+
+    expect(visitor.visitMetadata).toHaveBeenCalledWith(
+      {
+        [metadataKey]: [{ buildOrder: 12, data: { total: 3 } }],
+      },
+      { readerId: "allure2" },
+    );
   });
 
   it("should parse null status", async () => {
@@ -897,6 +951,15 @@ describe("allure2 reader", () => {
       ]),
     );
     expect(globals.errors).toHaveLength(0);
+    expect(visitor.visitMetadata).toHaveBeenCalledWith(
+      {
+        allure2_global_attachment_timestamps: {
+          "global-log.txt": 1724662800000,
+        },
+        allure2_global_error_timestamps: [],
+      },
+      { readerId: "allure2" },
+    );
   });
 
   it("should parse globals with both errors and attachments", async () => {
