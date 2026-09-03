@@ -8,6 +8,7 @@ import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentNameById } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
+import { globalEntriesByEnv } from "@/utils/globals";
 
 import * as styles from "./styles.scss";
 
@@ -70,32 +71,15 @@ export const ReportGlobalAttachments = () => {
     <Loadable
       source={globalsStore}
       renderData={({ attachments = [], attachmentsByEnv = {} }) => {
-        if (currentEnvironment.value) {
-          const currentEnvAttachments = attachmentsByEnv[currentEnvironment.value] ?? [];
-
-          if (!currentEnvAttachments.length) {
-            return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
-          }
-
-          return renderAttachmentSections([[currentEnvironment.value, currentEnvAttachments]]);
-        }
-
-        const entries = Object.entries(attachmentsByEnv).filter(([, envAttachments]) => envAttachments.length > 0);
-
-        if (!entries.length && !attachments.length) {
-          return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
-        }
+        const entries = globalEntriesByEnv(attachments, attachmentsByEnv, currentEnvironment.value);
 
         if (!entries.length) {
-          return renderAttachmentsContent(attachments);
-        }
-
-        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
-          return renderAttachmentsContent(entries[0][1] ?? []);
-        }
-
-        if (!attachments.length) {
           return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
+        }
+
+        // nothing is environment specific in the current view, no need to group by environment
+        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
+          return renderAttachmentsContent(entries[0][1]);
         }
 
         return renderAttachmentSections(entries);
