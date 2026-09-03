@@ -34,7 +34,7 @@ const onInit = () => {
 onInit();
 
 export const currentSection = computed(() =>
-  sectionRoute.value.matches ? (sectionRoute.value.params.section ?? "default") : "default",
+  sectionRoute.value.matches ? normalizeSection(sectionRoute.value.params.section) : DEFAULT_SECTION,
 );
 
 effect(() => {
