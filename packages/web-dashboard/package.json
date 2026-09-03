@@ -46,7 +46,7 @@
     "@types/babel__core": "^7.20.5",
     "@types/d3-shape": "^3.1.8",
     "@types/diff": "^7",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3",

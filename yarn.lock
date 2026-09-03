@@ -16,7 +16,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/aql@workspace:packages/aql"
   dependencies:
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2"
     allure-js-commons: "npm:^3"
@@ -36,7 +36,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/mime-types": "npm:^2.1.4"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -52,7 +52,7 @@ __metadata:
   resolution: "@allurereport/ci@workspace:packages/ci"
   dependencies:
     "@allurereport/core-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2.1.8"
     "@vitest/snapshot": "npm:^2.1.8"
     allure-js-commons: "npm:^3"
@@ -84,7 +84,7 @@ __metadata:
   resolution: "@allurereport/core-api@workspace:packages/core-api"
   dependencies:
     "@types/d3-shape": "npm:^3.1.8"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -120,7 +120,7 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/zip-stream": "npm:^7.0.0"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -145,7 +145,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/directory-watcher@workspace:packages/directory-watcher"
   dependencies:
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -170,7 +170,7 @@ __metadata:
     "@faker-js/faker": "npm:^10.5.0"
     "@playwright/test": "npm:^1.62.1"
     "@types/lodash.times": "npm:^4.3.9"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     allure-js-commons: "npm:^3"
     allure-playwright: "npm:^3.10.2"
     lodash.times: "npm:^4.3.2"
@@ -184,7 +184,7 @@ __metadata:
   resolution: "@allurereport/git@workspace:packages/git"
   dependencies:
     "@allurereport/core-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2"
     allure-vitest: "npm:^3"
@@ -198,7 +198,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/monorepo@workspace:."
   dependencies:
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     allure: "workspace:*"
     babel-plugin-prismjs: "npm:^2.1.0"
     lefthook: "npm:^2.1.4"
@@ -218,7 +218,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -236,7 +236,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-allure2": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -252,7 +252,7 @@ __metadata:
   resolution: "@allurereport/plugin-api@workspace:packages/plugin-api"
   dependencies:
     "@allurereport/core-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/tar-stream": "npm:^3.1.4"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -276,7 +276,7 @@ __metadata:
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/markdown-it": "npm:^14.1.2"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -300,7 +300,7 @@ __metadata:
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/markdown-it": "npm:^14.1.2"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -319,7 +319,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -339,7 +339,7 @@ __metadata:
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -358,7 +358,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@faker-js/faker": "npm:^10.5.0"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -375,7 +375,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -393,7 +393,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -411,7 +411,7 @@ __metadata:
   dependencies:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -428,7 +428,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -451,7 +451,7 @@ __metadata:
     "@allurereport/service": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/lodash-es": "npm:^4"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -473,7 +473,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -490,7 +490,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@types/mime-types": "npm:^2.1.4"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -511,7 +511,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@types/archiver": "npm:^6.0.3"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -529,7 +529,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2.1.8"
     "@vitest/snapshot": "npm:^2.1.8"
     allure-js-commons: "npm:^3"
@@ -548,7 +548,7 @@ __metadata:
   dependencies:
     "@allurereport/directory-watcher": "workspace:*"
     "@playwright/test": "npm:^1.62.1"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -571,7 +571,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-summary": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -597,7 +597,7 @@ __metadata:
     "@types/d3-scale-chromatic": "npm:^3.1.0"
     "@types/d3-selection": "npm:^3.0.11"
     "@types/d3-shape": "npm:^3.1.8"
-    "@types/node": "npm:^24.12.2"
+    "@types/node": "npm:^26.4.0"
     allure-js-commons: "npm:^3"
     allure-playwright: "npm:^3.10.2"
     ansi-to-html: "npm:^0.7.2"
@@ -653,7 +653,7 @@ __metadata:
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.6"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/prismjs": "npm:^1.26.5"
     "@vitest/runner": "npm:^3.2.4"
     "@vitest/snapshot": "npm:^3.2.4"
@@ -712,7 +712,7 @@ __metadata:
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.6"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/prismjs": "npm:^1.26.5"
     "@types/underscore": "npm:^1"
     "@vitest/runner": "npm:^2"
@@ -850,7 +850,7 @@ __metadata:
     "@types/lodash": "npm:^4"
     "@types/markdown-it": "npm:^14.1.2"
     "@types/md5": "npm:^2.3.6"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/prismjs": "npm:^1.26.5"
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/runner": "npm:^2.1.9"
@@ -924,7 +924,7 @@ __metadata:
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/diff": "npm:^7"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
@@ -971,7 +971,7 @@ __metadata:
     "@preact/signals": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/md5": "npm:^2.3.6"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
     clsx: "npm:^2.1.1"
@@ -7924,21 +7924,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20":
-  version: 20.19.41
-  resolution: "@types/node@npm:20.19.41"
+"@types/node@npm:^26, @types/node@npm:^26.4.0":
+  version: 26.4.0
+  resolution: "@types/node@npm:26.4.0"
   dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/5eb38cabe687130093681fe35e2ee2230c0717ee44a784881229c8ea9ecfb3626be87edb3940c9b60886dc93b5cb5c66a58a4ff44f1de3936e6af92b65a029b2
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^24.12.2":
-  version: 24.13.3
-  resolution: "@types/node@npm:24.13.3"
-  dependencies:
-    undici-types: "npm:~7.18.0"
-  checksum: 10/cfa6ed1e16c4624d1e83b09aeb72a2f50a7e17d837bf5a1259a52e346f33a693afd289402d3b6118ce3abea7aff35f2a4f13a0284b96bc5807a50f0e22e1ec77
+    undici-types: "npm:~8.3.0"
+  checksum: 10/90e2a82f8c17200c74515753ed48f6e13987b657d4c93e9b9922860a0abef0627b66037eb77d2a315d0255e9cd0115d71e791d13446ec02d93f85d8ab02dec69
   languageName: node
   linkType: hard
 
@@ -8837,7 +8828,7 @@ __metadata:
     "@allurereport/static-server": "workspace:*"
     "@types/adm-zip": "npm:^0"
     "@types/lodash.omit": "npm:^4.5.9"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@types/prompts": "npm:^2"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -16727,7 +16718,7 @@ __metadata:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
-    "@types/node": "npm:^20"
+    "@types/node": "npm:^26"
     "@vitest/runner": "npm:^4.0.18"
     allure: "workspace:*"
     allure-js-commons: "npm:^3"
@@ -18146,17 +18137,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~7.18.0":
-  version: 7.18.2
-  resolution: "undici-types@npm:7.18.2"
-  checksum: 10/e61a5918f624d68420c3ca9d301e9f15b61cba6e97be39fe2ce266dd6151e4afe424d679372638826cb506be33952774e0424141200111a9857e464216c009af
+"undici-types@npm:~8.3.0":
+  version: 8.3.0
+  resolution: "undici-types@npm:8.3.0"
+  checksum: 10/6681d2837ac75a75ac1cc46090aa2b8ddc7c6b8ecc295a6cdb06838752a730da3d8afeecf05e5ab7903160eafad3a8b6ffa1927e5ded260590f4d4fef18646d5
   languageName: node
   linkType: hard
 

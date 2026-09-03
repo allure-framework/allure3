@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/d3-shape": "^3.1.8",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
