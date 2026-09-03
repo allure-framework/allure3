@@ -15,7 +15,14 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
-import { findByLabelName, notNull } from "@allurereport/core-api";
+import {
+  UNKNOWN_PARAMETER_VALUE,
+  calculateParametersHash,
+  calculateRetryHash,
+  calculateTestCaseHash,
+  findByLabelName,
+  notNull,
+} from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
@@ -30,9 +37,6 @@ import type {
 import { extension, lookupContentType } from "@allurereport/reader-api";
 
 const defaultStatus: TestStatus = "unknown";
-
-// eslint-disable-next-line no-underscore-dangle
-export const __unknown = "#___unknown_value___#";
 
 export type StateData = {
   testCases: Map<string, TestCase>;
@@ -73,8 +77,10 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const hostId = findByLabelName(labels, "host");
   const threadId = findByLabelName(labels, "thread");
   const name = raw.name || "Unknown test";
-  const testCase = processTestCase(stateData, raw);
   const parameters = convertParameters(raw.parameters);
+  const testCaseHash = calculateTestCaseHash(raw.testId, raw.fullName);
+  const parametersHash = calculateParametersHash(raw.parameters);
+  const testCase = processTestCase(stateData, raw, labels, testCaseHash);
 
   return {
     id: md5(raw.uuid || randomUUID()),
@@ -83,7 +89,9 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     testCase,
 
     fullName: raw.fullName,
-    historyId: calculateHistoryId(testCase, parameters),
+    testCaseHash,
+    parametersHash,
+    retryHash: calculateRetryHash(testCaseHash, parametersHash),
 
     status: raw.status ?? defaultStatus,
     error: {
@@ -121,22 +129,29 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   };
 };
 
-const processTestCase = ({ testCases }: StateData, raw: RawTestResult): TestCase | undefined => {
-  const [id, allureId] = calculateTestId(raw);
-  if (id) {
-    const maybeTestCase = testCases.get(id);
+const processTestCase = (
+  { testCases }: StateData,
+  raw: RawTestResult,
+  labels: TestLabel[],
+  testCaseHash: string | undefined,
+): TestCase | undefined => {
+  if (testCaseHash) {
+    const maybeTestCase = testCases.get(testCaseHash);
+
     if (maybeTestCase) {
       return maybeTestCase;
     }
 
     const testCase: TestCase = {
-      id,
-      allureId,
+      id: testCaseHash,
+      allureId: labels.find((label) => label.name === "ALLURE_ID" && label.value)?.value,
       externalId: raw.testId,
-      name: raw.testCaseName ?? raw.name ?? __unknown,
+      name: raw.testCaseName ?? raw.name ?? UNKNOWN_PARAMETER_VALUE,
       fullName: raw.fullName,
     };
-    testCases.set(id, testCase);
+
+    testCases.set(testCaseHash, testCase);
+
     return testCase;
   }
 
@@ -162,7 +177,7 @@ const processAttachmentLink = (
       originalFileName: undefined,
       contentType: attach.contentType,
       ext: "",
-      name: attach.name ?? __unknown,
+      name: attach.name ?? UNKNOWN_PARAMETER_VALUE,
       missed: true,
       used: true,
     });
@@ -196,7 +211,7 @@ const processAttachmentLink = (
       id: randomUUID(),
       originalFileName: undefined,
       ext: "",
-      name: attach.name ?? attach.originalFileName ?? __unknown,
+      name: attach.name ?? attach.originalFileName ?? UNKNOWN_PARAMETER_VALUE,
       contentType: attach.contentType,
       missed: true,
       used: true,
@@ -250,12 +265,12 @@ const processTimings = ({
 };
 
 const convertLabels = (labels: RawTestLabel[] | undefined): TestLabel[] => {
-  return labels?.filter(notNull)?.map(convertLabel)?.flatMap(processTagLabels) ?? [];
+  return labels?.filter(notNull)?.map(convertLabel)?.flatMap(processTagLabels).map(normalizeAllureIdLabel) ?? [];
 };
 
 const convertLabel = (label: RawTestLabel): TestLabel => {
   return {
-    name: label.name ?? __unknown,
+    name: label.name ?? UNKNOWN_PARAMETER_VALUE,
     value: label.value,
   };
 };
@@ -293,7 +308,7 @@ const convertStep = (
     return {
       convertedStep: {
         stepId: md5(`${step.name}${step.start}`),
-        name: step.name ?? __unknown,
+        name: step.name ?? UNKNOWN_PARAMETER_VALUE,
         status: step.status ?? defaultStatus,
         steps: subSteps,
         parameters: convertParameters(step.parameters),
@@ -320,8 +335,8 @@ const convertParameters = (parameters: RawTestParameter[] | undefined): TestPara
     ?.map(convertParameter) ?? [];
 
 const convertParameter = (param: RawTestParameter): TestParameter => ({
-  name: param.name ?? __unknown,
-  value: param.value ?? __unknown,
+  name: param.name ?? UNKNOWN_PARAMETER_VALUE,
+  value: param.value ?? UNKNOWN_PARAMETER_VALUE,
   hidden: param.hidden ?? false,
   excluded: param.excluded ?? false,
   masked: param.masked ?? false,
@@ -335,49 +350,9 @@ const convertLinks = (links: RawTestLink[] | undefined): TestLink[] =>
 
 const convertLink = (link: RawTestLink): TestLink => ({
   name: link.name,
-  url: link.url ?? __unknown,
+  url: link.url ?? UNKNOWN_PARAMETER_VALUE,
   type: link.type,
 });
-
-const calculateTestId = (raw: RawTestResult): [string | undefined, string | undefined] => {
-  const maybeAllureId = raw.labels?.find(
-    (label) => (label.name === "ALLURE_ID" || label.name === "AS_ID") && label.value !== "-1",
-  )?.value;
-  if (maybeAllureId) {
-    return [md5(`ALLURE_ID=${maybeAllureId}`), maybeAllureId];
-  }
-  if (raw.testId) {
-    return [md5(raw.testId), undefined];
-  }
-  if (raw.fullName) {
-    return [md5(raw.fullName), undefined];
-  }
-  return [undefined, undefined];
-};
-
-const calculateHistoryId = (testCase: TestCase | undefined, parameters: TestParameter[]): string | undefined => {
-  if (!testCase) {
-    return undefined;
-  }
-  const paramsPart = stringifyParams(parameters);
-  return `${testCase.id}.${md5(paramsPart)}`;
-};
-
-const parametersCompare = (a: TestParameter, b: TestParameter) => {
-  return (a.name ?? "").localeCompare(b.name) || a.value.localeCompare(b.value ?? "");
-};
-
-const stringifyParams = (parameters: TestParameter[] | undefined): string => {
-  if (!parameters) {
-    return "";
-  }
-
-  return parameters
-    .filter((p) => !p?.excluded)
-    .sort(parametersCompare)
-    .map((p) => `${p.name}:${p.value}`)
-    .join(",");
-};
 
 const idLabelMatcher = new RegExp("^@?allure\\.id[:=](?<id>.+)$");
 const tagLabelMatcher = new RegExp("^@?allure\\.label\\.(?<name>.+)[:=](?<value>.+)$");
@@ -397,4 +372,17 @@ const processTagLabels = (label: TestLabel): TestLabel[] => {
     }
   }
   return label.name ? [{ name: label.name, value: label.value }] : [];
+};
+
+const normalizeAllureIdLabel = (label: TestLabel): TestLabel => {
+  if (label.name !== "ALLURE_ID" && label.name !== "AS_ID") {
+    return label;
+  }
+
+  const value = label.value?.trim();
+
+  return {
+    name: "ALLURE_ID",
+    value: value?.length ? value : undefined,
+  };
 };

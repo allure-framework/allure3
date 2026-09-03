@@ -45,7 +45,9 @@ export interface TestResult {
   environment?: string;
 
   fullName?: string;
-  historyId?: string;
+  testCaseHash?: string;
+  parametersHash: string;
+  environmentHash?: string;
 
   description?: string;
   descriptionHtml?: string;

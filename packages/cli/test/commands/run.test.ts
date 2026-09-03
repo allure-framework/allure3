@@ -500,7 +500,7 @@ describe("run command", () => {
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([firstResult]);
   });
 
-  it("should preserve raw child exit code when only known failures remain", async () => {
+  it("should preserve raw child exit code when only muted failures remain", async () => {
     const { runProcess, terminationOf } = await import("../../src/utils/index.js");
 
     (readConfig as Mock).mockResolvedValueOnce({
@@ -512,11 +512,17 @@ describe("run command", () => {
     vi.mocked(terminationOf).mockResolvedValueOnce(7);
 
     const { AllureReportMock } = await import("../utils.js");
-    const knownFailure = { fullName: "known failure", status: "failed", labels: [], historyId: "known-1" };
+    const mutedFailure = {
+      fullName: "muted failure",
+      status: "failed",
+      resolution: "muted",
+      labels: [],
+      retryHash: "muted-1",
+    };
 
     AllureReportMock.prototype.store = {
       blockingFailedTestResults: vi.fn().mockResolvedValue([]),
-      failedTestResults: vi.fn().mockResolvedValue([knownFailure]),
+      failedTestResults: vi.fn().mockResolvedValue([mutedFailure]),
       allTestResults: vi.fn().mockResolvedValue([]),
     };
 

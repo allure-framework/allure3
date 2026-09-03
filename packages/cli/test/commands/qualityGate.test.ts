@@ -171,7 +171,7 @@ describe("quality-gate command", () => {
     expect(exit).toHaveBeenCalledWith(1);
   });
 
-  it("should not fast-fail when realtime failures are known", async () => {
+  it("should not fast-fail when realtime failures are muted", async () => {
     let resolveOnTestResults!: (cb: (ids: string[]) => Promise<void>) => void;
     const onTestResultsPromise = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
       resolveOnTestResults = resolve;
@@ -187,8 +187,8 @@ describe("quality-gate command", () => {
       },
     };
     AllureReportMock.prototype.store = {
-      allTestResults: vi.fn().mockResolvedValue([{ historyId: "known-1", status: "failed", known: true }]),
-      testResultById: vi.fn().mockResolvedValue({ historyId: "known-1", status: "failed", known: true }),
+      allTestResults: vi.fn().mockResolvedValue([{ retryHash: "known-1", status: "failed", resolution: "muted" }]),
+      testResultById: vi.fn().mockResolvedValue({ retryHash: "known-1", status: "failed", resolution: "muted" }),
     };
     AllureReportMock.prototype.readDirectory = vi.fn(
       () =>

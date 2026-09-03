@@ -110,7 +110,7 @@ const matchesLabelFilters = (labels: TestLabel[], filters: AgentLabelFilter[]) =
 const matchesAgentTestIdentifier = (test: AgentTestManifestLine, identifier: string) =>
   test.full_name === identifier ||
   test.test_result_id === identifier ||
-  test.history_id === identifier ||
+  test.retry_hash === identifier ||
   test.markdown_path === identifier;
 
 const agentFindingSubjectRef = (finding: AgentOutputBundle["findings"][number]) => {

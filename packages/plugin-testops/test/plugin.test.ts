@@ -921,7 +921,7 @@ describe("testops plugin", () => {
         const failedTr = {
           ...fixtures.testResults[0],
           status: "failed" as const,
-          historyId: "history-123",
+          retryHash: "history-123",
           name: "broken test name",
           environment: "stage",
           error: { message: "boom" },

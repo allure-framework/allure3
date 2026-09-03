@@ -166,7 +166,7 @@ const getStatusSequence = (historyDataPoints: HistoryDataPoint[], tr: TestResult
   let block: TestStatus[] = [];
 
   for (const hdp of historyDataPoints) {
-    const htr = hdp.testResults[tr.historyId!];
+    const htr = hdp.testResults[tr.retryHash!];
 
     if (!htr) {
       // Gap: test was not in this run — keep only statuses after this point
@@ -231,7 +231,7 @@ export const generateStabilityDistributionChart = (props: {
 
   for (const tr of testResults) {
     // no history → stability cannot be computed
-    if (!tr.historyId) {
+    if (!tr.retryHash) {
       continue;
     }
 

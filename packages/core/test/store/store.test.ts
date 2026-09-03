@@ -2,6 +2,9 @@
 import {
   type AllureHistory,
   type AttachmentLinkLinked,
+  calculateEnvironmentHash,
+  calculateParametersHash,
+  calculateRetryHash,
   type HistoryDataPoint,
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
@@ -11,7 +14,6 @@ import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { calculateParametersHash, calculateRetryHash } from "../../src/store/retrySubstore.js";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
@@ -243,7 +245,7 @@ describe("test results", () => {
     );
   });
 
-  it("should calculate historyId for test results", async () => {
+  it("should calculate canonical hashes for test results", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -253,8 +255,11 @@ describe("test results", () => {
 
     const [tr] = await store.allTestResults();
     expect(tr).toMatchObject({
-      historyId: `${md5("some")}.${md5("")}`,
+      testCaseHash: md5("some"),
+      parametersHash: md5(""),
+      retryHash: `${md5("some")}.${md5("")}`,
     });
+    expect(tr).not.toHaveProperty("historyId");
   });
 
   it("should classify failures by resolution rules and leave passed tests unclassified", async () => {
@@ -356,6 +361,61 @@ describe("test results", () => {
     await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toBeUndefined();
     await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
   });
+
+  it.each(["issue", "muted", "accepted"] as const)(
+    "should reclassify restored results as %s using canonical retry hashes",
+    async (resolution) => {
+      const source = new DefaultAllureStore({
+        resolutionsConfig: {
+          rules: [{ resolution: "issue", issue: { id: "OLD-1", type: "jira" }, messageRegexp: "defect" }],
+        },
+      });
+
+      for (const [testId, status] of [
+        ["stale", "failed"],
+        ["current", "broken"],
+        ["passed", "passed"],
+      ] as const) {
+        await source.visitTestResult({ name: testId, testId, status, message: "defect" }, { readerId });
+      }
+
+      const dump = source.dumpState();
+
+      for (const result of Object.values(dump.testResults)) {
+        result.retryHash = "stale-retry-hash";
+        result.testCase!.id = "stale-test-case-id";
+      }
+
+      const currentRetryHash = `${md5("current")}.${md5("")}`;
+      const retryHash = [currentRetryHash, `${md5("passed")}.${md5("")}`];
+      const target = new DefaultAllureStore({
+        resolutionsConfig: {
+          rules: [
+            resolution === "issue"
+              ? { resolution, issue: { id: "NEW-1", type: "jira" }, retryHash }
+              : { resolution, comment: "Current decision", retryHash },
+          ],
+        },
+      });
+
+      await target.restoreState(dump);
+
+      const results = await target.allTestResults();
+      const current = results.find(({ name }) => name === "current")!;
+
+      expect(current).toMatchObject({ resolution, retryHash: currentRetryHash, testCase: { id: md5("current") } });
+      expect(results.find(({ name }) => name === "stale")?.resolution).toBeUndefined();
+      expect(results.find(({ name }) => name === "passed")?.resolution).toBeUndefined();
+      expect(target.dumpState().indexTestResultByRetryHash[currentRetryHash]).toEqual([current.id]);
+      await expect(target.testResultsByResolutionIssueId("OLD-1")).resolves.toEqual([]);
+      await expect(target.resolutionIssueByTestResultId(current.id)).resolves.toEqual(
+        resolution === "issue" ? { id: "NEW-1", type: "jira" } : undefined,
+      );
+      expect((await target.blockingFailedTestResults()).map(({ name }) => name).sort()).toEqual(
+        resolution === "issue" ? ["current", "stale"] : ["stale"],
+      );
+    },
+  );
 
   it("should mark retries as isRetry", async () => {
     const store = new DefaultAllureStore();
@@ -646,11 +706,13 @@ describe("test results", () => {
     const defaultParametersHash = calculateParametersHash(defaultResult!.parameters);
     const fooParametersHash = calculateParametersHash(fooResult!.parameters);
 
-    expect(defaultResult!.retryHash).toEqual(
-      calculateRetryHash(defaultResult!.testCase?.id, defaultParametersHash, "default"),
+    expect(defaultResult!.retryHash).toEqual(calculateRetryHash(defaultResult!.testCaseHash, defaultParametersHash));
+    expect(fooResult!.retryHash).toEqual(
+      calculateRetryHash(fooResult!.testCaseHash, fooParametersHash, calculateEnvironmentHash("foo")),
     );
-    expect(fooResult!.retryHash).toEqual(calculateRetryHash(fooResult!.testCase?.id, fooParametersHash, "foo"));
-    expect(fooResult!.retryHash).not.toEqual(calculateRetryHash(fooResult!.testCase?.id, fooParametersHash, "Foo"));
+    expect(fooResult!.retryHash).not.toEqual(
+      calculateRetryHash(fooResult!.testCaseHash, fooParametersHash, calculateEnvironmentHash("Foo")),
+    );
 
     const defaultRetries = defaultResult ? await store.retriesByTrId(defaultResult.id) : [];
     const fooRetries = fooResult ? await store.retriesByTrId(fooResult.id) : [];
@@ -695,7 +757,7 @@ describe("test results", () => {
     expect(retries.map(({ name }) => name)).toEqual(["retry"]);
   });
 
-  it("should respect provided parametersHash when building retryHash", async () => {
+  it("should ignore a shared adapter parametersHash when parameters differ", async () => {
     const store = new DefaultAllureStore();
 
     await store.visitTestResult(
@@ -722,10 +784,10 @@ describe("test results", () => {
     const [latest] = await store.allTestResults();
     const retries = await store.retriesByTrId(latest.id);
 
-    expect(retries.map(({ name }) => name)).toEqual(["retry"]);
+    expect(retries).toEqual([]);
   });
 
-  it("should not group results as retries when parameters match but parametersHash differs", async () => {
+  it("should ignore different adapter parametersHash values when parameters match", async () => {
     const store = new DefaultAllureStore();
     const sharedParameters = [{ name: "a", value: "1", excluded: false }];
 
@@ -750,21 +812,21 @@ describe("test results", () => {
       { readerId },
     );
 
-    const allTestResults = await store.allTestResults();
+    const allTestResults = await store.allTestResults({ includeRetries: true });
     const latest = allTestResults.find((tr) => tr.name === "latest");
     const other = allTestResults.find((tr) => tr.name === "other");
 
     expect(latest?.retryHash).toBeDefined();
     expect(other?.retryHash).toBeDefined();
-    expect(latest?.retryHash).not.toEqual(other?.retryHash);
+    expect(latest?.retryHash).toEqual(other?.retryHash);
 
     const latestRetries = latest ? await store.retriesByTrId(latest.id) : [];
     const otherRetries = other ? await store.retriesByTrId(other.id) : [];
 
-    expect(latestRetries).toEqual([]);
+    expect(latestRetries).toEqual([expect.objectContaining({ name: "other" })]);
     expect(otherRetries).toEqual([]);
     expect(latest?.isRetry).toBe(false);
-    expect(other?.isRetry).toBe(false);
+    expect(other?.isRetry).toBe(true);
   });
 });
 
@@ -784,14 +846,14 @@ describe("environments", () => {
   });
 });
 describe("allNewTestResults", () => {
-  const historyId = `${md5("test1")}.${md5("")}`;
+  const retryHash = `${md5("test1")}.${md5("")}`;
   const createHistoryDataPoint = (testResultKeys: string[]): HistoryDataPoint => ({
     uuid: "dp-1",
     name: "history point",
     timestamp: 1,
     knownTestCaseIds: [],
     testResults: Object.fromEntries(
-      testResultKeys.map((key) => [key, { id: key, name: key, status: "passed" as const, url: "", historyId: key }]),
+      testResultKeys.map((key) => [key, { id: key, name: key, status: "passed" as const, url: "", retryHash: key }]),
     ),
     metrics: {},
     url: "",
@@ -820,7 +882,7 @@ describe("allNewTestResults", () => {
 
   it("should return empty array when test result exists in history", async () => {
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([retryHash])]),
     });
 
     await store.readHistory();
@@ -831,11 +893,11 @@ describe("allNewTestResults", () => {
     expect(result).toEqual([]);
   });
 
-  it("should return empty array for migrated test when history exists only for fallback testCaseId", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+  it("should treat a migrated test as new when history exists only for fallback testCaseId", async () => {
+    const fallbackTestCaseId = "legacy-test-case-id";
+    const fallbackRetryHash = `${md5(fallbackTestCaseId)}.${md5("")}`;
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([fallbackHistoryId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([fallbackRetryHash])]),
     });
 
     await store.readHistory();
@@ -850,7 +912,7 @@ describe("allNewTestResults", () => {
 
     const result = await store.allNewTestResults();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
   });
 
   it("should return test result when it is not in history", async () => {
@@ -867,7 +929,7 @@ describe("allNewTestResults", () => {
 
   it("should use provided history argument over stored history", async () => {
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([retryHash])]),
     });
     await store.readHistory();
     await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
@@ -2060,17 +2122,17 @@ describe("history", () => {
     ]);
   });
 
-  it("should return history for migrated test result using fallback testCaseId label", async () => {
+  it("should ignore fallback testCaseId when resolving history without a catalog", async () => {
     const testId = "new-test-id";
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const fallbackTestCaseId = "legacy-test-case-id";
+    const fallbackRetryHash = `${md5(fallbackTestCaseId)}.${md5("")}`;
     const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
         timestamp: 123,
         testResults: {
-          [fallbackHistoryId]: {
+          [fallbackRetryHash]: {
             id: "legacy-id",
             name: "legacy-name",
             status: "passed",
@@ -2099,13 +2161,7 @@ describe("history", () => {
     const [tr] = await store.allTestResults();
     const historyTestResults = await store.historyByTrId(tr.id);
 
-    expect(historyTestResults).toEqual([
-      expect.objectContaining({
-        id: "legacy-id",
-        name: "legacy-name",
-        status: "passed",
-      }),
-    ]);
+    expect(historyTestResults).toEqual([]);
   });
 
   it("should return history for test result sorted by timestamp desc", async () => {
@@ -3055,7 +3111,7 @@ describe("dump state", () => {
     expect(dump.environments).toContainEqual({ id: "default", name: "default" });
     expect(dump.reportVariables).toEqual({});
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
@@ -3177,7 +3233,7 @@ describe("dump state", () => {
     expect(dump.globalErrors).toEqual([]);
     expect(dump.qualityGateResults).toEqual([]);
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
@@ -3511,7 +3567,7 @@ describe("dump state", () => {
     const dump = store.dumpState();
 
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
@@ -3524,6 +3580,42 @@ describe("dump state", () => {
     const allTestResults = await newStore.allTestResults();
 
     expect(allTestResults).toHaveLength(1);
+  });
+
+  it("should recompute all identity hashes when restoring a dump", async () => {
+    const sourceStore = new DefaultAllureStore();
+
+    await sourceStore.visitTestResult(
+      {
+        name: "test result",
+        testId: "test-case-id",
+        parameters: [{ name: "argument", value: "value" }],
+      },
+      { readerId },
+    );
+
+    const dump = sourceStore.dumpState();
+    const [dumpedTestResult] = Object.values(dump.testResults);
+
+    dumpedTestResult.testCaseHash = "adapter-test-case-hash";
+    dumpedTestResult.parametersHash = "adapter-parameters-hash";
+    dumpedTestResult.environmentHash = "adapter-environment-hash";
+    dumpedTestResult.retryHash = "adapter-retry-hash";
+
+    const restoredStore = new DefaultAllureStore();
+
+    await restoredStore.restoreState(dump, {});
+
+    const [restoredTestResult] = await restoredStore.allTestResults();
+    const testCaseHash = md5("test-case-id");
+    const parametersHash = md5("argument:value");
+
+    expect(restoredTestResult).toMatchObject({
+      testCaseHash,
+      parametersHash,
+      retryHash: `${testCaseHash}.${parametersHash}`,
+    });
+    expect(restoredTestResult.environmentHash).toBeUndefined();
   });
 
   it("should restore retries per environment without legacy latest-attempt index", async () => {

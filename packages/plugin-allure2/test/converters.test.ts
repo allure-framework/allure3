@@ -36,6 +36,21 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
+  it("does not expose retry identity under the legacy historyId name", () => {
+    const result = convertTestResult(
+      {
+        attachmentMap: new Map(),
+        fixtures: [],
+        categories: [],
+        retries: [],
+        history: [],
+      },
+      createTestResult({ retryHash: "retry-hash" }),
+    );
+
+    expect(result).not.toHaveProperty("historyId");
+  });
+
   it("should redact hidden and masked parameters", () => {
     const result = convertTestResult(
       {

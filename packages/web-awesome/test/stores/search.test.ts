@@ -30,7 +30,7 @@ const documents: ReportSearchDocument[] = [
     nodeId: "tr-1",
     name: "renders request form",
     fullName: "forms.RequestWithDatesFormTest.shouldRender",
-    historyId: "history-request-form",
+    retryHash: "history-request-form",
     owner: "Igor Martynov",
     labels: "feature:Forms Forms",
     tags: "smoke",

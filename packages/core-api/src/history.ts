@@ -22,7 +22,7 @@ export interface HistoryTestResult {
 
   url: string;
 
-  historyId?: string; // TODO: double check the necessity to have historyId in the history test result
+  retryHash?: string;
   reportLinks?: any[]; // TODO: add the correct type for previously missing report links
 }
 

@@ -1,12 +1,5 @@
-import { createHash } from "node:crypto";
-
-import { fallbackTestCaseIdLabelName } from "../constants.js";
 import type { HistoryDataPoint, HistoryTestResult } from "../history.js";
-import type { TestParameter } from "../metadata.js";
 import type { TestResult } from "../model.js";
-import { findLastByLabelName } from "./label.js";
-
-const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -16,48 +9,27 @@ const normalizeHistoryTestResults = (testResults: unknown): Record<string, Histo
     return {};
   }
 
-  return Object.fromEntries(Object.entries(testResults).filter(([, value]) => isRecord(value))) as Record<
-    string,
-    HistoryTestResult
-  >;
-};
+  return Object.fromEntries(
+    Object.entries(testResults).flatMap(([retryHash, value]) => {
+      if (!isRecord(value)) {
+        return [];
+      }
 
-const parametersCompare = (a: TestParameter, b: TestParameter) => {
-  return (a.name ?? "").localeCompare(b.name ?? "") || (a.value ?? "").localeCompare(b.value ?? "");
-};
+      const historyTestResult = { ...value };
 
-export const stringifyHistoryParams = (parameters: TestParameter[] = []): string => {
-  return [...parameters]
-    .filter((parameter) => !parameter?.excluded)
-    .sort(parametersCompare)
-    .map((parameter) => `${parameter.name}:${parameter.value}`)
-    .join(",");
-};
+      delete historyTestResult.historyId;
 
-export const getFallbackHistoryId = (tr: Pick<TestResult, "labels" | "parameters">): string | undefined => {
-  const fallbackTestCaseId = findLastByLabelName(tr.labels ?? [], fallbackTestCaseIdLabelName);
-
-  if (!fallbackTestCaseId) {
-    return undefined;
-  }
-
-  return `${fallbackTestCaseId}.${md5(stringifyHistoryParams(tr.parameters ?? []))}`;
-};
-
-export const getHistoryIdCandidates = (tr: Pick<TestResult, "historyId" | "labels" | "parameters">): string[] => {
-  const result: string[] = [];
-
-  if (tr.historyId) {
-    result.push(tr.historyId);
-  }
-
-  const fallbackHistoryId = getFallbackHistoryId(tr);
-
-  if (fallbackHistoryId && !result.includes(fallbackHistoryId)) {
-    result.push(fallbackHistoryId);
-  }
-
-  return result;
+      return [
+        [
+          retryHash,
+          {
+            ...historyTestResult,
+            retryHash,
+          },
+        ],
+      ];
+    }),
+  ) as Record<string, HistoryTestResult>;
 };
 
 export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => ({
@@ -78,7 +50,7 @@ export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint
 
   let testResults = normalizedHistoryDataPoint.testResults;
 
-  for (const [historyId, historyTestResult] of Object.entries(normalizedHistoryDataPoint.testResults)) {
+  for (const [retryHash, historyTestResult] of Object.entries(normalizedHistoryDataPoint.testResults)) {
     if (historyTestResult.url) {
       continue;
     }
@@ -87,7 +59,7 @@ export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint
       testResults = { ...normalizedHistoryDataPoint.testResults };
     }
 
-    testResults[historyId] = {
+    testResults[retryHash] = {
       ...historyTestResult,
       url,
     };
@@ -105,15 +77,15 @@ export const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint
 
 export const selectHistoryTestResults = (
   historyDataPoints: HistoryDataPoint[],
-  historyIdCandidates: readonly string[],
+  retryHashes: readonly string[],
 ): HistoryTestResult[] => {
-  if (historyIdCandidates.length === 0) {
+  if (retryHashes.length === 0) {
     return [];
   }
 
   return historyDataPoints.reduce((acc, historyDataPoint) => {
-    for (const historyId of historyIdCandidates) {
-      const historyTestResult = historyDataPoint.testResults?.[historyId];
+    for (const retryHash of retryHashes) {
+      const historyTestResult = historyDataPoint.testResults?.[retryHash];
 
       if (!historyTestResult) {
         continue;
@@ -134,9 +106,9 @@ export const selectHistoryTestResults = (
  * @returns The history test results array.
  */
 export const htrsByTr = (hdps: HistoryDataPoint[], tr: TestResult | HistoryTestResult): HistoryTestResult[] => {
-  if (!tr?.historyId) {
+  if (!tr?.retryHash) {
     return [];
   }
 
-  return selectHistoryTestResults(hdps, [tr.historyId]);
+  return selectHistoryTestResults(hdps, [tr.retryHash]);
 };
