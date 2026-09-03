@@ -39,6 +39,7 @@ dist
 dist-tests
 *.tgz
 *.log
+!packages/web-allure2/tests/fixtures/**/*.log
 .playwright-cli/
 .gradle
 schema
