@@ -21,7 +21,7 @@ const require = createRequire(import.meta.url);
 
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
-  const trsToProcess = trs.filter(filter);
+  const trsToProcess = trs.filter((tr) => !tr.isRetry && filter(tr));
 
   return trsToProcess.reduce(
     (acc, test) => {
@@ -30,6 +30,18 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
       }
 
       acc[test.status]!++;
+
+      if (test.resolution === "issue") {
+        acc.resolutionIssue = (acc.resolutionIssue ?? 0) + 1;
+      }
+
+      if (test.resolution === "muted") {
+        acc.resolutionMuted = (acc.resolutionMuted ?? 0) + 1;
+      }
+
+      if (test.resolution === "accepted") {
+        acc.resolutionAccepted = (acc.resolutionAccepted ?? 0) + 1;
+      }
 
       return acc;
     },
@@ -413,7 +425,8 @@ describe("plugin", () => {
       const stagingTestResult = {
         id: "tr-staging",
         name: "staging test",
-        status: "passed",
+        status: "failed",
+        resolution: "accepted",
         environment: "staging",
         labels: [],
         parameters: [],
@@ -494,11 +507,13 @@ describe("plugin", () => {
 
       expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        failed: 1,
+        resolutionAccepted: 1,
       });
       expect(JSON.parse(addedFiles.get("widgets/staging/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        failed: 1,
+        resolutionAccepted: 1,
       });
       expect(JSON.parse(addedFiles.get("widgets/default/statistic.json")!.toString("utf-8"))).toEqual({
         total: 0,
@@ -519,7 +534,8 @@ describe("plugin", () => {
       const qaATestResult = {
         id: "tr-qa-a",
         name: "qa a test",
-        status: "passed",
+        status: "broken",
+        resolution: "muted",
         environment: "QA",
         labels: [],
         parameters: [],
@@ -532,6 +548,7 @@ describe("plugin", () => {
         id: "tr-qa-b",
         name: "qa b test",
         status: "failed",
+        resolution: "issue",
         environment: "QA",
         labels: [],
         parameters: [],
@@ -620,11 +637,13 @@ describe("plugin", () => {
       ]);
       expect(JSON.parse(addedFiles.get("widgets/qa_a/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        broken: 1,
+        resolutionMuted: 1,
       });
       expect(JSON.parse(addedFiles.get("widgets/qa_b/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
         failed: 1,
+        resolutionIssue: 1,
       });
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");

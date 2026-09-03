@@ -1355,6 +1355,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async testsStatistic(filter?: TestResultFilter) {
     const statistic: Statistic = { total: 0 };
+    const incrementResolution = (tr: TestResult) => {
+      if (tr.resolution === "issue") {
+        statistic.resolutionIssue = (statistic.resolutionIssue ?? 0) + 1;
+      }
+
+      if (tr.resolution === "muted") {
+        statistic.resolutionMuted = (statistic.resolutionMuted ?? 0) + 1;
+      }
+
+      if (tr.resolution === "accepted") {
+        statistic.resolutionAccepted = (statistic.resolutionAccepted ?? 0) + 1;
+      }
+    };
 
     for (const [, tr] of this.#testResults) {
       if (tr.isRetry) {
@@ -1380,6 +1393,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       if (tr.transition === "new") {
         statistic.new = (statistic.new ?? 0) + 1;
       }
+
+      incrementResolution(tr);
 
       if (!statistic[tr.status]) {
         statistic[tr.status] = 0;

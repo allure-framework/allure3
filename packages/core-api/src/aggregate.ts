@@ -14,4 +14,7 @@ export type Statistic = DiffStatistic & {
   total: number;
   retries?: number;
   flaky?: number;
+  resolutionIssue?: number;
+  resolutionMuted?: number;
+  resolutionAccepted?: number;
 };
