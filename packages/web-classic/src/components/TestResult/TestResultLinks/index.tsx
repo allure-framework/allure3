@@ -2,7 +2,7 @@ import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
@@ -52,7 +52,7 @@ const TestResultLink: FunctionalComponent<{
 };
 
 export type TestResultLinksProps = {
-  links: ClassicTestResult["links"];
+  links: ReportTestResult["links"];
 };
 
 export const TestResultLinks: FunctionalComponent<TestResultLinksProps> = ({ links }) => {

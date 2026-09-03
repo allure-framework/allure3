@@ -1,119 +1,16 @@
-import type {
-  AttachmentTestStepResult,
-  DefaultTreeGroup,
-  HistoryTestResult,
-  TestFixtureResult,
-  TestResult,
-  TestStatus,
-  TestStepResult,
-  TreeData,
-  WithChildren,
-} from "@allurereport/core-api";
-
-export type Layout = "base" | "split";
-
-export type AwesomeRunSummary = {
-  start: number;
-  stop: number;
-  duration: number;
-};
-
-export type AwesomeExecutorInfo = {
-  name?: string;
-  type?: string;
-  url?: string;
-  buildOrder?: number;
-  buildName?: string;
-  buildUrl?: string;
-  reportName?: string;
-  reportUrl?: string;
-};
-
-export type AwesomeReportOptions = {
-  allureVersion: string;
-  reportName?: string;
-  logo?: string;
-  theme?: "light" | "dark";
-  groupBy?: string[];
-  reportLanguage?: string;
-  createdAt: number;
-  reportUuid: string;
-  layout?: Layout;
-  executor?: AwesomeExecutorInfo;
-  runSummary?: AwesomeRunSummary;
-};
-
-export type AwesomeFixtureResult = Omit<
-  TestFixtureResult,
-  "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
-> & {
-  steps: AwesomeTestStepResult[];
-};
-
-export type AwesomeStatus = TestStatus | "total";
-
-export type AwesomeTestStepResult = TestStepResult;
-
-type AwesomeBreadcrumbItem = string[] | string[][];
-
-export interface AwesomeCategory {
-  id?: string;
-  name: string;
-  description?: string;
-  descriptionHtml?: string;
-  messageRegex?: string;
-  traceRegex?: string;
-  matchedStatuses?: TestStatus[];
-  flaky?: boolean;
-}
-
-export type AwesomeTestResult = Omit<
-  TestResult,
-  | "runSelector"
-  | "sourceMetadata"
-  | "expectedResult"
-  | "expectedResultHtml"
-  | "precondition"
-  | "preconditionHtml"
-  | "steps"
-  | "environment"
-> & {
-  setup: AwesomeFixtureResult[];
-  teardown: AwesomeFixtureResult[];
-  steps: AwesomeTestStepResult[];
-  history: HistoryTestResult[];
-  retries?: TestResult[];
-  groupedLabels: Record<string, string[]>;
-  attachments?: AttachmentTestStepResult[];
-  breadcrumbs: AwesomeBreadcrumbItem[];
-  order?: number;
-  groupOrder?: number;
-  retry: boolean;
-  categories?: AwesomeCategory[];
-  environment?: string | "default";
-};
-
-export type AwesomeTreeLeaf = Pick<
-  AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
-> & {
-  nodeId: string;
-};
-
-export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
-
-export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
-/**
- * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
- */
-export type AwesomeRecursiveTree = DefaultTreeGroup & {
-  nodeId: string;
-  leaves: AwesomeTreeLeaf[];
-  trees: AwesomeRecursiveTree[];
-};
-
-// TODO: maybe it should call `TestCase` instead of Group
-// TODO: add worst status
-export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
-  testResults: AwesomeTestResult[];
-};
+export type {
+  ReportCategory,
+  ReportExecutorInfo,
+  ReportFixtureResult,
+  ReportRecursiveTree,
+  ReportOptions,
+  ReportRunSummary,
+  ReportStatus,
+  ReportTestResult,
+  ReportTestResultGroup,
+  ReportTestStepResult,
+  ReportTree,
+  ReportTreeGroup,
+  ReportTreeLeaf,
+  Layout,
+} from "@allurereport/plugin-api";

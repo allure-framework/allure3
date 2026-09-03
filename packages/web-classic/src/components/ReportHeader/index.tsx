@@ -1,6 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Text } from "@allurereport/web-components";
-import type { ClassicReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
@@ -9,7 +9,7 @@ import { currentLocaleIso } from "@/stores";
 import * as styles from "./styles.scss";
 
 export const ReportHeader = () => {
-  const { reportName, createdAt } = getReportOptions<ClassicReportOptions>() ?? {};
+  const { reportName, createdAt } = getReportOptions<ReportOptions>() ?? {};
   const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "long",
     day: "numeric",

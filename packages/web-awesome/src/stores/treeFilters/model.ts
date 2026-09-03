@@ -7,7 +7,7 @@ import type {
   FieldFilterGroup,
   StringField,
 } from "@allurereport/web-commons";
-import type { AwesomeTreeLeaf } from "types";
+import type { ReportTreeLeaf } from "types";
 
 export type Filters = {
   query?: string;
@@ -20,10 +20,10 @@ export type Filters = {
   severity?: string[];
 };
 
-export type AwesomeFieldFilter = FieldFilter<keyof AwesomeTreeLeaf>;
+export type AwesomeFieldFilter = FieldFilter<keyof ReportTreeLeaf>;
 
-export type AwesomeFieldFilterGroup = FieldFilterGroup<keyof AwesomeTreeLeaf> & {
-  fieldKey?: keyof AwesomeTreeLeaf;
+export type AwesomeFieldFilterGroup = FieldFilterGroup<keyof ReportTreeLeaf> & {
+  fieldKey?: keyof ReportTreeLeaf;
 };
 
 export type AwesomeFilterGroupSimple = AwesomeFieldFilterGroup & {
@@ -32,16 +32,16 @@ export type AwesomeFilterGroupSimple = AwesomeFieldFilterGroup & {
 
 export type AwesomeFilter = AwesomeFieldFilter | AwesomeFilterGroupSimple;
 
-export type AwesomeField = Field<keyof AwesomeTreeLeaf>;
+export type AwesomeField = Field<keyof ReportTreeLeaf>;
 
-export type AwesomeBooleanField = BooleanField<keyof AwesomeTreeLeaf>;
+export type AwesomeBooleanField = BooleanField<keyof ReportTreeLeaf>;
 
 export type AwesomeStringFieldFilter = AwesomeFieldFilter & {
-  value: StringField<keyof AwesomeTreeLeaf>;
+  value: StringField<keyof ReportTreeLeaf>;
 };
 
 export type AwesomeArrayFieldFilter = AwesomeFieldFilter & {
-  value: ArrayField<keyof AwesomeTreeLeaf>;
+  value: ArrayField<keyof ReportTreeLeaf>;
 };
 
 export type AwesomeBooleanFieldFilter = AwesomeFieldFilter & {

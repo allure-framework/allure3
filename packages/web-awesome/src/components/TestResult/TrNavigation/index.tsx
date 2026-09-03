@@ -2,7 +2,7 @@ import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurerepo
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { highlightAllUnder } from "prismjs";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
@@ -13,7 +13,7 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 type Props = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) => {

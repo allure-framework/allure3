@@ -2,7 +2,7 @@ import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
@@ -21,7 +21,7 @@ export const TrEnvironmentSection: FunctionalComponent<{
   }, [testResultId]);
 
   return (
-    <Loadable<Record<string, AwesomeTestResult>, AwesomeTestResult | undefined>
+    <Loadable<Record<string, ReportTestResult>, ReportTestResult | undefined>
       source={testResultStore}
       transformData={(data) => data[testResultId]}
       renderData={(tr) =>
@@ -32,7 +32,7 @@ export const TrEnvironmentSection: FunctionalComponent<{
 };
 
 export const TrEnvironmentsView: FunctionalComponent<{
-  testResult: AwesomeTestResult;
+  testResult: ReportTestResult;
 }> = ({ testResult }) => {
   const { t } = useI18n("empty");
 

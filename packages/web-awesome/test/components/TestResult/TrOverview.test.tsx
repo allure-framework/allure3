@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 beforeEach(async () => {
@@ -63,7 +63,7 @@ vi.mock("@/stores/testResult", () => ({
   trCurrentTab: { value: "overview" },
 }));
 
-const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
+const makeTestResult = (overrides: Partial<ReportTestResult> = {}): ReportTestResult =>
   ({
     id: "test-result-id",
     name: "test",
@@ -91,7 +91,7 @@ const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTest
     titlePath: [],
     attachments: [],
     ...overrides,
-  }) as AwesomeTestResult;
+  }) as ReportTestResult;
 
 describe("components > TestResult > TrOverview", () => {
   beforeEach(() => {

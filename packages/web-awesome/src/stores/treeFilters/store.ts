@@ -1,7 +1,7 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { getParamValue, getParamValues } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { AwesomeStatus } from "types";
+import type { ReportStatus } from "types";
 
 import {
   clearTreeFilterParams,
@@ -333,9 +333,9 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
   }
 };
 
-export const treeStatus = computed<AwesomeStatus>(() => urlStatusFilter.value ?? "total");
+export const treeStatus = computed<ReportStatus>(() => urlStatusFilter.value ?? "total");
 
-export const setTreeStatus = (status: AwesomeStatus) => {
+export const setTreeStatus = (status: ReportStatus) => {
   setStatusFilter(status === "total" ? undefined : status);
 };
 

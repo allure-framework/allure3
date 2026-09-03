@@ -12,16 +12,6 @@
 
 ## Overview
 
-Allure Classic report web-implementation. The report looks and works exactly like the [original Allure Report](https://github.com/allure-framework/allure2).
-
-The package is utilized by Classic Plugin.
-
-## Install
-
-Use your favorite package manager to install the package:
-
-```shell
-npm add @allurereport/web-classic
-yarn add @allurereport/web-classic
-pnpm add @allurereport/web-classic
-```
+Internal Allure Classic report web implementation. The report looks and works exactly like the
+[original Allure Report](https://github.com/allure-framework/allure2). Its production assets are built and archived into
+`@allurereport/plugin-classic`; this workspace is not published or installed by CLI users.

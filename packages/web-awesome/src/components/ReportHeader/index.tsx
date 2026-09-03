@@ -1,7 +1,7 @@
 import { formatDuration } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
-import type { AwesomeReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
@@ -22,7 +22,7 @@ const reportDateOptions: Intl.DateTimeFormatOptions = {
 };
 
 export const ReportHeader = () => {
-  const { reportName, createdAt, runSummary } = getReportOptions<AwesomeReportOptions>() ?? {};
+  const { reportName, createdAt, runSummary } = getReportOptions<ReportOptions>() ?? {};
   const { t } = useI18n("ui");
   const formattedCreatedAt = timestampToDate(createdAt as number, reportDateOptions);
   const formattedReportTime = runSummary

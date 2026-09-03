@@ -1,4 +1,4 @@
-import type { AwesomeSearchDocument } from "types";
+import type { ReportSearchDocument } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { fetchReportJsonDataMock } = vi.hoisted(() => ({
@@ -24,7 +24,7 @@ import {
   searchNodeIds,
 } from "../../src/stores/search.js";
 
-const documents: AwesomeSearchDocument[] = [
+const documents: ReportSearchDocument[] = [
   {
     id: "tr-1",
     nodeId: "tr-1",
@@ -54,7 +54,7 @@ const documents: AwesomeSearchDocument[] = [
   },
 ];
 
-type SearchCase = [string, AwesomeSearchDocument[], string, string[]];
+type SearchCase = [string, ReportSearchDocument[], string, string[]];
 type SearchFindCase = [string, string[]];
 
 describe("stores > search", () => {
@@ -118,12 +118,12 @@ describe("stores > search", () => {
   });
 
   it("should preserve indexes loaded by overlapping fetches", async () => {
-    let resolveFirstFetch: (documents: AwesomeSearchDocument[]) => void = () => {};
-    let resolveSecondFetch: (documents: AwesomeSearchDocument[]) => void = () => {};
-    const firstFetch = new Promise<AwesomeSearchDocument[]>((resolve) => {
+    let resolveFirstFetch: (documents: ReportSearchDocument[]) => void = () => {};
+    let resolveSecondFetch: (documents: ReportSearchDocument[]) => void = () => {};
+    const firstFetch = new Promise<ReportSearchDocument[]>((resolve) => {
       resolveFirstFetch = resolve;
     });
-    const secondFetch = new Promise<AwesomeSearchDocument[]>((resolve) => {
+    const secondFetch = new Promise<ReportSearchDocument[]>((resolve) => {
       resolveSecondFetch = resolve;
     });
 
