@@ -10,7 +10,7 @@ import {
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
-import { computed } from "@preact/signals";
+import { batch, computed } from "@preact/signals";
 
 import { getBodyItems } from "@/components/TestResult/bodyItems";
 import {
@@ -315,7 +315,7 @@ const resolveTreeEnvId = (focusId: string): string | undefined => {
   return Object.keys(filteredTree.value).find((envId) => envIds.has(envId));
 };
 
-const getTreeFocusIdPrefix = (envId: string): string | undefined => {
+export const getTreeFocusIdPrefix = (envId: string): string | undefined => {
   if (environmentsStore.value.data.length <= 1) {
     return undefined;
   }
@@ -766,4 +766,51 @@ export const handleTestResultEscape = () => {
 
   navigateToRoot();
   focusTreePane();
+};
+
+/**
+ * Expand or collapse all tree nodes for a specific environment (or all environments if none specified).
+ * Properly handles scoped IDs for multi-environment reports.
+ */
+export const toggleAllTreeNodes = (envId: string | undefined, shouldExpand: boolean) => {
+  const envsToProcess = envId ? [envId] : Object.keys(filteredTree.value);
+
+  // Batch all signal updates to prevent N sequential Set copies
+  batch(() => {
+    envsToProcess.forEach((env) => {
+      const envTree = filteredTree.value[env];
+      if (!envTree) {
+        return;
+      }
+
+      // Reuse existing helper for consistent prefix logic
+      const focusIdPrefix = getTreeFocusIdPrefix(env);
+      const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
+
+      // Collect all expandable nodes in this environment's tree
+      const expandableNodes = collectExpandableSubtreeNodes(envTree);
+
+      // Apply expand or collapse to all nodes
+      const targetState = shouldExpand ? "all" : "none";
+      applySubtreeToggleState(expandableNodes, targetState, {
+        toScopedId,
+        isOpened: (scopedId, openedByDefault) => isTreeOpened(scopedId, openedByDefault),
+        setOpened: (scopedId, shouldOpen, openedByDefault) => setTreeOpened(scopedId, shouldOpen, openedByDefault),
+      });
+    });
+  });
+};
+
+/**
+ * Expand all tree nodes for the current environment (or all environments in multi-env view)
+ */
+export const expandAllTreeNodes = (envId?: string) => {
+  toggleAllTreeNodes(envId, true);
+};
+
+/**
+ * Collapse all tree nodes for the current environment (or all environments in multi-env view)
+ */
+export const collapseAllTreeNodes = (envId?: string) => {
+  toggleAllTreeNodes(envId, false);
 };
