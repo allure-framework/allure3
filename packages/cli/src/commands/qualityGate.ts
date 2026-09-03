@@ -1,6 +1,6 @@
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
-import { exit, cwd as processCwd } from "node:process";
+import process, { exit, cwd as processCwd } from "node:process";
 
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { type TestResult } from "@allurereport/core-api";
@@ -144,6 +144,20 @@ export class QualityGateCommand extends Command {
     }
 
     const state = new QualityGateState();
+    let validated = false;
+
+    // A quality gate must never pass silently. If the process is about to exit before the
+    // validation has finished (e.g. because the report finalization stalled), fail loudly
+    // instead of leaving the caller with a successful exit code.
+    process.once("beforeExit", () => {
+      if (validated || (process.exitCode ?? 0) !== 0) {
+        return;
+      }
+
+      console.error(red("Quality gate hasn't been validated, the report generation has been interrupted"));
+
+      process.exitCode = 1;
+    });
 
     allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
       const trs = await Promise.all(trsIds.map((id) => allureReport.store.testResultById(id)));
@@ -157,6 +171,8 @@ export class QualityGateCommand extends Command {
       if (!fastFailed) {
         return;
       }
+
+      validated = true;
 
       // eslint-disable-next-line no-console
       console.error(stringifyQualityGateResults(results));
@@ -177,6 +193,8 @@ export class QualityGateCommand extends Command {
       trs: allTrs,
       environment: resolvedEnvironment?.id,
     });
+
+    validated = true;
 
     if (validationResults.results.length === 0) {
       exit(0);
