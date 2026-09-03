@@ -129,7 +129,6 @@ export class AllureReport {
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
   #testResultsRegistryPath?: string;
-  #qualityGateResultsPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
   #published = false;
@@ -291,10 +290,10 @@ export class AllureReport {
     const summariesSnapshot = this.#cloneSummariesByPluginId();
     const uploadProgressMessage =
       reportsToPublish.length === 1 ? `Publishing "${reportsToPublish[0].pluginId}" report` : "Publishing reports";
-    const rootReportFiles = this.#getRootReportFiles();
+    const rootRemoteReportFiles = this.#getRootRemoteReportFiles();
     const totalFilesToUpload =
       reportsToPublish.reduce((acc, report) => acc + Object.keys(report.files).length, 0) +
-      Object.keys(rootReportFiles).length;
+      Object.keys(rootRemoteReportFiles).length;
     let summariesMutated = false;
     let reportCreated = false;
     let publishErrorMessage = "Report upload has failed, the report won't be published";
@@ -340,12 +339,12 @@ export class AllureReport {
         }
       }
 
-      if (Object.keys(rootReportFiles).length > 0) {
-        publishErrorMessage = "Report integration artifacts upload has failed, the report won't be published";
+      if (Object.keys(rootRemoteReportFiles).length > 0) {
+        publishErrorMessage = "Test results registry upload has failed, the report won't be published";
 
         await client.uploadReport({
           reportUuid: this.reportUuid,
-          files: rootReportFiles,
+          files: rootRemoteReportFiles,
           onProgress: incrementUploadProgress,
         });
       }
@@ -1033,18 +1032,14 @@ export class AllureReport {
     );
   };
 
-  #getRootReportFiles = (): Record<string, string> => ({
+  #getRootRemoteReportFiles = (): Record<string, string> => ({
     ...(this.#testResultsRegistryPath ? { [TEST_RESULTS_REGISTRY_FILENAME]: this.#testResultsRegistryPath } : {}),
-    ...(this.#qualityGateResultsPath ? { [QUALITY_GATE_RESULTS_FILENAME]: this.#qualityGateResultsPath } : {}),
   });
 
   #writeQualityGateFiles = async (): Promise<void> => {
     const qualityGateResults = await this.#store.qualityGateResults();
 
-    this.#qualityGateResultsPath = await this.#reportFiles.addFile(
-      QUALITY_GATE_RESULTS_FILENAME,
-      Buffer.from(JSON.stringify(qualityGateResults)),
-    );
+    await this.#reportFiles.addFile(QUALITY_GATE_RESULTS_FILENAME, Buffer.from(JSON.stringify(qualityGateResults)));
   };
 
   #generateRootSummary = async (): Promise<void> => {

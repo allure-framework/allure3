@@ -121,7 +121,7 @@ describe("report", () => {
   it("should write root test result registry and keep a single plugin report at the root", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-test-results-registry-"));
     const p1 = createPlugin("p1");
-    const config = await resolveConfig({ name: "Allure Report", output, environment: "chrome" });
+    const config = await resolveConfig({ name: "Allure Report", output });
 
     config.plugins = [p1];
     (p1.plugin.done as Mock).mockImplementation(async (context) => {
@@ -151,7 +151,6 @@ describe("report", () => {
           id,
           name: "failed test",
           duration: 123,
-          environment: "chrome",
           status: "failed",
         },
       },
@@ -815,10 +814,12 @@ describe("report", () => {
     );
   });
 
-  it("should upload quality gate artifacts with root report files", async () => {
+  it("should keep quality gate results local and omit them from remote root uploads", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-local-only-"));
     const p1 = createPlugin("p1", true, { publish: true });
     const config = await resolveConfig({
       name: "Allure Report",
+      output,
       qualityGate: {
         rules: [],
       },
@@ -847,14 +848,28 @@ describe("report", () => {
     ]);
     await allureReport.done();
 
+    const qualityGateResults = JSON.parse(await readFile(join(output, "quality-gate.json"), "utf8"));
+    const uploadedRootFiles = (AllureServiceClientMock.prototype.uploadReport as Mock).mock.calls
+      .map(([options]) => options as { pluginId?: string; files: Record<string, string> })
+      .filter(({ pluginId }) => pluginId === undefined)
+      .map(({ files }) => files);
+
+    expect(qualityGateResults).toEqual([
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "maxFailures",
+        message: "Failed tests exceed threshold",
+        testResults: [],
+      },
+    ]);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        files: {
-          "test-results.json": expect.any(String),
-          "quality-gate.json": expect.any(String),
-        },
+        files: { "test-results.json": expect.any(String) },
       }),
     );
+    expect(uploadedRootFiles).toEqual([{ "test-results.json": expect.any(String) }]);
   });
 
   const verifyUploadOptionsForwarding = async (uploadConcurrency?: number) => {
