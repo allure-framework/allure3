@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "Üres",
+      "name": "Futásidő"
+    },
+    "severity": {
+      "name": "Súlyosság"
+    },
+    "status": {
+      "name": "Státusz"
+    },
+    "trend": {
+      "empty": "Üres",
+      "reportLink": "{{name}} jelentés megnyitása"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "{{mark}} eredmények elrejtése",
+      "showCases": "{{mark}} eredmények mutatása"
+    },
+    "statusToggle": {
+      "hideCases": "Tesztek elrejtése: {{status}} státusz",
+      "showCases": "Tesztek mutatása: {{status}} státusz"
+    },
+    "tree": {
+      "download": "CSV letöltése",
+      "empty": "Nincsenek elemek",
+      "filter": "Státusz",
+      "filter-marks": "Megjegyzések",
+      "filtered": {
+        "shown": "{{count}} mutatva",
+        "total": "{{count}} teszt eredmény",
+        "total_one": "{{count}} teszt eredmény",
+        "total_other": "{{count}} tesztek eredménye"
+      },
+      "groups": "Csoportok extra információ",
+      "time": {
+        "max": {
+          "name": "Maximum",
+          "tooltip": "Leghosszabb ideig futó teszt"
+        },
+        "sum": {
+          "name": "Összegző",
+          "tooltip": "Az összes teszt teljes futásideje"
+        },
+        "total": {
+          "name": "Kummulált",
+          "tooltip": "Az első teszt kezdésétől az utolsó teszt befejeztéig eltelt idő."
+        }
+      },
+      "unknown": "<Üres>",
+      "noItemSelected": "Nincs kijelölt elem",
+      "search": "Teszteredmények keresése"
+    },
+    "widgetStatus": {
+      "showAll": "Összes mutatása",
+      "total": "{{count}} elem",
+      "total_one": "{{count}} elem",
+      "total_other": "{{count}} összesen elem"
+    },
+    "attachment": {
+      "download": "Kattints a csatolmány letöltéséhez",
+      "videoNotSupported": "A böngésződ nem támogatja a video taget",
+      "htmlPreviewTitle": "HTML csatolmány előnézete: {{name}}",
+      "previewSizeExceeded": "A melléklet előnézete le van tiltva, mert a melléklet nagyobb, mint {{size}}.",
+      "htmlPreviewSizeExceeded": "A HTML előnézet le van tiltva, mert a melléklet nagyobb, mint {{size}}.",
+      "htmlPreviewInvalid": "A HTML előnézet le van tiltva, mert a melléklet nem tűnik HTML-nek."
+    },
+    "screenDiff": {
+      "empty": "Nincs megadva eltérésadat",
+      "name": "Képernyőkülönbség",
+      "showDiff": "Eltérés megjelenítése",
+      "showOverlay": "Átfedés megjelenítése"
+    }
+  },
+  "controls": {
+    "backto": "Vissza",
+    "clipboard": "Vágólapra másol",
+    "clipboardError": "Nem lehetséges vágólapra másolni. Ezt a funkciót valószínűleg nem támogatja a böngésző.",
+    "clipboardSuccess": "Másolás kész",
+    "collapse": "Bezár",
+    "expand": "Kinyit",
+    "fullscreen": "Teljes képernyő",
+    "language": "Másik nyelv választása",
+    "languageShort": "Nyelv",
+    "lightTheme": "Világos téma",
+    "darkTheme": "Sötét téma",
+    "loading": "Betöltés...",
+    "close": "Bezárás"
+  },
+  "errors": {
+    "missedAttachment": "Nem található csatolmány",
+    "notFound": "Nincs találat",
+    "loadingFailed": "Nem sikerült betölteni az adatokat",
+    "tabNotFound": "A(z) \"{{tab}}\" lap nem található",
+    "testResultNotFound": "A \"{{uid}}\" uid azonosítójú teszteredmény nem található"
+  },
+  "marks": {
+    "flaky": "Bizonytalan (flaky)",
+    "newBroken": "Új hibára futó",
+    "newFailed": "Új sikertelen",
+    "newPassed": "Új sikeres",
+    "retriesStatusChange": "Státusz változott ismétlés után"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "futásidő",
+    "name": "név",
+    "order": "sorrend",
+    "status": "státusz"
+  },
+  "status": {
+    "broken": "Hiba a futás során",
+    "failed": "Sikertelen",
+    "passed": "Sikeres",
+    "skipped": "Kihagyott",
+    "unknown": "Ismeretlen"
+  },
+  "tab": {
+    "categories": {
+      "name": "Kategóriák"
+    },
+    "behaviors": {
+      "name": "Viselkedés"
+    },
+    "graph": {
+      "name": "Grafikonok"
+    },
+    "overview": {
+      "name": "Összesítő"
+    },
+    "packages": {
+      "name": "Modulok"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Tesztek"
+    },
+    "timeline": {
+      "name": "Idővonal",
+      "selected": "{{count}} darab teszt ({{percent}}%) futásideje {{duration}}",
+      "selected_one": "{{count}} darab teszt ({{percent}}%) futásideje {{duration}}",
+      "selected_other": "{{count}} tesztek ({{percent}}%) futásideje {{duration}}",
+      "resultLink": "{{name}} teszteredmény megnyitása, státusz: {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Kategóriák"
+    },
+    "description": {
+      "name": "Leírás"
+    },
+    "duration": {
+      "name": "Futásidő"
+    },
+    "execution": {
+      "body": "Teszt törzse",
+      "downloadAttachment": {
+        "tooltip": "Csatolmány megnyitása új fülön"
+      },
+      "name": "Futás",
+      "setup": "Megelőző lépések",
+      "teardown": "Lezáró lépések",
+      "empty": "Nem áll rendelkezésre információ a teszt végrehajtásáról."
+    },
+    "history": {
+      "empty": "Nem érhető el előzmény információ",
+      "name": "Előzmény",
+      "statistic": "Összesen {{total}} , sikeres {{passed}}",
+      "successRate": "Sikeres tesztek aránya",
+      "time": "{{date}} , {{time}}"
+    },
+    "links": {
+      "name": "Linkek"
+    },
+    "overview": {
+      "name": "Áttekintő"
+    },
+    "owner": {
+      "name": "Tulajdonos"
+    },
+    "parameters": {
+      "name": "Paraméterek"
+    },
+    "retries": {
+      "empty": "Nincs elérhető információ az ismétlésekről",
+      "name": "Ismétlések",
+      "time": "{{date}} , {{time}}"
+    },
+    "severity": {
+      "name": "Súlyosság",
+      "blocker": "blokkoló",
+      "critical": "kritikus",
+      "normal": "normál",
+      "minor": "gyenge",
+      "trivial": "elhanyagolható"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} csatolmány",
+        "parameters": "{{count}} paraméter",
+        "steps": "{{count}} köztes lépés",
+        "attachments_one": "{{count}} csatolmány",
+        "attachments_other": "{{count}} csatolmány",
+        "parameters_one": "{{count}} paraméter",
+        "parameters_other": "{{count}} paraméterek",
+        "steps_one": "{{count}} köztes lépés",
+        "steps_other": "{{count}} köztes lépések"
+      }
+    },
+    "status": {
+      "empty": "Státusz részletek üres",
+      "trace": "Követés mutatása"
+    },
+    "tags": {
+      "name": "Tag-ek"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Kategáróiák"
+    },
+    "behaviors": {
+      "name": "Funkció rendezése sztorinként",
+      "showAll": "összes mutatása"
+    },
+    "categoriesTrend": {
+      "name": "Kategória trend"
+    },
+    "durationTrend": {
+      "name": "Futásidő trend"
+    },
+    "environment": {
+      "empty": "Nem voltak környezeti változók",
+      "name": "Környezet",
+      "showAll": "Összes mutatása"
+    },
+    "executors": {
+      "empty": "Nem érhető el a tesztet lefuttató adatai",
+      "name": "Futtatók",
+      "unknown": "Ismeretlen"
+    },
+    "launches": {
+      "empty": "Nem érhető el a tesztet elindító adatai",
+      "name": "Elindítók"
+    },
+    "retryTrend": {
+      "name": "Ismétlések trend"
+    },
+    "suites": {
+      "name": "Tesztek"
+    },
+    "summary": {
+      "aggregatedName": "Összesített jelentés",
+      "launches": "indító",
+      "testResults": "teszteset",
+      "launches_one": "indító",
+      "launches_other": "indítók",
+      "testResults_one": "teszteset",
+      "testResults_other": "tesztesetek"
+    },
+    "trend": {
+      "name": "Tendencia"
+    }
+  }
+}

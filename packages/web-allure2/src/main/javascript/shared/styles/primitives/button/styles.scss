@@ -1,0 +1,67 @@
+@use "../../../../theme/spacing.scss" as *;
+$button-border-radius: var(--radius-0-5);
+$button-border-color: var(--color-border-control);
+$button-border-hover: var(--color-border-control);
+
+$button-bg-pressed: var(--color-control-bg-active);
+$button-bg-checked: var(--color-control-bg-active);
+
+$button-inverse-border-color: var(--color-border-inverse-strong);
+$button-inverse-color: var(--color-text-inverse-secondary);
+$button-inverse-border-hover: var(--color-text-inverse);
+
+.button {
+  min-height: gap(4);
+  padding: 0 gap(1);
+  font-family: var(--font-family);
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-s);
+  overflow: hidden;
+  background: var(--color-control-bg);
+  border: 1px solid $button-border-color;
+  border-radius: $button-border-radius;
+  color: var(--color-text-primary);
+  outline: none;
+  transition:
+    background-color var(--color-change-transition-duration),
+    border-color var(--color-change-transition-duration),
+    transform var(--interaction-transition-duration);
+  &:hover {
+    background: var(--color-control-bg-hover);
+    border-color: $button-border-hover;
+  }
+  &:active {
+    background: $button-bg-pressed;
+    transform: scale(0.96);
+  }
+  &_active {
+    background: $button-bg-checked;
+    border-color: var(--color-border-medium);
+  }
+  &_inverse {
+    color: $button-inverse-color;
+    border-color: $button-inverse-border-color;
+
+    &:hover {
+      border-color: $button-inverse-border-hover;
+    }
+  }
+}
+
+.button-group {
+  display: flex;
+  .button {
+    border-radius: 0;
+    border-right-width: 0;
+    &:last-child {
+      border-right-width: 1px;
+      border-radius: 0 $button-border-radius $button-border-radius 0;
+    }
+    &:first-child {
+      border-radius: $button-border-radius 0 0 $button-border-radius;
+    }
+    &:hover + .button {
+      border-left-color: $button-border-hover;
+    }
+  }
+}

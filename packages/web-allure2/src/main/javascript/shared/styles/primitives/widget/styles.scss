@@ -1,0 +1,88 @@
+@use "../../../../theme/spacing.scss" as *;
+.widget {
+  margin-bottom: gap(3);
+  position: relative;
+
+  &_ghost {
+    border: 1px dashed var(--color-border-default);
+    box-shadow: none;
+    min-height: gap(6);
+    & > * {
+      display: none;
+    }
+  }
+
+  &__title {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-extra-bold);
+    letter-spacing: 0;
+    line-height: var(--line-height-l);
+    margin: 0 0 gap(2);
+  }
+
+  &__subtitle {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-m);
+    line-height: var(--line-height-m);
+  }
+
+  &__title > &__subtitle {
+    display: inline-block;
+    margin-inline-start: gap(1);
+  }
+
+  &__noitems {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-m);
+    line-height: var(--line-height-m);
+    text-align: center;
+    padding: gap(1) gap(2);
+  }
+
+  &__flex-line {
+    display: flex;
+  }
+
+  &__column {
+    width: 50%;
+  }
+
+  &__handle {
+    display: none;
+    position: absolute;
+    inset-block-start: gap(2);
+    inset-inline-end: gap(2);
+    color: var(--color-text-muted);
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    .widget:hover & {
+      display: block;
+    }
+  }
+
+  &__table {
+    border-top: 1px solid var(--color-border-subtle);
+    margin-inline: calc(-1 * gap(2));
+    word-break: break-all;
+    .table__row:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+.draggable-icon {
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+  color: var(--color-text-muted);
+  position: absolute;
+  width: gap(1);
+  height: gap(2);
+  inset-inline-end: 0;
+  z-index: 1;
+}
