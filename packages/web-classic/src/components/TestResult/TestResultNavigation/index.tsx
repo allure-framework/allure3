@@ -1,6 +1,6 @@
 import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { testResultNavStore } from "@/stores/testResults";
@@ -10,7 +10,7 @@ import { navigateTo } from "@/utils/navigate";
 import * as styles from "./styles.scss";
 
 export type TestResultNavigationProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps> = ({ testResult }) => {

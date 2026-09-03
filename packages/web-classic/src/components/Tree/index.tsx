@@ -1,6 +1,6 @@
 import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import type { ClassicStatus } from "types";
+import type { ReportStatus } from "types";
 
 import Tree from "@/components/Tree/Tree";
 import { useI18n } from "@/stores/locale";
@@ -13,7 +13,7 @@ export const TreeList = () => {
   const { t } = useI18n("empty");
 
   useEffect(() => {
-    setTreeStatus(currentTab.value as ClassicStatus);
+    setTreeStatus(currentTab.value as ReportStatus);
     // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [currentTab.value]);
 
@@ -54,7 +54,7 @@ export const TreeList = () => {
 
         return (
           <div className={styles["tree-list"]}>
-            <Tree tree={filteredTree.value} statusFilter={currentTab.value as ClassicStatus} root />
+            <Tree tree={filteredTree.value} statusFilter={currentTab.value as ReportStatus} root />
           </div>
         );
       }}

@@ -2,7 +2,7 @@ import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { Loadable, SvgIcon, Text, Tree, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { useMemo, useState } from "preact/hooks";
-import type { AwesomeQualityGateValidationResult, AwesomeTree, AwesomeTreeGroup } from "types";
+import type { ReportQualityGateValidationResult, ReportTree, ReportTreeGroup } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrError } from "@/components/TestResult/TrError";
@@ -18,14 +18,14 @@ import * as styles from "./styles.scss";
 
 const emptyTreeState = new Set<string>();
 
-const QualityGateTestResultsTree = ({ tree }: { tree: AwesomeTree }) => {
+const QualityGateTestResultsTree = ({ tree }: { tree: ReportTree }) => {
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("transitions");
   const [openedTrees, setOpenedTrees] = useState(new Set<string>());
   const recursiveTree = useMemo(
     () =>
       createRecursiveTree({
-        group: tree.root as AwesomeTreeGroup,
+        group: tree.root as ReportTreeGroup,
         groupsById: tree.groupsById,
         leavesById: tree.leavesById,
         filterPredicate: () => true,
@@ -82,7 +82,7 @@ const QualityGateTestResultsTree = ({ tree }: { tree: AwesomeTree }) => {
   );
 };
 
-const QualityGateResultsList = ({ results }: { results: AwesomeQualityGateValidationResult[] }) => {
+const QualityGateResultsList = ({ results }: { results: ReportQualityGateValidationResult[] }) => {
   const { t } = useI18n("ui");
 
   return (

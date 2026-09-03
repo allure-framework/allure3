@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { AwesomeTree, AwesomeTreeLeaf } from "../../../../types";
+import type { ReportTree, ReportTreeLeaf } from "../../../../types";
 import { environmentsStore } from "../../../src/stores/env";
 import { activePane, treeFocusId } from "../../../src/stores/keyboard";
 import {
@@ -31,7 +31,7 @@ const setNav = (ids: string[]) => {
   testResultNavStore.value = { loading: false, error: undefined, data: ids };
 };
 
-const makeLeaf = (id: string, order = 0): AwesomeTreeLeaf => ({
+const makeLeaf = (id: string, order = 0): ReportTreeLeaf => ({
   nodeId: id,
   id,
   name: `Test ${id}`,
@@ -59,7 +59,7 @@ const setupTree = (leafIds: string[]) => {
         root: { groups: [], leaves: leafIds },
         leavesById: Object.fromEntries(leafIds.map((id, i) => [id, makeLeaf(id, i)])),
         groupsById: {},
-      } as AwesomeTree,
+      } as ReportTree,
     },
   };
 };

@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.hoisted(() => {
@@ -55,7 +55,7 @@ const testResult = {
   testCase: { id: "test-case-id", name: "test" },
   retryHash: "retry-hash",
   isRetry: false,
-} as AwesomeTestResult;
+} as ReportTestResult;
 
 describe("components > TestResult > TrNavigation", () => {
   it("shows identifier copy options on hover and copies each value", async () => {

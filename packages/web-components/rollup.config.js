@@ -21,10 +21,25 @@ import { svgrOptions } from "./svgr.config.js";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
+const YARN_DEPENDENCY_PATH = /[/\\]\.yarn[/\\]/;
+
+const onLog = (level, log, defaultHandler) => {
+  if (log.code === "CIRCULAR_DEPENDENCY") {
+    if (log.ids?.length && log.ids.every((id) => YARN_DEPENDENCY_PATH.test(id))) {
+      return;
+    }
+
+    defaultHandler("error", log);
+    return;
+  }
+
+  defaultHandler(level, log);
+};
 
 export default defineConfig([
   {
     input: "src/index.ts",
+    onLog,
     output: [
       {
         dir: "dist",
@@ -95,6 +110,16 @@ export default defineConfig([
       },
     ],
     external: ["preact", "preact/hooks", "react", "react-dom", /\.s?css$/],
-    plugins: [dts()],
+    plugins: [
+      alias({
+        entries: [
+          {
+            find: "@",
+            replacement: SRC_PATH,
+          },
+        ],
+      }),
+      dts(),
+    ],
   },
 ]);

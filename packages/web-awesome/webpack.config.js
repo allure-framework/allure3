@@ -1,6 +1,5 @@
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
-import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { appLoaderFaviconDataUri, appLoaderLogoSvg, appLoaderStyles } from "@allurereport/core-api";
@@ -8,12 +7,10 @@ import { appLoaderFaviconDataUri, appLoaderLogoSvg, appLoaderStyles } from "@all
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
-const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
@@ -24,7 +21,7 @@ export default (env, argv) => {
   const config = {
     entry: "./src/index.tsx",
     output: {
-      path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
+      path: join(baseDir, "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
       publicPath: devMode ? "auto" : undefined,
@@ -52,12 +49,12 @@ export default (env, argv) => {
         },
         {
           test: /\.css$/,
-          use: [SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader, "css-loader"],
+          use: ["style-loader", "css-loader"],
         },
         {
           test: /\.scss$/,
           use: [
-            SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader,
+            "style-loader",
             {
               loader: "css-loader",
               options: {
@@ -71,11 +68,11 @@ export default (env, argv) => {
         },
         {
           test: /\.svg$/,
-          type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
+          type: devMode ? "asset/resource" : "asset/inline",
         },
         {
           test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
-          type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
+          type: devMode ? "asset/resource" : "asset/inline",
         },
       ],
     },
@@ -106,9 +103,6 @@ export default (env, argv) => {
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
       }),
-      new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[contenthash].css",
-      }),
       new WebpackManifestPlugin({
         publicPath: "",
       }),
@@ -137,7 +131,7 @@ export default (env, argv) => {
     });
   }
 
-  if (SINGLE_FILE_MODE) {
+  if (!devMode) {
     config.plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,
