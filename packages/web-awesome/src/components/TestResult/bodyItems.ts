@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult, TestError, TestStatus } from "@allurereport/core-api";
-import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
+import type { ReportFixtureResult, ReportTestResult } from "types";
 
 export type TestLevelErrorItem = {
   type: "error";
@@ -99,7 +99,7 @@ const createTestLevelErrorItem = (
 });
 
 const buildStepBodyItems = (
-  steps: AwesomeTestResult["steps"],
+  steps: ReportTestResult["steps"],
   syntheticErrorItem: TestLevelErrorItem | undefined,
 ): BuildResult => {
   const bodyItems: TrBodyItem[] = [];
@@ -132,10 +132,10 @@ const buildStepBodyItems = (
   return { bodyItems, didPlaceSyntheticError };
 };
 
-export const getStepBodyItems = (steps: AwesomeTestResult["steps"]): TrBodyItem[] =>
+export const getStepBodyItems = (steps: ReportTestResult["steps"]): TrBodyItem[] =>
   buildStepBodyItems(steps, undefined).bodyItems;
 
-export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStepItem => {
+export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepItem => {
   const err = fixture.error;
 
   return {
@@ -158,7 +158,7 @@ export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStep
 };
 
 export const getBodyItems = (
-  testResult?: Pick<AwesomeTestResult, "id" | "status" | "steps" | "error">,
+  testResult?: Pick<ReportTestResult, "id" | "status" | "steps" | "error">,
   fallbackTitle = "Error",
 ): TrBodyItem[] => {
   if (!testResult) {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import type { CategoryDefinition } from "@allurereport/core-api";
-import type { AwesomeTestResult } from "@allurereport/plugin-api";
+import type { ReportTestResult } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -177,7 +177,7 @@ const mkCategory = (partial: Partial<CategoryDefinition> = {}): CategoryDefiniti
   } as unknown as CategoryDefinition;
 };
 
-const mkTest = (partial: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
+const mkTest = (partial: Partial<ReportTestResult> = {}): ReportTestResult =>
   ({
     id: "t1",
     name: "Test 1",
@@ -194,7 +194,7 @@ const mkTest = (partial: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
     error: { message: "boom", trace: "stack" },
     groupedLabels: {},
     ...partial,
-  }) as unknown as AwesomeTestResult;
+  }) as unknown as ReportTestResult;
 
 describe("applyCategoriesToTestResults", () => {
   it("should set empty categories when no category matched", () => {
@@ -240,7 +240,7 @@ describe("generateCategories", () => {
       mkCategory({ name: "Failed", matchers: [{ statuses: ["failed"] }], index: 1 }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({ id: "a", name: "A", status: "failed" as any }),
       mkTest({ id: "b", name: "B", status: "broken" as any }),
       mkTest({ id: "c", name: "C", status: "passed" as any }),
@@ -282,7 +282,7 @@ describe("generateCategories", () => {
         index: 0,
       }),
     ];
-    const tests: AwesomeTestResult[] = [mkTest({ id: "t1", status: "failed" as any })];
+    const tests: ReportTestResult[] = [mkTest({ id: "t1", status: "failed" as any })];
 
     await generateCategories(writer, {
       tests,
@@ -311,7 +311,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({ id: "t1", status: "failed" as any }),
       mkTest({ id: "t2", status: "broken" as any }),
     ];
@@ -349,7 +349,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Leaf B",
@@ -415,7 +415,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Original",
@@ -473,7 +473,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Original Name",
@@ -515,7 +515,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Original Name",
@@ -564,7 +564,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Original Name",
@@ -612,7 +612,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({
         id: "t1",
         name: "Original",
@@ -662,7 +662,7 @@ describe("generateCategories", () => {
       }),
     ];
 
-    const tests: AwesomeTestResult[] = [
+    const tests: ReportTestResult[] = [
       mkTest({ id: "t1", status: "failed" as any, error: { message: "   ", trace: "" } as any }),
     ];
 

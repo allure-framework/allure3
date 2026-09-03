@@ -1,1 +1,1 @@
-export type { DashboardReportOptions } from "@allurereport/plugin-api";
+export type { ReportOptions } from "@allurereport/plugin-api";

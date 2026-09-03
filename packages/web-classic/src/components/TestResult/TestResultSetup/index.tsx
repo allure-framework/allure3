@@ -1,7 +1,7 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
@@ -18,7 +18,7 @@ const typeMap = {
 };
 
 export type TestResultSetupProps = {
-  setup: ClassicTestResult["setup"];
+  setup: ReportTestResult["setup"];
 };
 
 export const TestResultSetup: FunctionalComponent<TestResultSetupProps> = ({ setup }) => {

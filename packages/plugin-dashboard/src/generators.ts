@@ -10,12 +10,7 @@ import {
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/core-api";
-import {
-  type AllureStore,
-  type DashboardReportOptions,
-  type PluginContext,
-  type ReportFiles,
-} from "@allurereport/plugin-api";
+import { type AllureStore, type ReportOptions, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -151,7 +146,7 @@ export const generateStaticFiles = async (
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
-  const reportOptions: DashboardReportOptions = {
+  const reportOptions: ReportOptions = {
     reportName,
     logo,
     theme,

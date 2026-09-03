@@ -8,7 +8,7 @@ import {
   redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
-import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/plugin-api";
+import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -31,7 +31,7 @@ export const convertTestResult = (
   options: {
     hideLabels?: readonly (string | RegExp)[];
   } = {},
-): AwesomeTestResult => {
+): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
 
   return {
@@ -67,7 +67,7 @@ export const convertTestResult = (
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
   if (isStep(tsr)) {
     return {
       ...tsr,
@@ -79,7 +79,7 @@ export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResul
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): AwesomeFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

@@ -28,15 +28,15 @@ import {
 } from "@allurereport/core-api";
 import type {
   AllureStore,
-  AwesomeCategory,
-  AwesomeExecutorInfo,
-  AwesomeFixtureResult,
-  AwesomeReportOptions,
-  AwesomeRunSummary,
-  AwesomeSearchDocument,
-  AwesomeTestResult,
-  AwesomeTreeGroup,
-  AwesomeTreeLeaf,
+  ReportCategory,
+  ReportExecutorInfo,
+  ReportFixtureResult,
+  ReportOptions,
+  ReportRunSummary,
+  ReportSearchDocument,
+  ReportTestResult,
+  ReportTreeGroup,
+  ReportTreeLeaf,
   GlobalAttachmentLink,
   ExitCode,
   PluginContext,
@@ -115,7 +115,7 @@ export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<T
   return manifest;
 };
 
-const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
+const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc: Record<string, string[]>, label: TestLabel) => {
       if (!acc[label.name]) {
@@ -158,15 +158,15 @@ export const generateTestResults = async (
     hideLabels?: readonly (string | RegExp)[];
   } = {},
 ) => {
-  let convertedTrs: AwesomeTestResult[] = [];
+  let convertedTrs: ReportTestResult[] = [];
   const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: AwesomeFixtureResult[] = [...trFixtures]
+    const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr, {
+    const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
 
@@ -196,7 +196,7 @@ export const generateTestResults = async (
   return convertedTrs;
 };
 
-export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[]) => {
+export const generateTestCases = async (writer: AwesomeDataWriter, trs: ReportTestResult[]) => {
   await writeConcurrently(trs, (tr) => writer.writeTestCase(tr));
 };
 
@@ -208,7 +208,7 @@ export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: T
   }
 };
 
-export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
+export const generateNav = async (writer: AwesomeDataWriter, trs: ReportTestResult[], filename = "nav.json") => {
   await writer.writeWidget(
     filename,
     trs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
@@ -235,7 +235,7 @@ const joinSearchValues = (values: (string | undefined)[]) => {
   return uniqueValues.size > 0 ? [...uniqueValues].join(" ") : undefined;
 };
 
-const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument => {
+const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => {
   const labels = (test.labels ?? []).flatMap(({ name, value }) => {
     if (!value || !SEARCHABLE_LABELS.has(name)) {
       return [];
@@ -253,7 +253,7 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
   });
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
-  const categories = test.categories?.map((category: AwesomeCategory) => category.name);
+  const categories = test.categories?.map((category: ReportCategory) => category.name);
 
   return {
     id: test.id,
@@ -273,7 +273,7 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
 
 export const generateSearchIndex = async (
   writer: AwesomeDataWriter,
-  trs: AwesomeTestResult[],
+  trs: ReportTestResult[],
   filename = "search-index.json",
 ) => {
   const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
@@ -281,7 +281,7 @@ export const generateSearchIndex = async (
   await writer.writeWidget(filename, searchDocuments);
 };
 
-export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): AwesomeRunSummary | undefined => {
+export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
   let start = Infinity;
   let stop = -Infinity;
 
@@ -301,7 +301,7 @@ export const generateTree = async (
   writer: AwesomeDataWriter,
   treeFilename: string,
   labels: string[],
-  tests: AwesomeTestResult[],
+  tests: ReportTestResult[],
   options?: {
     appendTitlePath?: boolean;
   },
@@ -313,14 +313,14 @@ export const generateTree = async (
 
 const generateTreeData = (
   labels: string[],
-  tests: AwesomeTestResult[],
+  tests: ReportTestResult[],
   options?: {
     appendTitlePath?: boolean;
   },
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
   const { appendTitlePath } = options || {};
-  let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+  let tree: TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
   if (labels.length === 0) {
     tree = buildTreeByTitlePath(visibleTests);
@@ -338,11 +338,8 @@ const generateTreeData = (
   return tree;
 };
 
-const buildTreeByLabels = (
-  tests: AwesomeTestResult[],
-  labels: string[],
-): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
-  return createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+const buildTreeByLabels = (tests: ReportTestResult[], labels: string[]): TreeData<ReportTreeLeaf, ReportTreeGroup> => {
+  return createTreeByLabels<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     tests,
     labels,
     leafFactory,
@@ -353,9 +350,9 @@ const buildTreeByLabels = (
   );
 };
 
-const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
-  const testsWithTitlePath: AwesomeTestResult[] = [];
-  const testsWithoutTitlePath: AwesomeTestResult[] = [];
+const buildTreeByTitlePath = (tests: ReportTestResult[]): TreeData<ReportTreeLeaf, ReportTreeGroup> => {
+  const testsWithTitlePath: ReportTestResult[] = [];
+  const testsWithoutTitlePath: ReportTestResult[] = [];
 
   for (const test of tests) {
     if (Array.isArray(test.titlePath) && test.titlePath.length > 0) {
@@ -365,12 +362,12 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     }
   }
 
-  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
+  const treeByTitlePath = createTreeByTitlePath<ReportTestResult>(
     testsWithTitlePath,
     leafFactory,
     undefined,
     (group, leaf) => incrementStatistic(group.statistic, leaf.status),
-  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+  ) as TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
   if (!testsWithoutTitlePath.length) {
     return treeByTitlePath;
@@ -382,10 +379,10 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     ({ labels }: { labels: TestLabel[] }) => labels.map(({ name }: TestLabel) => name),
   );
 
-  let treeByDefaultLabels: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> | null = null;
+  let treeByDefaultLabels: TreeData<ReportTreeLeaf, ReportTreeGroup> | null = null;
 
   if (defaultLabels.length) {
-    treeByDefaultLabels = createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    treeByDefaultLabels = createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
       testsWithoutTitlePath,
       defaultLabels,
       leafFactory,
@@ -434,16 +431,16 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
 };
 
 const buildTreeByLabelsAndTitlePathCombined = (
-  tests: AwesomeTestResult[],
+  tests: ReportTestResult[],
   labels: string[],
-): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
+): TreeData<ReportTreeLeaf, ReportTreeGroup> =>
   collapseTreeGroups(
-    createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
       tests,
       labels,
       leafFactory,
       undefined,
-      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+      (group: ReportTreeGroup, leaf: ReportTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
     ),
   );
 
@@ -461,8 +458,8 @@ const leafFactory = ({
   historyId,
   groupedLabels,
   categories,
-}: AwesomeTestResult): AwesomeTreeLeaf => {
-  const leaf: AwesomeTreeLeaf = {
+}: ReportTestResult): ReportTreeLeaf => {
+  const leaf: ReportTreeLeaf = {
     nodeId: id,
     id: historyId ?? id,
     name,
@@ -481,7 +478,7 @@ const leafFactory = ({
   }
 
   if (categories?.length) {
-    leaf.categories = categories.map((category: AwesomeCategory) => category.name).filter(Boolean);
+    leaf.categories = categories.map((category: ReportCategory) => category.name).filter(Boolean);
   }
 
   return leaf;
@@ -636,7 +633,7 @@ export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
   qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
   options: {
-    tests?: AwesomeTestResult[];
+    tests?: ReportTestResult[];
     labels?: string[];
     appendTitlePath?: boolean;
   } = {},
@@ -649,7 +646,7 @@ export const generateQualityGateResults = async (
       results.map((result) => {
         const relatedTests = [...new Set(result.testResults ?? [])]
           .map((testResultId) => testsById.get(testResultId))
-          .filter((test): test is AwesomeTestResult => Boolean(test));
+          .filter((test): test is ReportTestResult => Boolean(test));
 
         if (relatedTests.length === 0) {
           return result;
@@ -674,8 +671,8 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
-    executor?: AwesomeExecutorInfo;
-    runSummary?: AwesomeRunSummary;
+    executor?: ReportExecutorInfo;
+    runSummary?: ReportRunSummary;
   },
 ) => {
   const {
@@ -737,7 +734,7 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const reportOptions: AwesomeReportOptions & { id: string } = {
+  const reportOptions: ReportOptions & { id: string } = {
     id,
     reportName,
     logo,
@@ -798,7 +795,7 @@ export const generateAllCharts = async (
   }
 };
 
-export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: AwesomeTestResult[]) => {
+export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: ReportTestResult[]) => {
   const trTags = new Set<string>();
   const trCategories = new Set<string>();
 
@@ -807,7 +804,7 @@ export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults
       trTags.add(tag);
     }
 
-    tr.categories?.forEach((category: AwesomeCategory) => {
+    tr.categories?.forEach((category: ReportCategory) => {
       if (category.name) {
         trCategories.add(category.name);
       }

@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { joinPosixPath } from "@allurereport/core-api";
-import type { AwesomeTestResult, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ReportTestResult, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 
 export interface ReportFile {
   name: string;
@@ -14,7 +14,7 @@ export interface AwesomeDataWriter {
 
   writeWidget(fileName: string, data: any): Promise<void>;
 
-  writeTestCase(test: AwesomeTestResult): Promise<void>;
+  writeTestCase(test: ReportTestResult): Promise<void>;
 
   writeAttachment(source: string, file: ResultFile): Promise<void>;
 }
@@ -50,7 +50,7 @@ export class FileSystemReportDataWriter implements AwesomeDataWriter {
     await writeFile(resolve(this.#widgetsDir, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ReportTestResult): Promise<void> {
     await this.#testResultsDirReady;
     await writeFile(resolve(this.#testResultsDir, `${test.id}.json`), JSON.stringify(test), { encoding: "utf-8" });
   }
@@ -76,7 +76,7 @@ export class InMemoryReportDataWriter implements AwesomeDataWriter {
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ReportTestResult): Promise<void> {
     const dist = joinPosixPath("data", "test-results", `${test.id}.json`);
 
     this.#data[dist] = Buffer.from(JSON.stringify(test), "utf-8");
@@ -121,7 +121,7 @@ export class ReportFileDataWriter implements AwesomeDataWriter {
     await this.reportFiles.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
   }
 
-  async writeTestCase(test: AwesomeTestResult): Promise<void> {
+  async writeTestCase(test: ReportTestResult): Promise<void> {
     await this.reportFiles.addFile(
       joinPosixPath("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),

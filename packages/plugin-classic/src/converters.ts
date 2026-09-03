@@ -6,7 +6,7 @@ import {
   isStep,
   redactParameters,
 } from "@allurereport/core-api";
-import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/plugin-api";
+import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -24,7 +24,7 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, {});
 };
 
-export const convertTestResult = (tr: TestResult): ClassicTestResult => {
+export const convertTestResult = (tr: TestResult): ReportTestResult => {
   return {
     id: tr.id,
     name: tr.name,
@@ -55,7 +55,7 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
   if (isStep(tsr)) {
     return {
       ...tsr,
@@ -67,7 +67,7 @@ export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResul
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): ClassicFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

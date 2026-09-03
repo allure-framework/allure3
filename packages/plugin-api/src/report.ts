@@ -17,13 +17,13 @@ export type Layout = "base" | "split";
 
 export type StepTreeExpansion = "collapsed" | "expand_failed_only" | "expanded";
 
-export type AwesomeRunSummary = {
+export type ReportRunSummary = {
   start: number;
   stop: number;
   duration: number;
 };
 
-export type AwesomeExecutorInfo = {
+export type ReportExecutorInfo = {
   name?: string;
   type?: string;
   url?: string;
@@ -34,7 +34,8 @@ export type AwesomeExecutorInfo = {
   reportUrl?: string;
 };
 
-export type AwesomeReportOptions = {
+export type ReportOptions = {
+  id?: string;
   allureVersion: string;
   reportName?: string;
   logo?: string;
@@ -46,28 +47,28 @@ export type AwesomeReportOptions = {
   layout?: Layout;
   defaultSection?: string;
   sections?: string[];
-  cacheKey: string;
+  cacheKey?: string;
   ci?: CiDescriptor;
-  executor?: AwesomeExecutorInfo;
-  runSummary?: AwesomeRunSummary;
+  executor?: ReportExecutorInfo;
+  runSummary?: ReportRunSummary;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
 };
 
-export type AwesomeFixtureResult = Omit<
+export type ReportFixtureResult = Omit<
   TestFixtureResult,
   "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
 > & {
-  steps: AwesomeTestStepResult[];
+  steps: ReportTestStepResult[];
 };
 
-export type AwesomeStatus = TestStatus | "total";
+export type ReportStatus = TestStatus | "total";
 
-export type AwesomeTestStepResult = TestStepResult;
+export type ReportTestStepResult = TestStepResult;
 
-type AwesomeBreadcrumbItem = string[] | string[][];
+type ReportBreadcrumbItem = string[] | string[][];
 
-export interface AwesomeCategory {
+export interface ReportCategory {
   id?: string;
   name: string;
   grouping?: { key: string; value?: string; name?: string }[];
@@ -79,7 +80,7 @@ export interface AwesomeCategory {
   flaky?: boolean;
 }
 
-export type AwesomeTestResult = Omit<
+export type ReportTestResult = Omit<
   TestResult,
   | "runSelector"
   | "sourceMetadata"
@@ -88,48 +89,52 @@ export type AwesomeTestResult = Omit<
   | "precondition"
   | "preconditionHtml"
   | "steps"
+  | "categories"
   | "environment"
 > & {
   isRetry: boolean;
-  setup: AwesomeFixtureResult[];
-  teardown: AwesomeFixtureResult[];
-  steps: AwesomeTestStepResult[];
+  setup: ReportFixtureResult[];
+  teardown: ReportFixtureResult[];
+  steps: ReportTestStepResult[];
   history: HistoryTestResult[];
   retries?: TestResult[];
   retriesCount?: number;
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
-  breadcrumbs: AwesomeBreadcrumbItem[];
+  breadcrumbs: ReportBreadcrumbItem[];
   order?: number;
   groupOrder?: number;
   retry: boolean;
-  categories?: AwesomeCategory[];
+  categories?: ReportCategory[];
   environment?: string | "default";
   tooltips?: Record<string, string>;
+  time?: Record<string, string[]>;
+  extra?: { severity: string };
 };
 
-export type AwesomeTreeLeaf = Pick<
-  AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount" | "id"
+export type ReportTreeLeaf = Pick<
+  ReportTestResult,
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount"
 > & {
   nodeId: string;
+  id?: string;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
   tags?: string[];
   categories?: string[];
 };
 
-export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
+export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
-export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+export type ReportTree = TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
-export type AwesomeQualityGateValidationResult = QualityGateValidationResult & {
-  testResultsTree?: AwesomeTree;
+export type ReportQualityGateValidationResult = QualityGateValidationResult & {
+  testResultsTree?: ReportTree;
 };
 
-export type AwesomeQualityGateResults = Record<string, AwesomeQualityGateValidationResult[]>;
+export type ReportQualityGateResults = Record<string, ReportQualityGateValidationResult[]>;
 
-export type AwesomeSearchDocument = {
+export type ReportSearchDocument = {
   id: string;
   nodeId: string;
   name: string;
@@ -147,102 +152,15 @@ export type AwesomeSearchDocument = {
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups.
  */
-export type AwesomeRecursiveTree = DefaultTreeGroup & {
+export type ReportRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
-  leaves: AwesomeTreeLeaf[];
-  trees: AwesomeRecursiveTree[];
-  duration: number;
-  groupOrder: number;
+  leaves: ReportTreeLeaf[];
+  trees: ReportRecursiveTree[];
+  duration?: number;
+  groupOrder?: number;
   minStart?: number;
 };
 
-export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
-  testResults: AwesomeTestResult[];
-};
-
-export type Allure2ReportOptions = {
-  reportName?: string;
-  reportLanguage?: string;
-  createdAt: number;
-};
-
-export type ClassicReportOptions = {
-  reportName?: string;
-  logo?: string;
-  theme?: "light" | "dark" | "auto";
-  groupBy?: string[];
-  reportLanguage?: string;
-  createdAt: number;
-  reportUuid: string;
-  allureVersion?: string;
-  cacheKey?: string;
-};
-
-export type ClassicFixtureResult = Omit<
-  TestFixtureResult,
-  "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
-> & {
-  steps: ClassicTestStepResult[];
-};
-
-export type ClassicStatus = TestStatus | "total";
-
-export type ClassicTestStepResult = TestStepResult;
-
-type ClassicBreadcrumbItem = string[] | string[][];
-
-export type ClassicTestResult = Omit<
-  TestResult,
-  | "runSelector"
-  | "sourceMetadata"
-  | "expectedResult"
-  | "expectedResultHtml"
-  | "precondition"
-  | "preconditionHtml"
-  | "steps"
-> & {
-  isRetry: boolean;
-  setup: ClassicFixtureResult[];
-  teardown: ClassicFixtureResult[];
-  steps: ClassicTestStepResult[];
-  history: HistoryTestResult[];
-  retries?: TestResult[];
-  groupedLabels: Record<string, string[]>;
-  attachments?: AttachmentTestStepResult[];
-  breadcrumbs: ClassicBreadcrumbItem[];
-  order?: number;
-  groupOrder?: number;
-  retry: boolean;
-  time?: Record<string, string[]>;
-  extra?: { severity: string };
-};
-
-export type ClassicTreeLeaf = Pick<
-  ClassicTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
-> & {
-  nodeId: string;
-};
-
-export type ClassicTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
-
-export type ClassicTree = TreeData<ClassicTreeLeaf, ClassicTreeGroup>;
-
-/**
- * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups.
- */
-export type ClassicRecursiveTree = DefaultTreeGroup & {
-  nodeId: string;
-  leaves: ClassicTreeLeaf[];
-  trees: ClassicRecursiveTree[];
-};
-
-export type DashboardReportOptions = {
-  allureVersion: string;
-  reportName?: string;
-  logo?: string;
-  theme?: "light" | "dark";
-  reportLanguage?: string;
-  createdAt: number;
-  reportUuid: string;
+export type ReportTestResultGroup = Pick<ReportTestResult, "name" | "fullName" | "groupOrder"> & {
+  testResults: ReportTestResult[];
 };
