@@ -164,6 +164,8 @@
     "showMore": "عرض المزيد",
     "copy": "نسخ",
     "copy-email": "نسخ البريد الإلكتروني",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "retry": "إعادة المحاولة {{attempt}} من {{total}}",
     "at": "في",

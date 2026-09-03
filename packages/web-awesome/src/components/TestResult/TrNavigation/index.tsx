@@ -1,3 +1,4 @@
+import type { ResolutionCategory } from "@allurereport/core-api";
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -43,7 +44,15 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 
 const HOVER_CLOSE_DELAY = 300;
 
-const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: string }) => {
+type CopyableResolutionRule = Extract<ResolutionCategory, "muted" | "accepted">;
+
+const resolutionRuleSnippet = (resolution: CopyableResolutionRule, testCaseId: string) => `{
+  resolution: "${resolution}",
+  testCaseId: [${JSON.stringify(testCaseId)}],
+  comment: ""
+}`;
+
+const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
   const { fullName, testCaseId, retryHash } = props;
   const [copied, setCopied] = useState(false);
   const { t } = useI18n("ui");
@@ -91,7 +100,7 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
   }, []);
 
   return (
-    <div data-testid="test-result-fullname" className={styles.fullName}>
+    <div data-testid="test-result-copy-control" className={styles.fullName}>
       <Menu
         size="s"
         placement="bottom-start"
@@ -125,9 +134,11 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
           onMouseLeave={() => scheduleMenuClose()}
         >
           <Menu.Section>
-            <Menu.Item dataTestId="test-result-copy-fullname" onClick={() => copyValue(fullName)}>
-              {t("fullname")}
-            </Menu.Item>
+            {fullName && (
+              <Menu.Item dataTestId="test-result-copy-fullname" onClick={() => copyValue(fullName)}>
+                {t("fullname")}
+              </Menu.Item>
+            )}
             {testCaseId && (
               <Menu.Item dataTestId="test-result-copy-test-case-id" onClick={() => copyValue(testCaseId)}>
                 {t("test-case-id")}
@@ -138,12 +149,30 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
                 {t("retry-hash")}
               </Menu.Item>
             )}
+            {testCaseId && (
+              <>
+                <Menu.Item
+                  dataTestId="test-result-copy-muted-resolution-rule"
+                  onClick={() => copyValue(resolutionRuleSnippet("muted", testCaseId))}
+                >
+                  {t("muted-resolution-rule")}
+                </Menu.Item>
+                <Menu.Item
+                  dataTestId="test-result-copy-accepted-resolution-rule"
+                  onClick={() => copyValue(resolutionRuleSnippet("accepted", testCaseId))}
+                >
+                  {t("accepted-resolution-rule")}
+                </Menu.Item>
+              </>
+            )}
           </Menu.Section>
         </div>
       </Menu>
-      <Code tag="div" size="s" className={styles.text}>
-        {fullName}
-      </Code>
+      {fullName && (
+        <Code data-testid="test-result-fullname" tag="div" size="s" className={styles.text}>
+          {fullName}
+        </Code>
+      )}
     </div>
   );
 };
@@ -190,16 +219,17 @@ export const TrNavigation = (props: Props) => {
 
   const isHidden = !!testResult?.isRetry;
   const hasFullName = !!testResult?.fullName;
+  const hasCopyMenu = hasFullName || !!testResult.testCase?.id || !!testResult.retryHash;
 
   // Nothing to show
-  if ((isHidden || !hasData.value) && !hasFullName) {
+  if ((isHidden || !hasData.value) && !hasCopyMenu) {
     return null;
   }
 
   return (
     <div className={styles.nav}>
-      {hasFullName && (
-        <FullName
+      {hasCopyMenu && (
+        <TestResultCopyMenu
           fullName={testResult.fullName}
           testCaseId={testResult.testCase?.id}
           retryHash={testResult.retryHash}

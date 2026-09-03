@@ -164,6 +164,8 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "copy-email": "ელფოსტის კოპირება",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "retry": "გამეორება {{attempt}} {{total}}-დან",
     "at": "ზე",

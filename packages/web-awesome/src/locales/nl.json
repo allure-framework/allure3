@@ -164,6 +164,8 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Poging {{attempt}} van {{total}}",
     "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",

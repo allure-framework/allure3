@@ -164,6 +164,8 @@
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
     "copy-email": "E-postayı kopyala",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Deneme {{attempt}} / {{total}}",
     "retry": "Yeniden deneme {{attempt}} / {{total}}",
     "at": "tarihinde",

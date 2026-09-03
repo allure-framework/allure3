@@ -164,6 +164,8 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "copy-email": "העתק אימייל",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "retry": "ניסיון חוזר {{attempt}} מתוך {{total}}",
     "at": "ב-",

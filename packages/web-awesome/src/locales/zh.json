@@ -164,6 +164,8 @@
     "showMore": "显示更多",
     "copy": "复制",
     "copy-email": "复制邮箱",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "retry": "第 {{attempt}} 次重试，共 {{total}} 次",
     "at": "在",

@@ -164,6 +164,8 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "copy-email": "メールをコピー",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",

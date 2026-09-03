@@ -164,6 +164,8 @@
     "showMore": "顯示更多",
     "copy": "複製",
     "copy-email": "複製電子郵件",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "第 {{attempt}} 次嘗試，共 {{total}} 次",
     "retry": "第 {{attempt}} 次重試，共 {{total}} 次",
     "at": "於",

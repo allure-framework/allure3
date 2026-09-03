@@ -164,6 +164,8 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "copy-email": "Պատճենել էլ. փոստը",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "retry": "Կրկնական փորձ {{attempt}} {{total}}-ից",
     "at": "է",

@@ -164,6 +164,8 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "copy-email": "Kopiera e-post",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Försök {{attempt}} av {{total}}",
     "retry": "Omförsök {{attempt}} av {{total}}",
     "at": "vid",

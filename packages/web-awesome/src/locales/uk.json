@@ -164,6 +164,8 @@
     "showMore": "Показати більше",
     "copy": "Скопіювати",
     "copy-email": "Скопіювати email",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Спроба {{attempt}} з {{total}}",
     "retry": "Повтор {{attempt}} з {{total}}",
     "at": "в",

@@ -167,6 +167,8 @@
     "fullname": "Fullname",
     "retry-hash": "Retry hash",
     "test-case-id": "Test case ID",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Attempt {{attempt}} of {{total}}",
     "retry": "Retry {{attempt}} of {{total}}",
     "at": "at",

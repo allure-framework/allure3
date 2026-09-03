@@ -164,6 +164,8 @@
     "showMore": "Mostra di più",
     "copy": "Copia",
     "copy-email": "Copia email",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "retry": "Ripetizione {{attempt}} di {{total}}",
     "at": "a",

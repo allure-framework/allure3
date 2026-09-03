@@ -164,6 +164,8 @@
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "copy-email": "E-poçtu kopyala",
+    "muted-resolution-rule": "Muted rule",
+    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "retry": "Təkrar cəhd {{attempt}} / {{total}}",
     "at": "tarixində",
