@@ -3,7 +3,7 @@ import { getReportOptions, type SubtreeNodeState } from "@allurereport/web-commo
 
 import { hasTestLevelErrorContent, type TrBodyItem, type TrStepItem } from "@/components/TestResult/bodyItems";
 
-import type { AwesomeReportOptions, StepTreeExpansion } from "../../../../types";
+import type { ReportOptions, StepTreeExpansion } from "../../../../types";
 
 const DEFAULT_STEP_TREE_EXPANSION_POLICY: StepTreeExpansion = "expand_failed_only";
 
@@ -104,7 +104,7 @@ export {
 } from "@allurereport/web-commons";
 
 export const getStepTreeExpansionPolicy = (): StepTreeExpansion =>
-  getReportOptions<AwesomeReportOptions>()?.stepTreeExpansion ?? DEFAULT_STEP_TREE_EXPANSION_POLICY;
+  getReportOptions<ReportOptions>()?.stepTreeExpansion ?? DEFAULT_STEP_TREE_EXPANSION_POLICY;
 
 export const isOpenByDefaultForPolicy = (policy: StepTreeExpansion, hasFailedContext: boolean): boolean => {
   if (policy === "expanded") {

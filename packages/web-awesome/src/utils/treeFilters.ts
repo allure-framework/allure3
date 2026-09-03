@@ -14,10 +14,10 @@ import {
 
 import type { SortBy } from "@/stores/treeSort";
 
-import type { AwesomeRecursiveTree, AwesomeTree, AwesomeTreeGroup, AwesomeTreeLeaf } from "../../types";
+import type { ReportRecursiveTree, ReportTree, ReportTreeGroup, ReportTreeLeaf } from "../../types";
 
-const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
-  const typedCompareBy = compareBy<TreeLeaf<AwesomeTreeLeaf>>;
+const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<ReportTreeLeaf>> => {
+  const typedCompareBy = compareBy<TreeLeaf<ReportTreeLeaf>>;
   switch (sortBy) {
     case "order,asc":
     case "order,desc":
@@ -38,8 +38,8 @@ const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<T
   }
 };
 
-const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<AwesomeRecursiveTree> => {
-  const typedCompareBy = compareBy<AwesomeRecursiveTree>;
+const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<ReportRecursiveTree> => {
+  const typedCompareBy = compareBy<ReportRecursiveTree>;
   switch (sortBy) {
     case "name,desc":
     case "name,asc":
@@ -72,13 +72,13 @@ const withDirection = <T extends { name: string }>(cmp: Comparator<T>, sortBy: S
   ]);
 };
 
-export const leafComparator = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
+export const leafComparator = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<ReportTreeLeaf>> => {
   const cmp = leafComparatorByTreeSortBy(sortBy);
 
   return withDirection(cmp, sortBy);
 };
 
-export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<AwesomeRecursiveTree> => {
+export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<ReportRecursiveTree> => {
   const cmp = groupComparatorByTreeSortBy(sortBy);
 
   return withDirection(cmp, sortBy);
@@ -86,8 +86,8 @@ export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<Aweso
 
 export const filterLeaves = (
   leafIds: string[] = [],
-  leavesById: AwesomeTree["leavesById"],
-  filterPredicate: (item: AwesomeTreeLeaf) => boolean,
+  leavesById: ReportTree["leavesById"],
+  filterPredicate: (item: ReportTreeLeaf) => boolean,
   sortBy: SortBy = "status,asc",
 ) => {
   let leaves = [...leafIds].map((leafId) => leavesById[leafId]);
@@ -106,12 +106,12 @@ export const filterLeaves = (
  * @param payload
  */
 export const createRecursiveTree = (payload: {
-  group: AwesomeTreeGroup;
-  groupsById: AwesomeTree["groupsById"];
-  leavesById: AwesomeTree["leavesById"];
-  filterPredicate: (item: AwesomeTreeLeaf) => boolean;
+  group: ReportTreeGroup;
+  groupsById: ReportTree["groupsById"];
+  leavesById: ReportTree["leavesById"];
+  filterPredicate: (item: ReportTreeLeaf) => boolean;
   sortBy: SortBy;
-}): AwesomeRecursiveTree => {
+}): ReportRecursiveTree => {
   const { group, groupsById, leavesById, filterPredicate, sortBy } = payload;
   const groupLeaves: string[] = group.leaves ?? [];
 
@@ -139,7 +139,7 @@ export const createRecursiveTree = (payload: {
 
   const statistic: Statistic = emptyStatistic();
 
-  trees.forEach((rt: AwesomeRecursiveTree) => {
+  trees.forEach((rt: ReportRecursiveTree) => {
     if (rt.statistic) {
       const additional: Statistic = rt.statistic;
 
@@ -173,7 +173,7 @@ export const createRecursiveTree = (payload: {
   };
 };
 
-export const isRecursiveTreeEmpty = (tree: AwesomeRecursiveTree): boolean => {
+export const isRecursiveTreeEmpty = (tree: ReportRecursiveTree): boolean => {
   if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }

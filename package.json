@@ -16,7 +16,7 @@
   "scripts": {
     "archive": "yarn allure archive",
     "audit": "yarn npm audit --all --recursive",
-    "build": "yarn workspaces foreach -Avvpt run build",
+    "build": "yarn workspaces foreach -Avvp --topological-dev run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
     "format": "yarn format:write",
     "report": "yarn allure generate --config=./allurerc.mjs",

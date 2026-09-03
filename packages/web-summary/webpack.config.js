@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const ForkTsCheckerPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require("webpack");
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
@@ -16,7 +15,7 @@ export default (env, argv) => {
   const config = {
     entry: "./src/index.tsx",
     output: {
-      path: join(baseDir, "dist"),
+      path: join(baseDir, "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
     },
@@ -72,9 +71,6 @@ export default (env, argv) => {
       new ForkTsCheckerPlugin(),
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
-      }),
-      new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
       new WebpackManifestPlugin({
         publicPath: "",

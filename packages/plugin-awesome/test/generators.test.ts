@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
 import type { AttachmentLink, EnvironmentIdentity, TestFixtureResult, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import type { ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeQualityGateResults, AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
+import type {
+  AllureStore,
+  ReportQualityGateResults,
+  ReportSearchDocument,
+  ReportTestResult,
+  PluginContext,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -430,18 +435,18 @@ describe("generateSearchIndex", () => {
         message: "Assertion error: Expected 1 to be 2",
       },
       categories: [{ name: "Product defects" }],
-    } as AwesomeTestResult;
+    } as ReportTestResult;
     const retryTest = {
       ...visibleTest,
       id: "tr-retry",
       isRetry: true,
       name: "retry test",
-    } as AwesomeTestResult;
+    } as ReportTestResult;
 
     await generateSearchIndex(writer, [visibleTest, retryTest], "qa/search-index.json");
 
     expect(writer.writeWidget).toHaveBeenCalledWith("qa/search-index.json", expect.any(Array));
-    const documents = writtenWidgets.get("qa/search-index.json") as AwesomeSearchDocument[];
+    const documents = writtenWidgets.get("qa/search-index.json") as ReportSearchDocument[];
 
     expect(documents).toHaveLength(1);
     expect(documents[0]).toMatchObject({
@@ -484,7 +489,7 @@ describe("generateQualityGateResults", () => {
         ...mockTestResult("tr-unrelated", "unrelated test", "passed"),
         groupedLabels: {},
       },
-    ] as AwesomeTestResult[];
+    ] as ReportTestResult[];
 
     await generateQualityGateResults(
       writer,
@@ -503,7 +508,7 @@ describe("generateQualityGateResults", () => {
       { tests },
     );
 
-    const results = writtenWidgets.get("quality-gate.json") as AwesomeQualityGateResults;
+    const results = writtenWidgets.get("quality-gate.json") as ReportQualityGateResults;
     const [result] = results.default;
 
     expect(result.testResults).toEqual(["tr-related", "tr-related", "tr-missing"]);

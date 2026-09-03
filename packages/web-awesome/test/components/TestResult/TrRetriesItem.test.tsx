@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesItem";
 
-import type { AwesomeTestResult } from "../../../types";
+import type { ReportTestResult } from "../../../types";
 
 vi.mock("@allurereport/web-components", () => ({
   ArrowButton: () => <button data-testid="test-result-retries-item-arrow-button" type="button" />,
@@ -46,7 +46,7 @@ vi.mock("@/utils/time", () => ({
   timestampToDate: (value: number) => `date:${value}`,
 }));
 
-const makeRetry = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
+const makeRetry = (overrides: Partial<ReportTestResult> = {}): ReportTestResult =>
   ({
     id: "retry-id",
     name: "retry",
@@ -71,7 +71,7 @@ const makeRetry = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResul
     titlePath: [],
     attachments: [],
     ...overrides,
-  }) as AwesomeTestResult;
+  }) as ReportTestResult;
 
 beforeEach(() => {
   vi.clearAllMocks();

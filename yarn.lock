@@ -253,11 +253,13 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@types/node": "npm:^20"
+    "@types/tar-stream": "npm:^3.1.4"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
     rimraf: "npm:^6"
+    tar-stream: "npm:3.1.7"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
   languageName: unknown
@@ -294,7 +296,6 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -624,7 +625,6 @@ __metadata:
     i18next: "npm:^24.0.2"
     jsdom: "npm:^26.1.0"
     md5: "npm:^2.3.0"
-    mini-css-extract-plugin: "npm:^2.10.2"
     minisearch: "npm:^7.2.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
@@ -652,6 +652,7 @@ __metadata:
   dependencies:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -684,7 +685,6 @@ __metadata:
     html-webpack-plugin: "npm:^5.6.3"
     i18next: "npm:^24.0.2"
     md5: "npm:^2.3.0"
-    mini-css-extract-plugin: "npm:^2.10.2"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
     preact: "npm:^10.28.2"
@@ -863,6 +863,7 @@ __metadata:
   dependencies:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -889,7 +890,6 @@ __metadata:
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
     i18next: "npm:^24.0.2"
-    mini-css-extract-plugin: "npm:^2.10.2"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
     preact: "npm:^10.28.2"
@@ -911,6 +911,7 @@ __metadata:
   resolution: "@allurereport/web-summary@workspace:packages/web-summary"
   dependencies:
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -931,7 +932,6 @@ __metadata:
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
     i18next: "npm:^24.0.2"
-    mini-css-extract-plugin: "npm:^2.10.2"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
     preact: "npm:^10.28.2"
@@ -8033,6 +8033,15 @@ __metadata:
   version: 1.15.9
   resolution: "@types/sortablejs@npm:1.15.9"
   checksum: 10/9e0d6ef1cdcd30acab7af74cab5cbf56685e2de47c6f254357f7dde2626e9b49b8668c43f92761202cf4e10f2e3fd3d7baa6a83a39c3d342fc45ce66e87bd5aa
+  languageName: node
+  linkType: hard
+
+"@types/tar-stream@npm:^3.1.4":
+  version: 3.1.4
+  resolution: "@types/tar-stream@npm:3.1.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/9d1e182315c2189e18293b5a884edb9803c70772d37914870fbdb0bd659970e0d8effe002b19415ee251c422e3f169013668f3acf41feb9371040d0f0867d7b7
   languageName: node
   linkType: hard
 
@@ -17459,7 +17468,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar-stream@npm:^3.0.0":
+"tar-stream@npm:3.1.7, tar-stream@npm:^3.0.0":
   version: 3.1.7
   resolution: "tar-stream@npm:3.1.7"
   dependencies:
