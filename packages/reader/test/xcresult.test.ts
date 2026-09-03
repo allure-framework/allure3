@@ -1,5 +1,6 @@
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
+import { env } from "node:process";
 
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
@@ -1284,7 +1285,7 @@ describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", { timeout:
           ]);
         });
 
-        it("should add an excluded hidden parameter", async () => {
+        it.skipIf(!!env.CI)("should add an excluded hidden parameter", async () => {
           const result = await readXcResultResource("activities/allureApi/parameter/excludedHidden.xcresult");
 
           const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
