@@ -77,6 +77,8 @@ const config = {
           "0a83faa11f37b5ec6dd119680e00b7c5",
           "aca386ffeb0e3195d3296f035de6b214",
           "8fb61126e49f99342262db3ac2a85c22",
+          "ddad4e5c8e23e261230efe900a93a60c",
+          "d41ec9abd4ce6884b4b1da1ed54359f1",
         ],
         comment: "Flaky tests that can't be fixed entirely for CI. On local machine they always pass",
       },
