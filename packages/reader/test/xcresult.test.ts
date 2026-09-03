@@ -65,7 +65,9 @@ describe.skipIf(!IS_MAC || HAS_XCRESULTTOOL)("A MAC machine without xcresulttool
   });
 });
 
-describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", { timeout: 10_000 }, () => {
+const XCRESULTTOOL_TEST_OPTIONS = { timeout: 10_000, retry: env.CI ? 2 : 0 };
+
+describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", XCRESULTTOOL_TEST_OPTIONS, () => {
   describe("attachments", () => {
     it("should parse a nameless test attachment", async () => {
       const result = await readXcResultResource("attachments/nameless.xcresult");
@@ -1285,7 +1287,7 @@ describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", { timeout:
           ]);
         });
 
-        it.skipIf(!!env.CI)("should add an excluded hidden parameter", async () => {
+        it("should add an excluded hidden parameter", async () => {
           const result = await readXcResultResource("activities/allureApi/parameter/excludedHidden.xcresult");
 
           const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
