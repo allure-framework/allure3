@@ -1,6 +1,6 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
+import type { ReportFixtureResult, ReportTestResult } from "types";
 import { beforeEach, describe, expect, it } from "vitest";
 
 beforeEach(async () => {
@@ -41,8 +41,8 @@ const sampleAttachment: AttachmentTestStepResult = {
 };
 
 const makeTestResult = (
-  overrides: Partial<Pick<AwesomeTestResult, "id" | "status" | "steps" | "error">> = {},
-): Pick<AwesomeTestResult, "id" | "status" | "steps" | "error"> => ({
+  overrides: Partial<Pick<ReportTestResult, "id" | "status" | "steps" | "error">> = {},
+): Pick<ReportTestResult, "id" | "status" | "steps" | "error"> => ({
   id: "test-result-id",
   status: "failed",
   steps: [sampleStep],
@@ -232,7 +232,7 @@ describe("components > TestResult > bodyItems", () => {
   });
 
   it("fixtureResultToTrStepItem builds TrStepItem from setup or teardown fixture", () => {
-    const fixture: AwesomeFixtureResult = {
+    const fixture: ReportFixtureResult = {
       id: "fixture-before-1",
       type: "before",
       name: "before suite",

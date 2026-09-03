@@ -1,7 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
@@ -23,6 +20,11 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ReportFixtureResult,
+  type ReportOptions,
+  type ReportTestResult,
+  type ReportTreeGroup,
+  type ReportTreeLeaf,
   type PluginContext,
   type ReportFiles,
   type ResultFile,
@@ -30,13 +32,11 @@ import {
   createTreeByLabels,
   processTree,
 } from "@allurereport/plugin-api";
-import type {
-  ClassicFixtureResult,
-  ClassicReportOptions,
-  ClassicTestResult,
-  ClassicTreeGroup,
-  ClassicTreeLeaf,
-} from "@allurereport/web-classic";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
@@ -45,7 +45,7 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -92,16 +92,13 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
-const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
+const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc, label) => {
       if (!acc[label.name]) {
@@ -134,14 +131,14 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
   const allTr = await store.allTestResults({ includeRetries: true });
   const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
   const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
-  let convertedTrs: ClassicTestResult[] = [];
+  let convertedTrs: ReportTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: ClassicFixtureResult[] = [...trFixtures]
+    const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
-    const convertedTr: ClassicTestResult = convertTestResult(tr);
+    const convertedTr: ReportTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
     const matchedCategories = matchCategories(categories, {
       message: error?.message,
@@ -187,10 +184,10 @@ export const generateTree = async (
   writer: ClassicDataWriter,
   treeName: string,
   labels: string[],
-  tests: ClassicTestResult[],
+  tests: ReportTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
-  const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
+  const tree = createTreeByLabels<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     visibleTests,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retries }) => {
@@ -294,7 +291,6 @@ export const generateStaticFiles = async (
   const {
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "auto",
     groupBy,
@@ -303,16 +299,14 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
   } = payload;
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName),
-      );
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -324,26 +318,26 @@ export const generateStaticFiles = async (
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
-
-      // we don't need to handle another files in single file mode
-      if (singleFile) {
-        continue;
-      }
-
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
     }
+
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-classic/dist/single/${mainJs}`);
-    const mainJsContentBuffer = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
   const now = Date.now();
-  const reportOptions: ClassicReportOptions = {
+  const reportOptions: ReportOptions = {
     reportName,
     logo,
     theme,
@@ -383,13 +377,13 @@ export const generateStaticFiles = async (
 export const generateTreeByCategories = async (
   writer: ClassicDataWriter,
   treeName: string,
-  tests: ClassicTestResult[],
+  tests: ReportTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
 
-  const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
+  const tree = createTreeByCategories<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, transition, start, retries }: ClassicTestResult) => {
+    ({ id, name, status, duration, flaky, transition, start, retries }: ReportTestResult) => {
       const retriesCount = retries?.length ?? 0;
 
       return {
@@ -405,14 +399,14 @@ export const generateTreeByCategories = async (
       };
     },
     undefined,
-    (group: TreeGroup<ClassicTreeGroup>, leaf: TreeLeaf<ClassicTreeLeaf>) => {
+    (group: TreeGroup<ReportTreeGroup>, leaf: TreeLeaf<ReportTreeLeaf>) => {
       incrementStatistic(group.statistic, leaf.status);
     },
   );
 
   processTree(tree, {
     sort: nullsLast(compareBy("start", ordinal())),
-    transform: (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
+    transform: (leaf: TreeLeaf<ReportTreeLeaf>, idx: number) => ({
       ...leaf,
       groupOrder: idx + 1,
     }),

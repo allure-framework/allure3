@@ -1,9 +1,6 @@
-import { readdir } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { dirname } from "node:path";
-
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
+import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,8 +13,6 @@ beforeEach(async () => {
   await story("plugin");
   await label("coverage", "plugin-awesome");
 });
-
-const require = createRequire(import.meta.url);
 
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -836,13 +831,12 @@ describe("plugin", () => {
         { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
       ] as unknown as TestResult[];
       const plugin = new AwesomePlugin();
-      const multiDist = dirname(require.resolve("@allurereport/web-awesome/dist/multi/manifest.json"));
-      const expectedAssets = (await readdir(multiDist)).filter((fileName) => fileName !== "manifest.json");
+      const staticAssets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
 
       await plugin.start(makeSingleFileContext(reportFiles));
       await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
 
-      for (const fileName of expectedAssets) {
+      for (const fileName of staticAssets.files.keys()) {
         expect(addedFiles.has(fileName), `"${fileName}" must be copied to the report`).toBe(true);
       }
     });
@@ -874,6 +868,7 @@ describe("plugin", () => {
       const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
 
       expect(indexHtml, "index.html must be generated").not.toBe("");
+      expect(indexHtml).toContain("data:text/javascript;base64,");
 
       const embeddedData = extractEmbeddedData(indexHtml);
 

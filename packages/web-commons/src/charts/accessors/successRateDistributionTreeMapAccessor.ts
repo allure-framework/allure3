@@ -3,7 +3,7 @@ import type { TestResult, TreeGroup, TreeLeaf } from "@allurereport/core-api";
 import { createTreeByLabels, md5 } from "@allurereport/plugin-api";
 
 import { isChildrenLeavesOnly } from "../chart-utils.js";
-import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
+import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMapUtils.js";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
 type SubtreeMetrics = {

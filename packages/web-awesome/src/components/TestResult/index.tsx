@@ -2,7 +2,7 @@ import { computed } from "@preact/signals";
 import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import TrEmpty from "@/components/TestResult/TrEmpty";
@@ -20,15 +20,15 @@ import { trCurrentTab } from "@/stores/testResult";
 import * as styles from "./styles.scss";
 
 export type TrViewProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export type TrContentProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export type TrProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 const view = computed(() => {

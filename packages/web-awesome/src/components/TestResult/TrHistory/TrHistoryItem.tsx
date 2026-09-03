@@ -3,7 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { AwesomeReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
@@ -41,7 +41,7 @@ const HistoryDate = (props: { date: string | undefined }) => {
 };
 
 export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
-  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
+  const reportOptions = getReportOptions<ReportOptions & { id: string }>();
   const { historyTr } = props;
   const { status, error, duration, id, url } = historyTr;
   const [isOpened, setIsOpen] = useState(false);

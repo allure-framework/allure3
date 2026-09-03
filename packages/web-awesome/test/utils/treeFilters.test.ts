@@ -2,7 +2,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
-import type { AwesomeTestResult } from "../../types.js";
+import type { ReportTestResult } from "../../types.js";
 
 // Predicate that always returns true (no filtering)
 const alwaysTruePredicate = () => true;
@@ -22,15 +22,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "duration,asc");
 
@@ -47,15 +47,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "duration,desc");
 
@@ -71,13 +71,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "name,asc");
 
@@ -93,13 +93,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "name,desc");
 
@@ -116,23 +116,23 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "status,asc");
 
@@ -151,31 +151,31 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         f6: {
           name: "f6",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         z9: {
           name: "z9",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "status,desc");
 
@@ -198,17 +198,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "order,asc");
 
@@ -227,17 +227,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "order,desc");
 
@@ -260,15 +260,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const groupsById = {
         a1: {
@@ -315,11 +315,11 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const groupsById = {
         exists: {
@@ -351,9 +351,9 @@ describe("utils > treeFilters", () => {
         groups: ["groupA", "groupB", "groupC"],
       };
       const leavesById = {
-        t1: { name: "t1", status: "passed", groupOrder: 5 } as AwesomeTestResult,
-        t2: { name: "t2", status: "passed", groupOrder: 2 } as AwesomeTestResult,
-        t3: { name: "t3", status: "passed", groupOrder: 8 } as AwesomeTestResult,
+        t1: { name: "t1", status: "passed", groupOrder: 5 } as ReportTestResult,
+        t2: { name: "t2", status: "passed", groupOrder: 2 } as ReportTestResult,
+        t3: { name: "t3", status: "passed", groupOrder: 8 } as ReportTestResult,
       };
       const groupsById = {
         groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
@@ -377,8 +377,8 @@ describe("utils > treeFilters", () => {
         groups: ["groupA", "groupB"],
       };
       const leavesById = {
-        late: { name: "late", status: "passed", groupOrder: 1, start: 5000 } as AwesomeTestResult,
-        early: { name: "early", status: "passed", groupOrder: 1, start: 1000 } as AwesomeTestResult,
+        late: { name: "late", status: "passed", groupOrder: 1, start: 5000 } as ReportTestResult,
+        early: { name: "early", status: "passed", groupOrder: 1, start: 1000 } as ReportTestResult,
       };
       const groupsById = {
         groupA: { name: "groupA", leaves: [], groups: ["groupALeaves"] },
@@ -404,9 +404,9 @@ describe("utils > treeFilters", () => {
         groups: ["groupA", "groupB", "groupC"],
       };
       const leavesById = {
-        t1: { name: "t1", status: "passed", groupOrder: 5 } as AwesomeTestResult,
-        t2: { name: "t2", status: "passed", groupOrder: 2 } as AwesomeTestResult,
-        t3: { name: "t3", status: "passed", groupOrder: 8 } as AwesomeTestResult,
+        t1: { name: "t1", status: "passed", groupOrder: 5 } as ReportTestResult,
+        t2: { name: "t2", status: "passed", groupOrder: 2 } as ReportTestResult,
+        t3: { name: "t3", status: "passed", groupOrder: 8 } as ReportTestResult,
       };
       const groupsById = {
         groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
@@ -430,9 +430,9 @@ describe("utils > treeFilters", () => {
         groups: ["groupA", "groupB", "groupC"],
       };
       const leavesById = {
-        t1: { name: "t1", status: "passed", duration: 3000 } as AwesomeTestResult,
-        t2: { name: "t2", status: "passed", duration: 1000 } as AwesomeTestResult,
-        t3: { name: "t3", status: "passed", duration: 5000 } as AwesomeTestResult,
+        t1: { name: "t1", status: "passed", duration: 3000 } as ReportTestResult,
+        t2: { name: "t2", status: "passed", duration: 1000 } as ReportTestResult,
+        t3: { name: "t3", status: "passed", duration: 5000 } as ReportTestResult,
       };
       const groupsById = {
         groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
@@ -456,9 +456,9 @@ describe("utils > treeFilters", () => {
         groups: ["groupA", "groupB", "groupC"],
       };
       const leavesById = {
-        t1: { name: "t1", status: "passed", duration: 3000 } as AwesomeTestResult,
-        t2: { name: "t2", status: "passed", duration: 1000 } as AwesomeTestResult,
-        t3: { name: "t3", status: "passed", duration: 5000 } as AwesomeTestResult,
+        t1: { name: "t1", status: "passed", duration: 3000 } as ReportTestResult,
+        t2: { name: "t2", status: "passed", duration: 1000 } as ReportTestResult,
+        t3: { name: "t3", status: "passed", duration: 5000 } as ReportTestResult,
       };
       const groupsById = {
         groupA: { name: "groupA", leaves: ["t1"], groups: [] as string[] },
@@ -485,27 +485,27 @@ describe("utils > treeFilters", () => {
         failedAlphaTest: {
           name: "failedAlphaTest",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         failedZuluTest: {
           name: "failedZuluTest",
           status: "failed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         brokenTest1: {
           name: "brokenTest1",
           status: "broken",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         brokenTest2: {
           name: "brokenTest2",
           status: "broken",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         passedTest1: {
           name: "passedTest1",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
         passedTest2: {
           name: "passedTest2",
           status: "passed",
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       };
       const groupsById = {
         passedHeavy: {

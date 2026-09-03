@@ -1,7 +1,7 @@
 import { buildFilterPredicate, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
-import type { AwesomeTree, AwesomeTreeGroup } from "types";
+import type { ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
@@ -12,7 +12,7 @@ import { fetchEnvSearchIndexes, searchIndexesStore, searchNodeIds } from "./sear
 import { treeNonQueryFilters, treeQueryFilterValue } from "./treeFilters/store";
 import { sortBy } from "./treeSort";
 
-export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
+export const treeStore = signal<StoreSignalState<Record<string, ReportTree>>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -88,7 +88,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
 
   try {
     const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`, { bustCache: true })),
+      envsToFetch.map((env) => fetchReportJsonData<ReportTree>(`widgets/${env}/tree.json`, { bustCache: true })),
     );
 
     const previous = treeStore.peek().data;
@@ -172,7 +172,7 @@ export const filteredTree = computed(() => {
       const envSearchFilterPredicate = searchFilterPredicate(key);
 
       const tree = createRecursiveTree({
-        group: root as AwesomeTreeGroup,
+        group: root as ReportTreeGroup,
         leavesById,
         groupsById,
         filterPredicate: (leaf) => filterPredicate.value(leaf) && envSearchFilterPredicate(leaf),

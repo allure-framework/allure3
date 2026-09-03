@@ -1,14 +1,14 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
 
-import type { AwesomeReportOptions } from "../../types.js";
+import type { ReportOptions } from "../../types.js";
 import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
 
 const DEFAULT_SECTION = "default";
 
 type Section = "timeline" | "charts" | "default";
 
-const reportOptions = getReportOptions<AwesomeReportOptions>();
+const reportOptions = getReportOptions<ReportOptions>();
 const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
 
 export const availableSections = (reportOptions?.sections ?? []) as Section[];
