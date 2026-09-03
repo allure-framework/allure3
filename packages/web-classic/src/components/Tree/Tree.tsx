@@ -2,7 +2,7 @@ import type { Statistic } from "@allurereport/core-api";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { ClassicRecursiveTree, ClassicStatus } from "types";
+import type { ReportRecursiveTree, ReportStatus } from "types";
 
 import TreeItem from "@/components/Tree/TreeItem";
 import { route } from "@/stores/router";
@@ -13,10 +13,10 @@ import * as styles from "./styles.scss";
 
 interface TreeProps {
   statistic?: Statistic;
-  tree: ClassicRecursiveTree;
+  tree: ReportRecursiveTree;
   name?: string;
   root?: boolean;
-  statusFilter?: ClassicStatus;
+  statusFilter?: ReportStatus;
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {

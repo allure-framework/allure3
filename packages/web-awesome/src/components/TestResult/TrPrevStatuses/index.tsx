@@ -2,7 +2,7 @@ import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeReportOptions, AwesomeTestResult } from "types";
+import type { ReportOptions, ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
@@ -10,7 +10,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
-  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
+  const reportOptions = getReportOptions<ReportOptions & { id: string }>();
 
   if (!item.url) {
     return (
@@ -47,7 +47,7 @@ const TrPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({
 };
 
 export type TrPrevStatusesProps = {
-  history: AwesomeTestResult["history"];
+  history: ReportTestResult["history"];
 };
 
 export const TrPrevStatuses: FunctionalComponent<TrPrevStatusesProps> = ({ history }) => {

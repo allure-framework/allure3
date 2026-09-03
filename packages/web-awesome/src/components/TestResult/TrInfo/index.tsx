@@ -3,7 +3,7 @@ import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TrInfoStatuses } from "@/components/TestResult/TrInfo/TrInfoStatuses";
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
@@ -19,7 +19,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 export type TrInfoProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {

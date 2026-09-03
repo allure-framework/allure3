@@ -25,7 +25,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-dashboard/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
     "lint": "oxlint --import-plugin src test features stories",
@@ -36,11 +36,11 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
-    "@allurereport/web-dashboard": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
+    "@allurereport/web-dashboard": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/node": "^20",
     "@vitest/runner": "^2",

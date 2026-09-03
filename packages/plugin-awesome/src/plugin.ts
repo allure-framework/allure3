@@ -1,13 +1,14 @@
 import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ReportExecutorInfo,
+  type ReportRunSummary,
   type Plugin,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import type { AwesomeExecutorInfo, AwesomeRunSummary } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -74,7 +75,7 @@ export class AwesomePlugin implements Plugin {
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const executor = await store.metadataByKey<AwesomeExecutorInfo>("allure2_executor");
+    const executor = await store.metadataByKey<ReportExecutorInfo>("allure2_executor");
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const runSummary = getRunSummary(allTrs);
@@ -126,7 +127,7 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
-    const runSummaryByEnv: Record<string, AwesomeRunSummary> = {};
+    const runSummaryByEnv: Record<string, ReportRunSummary> = {};
 
     for (const { id } of environments) {
       const envRunSummary = getRunSummary(trsByEnvId.get(id) ?? []);

@@ -1,7 +1,7 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { fixtureResultToTrStepItem } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
@@ -13,7 +13,7 @@ import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOver
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 export type TrSetupProps = {
-  setup: AwesomeTestResult["setup"];
+  setup: ReportTestResult["setup"];
   id?: string;
 };
 

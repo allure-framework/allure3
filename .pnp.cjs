@@ -498,11 +498,13 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@types/node", "npm:20.19.41"],\
+          ["@types/tar-stream", "npm:3.1.4"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["rimraf", "npm:6.1.2"],\
+          ["tar-stream", "npm:3.1.7"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
         ],\
@@ -543,7 +545,6 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-classic", "workspace:packages/plugin-classic"],\
-          ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
           ["@allurereport/web-classic", "workspace:packages/web-classic"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@types/d3-shape", "npm:3.1.8"],\
@@ -903,7 +904,6 @@ const RAW_RUNTIME_STATE =
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
           ["jsdom", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:26.1.0"],\
           ["md5", "npm:2.3.0"],\
-          ["mini-css-extract-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2"],\
           ["minisearch", "npm:7.2.0"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.25"],\
@@ -932,6 +932,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-classic", "workspace:packages/web-classic"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
@@ -965,7 +966,6 @@ const RAW_RUNTIME_STATE =
           ["html-webpack-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:5.6.3"],\
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
           ["md5", "npm:2.3.0"],\
-          ["mini-css-extract-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:2.10.2"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.25"],\
           ["preact", "npm:10.28.2"],\
@@ -1155,6 +1155,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
           ["@allurereport/web-dashboard", "workspace:packages/web-dashboard"],\
@@ -1182,7 +1183,6 @@ const RAW_RUNTIME_STATE =
           ["globals", "npm:15.9.0"],\
           ["html-webpack-plugin", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:5.6.3"],\
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
-          ["mini-css-extract-plugin", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.10.2"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.25"],\
           ["preact", "npm:10.28.2"],\
@@ -1205,6 +1205,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-summary/",\
         "packageDependencies": [\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
           ["@allurereport/web-summary", "workspace:packages/web-summary"],\
@@ -1226,7 +1227,6 @@ const RAW_RUNTIME_STATE =
           ["globals", "npm:15.9.0"],\
           ["html-webpack-plugin", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:5.6.3"],\
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
-          ["mini-css-extract-plugin", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:2.10.2"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.25"],\
           ["preact", "npm:10.28.2"],\
@@ -6953,6 +6953,7 @@ const RAW_RUNTIME_STATE =
           ["@types/react", null],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-shape", "npm:3.2.0"],\
+          ["lodash", "npm:4.18.1"],\
           ["react", [\
             "@preact/compat",\
             "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"\
@@ -11874,6 +11875,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@types-sortablejs-npm-1.15.9-385fa0a2d4-9e0d6ef1cd.zip/node_modules/@types/sortablejs/",\
         "packageDependencies": [\
           ["@types/sortablejs", "npm:1.15.9"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/tar-stream", [\
+      ["npm:3.1.4", {\
+        "packageLocation": "./.yarn/cache/@types-tar-stream-npm-3.1.4-c670f20784-9d1e182315.zip/node_modules/@types/tar-stream/",\
+        "packageDependencies": [\
+          ["@types/node", "npm:25.9.1"],\
+          ["@types/tar-stream", "npm:3.1.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -19297,36 +19308,6 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:2.10.2", {\
-        "packageLocation": "./.yarn/__virtual__/mini-css-extract-plugin-virtual-251d38ebe3/0/cache/mini-css-extract-plugin-npm-2.10.2-1056a0d2e3-d2b01f25e2.zip/node_modules/mini-css-extract-plugin/",\
-        "packageDependencies": [\
-          ["@types/webpack", null],\
-          ["mini-css-extract-plugin", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:2.10.2"],\
-          ["schema-utils", "npm:4.2.0"],\
-          ["tapable", "npm:2.2.1"],\
-          ["webpack", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:5.107.2"]\
-        ],\
-        "packagePeers": [\
-          "@types/webpack",\
-          "webpack"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:2.10.2", {\
-        "packageLocation": "./.yarn/__virtual__/mini-css-extract-plugin-virtual-beb06a76a6/0/cache/mini-css-extract-plugin-npm-2.10.2-1056a0d2e3-d2b01f25e2.zip/node_modules/mini-css-extract-plugin/",\
-        "packageDependencies": [\
-          ["@types/webpack", null],\
-          ["mini-css-extract-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:2.10.2"],\
-          ["schema-utils", "npm:4.2.0"],\
-          ["tapable", "npm:2.2.1"],\
-          ["webpack", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:5.107.2"]\
-        ],\
-        "packagePeers": [\
-          "@types/webpack",\
-          "webpack"\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.10.2", {\
         "packageLocation": "./.yarn/__virtual__/mini-css-extract-plugin-virtual-62ab67a3c2/0/cache/mini-css-extract-plugin-npm-2.10.2-1056a0d2e3-d2b01f25e2.zip/node_modules/mini-css-extract-plugin/",\
         "packageDependencies": [\
@@ -19335,36 +19316,6 @@ const RAW_RUNTIME_STATE =
           ["schema-utils", "npm:4.2.0"],\
           ["tapable", "npm:2.2.1"],\
           ["webpack", null]\
-        ],\
-        "packagePeers": [\
-          "@types/webpack",\
-          "webpack"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.10.2", {\
-        "packageLocation": "./.yarn/__virtual__/mini-css-extract-plugin-virtual-6984c88773/0/cache/mini-css-extract-plugin-npm-2.10.2-1056a0d2e3-d2b01f25e2.zip/node_modules/mini-css-extract-plugin/",\
-        "packageDependencies": [\
-          ["@types/webpack", null],\
-          ["mini-css-extract-plugin", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.10.2"],\
-          ["schema-utils", "npm:4.2.0"],\
-          ["tapable", "npm:2.2.1"],\
-          ["webpack", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:5.107.2"]\
-        ],\
-        "packagePeers": [\
-          "@types/webpack",\
-          "webpack"\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2", {\
-        "packageLocation": "./.yarn/__virtual__/mini-css-extract-plugin-virtual-57068118d9/0/cache/mini-css-extract-plugin-npm-2.10.2-1056a0d2e3-d2b01f25e2.zip/node_modules/mini-css-extract-plugin/",\
-        "packageDependencies": [\
-          ["@types/webpack", null],\
-          ["mini-css-extract-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2"],\
-          ["schema-utils", "npm:4.2.0"],\
-          ["tapable", "npm:2.2.1"],\
-          ["webpack", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.107.2"]\
         ],\
         "packagePeers": [\
           "@types/webpack",\
