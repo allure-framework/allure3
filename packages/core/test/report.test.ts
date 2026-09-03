@@ -145,16 +145,20 @@ describe("report", () => {
     const registry = JSON.parse(await readFile(join(output, "test-results.json"), "utf8"));
     const id = md5("result-1");
 
-    expect(registry).toEqual({
-      byId: {
-        [id]: {
-          id,
-          name: "failed test",
-          duration: 123,
-          status: "failed",
-        },
-      },
-    });
+    const registryEntry = registry.byId[id];
+
+    expect(registryEntry).toEqual(
+      expect.objectContaining({
+        id,
+        name: "failed test",
+        duration: 123,
+        status: "failed",
+      }),
+    );
+    expect(registryEntry).not.toHaveProperty("labels");
+    expect(registryEntry).not.toHaveProperty("steps");
+    expect(registryEntry).not.toHaveProperty("attachments");
+    expect(registryEntry).not.toHaveProperty("error");
     await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
   });
 
