@@ -71,7 +71,7 @@
     "jsdom": "^26.1.0",
     "md5": "^2.3.0",
     "minisearch": "^7.2.0",
-    "npm-run-all2": "^7.0.1",
+    "npm-run-all2": "^9.0.3",
     "postcss": "^8.5.10",
     "preact": "^10.28.2",
     "prismjs": "^1.30.0",

@@ -45,7 +45,7 @@
     "allure-vitest": "^3",
     "axios": "^1.18.1",
     "get-port": "^7.1.0",
-    "npm-run-all2": "^7.0.1",
+    "npm-run-all2": "^9.0.3",
     "rimraf": "^6",
     "typescript": "^5",
     "vitest": "^4.1.0"
