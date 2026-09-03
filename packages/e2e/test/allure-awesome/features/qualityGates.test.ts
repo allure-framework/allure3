@@ -54,14 +54,14 @@ test.describe("quality gates", () => {
         {
           rule: "foo",
           message: "bar",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
         },
         {
           rule: "bar",
           message: "baz",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
         },
@@ -134,8 +134,8 @@ test.describe("quality gates", () => {
 
     await qualityGatesPage.qualityGatesTabLocator.click();
 
-    // the tab counts every evaluated rule, but stays failed as long as at least one of them has been failed
-    await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("2");
+    // the tab lists every evaluated rule, but the counter reports the failed ones only
+    await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("1");
     await expect(qualityGatesPage.qualityGatesResultLocator).toHaveCount(2);
     await expect(qualityGatesPage.qualityGatesFailedResultLocator).toHaveCount(1);
     await expect(qualityGatesPage.qualityGatesPassedResultLocator).toHaveCount(1);
@@ -161,7 +161,7 @@ test.describe("quality gates", () => {
         {
           rule: "foo",
           message: "bar",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
           environment: "foo",
@@ -169,7 +169,7 @@ test.describe("quality gates", () => {
         {
           rule: "bar",
           message: "baz",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
           environment: "bar",
@@ -275,7 +275,7 @@ test.describe("quality gates", () => {
         {
           rule: "foo",
           message: "bar",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
           environment: "foo",
@@ -283,7 +283,7 @@ test.describe("quality gates", () => {
         {
           rule: "bar",
           message: "baz",
-          success: true,
+          success: false,
           actual: 0,
           expected: 0,
           environment: "bar",
