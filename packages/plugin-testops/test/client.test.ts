@@ -1,3 +1,6 @@
+import { performance } from "node:perf_hooks";
+import { Readable } from "node:stream";
+
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -37,6 +40,8 @@ const fixtures = {
     jobRunName: "run",
     jobUid: "job-uid",
     jobRunUid: "job-run-uid",
+    jobUrl: "https://ci.example.com/job/1",
+    jobRunUrl: "https://ci.example.com/job/1/run/2",
   } as unknown as CiDescriptor,
   uploadStatus: "broken" as TestStatus,
   testResults: [
@@ -89,6 +94,7 @@ vi.mock("axios", async (importOriginal) => {
 beforeEach(() => {
   vi.clearAllMocks();
   AxiosMock.postForm.mockImplementation((...args) => AxiosMock.post(...args));
+  AxiosMock.get.mockResolvedValue({ data: { closed: false } });
 });
 
 describe("testops http client", () => {
@@ -246,6 +252,46 @@ describe("testops http client", () => {
       expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-0")).toHaveLength(1);
       expect(resultCalls.filter((call) => call[1].results[0].uuid === "result-100")).toHaveLength(2);
     });
+
+    it("does not re-create named environments when the chunk it created them for is retried", async () => {
+      const client = await clientWithLaunch();
+      let resultAttempts = 0;
+
+      AxiosMock.post.mockImplementation((url: string, body: any) => {
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: [{ id: 10, externalId: "chrome" }] });
+        }
+
+        if (url === "/api/upload/test-result") {
+          resultAttempts += 1;
+
+          if (resultAttempts === 1) {
+            return Promise.reject(axiosError(503, "0"));
+          }
+
+          return Promise.resolve({
+            data: { results: body.results.map((result: any, index: number) => ({ id: index + 1, uuid: result.uuid })) },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ id: "result-0", name: "Result 0", environment: "chrome" } as TestResult],
+        environments: [{ id: "chrome", name: "chrome" }],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(resultAttempts).toBe(2);
+      expect(AxiosMock.post.mock.calls.filter((call) => call[0] === "/api/launch/named-env/bulk")).toHaveLength(1);
+    });
   });
 
   describe("constructor", () => {
@@ -344,6 +390,28 @@ describe("testops http client", () => {
     });
   });
 
+  describe("reopenLaunch", () => {
+    it("should post to /api/launch/{id}/reopen", async () => {
+      AxiosMock.post.mockResolvedValue({ data: {} });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.reopenLaunch(fixtures.launch.id);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/${fixtures.launch.id}/reopen`,
+        undefined,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+    });
+  });
+
   describe("launchUrl", () => {
     it("should return undefined when launch is not created", () => {
       const client = new TestOpsClient({
@@ -418,15 +486,491 @@ describe("testops http client", () => {
         "/api/upload/start",
         {
           projectId: fixtures.projectId,
-          ci: { name: fixtures.ci.type },
-          job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
-          jobRun: { uid: fixtures.ci.jobRunUid },
+          ci: { type: fixtures.ci.type, endpoint: "https://ci.example.com" },
+          job: { name: fixtures.ci.jobName, uid: fixtures.ci.jobUid, url: fixtures.ci.jobUrl },
+          jobRun: { uid: fixtures.ci.jobRunUid, name: fixtures.ci.jobRunName, url: fixtures.ci.jobRunUrl },
           launch: { id: fixtures.launch.id },
         },
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
       );
+    });
+
+    it("should not call /api/upload/start for a local (non-CI) run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload({ type: "local" } as unknown as CiDescriptor);
+
+      expect(AxiosMock.post).not.toHaveBeenCalledWith("/api/upload/start", expect.anything(), expect.anything());
+    });
+
+    it("should still attach to the job run when TestOps triggered it on an undetected CI", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload({ type: "local" } as unknown as CiDescriptor, 491277);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/start", expect.anything(), expect.anything());
+      expect(client.launchId).toBe(777);
+    });
+
+    it("should still bind the session to the requested job run when the response omits jobRunId", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload({ type: "local" } as unknown as CiDescriptor, 491277);
+      await client.createSession();
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/session",
+        expect.objectContaining({ jobRunId: 491277 }),
+        expect.anything(),
+      );
+    });
+
+    it("should send the integration type name TestOps knows for renamed providers", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload({ ...fixtures.ci, type: "circle" } as unknown as CiDescriptor);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({ ci: { type: "circleci", endpoint: "https://ci.example.com" } }),
+        expect.anything(),
+      );
+    });
+
+    it("should send Branch as a job and job run parameter when the CI reports one", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload({ ...fixtures.ci, jobRunBranch: "feature/x" } as unknown as CiDescriptor);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          job: expect.objectContaining({ parameters: [{ name: "Branch", defaultValue: "feature/x" }] }),
+          jobRun: expect.objectContaining({ parameters: [{ name: "Branch", value: "feature/x" }] }),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("should not send a parameters field when the CI reports no branch", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      expect(call?.[1].job).not.toHaveProperty("parameters");
+      expect(call?.[1].jobRun).not.toHaveProperty("parameters");
+    });
+
+    it("should send CustomName for Bitbucket when the env var is set", async () => {
+      vi.stubEnv("CustomName", "nightly run");
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload({ ...fixtures.ci, type: "bitbucket" } as unknown as CiDescriptor);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          job: expect.objectContaining({ parameters: [{ name: "CustomName", defaultValue: "nightly run" }] }),
+          jobRun: expect.objectContaining({ parameters: [{ name: "CustomName", value: "nightly run" }] }),
+        }),
+        expect.anything(),
+      );
+
+      vi.unstubAllEnvs();
+    });
+
+    it("should not send CustomName for providers other than Bitbucket", async () => {
+      vi.stubEnv("CustomName", "nightly run");
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      expect(call?.[1].job).not.toHaveProperty("parameters");
+
+      vi.unstubAllEnvs();
+    });
+
+    it("should restate the job's already-configured parameters so TestOps doesn't drop them", async () => {
+      AxiosMock.get.mockResolvedValue({
+        data: { id: 1, externalId: fixtures.ci.jobUid, parameters: [{ name: "Environment", defaultValue: "prod" }] },
+      });
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      expect(AxiosMock.get).toHaveBeenCalledWith(
+        "/api/rs/job",
+        expect.objectContaining({ params: { projectId: fixtures.projectId, externalId: fixtures.ci.jobUid } }),
+      );
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          job: expect.objectContaining({ parameters: [{ name: "Environment", defaultValue: "prod" }] }),
+        }),
+        expect.anything(),
+      );
+
+      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      expect(call?.[1].jobRun).not.toHaveProperty("parameters");
+    });
+
+    it("should include the job's numeric id when it already exists", async () => {
+      AxiosMock.get.mockResolvedValue({
+        data: { id: 42, externalId: fixtures.ci.jobUid, parameters: [] },
+      });
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          job: expect.objectContaining({ id: 42 }),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("should forward an existing job parameter's value from the environment into the job run", async () => {
+      vi.stubEnv("Environment", "staging");
+      AxiosMock.get.mockResolvedValue({
+        data: { id: 1, externalId: fixtures.ci.jobUid, parameters: [{ name: "Environment", defaultValue: "prod" }] },
+      });
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          jobRun: expect.objectContaining({ parameters: [{ name: "Environment", value: "staging" }] }),
+        }),
+        expect.anything(),
+      );
+
+      vi.unstubAllEnvs();
+    });
+
+    it("should not fail the upload when the job doesn't exist yet", async () => {
+      AxiosMock.get.mockRejectedValue(axiosError(404));
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+
+      await expect(client.startUpload(fixtures.ci)).resolves.not.toThrow();
+
+      const call = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/start");
+      expect(call?.[1].job).not.toHaveProperty("parameters");
+    });
+
+    it("should not treat a non-404 failure to fetch the job as 'job doesn't exist'", async () => {
+      AxiosMock.get.mockRejectedValue(axiosError(401));
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+
+      await expect(client.startUpload(fixtures.ci)).rejects.toThrow();
+
+      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/start")).toBe(false);
+    });
+  });
+
+  describe("startUpload with an existing job run id", () => {
+    it("should not require a launch to already exist", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        return Promise.resolve({ data: { launchId: 777 } });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(client.startUpload(fixtures.ci, 491277)).resolves.not.toThrow();
+    });
+
+    it("should throw when TestOps doesn't return a launch id for the job run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(client.startUpload(fixtures.ci, 491277)).rejects.toThrow(
+        "TestOps didn't return a launch id for the job run",
+      );
+    });
+
+    it("should include the job run id and adopt the launch from the response", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobId: 2, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.objectContaining({
+          jobRun: {
+            id: 491277,
+            uid: fixtures.ci.jobRunUid,
+            name: fixtures.ci.jobRunName,
+            url: fixtures.ci.jobRunUrl,
+          },
+        }),
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+      expect(client.launchId).toBe(777);
+    });
+
+    it("should not send a launch id when no launch was created first", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        expect.not.objectContaining({ launch: expect.anything() }),
+        expect.anything(),
+      );
+    });
+
+    it("should let a subsequent stopUpload proceed without calling createLaunch first", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+
+      await expect(client.stopUpload(fixtures.ci, fixtures.uploadStatus)).resolves.not.toThrow();
+    });
+
+    it("should not rename the launch TestOps created for the job run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+
+      expect(AxiosMock.patch).not.toHaveBeenCalled();
     });
   });
 
@@ -485,6 +1029,29 @@ describe("testops http client", () => {
         }),
       );
     });
+
+    it("should not call /api/upload/stop for a local (non-CI) run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const localCi = { type: "local" } as unknown as CiDescriptor;
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(localCi);
+      await client.stopUpload(localCi, fixtures.uploadStatus);
+
+      expect(AxiosMock.post).not.toHaveBeenCalledWith("/api/upload/stop", expect.anything(), expect.anything());
+    });
   });
 
   describe("createLaunch", () => {
@@ -519,6 +1086,30 @@ describe("testops http client", () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
+      );
+    });
+
+    it("should trim launch names longer than the 255 chars the server accepts", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch("a".repeat(300), []);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch",
+        expect.objectContaining({ name: "a".repeat(255) }),
+        expect.anything(),
       );
     });
 
@@ -647,6 +1238,86 @@ describe("testops http client", () => {
           headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
         }),
       );
+    });
+
+    it("should bind the session to the job run instead of a manual one once startUpload learned it", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+      await client.createSession();
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/session",
+        { jobRunId: 491277, environment: [] },
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+      const sessionCall = AxiosMock.post.mock.calls.find(([url]: [string]) => url === "/api/upload/session");
+      expect(sessionCall?.[2]?.params).toBeUndefined();
+    });
+
+    it("should reject a closed launch when reopenClosedLaunch is not set", async () => {
+      AxiosMock.get.mockResolvedValue({ data: { closed: true } });
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+
+      await expect(client.createSession()).rejects.toThrow(`Launch ${fixtures.launch.id} is closed`);
+      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/session")).toBe(false);
+    });
+
+    it("should reopen a closed launch and proceed when reopenClosedLaunch is set", async () => {
+      AxiosMock.get.mockResolvedValue({ data: { closed: true } });
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession({}, true);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/${fixtures.launch.id}/reopen`,
+        undefined,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `api-token ${fixtures.accessToken}` }),
+        }),
+      );
+      expect(AxiosMock.post.mock.calls.some(([url]: [string]) => url === "/api/upload/session")).toBe(true);
     });
   });
 
@@ -844,6 +1515,123 @@ describe("testops http client", () => {
       expect(attachmentsResolver).toHaveBeenCalledTimes(1);
       expect(AxiosMock.post.mock.calls.some(([url]) => url === "/api/launch/attachment")).toBe(false);
     });
+
+    it("should pace subsequent uploads by the resolved attachments' byte size", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const windowMs = 100;
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+        uploadRateLimit: { windowMs, maxBytesPerWindow: 1 },
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue({
+        originalFileName: "file.txt",
+        contentType: "text/plain",
+        content: Buffer.from("more than one byte of content"),
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      const start = performance.now();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
+    });
+
+    it("should pace by contentLength when the attachment content is a stream, not just a Buffer/Blob", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const windowMs = 100;
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+        uploadRateLimit: { windowMs, maxBytesPerWindow: 1 },
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue({
+        originalFileName: "file.txt",
+        contentType: "text/plain",
+        content: Readable.from(["stream content"]),
+        contentLength: 30,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      const start = performance.now();
+
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(performance.now() - start).toBeGreaterThanOrEqual(windowMs - 15);
+    });
+
+    it("should include jobRunId when the session is bound to a job run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobRunId: 491277 } });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue({
+        originalFileName: "file.txt",
+        contentType: "text/plain",
+        content: Buffer.from("test content"),
+      });
+
+      await client.startUpload(fixtures.ci, 491277);
+      await client.createSession();
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/attachment",
+        expect.any(FormData),
+        expect.objectContaining({
+          params: { launchId: 777, jobRunId: 491277 },
+        }),
+      );
+    });
   });
 
   describe("uploadGlobalErrors", () => {
@@ -902,6 +1690,86 @@ describe("testops http client", () => {
         {
           launchId: fixtures.launch.id,
           items: errors,
+        },
+        expect.objectContaining({
+          onUploadProgress: expect.any(Function),
+        }),
+      );
+    });
+
+    it("should include jobRunId when the session is bound to a job run", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: { projectId: 1, launchId: 777, jobRunId: 491277 } });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1, jobRunId: 491277 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const errors = [{ message: "Something went wrong" } as TestError];
+
+      await client.startUpload(fixtures.ci, 491277);
+      await client.createSession();
+      await client.uploadGlobalErrors(errors);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/error/bulk",
+        {
+          launchId: 777,
+          jobRunId: 491277,
+          items: [{ message: "Something went wrong", trace: undefined }],
+        },
+        expect.objectContaining({
+          onUploadProgress: expect.any(Function),
+        }),
+      );
+    });
+
+    it("should replace blank error messages so the batch isn't rejected", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadGlobalErrors([
+        { trace: "at foo.ts:1" } as TestError,
+        { message: "   ", trace: "at bar.ts:2" } as TestError,
+        { message: "Something went wrong" } as TestError,
+      ]);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/error/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { message: "Unknown error", trace: "at foo.ts:1" },
+            { message: "Unknown error", trace: "at bar.ts:2" },
+            { message: "Something went wrong", trace: undefined },
+          ],
         },
         expect.objectContaining({
           onUploadProgress: expect.any(Function),
@@ -1016,9 +1884,7 @@ describe("testops http client", () => {
         id: "tr-1",
         name: "Test",
         status: "passed",
-        // should be used to resolve named env but not be sent as `environment`
         environment: "chrome",
-        // should be converted to string in payload
         category: {
           externalId: 123,
           grouping: [{ key: "status", value: "passed", name: "status: passed" }],
@@ -1067,7 +1933,6 @@ describe("testops http client", () => {
           uuid: "tr-1",
           name: "Test",
           status: "passed",
-          environment: "chrome",
           category: {
             externalId: "123",
             grouping: [{ key: "status", value: "passed", name: "status: passed" }],
@@ -1121,7 +1986,6 @@ describe("testops http client", () => {
           return { data: { results: fixtures.testOpsResults } };
         }
 
-        // simulate async work for attachment uploads to make per-TR concurrency observable
         concurrentCount++;
         maxConcurrentCount = Math.max(maxConcurrentCount, concurrentCount);
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1154,6 +2018,65 @@ describe("testops http client", () => {
       });
 
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
+    });
+
+    it("does not resend an already-acknowledged chunk when a later chunk fails and retries", async () => {
+      const trs = Array.from(
+        { length: 101 },
+        (_, index) => ({ id: `tr-${index}`, name: `Test ${index}` }) as TestResult,
+      );
+      let secondChunkAttempts = 0;
+
+      AxiosMock.post.mockImplementation((url: string, body: any) => {
+        if (url === "/api/launch") return Promise.resolve({ data: fixtures.launch });
+        if (url === "/api/upload/session") return Promise.resolve({ data: { id: 1 } });
+
+        if (url === "/api/upload/test-result") {
+          const isSecondChunk = body.results.length === 1;
+
+          if (isSecondChunk) {
+            secondChunkAttempts += 1;
+
+            if (secondChunkAttempts === 1) {
+              return Promise.reject({ isAxiosError: true, response: { status: 503, data: {} } });
+            }
+          }
+
+          return Promise.resolve({
+            data: {
+              results: body.results.map((submittedResult: any, index: number) => ({
+                id: index + 1,
+                uuid: submittedResult.uuid,
+              })),
+            },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      const uploaded = await client.uploadTestResults({
+        trs,
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(uploaded).toHaveLength(101);
+
+      const resultCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/upload/test-result");
+      expect(resultCalls).toHaveLength(3);
+      expect(resultCalls.filter((call: any[]) => call[1].results.length === 100)).toHaveLength(1);
+      expect(resultCalls.filter((call: any[]) => call[1].results.length === 1)).toHaveLength(2);
     });
 
     it("should leave results without remote ids retryable and avoid undefined requests", async () => {
@@ -1279,6 +2202,7 @@ describe("testops http client", () => {
 
       const attachmentContentById = vi.fn().mockResolvedValue({
         readContent: vi.fn().mockResolvedValue(Buffer.from("content")),
+        getContentLength: vi.fn().mockReturnValue(7),
       });
       const attachmentsResolver = attachmentsResolverFactory({
         attachmentsByTrId: vi.fn().mockResolvedValue([
@@ -1443,7 +2367,7 @@ describe("testops http client", () => {
       expect(uploadCall).toBeTruthy();
       const uploadBody = uploadCall?.[1] as any;
       expect(uploadBody.testSessionId).toBe(1);
-      expect(uploadBody.results?.[0]?.environment).toBe("chrome");
+      expect(uploadBody.results?.[0]).not.toHaveProperty("environment");
     });
 
     it("should create distinct named environments for different env ids sharing one display name", async () => {
@@ -1525,7 +2449,7 @@ describe("testops http client", () => {
       const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
       expect(uploadCall).toBeTruthy();
       const uploadBody = uploadCall?.[1] as any;
-      expect(uploadBody.results?.[0]?.environment).toBe("qa_a");
+      expect(uploadBody.results?.[0]).not.toHaveProperty("environment");
     });
 
     it("should not create named environments when test results have no environment", async () => {

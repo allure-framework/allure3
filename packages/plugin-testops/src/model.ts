@@ -128,7 +128,6 @@ export type UploadTestResultDto = {
   trace?: string;
   hostId?: string;
   threadId?: string;
-  environment?: string;
   category?: UploadTestResultCategoryDto;
   namedEnv?: UploadTestResultNamedEnvDto;
   steps?: UploadTestResultStepDto[];
@@ -210,17 +209,26 @@ export type LaunchCategoryBulkResult = {
   externalId: string;
 };
 
+export type UploadRateLimit = {
+  windowMs: number;
+  maxRequestsPerWindow?: number;
+  maxFilesPerWindow?: number;
+  maxBytesPerWindow?: number;
+};
+
 export type TestOpsClientParams = {
   baseUrl: string;
   projectId: string;
   accessToken: string;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
 };
 
 export type AttachmentForUpload = {
   originalFileName: string;
   contentType: string;
   content: Buffer | Blob | ReadableStream | Readable;
+  contentLength?: number;
 };
 
 export type FixtureResolver = (tr: TestResult) => Promise<TestOpsFixtureResult[]>;
@@ -233,12 +241,15 @@ export type TestOpsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   autocloseLaunch?: boolean;
+  reopenClosedLaunch?: boolean;
+  launchId?: number;
   /** When false, Git Flow metadata is never collected or sent. Default: false */
   gitFlow?: boolean;
   /** First-parent ancestor limit (server N). Default: 100 */
   ancestorLimit?: number;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
+  uploadRateLimit?: UploadRateLimit | false;
 };
 
 export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
@@ -255,6 +266,24 @@ export type TestOpsSession = {
   jobRunId: number;
   launchId: number;
   projectId: number;
+};
+
+export type ExternalRunStartResponse = {
+  projectId: number;
+  launchId: number;
+  jobId?: number;
+  jobRunId?: number;
+};
+
+export type TestOpsJobParameter = {
+  name: string;
+  defaultValue: string;
+};
+
+export type TestOpsJob = {
+  id: number;
+  externalId: string;
+  parameters: TestOpsJobParameter[];
 };
 
 export type TestOpsLaunch = {
