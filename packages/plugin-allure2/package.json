@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-allure2",
-  "version": "3.16.0",
+  "version": "3.16.1",
   "description": "The Allure 2-compatible HTML report",
   "keywords": [
     "allure",
