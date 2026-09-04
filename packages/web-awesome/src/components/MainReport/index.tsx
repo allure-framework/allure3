@@ -24,6 +24,7 @@ import {
   rootTabRoute,
 } from "@/stores/router";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
+import { flatGlobalEntriesByEnv } from "@/utils/globals";
 
 import { ReportQualityGateResults } from "../ReportQualityGateResults";
 
@@ -187,12 +188,12 @@ const MainReport = () => {
                 <Loadable
                   source={globalsStore}
                   renderData={({ attachments = [], attachmentsByEnv = {}, errors = [], errorsByEnv = {} }) => {
-                    const currentEnvAttachments = currentEnvironment.value
-                      ? (attachmentsByEnv[currentEnvironment.value] ?? [])
-                      : attachments;
-                    const currentEnvErrors = currentEnvironment.value
-                      ? (errorsByEnv[currentEnvironment.value] ?? [])
-                      : errors;
+                    const currentEnvAttachments = flatGlobalEntriesByEnv(
+                      attachments,
+                      attachmentsByEnv,
+                      currentEnvironment.value,
+                    );
+                    const currentEnvErrors = flatGlobalEntriesByEnv(errors, errorsByEnv, currentEnvironment.value);
 
                     return (
                       <>
