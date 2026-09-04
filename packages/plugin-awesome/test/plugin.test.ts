@@ -753,20 +753,32 @@ describe("plugin", () => {
   });
 
   describe("report assets", () => {
+    const environmentIdOf = (tr: TestResult) => tr.environment ?? "default";
+
     const makeSingleFileStore = (testResults: TestResult[], metadata: Record<string, unknown> = {}): AllureStore =>
       ({
         metadataByKey: vi.fn(async (key: string) => metadata[key]),
-        allEnvironments: vi.fn().mockResolvedValue(["default"]),
-        allEnvironmentIdentities: vi
-          .fn()
-          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
+        allEnvironments: vi.fn(async () => [...new Set(testResults.map(environmentIdOf))]),
+        allEnvironmentIdentities: vi.fn(
+          async () =>
+            [...new Set(testResults.map(environmentIdOf))].map((id) => ({
+              id,
+              name: id,
+            })) satisfies EnvironmentIdentity[],
+        ),
         allAttachments: vi.fn().mockResolvedValue([]),
         allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
-        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
+        testResultsByEnvironmentId: vi.fn(async (envId: string) =>
+          testResults.filter((tr) => environmentIdOf(tr) === envId),
+        ),
+        environmentIdByTrId: vi.fn(async (trId: string) => {
+          const tr = testResults.find(({ id }) => id === trId);
+
+          return tr ? environmentIdOf(tr) : undefined;
+        }),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
         allTestEnvGroups: vi.fn().mockResolvedValue([]),
         allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -1033,6 +1045,59 @@ describe("plugin", () => {
         duration: 2000,
       });
       expect(reportOptions.executor).toEqual(executor);
+    });
+
+    it("should include a separate launch interval for every environment", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-staging",
+          name: "staging test",
+          status: "passed",
+          environment: "staging",
+          start: 1000,
+          stop: 3000,
+          labels: [],
+        },
+        {
+          id: "tr-staging-retry",
+          name: "staging test",
+          status: "failed",
+          environment: "staging",
+          isRetry: true,
+          start: 500,
+          stop: 900,
+          labels: [],
+        },
+        {
+          id: "tr-prod",
+          name: "prod test",
+          status: "passed",
+          environment: "prod",
+          start: 10_000,
+          stop: 12_500,
+          labels: [],
+        },
+      ] as unknown as TestResult[];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      const reportOptions = extractReportOptions(addedFiles.get("index.html")?.toString("utf-8") ?? "");
+
+      // The report-wide summary still spans everything, the per-environment ones must not.
+      expect(reportOptions.runSummary).toEqual({ start: 500, stop: 12_500, duration: 12_000 });
+      expect(reportOptions.runSummaryByEnv).toEqual({
+        staging: { start: 500, stop: 3000, duration: 2500 },
+        prod: { start: 10_000, stop: 12_500, duration: 2500 },
+      });
     });
   });
 });

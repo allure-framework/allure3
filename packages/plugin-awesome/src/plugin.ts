@@ -2,6 +2,7 @@ import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath
 import {
   type AllureStore,
   type ReportExecutorInfo,
+  type ReportRunSummary,
   type Plugin,
   type PluginContext,
   type PluginSummary,
@@ -135,6 +136,16 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
+    const runSummaryByEnv: Record<string, ReportRunSummary> = {};
+
+    for (const { id } of environments) {
+      const envRunSummary = getRunSummary(trsByEnvId.get(id) ?? []);
+
+      if (envRunSummary) {
+        runSummaryByEnv[id] = envRunSummary;
+      }
+    }
+
     await generateStatistic(this.#writer!, {
       stats: statistics,
       statsByEnv: envStatistics,
@@ -239,6 +250,7 @@ export class AwesomePlugin implements Plugin {
       ci: context.ci,
       executor,
       runSummary,
+      runSummaryByEnv,
       reportDataFiles,
     });
   };
