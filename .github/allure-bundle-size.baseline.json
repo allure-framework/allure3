@@ -1,8 +1,8 @@
 {
   "rootPackage": "allure",
-  "measuredAt": "2026-09-02T07:44:48.293Z",
+  "measuredAt": "2026-09-03T07:55:54.137Z",
   "internalClosureCount": 34,
   "selfBytes": 31776768,
-  "depsBytes": 65581056,
-  "totalBytes": 97357824
+  "depsBytes": 65585152,
+  "totalBytes": 97361920
 }

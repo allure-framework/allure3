@@ -14,6 +14,7 @@ export const convertToTestResultSummary = (tr: TestResult): TestResultSummary =>
   name: tr.name,
   duration: tr.duration,
   status: tr.status,
+  ...(tr.environment ? { environment: tr.environment } : {}),
 });
 
 export const createTestResultRegistry = (testResults: TestResult[]): TestResultRegistry => ({

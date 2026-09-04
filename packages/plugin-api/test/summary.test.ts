@@ -30,25 +30,46 @@ const testResult = (args: Partial<TestResult> = {}): TestResult => ({
 describe("summary utils", () => {
   it("convertToTestResultSummary maps fields", () => {
     expect(
-      convertToTestResultSummary(testResult({ id: "id-1", name: "name-1", status: "failed", duration: 123 })),
+      convertToTestResultSummary(
+        testResult({
+          id: "id-1",
+          name: "name-1",
+          status: "failed",
+          duration: 123,
+          environment: "chrome",
+        }),
+      ),
     ).toEqual({
       id: "id-1",
       name: "name-1",
       status: "failed",
       duration: 123,
+      environment: "chrome",
     });
   });
 
   it("createTestResultRegistry indexes reduced test results by id", () => {
     expect(
       createTestResultRegistry([
-        testResult({ id: "id-1", name: "name-1", status: "failed", duration: 123 }),
-        testResult({ id: "id-2", name: "name-2", status: "passed", duration: 456 }),
+        testResult({
+          id: "id-1",
+          name: "name-1",
+          status: "failed",
+          duration: 123,
+          environment: "chrome",
+        }),
+        testResult({ id: "id-2", name: "name-2", status: "passed", duration: 456, environment: "firefox" }),
       ]),
     ).toEqual({
       byId: {
-        "id-1": { id: "id-1", name: "name-1", duration: 123, status: "failed" },
-        "id-2": { id: "id-2", name: "name-2", duration: 456, status: "passed" },
+        "id-1": {
+          id: "id-1",
+          name: "name-1",
+          duration: 123,
+          environment: "chrome",
+          status: "failed",
+        },
+        "id-2": { id: "id-2", name: "name-2", duration: 456, environment: "firefox", status: "passed" },
       },
     });
   });
