@@ -116,6 +116,8 @@ summary.sectionTitle {
 }
 
 .table {
+  --metrics-row-active-bg: var(--color-control-bg-ghost-hover);
+
   width: 100%;
   min-width: 720px;
   table-layout: fixed;
@@ -127,22 +129,41 @@ summary.sectionTitle {
   td {
     padding: 9px 8px;
     border-bottom: 1px solid var(--color-border-subtle);
-    vertical-align: top;
+    vertical-align: middle;
     text-align: left;
   }
 
   th {
+    border-bottom: 0;
+    background: var(--color-bg-primary);
     color: var(--color-text-secondary);
     font-size: 12px;
     font-weight: 600;
+
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
   tbody tr {
     transition: background-color var(--color-change-transition-duration);
   }
 
+  tbody tr:last-child > td {
+    border-bottom: 0;
+  }
+
   td:not(:first-child) {
     white-space: nowrap;
+  }
+}
+
+.table:has(tbody tr:first-child:hover, tbody tr:first-child:focus-within, tbody tr:first-child[data-expanded="true"]) {
+  th:first-child {
+    border-bottom-left-radius: 6px;
+  }
+
+  th:last-child {
+    border-bottom-right-radius: 6px;
   }
 }
 
@@ -199,7 +220,11 @@ summary.sectionTitle {
   &:hover,
   &:focus-within,
   &[data-expanded="true"] {
-    background: var(--color-row-bg-hover);
+    background: var(--metrics-row-active-bg);
+  }
+
+  &[data-expanded="true"] > td {
+    border-bottom: 0;
   }
 }
 
@@ -229,20 +254,19 @@ summary.sectionTitle {
 
 .expandedRow {
   > td {
-    padding: 0 8px;
+    padding: 0;
     border-bottom: 0;
-    background: var(--color-row-bg-hover);
+    background: var(--metrics-row-active-bg);
   }
 
   &[data-expanded="true"] > td {
-    padding-bottom: 12px;
+    padding: 0 0 12px;
   }
 }
 
 .expandedContent {
   display: grid;
   padding: 12px;
-  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   background: var(--color-bg-primary);
 }
@@ -297,9 +321,9 @@ summary.sectionTitle {
 .detailsValue {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
-  margin: 4px 0 10px;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 12px;
 }
 
 .empty,

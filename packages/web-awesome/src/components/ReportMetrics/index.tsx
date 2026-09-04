@@ -113,8 +113,8 @@ const MetricHistoryDetails = ({
       <div className={styles.detailsValue}>
         <span className={styles.metricValue}>{formatValue(row.value, row.unit)}</span>
         {formatDelta(row)}
+        <Sparkline values={row.trend} />
       </div>
-      <Sparkline values={row.trend} />
       {historyRows.length === 0 ? (
         <div className={styles.emptyInline}>{t("metrics.noHistory")}</div>
       ) : (
