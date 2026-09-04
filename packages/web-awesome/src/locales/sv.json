@@ -146,6 +146,7 @@
     "retries": "Omtagningar",
     "environments": "Miljöer",
     "error": "Fel",
+    "success": "Lyckat",
     "goToStep": "Gå till steg",
     "showLess": "Visa mindre",
     "showMore": "Visa mer",

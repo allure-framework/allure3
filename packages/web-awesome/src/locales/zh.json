@@ -146,6 +146,7 @@
     "retries": "重试",
     "environments": "环境",
     "error": "错误",
+    "success": "成功",
     "goToStep": "跳转到步骤",
     "showLess": "显示更少",
     "showMore": "显示更多",

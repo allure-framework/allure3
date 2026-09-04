@@ -36,6 +36,14 @@
   color: var(--color-status-failed-chart);
 }
 
+.report-quality-gate-result-icon-failed {
+  color: var(--color-status-failed-chart);
+}
+
+.report-quality-gate-result-icon-passed {
+  color: var(--color-status-passed-chart);
+}
+
 .report-quality-gate-result-content {
   flex: 1 1 auto;
 

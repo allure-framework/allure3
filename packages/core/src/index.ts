@@ -25,5 +25,6 @@ export {
   metricMaxDeltaRule,
   metricMaxDeltaPercentRule,
   convertQualityGateResultsToTestErrors,
+  filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "./qualityGate/index.js";

@@ -5,7 +5,12 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
 
-import { AllureReport, QualityGateState, stringifyQualityGateResults } from "@allurereport/core";
+import {
+  AllureReport,
+  QualityGateState,
+  filterFailedQualityGateResults,
+  stringifyQualityGateResults,
+} from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
@@ -385,7 +390,10 @@ export const executeAllureRun = async (params: {
     if (qualityGateResults.length) {
       const qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
 
-      console.error(qualityGateMessage);
+      // passed rules are only reported through the report, the terminal keeps showing failures
+      if (qualityGateMessage) {
+        console.error(qualityGateMessage);
+      }
 
       allureReport.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
     }
@@ -393,7 +401,7 @@ export const executeAllureRun = async (params: {
     globalExitCode.original = testProcessResult?.code ?? -1;
 
     if (withQualityGate) {
-      globalExitCode.actual = qualityGateResults.length > 0 ? 1 : 0;
+      globalExitCode.actual = filterFailedQualityGateResults(qualityGateResults).length > 0 ? 1 : 0;
     }
   } catch (error) {
     globalExitCode.actual = 1;

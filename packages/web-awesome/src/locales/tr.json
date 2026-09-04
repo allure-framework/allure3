@@ -146,6 +146,7 @@
     "retries": "Tekrar Denemeler",
     "environments": "Ortam",
     "error": "Hata",
+    "success": "Başarılı",
     "goToStep": "Adıma git",
     "showLess": "Daha az göster",
     "showMore": "Daha fazla göster",

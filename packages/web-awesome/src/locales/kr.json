@@ -146,6 +146,7 @@
     "retries": "재시도",
     "environments": "환경",
     "error": "오류",
+    "success": "성공",
     "goToStep": "단계로 이동",
     "showLess": "덜 보기",
     "showMore": "더 보기",

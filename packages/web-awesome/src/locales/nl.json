@@ -146,6 +146,7 @@
     "retries": "Herhalingen",
     "environments": "Omgevingen",
     "error": "Fout",
+    "success": "Succes",
     "goToStep": "Ga naar stap",
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",

@@ -81,6 +81,9 @@ vi.mock("@allurereport/core", async () => {
   return {
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
+    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
+      results.filter(({ success }) => !success),
+    ),
     AllureReport: utils.AllureReportMock,
     QualityGateState: class {
       getResult() {
@@ -130,6 +133,66 @@ describe("quality-gate command", () => {
     ]);
 
     expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it("should exit with code 0 when every quality gate rule has been passed", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
+      results: [{ success: true, rule: "maxFailures" }],
+    });
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+
+    expect(console.error).not.toHaveBeenCalled();
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it("should exit with code 1 when at least one quality gate rule has been failed", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+    };
+    (stringifyQualityGateResults as Mock).mockReturnValue("quality gate failed");
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
+      results: [
+        { success: true, rule: "minTestsCount" },
+        { success: false, rule: "maxFailures" },
+      ],
+    });
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+
+    expect(console.error).toHaveBeenCalledWith("quality gate failed");
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should exit with code 1 on fast-fail during realtime validation", async () => {
