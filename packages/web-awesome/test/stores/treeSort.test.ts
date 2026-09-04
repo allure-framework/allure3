@@ -1,17 +1,5 @@
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-// Every case re-imports the store after vi.resetModules(). Without this mock that
-// also re-evaluates the whole @allurereport/web-commons bundle on each import,
-// which made the suite exceed its timeouts when the full monorepo test suite runs
-// in parallel. The store only uses these four helpers, and they are thin wrappers
-// around globalThis.allureReportOptions and the URL search params.
-vi.mock("@allurereport/web-commons", () => ({
-  getReportOptions: () => (globalThis as any).allureReportOptions,
-  getParamValue: (key: string) => new URLSearchParams(window.location.search).get(key),
-  hasParam: (key: string) => new URLSearchParams(window.location.search).has(key),
-  setParams: vi.fn(),
-}));
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "ALLURE_REPORT_SORT_BY";
 
@@ -23,6 +11,10 @@ beforeEach(async () => {
 });
 
 describe("stores > treeSort", () => {
+  beforeAll(async () => {
+    await import("../../src/stores/treeSort.js");
+  }, 30_000);
+
   beforeEach(() => {
     vi.resetModules();
     localStorage.clear();

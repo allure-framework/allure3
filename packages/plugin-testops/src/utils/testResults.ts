@@ -119,7 +119,6 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
     trace: (tr as { trace?: string }).trace,
     hostId: tr.hostId,
     threadId: tr.threadId,
-    environment: tr.environment,
     ...(category ? { category } : {}),
     ...(typeof tr.namedEnv?.id === "number" ? { namedEnv: { id: tr.namedEnv.id } } : {}),
     steps: tr.steps?.map(toUploadStepDto),

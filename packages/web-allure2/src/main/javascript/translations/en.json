@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "There is nothing to show",
+      "name": "Duration"
+    },
+    "severity": {
+      "name": "Severity"
+    },
+    "status": {
+      "name": "Status"
+    },
+    "trend": {
+      "empty": "There is nothing to show",
+      "reportLink": "Open report for {{name}}"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Hide {{mark}} test results",
+      "showCases": "Show {{mark}} test results"
+    },
+    "statusToggle": {
+      "hideCases": "Hide test results with {{status}} status",
+      "showCases": "Show test results with {{status}} status"
+    },
+    "tree": {
+      "download": "Download CSV",
+      "empty": "There are no items",
+      "filter": "Status",
+      "filter-marks": "Marks",
+      "filtered": {
+        "shown": "{{count}} shown",
+        "total": "{{count}} test result",
+        "total_one": "{{count}} test result",
+        "total_other": "{{count}} test results"
+      },
+      "groups": "Toggle groups info",
+      "time": {
+        "max": {
+          "name": "Max",
+          "tooltip": "Longest test duration"
+        },
+        "sum": {
+          "name": "Sum",
+          "tooltip": "Sum of all tests durations"
+        },
+        "total": {
+          "name": "Total",
+          "tooltip": "Duration from first test started to last test finished"
+        }
+      },
+      "unknown": "<Empty>",
+      "noItemSelected": "No item selected",
+      "search": "Search test results"
+    },
+    "widgetStatus": {
+      "showAll": "Show all",
+      "total": "{{count}} item total",
+      "total_one": "{{count}} item total",
+      "total_other": "{{count}} items total"
+    },
+    "attachment": {
+      "download": "Click to download attachment",
+      "videoNotSupported": "Your browser does not support the video tag",
+      "htmlPreviewTitle": "HTML attachment preview: {{name}}",
+      "previewSizeExceeded": "Attachment preview is disabled because the attachment is larger than {{size}}.",
+      "htmlPreviewSizeExceeded": "HTML preview is disabled because the attachment is larger than {{size}}.",
+      "htmlPreviewInvalid": "HTML preview is disabled because the attachment does not look like HTML."
+    },
+    "screenDiff": {
+      "empty": "No diff data provided",
+      "name": "Screen Diff",
+      "showDiff": "Show diff",
+      "showOverlay": "Show overlay"
+    }
+  },
+  "controls": {
+    "backto": "Back to",
+    "clipboard": "Copy to clipboard",
+    "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",
+    "clipboardSuccess": "Successfully copied",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "fullscreen": "Full screen",
+    "language": "Change language",
+    "languageShort": "Language",
+    "lightTheme": "Light theme",
+    "darkTheme": "Dark theme",
+    "loading": "Loading...",
+    "close": "Close"
+  },
+  "errors": {
+    "loadingFailed": "Failed to load data",
+    "missedAttachment": "Attachment not found",
+    "notFound": "Not found",
+    "tabNotFound": "Tab \"{{tab}}\" not found",
+    "testResultNotFound": "Test result with uid \"{{uid}}\" not found"
+  },
+  "marks": {
+    "flaky": "Flaky",
+    "newBroken": "New broken",
+    "newFailed": "New failed",
+    "newPassed": "New passed",
+    "retriesStatusChange": "Status changed after retry"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "duration",
+    "name": "name",
+    "order": "order",
+    "status": "status"
+  },
+  "status": {
+    "broken": "Broken",
+    "failed": "Failed",
+    "passed": "Passed",
+    "skipped": "Skipped",
+    "unknown": "Unknown"
+  },
+  "tab": {
+    "categories": {
+      "name": "Categories"
+    },
+    "behaviors": {
+      "name": "Behaviors"
+    },
+    "graph": {
+      "name": "Graphs"
+    },
+    "overview": {
+      "name": "Overview"
+    },
+    "packages": {
+      "name": "Packages"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Suites"
+    },
+    "timeline": {
+      "name": "Timeline",
+      "selected": "Selected {{count}} test ({{percent}}%) with duration above {{duration}}",
+      "selected_one": "Selected {{count}} test ({{percent}}%) with duration above {{duration}}",
+      "selected_other": "Selected {{count}} tests ({{percent}}%) with duration above {{duration}}",
+      "resultLink": "Open test result {{name}}, status {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Categories"
+    },
+    "description": {
+      "name": "Description"
+    },
+    "duration": {
+      "name": "Duration"
+    },
+    "execution": {
+      "body": "Test body",
+      "downloadAttachment": {
+        "tooltip": "Open attachment in new tab"
+      },
+      "name": "Execution",
+      "setup": "Set up",
+      "teardown": "Tear down",
+      "empty": "No information about test execution is available."
+    },
+    "history": {
+      "empty": "No history information available.",
+      "name": "History",
+      "statistic": "{{passed}} of {{total}}",
+      "successRate": "Success rate",
+      "time": "{{date}} at {{time}}"
+    },
+    "links": {
+      "name": "Links"
+    },
+    "overview": {
+      "name": "Overview"
+    },
+    "owner": {
+      "name": "Owner"
+    },
+    "parameters": {
+      "name": "Parameters"
+    },
+    "retries": {
+      "empty": "There is no information available about test retries",
+      "name": "Retries",
+      "time": "{{date}} at {{time}}"
+    },
+    "severity": {
+      "name": "Severity",
+      "blocker": "blocker",
+      "critical": "critical",
+      "normal": "normal",
+      "minor": "minor",
+      "trivial": "trivial"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} attachment",
+        "parameters": "{{count}} parameter",
+        "steps": "{{count}} sub-step",
+        "attachments_one": "{{count}} attachment",
+        "attachments_other": "{{count}} attachments",
+        "parameters_one": "{{count}} parameter",
+        "parameters_other": "{{count}} parameters",
+        "steps_one": "{{count}} sub-step",
+        "steps_other": "{{count}} sub-steps"
+      }
+    },
+    "status": {
+      "empty": "Empty status details",
+      "trace": "Show trace"
+    },
+    "tags": {
+      "name": "Tags"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Categories"
+    },
+    "behaviors": {
+      "name": "Features by stories",
+      "showAll": "show all"
+    },
+    "categoriesTrend": {
+      "name": "Categories trend"
+    },
+    "durationTrend": {
+      "name": "Duration trend"
+    },
+    "environment": {
+      "empty": "There are no environment variables",
+      "name": "Environment",
+      "showAll": "Show all"
+    },
+    "executors": {
+      "empty": "There is no information about tests executors",
+      "name": "Executors",
+      "unknown": "Unknown"
+    },
+    "launches": {
+      "empty": "There is no information about launches",
+      "name": "Launches"
+    },
+    "retryTrend": {
+      "name": "Retries trend"
+    },
+    "suites": {
+      "name": "Suites"
+    },
+    "summary": {
+      "aggregatedName": "Aggregated report",
+      "launches": "launch",
+      "testResults": "test case",
+      "launches_one": "launch",
+      "launches_other": "launches",
+      "testResults_one": "test case",
+      "testResults_other": "test cases"
+    },
+    "trend": {
+      "name": "Trend"
+    }
+  }
+}

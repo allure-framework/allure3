@@ -1,0 +1,108 @@
+@use "./theme/index.scss" as *;
+@use "./rtl.scss" as *;
+@use "./shared/styles/primitives/alert/styles.scss" as *;
+@use "./shared/styles/primitives/attachment-row/styles.scss" as *;
+@use "./shared/styles/primitives/bar/styles.scss" as *;
+@use "./shared/styles/primitives/button/styles.scss" as *;
+@use "./shared/styles/primitives/island/styles.scss" as *;
+@use "./shared/styles/primitives/label/styles.scss" as *;
+@use "./shared/styles/primitives/link/styles.scss" as *;
+@use "./shared/styles/primitives/splash/styles.scss" as *;
+@use "./shared/styles/primitives/step-stats/styles.scss" as *;
+@use "./shared/styles/primitives/text/styles.scss" as *;
+@use "./shared/styles/primitives/widget/styles.scss" as *;
+@use "./shared/styles/primitives/parameters-table/styles.scss" as *;
+
+@use "./theme/spacing.scss" as *;
+:root {
+  --layout-view-narrow-max-width: 1104px;
+  --layout-view-small-max-width: 304px;
+  --layout-view-medium-max-width: 600px;
+  --layout-view-large-max-width: #{$breakpoint-wide};
+}
+
+html,
+body {
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+}
+
+body {
+  background: var(--color-bg-canvas);
+  color-scheme: inherit;
+  font-family: var(--font-family);
+}
+
+a {
+  color: var(--color-link-text);
+}
+
+a:hover {
+  color: var(--color-link-text-hover);
+}
+
+::selection {
+  background: var(--color-intent-primary-bg-subtle, var(--color-control-bg-active));
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+html,
+body {
+  height: 100%;
+  font-size: var(--font-size-m);
+}
+
+#content {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  .app {
+    flex: 1;
+  }
+}
+
+.view {
+  padding: 0 gap(2);
+  margin: 0 auto;
+  &_narrow {
+    max-width: var(--layout-view-narrow-max-width);
+  }
+  &-small {
+    max-width: var(--layout-view-small-max-width);
+  }
+  &-medium {
+    max-width: var(--layout-view-medium-max-width);
+  }
+  &-large {
+    max-width: var(--layout-view-large-max-width);
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.long-line {
+  word-break: break-word;
+}
+
+.line-nobreak {
+  white-space: nowrap;
+}
+
+.preformated-text {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.line-ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

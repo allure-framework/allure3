@@ -68,6 +68,44 @@ describe("AllureLocalHistory", () => {
       }
     });
 
+    it("should normalize missing and invalid history metrics", async () => {
+      const historyPath = join(tmpdir(), randomUUID());
+
+      try {
+        await writeFile(
+          historyPath,
+          `${JSON.stringify({
+            uuid: "1",
+            name: "Entry 1",
+            timestamp: 1,
+            knownTestCaseIds: [],
+            testResults: {},
+          })}\n${JSON.stringify({
+            uuid: "2",
+            name: "Entry 2",
+            timestamp: 2,
+            knownTestCaseIds: [],
+            testResults: {},
+            metrics: {
+              "generate.total.avgMs": 120,
+              "broken.string": "120",
+              "broken.null": null,
+            },
+          })}\n`,
+          "utf-8",
+        );
+
+        const history = new AllureLocalHistory({ historyPath });
+
+        expect(await history.readHistory()).toEqual([
+          expect.objectContaining({ metrics: {} }),
+          expect.objectContaining({ metrics: { "generate.total.avgMs": 120 } }),
+        ]);
+      } finally {
+        await rm(historyPath, { force: true });
+      }
+    });
+
     describe("a single-entry file", () => {
       const historyPath = getDataPath("one-entry.jsonl");
 

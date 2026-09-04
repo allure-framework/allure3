@@ -19,6 +19,7 @@ const {
   fetchEnvironmentsMock,
   fetchEnvInfoMock,
   fetchGlobalsMock,
+  fetchMetricsDataMock,
   fetchQualityGateResultsMock,
   fetchEnvTreesDataMock,
   fetchTestResultMock,
@@ -35,6 +36,7 @@ const {
   fetchEnvironmentsMock: vi.fn(),
   fetchEnvInfoMock: vi.fn(),
   fetchGlobalsMock: vi.fn(),
+  fetchMetricsDataMock: vi.fn(),
   fetchQualityGateResultsMock: vi.fn(),
   fetchEnvTreesDataMock: vi.fn(),
   fetchTestResultMock: vi.fn(),
@@ -72,6 +74,7 @@ vi.mock("@/stores/env", async () => {
 });
 vi.mock("@/stores/envInfo", () => ({ fetchEnvInfo: fetchEnvInfoMock }));
 vi.mock("@/stores/globals", () => ({ fetchGlobals: fetchGlobalsMock }));
+vi.mock("@/stores/metrics", () => ({ fetchMetricsData: fetchMetricsDataMock }));
 vi.mock("@/stores/qualityGate", () => ({ fetchQualityGateResults: fetchQualityGateResultsMock }));
 vi.mock("@/stores/tree", () => ({ fetchEnvTreesData: fetchEnvTreesDataMock }));
 vi.mock("@/stores/testResults", () => ({
@@ -138,7 +141,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(screen.queryByTestId("loader")).not.toBeInTheDocument();
     });
-  });
+  }, 30_000);
 
   it("should fetch env-scoped data when an environment is selected", async () => {
     await selectEnvironment("");

@@ -1,0 +1,298 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "אין דבר להציג",
+      "name": "זמן ריצה"
+    },
+    "severity": {
+      "name": "חומרה"
+    },
+    "status": {
+      "name": "סטטוס"
+    },
+    "trend": {
+      "empty": "אין דבר להציג",
+      "reportLink": "פתח דוח עבור {{name}}"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "הסתר תוצאות בדיקה עם הסימון {{mark}}",
+      "showCases": "הצג תוצאות בדיקה עם הסימון {{mark}}"
+    },
+    "statusToggle": {
+      "hideCases": "הסתר תוצאות ריצה עם הסטטוס {{status}}",
+      "showCases": "הצג תוצאות ריצה עם הסטטוס {{status}}"
+    },
+    "tree": {
+      "download": "הורד קובץ CSV",
+      "empty": "לא קיימים פריטים",
+      "filter": "מיין מקרי בדיקה על ידי סטטוס",
+      "filter-marks": "סימונים",
+      "filtered": {
+        "shown": "מופיעים {{count}}",
+        "total": "תוצאת ריצה {{count}}",
+        "total_one": "תוצאת ריצה {{count}}",
+        "total_two": "{{count}} תוצאות ריצה",
+        "total_other": "{{count}} תוצאות ריצה"
+      },
+      "groups": "הצג/הסתר את המידע על הקבוצות",
+      "time": {
+        "max": {
+          "name": "מקסימלי",
+          "tooltip": "זמן הריצה הכי ארוך"
+        },
+        "sum": {
+          "name": "סכום",
+          "tooltip": "סכום כל זמני תוצאות הריצה"
+        },
+        "total": {
+          "name": "סך הכול",
+          "tooltip": "משך זמן הריצה מתחילת ריצת מקרה הבדיקה הראשון עד סיום ריצת מקרה הבדיקה האחרון"
+        }
+      },
+      "unknown": "רֵיק",
+      "noItemSelected": "לא נבחר פריט",
+      "search": "חפש תוצאות בדיקה"
+    },
+    "widgetStatus": {
+      "showAll": "הצג את כל הפריטים",
+      "total": "סך הכול פריט {{count}}",
+      "total_one": "סך הכול פריט {{count}}",
+      "total_two": "סך הכול {{count}} פריטים",
+      "total_other": "סך הכול {{count}} פריטים"
+    },
+    "attachment": {
+      "download": "לחץ כדי להוריד את הקובץ המצורף",
+      "videoNotSupported": "הדפדפן שלך אינו תומך בתגית הווידאו",
+      "htmlPreviewTitle": "תצוגה מקדימה של קובץ HTML מצורף: {{name}}",
+      "previewSizeExceeded": "התצוגה המקדימה של הקובץ המצורף מושבתת כי הקובץ המצורף גדול מ-{{size}}.",
+      "htmlPreviewSizeExceeded": "התצוגה המקדימה של HTML מושבתת כי הקובץ המצורף גדול מ-{{size}}.",
+      "htmlPreviewInvalid": "התצוגה המקדימה של HTML מושבתת כי הקובץ המצורף לא נראה כמו HTML."
+    },
+    "screenDiff": {
+      "empty": "לא סופקו נתוני diff",
+      "name": "השוואת מסך",
+      "showDiff": "הצג diff",
+      "showOverlay": "הצג שכבת-על"
+    }
+  },
+  "controls": {
+    "backto": "חזור ל",
+    "clipboard": "העתק אל מגש המערכת",
+    "clipboardError": "לא ניתן להעתיק את הערך אל מגש המערכת. נראה שהתכונה הזאת לא נתמכת על ידי הדפדפן שלך",
+    "clipboardSuccess": "הועתק בהצלחה",
+    "collapse": "כווץ",
+    "expand": "הרחב",
+    "fullscreen": "מסך מלא",
+    "language": "שנה שפה",
+    "languageShort": "שפה",
+    "lightTheme": "ערכת נושא בהירה",
+    "darkTheme": "ערכת נושא כהה",
+    "loading": "טוען...",
+    "close": "סגור"
+  },
+  "errors": {
+    "missedAttachment": "התוכן המצורף לא נמצא",
+    "notFound": "לא נמצא",
+    "loadingFailed": "טעינת הנתונים נכשלה",
+    "tabNotFound": "הלשונית \"{{tab}}\" לא נמצאה",
+    "testResultNotFound": "תוצאת הבדיקה עם uid \"{{uid}}\" לא נמצאה"
+  },
+  "marks": {
+    "flaky": "לא יציב",
+    "newBroken": "חדש שבור",
+    "newFailed": "חדש נכשל",
+    "newPassed": "חדש עבר",
+    "retriesStatusChange": "הסטטוס השתנה לאחר ניסיון חוזר"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "זמן ריצה",
+    "name": "שם מקרה הבדיקה",
+    "order": "סדר",
+    "status": "סטטוס"
+  },
+  "status": {
+    "broken": "שבור",
+    "failed": "נכשל",
+    "passed": "עבר",
+    "skipped": "דולג",
+    "unknown": "לא ידוע"
+  },
+  "tab": {
+    "categories": {
+      "name": "קטגוריות"
+    },
+    "behaviors": {
+      "name": "התנהגויות"
+    },
+    "graph": {
+      "name": "גרפים"
+    },
+    "overview": {
+      "name": "סקירה כללית"
+    },
+    "packages": {
+      "name": "חבילות"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "קבוצות מקרי בדיקה"
+    },
+    "timeline": {
+      "name": "ציר זמן",
+      "selected": "נבחר מקרה בדיקה {{count}} ({{percent}}%) עם זמן ריצה מעל {{duration}}",
+      "selected_one": "נבחר מקרה בדיקה {{count}} ({{percent}}%) עם זמן ריצה מעל {{duration}}",
+      "selected_two": "נבחרו {{count}} מקרי בדיקה ({{percent}}%) עם זמן ריצה מעל {{duration}}",
+      "selected_other": "נבחרו {{count}} מקרי בדיקה ({{percent}}%) עם זמן ריצה מעל {{duration}}",
+      "resultLink": "פתח תוצאת בדיקה {{name}}, סטטוס {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "קטגוריות"
+    },
+    "description": {
+      "name": "תיאור"
+    },
+    "duration": {
+      "name": "זמן ריצה"
+    },
+    "execution": {
+      "body": "תוכן מקרה הבדיקה",
+      "downloadAttachment": {
+        "tooltip": "פתח את הקובץ המצורף בלשונית חדשה"
+      },
+      "name": "הרצה",
+      "setup": "הכנת הריצה",
+      "teardown": "סיום הריצה",
+      "empty": "אין מידע זמין על הרצת הבדיקה."
+    },
+    "history": {
+      "empty": "אין מידע על היסטוריה.",
+      "name": "היסטוריה",
+      "statistic": "{{passed}} מתוך {{total}}",
+      "successRate": "שיעור הצלחה",
+      "time": "{{date}} בשעה {{time}}"
+    },
+    "links": {
+      "name": "קישורים"
+    },
+    "overview": {
+      "name": "סקירה כללית"
+    },
+    "owner": {
+      "name": "האחראי למקרה הבדיקה"
+    },
+    "parameters": {
+      "name": "פרמטרים"
+    },
+    "retries": {
+      "empty": "אין מידע זמין על ניסיונות ריצה חוזרים",
+      "name": "ניסיונות ריצה חוזרים",
+      "time": "{{date}} בשעה {{time}}"
+    },
+    "severity": {
+      "name": "חומרה",
+      "blocker": "חוסם",
+      "critical": "קריטי",
+      "normal": "רגיל",
+      "minor": "משני",
+      "trivial": "זניח"
+    },
+    "stats": {
+      "count": {
+        "attachments": "תוכן מצורף {{count}}",
+        "parameters": "פרמטר {{count}}",
+        "steps": "צעד משנה {{count}}",
+        "attachments_one": "תוכן מצורף {{count}}",
+        "attachments_two": "{{count}} תכנים מצורפים",
+        "attachments_other": "{{count}} תכנים מצורפים",
+        "parameters_one": "פרמטר {{count}}",
+        "parameters_two": "{{count}} פרמטרים",
+        "parameters_other": "{{count}} פרמטרים",
+        "steps_one": "צעד משנה {{count}}",
+        "steps_two": "{{count}} צעדי משנה",
+        "steps_other": "{{count}} צעדי משנה"
+      }
+    },
+    "status": {
+      "empty": "לא קיימים פרטים על מצב מקרה הבדיקה",
+      "trace": "הצג מידע נוסף"
+    },
+    "tags": {
+      "name": "תגים"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "קטגוריות"
+    },
+    "behaviors": {
+      "name": "תכונות לפי סיפורי משתמש",
+      "showAll": "הצג הכול"
+    },
+    "categoriesTrend": {
+      "name": "מגמת ריצה על קטגוריות"
+    },
+    "durationTrend": {
+      "name": "מגמת זמן ריצה"
+    },
+    "environment": {
+      "empty": "לא קיימים משתני סביבה",
+      "name": "משתני סביבה",
+      "showAll": "הצג את כל משתני הסביבה"
+    },
+    "executors": {
+      "empty": "לא קיים מידע על כלי הרצת מקרי הבדיקה",
+      "name": "כלי הרצה",
+      "unknown": "לא ידוע"
+    },
+    "launches": {
+      "empty": "לא קיים מידע על חבילות הרצה",
+      "name": "חבילות הרצה"
+    },
+    "retryTrend": {
+      "name": "מגמת חזרות על ריצה"
+    },
+    "suites": {
+      "name": "קבוצות מקרי בדיקה"
+    },
+    "summary": {
+      "aggregatedName": "דוח",
+      "launches": "חבילת הרצה",
+      "testResults": "תוצאת בדיקה",
+      "launches_one": "חבילת הרצה",
+      "launches_two": "חבילות הרצה",
+      "launches_other": "חבילות הרצה",
+      "testResults_one": "תוצאת בדיקה",
+      "testResults_two": "תוצאות בדיקה",
+      "testResults_other": "תוצאות בדיקה"
+    },
+    "trend": {
+      "name": "מגמת ריצות"
+    }
+  }
+}

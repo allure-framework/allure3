@@ -124,12 +124,13 @@ describe("Launch git flow", () => {
     const commit = "a".repeat(40);
     const parent = "b".repeat(40);
 
-    (detect as Mock).mockReturnValue({
+    const ci = {
       ...githubCi,
       provider: GitProvider.Github,
       repository: { slug: "myorg/myrepo" },
       sourceBranch: "feature",
-    });
+    };
+    (detect as Mock).mockReturnValue(ci);
     vi.mocked(collectGitFacts).mockReturnValue({
       commit,
       firstParentAncestors: [parent],
@@ -227,13 +228,14 @@ describe("Launch git flow", () => {
   });
 
   it("omits git context when pull request branches are incomplete", async () => {
-    (detect as Mock).mockReturnValue({
+    const ci = {
       ...githubCi,
       provider: GitProvider.Github,
       repository: { slug: "org/repo" },
       sourceBranch: "feature",
       pullRequest: { id: "9" },
-    });
+    };
+    (detect as Mock).mockReturnValue(ci);
     vi.mocked(collectGitFacts).mockReturnValue({
       commit: "c".repeat(40),
       firstParentAncestors: [],

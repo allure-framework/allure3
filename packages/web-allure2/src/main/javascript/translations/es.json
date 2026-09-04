@@ -1,0 +1,298 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "No hay nada para mostrar",
+      "name": "Duración"
+    },
+    "severity": {
+      "name": "Severidad"
+    },
+    "status": {
+      "name": "Estado"
+    },
+    "trend": {
+      "empty": "No hay nada para mostrar",
+      "reportLink": "Abrir reporte de {{name}}"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Ocultar {{mark}} resultados de prueba",
+      "showCases": "Mostrar {{mark}} resultados de prueba"
+    },
+    "statusToggle": {
+      "hideCases": "Ocultar resultados de pruebas con estado {{status}}",
+      "showCases": "Mostrar resultados de pruebas con estado {{status}}"
+    },
+    "tree": {
+      "download": "Descargar CSV",
+      "empty": "No hay ítems",
+      "filter": "Estado",
+      "filter-marks": "Marcas",
+      "unknown": "<Vacío>",
+      "filtered": {
+        "shown": "{{count}} mostrados",
+        "total": "{{count}} resultado",
+        "total_one": "{{count}} resultado",
+        "total_many": "{{count}} resultados",
+        "total_other": "{{count}} resultados"
+      },
+      "groups": "Alternar información del grupo",
+      "time": {
+        "max": {
+          "name": "Máx.",
+          "tooltip": "Prueba con mayor duración"
+        },
+        "sum": {
+          "name": "Suma",
+          "tooltip": "Suma de todas las pruebas"
+        },
+        "total": {
+          "name": "Total general",
+          "tooltip": "Duración desde el primer test iniciado hasta el último finalizado"
+        }
+      },
+      "noItemSelected": "Ningún elemento seleccionado",
+      "search": "Buscar resultados de prueba"
+    },
+    "widgetStatus": {
+      "showAll": "Mostrar todo",
+      "total": "total de ítems {{count}}",
+      "total_one": "total de ítems {{count}}",
+      "total_many": "total de ítems {{count}}",
+      "total_other": "total de ítems {{count}}"
+    },
+    "attachment": {
+      "download": "Haz clic para descargar el adjunto",
+      "videoNotSupported": "Tu navegador no admite la etiqueta de video",
+      "htmlPreviewTitle": "Vista previa del adjunto HTML: {{name}}",
+      "previewSizeExceeded": "La vista previa del adjunto está desactivada porque el adjunto supera {{size}}.",
+      "htmlPreviewSizeExceeded": "La vista previa HTML está desactivada porque el adjunto supera {{size}}.",
+      "htmlPreviewInvalid": "La vista previa HTML está desactivada porque el adjunto no parece HTML."
+    },
+    "screenDiff": {
+      "empty": "No se proporcionaron datos de diferencias",
+      "name": "Diferencia de pantalla",
+      "showDiff": "Mostrar diferencias",
+      "showOverlay": "Mostrar superposición"
+    }
+  },
+  "controls": {
+    "backto": "Volver a",
+    "clipboard": "Copiar a portapapeles",
+    "clipboardError": "No es posible utilizar el portapapeles. Parece ser que esta funcionalidad no es soportada por tu navegador",
+    "clipboardSuccess": "Copiado exitosamente",
+    "collapse": "Colapsar",
+    "expand": "Expandir",
+    "fullscreen": "Pantalla completa",
+    "language": "Cambiar lenguaje",
+    "languageShort": "Idioma",
+    "lightTheme": "Tema claro",
+    "darkTheme": "Tema oscuro",
+    "loading": "Cargando...",
+    "close": "Cerrar"
+  },
+  "errors": {
+    "missedAttachment": "Adjunto no encontrado",
+    "notFound": "No encontrado",
+    "loadingFailed": "No se pudieron cargar los datos",
+    "tabNotFound": "No se encontró la pestaña \"{{tab}}\"",
+    "testResultNotFound": "No se encontró el resultado de prueba con uid \"{{uid}}\""
+  },
+  "marks": {
+    "flaky": "Inestable",
+    "newBroken": "Nuevo roto",
+    "newFailed": "Nuevo fallido",
+    "newPassed": "Nuevo pasado",
+    "retriesStatusChange": "El estado cambió después de reintentar"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "duración",
+    "name": "nombre",
+    "order": "orden",
+    "status": "estado"
+  },
+  "status": {
+    "broken": "Roto",
+    "failed": "Fallido",
+    "passed": "Exitoso",
+    "skipped": "Ignorado",
+    "unknown": "Desconocido"
+  },
+  "tab": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "behaviors": {
+      "name": "Funcionalidades"
+    },
+    "graph": {
+      "name": "Gráficos"
+    },
+    "overview": {
+      "name": "Visión General"
+    },
+    "packages": {
+      "name": "Paquetes"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Suites de prueba"
+    },
+    "timeline": {
+      "name": "Línea de Tiempo",
+      "selected": "Selecionada {{count}} prueba ({{percent}}%) con duración arriba de {{duration}}",
+      "selected_one": "Selecionada {{count}} prueba ({{percent}}%) con duración arriba de {{duration}}",
+      "selected_many": "Selecionadas {{count}} pruebas ({{percent}}%) con duración arriba de {{duration}}",
+      "selected_other": "Selecionadas {{count}} pruebas ({{percent}}%) con duración arriba de {{duration}}",
+      "resultLink": "Abrir resultado de prueba {{name}}, estado {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "description": {
+      "name": "Descripción"
+    },
+    "duration": {
+      "name": "Duración"
+    },
+    "execution": {
+      "body": "Contenido de la prueba",
+      "downloadAttachment": {
+        "tooltip": "Abrir el adjunto en una pestaña nueva"
+      },
+      "name": "Ejecución",
+      "setup": "Pre-ejecución",
+      "teardown": "Post-ejecución",
+      "empty": "No hay información disponible sobre la ejecución de la prueba."
+    },
+    "history": {
+      "empty": "No hay información de historial disponible.",
+      "name": "Histórico",
+      "statistic": "{{passed}} de {{total}}",
+      "successRate": "Tasa de éxito",
+      "time": "{{date}} a las {{time}}"
+    },
+    "links": {
+      "name": "Enlaces"
+    },
+    "overview": {
+      "name": "Visión general"
+    },
+    "owner": {
+      "name": "Propietario"
+    },
+    "parameters": {
+      "name": "Parámetros"
+    },
+    "retries": {
+      "empty": "No hay información disponible sobre los reintentos de la prueba",
+      "name": "Reintentos",
+      "time": "{{date}} a las {{time}}"
+    },
+    "severity": {
+      "name": "Severidad",
+      "blocker": "bloqueante",
+      "critical": "crítica",
+      "normal": "media",
+      "minor": "menor",
+      "trivial": "mínima"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} adjunto",
+        "parameters": "{{count}} parámetro",
+        "steps": "{{count}} sub-paso",
+        "attachments_one": "{{count}} adjunto",
+        "attachments_many": "{{count}} adjuntos",
+        "attachments_other": "{{count}} adjuntos",
+        "parameters_one": "{{count}} parámetro",
+        "parameters_many": "{{count}} parámetros",
+        "parameters_other": "{{count}} parámetros",
+        "steps_one": "{{count}} sub-paso",
+        "steps_many": "{{count}} sub-pasos",
+        "steps_other": "{{count}} sub-pasos"
+      }
+    },
+    "status": {
+      "empty": "Detalles de estado no existente",
+      "trace": "Mostrar trace"
+    },
+    "tags": {
+      "name": "Etiquetas"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "behaviors": {
+      "name": "Funcionalidades por Historias de Usuario",
+      "showAll": "mostrar todo"
+    },
+    "categoriesTrend": {
+      "name": "Tendencia de categorías"
+    },
+    "durationTrend": {
+      "name": "Tendencia de duraciones"
+    },
+    "environment": {
+      "empty": "No hay variables de ambiente definidas",
+      "name": "Ambiente",
+      "showAll": "Mostrar todo"
+    },
+    "executors": {
+      "empty": "No hay información sobre los ejecutores de pruebas",
+      "name": "Ejecutores",
+      "unknown": "Desconocido"
+    },
+    "launches": {
+      "empty": "No hay información sobre ejecutores",
+      "name": "Ejecutores"
+    },
+    "retryTrend": {
+      "name": "Tendencia de reintentos"
+    },
+    "suites": {
+      "name": "Suites de prueba"
+    },
+    "summary": {
+      "aggregatedName": "Reporte agregado",
+      "launches": "ejecución",
+      "testResults": "caso de prueba",
+      "launches_one": "ejecución",
+      "launches_many": "ejecuciones",
+      "launches_other": "ejecuciones",
+      "testResults_one": "caso de prueba",
+      "testResults_many": "casos de prueba",
+      "testResults_other": "casos de prueba"
+    },
+    "trend": {
+      "name": "Tendencia"
+    }
+  }
+}

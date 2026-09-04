@@ -34,6 +34,16 @@ describe("azure", () => {
       expect(getRootURL()).toBe("https://dev.azure.com/organization");
     });
 
+    it("should drop the trailing slash Azure always adds", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "SYSTEM_COLLECTIONURI") {
+          return "https://dev.azure.com/organization/";
+        }
+      });
+
+      expect(getRootURL()).toBe("https://dev.azure.com/organization");
+    });
+
     it("should return empty string when environment variable is not set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "SYSTEM_COLLECTIONURI") {

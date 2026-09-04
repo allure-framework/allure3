@@ -7,7 +7,7 @@ import { performance } from "node:perf_hooks";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  getPerfMetricsPayload,
+  getPerfMetricsResults,
   measurePerf,
   PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
@@ -42,7 +42,7 @@ describe("perf metrics", () => {
 
     await expect(writePerfMetrics(output)).resolves.toBe(false);
     expect(existsSync(join(output, PERF_METRICS_FILE))).toBe(false);
-    expect(getPerfMetricsPayload().spans).toEqual([]);
+    expect(getPerfMetricsResults()).toEqual([]);
   });
 
   it("records nested async spans when enabled", async () => {
@@ -52,12 +52,13 @@ describe("perf metrics", () => {
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {});
     });
 
-    const payload = getPerfMetricsPayload();
+    const results = getPerfMetricsResults();
 
-    expect(payload.summary).toEqual(
+    expect(results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
       ]),
     );
   });
@@ -71,9 +72,12 @@ describe("perf metrics", () => {
       }),
     ).rejects.toThrow("generation failed");
 
-    expect(getPerfMetricsPayload().summary).toEqual([
-      expect.objectContaining({ name: PERF_METRIC_NAMES.generatePluginsDone, count: 1 }),
-    ]);
+    expect(getPerfMetricsResults()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
+      ]),
+    );
   });
 
   it("clears perf_hooks marks and measures after each span", async () => {
@@ -94,16 +98,22 @@ describe("perf metrics", () => {
 
     await expect(writePerfMetrics(output)).resolves.toBe(true);
 
-    const payload = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
 
-    expect(payload.spans).toEqual([
+    expect(metrics).toEqual([
       expect.objectContaining({
-        name: PERF_METRIC_NAMES.summaryGenerate,
-        startTimeMs: expect.any(Number),
-        durationMs: expect.any(Number),
+        key: PERF_METRIC_NAMES.allureTotal,
+        value: expect.any(Number),
+        start: expect.any(Number),
+        stop: expect.any(Number),
+      }),
+      expect.objectContaining({
+        key: PERF_METRIC_NAMES.summaryGenerate,
+        value: expect.any(Number),
+        start: expect.any(Number),
+        stop: expect.any(Number),
       }),
     ]);
-    expect(payload.summary).toEqual([expect.objectContaining({ name: PERF_METRIC_NAMES.summaryGenerate, count: 1 })]);
-    expect(getPerfMetricsPayload().spans).toEqual([]);
+    expect(getPerfMetricsResults()).toEqual([]);
   });
 });
