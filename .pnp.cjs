@@ -764,12 +764,12 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
-          ["@types/archiver", "npm:6.0.3"],\
+          ["@types/archiver", "npm:8.0.0"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["archiver", "npm:7.0.1"],\
+          ["archiver", "npm:8.0.0"],\
           ["fast-xml-parser", "npm:5.8.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
@@ -10918,10 +10918,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/archiver", [\
-      ["npm:6.0.3", {\
-        "packageLocation": "./.yarn/cache/@types-archiver-npm-6.0.3-a4b881a8b8-c0ab3ca45b.zip/node_modules/@types/archiver/",\
+      ["npm:8.0.0", {\
+        "packageLocation": "./.yarn/cache/@types-archiver-npm-8.0.0-c090351288-e2e93b45e6.zip/node_modules/@types/archiver/",\
         "packageDependencies": [\
-          ["@types/archiver", "npm:6.0.3"],\
+          ["@types/archiver", "npm:8.0.0"],\
+          ["@types/node", "npm:25.9.1"],\
           ["@types/readdir-glob", "npm:1.1.5"]\
         ],\
         "linkType": "HARD"\
@@ -13109,33 +13110,19 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["archiver", [\
-      ["npm:7.0.1", {\
-        "packageLocation": "./.yarn/cache/archiver-npm-7.0.1-3d250dfaf3-81c6102db9.zip/node_modules/archiver/",\
+      ["npm:8.0.0", {\
+        "packageLocation": "./.yarn/cache/archiver-npm-8.0.0-1e3e450e99-d86b4de7c8.zip/node_modules/archiver/",\
         "packageDependencies": [\
-          ["archiver", "npm:7.0.1"],\
-          ["archiver-utils", "npm:5.0.2"],\
+          ["archiver", "npm:8.0.0"],\
           ["async", "npm:3.2.6"],\
           ["buffer-crc32", "npm:1.0.0"],\
-          ["readable-stream", "npm:4.7.0"],\
-          ["readdir-glob", "npm:1.1.3"],\
-          ["tar-stream", "npm:3.1.7"],\
-          ["zip-stream", "npm:6.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["archiver-utils", [\
-      ["npm:5.0.2", {\
-        "packageLocation": "./.yarn/cache/archiver-utils-npm-5.0.2-a19b25b4fd-9dde4aa3f0.zip/node_modules/archiver-utils/",\
-        "packageDependencies": [\
-          ["archiver-utils", "npm:5.0.2"],\
-          ["glob", "npm:10.5.0"],\
-          ["graceful-fs", "npm:4.2.11"],\
-          ["is-stream", "npm:2.0.1"],\
+          ["is-stream", "npm:4.0.1"],\
           ["lazystream", "npm:1.0.1"],\
-          ["lodash", "npm:4.18.1"],\
           ["normalize-path", "npm:3.0.0"],\
-          ["readable-stream", "npm:4.7.0"]\
+          ["readable-stream", "npm:4.7.0"],\
+          ["readdir-glob", "npm:3.0.0"],\
+          ["tar-stream", "npm:3.1.7"],\
+          ["zip-stream", "npm:7.0.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -14388,18 +14375,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["compress-commons", [\
-      ["npm:6.0.2", {\
-        "packageLocation": "./.yarn/cache/compress-commons-npm-6.0.2-f21623b848-78e3ba10ae.zip/node_modules/compress-commons/",\
-        "packageDependencies": [\
-          ["compress-commons", "npm:6.0.2"],\
-          ["crc-32", "npm:1.2.2"],\
-          ["crc32-stream", "npm:6.0.0"],\
-          ["is-stream", "npm:2.0.1"],\
-          ["normalize-path", "npm:3.0.0"],\
-          ["readable-stream", "npm:4.7.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:7.0.0", {\
         "packageLocation": "./.yarn/cache/compress-commons-npm-7.0.0-977eeb5801-58e60bab0f.zip/node_modules/compress-commons/",\
         "packageDependencies": [\
@@ -14637,15 +14612,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["crc32-stream", [\
-      ["npm:6.0.0", {\
-        "packageLocation": "./.yarn/cache/crc32-stream-npm-6.0.0-fcf8d3f1b3-e6edc2f81b.zip/node_modules/crc32-stream/",\
-        "packageDependencies": [\
-          ["crc-32", "npm:1.2.2"],\
-          ["crc32-stream", "npm:6.0.0"],\
-          ["readable-stream", "npm:4.7.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:7.0.1", {\
         "packageLocation": "./.yarn/cache/crc32-stream-npm-7.0.1-db3460b18d-2866f36241.zip/node_modules/crc32-stream/",\
         "packageDependencies": [\
@@ -18298,13 +18264,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["is-stream", [\
-      ["npm:2.0.1", {\
-        "packageLocation": "./.yarn/cache/is-stream-npm-2.0.1-c802db55e7-b8e05ccdf9.zip/node_modules/is-stream/",\
-        "packageDependencies": [\
-          ["is-stream", "npm:2.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:4.0.1", {\
         "packageLocation": "./.yarn/cache/is-stream-npm-4.0.1-328fd196cc-cbea3f1fc2.zip/node_modules/is-stream/",\
         "packageDependencies": [\
@@ -19518,14 +19477,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["brace-expansion", "npm:5.0.9"],\
           ["minimatch", "npm:3.1.5"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:5.1.9", {\
-        "packageLocation": "./.yarn/cache/minimatch-npm-5.1.9-fc73125478-23b4feb64d.zip/node_modules/minimatch/",\
-        "packageDependencies": [\
-          ["brace-expansion", "npm:5.0.9"],\
-          ["minimatch", "npm:5.1.9"]\
         ],\
         "linkType": "HARD"\
       }],\
@@ -21943,11 +21894,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["readdir-glob", [\
-      ["npm:1.1.3", {\
-        "packageLocation": "./.yarn/cache/readdir-glob-npm-1.1.3-ad1a82fc20-ca3a20aa1e.zip/node_modules/readdir-glob/",\
+      ["npm:3.0.0", {\
+        "packageLocation": "./.yarn/cache/readdir-glob-npm-3.0.0-436f120e9e-438c23cc94.zip/node_modules/readdir-glob/",\
         "packageDependencies": [\
-          ["minimatch", "npm:5.1.9"],\
-          ["readdir-glob", "npm:1.1.3"]\
+          ["minimatch", "npm:10.2.5"],\
+          ["readdir-glob", "npm:3.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -26870,16 +26821,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["zip-stream", [\
-      ["npm:6.0.1", {\
-        "packageLocation": "./.yarn/cache/zip-stream-npm-6.0.1-21da293d4a-aa5abd6a89.zip/node_modules/zip-stream/",\
-        "packageDependencies": [\
-          ["archiver-utils", "npm:5.0.2"],\
-          ["compress-commons", "npm:6.0.2"],\
-          ["readable-stream", "npm:4.7.0"],\
-          ["zip-stream", "npm:6.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:7.0.5", {\
         "packageLocation": "./.yarn/cache/zip-stream-npm-7.0.5-e1173e5059-6c9d870fca.zip/node_modules/zip-stream/",\
         "packageDependencies": [\
