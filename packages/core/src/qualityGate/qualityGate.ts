@@ -1,5 +1,10 @@
-import { type TestError, type TestResult } from "@allurereport/core-api";
-import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
+import { type MetricSample, type TestError, type TestResult } from "@allurereport/core-api";
+import type {
+  QualityGateConfig,
+  QualityGateMetricHistoryPoint,
+  QualityGateRule,
+  QualityGateValidationResult,
+} from "@allurereport/plugin-api";
 import { bold, gray, red } from "yoctocolors";
 
 import { isIgnoredFailure } from "../resolutions.js";
@@ -59,10 +64,10 @@ export const convertQualityGateResultsToTestErrors = (results: QualityGateValida
 };
 
 export class QualityGateState {
-  #state: Record<string, { result: any; testResults: string[] }> = {};
+  #state: Record<string, { result: unknown; testResults: string[] }> = {};
   #processedTestResultIds = new Set<string>();
 
-  setResult(rule: string, value: any, testResults: string[] = []) {
+  setResult(rule: string, value: unknown, testResults: string[] = []) {
     const previousTestResults = this.#state[rule]?.testResults ?? [];
 
     this.#state[rule] = {
@@ -94,9 +99,11 @@ export class QualityGate {
   async validate(payload: {
     state?: QualityGateState;
     trs: TestResult[];
+    metrics?: MetricSample[];
+    previousHistory?: QualityGateMetricHistoryPoint[];
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, environment } = payload;
+    const { state, trs, metrics = [], previousHistory = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
 
     for (const tr of trs) {
@@ -108,7 +115,7 @@ export class QualityGate {
     }
 
     const trsToValidate = trsToValidateById.values().toArray();
-    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
+    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
 
@@ -145,9 +152,11 @@ export class QualityGate {
           trs: filteredTrs,
           state: {
             getResult: () => state?.getResult?.(ruleId),
-            setResult: (value: any, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),
+            setResult: (value: unknown, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),
           },
           expected,
+          metrics,
+          previousHistory,
           environment,
         });
 

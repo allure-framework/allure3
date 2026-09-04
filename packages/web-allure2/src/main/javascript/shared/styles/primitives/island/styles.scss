@@ -1,0 +1,8 @@
+@use "../../../../theme/spacing.scss" as *;
+.island {
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-1);
+  box-shadow: var(--shadow-small);
+  padding: gap(2);
+}

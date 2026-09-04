@@ -1,8 +1,12 @@
+import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 
-export const PERF_METRICS_FILE = "allure-perf-metrics.json";
+import type { AllurePerformanceResult } from "@allurereport/core-api";
+
+export const PERF_METRICS_FILE = "performance.json";
+export const perfMetricsFileName = (reportUuid: string) => `${reportUuid}-perf.json`;
 
 export type PerfMetricSpan = {
   name: string;
@@ -19,14 +23,6 @@ export type PerfMetricSummary = {
   avgMs: number;
 };
 
-export type PerfMetricsPayload = {
-  version: 1;
-  generatedAt: string;
-  timeOriginMs: number;
-  spans: PerfMetricSpan[];
-  summary: PerfMetricSummary[];
-};
-
 const MARK_PREFIX = "allure:perf:";
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 const SPANS: PerfMetricSpan[] = [];
@@ -38,6 +34,7 @@ let sequence = 0;
 const round = (value: number) => Number(value.toFixed(3));
 
 export const PERF_METRIC_NAMES = {
+  allureTotal: "allure.total",
   restoreStateTotal: "restoreState.total",
   restoreStateDump: "restoreState.dump",
   restoreStateAttachments: "restoreState.attachments",
@@ -53,6 +50,25 @@ export const PERF_METRIC_PREFIXES = {
   generatePluginDone: "generate.plugin.done.",
   publishUploadPlugin: "publish.upload.plugin.",
 } as const;
+
+const getCoveredDurationSummary = (): PerfMetricSummary | undefined => {
+  if (SPANS.length === 0) {
+    return undefined;
+  }
+
+  const startTimeMs = Math.min(...SPANS.map(({ startTimeMs }) => startTimeMs));
+  const endTimeMs = Math.max(...SPANS.map(({ startTimeMs, durationMs }) => startTimeMs + durationMs));
+  const durationMs = round(endTimeMs - startTimeMs);
+
+  return {
+    name: PERF_METRIC_NAMES.allureTotal,
+    count: 1,
+    totalMs: durationMs,
+    minMs: durationMs,
+    maxMs: durationMs,
+    avgMs: durationMs,
+  };
+};
 
 export const isPerfMetricsEnabled = () => ENABLED_VALUES.has((process.env.ALLURE_PERF_METRICS ?? "").toLowerCase());
 
@@ -113,46 +129,40 @@ export const measurePerf = async <T>(name: string, fn: () => Promise<T>): Promis
   }
 };
 
-export const getPerfMetricsPayload = (): PerfMetricsPayload => {
-  const byName = new Map<string, PerfMetricSpan[]>();
+export const getPerfMetricsResults = (): AllurePerformanceResult[] => {
+  const totalSummary = getCoveredDurationSummary();
+  const results = SPANS.map((span) => ({
+    id: randomUUID(),
+    key: span.name,
+    value: span.durationMs,
+    start: round(performance.timeOrigin + span.startTimeMs),
+    stop: round(performance.timeOrigin + span.startTimeMs + span.durationMs),
+  }));
 
-  for (const span of SPANS) {
-    const current = byName.get(span.name) ?? [];
-
-    current.push(span);
-    byName.set(span.name, current);
+  if (totalSummary) {
+    results.unshift({
+      id: randomUUID(),
+      key: PERF_METRIC_NAMES.allureTotal,
+      value: totalSummary.avgMs,
+      start: round(performance.timeOrigin + Math.min(...SPANS.map(({ startTimeMs }) => startTimeMs))),
+      stop: round(
+        performance.timeOrigin + Math.max(...SPANS.map(({ startTimeMs, durationMs }) => startTimeMs + durationMs)),
+      ),
+    });
   }
 
-  return {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    timeOriginMs: round(performance.timeOrigin),
-    spans: [...SPANS],
-    summary: [...byName.entries()].map(([name, group]) => {
-      const durations = group.map(({ durationMs }) => durationMs);
-      const totalMs = durations.reduce((acc, duration) => acc + duration, 0);
-
-      return {
-        name,
-        count: group.length,
-        totalMs: round(totalMs),
-        minMs: round(Math.min(...durations)),
-        maxMs: round(Math.max(...durations)),
-        avgMs: round(totalMs / group.length),
-      };
-    }),
-  };
+  return results;
 };
 
-export const writePerfMetrics = async (output: string): Promise<boolean> => {
+export const writePerfMetrics = async (output: string, fileName = PERF_METRICS_FILE): Promise<boolean> => {
   if (!isPerfMetricsEnabled()) {
     return false;
   }
 
-  const payload = getPerfMetricsPayload();
+  const results = getPerfMetricsResults();
 
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, PERF_METRICS_FILE), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  await writeFile(join(output, fileName), `${JSON.stringify(results, null, 2)}\n`, "utf8");
   resetPerfMetrics();
 
   return true;

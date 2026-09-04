@@ -1,4 +1,4 @@
-import { ChartType, type StatusAgePyramidChartData } from "@allurereport/charts-api";
+import { ChartType, type StatusAgePyramidChartData, type TrSeveritiesChartData } from "@allurereport/charts-api";
 import {
   DEFAULT_ENVIRONMENT,
   type HistoryDataPoint,
@@ -304,5 +304,32 @@ describe("generateCharts", () => {
 
     expect(chromeChart.data.map(({ id }) => id)).toEqual(["chrome-run", "current"]);
     expect(chromeChart.data.find(({ id }) => id === "chrome-run")?.failed).toBe(1);
+  });
+
+  it("should not mutate severity chart options during chart generation", async () => {
+    const layout = [
+      {
+        type: ChartType.TrSeverities,
+        levels: ["blocker", "critical"],
+        includeUnset: true,
+      },
+    ];
+    const store = createStore({
+      testResults: [
+        createTestResult({
+          id: "tr-current",
+          name: "without severity",
+          status: "failed",
+        }),
+      ],
+      historyDataPoints: [],
+    });
+
+    await generateCharts(layout, store, "Sample report", () => "first-chart");
+    const charts = await generateCharts(layout, store, "Sample report", () => "second-chart");
+    const chart = charts.general["second-chart"] as TrSeveritiesChartData;
+
+    expect(layout[0].levels).toEqual(["blocker", "critical"]);
+    expect(chart.levels).toEqual(["blocker", "critical", "unset"]);
   });
 });

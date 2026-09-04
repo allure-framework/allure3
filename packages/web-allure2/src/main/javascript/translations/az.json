@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "Göstəriləcək heç nə yoxdur",
+      "name": "Test müddəti"
+    },
+    "severity": {
+      "name": "Testlərin əhəmiyyəti"
+    },
+    "status": {
+      "name": "Testlərin statusu"
+    },
+    "trend": {
+      "empty": "Göstəriləcək heç nə yoxdur",
+      "reportLink": "{{name}} üçün hesabatı açın"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "{{mark}} nəticəni gizlədin",
+      "showCases": "{{mark}} nəticəni göstərin"
+    },
+    "statusToggle": {
+      "hideCases": "{{status}} statuslu test nəticələrini gizlədin",
+      "showCases": "{{status}} statuslu test nəticələrini gizlədin"
+    },
+    "tree": {
+      "download": "CSV endirin",
+      "empty": "Məlumat yoxdur",
+      "filter": "Vəziyyət",
+      "filter-marks": "Teqlər",
+      "filtered": {
+        "shown": "{{count}} göstərilir",
+        "total": "{{count}} test nəticəsi",
+        "total_one": "{{count}} test nəticəsi",
+        "total_other": "{{count}} test nəticəsi"
+      },
+      "groups": "Qruplar haqqında məlumatları göstərin",
+      "time": {
+        "max": {
+          "name": "Maks",
+          "tooltip": "Qrupdakı ən uzun testin müddəti"
+        },
+        "sum": {
+          "name": "Cəm",
+          "tooltip": "Qrupdakı test müddətlərinin cəmi"
+        },
+        "total": {
+          "name": "Toplam",
+          "tooltip": "İlk test başlayandan sonuncu bitənə qədər olan vaxt"
+        }
+      },
+      "unknown": "<Boş>",
+      "noItemSelected": "Heç bir element seçilməyib",
+      "search": "Test nəticələrində axtarın"
+    },
+    "widgetStatus": {
+      "showAll": "Hamısını göstər",
+      "total": "Toplam {{count}} element",
+      "total_one": "Toplam {{count}} element",
+      "total_other": "Toplam {{count}} element"
+    },
+    "attachment": {
+      "download": "Qoşmanı endirmək üçün klikləyin",
+      "videoNotSupported": "Brauzeriniz video teqini dəstəkləmir",
+      "htmlPreviewTitle": "HTML qoşmasına önbaxış: {{name}}",
+      "previewSizeExceeded": "Qoşmanın önizləməsi deaktiv edilib, çünki qoşma {{size}} ölçüsündən böyükdür.",
+      "htmlPreviewSizeExceeded": "HTML önizləməsi deaktiv edilib, çünki qoşma {{size}} ölçüsündən böyükdür.",
+      "htmlPreviewInvalid": "HTML önizləməsi deaktiv edilib, çünki qoşma HTML kimi görünmür."
+    },
+    "screenDiff": {
+      "empty": "Fərq məlumatı yoxdur",
+      "name": "Ekran fərqi",
+      "showDiff": "Fərqi göstərin",
+      "showOverlay": "Üst-üstə görünüşü göstərin"
+    }
+  },
+  "controls": {
+    "backto": "Geri",
+    "clipboard": "Mübadilə buferinə kopyala",
+    "clipboardError": "Mübadilə buferinə kopyalamaq mümkün olmadı. Bu özəllik browseriniz tərəfindən dəstəklənmir",
+    "clipboardSuccess": "Uğurla kopyalandı",
+    "collapse": "Aç",
+    "expand": "Genişlət",
+    "fullscreen": "Tam ekran",
+    "language": "Dili dəyişin",
+    "languageShort": "Dil",
+    "lightTheme": "Açıq tema",
+    "darkTheme": "Tünd tema",
+    "loading": "Yüklənir...",
+    "close": "Bağla"
+  },
+  "errors": {
+    "missedAttachment": "Qoşma tapılmadı",
+    "notFound": "Tapılmadı",
+    "loadingFailed": "Məlumatları yükləmək alınmadı",
+    "tabNotFound": "\"{{tab}}\" bölməsi tapılmadı",
+    "testResultNotFound": "uid \"{{uid}}\" olan test nəticəsi tapılmadı"
+  },
+  "marks": {
+    "flaky": "Qeyri-sabit",
+    "newBroken": "Yeni qırılmış",
+    "newFailed": "Yeni uğursuz",
+    "newPassed": "Yeni keçmiş",
+    "retriesStatusChange": "Yenidən cəhd etdikdən sonra status dəyişib"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "müddət",
+    "name": "ad",
+    "order": "sıra",
+    "status": "vəziyyət"
+  },
+  "status": {
+    "broken": "Qırılmış",
+    "failed": "Uğursuz",
+    "passed": "Keçmiş",
+    "skipped": "Buraxılmış",
+    "unknown": "Qeyri müəyyən"
+  },
+  "tab": {
+    "categories": {
+      "name": "Kateqoriyalar"
+    },
+    "behaviors": {
+      "name": "Davranışlar"
+    },
+    "graph": {
+      "name": "Qraflar"
+    },
+    "overview": {
+      "name": "Ümumibaxış"
+    },
+    "packages": {
+      "name": "Paketlər"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "Test dəsti"
+    },
+    "timeline": {
+      "name": "Zaman şkalası",
+      "selected": "Müddəti {{duration}} çox olan {{count}} test ({{percent}}%) seçildi",
+      "selected_one": "Müddəti {{duration}} çox olan {{count}} test ({{percent}}%) seçildi",
+      "selected_other": "Müddəti {{duration}} çox olan {{count}} test ({{percent}}%) seçildi",
+      "resultLink": "{{name}} test nəticəsini açın, vəziyyət: {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Kateqoriyalar"
+    },
+    "description": {
+      "name": "Açıqlama"
+    },
+    "duration": {
+      "name": "Müddət"
+    },
+    "execution": {
+      "body": "Test gövdəsi",
+      "downloadAttachment": {
+        "tooltip": "Qoşmanı yeni tabda açın"
+      },
+      "name": "İcra",
+      "setup": "Hazırlanma",
+      "teardown": "Sonlandırma",
+      "empty": "Testin icrası haqqında məlumat yoxdur."
+    },
+    "history": {
+      "empty": "Tarix məlumatı tapılmadı.",
+      "name": "Tarix",
+      "statistic": "Toplam:{{total}}, Keçmiş:{{passed}} ",
+      "successRate": "Uğur faizi",
+      "time": "{{date}} saat {{time}}"
+    },
+    "links": {
+      "name": "Linklər"
+    },
+    "overview": {
+      "name": "Ümumibaxış"
+    },
+    "owner": {
+      "name": "Sahibi"
+    },
+    "parameters": {
+      "name": "Parameterlər"
+    },
+    "retries": {
+      "empty": "Testlərin yenidən çalışdırılması ilə bağlı məlumat yoxdur",
+      "name": "Yenidən Cəhdlər",
+      "time": "{{date}} saat {{time}}"
+    },
+    "severity": {
+      "name": "Əhəmiyyəti",
+      "blocker": "bloklayıcı",
+      "critical": "kritik",
+      "normal": "adi",
+      "minor": "kiçik",
+      "trivial": "əhəmiyyətsiz"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} qoşma",
+        "parameters": "{{count}} parametr",
+        "steps": "{{count}} alt addım",
+        "attachments_one": "{{count}} qoşma",
+        "attachments_other": "{{count}} qoşma",
+        "parameters_one": "{{count}} parametr",
+        "parameters_other": "{{count}} parametr",
+        "steps_one": "{{count}} alt addım",
+        "steps_other": "{{count}} alt addım"
+      }
+    },
+    "status": {
+      "empty": "Boş status detalları",
+      "trace": "Trace-i göstər"
+    },
+    "tags": {
+      "name": "Teqlər"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Kateqoriyalar"
+    },
+    "behaviors": {
+      "name": "Hekayələr üzrə xüsusiyyətlər",
+      "showAll": "hamısını göstər"
+    },
+    "categoriesTrend": {
+      "name": "Kateqoriyalar trendi"
+    },
+    "durationTrend": {
+      "name": "Müddət trendi"
+    },
+    "environment": {
+      "empty": "Mühit dəyişənləri haqqında məlumat yoxdur",
+      "name": "Mühit",
+      "showAll": "Hamısını göstər"
+    },
+    "executors": {
+      "empty": "Testin icrası sistemi haqqında məlumat yoxdur",
+      "name": "Test icraçıları",
+      "unknown": "Bilinməyən"
+    },
+    "launches": {
+      "empty": "Başlamalar haqqında məlumat yoxdur",
+      "name": "Başlamalar"
+    },
+    "retryTrend": {
+      "name": "Yenidən cəhdlər trendi"
+    },
+    "suites": {
+      "name": "Dəstlər"
+    },
+    "summary": {
+      "aggregatedName": "Ümumi hesabat",
+      "launches": "Başlama",
+      "testResults": "test nəticəsi",
+      "launches_one": "Başlama",
+      "launches_other": "Başlamalar",
+      "testResults_one": "test nəticəsi",
+      "testResults_other": "test nəticələri"
+    },
+    "trend": {
+      "name": "Tendensiya"
+    }
+  }
+}

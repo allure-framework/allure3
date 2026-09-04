@@ -4,6 +4,18 @@ import type { Allure2Status, Allure2TestResult, GroupTime } from "./model.js";
 import { statisticKeys } from "./model.js";
 import type { TreeGroup, TreeLeaf } from "./tree.js";
 
+export const createStatistic = (source: Partial<Statistic> = {}): Statistic => ({
+  failed: 0,
+  broken: 0,
+  skipped: 0,
+  passed: 0,
+  unknown: 0,
+  ...source,
+  total:
+    source.total ??
+    (source.failed ?? 0) + (source.broken ?? 0) + (source.skipped ?? 0) + (source.passed ?? 0) + (source.unknown ?? 0),
+});
+
 export const updateStatistic = (statistic: Statistic, test: { status: Allure2Status }): undefined => {
   statistic[test.status] = (statistic[test.status] ?? 0) + 1;
   statistic.total = (statistic.total ?? 0) + 1;
@@ -32,7 +44,7 @@ export const updateTime = (time: GroupTime, test: Allure2TestResult): undefined 
 };
 
 export const calculateStatisticByLeafs = (treeGroup: TreeGroup): Statistic => {
-  const current: Statistic = { total: 0 };
+  const current = createStatistic();
   treeGroup.children.forEach((child) => {
     if ("children" in child) {
       const childGroup = child as TreeGroup;

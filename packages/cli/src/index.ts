@@ -28,6 +28,7 @@ import {
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsPlanCommand,
   TestPlanCommand,
   WatchCommand,
   isAgentTaskMapHelpRequest,
@@ -66,6 +67,7 @@ cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
 cli.register(SlackCommand);
+cli.register(TestOpsPlanCommand);
 cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);

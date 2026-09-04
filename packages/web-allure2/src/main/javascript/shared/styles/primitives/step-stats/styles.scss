@@ -1,0 +1,19 @@
+@use "../../../../theme/spacing.scss" as *;
+.step-stats {
+  &__summary,
+  &__time {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-s);
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  &__summary {
+    margin-inline-start: gap(1);
+  }
+
+  &__time {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+  }
+}

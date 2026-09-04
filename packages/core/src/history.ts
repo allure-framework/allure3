@@ -8,6 +8,7 @@ import {
   type AllureHistory,
   type HistoryDataPoint,
   type HistoryTestResult,
+  type MetricSample,
   normalizeHistoryDataPointUrls,
   type TestCase,
   type TestResult,
@@ -60,12 +61,29 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
     );
 };
 
+const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number> => {
+  const grouped = new Map<string, number[]>();
+
+  for (const metric of metrics) {
+    if (!metric.key || !Number.isFinite(metric.value)) {
+      continue;
+    }
+
+    grouped.set(metric.key, [...(grouped.get(metric.key) ?? []), metric.value]);
+  }
+
+  return Object.fromEntries(
+    [...grouped.entries()].map(([key, values]) => [key, values.reduce((acc, value) => acc + value, 0) / values.length]),
+  );
+};
+
 export const createHistory = (
   reportUuid: string,
   reportName: string = "Allure Report",
   testCases: TestCase[],
   testResults: TestResult[],
   remoteUrl: string = "",
+  metrics: MetricSample[] = [],
 ): HistoryDataPoint => {
   const knownTestCaseIds = testCases.map((tc) => tc.id);
 
@@ -75,7 +93,7 @@ export const createHistory = (
     timestamp: new Date().getTime(),
     knownTestCaseIds,
     testResults: createHistoryItems(testResults, remoteUrl),
-    metrics: {},
+    metrics: metricsToHistoryValues(metrics),
     url: remoteUrl,
   };
 };

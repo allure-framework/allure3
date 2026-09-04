@@ -39,11 +39,13 @@ dist
 dist-tests
 *.tgz
 *.log
+!packages/web-allure2/tests/fixtures/**/*.log
 .playwright-cli/
 .gradle
 schema
 build
 **/allure-results
+!packages/sandbox/allure-results/
 **/.nyc_output
 **/package.tgz
 **/wallaby.js

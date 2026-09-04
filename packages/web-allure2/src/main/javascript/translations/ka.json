@@ -1,0 +1,290 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "მონაცემები არაა ხელმისაწვდომი",
+      "name": "ხანგრძლივობა"
+    },
+    "severity": {
+      "name": "სიმწვავე"
+    },
+    "status": {
+      "name": "სტატუსი"
+    },
+    "trend": {
+      "empty": "მონაცემები არაა ხელმისაწვდომი",
+      "reportLink": "გახსენი {{name}} ანგარიში"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "დამალე {{mark}} ტესტის შედეგები",
+      "showCases": "გამოაჩინე {{mark}} ტესტის შედეგები"
+    },
+    "statusToggle": {
+      "hideCases": "დამალე ტესტის შედეგები {{status}} სტატუსით",
+      "showCases": "გამოაჩინე ტესტის შედეგები {{status}} სტატუსით"
+    },
+    "tree": {
+      "download": "ჩამოტვირთე CSV",
+      "empty": "მონაცემები არაა ხელმისაწვდომი",
+      "filter": "სტატუსი",
+      "filter-marks": "მონიშვნები",
+      "filtered": {
+        "shown": "ნაჩვენებია {{count}}",
+        "total": "{{count}} ტესტის შედეგი",
+        "total_one": "{{count}} ტესტის შედეგი",
+        "total_other": "{{count}} ტესტის შედეგი"
+      },
+      "groups": "ჯგუფის ინფორმაციის გადართვა",
+      "time": {
+        "max": {
+          "name": "ყველაზე გრძელი",
+          "tooltip": "ყველაზე ხანგრძლივი ტესტი"
+        },
+        "sum": {
+          "name": "ჯამი",
+          "tooltip": "ყველა ტესტის ხანგრძლივობის ჯამი"
+        },
+        "total": {
+          "name": "სულ",
+          "tooltip": "ტესტის ხანგრძლივობა პირველი ტესტიდან ბოლოს ჩათვლით"
+        }
+      },
+      "unknown": "<ცარიელი>",
+      "noItemSelected": "არცერთი ელემენტი არ არის არჩეული",
+      "search": "ტესტის შედეგების ძიება"
+    },
+    "widgetStatus": {
+      "showAll": "ყველას ჩვენება",
+      "total": "სულ {{count}} ელემენტი",
+      "total_one": "სულ {{count}} ელემენტი",
+      "total_other": "სულ {{count}} ელემენტი"
+    },
+    "attachment": {
+      "download": "მიმაგრებული ფაილის ჩამოსატვირთად დააწკაპუნე",
+      "videoNotSupported": "თქვენი ბრაუზერი video ტეგს არ უჭერს მხარს",
+      "htmlPreviewTitle": "HTML მიმაგრებული ფაილის წინასწარი ნახვა: {{name}}",
+      "previewSizeExceeded": "დანართის წინასწარი ნახვა გამორთულია, რადგან დანართი {{size}}-ზე დიდია.",
+      "htmlPreviewSizeExceeded": "HTML-ის წინასწარი ნახვა გამორთულია, რადგან დანართი {{size}}-ზე დიდია.",
+      "htmlPreviewInvalid": "HTML-ის წინასწარი ნახვა გამორთულია, რადგან დანართი HTML-ს არ ჰგავს."
+    },
+    "screenDiff": {
+      "empty": "განსხვავების მონაცემები არ არის მოწოდებული",
+      "name": "ეკრანის განსხვავება",
+      "showDiff": "განსხვავების ჩვენება",
+      "showOverlay": "გადაფარვის ჩვენება"
+    }
+  },
+  "controls": {
+    "backto": "უკან",
+    "clipboard": "გაცვლის ბუფერში კოპირება",
+    "clipboardError": "გაცვლის ბიფერში კოპირება შეუძლებელია. როგორც ჩანს ეს ფუნქციონალი არაა მხარდაჭერილი ბრაუზერში",
+    "clipboardSuccess": "წარმატებით დაკოპირდა",
+    "collapse": "ჩაკეცვა",
+    "expand": "გაშლა",
+    "fullscreen": "სრულ ეკრანზე",
+    "language": "ენის შეცვლა",
+    "languageShort": "ენა",
+    "lightTheme": "ღია თემა",
+    "darkTheme": "მუქი თემა",
+    "loading": "იტვირთება...",
+    "close": "დახურვა"
+  },
+  "errors": {
+    "missedAttachment": "მიმაგრებული ფაილი არ მოიძებნა",
+    "notFound": "არ მოიძებნა",
+    "loadingFailed": "მონაცემების ჩატვირთვა ვერ მოხერხდა",
+    "tabNotFound": "ჩანართი \"{{tab}}\" ვერ მოიძებნა",
+    "testResultNotFound": "ტესტის შედეგი uid \"{{uid}}\" ვერ მოიძებნა"
+  },
+  "marks": {
+    "flaky": "არასტაბილური",
+    "newBroken": "ახალი დაზიანებული",
+    "newFailed": "ახალი წარუმატებელი",
+    "newPassed": "ახალი წარმატებული",
+    "retriesStatusChange": "სტატუსი შეიცვალა ხელახლა მცდელობისას"
+  },
+  "run": {
+    "actual": "Actual",
+    "allTestsPassedWithErrors": "All {{tests}} reported tests passed, but this run is unsuccessful. Run errors: {{count}}.",
+    "attachments": "Attachments",
+    "completedWithErrors": "Run completed with errors",
+    "errorCount": "Run errors: {{count}}",
+    "errors": "Errors",
+    "errorsOutsideTests": "Run-level errors outside test results: {{count}}.",
+    "expected": "Expected",
+    "failed": "Run failed",
+    "failedBeforeTests": "Run failed before tests were reported",
+    "failureExplanation": "These errors happened outside test results. Test statistics remain unchanged.",
+    "moreErrors": "and {{count}} additional errors",
+    "noAttachments": "No run-level attachments were reported.",
+    "noErrors": "No run errors",
+    "noErrorsExplanation": "No errors outside test results were reported for this run.",
+    "reviewDetails": "Review run details",
+    "trace": "Trace",
+    "unknownError": "Unknown run error"
+  },
+  "sorter": {
+    "duration": "ხანგრძლივობა",
+    "name": "სათაური",
+    "order": "მიმდევრობა",
+    "status": "სტატუსი"
+  },
+  "status": {
+    "broken": "დაზიანებული",
+    "failed": "წარუმატებელი",
+    "passed": "წარმატებული",
+    "skipped": "გამოტოვებული",
+    "unknown": "უცნობი"
+  },
+  "tab": {
+    "categories": {
+      "name": "კატეგორიები"
+    },
+    "behaviors": {
+      "name": "ქცევები"
+    },
+    "graph": {
+      "name": "გრაფიკები"
+    },
+    "overview": {
+      "name": "მიმოხილვა"
+    },
+    "packages": {
+      "name": "პაკეტები"
+    },
+    "run": {
+      "name": "Run"
+    },
+    "suites": {
+      "name": "პაკეტები"
+    },
+    "timeline": {
+      "name": "დროის დიაგრამა",
+      "selected": "მონიშნულია {{count}} ტესტი ({{percent}}%) {{duration}}-ზე მეტი ხანგრძლივობით",
+      "selected_one": "მონიშნულია {{count}} ტესტი ({{percent}}%) {{duration}}-ზე მეტი ხანგრძლივობით",
+      "selected_other": "მონიშნულია {{count}} ტესტი ({{percent}}%) {{duration}}-ზე მეტი ხანგრძლივობით",
+      "resultLink": "გახსენი ტესტის შედეგი {{name}}, სტატუსი {{status}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "კატეგორიები"
+    },
+    "description": {
+      "name": "აღწერა"
+    },
+    "duration": {
+      "name": "ხანგრძლივობა"
+    },
+    "execution": {
+      "body": "ტესტის ძირითადი ნაწილი",
+      "downloadAttachment": {
+        "tooltip": "გახსენი მიმაგრებული ფაილი ახალ ჩანართში"
+      },
+      "name": "შესრულება",
+      "setup": "მომზადება",
+      "teardown": "დასრულება",
+      "empty": "ტესტის შესრულების შესახებ ინფორმაცია არ არის ხელმისაწვდომი."
+    },
+    "history": {
+      "empty": "ისტორია არაა ხელმისაწვდომი",
+      "name": "ისტორია",
+      "statistic": "{{passed}} {{total}}-დან",
+      "successRate": "წარმატების მაჩვენებელი",
+      "time": "{{date}} {{time}}-ზე"
+    },
+    "links": {
+      "name": "ბმულები"
+    },
+    "overview": {
+      "name": "მიმოხილვა"
+    },
+    "owner": {
+      "name": "მფლობელი"
+    },
+    "parameters": {
+      "name": "პარამეტრები"
+    },
+    "retries": {
+      "empty": "ინფრმაცია ხელახლა მცდელობაზე არაა ხელმისაწვდომი",
+      "name": "მცდელობები",
+      "time": "{{date}} {{time}}-ზე"
+    },
+    "severity": {
+      "name": "სიმწვავე",
+      "blocker": "ბლოკერი",
+      "critical": "კრიტიკული",
+      "normal": "ჩვეულებრივი",
+      "minor": "მცირე",
+      "trivial": "უმნიშვნელო"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} მიმაგრებული ფაილი",
+        "parameters": "{{count}} პარამეტრი",
+        "steps": "{{count}} ქვე-ნაბიჯი",
+        "attachments_one": "{{count}} მიმაგრებული ფაილი",
+        "attachments_other": "{{count}} მიმაგრებული ფაილი",
+        "parameters_one": "{{count}} პარამეტრი",
+        "parameters_other": "{{count}} პარამეტრი",
+        "steps_one": "{{count}} ქვე-ნაბიჯი",
+        "steps_other": "{{count}} ქვე-ნაბიჯი"
+      }
+    },
+    "status": {
+      "empty": "სტატუსის დეტალები ხელმიუწვდომელია",
+      "trace": "კვალის ჩვენება"
+    },
+    "tags": {
+      "name": "ტეგები"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "კატეგორიები"
+    },
+    "behaviors": {
+      "name": "ფუნქციები ისტორიების მიხედვით",
+      "showAll": "ყველას ჩვენება"
+    },
+    "categoriesTrend": {
+      "name": "კატეგორიზებული ტენდენცია"
+    },
+    "durationTrend": {
+      "name": "ხანგრძლივობის ტენდენცია"
+    },
+    "environment": {
+      "empty": "გარემოს ცვლადები არაა ხელმისაწვდომი",
+      "name": "გარემო",
+      "showAll": "ყველას ჩვენება"
+    },
+    "executors": {
+      "empty": "ინფორმაცია ტესტის შემსრულებელზე არაა ხელმისაწვდომი",
+      "name": "შემსრულებელი",
+      "unknown": "უცნობი"
+    },
+    "launches": {
+      "empty": "გამშვებებზე ინფორმაცია არაა ხელმისაწვდომი",
+      "name": "გამშვებები"
+    },
+    "retryTrend": {
+      "name": "მცდელობის ტენდენცია"
+    },
+    "suites": {
+      "name": "პაკეტები"
+    },
+    "summary": {
+      "aggregatedName": "საერთო ანგარიში",
+      "launches": "გაშვება",
+      "testResults": "ტესტ ქეისი",
+      "launches_one": "გაშვება",
+      "launches_other": "გაშვება",
+      "testResults_one": "ტესტ ქეისი",
+      "testResults_other": "ტესტ ქეისი"
+    },
+    "trend": {
+      "name": "ტენდენცია"
+    }
+  }
+}

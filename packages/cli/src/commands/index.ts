@@ -10,6 +10,7 @@ export * from "./history.js";
 export * from "./run.js";
 export * from "./slack.js";
 export * from "./testplan.js";
+export * from "./testopsPlan.js";
 export * from "./watch.js";
 export * from "./open.js";
 export * from "./qualityGate.js";
