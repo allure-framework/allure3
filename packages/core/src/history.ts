@@ -2,6 +2,7 @@ import { once } from "node:events";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
+import type { Readable, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 import {
@@ -98,6 +99,39 @@ export const createHistory = (
   };
 };
 
+/**
+ * Streams opened on a `FileHandle` with `autoClose: false` are never destroyed on their own, and
+ * the handle stays referenced until they emit "close". `FileHandle.close()` waits for that
+ * reference to be released, so leaving such a stream behind makes the close never settle: the
+ * awaiting code hangs and the process may exit silently with code 0. Destroy them explicitly.
+ */
+const closeStream = async (stream: Readable | Writable): Promise<void> => {
+  if (stream.closed) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    stream.once("close", () => resolve());
+    // releasing the resources must not fail the operation the stream has already completed
+    stream.once("error", () => resolve());
+    stream.destroy();
+  });
+};
+
+/**
+ * Depending on the runtime, destroying a stream may also close the descriptor it was opened on,
+ * so the handle can already be gone by the time we close it ourselves.
+ */
+const closeFileHandle = async (file: FileHandle): Promise<void> => {
+  try {
+    await file.close();
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code !== "EBADF") {
+      throw err;
+    }
+  }
+};
+
 export class AllureLocalHistory implements AllureHistory {
   #cachedHistory: HistoryDataPoint[] = [];
 
@@ -120,9 +154,14 @@ export class AllureLocalHistory implements AllureHistory {
       return [];
     }
 
+    const openedStreams: (Readable | Writable)[] = [];
+
     try {
       const start = await this.#findFirstEntryAddress(historyFile, this.params.limit);
       const stream = historyFile.createReadStream({ start, encoding: "utf-8", autoClose: false });
+
+      openedStreams.push(stream);
+
       const historyPoints: HistoryDataPoint[] = [];
       const readlineInterface = readline
         .createInterface({ input: stream, terminal: false, crlfDelay: Infinity })
@@ -140,7 +179,8 @@ export class AllureLocalHistory implements AllureHistory {
 
       return this.#cachedHistory;
     } finally {
-      await historyFile.close();
+      await this.#closeStreams(openedStreams);
+      await closeFileHandle(historyFile);
     }
   }
 
@@ -153,9 +193,12 @@ export class AllureLocalHistory implements AllureHistory {
     await mkdir(parentDir, { recursive: true });
 
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
+    const openedStreams: (Readable | Writable)[] = [];
 
     try {
       const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
+
+      openedStreams.push(dst);
 
       if (limit === 0 && historyExists) {
         await historyFile.truncate(0);
@@ -171,6 +214,8 @@ export class AllureLocalHistory implements AllureHistory {
         const start = await this.#findFirstEntryAddress(historyFile, limit ? limit - 1 : undefined);
         const src = historyFile.createReadStream({ start, autoClose: false });
 
+        openedStreams.push(src);
+
         await pipeline(src, dst, { end: false });
       }
 
@@ -183,7 +228,8 @@ export class AllureLocalHistory implements AllureHistory {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
-      await historyFile.close();
+      await this.#closeStreams(openedStreams);
+      await closeFileHandle(historyFile);
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {
@@ -195,6 +241,15 @@ export class AllureLocalHistory implements AllureHistory {
       }
     }
   }
+
+  // the streams have to be released in the order they were opened in: destroying a reader that
+  // shares its handle with a still open writer never completes, while destroying the writer
+  // closes the reader along with it
+  #closeStreams = async (streams: (Readable | Writable)[]) => {
+    for (const stream of streams) {
+      await closeStream(stream);
+    }
+  };
 
   #openFileToReadIfExists = async (filePath: string) => {
     try {
