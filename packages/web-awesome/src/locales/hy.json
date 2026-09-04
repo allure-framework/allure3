@@ -23,7 +23,7 @@
     "globalErrors": "Գլոբալ սխալներ",
     "qualityGates": "Որակի դարպասներ",
     "categories": "Կատեգորիաներ",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Որոնում",
@@ -164,8 +164,6 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "copy-email": "Պատճենել էլ. փոստը",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "retry": "Կրկնական փորձ {{attempt}} {{total}}-ից",
     "at": "է",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Թույլատրեք բացվող պատուհանները և կրկին փորձեք։",
     "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",
@@ -532,7 +530,7 @@
       "testTabNext": "Հաջորդ թեստի ներդիր",
       "testTabPrev": "Նախորդ թեստի ներդիր",
       "tabOverview": "Ակնարկի ներդիր",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Պատմության ներդիր",
       "tabRetries": "Կրկնությունների ներդիր",
       "tabAttachments": "Կցորդների ներդիր",
@@ -541,7 +539,7 @@
       "toggleParameters": "Ցուցադրել/թաքցնել պարամետրերը",
       "toggleLinks": "Ցուցադրել/թաքցնել հղումները",
       "backToTree": "Վերադառնալ ծառ",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

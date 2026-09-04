@@ -176,28 +176,28 @@ const createBindings = (): HotkeyBinding[] => [
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.Categories),
   },
   {
-    id: "report-tab-quality-gate",
+    id: "report-tab-resolution-categories",
     scope: "global",
     key: "3",
+    handler: () => goToReportRootTab(REPORT_ROOT_TAB.ResolutionCategories),
+  },
+  {
+    id: "report-tab-quality-gate",
+    scope: "global",
+    key: "4",
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.QualityGate),
   },
   {
     id: "report-tab-global-attachments",
     scope: "global",
-    key: "4",
+    key: "5",
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalAttachments),
   },
   {
     id: "report-tab-global-errors",
     scope: "global",
-    key: "5",
-    handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalErrors),
-  },
-  {
-    id: "report-tab-resolution-categories",
-    scope: "global",
     key: "6",
-    handler: () => goToReportRootTab(REPORT_ROOT_TAB.ResolutionCategories),
+    handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalErrors),
   },
   {
     id: "report-tab-next",

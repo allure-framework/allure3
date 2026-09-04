@@ -23,7 +23,7 @@
     "globalErrors": "Globala Fel",
     "qualityGates": "Kvalitetsportar",
     "categories": "Kategorier",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Sök",
@@ -164,8 +164,6 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "copy-email": "Kopiera e-post",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Försök {{attempt}} av {{total}}",
     "retry": "Omförsök {{attempt}} av {{total}}",
     "at": "vid",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",
@@ -532,7 +530,7 @@
       "testTabNext": "Nästa testflik",
       "testTabPrev": "Föregående testflik",
       "tabOverview": "Flik översikt",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Flik historik",
       "tabRetries": "Flik omförsök",
       "tabAttachments": "Flik bilagor",
@@ -541,7 +539,7 @@
       "toggleParameters": "Visa/dölj parametrar",
       "toggleLinks": "Visa/dölj länkar",
       "backToTree": "Tillbaka till trädet",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

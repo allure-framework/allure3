@@ -1,10 +1,10 @@
 import { ReportFetchError, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import type { AwesomeResolutionCategories } from "types";
+import type { ReportResolutionCategories } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
 
-export const resolutionCategoriesStore = signal<StoreSignalState<AwesomeResolutionCategories>>({
+export const resolutionCategoriesStore = signal<StoreSignalState<ReportResolutionCategories>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -12,7 +12,7 @@ export const resolutionCategoriesStore = signal<StoreSignalState<AwesomeResoluti
 
 let lastResolutionCategoriesEnv: string | undefined;
 
-const emptyResolutionCategories: AwesomeResolutionCategories = {
+const emptyResolutionCategories: ReportResolutionCategories = {
   groups: [],
 };
 
@@ -35,7 +35,7 @@ export const fetchResolutionCategoriesData = async (env?: string) => {
   };
 
   try {
-    const data = await fetchReportJsonData<AwesomeResolutionCategories>(resolveResolutionCategoriesPath(env));
+    const data = await fetchReportJsonData<ReportResolutionCategories>(resolveResolutionCategoriesPath(env));
 
     resolutionCategoriesStore.value = {
       data,

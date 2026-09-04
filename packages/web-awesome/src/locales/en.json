@@ -23,7 +23,7 @@
     "globalErrors": "Global Errors",
     "qualityGates": "Quality Gates",
     "categories": "Categories",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Search",
@@ -167,8 +167,6 @@
     "fullname": "Fullname",
     "retry-hash": "Retry hash",
     "test-case-id": "Test case ID",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Attempt {{attempt}} of {{total}}",
     "retry": "Retry {{attempt}} of {{total}}",
     "at": "at",
@@ -179,7 +177,7 @@
     "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -231,7 +229,7 @@
       "testTabNext": "Next test tab",
       "testTabPrev": "Previous test tab",
       "tabOverview": "Overview tab",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "History tab",
       "tabRetries": "Retries tab",
       "tabAttachments": "Attachments tab",
@@ -240,7 +238,7 @@
       "toggleParameters": "Toggle parameters",
       "toggleLinks": "Toggle links",
       "backToTree": "Back to tree",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {

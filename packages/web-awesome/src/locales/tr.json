@@ -23,7 +23,7 @@
     "globalErrors": "Küresel Hatalar",
     "qualityGates": "Kalite Kapıları",
     "categories": "Kategoriler",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Ara",
@@ -164,8 +164,6 @@
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
     "copy-email": "E-postayı kopyala",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Deneme {{attempt}} / {{total}}",
     "retry": "Yeniden deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",
@@ -532,7 +530,7 @@
       "testTabNext": "Sonraki test sekmesi",
       "testTabPrev": "Önceki test sekmesi",
       "tabOverview": "Genel bakış sekmesi",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Geçmiş sekmesi",
       "tabRetries": "Yeniden denemeler sekmesi",
       "tabAttachments": "Ekler sekmesi",
@@ -541,7 +539,7 @@
       "toggleParameters": "Parametreleri göster/gizle",
       "toggleLinks": "Bağlantıları göster/gizle",
       "backToTree": "Ağaca geri dön",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

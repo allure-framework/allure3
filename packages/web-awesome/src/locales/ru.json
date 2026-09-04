@@ -23,7 +23,7 @@
     "globalErrors": "Глобальные Ошибки",
     "qualityGates": "Ворота Качества",
     "categories": "Категории",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Поиск",
@@ -164,8 +164,6 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "copy-email": "Скопировать email",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Попытка {{attempt}} из {{total}}",
     "retry": "Повтор {{attempt}} из {{total}}",
     "at": "в",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "shortcuts": {
     "title": "Горячие клавиши",
@@ -228,7 +226,7 @@
       "testTabNext": "Следующая вкладка теста",
       "testTabPrev": "Предыдущая вкладка теста",
       "tabOverview": "Вкладка обзор",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка история",
       "tabRetries": "Вкладка перезапуски",
       "tabAttachments": "Вкладка вложения",
@@ -237,7 +235,7 @@
       "toggleParameters": "Показать/скрыть параметры",
       "toggleLinks": "Показать/скрыть ссылки",
       "backToTree": "Назад к дереву",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {

@@ -174,6 +174,20 @@ const MainReport = () => {
                   }}
                 />
                 <Loadable
+                  source={resolutionCategoriesStore}
+                  renderData={(resolutionCategories) => {
+                    if (!resolutionCategories?.groups.length) {
+                      return null;
+                    }
+
+                    return (
+                      <RootTab id={ReportRootTab.ResolutionCategories}>
+                        {t("resolutionCategories")} <Counter count={resolutionCategories.groups.length} />
+                      </RootTab>
+                    );
+                  }}
+                />
+                <Loadable
                   source={qualityGateStore}
                   renderData={(results) => {
                     const currentEnvResults = currentEnvironment.value
@@ -214,20 +228,6 @@ const MainReport = () => {
                           />
                         </RootTab>
                       </>
-                    );
-                  }}
-                />
-                <Loadable
-                  source={resolutionCategoriesStore}
-                  renderData={(resolutionCategories) => {
-                    if (!resolutionCategories?.groups.length) {
-                      return null;
-                    }
-
-                    return (
-                      <RootTab id={ReportRootTab.ResolutionCategories}>
-                        {t("resolutionCategories")} <Counter count={resolutionCategories.groups.length} />
-                      </RootTab>
                     );
                   }}
                 />

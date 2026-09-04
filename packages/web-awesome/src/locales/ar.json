@@ -23,7 +23,7 @@
     "globalErrors": "الأخطاء العامة",
     "qualityGates": "بوابات الجودة",
     "categories": "الفئات",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "بحث",
@@ -164,8 +164,6 @@
     "showMore": "عرض المزيد",
     "copy": "نسخ",
     "copy-email": "نسخ البريد الإلكتروني",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "retry": "إعادة المحاولة {{attempt}} من {{total}}",
     "at": "في",
@@ -174,7 +172,7 @@
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",
@@ -527,7 +525,7 @@
       "testTabNext": "تبويب الاختبار التالي",
       "testTabPrev": "تبويب الاختبار السابق",
       "tabOverview": "تبويب النظرة العامة",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "تبويب السجل",
       "tabRetries": "تبويب إعادة المحاولات",
       "tabAttachments": "تبويب المرفقات",
@@ -536,7 +534,7 @@
       "toggleParameters": "إظهار/إخفاء المعاملات",
       "toggleLinks": "إظهار/إخفاء الروابط",
       "backToTree": "العودة إلى الشجرة",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

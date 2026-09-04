@@ -1,6 +1,13 @@
 .resolution-categories-list {
-  min-height: 480px;
   padding: 16px 0 48px;
+}
+
+.resolution-categories-list-full {
+  min-height: 480px;
+}
+
+.resolution-categories-list-compact {
+  padding: 20px 0 0;
 }
 
 .resolution-categories-item {
@@ -13,10 +20,24 @@
 
 .resolution-categories-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 12px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition: background-color 300ms;
+}
+
+.resolution-categories-header-compact {
+  padding: 8px 0;
+}
+
+.resolution-categories-header-clickable {
+  cursor: pointer;
 
   &:hover {
     background: var(--color-control-bg-ghost-hover);
@@ -35,24 +56,13 @@
 
 .resolution-categories-icon {
   flex: 0 0 auto;
-  margin-top: 2px;
   color: var(--color-icon-secondary);
 }
 
 .resolution-categories-content {
   min-width: 0;
-}
-
-.resolution-categories-title {
-  display: block;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
 }
 
 .resolution-categories-name,

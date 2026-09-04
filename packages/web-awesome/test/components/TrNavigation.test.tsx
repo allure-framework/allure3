@@ -28,7 +28,7 @@ const setHash = (hash: string) => {
   window.dispatchEvent(new Event("pushState"));
 };
 
-const setTestResults = (results: Record<string, Partial<AwesomeTestResult>>) => {
+const setTestResults = (results: Record<string, Partial<ReportTestResult>>) => {
   testResultStore.value = {
     loading: false,
     error: undefined,
@@ -50,7 +50,7 @@ const setTestResults = (results: Record<string, Partial<AwesomeTestResult>>) => 
           breadcrumbs: [],
           history: [],
           ...result,
-        } as AwesomeTestResult,
+        } as ReportTestResult,
       ]),
     ),
   };
@@ -119,50 +119,11 @@ describe("components > TestResult > TrNavigation", () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledWith("retry-hash"));
   });
 
-  it("copies muted and accepted resolution rule snippets for current test case", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal("navigator", { clipboard: { writeText } });
-
-    render(<TrNavigation testResult={testResult} />);
-    fireEvent.mouseEnter(screen.getByTestId("test-result-fullname-copy-trigger"));
-
-    expect(screen.getByText("Muted rule")).toBeInTheDocument();
-    expect(screen.getByText("Accepted rule")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId("test-result-copy-muted-resolution-rule"));
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(`{
-  resolution: "muted",
-  testCaseId: ["test-case-id"],
-  comment: ""
-}`),
-    );
-
-    fireEvent.mouseEnter(screen.getByTestId("test-result-fullname-copy-trigger"));
-    fireEvent.click(screen.getByTestId("test-result-copy-accepted-resolution-rule"));
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(`{
-  resolution: "accepted",
-  testCaseId: ["test-case-id"],
-  comment: ""
-}`),
-    );
-  });
-
-  it("doesn't show resolution rule copy options without test case id", () => {
-    render(<TrNavigation testResult={{ ...testResult, testCase: undefined }} />);
-    fireEvent.mouseEnter(screen.getByTestId("test-result-fullname-copy-trigger"));
-
-    expect(screen.queryByTestId("test-result-copy-muted-resolution-rule")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("test-result-copy-accepted-resolution-rule")).not.toBeInTheDocument();
-  });
-
-  it("shows resolution rule copy options when test case id exists without fullname", () => {
+  it("shows test case id copy option when test case id exists without fullname", () => {
     render(<TrNavigation testResult={{ ...testResult, fullName: undefined }} />);
     fireEvent.mouseEnter(screen.getByTestId("test-result-fullname-copy-trigger"));
 
-    expect(screen.getByTestId("test-result-copy-muted-resolution-rule")).toBeInTheDocument();
-    expect(screen.getByTestId("test-result-copy-accepted-resolution-rule")).toBeInTheDocument();
+    expect(screen.getByTestId("test-result-copy-test-case-id")).toBeInTheDocument();
     expect(screen.queryByTestId("test-result-copy-fullname")).not.toBeInTheDocument();
   });
 

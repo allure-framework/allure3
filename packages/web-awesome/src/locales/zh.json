@@ -23,7 +23,7 @@
     "globalErrors": "全局错误",
     "qualityGates": "质量门",
     "categories": "分类",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "搜索",
@@ -164,8 +164,6 @@
     "showMore": "显示更多",
     "copy": "复制",
     "copy-email": "复制邮箱",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "retry": "第 {{attempt}} 次重试，共 {{total}} 次",
     "at": "在",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",
@@ -532,7 +530,7 @@
       "testTabNext": "下一个测试标签页",
       "testTabPrev": "上一个测试标签页",
       "tabOverview": "概览标签页",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "历史标签页",
       "tabRetries": "重试标签页",
       "tabAttachments": "附件标签页",
@@ -541,7 +539,7 @@
       "toggleParameters": "显示/隐藏参数",
       "toggleLinks": "显示/隐藏链接",
       "backToTree": "返回树形结构",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

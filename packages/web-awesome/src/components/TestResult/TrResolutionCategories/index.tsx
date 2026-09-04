@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import type { AwesomeResolutionGroup } from "types";
+import type { ReportResolutionGroup } from "types";
 
 import { ResolutionCategoriesList } from "@/components/ResolutionCategoriesList";
 import type { TrViewProps } from "@/components/TestResult";
@@ -7,7 +7,7 @@ import { useI18n } from "@/stores";
 
 export const TrResolutionCategoriesView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
   const { t } = useI18n("empty");
-  const groups: AwesomeResolutionGroup[] = testResult?.resolution
+  const groups: ReportResolutionGroup[] = testResult?.resolution
     ? [
         {
           id: `${testResult.resolution}:${testResult.resolutionIssue?.id ?? testResult.id}`,
@@ -20,5 +20,5 @@ export const TrResolutionCategoriesView: FunctionalComponent<TrViewProps> = ({ t
       ]
     : [];
 
-  return <ResolutionCategoriesList groups={groups} emptyText={t("no-resolution-categories-results")} />;
+  return <ResolutionCategoriesList groups={groups} emptyText={t("no-resolution-categories-results")} compact />;
 };

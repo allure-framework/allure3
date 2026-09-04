@@ -23,7 +23,7 @@
     "globalErrors": "שגיאות גלובליות",
     "qualityGates": "שערי איכות",
     "categories": "קטגוריות",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "חפש",
@@ -164,8 +164,6 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "copy-email": "העתק אימייל",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "retry": "ניסיון חוזר {{attempt}} מתוך {{total}}",
     "at": "ב-",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",
@@ -532,7 +530,7 @@
       "testTabNext": "לשונית בדיקה הבאה",
       "testTabPrev": "לשונית בדיקה הקודמת",
       "tabOverview": "לשונית סקירה",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "לשונית היסטוריה",
       "tabRetries": "לשונית ניסיונות חוזרים",
       "tabAttachments": "לשונית קבצים מצורפים",
@@ -541,7 +539,7 @@
       "toggleParameters": "הצג/הסתר פרמטרים",
       "toggleLinks": "הצג/הסתר קישורים",
       "backToTree": "חזור לעץ",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

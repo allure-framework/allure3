@@ -23,7 +23,7 @@
     "globalErrors": "Глобальні Помилки",
     "qualityGates": "Ворота Якості",
     "categories": "Категорії",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Пошук",
@@ -164,8 +164,6 @@
     "showMore": "Показати більше",
     "copy": "Скопіювати",
     "copy-email": "Скопіювати email",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Спроба {{attempt}} з {{total}}",
     "retry": "Повтор {{attempt}} з {{total}}",
     "at": "в",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Відкрити в новій вкладці",
@@ -483,7 +481,7 @@
       "testTabNext": "Наступна вкладка тесту",
       "testTabPrev": "Попередня вкладка тесту",
       "tabOverview": "Вкладка огляд",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка історія",
       "tabRetries": "Вкладка повтори",
       "tabAttachments": "Вкладка вкладення",
@@ -492,7 +490,7 @@
       "toggleParameters": "Показати/приховати параметри",
       "toggleLinks": "Показати/приховати посилання",
       "backToTree": "Назад до дерева",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

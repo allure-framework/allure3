@@ -23,7 +23,7 @@
     "globalErrors": "グローバルエラー",
     "qualityGates": "品質ゲート",
     "categories": "カテゴリ",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "検索",
@@ -164,8 +164,6 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "copy-email": "メールをコピー",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",
@@ -532,7 +530,7 @@
       "testTabNext": "次のテストタブ",
       "testTabPrev": "前のテストタブ",
       "tabOverview": "概要タブ",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "履歴タブ",
       "tabRetries": "リトライタブ",
       "tabAttachments": "添付ファイルタブ",
@@ -541,7 +539,7 @@
       "toggleParameters": "パラメータを表示/非表示",
       "toggleLinks": "リンクを表示/非表示",
       "backToTree": "ツリーに戻る",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

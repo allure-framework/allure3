@@ -23,7 +23,7 @@
     "globalErrors": "Globale Fehler",
     "qualityGates": "Qualitätstore",
     "categories": "Kategorien",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Suchen",
@@ -164,8 +164,6 @@
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
     "copy-email": "E-Mail kopieren",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Versuch {{attempt}} von {{total}}",
     "retry": "Wiederholung {{attempt}} von {{total}}",
     "at": "bei",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Erlaube Pop-ups und versuche es erneut.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, mit Exit-Code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, mit Exit-Code {{actual}} (ursprünglich {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Anhang in neuem Tab öffnen",
@@ -532,7 +530,7 @@
       "testTabNext": "Nächster Test-Tab",
       "testTabPrev": "Vorheriger Test-Tab",
       "tabOverview": "Tab Übersicht",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab Verlauf",
       "tabRetries": "Tab Wiederholungen",
       "tabAttachments": "Tab Anhänge",
@@ -541,7 +539,7 @@
       "toggleParameters": "Parameter ein-/ausblenden",
       "toggleLinks": "Links ein-/ausblenden",
       "backToTree": "Zurück zum Baum",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

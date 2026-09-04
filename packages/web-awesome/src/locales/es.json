@@ -23,7 +23,7 @@
     "globalErrors": "Errores Globales",
     "qualityGates": "Puertas de Calidad",
     "categories": "Categorías",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Buscar",
@@ -164,8 +164,6 @@
     "showMore": "Mostrar más",
     "copy": "Copiar",
     "copy-email": "Copiar correo",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Intento {{attempt}} de {{total}}",
     "retry": "Reintento {{attempt}} de {{total}}",
     "at": "a las",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Permite las ventanas emergentes y vuelve a intentarlo.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con código de salida {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Abrir adjunto en nueva pestaña",
@@ -532,7 +530,7 @@
       "testTabNext": "Siguiente pestaña de prueba",
       "testTabPrev": "Pestaña de prueba anterior",
       "tabOverview": "Pestaña resumen",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Pestaña historial",
       "tabRetries": "Pestaña reintentos",
       "tabAttachments": "Pestaña archivos adjuntos",
@@ -541,7 +539,7 @@
       "toggleParameters": "Mostrar/ocultar parámetros",
       "toggleLinks": "Mostrar/ocultar enlaces",
       "backToTree": "Volver al árbol",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

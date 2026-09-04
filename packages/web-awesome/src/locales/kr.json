@@ -23,7 +23,7 @@
     "globalErrors": "전역 오류",
     "qualityGates": "품질 게이트",
     "categories": "카테고리",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "검색",
@@ -164,8 +164,6 @@
     "showMore": "더 보기",
     "copy": "복사",
     "copy-email": "이메일 복사",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "시도 {{attempt}}/{{total}}",
     "retry": "재시도 {{attempt}}/{{total}}",
     "at": "에서",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",
@@ -532,7 +530,7 @@
       "testTabNext": "다음 테스트 탭",
       "testTabPrev": "이전 테스트 탭",
       "tabOverview": "개요 탭",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "기록 탭",
       "tabRetries": "재시도 탭",
       "tabAttachments": "첨부 파일 탭",
@@ -541,7 +539,7 @@
       "toggleParameters": "파라미터 표시/숨기기",
       "toggleLinks": "링크 표시/숨기기",
       "backToTree": "트리로 돌아가기",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

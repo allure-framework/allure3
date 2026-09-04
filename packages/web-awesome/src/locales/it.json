@@ -23,7 +23,7 @@
     "globalErrors": "Errori Globali",
     "qualityGates": "Porte di Qualità",
     "categories": "Categorie",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Cerca",
@@ -164,8 +164,6 @@
     "showMore": "Mostra di più",
     "copy": "Copia",
     "copy-email": "Copia email",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "retry": "Ripetizione {{attempt}} di {{total}}",
     "at": "a",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Consenti i popup e riprova.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Apri in una nuova scheda",
@@ -532,7 +530,7 @@
       "testTabNext": "Tab test successivo",
       "testTabPrev": "Tab test precedente",
       "tabOverview": "Tab panoramica",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab cronologia",
       "tabRetries": "Tab nuovi tentativi",
       "tabAttachments": "Tab allegati",
@@ -541,7 +539,7 @@
       "toggleParameters": "Mostra/nascondi parametri",
       "toggleLinks": "Mostra/nascondi link",
       "backToTree": "Torna all'albero",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

@@ -1,4 +1,3 @@
-import type { ResolutionCategory } from "@allurereport/core-api";
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -43,14 +42,6 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 };
 
 const HOVER_CLOSE_DELAY = 300;
-
-type CopyableResolutionRule = Extract<ResolutionCategory, "muted" | "accepted">;
-
-const resolutionRuleSnippet = (resolution: CopyableResolutionRule, testCaseId: string) => `{
-  resolution: "${resolution}",
-  testCaseId: [${JSON.stringify(testCaseId)}],
-  comment: ""
-}`;
 
 const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
   const { fullName, testCaseId, retryHash } = props;
@@ -148,22 +139,6 @@ const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; ret
               <Menu.Item dataTestId="test-result-copy-retry-hash" onClick={() => copyValue(retryHash)}>
                 {t("retry-hash")}
               </Menu.Item>
-            )}
-            {testCaseId && (
-              <>
-                <Menu.Item
-                  dataTestId="test-result-copy-muted-resolution-rule"
-                  onClick={() => copyValue(resolutionRuleSnippet("muted", testCaseId))}
-                >
-                  {t("muted-resolution-rule")}
-                </Menu.Item>
-                <Menu.Item
-                  dataTestId="test-result-copy-accepted-resolution-rule"
-                  onClick={() => copyValue(resolutionRuleSnippet("accepted", testCaseId))}
-                >
-                  {t("accepted-resolution-rule")}
-                </Menu.Item>
-              </>
             )}
           </Menu.Section>
         </div>

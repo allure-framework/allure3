@@ -23,7 +23,7 @@
     "globalErrors": "Qlobal xətalar",
     "qualityGates": "Keyfiyyət meyarları",
     "categories": "Kateqoriyalar",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Axtar",
@@ -164,8 +164,6 @@
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "copy-email": "E-poçtu kopyala",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "retry": "Təkrar cəhd {{attempt}} / {{total}}",
     "at": "tarixində",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",
@@ -532,7 +530,7 @@
       "testTabNext": "Növbəti test nişanı",
       "testTabPrev": "Əvvəlki test nişanı",
       "tabOverview": "İcmal nişanı",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tarixçə nişanı",
       "tabRetries": "Yenidən cəhdlər nişanı",
       "tabAttachments": "Əlavələr nişanı",
@@ -541,7 +539,7 @@
       "toggleParameters": "Parametrləri göstər/gizlət",
       "toggleLinks": "Bağlantıları göstər/gizlət",
       "backToTree": "Ağaca qayıt",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

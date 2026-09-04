@@ -23,7 +23,7 @@
     "globalErrors": "Globale Fouten",
     "qualityGates": "Kwaliteitspoorten",
     "categories": "Categorieën",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Zoeken",
@@ -164,8 +164,6 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "Poging {{attempt}} van {{total}}",
     "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
@@ -532,7 +530,7 @@
       "testTabNext": "Volgende testtab",
       "testTabPrev": "Vorige testtab",
       "tabOverview": "Tab overzicht",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab geschiedenis",
       "tabRetries": "Tab nieuwe pogingen",
       "tabAttachments": "Tab bijlagen",
@@ -541,7 +539,7 @@
       "toggleParameters": "Parameters tonen/verbergen",
       "toggleLinks": "Links tonen/verbergen",
       "backToTree": "Terug naar boom",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

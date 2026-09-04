@@ -1,8 +1,9 @@
 import { type ResolutionCategory } from "@allurereport/core-api";
 import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components";
+import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeResolutionGroup, AwesomeResolutionTestResult } from "types";
+import type { ReportResolutionGroup, ReportResolutionTestResult } from "types";
 
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
@@ -10,9 +11,10 @@ import { navigateToTestResult } from "@/stores/router";
 import * as styles from "./styles.scss";
 
 export type ResolutionCategoriesListProps = {
-  groups: AwesomeResolutionGroup[];
+  groups: ReportResolutionGroup[];
   showTests?: boolean;
   emptyText: string;
+  compact?: boolean;
 };
 
 const resolutionIcons: Record<ResolutionCategory, string> = {
@@ -22,7 +24,7 @@ const resolutionIcons: Record<ResolutionCategory, string> = {
 };
 
 const getResolutionTitle = (
-  group: AwesomeResolutionGroup,
+  group: ReportResolutionGroup,
   t: (key: string, options?: Record<string, unknown>) => string,
 ) => {
   if (group.resolution === "issue") {
@@ -36,69 +38,87 @@ export const ResolutionCategoriesList: FunctionalComponent<ResolutionCategoriesL
   groups,
   showTests = false,
   emptyText,
+  compact = false,
 }) => {
   if (!groups.length) {
     return <div className={styles["resolution-categories-empty"]}>{emptyText}</div>;
   }
 
   return (
-    <ul className={styles["resolution-categories-list"]}>
+    <ul
+      className={clsx(
+        styles["resolution-categories-list"],
+        compact ? styles["resolution-categories-list-compact"] : styles["resolution-categories-list-full"],
+      )}
+    >
       {groups.map((group) => (
-        <ResolutionCategoriesItem group={group} key={group.id} showTests={showTests} />
+        <ResolutionCategoriesItem compact={compact} group={group} key={group.id} showTests={showTests} />
       ))}
     </ul>
   );
 };
 
 const ResolutionCategoriesItem: FunctionalComponent<{
-  group: AwesomeResolutionGroup;
+  group: ReportResolutionGroup;
   showTests: boolean;
-}> = ({ group, showTests }) => {
+  compact: boolean;
+}> = ({ group, showTests, compact }) => {
   const hasTests = showTests && Boolean(group.testResults.length);
   const [isOpened, setIsOpened] = useState(true);
   const { t } = useI18n("filters");
   const title = getResolutionTitle(group, t);
   const subtitle = group.comment ?? group.issue?.comment;
   const toggle = () => setIsOpened((value) => !value);
+  const headerContent = (
+    <>
+      {hasTests ? (
+        <ArrowButton tag="span" buttonSize="s" className={styles["resolution-categories-arrow"]} isOpened={isOpened} />
+      ) : (
+        <span className={styles["resolution-categories-arrow-spacer"]} />
+      )}
+      <SvgIcon className={styles["resolution-categories-icon"]} id={resolutionIcons[group.resolution]} />
+      <span className={styles["resolution-categories-content"]}>
+        <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
+          {title}
+        </Text>
+        {group.issue?.type && (
+          <Text tag="span" size="s" className={styles["resolution-categories-type"]}>
+            {group.issue.type}
+          </Text>
+        )}
+        {subtitle && (
+          <Text tag="span" size="s" className={styles["resolution-categories-comment"]}>
+            {subtitle}
+          </Text>
+        )}
+      </span>
+    </>
+  );
 
   return (
     <li className={styles["resolution-categories-item"]}>
-      <div className={styles["resolution-categories-header"]}>
-        {hasTests ? (
-          <ArrowButton
-            buttonSize="s"
-            className={styles["resolution-categories-arrow"]}
-            isOpened={isOpened}
-            onClick={toggle}
-          />
-        ) : (
-          <span className={styles["resolution-categories-arrow-spacer"]} />
-        )}
-        <SvgIcon className={styles["resolution-categories-icon"]} id={resolutionIcons[group.resolution]} />
-        <div className={styles["resolution-categories-content"]}>
-          {hasTests ? (
-            <button className={styles["resolution-categories-title"]} onClick={toggle} type="button">
-              <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
-                {title}
-              </Text>
-            </button>
-          ) : (
-            <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
-              {title}
-            </Text>
+      {hasTests ? (
+        <button
+          className={clsx(
+            styles["resolution-categories-header"],
+            compact && styles["resolution-categories-header-compact"],
+            styles["resolution-categories-header-clickable"],
           )}
-          {group.issue?.type && (
-            <Text tag="div" size="s" className={styles["resolution-categories-type"]}>
-              {group.issue.type}
-            </Text>
+          onClick={toggle}
+          type="button"
+        >
+          {headerContent}
+        </button>
+      ) : (
+        <div
+          className={clsx(
+            styles["resolution-categories-header"],
+            compact && styles["resolution-categories-header-compact"],
           )}
-          {subtitle && (
-            <Text tag="div" size="s" className={styles["resolution-categories-comment"]}>
-              {subtitle}
-            </Text>
-          )}
+        >
+          {headerContent}
         </div>
-      </div>
+      )}
       {hasTests && isOpened && (
         <ul className={styles["resolution-categories-tests"]}>
           {group.testResults.map((testResult, index) => (
@@ -111,7 +131,7 @@ const ResolutionCategoriesItem: FunctionalComponent<{
 };
 
 const ResolutionCategoriesTestResult: FunctionalComponent<{
-  testResult: AwesomeResolutionTestResult;
+  testResult: ReportResolutionTestResult;
   index: number;
 }> = ({ testResult, index }) => {
   const { t: tTransitions } = useI18n("transitions");

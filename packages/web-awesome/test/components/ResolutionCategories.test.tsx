@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import type { ComponentChildren } from "preact";
-import type { AwesomeResolutionCategories, AwesomeTestResult } from "types";
+import type { ReportResolutionCategories as ReportResolutionCategoriesData, ReportTestResult } from "types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
@@ -22,37 +22,37 @@ const resolutionCategoriesStoreMock = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@allurereport/web-components", () => ({
-  ArrowButton: ({ isOpened, onClick }: { isOpened: boolean; onClick: () => void }) => (
-    <button aria-label={isOpened ? "collapse" : "expand"} onClick={onClick} type="button" />
-  ),
-  Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>
-    renderData(source.value.data),
-  PageLoader: () => <div>Loading</div>,
-  SvgIcon: ({ id }: { id: string }) => <span data-testid={`resolution-icon-${id}`} />,
-  Text: ({ children, tag: Tag = "div", ...rest }: { children: ComponentChildren; tag?: any }) => (
-    <Tag {...rest}>{children}</Tag>
-  ),
-  TreeItem: (props: any) => {
-    const { name, status, duration, resolution, navigateTo } = props;
+vi.mock("@allurereport/web-components", () => {
+  return {
+    ArrowButton: ({ isOpened }: { isOpened: boolean }) => <span aria-label={isOpened ? "collapse" : "expand"} />,
+    Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>
+      renderData(source.value.data),
+    PageLoader: () => <div>Loading</div>,
+    SvgIcon: ({ id }: { id: string }) => <span data-testid={`resolution-icon-${id}`} />,
+    Text: ({ children, tag: Tag = "div", ...rest }: { children: ComponentChildren; tag?: any }) => (
+      <Tag {...rest}>{children}</Tag>
+    ),
+    TreeItem: (props: any) => {
+      const { name, status, duration, resolution, navigateTo } = props;
 
-    treeItemMock(props);
+      treeItemMock(props);
 
-    return (
-      <button aria-label={name} onClick={navigateTo} type="button">
-        <span data-testid={`status-icon-${status}`} />
-        {resolution && <span data-testid={`resolution-marker-${resolution}`} />}
-        <span>{name}</span>
-        {duration !== undefined && <span>{duration}</span>}
-      </button>
-    );
-  },
-  allureIcons: {
-    lineDevBug2: "issue-icon",
-    lineGeneralCheckCircle: "accepted-icon",
-    lineGeneralEye: "muted-icon",
-  },
-}));
+      return (
+        <button aria-label={name} onClick={navigateTo} type="button">
+          <span data-testid={`status-icon-${status}`} />
+          {resolution && <span data-testid={`resolution-marker-${resolution}`} />}
+          <span>{name}</span>
+          {duration !== undefined && <span>{duration}</span>}
+        </button>
+      );
+    },
+    allureIcons: {
+      lineDevBug2: "issue-icon",
+      lineGeneralCheckCircle: "accepted-icon",
+      lineGeneralEye: "muted-icon",
+    },
+  };
+});
 
 vi.mock("@/stores", () => ({
   useI18n: () => ({
@@ -88,7 +88,7 @@ beforeEach(() => {
 
 describe("components > ResolutionCategories", () => {
   it("should render report-level resolution categories and navigate to linked test result", () => {
-    const resolutionCategoriesData: AwesomeResolutionCategories = {
+    const resolutionCategoriesData: ReportResolutionCategoriesData = {
       groups: [
         {
           id: "issue:BUG-1",
@@ -135,11 +135,11 @@ describe("components > ResolutionCategories", () => {
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("retry");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("fullName");
 
-    fireEvent.click(screen.getByRole("button", { name: "collapse" }));
+    fireEvent.click(screen.getByRole("button", { name: /BUG-1/i }));
 
     expect(screen.queryByRole("button", { name: /checkout fails/i })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "expand" }));
+    fireEvent.click(screen.getByRole("button", { name: /BUG-1/i }));
     fireEvent.click(screen.getByRole("button", { name: /checkout fails/i }));
 
     expect(navigateToTestResultMock).toHaveBeenCalledWith({ testResultId: "tr-1" });
@@ -152,7 +152,7 @@ describe("components > ResolutionCategories", () => {
       status: "failed",
       resolution: "muted",
       resolutionComment: "Muted while infra is unstable",
-    } as AwesomeTestResult;
+    } as ReportTestResult;
 
     render(<TrResolutionCategoriesView testResult={testResult} />);
 

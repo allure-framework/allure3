@@ -23,7 +23,7 @@
     "globalErrors": "გლობალური შეცდომები",
     "qualityGates": "ხარისხის კარიბჭეები",
     "categories": "კატეგორიები",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "ძებნა",
@@ -164,8 +164,6 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "copy-email": "ელფოსტის კოპირება",
-    "muted-resolution-rule": "Muted rule",
-    "accepted-resolution-rule": "Accepted rule",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "retry": "გამეორება {{attempt}} {{total}}-დან",
     "at": "ზე",
@@ -176,7 +174,7 @@
     "pwTracePopupBlockedHint": "დაუშვით ამომხტარი ფანჯრები და ხელახლა სცადეთ.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})",
-    "resolutionCategories": "Resolution Categories"
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",
@@ -532,7 +530,7 @@
       "testTabNext": "შემდეგი ტესტის ჩანართი",
       "testTabPrev": "წინა ტესტის ჩანართი",
       "tabOverview": "მიმოხილვის ჩანართი",
-      "tabResolutionCategories": "Resolution Categories tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "ისტორიის ჩანართი",
       "tabRetries": "გამეორებების ჩანართი",
       "tabAttachments": "დანართების ჩანართი",
@@ -541,7 +539,7 @@
       "toggleParameters": "პარამეტრების ჩვენება/დამალვა",
       "toggleLinks": "ბმულების ჩვენება/დამალვა",
       "backToTree": "ხეზე დაბრუნება",
-      "reportTabResolutionCategories": "Report tab: Resolution categories"
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }
