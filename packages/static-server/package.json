@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3",

@@ -33,7 +33,7 @@
     "tar-stream": "3.1.7"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/tar-stream": "^3.1.4",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
