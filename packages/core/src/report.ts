@@ -4,7 +4,7 @@ import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
 import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve, sep } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
 import { detect } from "@allurereport/ci";
@@ -64,6 +64,33 @@ const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start()
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
+const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
+const OUTSIDE_CWD_ARTIFACT_PREFIX = "<outside-cwd>";
+
+type ReportArtifactsDump = {
+  path: string;
+  status: "expanded" | "failed" | "missing" | "restored";
+  error?: string;
+};
+
+type ReportArtifactsGlobalAttachment = {
+  name: string;
+  path: string;
+};
+
+type ReportArtifactsManifest = {
+  schemaVersion: 1;
+  dumps: ReportArtifactsDump[];
+  globalAttachments: {
+    patterns: string[];
+    files: ReportArtifactsGlobalAttachment[];
+  };
+};
+
+type RestoreStateDumpInput = {
+  displayPath?: string;
+  path: string;
+};
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -85,6 +112,39 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
 };
 
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
+
+const errorMessage = (err: unknown): string => (err instanceof Error ? err.message : String(err));
+
+const normalizeReportArtifactPath = (filePath: string): string => {
+  const cwd = resolve(process.cwd());
+  const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
+  const absoluteFilePath = resolve(filePath);
+
+  if (absoluteFilePath === cwd) {
+    return ".";
+  }
+
+  if (absoluteFilePath.startsWith(cwdWithSep)) {
+    return relative(cwd, absoluteFilePath).split(sep).join("/");
+  }
+
+  return `${OUTSIDE_CWD_ARTIFACT_PREFIX}/${basename(absoluteFilePath)}`;
+};
+
+const normalizeZipEntryPath = (entryName: string): string => entryName.split("\\").join("/");
+
+const artifactErrorMessage = (err: unknown, filePath: string): string => {
+  const message = errorMessage(err);
+  const artifactPath = normalizeReportArtifactPath(filePath);
+  const inputPath = filePath.split(sep).join("/");
+  const absolutePath = resolve(filePath);
+  const absoluteManifestPath = absolutePath.split(sep).join("/");
+
+  return [...new Set([absolutePath, absoluteManifestPath, filePath, inputPath])].reduce(
+    (acc, path) => acc.split(path).join(artifactPath),
+    message,
+  );
+};
 
 const closeReadStream = async (stream: ReadStream): Promise<void> => {
   if (stream.closed) {
@@ -129,6 +189,9 @@ export class AllureReport {
   #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
+  #artifactsDumps: ReportArtifactsDump[] = [];
+  #globalAttachmentPatterns: string[] = [];
+  #globalAttachmentFilesByPath: Map<string, ReportArtifactsGlobalAttachment> = new Map();
   #published = false;
   #endGeneratePerfSpan?: () => void;
 
@@ -511,6 +574,7 @@ export class AllureReport {
 
     const cwd = resolve(process.cwd());
     const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
+    this.#globalAttachmentPatterns = [...(this.#globalAttachments ?? [])];
 
     if (this.#globalAttachments?.length) {
       const matchedFiles = new Set<string>();
@@ -535,6 +599,7 @@ export class AllureReport {
           new PathResultFile(absoluteFilePath, originalFileName),
           originalFileName,
         );
+        this.#recordGlobalAttachment(absoluteFilePath, originalFileName);
       }
     }
 
@@ -729,16 +794,38 @@ export class AllureReport {
 
   restoreState = async (dumps: string[]): Promise<void> => {
     this.#store.resetIngestOrder();
-    await this.#restoreStateDumps(dumps);
+    await this.#restoreStateDumps(dumps.map((path) => ({ path })));
   };
 
-  #restoreStateDumps = async (dumps: string[]): Promise<void> =>
+  #recordArtifactsDump = (dump: ReportArtifactsDump): void => {
+    this.#artifactsDumps.push(dump);
+  };
+
+  #recordGlobalAttachment = (filePath: string, name: string): void => {
+    const absoluteFilePath = resolve(filePath);
+
+    if (!this.#globalAttachmentFilesByPath.has(absoluteFilePath)) {
+      this.#globalAttachmentFilesByPath.set(absoluteFilePath, {
+        name,
+        path: normalizeReportArtifactPath(absoluteFilePath),
+      });
+    }
+  };
+
+  #restoreStateDumps = async (dumps: RestoreStateDumpInput[]): Promise<void> =>
     measurePerf(PERF_METRIC_NAMES.restoreStateTotal, async () => {
-      for (const dump of dumps) {
+      for (const { displayPath, path: dump } of dumps) {
+        const artifactDumpPath = displayPath ?? normalizeReportArtifactPath(dump);
+
         await measurePerf(PERF_METRIC_NAMES.restoreStateDump, async () => {
           if (!existsSync(dump)) {
             console.error(`Failed to restore state from "${dump}", continuing without it`);
             console.error("Dump file does not exist");
+            this.#recordArtifactsDump({
+              path: artifactDumpPath,
+              status: "missing",
+              error: "Dump file does not exist",
+            });
             return;
           }
 
@@ -772,18 +859,25 @@ export class AllureReport {
 
                 if (nestedDumpEntries.length > 0) {
                   const nestedDumpsTempDir = await mkdtemp(join(tmpdir(), `${basename(dump, ".zip")}-nested-`));
-                  const nestedDumpPaths: string[] = [];
+                  const nestedDumps: RestoreStateDumpInput[] = [];
 
                   this.#dumpTempDirs.push(nestedDumpsTempDir);
 
                   for (const [entryName] of nestedDumpEntries) {
-                    const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumpPaths.length}-${basename(entryName)}`);
+                    const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumps.length}-${basename(entryName)}`);
 
                     await writeFile(nestedDumpPath, await dumpArchive.entryData(entryName));
-                    nestedDumpPaths.push(nestedDumpPath);
+                    nestedDumps.push({
+                      displayPath: `${artifactDumpPath}!/${normalizeZipEntryPath(entryName)}`,
+                      path: nestedDumpPath,
+                    });
                   }
 
-                  await this.#restoreStateDumps(nestedDumpPaths);
+                  this.#recordArtifactsDump({
+                    path: artifactDumpPath,
+                    status: "expanded",
+                  });
+                  await this.#restoreStateDumps(nestedDumps);
                   return;
                 }
               }
@@ -909,6 +1003,10 @@ export class AllureReport {
               );
 
               console.info(`Successfully restored state from "${dump}"`);
+              this.#recordArtifactsDump({
+                path: artifactDumpPath,
+                status: "restored",
+              });
             } catch (err) {
               restoreError = err;
               throw err;
@@ -925,6 +1023,11 @@ export class AllureReport {
           } catch (err) {
             console.error(`Failed to restore state from "${dump}", continuing without it`);
             console.error(errorDetails(err));
+            this.#recordArtifactsDump({
+              path: artifactDumpPath,
+              status: "failed",
+              error: artifactErrorMessage(err, dump),
+            });
           }
         });
       }
@@ -1024,6 +1127,31 @@ export class AllureReport {
       TEST_RESULTS_REGISTRY_FILENAME,
       Buffer.from(JSON.stringify(registry)),
     );
+  };
+
+  #finishArtifactsManifest = async (): Promise<void> => {
+    if (
+      this.#artifactsDumps.length === 0 &&
+      this.#globalAttachmentPatterns.length === 0 &&
+      this.#globalAttachmentFilesByPath.size === 0
+    ) {
+      return;
+    }
+
+    const manifest: ReportArtifactsManifest = {
+      schemaVersion: 1,
+      dumps: this.#artifactsDumps,
+      globalAttachments: {
+        patterns: this.#globalAttachmentPatterns,
+        files: [...this.#globalAttachmentFilesByPath.values()],
+      },
+    };
+
+    try {
+      await writeFile(join(this.#output, ARTIFACTS_MANIFEST_FILENAME), JSON.stringify(manifest));
+    } catch (err) {
+      console.error("Failed to write Allure artifacts manifest", err);
+    }
   };
 
   #generateRootSummary = async (): Promise<void> => {
@@ -1138,6 +1266,8 @@ export class AllureReport {
 
         await rm(reportPath, { recursive: true });
       }
+
+      await this.#finishArtifactsManifest();
 
       // remove all dump temp dirs
       for (const dir of this.#dumpTempDirs) {
