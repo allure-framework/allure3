@@ -357,6 +357,56 @@ describe("test results", () => {
     await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
   });
 
+  it("should include resolution counters in test statistics", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-issue")],
+          },
+          {
+            resolution: "muted",
+            comment: "muted failure",
+            testCaseId: [md5("tc-muted")],
+          },
+          {
+            resolution: "accepted",
+            comment: "accepted failure",
+            testCaseId: [md5("tc-accepted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "issue latest", status: "failed", testId: "tc-issue", start: 1000 },
+      { readerId },
+    );
+    await store.visitTestResult({ name: "issue retry", status: "failed", testId: "tc-issue", start: 0 }, { readerId });
+    await store.visitTestResult({ name: "muted", status: "broken", testId: "tc-muted" }, { readerId });
+    await store.visitTestResult({ name: "accepted", status: "failed", testId: "tc-accepted" }, { readerId });
+    await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-passed" }, { readerId });
+
+    await expect(store.testsStatistic()).resolves.toMatchObject({
+      total: 4,
+      failed: 2,
+      broken: 1,
+      passed: 1,
+      resolutionIssue: 1,
+      resolutionMuted: 1,
+      resolutionAccepted: 1,
+    });
+    await expect(store.testsStatistic((tr) => tr.status === "failed")).resolves.toMatchObject({
+      total: 2,
+      failed: 2,
+      resolutionIssue: 1,
+      resolutionAccepted: 1,
+    });
+  });
+
   it("should mark retries as isRetry", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
