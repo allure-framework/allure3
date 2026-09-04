@@ -119,7 +119,8 @@
     "critical": "kritik",
     "normal": "normal",
     "minor": "küçük",
-    "trivial": "önemsiz"
+    "trivial": "önemsiz",
+    "none": "önem derecesi yok"
   },
   "execution": {
     "name": "Yürütme",

@@ -54,6 +54,13 @@ export const setCategoriesFilter = (categories: string[]) => {
   });
 };
 
+export const setSeverityFilter = (severities: string[]) => {
+  setParams({
+    key: PARAMS.SEVERITY,
+    value: severities,
+  });
+};
+
 export const clearTreeFilterParams = () => {
   setParams(
     { key: PARAMS.QUERY, value: undefined },
@@ -62,6 +69,7 @@ export const clearTreeFilterParams = () => {
     { key: PARAMS.TRANSITION, value: [] },
     { key: PARAMS.TAGS, value: [] },
     { key: PARAMS.CATEGORIES, value: [] },
+    { key: PARAMS.SEVERITY, value: [] },
     { key: PARAMS.STATUS, value: undefined },
   );
 };

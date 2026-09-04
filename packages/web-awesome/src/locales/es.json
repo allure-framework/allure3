@@ -119,7 +119,8 @@
     "critical": "crítico",
     "normal": "normal",
     "minor": "menor",
-    "trivial": "trivial"
+    "trivial": "trivial",
+    "none": "sin severidad"
   },
   "execution": {
     "name": "Ejecución",

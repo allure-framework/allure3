@@ -122,6 +122,10 @@ export type ReportTreeLeaf = Pick<
   tooltips?: Record<string, string>;
   tags?: string[];
   categories?: string[];
+  /**
+   * Value of the test result's `severity` label, or `"none"` when the label is absent.
+   */
+  severity?: string;
 };
 
 export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

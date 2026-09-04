@@ -119,7 +119,8 @@
     "critical": "严重",
     "normal": "正常",
     "minor": "次要",
-    "trivial": "轻微"
+    "trivial": "轻微",
+    "none": "无严重程度"
   },
   "execution": {
     "name": "执行",

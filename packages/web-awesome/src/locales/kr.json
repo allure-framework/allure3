@@ -119,7 +119,8 @@
     "critical": "치명적",
     "normal": "보통",
     "minor": "경미함",
-    "trivial": "사소함"
+    "trivial": "사소함",
+    "none": "심각도 없음"
   },
   "execution": {
     "name": "실행",

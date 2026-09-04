@@ -1,7 +1,7 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
 
-import { PARAMS, STATUSES, TRANSITIONS } from "./constants";
+import { PARAMS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -33,6 +33,10 @@ export const validateTransition = (transition: string): transition is TestStatus
 
 export const validateStatus = (status: string): status is TestStatus => {
   return STATUSES.includes(status as TestStatus);
+};
+
+export const validateSeverity = (severity: string): boolean => {
+  return SEVERITIES.includes(severity);
 };
 
 export const migrateFilterParam = () => {
@@ -88,7 +92,8 @@ export const hasActiveFilters = (filters: Filters): boolean => {
     filters.retry ||
     (filters.transition && filters.transition.length > 0) ||
     (filters.tags && filters.tags.length > 0) ||
-    (filters.categories && filters.categories.length > 0)
+    (filters.categories && filters.categories.length > 0) ||
+    (filters.severity && filters.severity.length > 0)
   );
 };
 
@@ -129,6 +134,12 @@ export const constructFilterParams = (filters: Filters) => {
     });
   }
 
+  if (filters.severity) {
+    filters.severity.forEach((severity) => {
+      params.append(PARAMS.SEVERITY, severity);
+    });
+  }
+
   if (filters.status) {
     params.set(PARAMS.STATUS, filters.status);
   }
@@ -154,4 +165,8 @@ export const isCategoryFilter = (filter: AwesomeFilter): filter is AwesomeArrayF
 
 export const isTransitionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
   return filter.type === "group" && filter.fieldKey === "transition";
+};
+
+export const isSeverityFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
+  return filter.type === "group" && filter.fieldKey === "severity";
 };

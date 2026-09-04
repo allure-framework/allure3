@@ -119,7 +119,8 @@
     "critical": "kritisk",
     "normal": "normal",
     "minor": "mindre",
-    "trivial": "obetydlig"
+    "trivial": "obetydlig",
+    "none": "ingen allvarlighetsgrad"
   },
   "execution": {
     "name": "Utförande",

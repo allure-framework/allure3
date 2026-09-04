@@ -119,7 +119,8 @@
     "critical": "krytyczna",
     "normal": "zwykła",
     "minor": "niska",
-    "trivial": "minimalna"
+    "trivial": "minimalna",
+    "none": "brak ważności"
   },
   "execution": {
     "name": "Wykonanie",

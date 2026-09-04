@@ -119,7 +119,8 @@
     "critical": "重大",
     "normal": "通常",
     "minor": "小規模",
-    "trivial": "些細"
+    "trivial": "些細",
+    "none": "重要度なし"
   },
   "execution": {
     "name": "実行",

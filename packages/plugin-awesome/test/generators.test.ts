@@ -632,6 +632,51 @@ describe("generateQualityGateResults", () => {
     });
   });
 
+  it('should expose the severity label on tree leaves and fall back to "none"', async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const tests = [
+      {
+        ...mockTestResult("tr-blocker", "blocker test", "failed"),
+        groupedLabels: { severity: ["blocker"] },
+      },
+      {
+        ...mockTestResult("tr-no-severity", "test without severity", "failed"),
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    await generateQualityGateResults(
+      writer,
+      {
+        default: [
+          {
+            rule: "maxFailures",
+            success: false,
+            expected: 0,
+            actual: 2,
+            message: "Too many failures",
+            testResults: ["tr-blocker", "tr-no-severity"],
+          },
+        ],
+      },
+      { tests },
+    );
+
+    const results = writtenWidgets.get("quality-gate.json") as AwesomeQualityGateResults;
+    const leavesById = results.default[0].testResultsTree?.leavesById ?? {};
+
+    expect(leavesById["tr-blocker"]).toMatchObject({ severity: "blocker" });
+    expect(leavesById["tr-no-severity"]).toMatchObject({ severity: "none" });
+  });
+
   it("should omit the tree when no related test result can be resolved", async () => {
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
