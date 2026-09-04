@@ -824,7 +824,7 @@ __metadata:
     "@storybook/addon-interactions": "npm:^8.6.18"
     "@storybook/addon-webpack5-compiler-swc": "npm:^1.0.5"
     "@storybook/blocks": "npm:^8.6.17"
-    "@storybook/manager-api": "npm:^8.6.17"
+    "@storybook/manager-api": "npm:^8.6.18"
     "@storybook/preact": "npm:^8.6.17"
     "@storybook/preact-webpack5": "npm:^8.6.17"
     "@storybook/preset-scss": "npm:^1.0.3"
@@ -6579,12 +6579,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/manager-api@npm:8.6.17, @storybook/manager-api@npm:^8.6.17":
+"@storybook/manager-api@npm:8.6.17":
   version: 8.6.17
   resolution: "@storybook/manager-api@npm:8.6.17"
   peerDependencies:
     storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
   checksum: 10/40f34b34c8e4f9d5e5495c11a139ccd3c30135777d7d062b8d8a22e40e4ded9073844952919417a1d4b3895ebb4c67fb545aef933b78a4cc85240b027778f8f6
+  languageName: node
+  linkType: hard
+
+"@storybook/manager-api@npm:^8.6.18":
+  version: 8.6.18
+  resolution: "@storybook/manager-api@npm:8.6.18"
+  peerDependencies:
+    storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
+  checksum: 10/40176c8536671fd6506062bdd6bf3eabcf1a664d7fadbab11fab389558ec5a1e094835e35fa771de0bbe4817ce5672af40703908fcc3e00c54a0586b7af653d1
   languageName: node
   linkType: hard
 
