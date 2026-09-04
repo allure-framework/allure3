@@ -22,6 +22,7 @@ const iconMap: Record<string, string> = {
   "text/uri-list": lineFilesFileAttachment2,
   "image/svg+xml": lineImagesImage,
   "image/png": lineImagesImage,
+  "image/webp": lineImagesImage,
   "application/json": lineFilesFileAttachment2,
   "application/zip": lineFilesFileAttachment2,
   "video/webm": lineImagesImage,
