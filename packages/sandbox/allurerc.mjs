@@ -7,42 +7,37 @@ const sandboxTestopsToken = process.env.TESTOPS_SANDBOX_TOKEN;
 
 const chartLayout = [
   {
-    type: "trend",
-    dataType: "status",
-    mode: "percent",
+    type: "currentStatus",
+    title: "Current status",
   },
   {
-    type: "trend",
-    dataType: "status",
+    type: "statusDynamics",
+    title: "Status dynamics",
     limit: 10,
   },
   {
-    title: "Custom Status Trend",
-    type: "trend",
-    dataType: "status",
-    mode: "percent",
-    limit: 15,
+    type: "testResultSeverities",
+    title: "Test results by severities",
+    levels: ["blocker", "critical", "normal", "minor", "trivial"],
+    statuses: ["passed", "failed", "broken", "skipped", "unknown"],
+    includeUnset: true,
   },
   {
-    type: "trend",
-    dataType: "status",
-    limit: 15,
-    metadata: {
-      executionIdAccessor: (executionOrder) => `build-${executionOrder}`,
-      executionNameAccessor: (executionOrder) => `build #${executionOrder}`,
-    },
+    type: "statusTransitions",
+    title: "Status transitions",
   },
   {
-    type: "trend",
-    dataType: "severity",
-    limit: 15,
+    type: "durations",
+    title: "Durations histogram",
+    groupBy: "none",
   },
   {
-    type: "pie",
+    type: "durationDynamics",
+    title: "Durations dynamics",
   },
   {
-    type: "pie",
-    title: "Custom Pie",
+    type: "testingPyramid",
+    title: "Testing pyramid",
   },
 ];
 
@@ -123,7 +118,8 @@ const comboRules = [
 export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
-  historyPath: "./history.jsonl",
+  historyPath: "./test/metrics-history.jsonl",
+  appendHistory: false,
   hideLabels: ["owner"],
   resolutions: {
     knownIssuesPath: "./known-issues.json",

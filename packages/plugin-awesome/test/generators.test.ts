@@ -324,10 +324,18 @@ describe("generateMetricsWidget", () => {
           timestamp: 1_700_000_001_000,
           metrics: {},
         },
+        {
+          uuid: "report-uuid",
+          name: "Current report",
+          timestamp: 1_700_000_002_000,
+          metrics: {
+            "generate.total.avgMs": 200,
+          },
+        },
       ]),
     } as unknown as AllureStore;
 
-    await expect(generateMetricsWidget(writer, store)).resolves.toBe(true);
+    await expect(generateMetricsWidget(writer, store, "report-uuid")).resolves.toBe(true);
 
     expect(writtenWidgets.get("metrics.json")).toEqual({
       current: [
@@ -378,7 +386,7 @@ describe("generateMetricsWidget", () => {
       ]),
     } as unknown as AllureStore;
 
-    await expect(generateMetricsWidget(writer, store)).resolves.toBe(false);
+    await expect(generateMetricsWidget(writer, store, "report-uuid")).resolves.toBe(false);
 
     expect(writer.writeWidget).not.toHaveBeenCalled();
   });

@@ -120,6 +120,12 @@ const MetricHistoryDetails = ({
       ) : (
         <div className={styles.tableWrap}>
           <table className={`${styles.table} ${styles.historyTable}`}>
+            <colgroup>
+              <col className={styles.historyReportCol} />
+              <col className={styles.historyDateCol} />
+              <col className={styles.historyValueCol} />
+              <col className={styles.historyDeltaCol} />
+            </colgroup>
             <thead>
               <tr>
                 <th>{t("metrics.table.report")}</th>
@@ -185,7 +191,12 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
 
   const renderHistoryRow = (row: MetricRow, colSpan: number, id: string) => {
     return (
-      <tr aria-label={`${t("metrics.historyTitle")} ${row.title ?? row.key}`} className={styles.expandedRow} id={id}>
+      <tr
+        aria-label={`${t("metrics.historyTitle")} ${row.title ?? row.key}`}
+        className={styles.expandedRow}
+        data-expanded="true"
+        id={id}
+      >
         <td colSpan={colSpan}>
           <div className={styles.expandedContent}>
             <MetricHistoryDetails row={row} historyRows={metricHistoryRows(data, row.key)} />
@@ -219,7 +230,17 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
                 {category === "other" ? t("metrics.groups.other") : formatGroupLabel(category)}
               </h3>
               <div className={styles.tableWrap}>
-                <table className={styles.table}>
+                <table className={`${styles.table} ${styles.summaryTable}`}>
+                  <colgroup>
+                    <col className={styles.summaryMetricCol} />
+                    <col className={styles.summaryCountCol} />
+                    <col className={styles.summaryValueCol} />
+                    <col className={styles.summaryValueCol} />
+                    <col className={styles.summaryValueCol} />
+                    <col className={styles.summaryValueCol} />
+                    <col className={styles.summaryDeltaCol} />
+                    <col className={styles.summaryTrendCol} />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th>{t("metrics.table.phase")}</th>
@@ -288,7 +309,13 @@ const ReportMetricsContent = ({ data }: { data: MetricsWidgetData }) => {
       <details className={styles.section} open={summaryRows.length === 0}>
         <summary className={styles.sectionTitle}>{t("metrics.currentValues")}</summary>
         <div className={styles.tableWrap}>
-          <table className={styles.table}>
+          <table className={`${styles.table} ${styles.currentTable}`}>
+            <colgroup>
+              <col className={styles.currentMetricCol} />
+              <col className={styles.currentValueCol} />
+              <col className={styles.currentDeltaCol} />
+              <col className={styles.currentSourceCol} />
+            </colgroup>
             <thead>
               <tr>
                 <th>{t("metrics.table.metric")}</th>

@@ -807,7 +807,11 @@ export type AwesomeMetricsWidget = {
   }[];
 };
 
-export const generateMetricsWidget = async (writer: AwesomeDataWriter, store: AllureStore): Promise<boolean> => {
+export const generateMetricsWidget = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  reportUuid: string,
+): Promise<boolean> => {
   const current = await store.allMetrics();
 
   if (current.length === 0) {
@@ -815,7 +819,7 @@ export const generateMetricsWidget = async (writer: AwesomeDataWriter, store: Al
   }
 
   const history = (await store.allHistoryDataPoints())
-    .filter(({ metrics = {} }) => Object.keys(metrics).length > 0)
+    .filter(({ uuid, metrics = {} }) => uuid !== reportUuid && Object.keys(metrics).length > 0)
     .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
       uuid,
       name,

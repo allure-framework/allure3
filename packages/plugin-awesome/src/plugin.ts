@@ -141,7 +141,7 @@ export class AwesomePlugin implements Plugin {
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
-    const hasMetrics = await generateMetricsWidget(this.#writer!, store);
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
 
