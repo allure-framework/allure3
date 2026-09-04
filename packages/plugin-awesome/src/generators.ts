@@ -6,6 +6,7 @@ import {
   type EnvironmentIdentity,
   type EnvironmentItem,
   type MetricSample,
+  type ResolutionCategory,
   type Statistic,
   type TestEnvGroup,
   type TestLabel,
@@ -46,6 +47,9 @@ import type {
   QualityGateValidationResult,
   ReportFiles,
   ResultFile,
+  ReportResolutionCategories,
+  ReportResolutionGroup,
+  ReportResolutionTestResult,
 } from "@allurereport/plugin-api";
 import {
   collapseTreeGroups,
@@ -170,6 +174,7 @@ export const generateTestResults = async (
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
+    const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
@@ -185,6 +190,7 @@ export const generateTestResults = async (
       type: "attachment",
     }));
     convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
+    convertedTr.resolutionIssue = resolutionIssue;
 
     convertedTrs.push(convertedTr);
   }
@@ -454,6 +460,7 @@ const leafFactory = ({
   start,
   retry,
   retriesCount,
+  resolution,
   transition,
   tooltips,
   historyId,
@@ -470,6 +477,7 @@ const leafFactory = ({
     start,
     retry,
     retriesCount,
+    resolution,
     transition,
     tooltips,
   };
@@ -483,6 +491,68 @@ const leafFactory = ({
   }
 
   return leaf;
+};
+
+const resolutionOrder: ResolutionCategory[] = ["issue", "muted", "accepted"];
+
+const getResolutionGroupName = (test: ReportTestResult): string => {
+  if (test.resolution === "issue") {
+    return test.resolutionIssue?.id ?? test.resolution;
+  }
+
+  return test.resolutionComment ?? test.resolution ?? "";
+};
+
+const resolutionTestResultFactory = (test: ReportTestResult, index: number): ReportResolutionTestResult => ({
+  nodeId: test.id,
+  id: test.historyId ?? test.id,
+  name: test.name,
+  status: test.status,
+  duration: test.duration,
+  flaky: test.flaky,
+  transition: test.transition,
+  retry: test.retry,
+  retriesCount: test.retriesCount,
+  resolution: test.resolution,
+  groupOrder: index + 1,
+  tooltips: test.tooltips,
+});
+
+export const generateResolutionCategories = async (
+  writer: AwesomeDataWriter,
+  tests: ReportTestResult[],
+  filename = "resolution-categories.json",
+) => {
+  const groupsById = new Map<string, ReportResolutionGroup>();
+
+  tests
+    .filter((test) => !test.isRetry && test.resolution)
+    .forEach((test) => {
+      const resolution = test.resolution!;
+      const groupId =
+        resolution === "issue"
+          ? `${resolution}:${test.resolutionIssue?.id ?? test.id}`
+          : `${resolution}:${test.resolutionComment ?? test.id}`;
+      const group = groupsById.get(groupId) ?? {
+        id: groupId,
+        resolution,
+        name: getResolutionGroupName(test),
+        comment: test.resolutionComment ?? test.resolutionIssue?.comment,
+        issue: test.resolutionIssue,
+        testResults: [],
+      };
+
+      group.testResults.push(resolutionTestResultFactory(test, group.testResults.length));
+      groupsById.set(groupId, group);
+    });
+
+  const groups = [...groupsById.values()].sort((a, b) => {
+    const resolutionDiff = resolutionOrder.indexOf(a.resolution) - resolutionOrder.indexOf(b.resolution);
+
+    return resolutionDiff || a.name.localeCompare(b.name);
+  });
+
+  await writer.writeWidget(filename, { groups } satisfies ReportResolutionCategories);
 };
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
@@ -513,13 +583,15 @@ export const generateStatistic = async (
   data: {
     stats: Statistic;
     statsByEnv: Map<string, Statistic>;
+    pieStats?: Statistic;
+    pieStatsByEnv?: Map<string, Statistic>;
     envs: EnvironmentIdentity[];
   },
 ) => {
-  const { stats, statsByEnv, envs } = data;
+  const { stats, statsByEnv, pieStats = stats, pieStatsByEnv, envs } = data;
 
   await writer.writeWidget("statistic.json", stats);
-  await writer.writeWidget("pie_chart.json", getPieChartValues(stats));
+  await writer.writeWidget("pie_chart.json", getPieChartValues(pieStats));
 
   for (const env of envs) {
     const envStats = statsByEnv.get(env.id);
@@ -529,7 +601,10 @@ export const generateStatistic = async (
     }
 
     await writer.writeWidget(joinPosixPath(env.id, "statistic.json"), envStats);
-    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), envStats);
+    await writer.writeWidget(
+      joinPosixPath(env.id, "pie_chart.json"),
+      getPieChartValues(pieStatsByEnv?.get(env.id) ?? envStats),
+    );
   }
 };
 

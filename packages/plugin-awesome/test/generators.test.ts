@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { AttachmentLink, EnvironmentIdentity, TestFixtureResult, TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, EnvironmentIdentity, Statistic, TestFixtureResult, TestResult } from "@allurereport/core-api";
 import type {
   AllureStore,
   ReportQualityGateResults,
@@ -18,8 +18,11 @@ import {
   generateGlobals,
   generateMetricsWidget,
   generateQualityGateResults,
+  generateResolutionCategories,
   generateSearchIndex,
+  generateStatistic,
   generateTestResults,
+  generateTree,
   getRunSummary,
 } from "../src/generators.js";
 
@@ -83,13 +86,26 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     labels: [],
     flaky: false,
     muted: false,
-    known: false,
     isRetry: false,
     sourceMetadata: { readerId: "system", metadata: {} },
     parameters: [],
     links: [],
     steps: [],
   }) as TestResult;
+
+const createWriter = () => {
+  const writtenWidgets = new Map<string, unknown>();
+  const writer: AwesomeDataWriter = {
+    writeData: vi.fn().mockResolvedValue(undefined),
+    writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+      writtenWidgets.set(fileName, data);
+    }),
+    writeTestCase: vi.fn().mockResolvedValue(undefined),
+    writeAttachment: vi.fn().mockResolvedValue(undefined),
+  };
+
+  return { writer, writtenWidgets };
+};
 
 const mockFixtureResult = (
   id: string,
@@ -418,12 +434,168 @@ describe("generateTestResults", () => {
         historyByTrId: new Map([["tr-1", []]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
     } as unknown as AllureStore;
 
     const [converted] = await generateTestResults(writer, store, [testResult]);
 
     expect(converted?.setup.map(({ name }) => name)).toEqual(["beforeAll", "beforeEach"]);
     expect(converted?.teardown.map(({ name }) => name)).toEqual(["afterEach", "afterAll"]);
+  });
+
+  it("should include the matched resolution issue in generated test result JSON", async () => {
+    const testResult = {
+      ...mockTestResult("tr-1", "failed test", "failed"),
+      resolution: "issue",
+      resolutionComment: "BUG-1 still fails in checkout",
+    } satisfies TestResult;
+    const { writer } = createWriter();
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue({
+        id: "BUG-1",
+        type: "jira",
+        comment: "BUG-1 still fails in checkout",
+      }),
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult]);
+
+    expect(converted).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "BUG-1 still fails in checkout",
+      resolutionIssue: {
+        id: "BUG-1",
+        type: "jira",
+        comment: "BUG-1 still fails in checkout",
+      },
+    });
+  });
+});
+
+describe("generateTree", () => {
+  it("should include resolution category in tree leaves", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-issue", "issue test", "failed"),
+        groupedLabels: {},
+        resolution: "issue",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-clean", "clean test", "passed"),
+        groupedLabels: {},
+      } as ReportTestResult,
+    ];
+
+    await generateTree(writer, "tree.json", [], tests);
+
+    const tree = writtenWidgets.get("tree.json") as { leavesById: Record<string, { resolution?: string }> };
+
+    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue" });
+    expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
+  });
+});
+
+describe("generateResolutionCategories", () => {
+  it("should write resolution groups with related non-retry test results", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
+        historyId: "history-1",
+        resolution: "issue",
+        resolutionComment: "Checkout discount is not applied",
+        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
+        historyId: "history-2",
+        resolution: "issue",
+        resolutionComment: "Checkout discount is not applied",
+        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-muted", "muted failure", "broken"),
+        resolution: "muted",
+        resolutionComment: "Muted while infra is unstable",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-accepted", "accepted failure", "failed"),
+        resolution: "accepted",
+        resolutionComment: "Accepted risk for the release",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-retry", "retry issue", "failed"),
+        isRetry: true,
+        resolution: "issue",
+        resolutionIssue: { id: "BUG-2", type: "jira" },
+      } as ReportTestResult,
+      mockTestResult("tr-clean", "clean test", "passed") as ReportTestResult,
+    ];
+
+    await generateResolutionCategories(writer, tests);
+
+    expect(writtenWidgets.get("resolution-categories.json")).toEqual({
+      groups: [
+        {
+          id: "issue:BUG-1",
+          resolution: "issue",
+          name: "BUG-1",
+          comment: "Checkout discount is not applied",
+          issue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+          testResults: [
+            expect.objectContaining({ nodeId: "tr-issue-1", id: "history-1", resolution: "issue", groupOrder: 1 }),
+            expect.objectContaining({ nodeId: "tr-issue-2", id: "history-2", resolution: "issue", groupOrder: 2 }),
+          ],
+        },
+        {
+          id: "muted:Muted while infra is unstable",
+          resolution: "muted",
+          name: "Muted while infra is unstable",
+          comment: "Muted while infra is unstable",
+          issue: undefined,
+          testResults: [expect.objectContaining({ nodeId: "tr-muted", resolution: "muted" })],
+        },
+        {
+          id: "accepted:Accepted risk for the release",
+          resolution: "accepted",
+          name: "Accepted risk for the release",
+          comment: "Accepted risk for the release",
+          issue: undefined,
+          testResults: [expect.objectContaining({ nodeId: "tr-accepted", resolution: "accepted" })],
+        },
+      ],
+    });
+  });
+});
+
+describe("generateStatistic", () => {
+  it("should write pie chart data from active statistics without changing raw statistics", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const stats: Statistic = { total: 3, passed: 1, failed: 2 };
+    const activeStats: Statistic = { total: 2, passed: 1, failed: 1 };
+
+    await generateStatistic(writer, {
+      stats,
+      statsByEnv: new Map(),
+      pieStats: activeStats,
+      envs: [],
+    });
+
+    expect(writtenWidgets.get("statistic.json")).toEqual(stats);
+    expect(writtenWidgets.get("pie_chart.json")).toMatchObject({
+      percentage: 50,
+      slices: [
+        expect.objectContaining({ status: "failed", count: 1 }),
+        expect.objectContaining({ status: "passed", count: 1 }),
+      ],
+    });
   });
 });
 
@@ -526,7 +698,6 @@ describe("generateSearchIndex", () => {
       isRetry: false,
       flaky: false,
       muted: false,
-      known: false,
       labels: [
         { name: "owner", value: "Igor Martynov" },
         { name: "feature", value: "Checkout" },

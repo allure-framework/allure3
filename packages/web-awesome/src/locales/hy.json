@@ -22,7 +22,8 @@
     "globalAttachments": "Գլոբալ կցորդներ",
     "globalErrors": "Գլոբալ սխալներ",
     "qualityGates": "Որակի դարպասներ",
-    "categories": "Կատեգորիաներ"
+    "categories": "Կատեգորիաներ",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Որոնում",
@@ -56,7 +57,18 @@
       "regressed": "Ցուցադրում է թեստերի արդյունքները, որոնք փոխել են կարգավիճակը \"անցած\" կամ \"կոտրված\"-ից \"ձախողված\"-ի",
       "malfunctioned": "Ցուցադրում է թեստերի արդյունքները, որոնք փոխել են կարգավիճակը \"անցած\" կամ \"ձախողված\"-ից \"կոտրված\"-ի",
       "tags": "Ցուցադրում է թեստերի արդյունքները, որոնք ունեն նշված պիտակները",
-      "categories": "Ցուցադրել թեստերի արդյունքները, որոնք ունեն նշված կատեգորիաները"
+      "categories": "Ցուցադրել թեստերի արդյունքները, որոնք ունեն նշված կատեգորիաները",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "Թեստի դեպքերի արդյունքներ չկան։",
     "no-environments-results": "Համակարգչային միջավայրի մասին տեղեկություններ չկան",
     "no-categories-results": "Կատեգորիաներ հասանելի չեն",
-    "no-metrics-results": "Մետրիկաներ չկան"
+    "no-metrics-results": "Մետրիկաներ չկան",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "արգելափակում",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "Բրաուզերը արգելափակեց Playwright Trace Viewer-ի բացումը։",
     "pwTracePopupBlockedHint": "Թույլատրեք բացվող պատուհանները և կրկին փորձեք։",
     "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",
@@ -432,7 +446,12 @@
       "regressed": "Նախկինում \"անցած\" կամ \"կոտրված\" թեստ, որը այժմ \"ձախողվել\" է",
       "malfunctioned": "Նախկինում \"անցած\" կամ \"ձախողված\" թեստ, որը այժմ \"կոտրված\" է",
       "retries": "{{count}} կրկնափորձ",
-      "flaky": "Անհետևողական տարբեր գործարկումների ընթացքում"
+      "flaky": "Անհետևողական տարբեր գործարկումների ընթացքում",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Նոր",
     "fixed": "Ուղղված",
@@ -511,6 +530,7 @@
       "testTabNext": "Հաջորդ թեստի ներդիր",
       "testTabPrev": "Նախորդ թեստի ներդիր",
       "tabOverview": "Ակնարկի ներդիր",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Պատմության ներդիր",
       "tabRetries": "Կրկնությունների ներդիր",
       "tabAttachments": "Կցորդների ներդիր",
@@ -518,7 +538,8 @@
       "toggleLabels": "Ցուցադրել/թաքցնել պիտակները",
       "toggleParameters": "Ցուցադրել/թաքցնել պարամետրերը",
       "toggleLinks": "Ցուցադրել/թաքցնել հղումները",
-      "backToTree": "Վերադառնալ ծառ"
+      "backToTree": "Վերադառնալ ծառ",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

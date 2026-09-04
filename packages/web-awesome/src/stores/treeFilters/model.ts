@@ -1,4 +1,4 @@
-import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import type {
   ArrayField,
   BooleanField,
@@ -14,6 +14,7 @@ export type Filters = {
   status?: TestStatus;
   flaky?: boolean;
   retry?: boolean;
+  resolution?: ResolutionCategory[];
   transition?: TestStatusTransition[];
   tags?: string[];
   categories?: string[];

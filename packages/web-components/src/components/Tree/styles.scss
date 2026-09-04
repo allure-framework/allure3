@@ -85,8 +85,14 @@
 .tree-item {
   display: flex;
   justify-content: space-between;
+  width: 100%;
   padding: 6px 8px 6px 6px;
+  border: 0;
   transition: background-color 300ms;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   gap: 4px;
   cursor: pointer;
   position: relative;

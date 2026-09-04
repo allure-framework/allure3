@@ -22,7 +22,8 @@
     "globalAttachments": "გლობალური დანართები",
     "globalErrors": "გლობალური შეცდომები",
     "qualityGates": "ხარისხის კარიბჭეები",
-    "categories": "კატეგორიები"
+    "categories": "კატეგორიები",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "ძებნა",
@@ -56,7 +57,18 @@
       "regressed": "აჩვენებს ტესტების შედეგებს, რომლებმაც შეცვალეს სტატუსი \"წარმატებული\" ან \"დამტვრეული\"-დან \"წარუმატებელი\"-ზე",
       "malfunctioned": "აჩვენებს ტესტების შედეგებს, რომლებმაც შეცვალეს სტატუსი \"წარმატებული\" ან \"წარუმატებელი\"-დან \"დამტვრეული\"-ზე",
       "tags": "აჩვენებს ტესტების შედეგებს, რომლებსაც აქვთ მითითებული ტეგები",
-      "categories": "აჩვენებს ტესტების შედეგებს, რომლებსაც აქვთ მითითებული კატეგორიები"
+      "categories": "აჩვენებს ტესტების შედეგებს, რომლებსაც აქვთ მითითებული კატეგორიები",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "ტესტის შემთხვევის შედეგები არ არის",
     "no-environments-results": "გარემობის ინფორმაცია არ არის ხელმისაწვდომი",
     "no-categories-results": "კატეგორიები ხელმისაწვდომი არ არის",
-    "no-metrics-results": "მეტრიკები ხელმისაწვდომი არ არის"
+    "no-metrics-results": "მეტრიკები ხელმისაწვდომი არ არის",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "ბლოკერი",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "ბრაუზერმა დაბლოკა Playwright Trace Viewer-ის გახსნა.",
     "pwTracePopupBlockedHint": "დაუშვით ამომხტარი ფანჯრები და ხელახლა სცადეთ.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",
@@ -432,7 +446,12 @@
       "regressed": "ადრე \"წარმატებული\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარუმატებელი\"ა",
       "malfunctioned": "ადრე \"წარმატებული\" ან \"წარუმატებელი\" ტესტი, რომელიც ახლა \"დამტვრეული\"ა",
       "retries": "{{count}} ხელახალი ცდა",
-      "flaky": "შედეგები არასტაბილურია გაშვებებს შორის"
+      "flaky": "შედეგები არასტაბილურია გაშვებებს შორის",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "ახალი",
     "fixed": "გასწორებული",
@@ -511,6 +530,7 @@
       "testTabNext": "შემდეგი ტესტის ჩანართი",
       "testTabPrev": "წინა ტესტის ჩანართი",
       "tabOverview": "მიმოხილვის ჩანართი",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "ისტორიის ჩანართი",
       "tabRetries": "გამეორებების ჩანართი",
       "tabAttachments": "დანართების ჩანართი",
@@ -518,7 +538,8 @@
       "toggleLabels": "ლეიბლების ჩვენება/დამალვა",
       "toggleParameters": "პარამეტრების ჩვენება/დამალვა",
       "toggleLinks": "ბმულების ჩვენება/დამალვა",
-      "backToTree": "ხეზე დაბრუნება"
+      "backToTree": "ხეზე დაბრუნება",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

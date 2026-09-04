@@ -22,7 +22,8 @@
     "globalAttachments": "Global Attachments",
     "globalErrors": "Global Errors",
     "qualityGates": "Quality Gates",
-    "categories": "Categories"
+    "categories": "Categories",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Search",
@@ -56,7 +57,18 @@
       "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
       "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status",
       "tags": "Show test results that have the specified tags",
-      "categories": "Show test results that have the specified categories"
+      "categories": "Show test results that have the specified categories",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "No test case results",
     "no-environments-results": "No environments information available",
     "no-categories-results": "No categories results available",
-    "no-metrics-results": "No metrics available"
+    "no-metrics-results": "No metrics available",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blocker",
@@ -163,7 +176,8 @@
     "pwTracePopupBlocked": "Browser blocked opening Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -215,6 +229,7 @@
       "testTabNext": "Next test tab",
       "testTabPrev": "Previous test tab",
       "tabOverview": "Overview tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "History tab",
       "tabRetries": "Retries tab",
       "tabAttachments": "Attachments tab",
@@ -222,7 +237,8 @@
       "toggleLabels": "Toggle labels",
       "toggleParameters": "Toggle parameters",
       "toggleLinks": "Toggle links",
-      "backToTree": "Back to tree"
+      "backToTree": "Back to tree",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {
@@ -495,7 +511,12 @@
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
-      "flaky": "Inconsistent across runs"
+      "flaky": "Inconsistent across runs",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "new",
     "fixed": "fixed",

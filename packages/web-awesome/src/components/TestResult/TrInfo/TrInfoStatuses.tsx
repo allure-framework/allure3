@@ -8,7 +8,6 @@ import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {
   flaky: allureIcons.lineIconBomb2,
-  known: allureIcons.lineAlertsAlertCircle,
   muted: allureIcons.lineGeneralEye,
 };
 

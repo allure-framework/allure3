@@ -1,4 +1,4 @@
-import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 
@@ -14,6 +14,7 @@ interface TreeItemProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
+  resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   id: string;
@@ -33,6 +34,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   duration,
   retriesCount,
   flaky,
+  resolution,
   transition,
   transitionTooltip,
   id,
@@ -44,16 +46,18 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   ...rest
 }) => {
   const treeNodeId = focusNodeId ?? id;
+  const handleClick = () => navigateTo(id);
 
   return (
-    <div
+    <button
       {...rest}
+      type="button"
       className={clsx(
         styles["tree-item"],
         marked ? styles["tree-item-marked"] : "",
         focused ? styles["tree-item-focused"] : "",
       )}
-      onClick={() => navigateTo(id)}
+      onClick={handleClick}
       id={id}
       data-tree-node-id={treeNodeId}
       aria-current={focused ? "true" : undefined}
@@ -69,11 +73,12 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
         data-testid="tree-leaf-info"
         duration={duration}
         flaky={flaky}
+        resolution={resolution}
         retriesCount={retriesCount}
         transition={transition}
         transitionTooltip={transitionTooltip}
         tooltips={tooltips}
       />
-    </div>
+    </button>
   );
 };

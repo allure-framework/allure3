@@ -157,7 +157,7 @@ export const MultipleChoiceFieldFilter = (props: {
   counter?: boolean;
   onChange: (group: FieldFilterGroup) => void;
   onClear?: () => void;
-  options: { key: string; label?: string; description?: string; icon?: string }[];
+  options: { key: string; label?: string; description?: string; icon?: string; count?: number }[];
   fieldKey: string;
   logicalOperator?: LogicalOperator;
   strict?: boolean;
@@ -258,7 +258,10 @@ export const MultipleChoiceFieldFilter = (props: {
             dataTestId={`${option.key}-filter`}
           >
             <div className={styles.itemContent}>
-              <Text tag="div">{option.label ?? option.key}</Text>
+              <div className={styles.itemHeader}>
+                <Text tag="div">{option.label ?? option.key}</Text>
+                {option.count !== undefined && <Counter count={option.count} size="s" truncateCount />}
+              </div>
               {option.description && (
                 <Text tag="div" size="s" type="paragraph" className={styles.description}>
                   {option.description}
