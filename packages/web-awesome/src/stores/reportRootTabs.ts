@@ -1,6 +1,4 @@
 import { categoriesStore } from "@/stores/categories";
-import { currentEnvironment } from "@/stores/env";
-import { globalsStore } from "@/stores/globals";
 import {
   navigateToPlainTestResult,
   navigateToRoot,
@@ -29,14 +27,17 @@ const REPORT_ROOT_TAB_ORDER: ReportRootTabId[] = [
 ];
 
 export const getAvailableReportRootTabs = (): ReportRootTabId[] => {
-  const tabs: ReportRootTabId[] = [REPORT_ROOT_TAB.Results];
+  const tabs: ReportRootTabId[] = [
+    REPORT_ROOT_TAB.Results,
+    REPORT_ROOT_TAB.QualityGate,
+    REPORT_ROOT_TAB.GlobalAttachments,
+    REPORT_ROOT_TAB.GlobalErrors,
+  ];
   const categories = categoriesStore.value.data;
 
   if (categories?.roots?.length) {
-    tabs.push(REPORT_ROOT_TAB.Categories);
+    tabs.splice(1, 0, REPORT_ROOT_TAB.Categories);
   }
-
-  tabs.push(REPORT_ROOT_TAB.QualityGate, REPORT_ROOT_TAB.GlobalAttachments, REPORT_ROOT_TAB.GlobalErrors);
 
   return tabs;
 };

@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, type AllurePerformanceResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -75,6 +75,8 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
 const matchesAllure2File = (fileName: string): boolean => {
   if (fileName.endsWith("-result.json")) return true;
   if (fileName.endsWith("-check.json")) return true;
+  if (fileName.endsWith("-perf.json")) return true;
+  if (fileName === "performance.json") return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
   if (isAllure2AttachmentFileName(fileName)) return true;
@@ -98,6 +100,23 @@ export const allure2: ResultsReader = {
         if (parsed && isStringAnyRecord(parsed)) {
           await processCheckResult(visitor, parsed, originalFileName);
         }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
+    }
+
+    if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
+      try {
+        const results = await data.asJson<unknown>();
+
+        if (!Array.isArray(results)) {
+          return false;
+        }
+
+        await visitor.visitMetrics(results as AllurePerformanceResult[], { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {

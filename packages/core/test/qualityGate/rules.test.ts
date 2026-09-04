@@ -9,6 +9,10 @@ import {
   maxDurationRule,
   maxFailuresRule,
   minTestsCountRule,
+  metricMaxDeltaPercentRule,
+  metricMaxDeltaRule,
+  metricMaxRule,
+  metricMinRule,
   successRateRule,
 } from "../../src/qualityGate/rules.js";
 
@@ -524,5 +528,229 @@ describe("environmentsTestedRule", () => {
     expect(secondResult.success).toBe(true);
     expect(secondResult.actual).toEqual([]);
     expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]), []);
+  });
+});
+
+describe("metric quality gate rules", () => {
+  const state: QualityGateRuleState<never> = {
+    getResult: () => undefined,
+    setResult: () => {},
+  };
+  const basePayload = {
+    trs: [] as TestResult[],
+    knownIssues: [] as KnownTestFailure[],
+    state,
+  };
+
+  it("should validate maximum metric threshold against the current average", async () => {
+    await expect(
+      metricMaxRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 10 },
+        metrics: [
+          { id: "1", key: "bundle.size", value: 8, start: 0, stop: 1 },
+          { id: "2", key: "bundle.size", value: 12, start: 1, stop: 2 },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 10,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should fail missing metrics instead of silently passing", async () => {
+    await expect(
+      metricMinRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 1 },
+        metrics: [],
+      }),
+    ).resolves.toEqual({
+      success: false,
+      actual: {
+        key: "bundle.size",
+        value: Number.NaN,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should compare the current metric against the latest previous history point with that key", async () => {
+    await expect(
+      metricMaxDeltaRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
+        previousHistory: [
+          {
+            uuid: "new",
+            timestamp: 2,
+            metrics: { "bundle.size": 110 },
+          },
+          {
+            uuid: "old",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 2,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should pass metric delta rules when no previous baseline exists", async () => {
+    await expect(
+      metricMaxDeltaRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
+        previousHistory: [],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 0,
+      },
+      testResults: [],
+    });
+  });
+
+  it.each([
+    {
+      name: "lower improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+    {
+      name: "lower improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+  ])("should evaluate $name", async ({ rule, better, current, success, actual }) => {
+    await expect(
+      rule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: current, start: 0, stop: 1, better }],
+        previousHistory: [
+          {
+            uuid: "previous",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success,
+      actual: {
+        key: "bundle.size",
+        value: actual,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should fail when the percent delta exceeds the configured threshold", async () => {
+    await expect(
+      metricMaxDeltaPercentRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 10 },
+        metrics: [{ id: "1", key: "bundle.size", value: 120, start: 0, stop: 1 }],
+        previousHistory: [
+          {
+            uuid: "previous",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: false,
+      actual: {
+        key: "bundle.size",
+        value: 20,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should format metric rule messages from expected and enriched actual values", async () => {
+    const result = await metricMaxRule.validate({
+      ...basePayload,
+      expected: { key: "bundle.size", value: 10 },
+      metrics: [{ id: "1", key: "bundle.size", value: 12, start: 0, stop: 1, title: "Bundle size", unit: "MB" }],
+    });
+    const message = metricMaxRule.message({
+      actual: result.actual,
+      expected: { key: "bundle.size", value: 10 },
+    });
+
+    expect(message).toContain("Bundle size");
+    expect(message).toContain("12 MB");
   });
 });

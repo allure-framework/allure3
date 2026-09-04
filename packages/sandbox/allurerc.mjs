@@ -9,42 +9,37 @@ const sandboxTestopsProjectId = process.env.TESTOPS_SANDBOX_PROJECT_ID || "1";
 
 const chartLayout = [
   {
-    type: "trend",
-    dataType: "status",
-    mode: "percent",
+    type: "currentStatus",
+    title: "Current status",
   },
   {
-    type: "trend",
-    dataType: "status",
+    type: "statusDynamics",
+    title: "Status dynamics",
     limit: 10,
   },
   {
-    title: "Custom Status Trend",
-    type: "trend",
-    dataType: "status",
-    mode: "percent",
-    limit: 15,
+    type: "testResultSeverities",
+    title: "Test results by severities",
+    levels: ["blocker", "critical", "normal", "minor", "trivial"],
+    statuses: ["passed", "failed", "broken", "skipped", "unknown"],
+    includeUnset: true,
   },
   {
-    type: "trend",
-    dataType: "status",
-    limit: 15,
-    metadata: {
-      executionIdAccessor: (executionOrder) => `build-${executionOrder}`,
-      executionNameAccessor: (executionOrder) => `build #${executionOrder}`,
-    },
+    type: "statusTransitions",
+    title: "Status transitions",
   },
   {
-    type: "trend",
-    dataType: "severity",
-    limit: 15,
+    type: "durations",
+    title: "Durations histogram",
+    groupBy: "none",
   },
   {
-    type: "pie",
+    type: "durationDynamics",
+    title: "Durations dynamics",
   },
   {
-    type: "pie",
-    title: "Custom Pie",
+    type: "testingPyramid",
+    title: "Testing pyramid",
   },
 ];
 
@@ -125,7 +120,8 @@ const comboRules = [
 export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
-  historyPath: "./history.jsonl",
+  historyPath: "./test/metrics-history.jsonl",
+  appendHistory: false,
   hideLabels: ["owner"],
   resolutions: {
     knownIssuesPath: "./known-issues.json",
@@ -174,6 +170,39 @@ export default defineConfig({
   },
   categories: {
     rules: comboRules,
+  },
+  performance: {
+    groups: {
+      data: {
+        title: "Result data",
+      },
+      report: {
+        title: "Report generation",
+      },
+      attachments: {
+        title: "Attachment demos",
+      },
+    },
+    metrics: {
+      "sandbox.results.load": {
+        title: "Load sandbox results",
+        unit: "ms",
+        better: "lower",
+        group: "data",
+      },
+      "sandbox.report.awesome": {
+        title: "Generate Awesome report",
+        unit: "ms",
+        better: "lower",
+        group: "report",
+      },
+      "sandbox.attachments.httpExchange": {
+        title: "Render HTTP exchange attachments",
+        unit: "ms",
+        better: "lower",
+        group: "attachments",
+      },
+    },
   },
   plugins: {
     allure2: {

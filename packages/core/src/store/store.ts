@@ -4,6 +4,7 @@ import { extname } from "node:path";
 import {
   type AllureCheckResult,
   type AllureHistory,
+  type AllurePerformanceResult,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -17,6 +18,8 @@ import {
   type HistoryTestResult,
   type ResolutionIssue,
   type ResolutionsConfig,
+  type MetricSample,
+  type PerformanceConfig,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -32,6 +35,7 @@ import {
   normalizeHistoryDataPoint,
   ordinal,
   reverse,
+  resolveMetricSamples,
   selectHistoryTestResults,
   validateEnvironmentId,
   validateEnvironmentName,
@@ -159,6 +163,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #checkResultsById: Map<string, AllureCheckResult> = new Map();
   #qualityGateResults: QualityGateValidationResult[] = [];
+  #metrics: MetricSample[] = [];
+  #performance: PerformanceConfig = {};
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
 
@@ -172,6 +178,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     allowedEnvironments?: string[];
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
+    performance?: PerformanceConfig;
   }) {
     const {
       history,
@@ -183,6 +190,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       allowedEnvironments,
       environmentsConfig = {},
       reportVariables = {},
+      performance = {},
     } = params ?? {};
     const errors: string[] = [];
     const {
@@ -225,6 +233,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
     this.#resolutionsConfig = resolutionsConfig;
+    this.#performance = performance;
 
     this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
@@ -754,6 +763,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.addCheckResult(result);
   }
 
+  async visitMetrics(metrics: AllurePerformanceResult[], context: ReaderContext = { readerId: "api" }): Promise<void> {
+    const source = context.metadata?.originalFileName;
+
+    this.#metrics.push(
+      ...resolveMetricSamples(
+        metrics.map((metric) => ({
+          ...metric,
+          ...(source ? { source } : {}),
+        })),
+        this.#performance,
+      ),
+    );
+  }
+
   /**
    * Process a raw test result into the store.
    *
@@ -1095,6 +1118,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return [...testResultIds]
       .map((testResultId) => this.#testResults.get(testResultId))
       .filter(Boolean) as TestResult[];
+  }
+
+  async allMetrics(): Promise<MetricSample[]> {
+    return [...this.#metrics];
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
@@ -1548,6 +1575,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult: {},
       resolutionIssues: mapToObject(this.#resolutionIssues),
       qualityGateResults: this.#qualityGateResults,
+      metrics: this.#metrics,
       testResultIdsIngestOrder: this.#retrySubstore.ingestOrderIdsForDump(),
     };
 
@@ -1591,6 +1619,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexFixturesByTestResult = {},
       resolutionIssues = {},
       qualityGateResults = [],
+      metrics = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
     const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
@@ -1841,5 +1870,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       );
       this.#qualityGateResults.push(result);
     });
+    this.#metrics.push(...metrics);
   }
 }

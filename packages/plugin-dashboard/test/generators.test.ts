@@ -1,12 +1,17 @@
-import type { ReportFiles } from "@allurereport/plugin-api";
-import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import type { AllureStore, ReportFiles } from "@allurereport/plugin-api";
+import { epic, feature, label, story } from "allure-js-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { generateStaticFiles } from "../src/generators.js";
+import { generateEnvirontmentsList, generateStaticFiles } from "../src/generators.js";
+import type { DashboardDataWriter } from "../src/writer.js";
 
 beforeEach(async () => {
-  await story("index");
+  await epic("coverage");
+  await feature("plugin-dashboard");
+  await story("generators");
+  await label("coverage", "plugin-dashboard");
 });
+
 const createReportFiles = () => {
   const files = new Map<string, Buffer>();
   const reportFiles: ReportFiles = {
@@ -19,7 +24,7 @@ const createReportFiles = () => {
   return { files, reportFiles };
 };
 
-describe("static report assets", () => {
+describe("generateStaticFiles", () => {
   it("should restore the packaged archive for multi-file reports", async () => {
     const { files, reportFiles } = createReportFiles();
 
@@ -52,5 +57,34 @@ describe("static report assets", () => {
 
     expect([...files.keys()]).toEqual(["index.html"]);
     expect(files.get("index.html")?.toString("utf8")).toContain("data:text/javascript;base64,");
+  });
+});
+
+describe("generateEnvirontmentsList", () => {
+  it("should write environment identities widget", async () => {
+    const writer: DashboardDataWriter = {
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([
+        {
+          id: "env-1",
+          name: "Production",
+          variables: {},
+          hidden: false,
+        },
+      ]),
+    } as unknown as AllureStore;
+
+    await generateEnvirontmentsList(writer, store);
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("environments.json", [
+      {
+        id: "env-1",
+        name: "Production",
+        variables: {},
+        hidden: false,
+      },
+    ]);
   });
 });
