@@ -5,6 +5,7 @@ import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type MetricSample,
   type Statistic,
   type TestEnvGroup,
   type TestLabel,
@@ -701,7 +702,7 @@ export const generateStaticFiles = async (
   const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const sections: string[] = ["charts", "timeline"];
+  const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -796,6 +797,45 @@ export const generateAllCharts = async (
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
   }
+};
+
+export type AwesomeMetricsWidget = {
+  current: MetricSample[];
+  history: {
+    uuid: string;
+    name: string;
+    timestamp: number;
+    url?: string;
+    metrics: Record<string, number>;
+  }[];
+};
+
+export const generateMetricsWidget = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  reportUuid: string,
+): Promise<boolean> => {
+  const current = await store.allMetrics();
+
+  if (current.length === 0) {
+    return false;
+  }
+
+  const history = (await store.allHistoryDataPoints())
+    .filter(({ uuid, metrics = {} }) => uuid !== reportUuid && Object.keys(metrics).length > 0)
+    .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
+      uuid,
+      name,
+      timestamp,
+      ...(url ? { url } : {}),
+      metrics,
+    }));
+
+  await writer.writeWidget("metrics.json", {
+    current,
+    history,
+  } satisfies AwesomeMetricsWidget);
+  return true;
 };
 
 export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: ReportTestResult[]) => {

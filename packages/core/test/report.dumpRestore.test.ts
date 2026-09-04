@@ -16,9 +16,12 @@ import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
-import { PERF_METRICS_FILE, PERF_METRIC_NAMES, resetPerfMetrics } from "../src/utils/perf.js";
+import { PERF_METRIC_NAMES, perfMetricsFileName, resetPerfMetrics } from "../src/utils/perf.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const readPerfMetrics = async (output: string, reportUuid: string) =>
+  JSON.parse(await readFile(join(output, perfMetricsFileName(reportUuid)), "utf8"));
 
 const minimalDumpJsonFiles = (
   overrides: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
@@ -151,14 +154,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
-    expect(metrics.summary).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateDump, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateAttachments, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateStoreRestore, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateDump, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateAttachments, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateStoreRestore, value: expect.any(Number) }),
       ]),
     );
   });
@@ -179,11 +182,11 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
     expect(existsSync(`${dumpPath}.zip`)).toBe(true);
-    expect(metrics.summary).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 })]),
+    expect(metrics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal })]),
     );
   });
 
@@ -711,6 +714,65 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
       expect(statistic).toEqual(expect.objectContaining({ passed: 2, retries: 1 }));
       expect(statistic.failed).toBeUndefined();
+    });
+  });
+
+  it("writes and restores metrics from a dump", async () => {
+    const dumpPath = join(tmpdir(), `allure-metrics-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const metrics = [
+      {
+        id: "generate-total",
+        key: "generate.total.avgMs",
+        value: 128.5,
+        start: 0,
+        stop: 128.5,
+      },
+      {
+        id: "browser-cold-load",
+        key: "browser.coldLoadMs",
+        value: 640,
+        start: 200,
+        stop: 840,
+      },
+    ];
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await step("write metrics to a dump archive", async () => {
+      await report.start();
+      await report.store.visitMetrics(metrics);
+      await report.done();
+    });
+
+    const archive = new ZipReadStream.async({
+      file: zipPath,
+    });
+
+    try {
+      const metricsEntry = await archive.entryData(AllureStoreDumpFiles.Metrics);
+
+      await attachment("dump metrics entry", metricsEntry.toString("utf8"), "application/json");
+      expect(JSON.parse(metricsEntry.toString("utf8"))).toEqual(metrics);
+    } finally {
+      await archive.close();
+    }
+
+    const restoredReport = new AllureReport({
+      ...config,
+      plugins: [],
+    });
+
+    await step("restore metrics from the dump archive", async () => {
+      await expect(restoredReport.restoreState([zipPath])).resolves.toBeUndefined();
+      await expect(restoredReport.store.allMetrics()).resolves.toEqual(metrics);
     });
   });
 });

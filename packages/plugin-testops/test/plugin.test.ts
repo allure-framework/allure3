@@ -254,7 +254,40 @@ describe("testops plugin", () => {
         await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
 
         expect(TestOpsClientMock.prototype.startUpload).toHaveBeenCalledTimes(1);
-        expect(TestOpsClientMock.prototype.startUpload).toHaveBeenCalledWith({ type: "github" });
+        expect(TestOpsClientMock.prototype.startUpload).toHaveBeenCalledWith({ type: "github" }, undefined);
+      });
+
+      it("should attach to the existing job run instead of creating a launch when ALLURE_JOB_RUN_ID is set", async () => {
+        vi.stubEnv("ALLURE_JOB_RUN_ID", "491277");
+
+        (detect as unknown as Mock).mockReturnValue({ type: "azure", jobRunUid: "1234" } as CiDescriptor);
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: fixtures.launchTags,
+        });
+
+        store = new AllureStoreMock() as unknown as AllureStore;
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.startUpload).toHaveBeenCalledTimes(1);
+        expect(TestOpsClientMock.prototype.startUpload).toHaveBeenCalledWith(
+          { type: "azure", jobRunUid: "1234" },
+          491277,
+        );
+
+        vi.unstubAllEnvs();
       });
     });
 
@@ -277,6 +310,25 @@ describe("testops plugin", () => {
         plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         expect(plugin.enabled).toBe(false);
+      });
+
+      it("should return true from enabled getter when ci is local but ALLURE_JOB_RUN_ID is set", () => {
+        vi.stubEnv("ALLURE_JOB_RUN_ID", "491277");
+
+        (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: fixtures.launchTags,
+        });
+
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        expect(plugin.enabled).toBe(true);
+
+        vi.unstubAllEnvs();
       });
 
       it("should return true from enabled getter when enabled in config and ci is local", () => {
@@ -359,7 +411,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", [], undefined);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
-      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
     });
 
     it("should pass launchTags to createLaunch", async () => {
@@ -387,6 +439,29 @@ describe("testops plugin", () => {
       );
     });
 
+    it("should attach to an existing launch instead of creating one when launchId is set", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        launchId: 555,
+      });
+
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.attachToLaunch).toHaveBeenCalledWith(555);
+      expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
+    });
+
     it("should create direct-token upload session when called from start", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
@@ -395,7 +470,7 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
     });
 
     it("should upload all test results from the store", async () => {
@@ -627,7 +702,7 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
       expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith(
         expect.objectContaining({ attachments: fixtures.attachments }),
@@ -977,6 +1052,58 @@ describe("testops plugin", () => {
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(1);
       });
     });
+
+    describe("reopenClosedLaunch", () => {
+      const closedLaunchError = {
+        isAxiosError: true,
+        response: { status: 423, data: { message: "Launch is closed" } },
+      };
+
+      it("reopens the launch and retries when the option is enabled", async () => {
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: [],
+          reopenClosedLaunch: true,
+        });
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(closedLaunchError);
+
+        await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.reopenLaunch).toHaveBeenCalledWith(TestOpsClientMock.prototype.launchId);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+      });
+
+      it("does not reopen the launch when the option is disabled (default)", async () => {
+        (resolvePluginOptions as Mock).mockReturnValue({
+          accessToken: fixtures.accessToken,
+          endpoint: fixtures.endpoint,
+          projectId: fixtures.projectId,
+          launchName: "Allure Report",
+          launchTags: [],
+        });
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(closedLaunchError);
+
+        await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.reopenLaunch).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+      });
+    });
   });
 
   describe("when client is not initialized", () => {
@@ -1078,7 +1205,7 @@ describe("testops plugin", () => {
       await plugin.update({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
-      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
     });
 
     it("should upload test results", async () => {
@@ -1539,7 +1666,7 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
-      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env, false);
     });
 
     it("should upload test results", async () => {
@@ -1581,6 +1708,103 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
+    });
+
+    describe("finalization queue (long TestOps downtime)", () => {
+      const serviceDownError = {
+        isAxiosError: true,
+        response: { status: 503, data: {} },
+      };
+
+      it("recovers a test results batch that exhausted the hot-retry budget by retrying it at finalization", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.uploadTestResults
+          .mockRejectedValueOnce(serviceDownError)
+          .mockRejectedValueOnce(serviceDownError)
+          .mockRejectedValueOnce(serviceDownError)
+          .mockRejectedValueOnce(serviceDownError)
+          .mockResolvedValueOnce([{ id: fixtures.testResults[0].id }]);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(5);
+      }, 15_000);
+
+      it("does not resend a chunk already acknowledged by TestOps when a later chunk fails and the whole call is retried", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        const [firstTr, secondTr] = fixtures.testResults;
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([firstTr, secondTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.uploadTestResults.mockImplementationOnce(async (params) => {
+          params.onChunkUploaded?.([{ id: firstTr.id }]);
+          throw serviceDownError;
+        });
+        TestOpsClientMock.prototype.uploadTestResults.mockResolvedValueOnce([{ id: secondTr.id }]);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(2);
+
+        const secondCallTrs = TestOpsClientMock.prototype.uploadTestResults.mock.calls[1][0].trs;
+
+        expect(secondCallTrs.map((tr: { id: string }) => tr.id)).toEqual([secondTr.id]);
+      });
+
+      it("does not close the launch when the finalization upload was skipped because the session could not be created", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        TestOpsClientMock.prototype.createSession.mockRejectedValueOnce(serviceDownError);
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
+      });
+
+      it("reports the upload as still pending when it keeps failing through finalization too", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+
+        await plugin.start({} as PluginContext, store);
+        vi.clearAllMocks();
+
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          TestOpsClientMock.prototype.uploadTestResults.mockRejectedValueOnce(serviceDownError);
+        }
+
+        await plugin.done({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(8);
+        expect(TestOpsClientMock.prototype.stopUpload).toHaveBeenCalledTimes(1);
+        expect(TestOpsClientMock.prototype.closeLaunch).not.toHaveBeenCalled();
+      }, 15_000);
     });
 
     it("should call closeLaunch when launchId is set", async () => {

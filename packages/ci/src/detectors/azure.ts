@@ -7,7 +7,7 @@ const REF_PREFIX = "refs/";
 const BRANCH_REF_PREFIX = "refs/heads/";
 const TAG_REF_PREFIX = "refs/tags/";
 
-export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI");
+export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI").replace(/\/+$/, "");
 
 export const getBuildID = (): string => getEnv("BUILD_BUILDID");
 

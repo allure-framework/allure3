@@ -1,7 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 
-import { type AllureCheckResult, notNull } from "@allurereport/core-api";
+import { type AllureCheckResult, type AllurePerformanceResult, notNull } from "@allurereport/core-api";
 import type {
   RawGlobalAttachment,
   RawGlobalError,
@@ -52,6 +52,14 @@ const xmlParser = new XMLParser({
 
 const readerId = "allure2";
 
+const historyMetadataKeys: Record<string, string> = {
+  "history.json": "allure2_history",
+  "history-trend.json": "allure2_history_trend",
+  "duration-trend.json": "allure2_duration_trend",
+  "retry-trend.json": "allure2_retry_trend",
+  "categories-trend.json": "allure2_categories_trend",
+};
+
 const isAllure2AttachmentFileName = (fileName: string): boolean => {
   const attachmentIdx = fileName.lastIndexOf("-attachment");
 
@@ -67,6 +75,8 @@ const isAllure2AttachmentFileName = (fileName: string): boolean => {
 const matchesAllure2File = (fileName: string): boolean => {
   if (fileName.endsWith("-result.json")) return true;
   if (fileName.endsWith("-check.json")) return true;
+  if (fileName.endsWith("-perf.json")) return true;
+  if (fileName === "performance.json") return true;
   if (fileName.endsWith("-container.json")) return true;
   if (fileName.endsWith("-globals.json")) return true;
   if (isAllure2AttachmentFileName(fileName)) return true;
@@ -74,6 +84,7 @@ const matchesAllure2File = (fileName: string): boolean => {
   if (fileName === "categories.json") return true;
   if (fileName === "environment.properties") return true;
   if (fileName === "environment.xml") return true;
+  if (fileName in historyMetadataKeys) return true;
   return false;
 };
 
@@ -89,6 +100,23 @@ export const allure2: ResultsReader = {
         if (parsed && isStringAnyRecord(parsed)) {
           await processCheckResult(visitor, parsed, originalFileName);
         }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
+    }
+
+    if (originalFileName.endsWith("-perf.json") || originalFileName === "performance.json") {
+      try {
+        const results = await data.asJson<unknown>();
+
+        if (!Array.isArray(results)) {
+          return false;
+        }
+
+        await visitor.visitMetrics(results as AllurePerformanceResult[], { readerId, metadata: { originalFileName } });
 
         return true;
       } catch (e) {
@@ -130,6 +158,22 @@ export const allure2: ResultsReader = {
       }
 
       return true;
+    }
+
+    const historyMetadataKey = historyMetadataKeys[originalFileName];
+    if (historyMetadataKey) {
+      try {
+        const parsed = await data.asJson<unknown>();
+
+        if (parsed && (isStringAnyRecord(parsed) || isStringAnyRecordArray(parsed))) {
+          await visitor.visitMetadata({ [historyMetadataKey]: parsed }, { readerId });
+        }
+
+        return true;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
+      }
     }
 
     if (originalFileName === "executor.json") {
@@ -204,6 +248,8 @@ export const allure2: ResultsReader = {
 };
 
 const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
+  const links = result?.links?.filter(notNull) ?? [];
+  const topLevelAttachmentCount = result?.attachments?.filter(notNull).length ?? 0;
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
     titlePath: result?.titlePath?.length ? result.titlePath : [],
@@ -232,11 +278,18 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
       ...(result?.steps?.filter(notNull)?.map(convertStep) ?? []),
       ...(result?.attachments?.filter(notNull)?.map(convertAttachment) ?? []),
     ],
-    links: result?.links?.filter(notNull)?.map(convertLink),
+    links: links.map(convertLink),
     labels: result.labels?.filter(notNull)?.map(convertLabel),
   };
 
-  await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
+  await visitor.visitTestResult(dest, {
+    readerId,
+    metadata: {
+      originalFileName,
+      allure2_links: links,
+      allure2_top_level_attachment_count: topLevelAttachmentCount,
+    },
+  });
 };
 
 const processCheckResult = async (
@@ -362,7 +415,12 @@ const processFixtures = async (
   if (fixtures) {
     for (const fixture of fixtures) {
       const dist = convertFixture(type, children, fixture);
-      await visitor.visitTestFixtureResult(dist, { readerId });
+      await visitor.visitTestFixtureResult(dist, {
+        readerId,
+        metadata: {
+          allure2_top_level_attachment_count: fixture?.attachments?.filter(notNull).length ?? 0,
+        },
+      });
     }
   }
 };
@@ -376,13 +434,27 @@ const processTestResultContainer = async (visitor: ResultsVisitor, result: Parti
 
 const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
   const { attachments = [], errors = [] } = globals;
+  const normalizedAttachments = Array.isArray(attachments) ? attachments : [];
+  const normalizedErrors = isStringAnyRecordArray(errors) ? errors : [];
+  const attachmentTimestamps = Object.fromEntries(
+    normalizedAttachments
+      .filter((attachment) => typeof attachment.timestamp === "number" && typeof attachment.source === "string")
+      .map((attachment) => [attachment.source!, attachment.timestamp!]),
+  );
+  const errorTimestamps = normalizedErrors.map((error) => ensureInt(error.timestamp));
+
+  await visitor.visitMetadata(
+    {
+      allure2_global_attachment_timestamps: attachmentTimestamps,
+      allure2_global_error_timestamps: errorTimestamps,
+    },
+    { readerId },
+  );
 
   await visitor.visitGlobals(
     {
-      attachments: Array.isArray(attachments)
-        ? attachments.map((attachment) => convertGlobalAttachment(attachment))
-        : [],
-      errors: isStringAnyRecordArray(errors) ? errors.map((error) => convertGlobalError(error)) : [],
+      attachments: normalizedAttachments.map((attachment) => convertGlobalAttachment(attachment)),
+      errors: normalizedErrors.map((error) => convertGlobalError(error)),
     },
     { readerId },
   );

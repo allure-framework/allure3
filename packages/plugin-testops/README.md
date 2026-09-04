@@ -80,6 +80,8 @@ The plugin accepts the following options:
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
 | `gitFlow`          | When `true`, collect Git metadata for TestOps Git Flow on CI uploads (opt-in)                                 | `boolean` | `false`         |
 | `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in TestOps | `number`  | `100`           |
+| `uploadRateLimit`  | Caps how fast uploads are sent to TestOps within a rolling time window (requests/files/bytes per window); pass `false` to disable pacing entirely | `{ windowMs: number; maxRequestsPerWindow?: number; maxFilesPerWindow?: number; maxBytesPerWindow?: number } \| false` | `20` req/s, `1000` files/s, `1 GiB`/s |
+| `reopenClosedLaunch` | When `true`, a launch that TestOps reports as closed is reopened automatically instead of failing the upload | `boolean` | `false`         |
 
 ### Using options from environment variables
 

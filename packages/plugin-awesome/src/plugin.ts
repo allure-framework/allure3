@@ -18,6 +18,7 @@ import {
   generateEnvirontmentsList,
   generateGlobals,
   generateHistoryDataPoints,
+  generateMetricsWidget,
   generateNav,
   generateQualityGateResults,
   generateSearchIndex,
@@ -68,6 +69,14 @@ export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
   constructor(readonly options: AwesomePluginOptions = {}) {}
+
+  #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
+    if (!this.#writer) {
+      throw new Error("call start first");
+    }
+
+    await this.#generate(context, store);
+  };
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
@@ -132,6 +141,7 @@ export class AwesomePlugin implements Plugin {
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
 
@@ -213,8 +223,14 @@ export class AwesomePlugin implements Plugin {
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
+    const configuredSections = this.options.sections ?? ["charts", "timeline"];
+    const sections = hasMetrics
+      ? [...new Set([...configuredSections, "metrics"])]
+      : configuredSections.filter((section) => section !== "metrics");
+
     await generateStaticFiles({
       ...this.options,
+      sections,
       id: context.id,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
@@ -241,19 +257,11 @@ export class AwesomePlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   done = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {

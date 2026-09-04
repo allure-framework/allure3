@@ -54,7 +54,16 @@ import { writeKnownIssues } from "./resolutions.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-import { measurePerf, PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, startPerfSpan, writePerfMetrics } from "./utils/perf.js";
+import {
+  getPerfMetricsResults,
+  isPerfMetricsEnabled,
+  measurePerf,
+  PERF_METRIC_NAMES,
+  PERF_METRIC_PREFIXES,
+  perfMetricsFileName,
+  startPerfSpan,
+  writePerfMetrics,
+} from "./utils/perf.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
@@ -155,6 +164,7 @@ export class AllureReport {
       output,
       hideLabels,
       qualityGate,
+      performance,
       dump,
       categories,
       allureService,
@@ -220,6 +230,7 @@ export class AllureReport {
       defaultLabels,
       environment,
       allowedEnvironments,
+      performance,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
@@ -243,6 +254,39 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
+  #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
+    const allTrs = await this.#store.allTestResults();
+    const allTcs = await this.#store.allTestCases();
+
+    return createHistory(
+      this.reportUuid,
+      this.reportName,
+      allTcs,
+      allTrs,
+      this.reportUrl,
+      await this.#store.allMetrics(),
+    );
+  };
+
+  #ingestSelfPerfMetrics = async (): Promise<void> => {
+    if (!isPerfMetricsEnabled()) {
+      return;
+    }
+
+    const results = getPerfMetricsResults();
+
+    if (results.length === 0) {
+      return;
+    }
+
+    const originalFileName = perfMetricsFileName(this.reportUuid);
+
+    await this.#store.visitMetrics(results, {
+      readerId: "api",
+      metadata: { originalFileName },
+    });
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -255,10 +299,7 @@ export class AllureReport {
     let historyPoint = this.#historyDataPoint;
 
     if (!historyPoint) {
-      const allTrs = await this.#store.allTestResults();
-      const allTcs = await this.#store.allTestCases();
-
-      historyPoint = createHistory(this.reportUuid, this.reportName, allTcs, allTrs, this.reportUrl);
+      historyPoint = await this.#createHistoryDataPoint();
       this.#historyDataPoint = historyPoint;
     }
 
@@ -491,6 +532,8 @@ export class AllureReport {
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       state,
+      metrics: await this.#store.allMetrics(),
+      previousHistory: (await this.#store.allHistoryDataPoints()).filter(({ uuid }) => uuid !== this.reportUuid),
       environment: qualityGateEnvironment,
     });
   };
@@ -628,6 +671,7 @@ export class AllureReport {
       resolutionIssues = {},
       qualityGateResults = [],
       testResultIdsIngestOrder = [],
+      metrics = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
       [AllureStoreDumpFiles.TestResults, testResults],
       [AllureStoreDumpFiles.TestCases, testCases],
@@ -647,6 +691,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
       [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
+      [AllureStoreDumpFiles.Metrics, metrics],
     ];
     let dumpError: unknown;
 
@@ -816,6 +861,7 @@ export class AllureReport {
               const resolutionIssuesEntry = await optionalEntryData(AllureStoreDumpFiles.ResolutionIssues);
               const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
               const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
+              const metricsEntry = await optionalEntryData(AllureStoreDumpFiles.Metrics);
               const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
               const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
@@ -838,6 +884,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.IndexFixturesByTestResult:
                   case AllureStoreDumpFiles.QualityGateResults:
                   case AllureStoreDumpFiles.TestResultIngestOrder:
+                  case AllureStoreDumpFiles.Metrics:
                     return acc;
                   default:
                     if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
@@ -872,6 +919,7 @@ export class AllureReport {
                 testResultIdsIngestOrder: testResultIngestOrderEntry
                   ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
                   : [],
+                metrics: metricsEntry ? JSON.parse(metricsEntry.toString("utf8")) : [],
               };
               const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
               const resultsAttachments: Record<string, ResultFile> = {};
@@ -1046,10 +1094,6 @@ export class AllureReport {
     }
 
     try {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      this.#historyDataPoint = createHistory(this.reportUuid, this.reportName, testCases, testResults, this.reportUrl);
-
       this.#realtimeChannel.close();
       try {
         await this.#realtimeUpdateScheduler.close();
@@ -1074,6 +1118,11 @@ export class AllureReport {
         });
       });
       this.#finishGeneratePerfSpan();
+
+      await this.#ingestSelfPerfMetrics();
+
+      this.#historyDataPoint = await this.#createHistoryDataPoint();
+
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
 
@@ -1190,7 +1239,7 @@ export class AllureReport {
     this.#finishGeneratePerfSpan();
 
     try {
-      await writePerfMetrics(this.#output);
+      await writePerfMetrics(this.#output, perfMetricsFileName(this.reportUuid));
     } catch (err) {
       console.error("Failed to write Allure performance metrics", err);
     }

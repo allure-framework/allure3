@@ -3,6 +3,7 @@ import type {
   CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
+  PerformanceConfig,
   ReportVariables,
   ResolutionsConfig,
 } from "@allurereport/core-api";
@@ -62,6 +63,7 @@ export interface Config {
   plugins?: Record<string, PluginDescriptor>;
   appendHistory?: boolean;
   qualityGate?: QualityGateConfig;
+  performance?: PerformanceConfig;
   allureService?: AllureServiceConfig;
   categories?: CategoriesConfig;
   /**

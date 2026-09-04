@@ -18,6 +18,7 @@ const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => {
   const defaultStore = {
     testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
     allTestResults: vi.fn().mockResolvedValue([]),
+    allMetrics: vi.fn().mockResolvedValue([]),
     allHistoryDataPoints: vi.fn().mockResolvedValue([]),
     allGlobalErrors: vi.fn().mockResolvedValue([]),
     globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),

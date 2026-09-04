@@ -1,0 +1,58 @@
+@use "../../../mixins.scss" as *;
+
+@use "../../../theme/spacing.scss" as *;
+.status-toggle {
+  &__items {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: gap(1);
+    user-select: none;
+    word-break: break-word;
+  }
+
+  &__label {
+    flex: 0 0 auto;
+  }
+
+  &__item {
+    cursor: pointer;
+    padding: gap(1) 0;
+    display: inline-block;
+    white-space: nowrap;
+  }
+}
+
+.y-label {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  vertical-align: baseline;
+  letter-spacing: 0;
+  color: var(--color-text-on-accent);
+  min-height: gap(2.5);
+  padding: gap(0.25) gap(1);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-s);
+  @include status-bg-bright();
+}
+
+.n-label {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  vertical-align: baseline;
+  letter-spacing: 0;
+  min-height: gap(2.5);
+  padding: gap(0.25) gap(1);
+  border-radius: var(--radius-pill);
+  border: 1px solid;
+  background: var(--color-control-bg-ghost);
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-s);
+  @include status-text();
+  @include status-border();
+}

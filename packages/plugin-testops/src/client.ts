@@ -1,5 +1,6 @@
 import type { ClientRequest } from "http";
 
+import { isLocalCiDescriptor } from "@allurereport/ci";
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -9,22 +10,26 @@ import type {
   TestStatus,
 } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
-import { createServiceHttpClient } from "@allurereport/service";
+import { KnownError, createServiceHttpClient } from "@allurereport/service";
 import { AxiosError, isAxiosError, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
 import { bold } from "yoctocolors";
 
+import type { RetryOptions } from "./errors.js";
+import { withUploadRetry } from "./errors.js";
 import type { LaunchGitContextDto } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
   AttachmentsResolver,
+  ExternalRunStartResponse,
   FixtureResolver,
   LaunchCategoryBulkItem,
   LaunchCategoryBulkResult,
   TestOpsClientParams,
+  TestOpsJob,
   TestOpsLaunch,
   TestOpsLaunchQualityGate,
   TestOpsNamedEnv,
@@ -34,7 +39,10 @@ import type {
   UploadResultsResponseDto,
 } from "./model.js";
 import type { TestOpsFixtureResult } from "./model.js";
+import { UploadPacer } from "./uploadPacer.js";
 import { toUploadFixturesResultsDto } from "./utils/fixtures.js";
+import { attachmentByteLength, retryRequest } from "./utils/httpRetry.js";
+import { TESTOPS_CI_TYPE, ciEndpoint, externalParameters } from "./utils/jobParameters.js";
 import { testStatusToLaunchStatus } from "./utils/launches.js";
 import { normalizeTestStepsResults, toUploadResultsDto } from "./utils/testResults.js";
 import { validateExecutableName } from "./utils/validation.js";
@@ -55,65 +63,10 @@ class TestOpsClientError extends AxiosError<{
   request: ClientRequest;
 }
 
+const UNKNOWN_ERROR_MESSAGE = "Unknown error";
+const MAX_LAUNCH_NAME_LENGTH = 255;
 const CHUNK_SIZE = 100;
 const BULK_UPLOAD_CHUNK_SIZE = 1000;
-const MAX_REQUEST_RETRIES = 3;
-const RETRY_BASE_DELAY_MS = 500;
-
-const getAxiosCause = (error: unknown) => {
-  if (isAxiosError(error)) {
-    return error;
-  }
-
-  return error instanceof Error && isAxiosError(error.cause) ? error.cause : undefined;
-};
-
-const isRetryableRequestError = (error: unknown): boolean => {
-  const cause = getAxiosCause(error);
-
-  if (!cause || cause.code === "ERR_CANCELED" || cause.name === "CanceledError") {
-    return false;
-  }
-
-  const status = cause.response?.status;
-
-  return status === undefined || status === 408 || status === 429 || status >= 500;
-};
-
-const retryAfterMs = (error: unknown): number | undefined => {
-  const headers = getAxiosCause(error)?.response?.headers;
-  const value = typeof headers?.get === "function" ? headers.get("retry-after") : headers?.["retry-after"];
-  const normalized = Array.isArray(value) ? value[0] : value;
-
-  if (typeof normalized !== "string" && typeof normalized !== "number") {
-    return undefined;
-  }
-
-  const seconds = Number(normalized);
-
-  if (Number.isFinite(seconds)) {
-    return Math.max(0, seconds * 1_000);
-  }
-
-  const date = Date.parse(String(normalized));
-
-  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
-};
-
-// Caller must ensure repeating the request is safe.
-const retryRequest = async <T>(request: () => Promise<T>): Promise<T> => {
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      return await request();
-    } catch (error) {
-      if (attempt >= MAX_REQUEST_RETRIES || !isRetryableRequestError(error)) {
-        throw error;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, retryAfterMs(error) ?? RETRY_BASE_DELAY_MS * 2 ** attempt));
-    }
-  }
-};
 
 export class TestOpsClient {
   #baseUrl: string;
@@ -122,9 +75,11 @@ export class TestOpsClient {
   #projectId: string;
   #client: ReturnType<typeof createServiceHttpClient>;
   #launch?: TestOpsLaunch;
+  #jobRunId?: number;
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
+  #uploadPacer: UploadPacer;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: TestOpsClientParams) {
@@ -155,6 +110,8 @@ export class TestOpsClient {
     if (params.limit) {
       this.#uploadLimit = params.limit;
     }
+
+    this.#uploadPacer = new UploadPacer(params.uploadRateLimit);
   }
 
   isTestOpsClientError(error: unknown): error is TestOpsClientError {
@@ -181,6 +138,12 @@ export class TestOpsClient {
     this.#logger.verbose("Closing launch…");
     await this.#client.post(`/api/launch/${launchId}/close`);
     this.#logger.verbose("Launch closed");
+  }
+
+  async reopenLaunch(launchId: number): Promise<void> {
+    this.#logger.verbose(`Reopening launch ${launchId}…`);
+    await this.#client.post(`/api/launch/${launchId}/reopen`);
+    this.#logger.verbose("Launch reopened");
   }
 
   async createLaunchCategoriesBulk(
@@ -233,30 +196,77 @@ export class TestOpsClient {
     return results;
   }
 
-  async startUpload(ci: CiDescriptor) {
-    if (!this.#launch) {
+  async #getExistingJob(ci: CiDescriptor): Promise<TestOpsJob | undefined> {
+    try {
+      return await retryRequest(() =>
+        this.#client.get<TestOpsJob>("/api/rs/job", {
+          params: { projectId: this.#projectId, externalId: ci.jobUid },
+        }),
+      );
+    } catch (error) {
+      if (error instanceof KnownError && error.status === 404) {
+        return undefined;
+      }
+
+      throw error;
+    }
+  }
+
+  async startUpload(ci: CiDescriptor, jobRunId?: number) {
+    if (!jobRunId && !this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    if (!jobRunId && isLocalCiDescriptor(ci)) {
+      this.#uploadInProgress = true;
+      this.#logger.verbose("CI upload started (manual, no CI detected)");
+      return;
+    }
+
+    const endpoint = ciEndpoint(ci);
+    const existingJob = await this.#getExistingJob(ci);
+    const parameters = externalParameters(ci, existingJob?.parameters);
+
+    const jobPayload = {
+      name: ci.jobName || ci.jobUid,
+      uid: ci.jobUid,
+      ...(existingJob?.id ? { id: existingJob.id } : {}),
+      ...(ci.jobUrl ? { url: ci.jobUrl } : {}),
+      ...(parameters.job.length ? { parameters: parameters.job } : {}),
+    };
+    const jobRunPayload = {
+      ...(jobRunId ? { id: jobRunId } : {}),
+      uid: ci.jobRunUid,
+      ...(ci.jobRunName ? { name: ci.jobRunName } : {}),
+      ...(ci.jobRunUrl ? { url: ci.jobRunUrl } : {}),
+      ...(parameters.jobRun.length ? { parameters: parameters.jobRun } : {}),
+    };
+
     this.#logger.verbose(`Starting CI upload (${ci.type})…`);
-    await this.#client.post<unknown>("/api/upload/start", {
-      body: {
-        projectId: this.#projectId,
-        ci: {
-          name: ci.type,
+    const data = await retryRequest(() =>
+      this.#client.post<ExternalRunStartResponse>("/api/upload/start", {
+        body: {
+          projectId: this.#projectId,
+          ci: {
+            type: TESTOPS_CI_TYPE[ci.type] ?? ci.type,
+            ...(endpoint ? { endpoint } : {}),
+          },
+          job: jobPayload,
+          jobRun: jobRunPayload,
+          ...(this.#launch ? { launch: { id: this.#launch.id } } : {}),
         },
-        job: {
-          name: ci.jobUid,
-          uid: ci.jobUid,
-        },
-        jobRun: {
-          uid: ci.jobRunUid,
-        },
-        launch: {
-          id: this.#launch.id,
-        },
-      },
-    });
+      }),
+    );
+
+    this.#jobRunId = data?.jobRunId ?? jobRunId;
+
+    if (jobRunId) {
+      if (typeof data?.launchId !== "number") {
+        throw new Error("TestOps didn't return a launch id for the job run");
+      }
+
+      this.#launch = { id: data.launchId } as TestOpsLaunch;
+    }
 
     this.#uploadInProgress = true;
     this.#logger.verbose("CI upload started");
@@ -267,14 +277,16 @@ export class TestOpsClient {
       throw new Error("Upload isn't started! Call startUpload first");
     }
 
-    await this.#client.post("/api/upload/stop", {
-      body: {
-        jobRunUid: ci.jobRunUid,
-        jobUid: ci.jobUid,
-        projectId: this.#projectId,
-        status: testStatusToLaunchStatus(status),
-      },
-    });
+    if (!isLocalCiDescriptor(ci)) {
+      await this.#client.post("/api/upload/stop", {
+        body: {
+          jobRunUid: ci.jobRunUid,
+          jobUid: ci.jobUid,
+          projectId: this.#projectId,
+          status: testStatusToLaunchStatus(status),
+        },
+      });
+    }
 
     this.#uploadInProgress = false;
     this.#logger.verbose(`CI upload stopped (status: ${status})`);
@@ -284,7 +296,7 @@ export class TestOpsClient {
     this.#logger.verbose("Creating launch…");
     const data = await this.#client.post<TestOpsLaunch>("/api/launch", {
       body: {
-        name: launchName,
+        name: launchName.slice(0, MAX_LAUNCH_NAME_LENGTH),
         projectId: this.#projectId,
         autoclose: true,
         external: true,
@@ -295,6 +307,10 @@ export class TestOpsClient {
 
     this.#launch = data;
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
+  }
+
+  attachToLaunch(launchId: number): void {
+    this.#launch = { id: launchId } as TestOpsLaunch;
   }
 
   async checkLaunchProgress(): Promise<boolean> {
@@ -310,39 +326,40 @@ export class TestOpsClient {
     return data.ready;
   }
 
-  async createSession(environment: Record<string, unknown> = {}) {
+  async createSession(environment: Record<string, unknown> = {}, reopenClosedLaunch = false) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const data = await this.#client.post<TestOpsSession>("/api/upload/session", {
-      body: {
-        launchId: this.#launch.id,
-        environment: Object.entries(environment).map(([key, value]) => ({
-          key,
-          value: String(value),
-        })),
-      },
-      params: {
-        manual: "true",
-      },
-    });
+    const currentLaunch = await retryRequest(() => this.#client.get<TestOpsLaunch>(`/api/launch/${this.#launch!.id}`));
+
+    if (currentLaunch.closed) {
+      if (!reopenClosedLaunch) {
+        throw new Error(`Launch ${this.#launch.id} is closed`);
+      }
+
+      await this.reopenLaunch(this.#launch.id);
+    }
+
+    const sessionEnvironment = Object.entries(environment).map(([key, value]) => ({
+      key,
+      value: String(value),
+    }));
+
+    const data = this.#jobRunId
+      ? await this.#client.post<TestOpsSession>("/api/upload/session", {
+          body: { jobRunId: this.#jobRunId, environment: sessionEnvironment },
+        })
+      : await this.#client.post<TestOpsSession>("/api/upload/session", {
+          body: { launchId: this.#launch.id, environment: sessionEnvironment },
+          params: { manual: "true" },
+        });
 
     this.#session = data;
   }
 
-  get namedEnvs() {
-    return this.#namedEnvsIdsByEnv.values();
-  }
-
   getNamedEnvFor(id: string) {
-    for (const [, env] of this.#namedEnvsIdsByEnv) {
-      if (env.externalId === id) {
-        return env;
-      }
-    }
-
-    return undefined;
+    return this.#namedEnvsIdsByEnv.get(id);
   }
 
   async createNamedEnvs(environments: EnvironmentIdentity[], onProgress?: (percent: number, total: number) => void) {
@@ -400,6 +417,7 @@ export class TestOpsClient {
     const launchId = this.#launch.id;
     const formData = new FormData();
     let hasResolvedAttachments = false;
+    let totalBytes = 0;
 
     for (const attachmentLink of attachments) {
       const attachment = await attachmentsResolver(attachmentLink);
@@ -407,6 +425,8 @@ export class TestOpsClient {
       if (!attachment) {
         continue;
       }
+
+      totalBytes += attachmentByteLength(attachment);
 
       formData.append("file", attachment.content, {
         filename: attachment.originalFileName,
@@ -419,6 +439,8 @@ export class TestOpsClient {
       return;
     }
 
+    await this.#uploadPacer.wait({ requests: 1, files: attachments.length, bytes: totalBytes });
+
     // FormData consumes its streams when sent and cannot be replayed safely by retryRequest.
     await this.#client.post("/api/launch/attachment", {
       body: formData,
@@ -428,7 +450,7 @@ export class TestOpsClient {
 
         onProgress?.(percent, total);
       },
-      params: { launchId },
+      params: { launchId, ...(this.#session.jobRunId ? { jobRunId: this.#session.jobRunId } : {}) },
       headers: formData.getHeaders(),
     });
   }
@@ -444,10 +466,13 @@ export class TestOpsClient {
 
     const launchId = this.#launch.id;
 
+    await this.#uploadPacer.wait({ requests: 1 });
+
     await this.#client.post("/api/launch/error/bulk", {
       body: {
         launchId,
-        items: errors,
+        ...(this.#session.jobRunId ? { jobRunId: this.#session.jobRunId } : {}),
+        items: errors.map(({ message, trace }) => ({ message: message?.trim() || UNKNOWN_ERROR_MESSAGE, trace })),
       },
       onUploadProgress(progressEvent) {
         const total = progressEvent.total ?? 100;
@@ -464,12 +489,14 @@ export class TestOpsClient {
     attachmentsResolver: AttachmentsResolver;
     fixturesResolver: FixtureResolver;
     onProgress?: () => void;
+    onRetry?: RetryOptions["onRetry"];
+    onChunkUploaded?: (uploadedChunkTrs: TestResult[]) => void;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } = params;
     const projectedTrs = trs.map((tr) => ({
       ...tr,
       ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
@@ -479,50 +506,53 @@ export class TestOpsClient {
     const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 
-    try {
-      for (const trsChunk of trsChunks) {
-        const chunkEnvs = new Map<string, EnvironmentIdentity>();
+    for (const trsChunk of trsChunks) {
+      const chunkEnvs = new Map<string, EnvironmentIdentity>();
 
-        for (const tr of trsChunk) {
-          const environmentId = tr.environment;
+      for (const tr of trsChunk) {
+        const environmentId = tr.environment;
 
-          if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
-            chunkEnvs.set(environmentId, {
-              id: environmentId,
-              name: envNamesById.get(environmentId) ?? environmentId,
-            });
+        if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
+          chunkEnvs.set(environmentId, {
+            id: environmentId,
+            name: envNamesById.get(environmentId) ?? environmentId,
+          });
+        }
+      }
+
+      const reportIdsToTestOpsIds = await withUploadRetry(
+        async () => {
+          const envsToCreate = Array.from(chunkEnvs.values()).filter(
+            (environment) => !this.#namedEnvsIdsByEnv.has(environment.id),
+          );
+
+          if (envsToCreate.length > 0) {
+            await this.createNamedEnvs(envsToCreate);
           }
-        }
 
-        if (chunkEnvs.size > 0) {
-          await this.createNamedEnvs(Array.from(chunkEnvs.values()));
-        }
+          await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
 
-        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
+          return this.#postTestResultsChunk(trsChunk);
+        },
+        { onRetry },
+      );
 
-        uploadedTrs.push(...trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number"));
+      const uploadedChunkTrs = trsChunk.filter((tr) => typeof reportIdsToTestOpsIds[tr.id] === "number");
 
-        await this.#uploadChunkAttachmentsAndFixtures(
-          trsChunk,
-          reportIdsToTestOpsIds,
-          attachmentsResolver,
-          fixturesResolver,
-          uploadLimitFn,
-          onProgress,
-        );
-      }
+      uploadedTrs.push(...uploadedChunkTrs);
+      onChunkUploaded?.(uploadedChunkTrs);
 
-      this.#logger.verbose("Test results upload completed");
-    } catch (error) {
-      if (this.isTestOpsClientError(error)) {
-        this.#logger.error(`Failed to upload test results: ${error.response?.data.message}`);
-        this.#logger.debug(error.response.data);
-      } else if (error instanceof Error) {
-        this.#logger.error(`Failed to upload test results: ${error.message}`);
-      } else {
-        this.#logger.error("Failed to upload test results");
-      }
+      await this.#uploadChunkAttachmentsAndFixtures(
+        trsChunk,
+        reportIdsToTestOpsIds,
+        attachmentsResolver,
+        fixturesResolver,
+        uploadLimitFn,
+        onProgress,
+      );
     }
+
+    this.#logger.verbose("Test results upload completed");
 
     return uploadedTrs;
   }
@@ -531,7 +561,6 @@ export class TestOpsClient {
     const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
       const extendedTestResult: TestOpsPluginTestResult = {
         ...testResult,
-        // pass the report id to TestOps to be able to match the test result with the report
         uuid: testResult.id,
       };
 
@@ -555,16 +584,13 @@ export class TestOpsClient {
     });
 
     const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
-    const data = await retryRequest(() =>
-      this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
-        body,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
+      body,
+      headers: { "Content-Type": "application/json" },
+    });
     const reportIdsToTestOpsIds: Record<string, number> = {};
 
     for (const { id, uuid } of data.results ?? []) {
-      // "uuid" here is the test result id that was passed to TestOps by us
       if (typeof uuid === "string" && typeof id === "number") {
         reportIdsToTestOpsIds[uuid] = id;
       }
@@ -590,17 +616,22 @@ export class TestOpsClient {
             return;
           }
 
-          const attachments = await attachmentsResolver(tr);
-          const fixtures = (await fixturesResolver(tr))
-            .filter((fixture) => validateExecutableName(fixture.name))
-            .map((fixture) => ({
-              ...fixture,
-              ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
-            }));
+          try {
+            const attachments = await attachmentsResolver(tr);
+            const fixtures = (await fixturesResolver(tr))
+              .filter((fixture) => validateExecutableName(fixture.name))
+              .map((fixture) => ({
+                ...fixture,
+                ...(fixture.steps ? { steps: normalizeTestStepsResults(fixture.steps) } : {}),
+              }));
 
-          await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
-          await this.#uploadFixturesForResult(testOpsId, fixtures);
-          onProgress?.();
+            await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
+            await this.#uploadFixturesForResult(testOpsId, fixtures);
+          } catch (error) {
+            this.#logResultUploadFailure("fixtures", testOpsId, error);
+          } finally {
+            onProgress?.();
+          }
         }),
       ),
     );
@@ -616,7 +647,11 @@ export class TestOpsClient {
     for (const attachmentsChunk of attachmentsChunks) {
       const formData = new FormData();
 
+      let chunkBytes = 0;
+
       for (const att of attachmentsChunk) {
+        chunkBytes += attachmentByteLength(att);
+
         formData.append("file", att.content, {
           filename: att.originalFileName,
           contentType: att.contentType,
@@ -625,23 +660,26 @@ export class TestOpsClient {
 
       try {
         // FormData consumes its streams when sent and cannot be replayed safely by retryRequest.
+        await this.#uploadPacer.wait({ requests: 1, files: attachmentsChunk.length, bytes: chunkBytes });
+
         await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, {
           body: formData,
           headers: formData.getHeaders(),
         });
       } catch (error) {
-        if (this.isTestOpsClientError(error)) {
-          this.#logger.error(
-            `Failed to upload attachments for result ${testOpsResultId}: ${error.response?.data.message}`,
-          );
-        } else if (error instanceof Error) {
-          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}: ${error.message}`);
-        } else {
-          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}`);
-        }
-
+        this.#logResultUploadFailure("attachments", testOpsResultId, error);
         this.#logger.inspect(formData);
       }
+    }
+  }
+
+  #logResultUploadFailure(label: string, testOpsResultId: number, error: unknown): void {
+    if (this.isTestOpsClientError(error)) {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}: ${error.response?.data.message}`);
+    } else if (error instanceof Error) {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}: ${error.message}`);
+    } else {
+      this.#logger.error(`Failed to upload ${label} for result ${testOpsResultId}`);
     }
   }
 
@@ -649,6 +687,8 @@ export class TestOpsClient {
     if (fixtures.length === 0) return;
 
     const body = toUploadFixturesResultsDto(fixtures);
+
+    await this.#uploadPacer.wait({ requests: 1 });
 
     await retryRequest(() =>
       this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
@@ -684,6 +724,8 @@ export class TestOpsClient {
 
       return item;
     });
+
+    await this.#uploadPacer.wait({ requests: 1 });
 
     await retryRequest(() =>
       this.#client.post("/api/launch/quality-gate/bulk", {

@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true
+  },
+  "ignorePatterns": ["build/**", "coverage/**", "dist/**", "node_modules/**", "src/test/javascript/**"],
+  "rules": {
+    "curly": "error",
+    "eqeqeq": ["error", "smart"],
+    "guard-for-in": "error",
+    "no-console": "error",
+    "no-empty": "off",
+    "no-fallthrough": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": ["b_", "backbone", "backbone.marionette", "jquery", "rxjs", "underscore", "underscore.string/pad"]
+      }
+    ],
+    "no-shadow": ["error", { "hoist": "all" }],
+    "no-unused-expressions": "error",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-default-parameters": "error",
+    "prefer-function-type": "error",
+    "prefer-keyboard-event-key": "error",
+    "radix": "error",
+    "throw-new-error": "error"
+  }
+}
