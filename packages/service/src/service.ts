@@ -52,9 +52,9 @@ export class AllureServiceClient implements AllureServiceApiClient {
     const { repo, branch, limit } = payload ?? {};
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>("/api/history", {
       params: {
-        limit: limit ? encodeURIComponent(limit) : undefined,
-        repo: repo ? encodeURIComponent(repo) : undefined,
-        branch: branch ? encodeURIComponent(branch) : undefined,
+        limit,
+        repo,
+        branch,
       },
     });
 
