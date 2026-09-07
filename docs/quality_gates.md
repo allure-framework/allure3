@@ -37,6 +37,45 @@ If `qualityGate` is configured and `--rerun` is enabled, Allure runs the test co
 
 Use `--rerun=0` or remove `--rerun` when the quality gate should validate the run.
 
+## Generated artifacts
+
+When quality gates are enabled, Allure writes `quality-gate.json` to the generated report root. The file contains a flat
+list of rule results and keeps related tests as report-scoped IDs in `testResults`.
+
+```json
+[
+  {
+    "success": false,
+    "expected": 0,
+    "actual": 1,
+    "rule": "maxFailures",
+    "message": "The number of failed tests 1 exceeds the allowed threshold value 0",
+    "environment": "chrome",
+    "testResults": ["4f1c2d"]
+  }
+]
+```
+
+Use the generated report root `test-results.json` to resolve these IDs. The registry contains compact test details that
+are enough to list and link related tests.
+
+```json
+{
+  "byId": {
+    "4f1c2d": {
+      "id": "4f1c2d",
+      "name": "checkout rejects expired card",
+      "status": "failed",
+      "duration": 1234,
+      "environment": "chrome"
+    }
+  }
+}
+```
+
+Together, these files allow CI integrations to show which rule failed and which tests are related to it without reading
+the full per-test result files.
+
 ## Using external rules
 
 You can use external quality gate rules implemented by the community – just provide them to the `use` field in the quality gate configuration:

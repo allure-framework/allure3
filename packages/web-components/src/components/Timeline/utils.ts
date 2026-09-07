@@ -165,6 +165,7 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
         val: duration!,
         status: status,
         id: segmentId,
+        testResultId: testId,
         isRetry,
       });
     }

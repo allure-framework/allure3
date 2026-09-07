@@ -149,17 +149,51 @@ describe("report", () => {
     const registry = JSON.parse(await readFile(join(output, "test-results.json"), "utf8"));
     const id = md5("result-1");
 
-    expect(registry).toEqual({
-      byId: {
-        [id]: {
-          id,
-          name: "failed test",
-          duration: 123,
-          status: "failed",
-        },
+    const registryEntry = registry.byId[id];
+
+    expect(registryEntry).toEqual(
+      expect.objectContaining({
+        id,
+        name: "failed test",
+        duration: 123,
+        status: "failed",
+      }),
+    );
+    expect(registryEntry).not.toHaveProperty("labels");
+    expect(registryEntry).not.toHaveProperty("steps");
+    expect(registryEntry).not.toHaveProperty("attachments");
+    expect(registryEntry).not.toHaveProperty("error");
+    await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
+  it("should write quality gate results with related test ids", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-resolved-"));
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      qualityGate: {
+        rules: [],
       },
     });
-    await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    const testResultId = "result-1";
+    const qualityGateResult = {
+      success: false,
+      expected: 0,
+      actual: 1,
+      rule: "maxFailures",
+      message: "Failed tests exceed threshold",
+      testResults: [testResultId],
+    };
+
+    allureReport.realtimeDispatcher.sendQualityGateResults([qualityGateResult]);
+    await allureReport.done();
+
+    const qualityGateResults = JSON.parse(await readFile(join(output, "quality-gate.json"), "utf8"));
+
+    expect(qualityGateResults).toEqual([qualityGateResult]);
   });
 
   it("should not allow call done() before start()", async () => {
@@ -1010,6 +1044,64 @@ describe("report", () => {
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({ files: { "test-results.json": expect.any(String) } }),
     );
+  });
+
+  it("should keep quality gate results local and omit them from remote root uploads", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-quality-gate-local-only-"));
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output,
+      qualityGate: {
+        rules: [],
+      },
+    });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    allureReport.realtimeDispatcher.sendQualityGateResults([
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "maxFailures",
+        message: "Failed tests exceed threshold",
+        testResults: [],
+      },
+    ]);
+    await allureReport.done();
+
+    const qualityGateResults = JSON.parse(await readFile(join(output, "quality-gate.json"), "utf8"));
+    const uploadedRootFiles = (AllureServiceClientMock.prototype.uploadReport as Mock).mock.calls
+      .map(([options]) => options as { pluginId?: string; files: Record<string, string> })
+      .filter(({ pluginId }) => pluginId === undefined)
+      .map(({ files }) => files);
+
+    expect(qualityGateResults).toEqual([
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "maxFailures",
+        message: "Failed tests exceed threshold",
+        testResults: [],
+      },
+    ]);
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: { "test-results.json": expect.any(String) },
+      }),
+    );
+    expect(uploadedRootFiles).toEqual([{ "test-results.json": expect.any(String) }]);
   });
 
   const verifyUploadOptionsForwarding = async (uploadConcurrency?: number) => {
