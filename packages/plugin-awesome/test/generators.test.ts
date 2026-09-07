@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { AttachmentLink, EnvironmentIdentity, Statistic, TestFixtureResult, TestResult } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  EnvironmentIdentity,
+  Statistic,
+  TestFixtureResult,
+  TestResult,
+} from "@allurereport/core-api";
 import type {
   AllureStore,
   ReportQualityGateResults,
