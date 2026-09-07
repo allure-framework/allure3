@@ -29,6 +29,7 @@ export const TagsFilter = (props: {
       label={t("tags")}
       description={t("description.tags")}
       counter
+      searchable
       onClear={() =>
         onChange({
           ...filter,
