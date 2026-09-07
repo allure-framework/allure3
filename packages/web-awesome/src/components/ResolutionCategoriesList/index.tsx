@@ -71,12 +71,19 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const toggle = () => setIsOpened((value) => !value);
   const headerContent = (
     <>
-      {hasTests ? (
-        <ArrowButton tag="span" buttonSize="s" className={styles["resolution-categories-arrow"]} isOpened={isOpened} />
-      ) : (
-        <span className={styles["resolution-categories-arrow-spacer"]} />
-      )}
-      <SvgIcon className={styles["resolution-categories-icon"]} id={resolutionIcons[group.resolution]} />
+      <div className={styles["resolution-categories-header-icons"]}>
+        {hasTests ? (
+          <ArrowButton
+            tag="span"
+            buttonSize="s"
+            className={styles["resolution-categories-arrow"]}
+            isOpened={isOpened}
+          />
+        ) : (
+          <span className={styles["resolution-categories-arrow-spacer"]} />
+        )}
+        <SvgIcon className={styles["resolution-categories-icon"]} id={resolutionIcons[group.resolution]} />
+      </div>
       <span className={styles["resolution-categories-content"]}>
         <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
           {title}

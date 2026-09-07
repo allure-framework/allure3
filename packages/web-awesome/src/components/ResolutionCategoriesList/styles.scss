@@ -20,7 +20,7 @@
 
 .resolution-categories-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   width: 100%;
   padding: 12px 8px;
@@ -30,6 +30,13 @@
   font: inherit;
   text-align: left;
   transition: background-color 300ms;
+}
+
+.resolution-categories-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 0 4px;
+  padding-top: 1px;
 }
 
 .resolution-categories-header-compact {
