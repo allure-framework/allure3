@@ -387,6 +387,7 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
