@@ -157,6 +157,38 @@ describe("minTestsCountRule", () => {
 });
 
 describe("successRateRule", () => {
+  it("excludes skipped and unknown across batches and from failure evidence", async () => {
+    let counts = { totalCount: 0, passedCount: 0 };
+    const state = {
+      getResult: () => counts,
+      setResult: (value: typeof counts) => {
+        counts = value;
+      },
+    };
+    const first = await successRateRule.validate({
+      trs: [createTestResult("pass", "passed"), createTestResult("skip", "skipped")],
+      expected: 1,
+      state,
+    });
+    expect(first).toMatchObject({ success: true, actual: 1, testResults: [] });
+    const second = await successRateRule.validate({
+      trs: [createTestResult("broken", "broken"), createTestResult("unknown", "unknown")],
+      expected: 0.75,
+      state,
+    });
+    expect(second).toMatchObject({ success: false, actual: 0.5, testResults: ["broken"] });
+    expect(counts).toEqual({ totalCount: 2, passedCount: 1 });
+  });
+
+  it("fails a positive threshold when all results are excluded", async () => {
+    const result = await successRateRule.validate({
+      trs: [createTestResult("skip", "skipped"), createTestResult("unknown", "unknown")],
+      expected: 0.01,
+      state: { getResult: () => undefined, setResult: () => {} },
+    });
+    expect(result).toMatchObject({ success: false, actual: 0, testResults: [] });
+  });
+
   const setState = vi.fn();
   const state: QualityGateRuleState<{ totalCount: number; passedCount: number }> = {
     getResult: () => ({ totalCount: 0, passedCount: 0 }),

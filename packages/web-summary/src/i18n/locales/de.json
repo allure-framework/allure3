@@ -20,6 +20,17 @@
       "retry_zero": "Keine wiederholten Tests",
       "retry_one": "{{count}} wiederholter Test",
       "retry_other": "{{count}} wiederholte Tests"
+    },
+    "successRate": {
+      "successRate": "Erfolgsquote: {{rate}}",
+      "successRateDescription": "Berechnet aus erfolgreichen, fehlgeschlagenen und defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind ausgeschlossen.",
+      "noResults": "Es gibt keine Testergebnisse.",
+      "noEligibleResults": "Es gibt keine erfolgreichen, fehlgeschlagenen oder defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind von der Erfolgsquote ausgeschlossen.",
+      "slice_one": "{{count}} Test ({{percent}}% aller Tests)",
+      "slice_other": "{{count}} Tests ({{percent}}% aller Tests)",
+      "layer": "Ebene: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% aller Tests)",
+      "slice": "{{count}} Tests ({{percent}}% aller Tests)"
     }
   },
   "ui": {

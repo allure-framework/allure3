@@ -1,4 +1,10 @@
-import { filterSuccessful, filterUnsuccessful, type MetricSample } from "@allurereport/core-api";
+import {
+  filterIncludedInSuccessRate,
+  filterSuccessful,
+  filterUnsuccessful,
+  getSuccessRate,
+  type MetricSample,
+} from "@allurereport/core-api";
 import { type QualityGateMetricHistoryPoint, type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
 
@@ -154,12 +160,13 @@ export const successRateRule: QualityGateRule<number> = {
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = successRateStateValue(state.getResult());
-    const passedTrs = trs.filter(filterSuccessful);
-    const notPassedTrs = trs.filter((tr) => !filterSuccessful(tr));
-    const totalCount = previous.totalCount + trs.length;
+    const eligibleTrs = trs.filter(filterIncludedInSuccessRate);
+    const passedTrs = eligibleTrs.filter(filterSuccessful);
+    const notPassedTrs = eligibleTrs.filter(filterUnsuccessful);
+    const totalCount = previous.totalCount + eligibleTrs.length;
     const passedCount = previous.passedCount + passedTrs.length;
     const testResults = notPassedTrs.map((tr) => tr.id);
-    const rate = totalCount === 0 ? 0 : passedCount / totalCount;
+    const rate = getSuccessRate({ passed: passedCount, failed: totalCount - passedCount });
 
     state.setResult({ totalCount, passedCount }, testResults);
 

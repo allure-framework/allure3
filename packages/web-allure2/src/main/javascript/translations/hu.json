@@ -8,7 +8,15 @@
       "name": "Súlyosság"
     },
     "status": {
-      "name": "Státusz"
+      "name": "Státusz",
+      "successRate": "Sikerességi arány: {{rate}}",
+      "successRateDescription": "A sikeres, sikertelen és hibás tesztek alapján számítva. A kihagyott és ismeretlen állapotú tesztek nem számítanak bele.",
+      "noResults": "Nincsenek teszteredmények.",
+      "noEligibleResults": "Nincsenek sikeres, sikertelen vagy hibás tesztek. A kihagyott és ismeretlen állapotú tesztek nem számítanak bele a sikerességi arányba.",
+      "slice_one": "{{count}} teszt (az összes teszt {{percent}}%-a)",
+      "slice_other": "{{count}} teszt (az összes teszt {{percent}}%-a)",
+      "statusSlice": "{{count}} {{status}} (az összes teszt {{percent}}%-a)",
+      "slice": "{{count}} teszt (az összes teszt {{percent}}%-a)"
     },
     "trend": {
       "empty": "Üres",
