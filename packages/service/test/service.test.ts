@@ -151,8 +151,8 @@ describe("AllureServiceClient", () => {
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
           limit: undefined,
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent(fixtures.branch),
+          repo: fixtures.repo,
+          branch: fixtures.branch,
         },
       });
       expect(res).toEqual([fixtures.history]);
@@ -169,29 +169,12 @@ describe("AllureServiceClient", () => {
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
-          limit: "10",
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent(fixtures.branch),
+          limit: 10,
+          repo: fixtures.repo,
+          branch: fixtures.branch,
         },
       });
       expect(res).toEqual([fixtures.history]);
-    });
-
-    it("should encode branch name in URL", async () => {
-      HttpClientMock.prototype.get.mockResolvedValue({ history: [] });
-
-      await serviceClient.downloadHistory({
-        repo: fixtures.repo,
-        branch: "feature/test-branch",
-      });
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
-        params: {
-          limit: undefined,
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent("feature/test-branch"),
-        },
-      });
     });
   });
 
