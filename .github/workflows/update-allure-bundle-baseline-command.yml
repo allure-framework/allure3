@@ -56,18 +56,9 @@ jobs:
 
           pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
           state="$(printf '%s' "${pr_json}" | jq -r '.state')"
-          head_repo="$(printf '%s' "${pr_json}" | jq -r '.head.repo.full_name // empty')"
-          is_fork="$(printf '%s' "${pr_json}" | jq -r '.head.repo.fork // true')"
 
           if [[ "${state}" != "open" ]]; then
             message="Cannot update baseline: PR #${PR_NUMBER} is not open (state=${state})."
-            echo "::error::${message}"
-            gh pr comment "${PR_NUMBER}" --body "${message}" || true
-            exit 0
-          fi
-
-          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
-            message="Cannot update baseline on fork PRs. Push a baseline commit from the fork, or re-open as a same-repo branch."
             echo "::error::${message}"
             gh pr comment "${PR_NUMBER}" --body "${message}" || true
             exit 0
