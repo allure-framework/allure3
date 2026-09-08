@@ -21,6 +21,7 @@ const {
   fetchGlobalsMock,
   fetchMetricsDataMock,
   fetchQualityGateResultsMock,
+  fetchResolutionCategoriesDataMock,
   fetchEnvTreesDataMock,
   fetchTestResultMock,
   fetchTestResultNavMock,
@@ -38,6 +39,7 @@ const {
   fetchGlobalsMock: vi.fn(),
   fetchMetricsDataMock: vi.fn(),
   fetchQualityGateResultsMock: vi.fn(),
+  fetchResolutionCategoriesDataMock: vi.fn(),
   fetchEnvTreesDataMock: vi.fn(),
   fetchTestResultMock: vi.fn(),
   fetchTestResultNavMock: vi.fn(),
@@ -76,6 +78,7 @@ vi.mock("@/stores/envInfo", () => ({ fetchEnvInfo: fetchEnvInfoMock }));
 vi.mock("@/stores/globals", () => ({ fetchGlobals: fetchGlobalsMock }));
 vi.mock("@/stores/metrics", () => ({ fetchMetricsData: fetchMetricsDataMock }));
 vi.mock("@/stores/qualityGate", () => ({ fetchQualityGateResults: fetchQualityGateResultsMock }));
+vi.mock("@/stores/resolutionCategories", () => ({ fetchResolutionCategoriesData: fetchResolutionCategoriesDataMock }));
 vi.mock("@/stores/tree", () => ({ fetchEnvTreesData: fetchEnvTreesDataMock }));
 vi.mock("@/stores/testResults", () => ({
   fetchTestResult: fetchTestResultMock,
@@ -153,6 +156,8 @@ describe("App", () => {
     expect(fetchPieChartDataMock).toHaveBeenCalledWith("env-1");
     expect(fetchCategoriesDataMock).toHaveBeenCalledTimes(1);
     expect(fetchCategoriesDataMock).toHaveBeenCalledWith("env-1");
+    expect(fetchResolutionCategoriesDataMock).toHaveBeenCalledTimes(1);
+    expect(fetchResolutionCategoriesDataMock).toHaveBeenCalledWith("env-1");
     expect(fetchEnvTreesDataMock).toHaveBeenCalledTimes(1);
     expect(fetchEnvTreesDataMock).toHaveBeenCalledWith(["env-1"]);
     expect(fetchEnvStatsMock).toHaveBeenCalledTimes(1);
@@ -169,6 +174,8 @@ describe("App", () => {
     expect(fetchPieChartDataMock).toHaveBeenCalledWith("");
     expect(fetchCategoriesDataMock).toHaveBeenCalledTimes(1);
     expect(fetchCategoriesDataMock).toHaveBeenCalledWith("");
+    expect(fetchResolutionCategoriesDataMock).toHaveBeenCalledTimes(1);
+    expect(fetchResolutionCategoriesDataMock).toHaveBeenCalledWith("");
     expect(fetchEnvTreesDataMock).not.toHaveBeenCalled();
     expect(fetchEnvStatsMock).not.toHaveBeenCalled();
   });

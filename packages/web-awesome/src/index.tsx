@@ -27,6 +27,7 @@ import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 
 import { fetchQualityGateResults } from "./stores/qualityGate";
+import { fetchResolutionCategoriesData } from "./stores/resolutionCategories";
 import { rootTabRoute, testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
@@ -68,6 +69,7 @@ const App = () => {
         fetchQualityGateResults,
         fetchCategoriesData,
         fetchMetricsData,
+        fetchResolutionCategoriesData,
       ];
 
       if (globalThis) {
@@ -107,6 +109,7 @@ const App = () => {
 
     fetchPieChartData(envId);
     fetchCategoriesData(envId);
+    fetchResolutionCategoriesData(envId);
 
     if (!envId) {
       return;
