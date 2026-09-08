@@ -82,12 +82,17 @@ const QualityGateTestResultsTree = ({ tree }: { tree: ReportTree }) => {
   );
 };
 
+// failed rules always come first, the original order is kept within both groups
+const sortFailuresFirst = (results: ReportQualityGateValidationResult[]) =>
+  [...results].sort((a, b) => Number(Boolean(a.success)) - Number(Boolean(b.success)));
+
 const QualityGateResultsList = ({ results }: { results: ReportQualityGateValidationResult[] }) => {
   const { t } = useI18n("ui");
+  const sortedResults = useMemo(() => sortFailuresFirst(results), [results]);
 
   return (
     <ul className={styles["report-quality-gate-results-list"]} data-testid={"quality-gate-results-section-env-content"}>
-      {results.map((result) => (
+      {sortedResults.map((result) => (
         <li key={result.rule} data-testid="quality-gate-result" data-success={String(Boolean(result.success))}>
           <div className={styles["report-quality-gate-result"]}>
             <SvgIcon

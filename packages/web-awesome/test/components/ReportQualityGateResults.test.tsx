@@ -12,7 +12,11 @@ beforeEach(async () => {
   await label("coverage", "ui-components");
 });
 
-const setupQualityGateComponent = async (testResults: string[], extraResults: Record<string, unknown>[] = []) => {
+const setupQualityGateComponent = async (
+  testResults: string[],
+  extraResults: Record<string, unknown>[] = [],
+  precedingResults: Record<string, unknown>[] = [],
+) => {
   vi.resetModules();
   navigateToTestResult.mockClear();
 
@@ -22,6 +26,7 @@ const setupQualityGateComponent = async (testResults: string[], extraResults: Re
     error: undefined,
     data: {
       default: [
+        ...precedingResults,
         {
           success: false,
           expected: 0,
@@ -200,6 +205,34 @@ describe("components > Report quality gate results", () => {
     expect(screen.getByTestId("quality-gate-result-passed-icon")).toBeInTheDocument();
     expect(screen.getByText("Enough tests have been run")).toBeInTheDocument();
     expect(screen.getByTestId("tr-error-title")).toHaveTextContent("success");
+  }, 15000);
+
+  it("should list failed rules before the passed ones", async () => {
+    await setupQualityGateComponent(
+      [],
+      [],
+      [
+        {
+          success: true,
+          expected: 1,
+          actual: 2,
+          rule: "minTestsCount",
+          message: "Enough tests have been run",
+          testResults: [],
+        },
+      ],
+    );
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    const results = screen.getAllByTestId("quality-gate-result");
+
+    expect(results).toHaveLength(2);
+    expect(results[0]).toHaveAttribute("data-success", "false");
+    expect(results[0].querySelector("[data-testid='quality-gate-result-rule']")).toHaveTextContent("maxFailures");
+    expect(results[1]).toHaveAttribute("data-success", "true");
+    expect(results[1].querySelector("[data-testid='quality-gate-result-rule']")).toHaveTextContent("minTestsCount");
   }, 15000);
 
   it("should not render related test results section when ids are absent", async () => {

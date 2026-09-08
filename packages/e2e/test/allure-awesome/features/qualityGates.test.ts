@@ -102,22 +102,22 @@ test.describe("quality gates", () => {
     await qualityGatesPage.attachScreenshot();
   });
 
-  test("should render both passed and failed rules of the same run", async ({ page }) => {
+  test("should render both passed and failed rules of the same run, failures first", async ({ page }) => {
     const fixture = {
       qualityGateResults: [
-        {
-          rule: "successRate",
-          message: "Success rate 0.66 is less, than expected 0.9",
-          success: false,
-          actual: 0.66,
-          expected: 0.9,
-        },
         {
           rule: "maxFailures",
           message: "The number of failed tests 1 is within the allowed threshold value 2",
           success: true,
           actual: 1,
           expected: 2,
+        },
+        {
+          rule: "successRate",
+          message: "Success rate 0.66 is less, than expected 0.9",
+          success: false,
+          actual: 0.66,
+          expected: 0.9,
         },
       ] as QualityGateValidationResult[],
     };
@@ -134,22 +134,23 @@ test.describe("quality gates", () => {
 
     await qualityGatesPage.qualityGatesTabLocator.click();
 
-    // the tab lists every evaluated rule, but the counter reports the failed ones only
-    await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("1");
+    // the counter reports every evaluated rule, no matter whether it passed or failed
+    await expect(qualityGatesPage.qualityGatesTabLocator).toContainText("2");
     await expect(qualityGatesPage.qualityGatesResultLocator).toHaveCount(2);
     await expect(qualityGatesPage.qualityGatesFailedResultLocator).toHaveCount(1);
     await expect(qualityGatesPage.qualityGatesPassedResultLocator).toHaveCount(1);
 
+    // the failed rule is listed first, even though it comes last in the validation results
     const failedResult = qualityGatesPage.qualityGatesResultLocator.nth(0);
     const passedResult = qualityGatesPage.qualityGatesResultLocator.nth(1);
 
     await expect(failedResult.getByTestId("quality-gate-result-rule")).toHaveText("successRate");
     await expect(failedResult.getByTestId("quality-gate-result-message")).toContainText(
-      fixture.qualityGateResults[0].message,
+      fixture.qualityGateResults[1].message,
     );
     await expect(passedResult.getByTestId("quality-gate-result-rule")).toHaveText("maxFailures");
     await expect(passedResult.getByTestId("quality-gate-result-message")).toContainText(
-      fixture.qualityGateResults[1].message,
+      fixture.qualityGateResults[0].message,
     );
 
     await qualityGatesPage.attachScreenshot();
