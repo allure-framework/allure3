@@ -1,7 +1,7 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join } from "node:path";
+import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -26,11 +26,21 @@ const defaultUploadConfig = {
   uploadMaxAttempts: 5,
   uploadMaxSimultaneousFailures: 5,
 };
+const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
 const allureServiceConfig = (overrides: Partial<typeof defaultUploadConfig> = {}) => ({
   accessToken: validAccessToken,
   ...defaultUploadConfig,
   ...overrides,
 });
+
+const manifestPath = (cwd: string, filePath: string): string => relative(cwd, filePath).split(sep).join("/");
+
+const readArtifactsManifest = async (output: string) => {
+  return JSON.parse(await readFile(join(output, ARTIFACTS_MANIFEST_FILENAME), "utf8")) as {
+    name: string;
+    path: string;
+  }[];
+};
 
 vi.mock("@allurereport/service", async (importOriginal) => {
   const utils = await import("./utils.js");
@@ -1104,6 +1114,61 @@ describe("report", () => {
     expect(uploadedRootFiles).toEqual([{ "test-results.json": expect.any(String) }]);
   });
 
+  it("should keep the local artifacts manifest out of remote report uploads", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-artifacts-manifest-upload-"));
+    const output = join(cwd, "report");
+    const attachment = join(cwd, "workflow.log");
+    const p1 = createPlugin("p1", true, { publish: true });
+
+    await writeFile(attachment, "workflow");
+    process.chdir(cwd);
+
+    const config = await resolveConfig({ name: "Allure Report", output, globalAttachments: ["*.log"] });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    await expect(readArtifactsManifest(output)).resolves.toEqual([{ name: "workflow.log", path: "workflow.log" }]);
+    expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalled();
+    for (const [params] of (AllureServiceClientMock.prototype.uploadReport as Mock).mock.calls) {
+      expect(params.files).not.toHaveProperty(ARTIFACTS_MANIFEST_FILENAME);
+    }
+  });
+
+  it("should not write an empty local artifacts manifest", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-empty-artifacts-manifest-"));
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { plugins: {} },
+    );
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    await expect(readFile(join(output, ARTIFACTS_MANIFEST_FILENAME), "utf8")).rejects.toThrow();
+  });
+
   const verifyUploadOptionsForwarding = async (uploadConcurrency?: number) => {
     const p1 = createPlugin("p1", true, { publish: true });
     const config = await resolveConfig({ name: "Allure Report" });
@@ -1448,7 +1513,7 @@ describe("report", () => {
     expect((attachments[0] as unknown as Attachment)?.name).toBe("duplicated.log");
   });
 
-  it("should ignore absolute global attachments outside working directory", async () => {
+  it("should attach absolute global attachments outside working directory", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-cwd-"));
     const outsideDir = await mkdtemp(join(tmpdir(), "allure3-global-attachments-outside-"));
     const insideFile = join(cwd, "inside.log");
@@ -1464,8 +1529,6 @@ describe("report", () => {
       globalAttachments: [outsideFile, "*.log"],
     });
 
-    expect(isAbsolute(outsideFile)).toBe(true);
-
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
@@ -1473,11 +1536,10 @@ describe("report", () => {
     const attachments = await allureReport.store.allGlobalAttachments();
     const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
-    expect(names).toEqual(["inside.log"]);
-    expect(names).not.toContain("outside.log");
+    expect(names).toEqual(["inside.log", "outside.log"]);
   });
 
-  it("should ignore possibly sensitive files outside working directory", async () => {
+  it("should attach explicitly configured files outside working directory", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-cwd-"));
     const outsideRoot = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-outside-"));
     const insideFile = join(cwd, "artifacts", "safe.txt");
@@ -1502,8 +1564,90 @@ describe("report", () => {
     const attachments = await allureReport.store.allGlobalAttachments();
     const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
-    expect(names).toEqual(["safe.txt"]);
-    expect(names).not.toContain("token.txt");
+    expect(names).toEqual(["safe.txt", "token.txt"]);
+  });
+
+  it("should write global attachments to the local artifacts manifest", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-manifest-"));
+    const outsideRoot = await mkdtemp(join(tmpdir(), "allure3-global-attachments-manifest-outside-"));
+    const output = join(cwd, "report");
+    const first = join(cwd, "global.log");
+    const second = join(cwd, "artifacts", "nested.txt");
+    const outsideFile = join(outsideRoot, "outside.log");
+    const globalAttachments = ["*.log", "**/*.log", "artifacts/**/*.txt", outsideFile];
+
+    await writeFile(first, "first");
+    await mkdir(join(cwd, "artifacts"), { recursive: true });
+    await writeFile(second, "second");
+    await writeFile(outsideFile, "outside");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+        globalAttachments,
+      },
+      { cwd, plugins: {} },
+    );
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    const manifest = await readArtifactsManifest(output);
+
+    expect(manifest.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+      {
+        name: "outside.log",
+        path: manifestPath(cwd, outsideFile),
+      },
+      {
+        name: "nested.txt",
+        path: "artifacts/nested.txt",
+      },
+      {
+        name: "global.log",
+        path: "global.log",
+      },
+    ]);
+  });
+
+  it("should not fail when the local artifacts manifest cannot be written", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-artifacts-manifest-write-failure-"));
+    const output = join(cwd, "report");
+    const attachment = join(cwd, "workflow.log");
+    const p1 = createPlugin("p1");
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await writeFile(attachment, "workflow");
+    process.chdir(cwd);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+        globalAttachments: ["*.log"],
+      },
+      { plugins: {} },
+    );
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await mkdir(join(output, ARTIFACTS_MANIFEST_FILENAME), { recursive: true });
+      await context.reportFiles.addFile("index.html", Buffer.from("index"));
+    });
+
+    const allureReport = new AllureReport(config);
+
+    try {
+      await allureReport.start();
+      await expect(allureReport.done()).resolves.toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to write Allure artifacts manifest", expect.any(Error));
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 
   it("should coalesce realtime updates without dropping events", { timeout: 10000 }, async () => {

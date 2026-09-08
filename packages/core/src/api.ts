@@ -27,6 +27,10 @@ export interface FullConfig
   categories?: CategoriesConfig;
   globalAttachments?: string[];
   /**
+   * Working directory used for resolving input patterns and local artifact paths.
+   */
+  cwd?: string;
+  /**
    * Normalized results directory patterns from config (unset when empty / only empty-string entries).
    */
   resultsDir?: string[];
