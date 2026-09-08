@@ -1,14 +1,16 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
 import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { stopProcessTree, terminationOf } from "../../src/utils/process.js";
 
 const execFileAsync = promisify(execFile);
 const commandsDir = dirname(fileURLToPath(import.meta.url));
@@ -111,6 +113,12 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
   return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
 };
 
+// every suite in this file drives the built CLI, and the build wipes `dist` first: it has to happen
+// once, before any of them starts, and never in parallel with a running CLI process
+beforeAll(async () => {
+  await runYarnCommand(["workspace", "allure", "build"]);
+}, 240_000);
+
 describe("run command integration", () => {
   let tempDir: string;
 
@@ -123,9 +131,7 @@ describe("run command integration", () => {
 
   beforeAll(async () => {
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
-
-    await runYarnCommand(["workspace", "allure", "build"]);
-  }, 240_000);
+  });
 
   afterAll(async () => {
     await rm(tempDir, { recursive: true, force: true });
@@ -1027,5 +1033,215 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         }),
       ]);
     });
+  }, 240_000);
+});
+
+// the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from
+// the current directory; the PnP hooks are passed explicitly instead
+const resolveNodeOptions = async () => {
+  if (process.env.NODE_OPTIONS) {
+    return process.env.NODE_OPTIONS;
+  }
+
+  const pnpPath = join(repoRoot, ".pnp.cjs");
+  const pnpLoaderPath = join(repoRoot, ".pnp.loader.mjs");
+
+  if (!(await pathExists(pnpPath))) {
+    return "";
+  }
+
+  const options = [`--require ${pnpPath}`];
+
+  if (await pathExists(pnpLoaderPath)) {
+    options.push(`--experimental-loader ${pathToFileURL(pnpLoaderPath).href}`);
+  }
+
+  return options.join(" ");
+};
+
+const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>
+  new Promise<string>((resolvePromise, rejectPromise) => {
+    let output = "";
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+
+      for (const stream of streams) {
+        stream?.off("data", onData);
+        stream?.off("error", onError);
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      cleanup();
+      rejectPromise(new Error(`Timed out waiting for ${pattern}, got:\n${output || "<no output>"}`));
+    }, timeoutMs);
+
+    const onData = (chunk: Buffer | string) => {
+      output += chunk.toString();
+
+      if (pattern.test(output)) {
+        cleanup();
+        resolvePromise(output);
+      }
+    };
+
+    const onError = (error: Error) => {
+      cleanup();
+      rejectPromise(error);
+    };
+
+    for (const stream of streams) {
+      stream?.on("data", onData);
+      stream?.on("error", onError);
+    }
+  });
+
+// the report is written before the server starts, but the file may still be a few ticks away
+const readHistoryEntries = async (historyPath: string, timeoutMs = 10_000) => {
+  const deadline = Date.now() + timeoutMs;
+
+  while (true) {
+    try {
+      const content = await readFile(historyPath, "utf-8");
+      const entries = content
+        .split("\n")
+        .filter((line) => line.trim().length)
+        .map((line) => JSON.parse(line) as { uuid: string; testResults: Record<string, unknown> });
+
+      if (entries.length) {
+        return entries;
+      }
+    } catch (err) {
+      if (Date.now() > deadline) {
+        throw err;
+      }
+    }
+
+    if (Date.now() > deadline) {
+      throw new Error(`${historyPath} hasn't been written`);
+    }
+
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 250));
+  }
+};
+
+const terminate = async (child: ReturnType<typeof spawn>) => {
+  if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+    return;
+  }
+
+  const exited = terminationOf(child);
+
+  // `serve` may have spawned children of its own; leaving them behind would keep the CI job busy
+  await stopProcessTree(child.pid);
+
+  const killed = await Promise.race([
+    exited.then(() => true),
+    new Promise<false>((resolvePromise) => setTimeout(() => resolvePromise(false), 5_000).unref()),
+  ]);
+
+  if (!killed) {
+    await stopProcessTree(child.pid, { signal: "SIGKILL" });
+    await exited;
+  }
+};
+
+/**
+ * Regression test for https://github.com/allure-framework/allure3/issues/827: `allure serve` used to
+ * generate the report and then exit without ever starting the server when `historyPath` was
+ * configured. This only covers the symptom under Yarn PnP, whose patched `fs` hides the underlying
+ * FileHandle lifecycle bug; `packages/core/test/history.integration.test.ts` exercises the history
+ * code against the real Node implementation.
+ */
+describe("serve command integration", () => {
+  let workspace: string;
+
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-commands");
+    await story("serve.integration");
+    await label("coverage", "cli-commands");
+
+    workspace = await mkdtemp(join(tmpdir(), "allure-serve-history-"));
+  });
+
+  afterEach(async () => {
+    await rm(workspace, { recursive: true, force: true });
+  });
+
+  it("keeps the HTTP server running when historyPath is configured", async () => {
+    const historyPath = join(workspace, "allure-history.jsonl");
+
+    await mkdir(join(workspace, "allure-results"), { recursive: true });
+    await writeJson(join(workspace, "allure-results", "x-result.json"), {
+      uuid: "11111111-1111-1111-1111-111111111111",
+      historyId: "abc",
+      name: "dummy test",
+      status: "passed",
+      stage: "finished",
+      start: 1_784_900_000_000,
+      stop: 1_784_900_001_000,
+      labels: [],
+      steps: [],
+      parameters: [],
+      links: [],
+    });
+    await writeFile(
+      join(workspace, "allurerc.mjs"),
+      `export default {
+  name: "repro",
+  historyPath: ${JSON.stringify(historyPath)},
+};
+`,
+      "utf-8",
+    );
+
+    const env = {
+      ...process.env,
+      NODE_OPTIONS: await resolveNodeOptions(),
+      NODE_NO_WARNINGS: "1",
+    };
+
+    // other suites in the same worker may have left it behind, and the CLI refuses nested commands
+    delete env.ALLURE_CLI_ACTIVE_COMMAND;
+
+    const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
+      cwd: workspace,
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    try {
+      const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
+      let earlyOutput = "";
+
+      child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+      child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+
+      const exited = new Promise<never>((_, rejectPromise) => {
+        child.once("exit", (code, signal) => {
+          rejectPromise(
+            new Error(
+              `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
+            ),
+          );
+        });
+      });
+      const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
+
+      await attachment("serve output", output, "text/plain");
+
+      expect(output).toMatch(serverPattern);
+      expect(child.exitCode).toBeNull();
+
+      const history = await readHistoryEntries(historyPath);
+
+      await attachment("history file", JSON.stringify(history, null, 2), "application/json");
+
+      expect(history).toHaveLength(1);
+    } finally {
+      await terminate(child);
+    }
   }, 240_000);
 });

@@ -196,10 +196,6 @@ export class AllureLocalHistory implements AllureHistory {
     const openedStreams: (Readable | Writable)[] = [];
 
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
-      openedStreams.push(dst);
-
       if (limit === 0 && historyExists) {
         await historyFile.truncate(0);
         return;
@@ -208,6 +204,10 @@ export class AllureLocalHistory implements AllureHistory {
       if (limit === 0 && !historyExists) {
         return;
       }
+
+      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
+
+      openedStreams.push(dst);
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
