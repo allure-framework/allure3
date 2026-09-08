@@ -63,6 +63,7 @@ const config = {
     testops: {
       options: {
         launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+        gitFlow: true,
       },
     },
   },

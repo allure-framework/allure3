@@ -4,7 +4,7 @@ import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
 import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve, sep } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import { detect } from "@allurereport/ci";
@@ -52,6 +52,14 @@ import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
 import { DefaultAllureStore } from "./store/store.js";
+import {
+  ARTIFACTS_MANIFEST_FILENAME,
+  type ReportArtifact,
+  type ReportArtifactsManifest,
+  type RestoreStateDumpInput,
+  createReportArtifact,
+  deduplicateDumpInputs,
+} from "./utils/artifacts.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
@@ -74,7 +82,11 @@ const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
-const ROOT_INTEGRATION_FILENAMES = new Set([TEST_RESULTS_REGISTRY_FILENAME, QUALITY_GATE_RESULTS_FILENAME]);
+const ROOT_INTEGRATION_FILENAMES = new Set([
+  TEST_RESULTS_REGISTRY_FILENAME,
+  QUALITY_GATE_RESULTS_FILENAME,
+  ARTIFACTS_MANIFEST_FILENAME,
+]);
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -131,8 +143,8 @@ export class AllureReport {
   readonly #environments: NonNullable<FullConfig["environments"]>;
   readonly #globalAttachments: FullConfig["globalAttachments"];
   readonly #knownIssuesPath: string | undefined;
-
   #dumpTempDirs: string[] = [];
+  #cwd?: string;
   #state?: Record<string, PluginState>;
   #executionStage: "init" | "running" | "done" = "init";
   #historyDataPoint?: HistoryDataPoint;
@@ -140,6 +152,7 @@ export class AllureReport {
   #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
+  #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
   #endGeneratePerfSpan?: () => void;
 
@@ -171,6 +184,7 @@ export class AllureReport {
       categories,
       allureService,
       globalAttachments,
+      cwd,
     } = opts;
     const allureServiceAccessToken = allureService?.accessToken;
 
@@ -188,6 +202,7 @@ export class AllureReport {
     }
 
     this.reportUuid = randomUUID();
+    this.#cwd = cwd ? resolve(cwd) : undefined;
     this.#ci = detect();
 
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
@@ -544,6 +559,12 @@ export class AllureReport {
     });
   };
 
+  #getCwd = (): string => {
+    this.#cwd ??= resolve(process.cwd());
+
+    return this.#cwd;
+  };
+
   start = async (): Promise<void> => {
     await this.#store.readHistory();
 
@@ -558,32 +579,24 @@ export class AllureReport {
     this.#executionStage = "running";
     this.#endGeneratePerfSpan = startPerfSpan(PERF_METRIC_NAMES.generateTotal);
 
-    const cwd = resolve(process.cwd());
-    const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
-
     if (this.#globalAttachments?.length) {
+      const cwd = this.#getCwd();
       const matchedFiles = new Set<string>();
 
       for (const pattern of this.#globalAttachments) {
         const files = await glob(pattern, { cwd, nodir: true, absolute: true });
 
-        files.forEach((filePath) => matchedFiles.add(filePath));
+        files.forEach((filePath) => matchedFiles.add(resolve(cwd, filePath)));
       }
 
-      for (const filePath of matchedFiles) {
-        const absoluteFilePath = resolve(filePath);
-        const isInsideCwd = absoluteFilePath === cwd || absoluteFilePath.startsWith(cwdWithSep);
-
-        if (!isInsideCwd) {
-          continue;
-        }
-
+      for (const absoluteFilePath of matchedFiles) {
         const originalFileName = basename(absoluteFilePath);
 
         this.#realtimeChannel.dispatcher.sendGlobalAttachment(
           new PathResultFile(absoluteFilePath, originalFileName),
           originalFileName,
         );
+        this.#recordArtifact(absoluteFilePath, originalFileName);
       }
     }
 
@@ -780,12 +793,24 @@ export class AllureReport {
 
   restoreState = async (dumps: string[]): Promise<void> => {
     this.#store.resetIngestOrder();
-    await this.#restoreStateDumps(dumps);
+    await this.#restoreStateDumps(dumps.map((path) => ({ artifactPath: path, path })));
   };
 
-  #restoreStateDumps = async (dumps: string[]): Promise<void> =>
+  #recordArtifact = (filePath: string, name = basename(filePath)): void => {
+    const artifact = createReportArtifact(filePath, this.#getCwd(), name);
+
+    if (!this.#artifactFilesByPath.has(artifact.path)) {
+      this.#artifactFilesByPath.set(artifact.path, artifact);
+    }
+  };
+
+  #restoreStateDumps = async (dumps: RestoreStateDumpInput[]): Promise<number> =>
     measurePerf(PERF_METRIC_NAMES.restoreStateTotal, async () => {
-      for (const dump of dumps) {
+      let restoredCount = 0;
+
+      for (const { artifactPath, path: dump, recordArtifact = true } of deduplicateDumpInputs(dumps, this.#getCwd())) {
+        const artifactFilePath = artifactPath ?? dump;
+
         await measurePerf(PERF_METRIC_NAMES.restoreStateDump, async () => {
           if (!existsSync(dump)) {
             console.error(`Failed to restore state from "${dump}", continuing without it`);
@@ -823,18 +848,31 @@ export class AllureReport {
 
                 if (nestedDumpEntries.length > 0) {
                   const nestedDumpsTempDir = await mkdtemp(join(tmpdir(), `${basename(dump, ".zip")}-nested-`));
-                  const nestedDumpPaths: string[] = [];
+                  const nestedDumps: RestoreStateDumpInput[] = [];
 
                   this.#dumpTempDirs.push(nestedDumpsTempDir);
 
                   for (const [entryName] of nestedDumpEntries) {
-                    const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumpPaths.length}-${basename(entryName)}`);
+                    const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumps.length}-${basename(entryName)}`);
 
                     await writeFile(nestedDumpPath, await dumpArchive.entryData(entryName));
-                    nestedDumpPaths.push(nestedDumpPath);
+                    nestedDumps.push({
+                      artifactPath: artifactFilePath,
+                      path: nestedDumpPath,
+                      recordArtifact: false,
+                    });
                   }
 
-                  await this.#restoreStateDumps(nestedDumpPaths);
+                  const nestedRestoredCount = await this.#restoreStateDumps(nestedDumps);
+
+                  if (nestedRestoredCount > 0) {
+                    restoredCount += 1;
+
+                    if (recordArtifact) {
+                      this.#recordArtifact(artifactFilePath);
+                    }
+                  }
+
                   return;
                 }
               }
@@ -963,6 +1001,11 @@ export class AllureReport {
               );
 
               console.info(`Successfully restored state from "${dump}"`);
+              restoredCount += 1;
+
+              if (recordArtifact) {
+                this.#recordArtifact(artifactFilePath);
+              }
             } catch (err) {
               restoreError = err;
               throw err;
@@ -982,6 +1025,8 @@ export class AllureReport {
           }
         });
       }
+
+      return restoredCount;
     });
 
   #getReportsToPublish = async (): Promise<PluginReportFile[]> => {
@@ -1088,6 +1133,20 @@ export class AllureReport {
     const qualityGateResults = await this.#store.qualityGateResults();
 
     await this.#reportFiles.addFile(QUALITY_GATE_RESULTS_FILENAME, Buffer.from(JSON.stringify(qualityGateResults)));
+  };
+
+  #finishArtifactsManifest = async (): Promise<void> => {
+    if (this.#artifactFilesByPath.size === 0) {
+      return;
+    }
+
+    const manifest: ReportArtifactsManifest = [...this.#artifactFilesByPath.values()];
+
+    try {
+      await writeFile(join(this.#output, ARTIFACTS_MANIFEST_FILENAME), JSON.stringify(manifest));
+    } catch (err) {
+      console.error("Failed to write Allure artifacts manifest", err);
+    }
   };
 
   #generateRootSummary = async (): Promise<void> => {
@@ -1203,6 +1262,8 @@ export class AllureReport {
 
         await rm(reportPath, { recursive: true });
       }
+
+      await this.#finishArtifactsManifest();
 
       // remove all dump temp dirs
       for (const dir of this.#dumpTempDirs) {
