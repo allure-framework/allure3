@@ -275,6 +275,7 @@ describe("test results", () => {
           {
             resolution: "issue",
             issue: { id: "SHOP-1", type: "jira" },
+            comment: "Tracked defect",
             testCaseId: [md5("tc-1")],
             messageRegexp: "tracked defect",
           },
@@ -308,12 +309,19 @@ describe("test results", () => {
     const issueResult = testResults.find((tr) => tr.name === "issue by rule")!;
 
     expect(issueResult.resolution).toBe("issue");
+    expect(issueResult.resolutionComment).toBe("Tracked defect");
     expect(issueResult.links).toEqual([]);
-    expect(testResults.find((tr) => tr.name === "muted by rule")?.resolution).toBe("muted");
-    expect(testResults.find((tr) => tr.name === "accepted by rule")?.resolution).toBe("accepted");
+    expect(testResults.find((tr) => tr.name === "muted by rule")).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "noise",
+    });
+    expect(testResults.find((tr) => tr.name === "accepted by rule")).toMatchObject({
+      resolution: "accepted",
+      resolutionComment: "Accepted risk",
+    });
     expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
     expect(blockingFailed).toEqual([issueResult]);
-    expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira" }]);
+    expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira", comment: "Tracked defect" }]);
     await expect(store.resolutionIssueByTestResultId(issueResult.id)).resolves.toEqual(resolutionIssues[0]);
     await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });

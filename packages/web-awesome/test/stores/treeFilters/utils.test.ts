@@ -2,7 +2,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import type { Filters } from "../../../src/stores/treeFilters/model.js";
-import { hasActiveFilters } from "../../../src/stores/treeFilters/utils.js";
+import { constructFilterParams, hasActiveFilters } from "../../../src/stores/treeFilters/utils.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -24,6 +24,7 @@ describe("stores > treeFilters > utils", () => {
       [{ status: "failed" }, "status"],
       [{ flaky: true }, "flaky"],
       [{ retry: true }, "retry"],
+      [{ resolution: ["issue"] }, "resolution"],
       [{ transition: ["new"] }, "transition"],
       [{ tags: ["smoke"] }, "tags"],
       [{ categories: ["Product Bug"] }, "categories"],
@@ -39,10 +40,19 @@ describe("stores > treeFilters > utils", () => {
       expect(
         hasActiveFilters({
           transition: [],
+          resolution: [],
           tags: [],
           categories: [],
         }),
       ).toBe(false);
+    });
+  });
+
+  describe("constructFilterParams", () => {
+    it("should write resolution category filter params", () => {
+      const params = constructFilterParams({ resolution: ["issue", "muted"] });
+
+      expect(params.getAll("resolution")).toEqual(["issue", "muted"]);
     });
   });
 });

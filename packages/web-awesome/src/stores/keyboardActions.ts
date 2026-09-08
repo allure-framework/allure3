@@ -52,7 +52,12 @@ import {
   toggleTestResultFocusNode,
 } from "@/stores/testResultOverviewNav";
 import { testResultNavStore, testResultStore } from "@/stores/testResults";
-import { cycleTestResultTab, navigateToTestResultTabById, TEST_RESULT_TAB } from "@/stores/testResultTabs";
+import {
+  cycleTestResultTab,
+  getTestResultTabForTestResultId,
+  navigateToTestResultTabById,
+  TEST_RESULT_TAB,
+} from "@/stores/testResultTabs";
 import { filteredTree, isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
 
 const isTestResultRoute = computed(
@@ -551,7 +556,7 @@ export const openTestResultFromTree = () => {
     return;
   }
 
-  navigateToTestResult({ testResultId: node.testResultId, tab: trCurrentTab.value });
+  navigateToTestResult({ testResultId: node.testResultId, tab: getTestResultTabForTestResultId(node.testResultId) });
 
   if (isSplitMode.value) {
     focusTestResultPane();
@@ -634,7 +639,7 @@ export const goToPrevTestResult = () => {
     return;
   }
 
-  navigateToTestResult({ testResultId: prevId, tab: trCurrentTab.value });
+  navigateToTestResult({ testResultId: prevId, tab: getTestResultTabForTestResultId(prevId) });
   setTreeFocusId(undefined);
 };
 
@@ -662,7 +667,7 @@ export const goToNextTestResult = () => {
     return;
   }
 
-  navigateToTestResult({ testResultId: nextId, tab: trCurrentTab.value });
+  navigateToTestResult({ testResultId: nextId, tab: getTestResultTabForTestResultId(nextId) });
   setTreeFocusId(undefined);
 };
 

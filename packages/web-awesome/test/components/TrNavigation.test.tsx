@@ -21,6 +21,40 @@ vi.hoisted(() => {
 
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
 import { waitForI18next } from "@/stores/locale";
+import { testResultNavStore, testResultStore } from "@/stores/testResults";
+
+const setHash = (hash: string) => {
+  window.history.pushState(null, "", hash ? `#${hash}` : "/");
+  window.dispatchEvent(new Event("pushState"));
+};
+
+const setTestResults = (results: Record<string, Partial<ReportTestResult>>) => {
+  testResultStore.value = {
+    loading: false,
+    error: undefined,
+    data: Object.fromEntries(
+      Object.entries(results).map(([id, result]) => [
+        id,
+        {
+          id,
+          nodeId: id,
+          name: `Test ${id}`,
+          status: "passed",
+          setup: [],
+          teardown: [],
+          steps: [],
+          labels: [],
+          groupedLabels: {},
+          links: [],
+          parameters: [],
+          breadcrumbs: [],
+          history: [],
+          ...result,
+        } as ReportTestResult,
+      ]),
+    ),
+  };
+};
 
 beforeEach(async () => {
   vi.stubGlobal(
@@ -41,6 +75,9 @@ beforeEach(async () => {
   await story("copy-identifiers");
   await label("coverage", "ui-components");
   await waitForI18next;
+  setHash("");
+  testResultNavStore.value = { loading: true, error: undefined, data: undefined };
+  testResultStore.value = { loading: true, error: undefined, data: undefined };
 });
 
 afterEach(() => {
@@ -82,6 +119,14 @@ describe("components > TestResult > TrNavigation", () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledWith("retry-hash"));
   });
 
+  it("shows test case id copy option when test case id exists without fullname", () => {
+    render(<TrNavigation testResult={{ ...testResult, fullName: undefined }} />);
+    fireEvent.mouseEnter(screen.getByTestId("test-result-fullname-copy-trigger"));
+
+    expect(screen.getByTestId("test-result-copy-test-case-id")).toBeInTheDocument();
+    expect(screen.queryByTestId("test-result-copy-fullname")).not.toBeInTheDocument();
+  });
+
   it("keeps menu open while pointer moves from trigger to menu", async () => {
     vi.useFakeTimers();
     render(<TrNavigation testResult={testResult} />);
@@ -98,5 +143,17 @@ describe("components > TestResult > TrNavigation", () => {
     fireEvent.mouseLeave(menu);
     await act(() => vi.advanceTimersByTimeAsync(300));
     expect(screen.queryByTestId("test-result-copy-fullname")).not.toBeInTheDocument();
+  });
+
+  it("opens overview when navigating to a result without the current resolution categories tab", () => {
+    setHash("tr-1/resolutionCategories");
+    testResultNavStore.value = { loading: false, error: undefined, data: ["tr-1", "tr-2"] };
+    setTestResults({ "tr-1": { resolution: "issue" }, "tr-2": {} });
+
+    render(<TrNavigation testResult={{ ...testResult, id: "tr-1", resolution: "issue" }} />);
+
+    fireEvent.click(screen.getByTestId("test-result-nav-next"));
+
+    expect(window.location.hash).toBe("#tr-2");
   });
 });

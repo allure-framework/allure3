@@ -1,4 +1,10 @@
-import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
+import {
+  incrementStatistic,
+  type EnvironmentItem,
+  type Statistic,
+  type TestResult,
+  joinPosixPath,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type ReportExecutorInfo,
@@ -22,6 +28,7 @@ import {
   generateMetricsWidget,
   generateNav,
   generateQualityGateResults,
+  generateResolutionCategories,
   generateSearchIndex,
   generateStaticFiles,
   generateStatistic,
@@ -66,6 +73,9 @@ const statisticByTestResults = async (
   return statistic;
 };
 
+const isActiveStatisticTestResult = (testResult: TestResult) =>
+  testResult.resolution !== "muted" && testResult.resolution !== "accepted";
+
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
@@ -91,6 +101,8 @@ export class AwesomePlugin implements Plugin {
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
+    const pieStatistics = await statisticByTestResults(store, allTrs.filter(isActiveStatisticTestResult));
+    const pieEnvStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
     const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
@@ -132,7 +144,10 @@ export class AwesomePlugin implements Plugin {
 
     await Promise.all(
       environments.map(async ({ id }) => {
-        envStatistics.set(id, await statisticByTestResults(store, trsByEnvId.get(id) ?? []));
+        const envTrs = trsByEnvId.get(id) ?? [];
+
+        envStatistics.set(id, await statisticByTestResults(store, envTrs));
+        pieEnvStatistics.set(id, await statisticByTestResults(store, envTrs.filter(isActiveStatisticTestResult)));
       }),
     );
 
@@ -149,6 +164,8 @@ export class AwesomePlugin implements Plugin {
     await generateStatistic(this.#writer!, {
       stats: statistics,
       statsByEnv: envStatistics,
+      pieStats: pieStatistics,
+      pieStatsByEnv: pieEnvStatistics,
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
@@ -165,6 +182,7 @@ export class AwesomePlugin implements Plugin {
       defaultEnvironment: "default",
       selectedEnvironmentCount: environments.length,
     });
+    await generateResolutionCategories(this.#writer!, convertedTrs);
     const hasGroupBy = groupBy.length > 0;
 
     await generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId);
@@ -205,6 +223,11 @@ export class AwesomePlugin implements Plugin {
         selectedEnvironmentCount: 1,
         filename: joinPosixPath(reportEnvironment.id, "categories.json"),
       });
+      await generateResolutionCategories(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "resolution-categories.json"),
+      );
     }
 
     await generateTreeFilters(this.#writer!, convertedTrs);

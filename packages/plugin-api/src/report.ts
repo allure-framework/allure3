@@ -3,6 +3,8 @@ import type {
   CiDescriptor,
   DefaultTreeGroup,
   HistoryTestResult,
+  ResolutionCategory,
+  ResolutionIssue,
   TestFixtureResult,
   TestResult,
   TestStatus,
@@ -108,6 +110,7 @@ export type ReportTestResult = Omit<
   retry: boolean;
   categories?: ReportCategory[];
   environment?: string | "default";
+  resolutionIssue?: ResolutionIssue;
   tooltips?: Record<string, string>;
   time?: Record<string, string[]>;
   extra?: { severity: string };
@@ -115,7 +118,16 @@ export type ReportTestResult = Omit<
 
 export type ReportTreeLeaf = Pick<
   ReportTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount"
+  | "duration"
+  | "name"
+  | "start"
+  | "status"
+  | "groupOrder"
+  | "flaky"
+  | "transition"
+  | "retry"
+  | "retriesCount"
+  | "resolution"
 > & {
   nodeId: string;
   id?: string;
@@ -148,6 +160,36 @@ export type ReportSearchDocument = {
   categories?: string;
   statusMessage?: string;
   links?: string;
+};
+
+export type ReportResolutionTestResult = Pick<
+  ReportTreeLeaf,
+  | "nodeId"
+  | "id"
+  | "name"
+  | "status"
+  | "duration"
+  | "flaky"
+  | "transition"
+  | "retry"
+  | "retriesCount"
+  | "resolution"
+  | "tooltips"
+> & {
+  groupOrder?: number;
+};
+
+export type ReportResolutionGroup = {
+  id: string;
+  resolution: ResolutionCategory;
+  name: string;
+  comment?: string;
+  issue?: ResolutionIssue;
+  testResults: ReportResolutionTestResult[];
+};
+
+export type ReportResolutionCategories = {
+  groups: ReportResolutionGroup[];
 };
 
 /**

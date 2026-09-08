@@ -22,7 +22,8 @@
     "globalAttachments": "Globale Bijlagen",
     "globalErrors": "Globale Fouten",
     "qualityGates": "Kwaliteitspoorten",
-    "categories": "Categorieën"
+    "categories": "Categorieën",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Zoeken",
@@ -56,7 +57,18 @@
       "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
       "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status",
       "tags": "Toont testresultaten die de opgegeven tags hebben",
-      "categories": "Toont testresultaten die de opgegeven categorieën hebben"
+      "categories": "Toont testresultaten die de opgegeven categorieën hebben",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "Geen testresultaten",
     "no-environments-results": "Geen informatie over omgevingen beschikbaar",
     "no-categories-results": "Geen categorieresultaten beschikbaar",
-    "no-metrics-results": "Geen metrieken beschikbaar"
+    "no-metrics-results": "Geen metrieken beschikbaar",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blokkerend",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "De browser heeft het openen van Playwright Trace Viewer geblokkeerd.",
     "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
@@ -432,7 +446,12 @@
       "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
       "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
       "retries": "{{count}} pogingen",
-      "flaky": "Inconsistent tussen runs"
+      "flaky": "Inconsistent tussen runs",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Nieuw",
     "fixed": "Opgelost",
@@ -511,6 +530,7 @@
       "testTabNext": "Volgende testtab",
       "testTabPrev": "Vorige testtab",
       "tabOverview": "Tab overzicht",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab geschiedenis",
       "tabRetries": "Tab nieuwe pogingen",
       "tabAttachments": "Tab bijlagen",
@@ -518,7 +538,8 @@
       "toggleLabels": "Labels tonen/verbergen",
       "toggleParameters": "Parameters tonen/verbergen",
       "toggleLinks": "Links tonen/verbergen",
-      "backToTree": "Terug naar boom"
+      "backToTree": "Terug naar boom",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

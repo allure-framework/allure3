@@ -1,11 +1,15 @@
 export type {
+  Layout,
   ReportCategory,
   ReportExecutorInfo,
   ReportFixtureResult,
+  ReportOptions,
   ReportQualityGateResults,
   ReportQualityGateValidationResult,
   ReportRecursiveTree,
-  ReportOptions,
+  ReportResolutionCategories,
+  ReportResolutionGroup,
+  ReportResolutionTestResult,
   ReportRunSummary,
   ReportSearchDocument,
   ReportStatus,
@@ -15,6 +19,5 @@ export type {
   ReportTree,
   ReportTreeGroup,
   ReportTreeLeaf,
-  Layout,
   StepTreeExpansion,
 } from "@allurereport/plugin-api";

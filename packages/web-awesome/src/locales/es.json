@@ -22,7 +22,8 @@
     "globalAttachments": "Adjuntos Globales",
     "globalErrors": "Errores Globales",
     "qualityGates": "Puertas de Calidad",
-    "categories": "Categorías"
+    "categories": "Categorías",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Buscar",
@@ -56,7 +57,18 @@
       "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
       "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\"",
       "tags": "Mostrar resultados de pruebas que tienen las etiquetas especificadas",
-      "categories": "Mostrar resultados de pruebas que tienen las categorías especificadas"
+      "categories": "Mostrar resultados de pruebas que tienen las categorías especificadas",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "No hay resultados de casos de prueba",
     "no-environments-results": "No hay información de entornos disponible",
     "no-categories-results": "No hay categorías disponibles",
-    "no-metrics-results": "No hay métricas disponibles"
+    "no-metrics-results": "No hay métricas disponibles",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloqueante",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "El navegador bloqueó la apertura de Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Permite las ventanas emergentes y vuelve a intentarlo.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con código de salida {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Abrir adjunto en nueva pestaña",
@@ -432,7 +446,12 @@
       "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
       "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\"",
       "retries": "{{count}} reintentos",
-      "flaky": "Resultados inconsistentes entre ejecuciones"
+      "flaky": "Resultados inconsistentes entre ejecuciones",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Nuevo",
     "fixed": "Corregido",
@@ -511,6 +530,7 @@
       "testTabNext": "Siguiente pestaña de prueba",
       "testTabPrev": "Pestaña de prueba anterior",
       "tabOverview": "Pestaña resumen",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Pestaña historial",
       "tabRetries": "Pestaña reintentos",
       "tabAttachments": "Pestaña archivos adjuntos",
@@ -518,7 +538,8 @@
       "toggleLabels": "Mostrar/ocultar etiquetas",
       "toggleParameters": "Mostrar/ocultar parámetros",
       "toggleLinks": "Mostrar/ocultar enlaces",
-      "backToTree": "Volver al árbol"
+      "backToTree": "Volver al árbol",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

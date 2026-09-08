@@ -473,6 +473,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const rule = getResolutionByRules(testResult, this.#resolutionsConfig);
 
     testResult.resolution = rule?.resolution;
+    testResult.resolutionComment = rule?.comment;
 
     this.#removeResolutionIssueAssociation(testResult.id);
 
