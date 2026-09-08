@@ -23,14 +23,14 @@ export type TrInfoProps = {
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
-  const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop, categories } =
+  const { name, status, muted, flaky, resolution, duration, labels, history, retries, attachments, stop, categories } =
     testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const categoryName = categories?.[0]?.name;
   const { t } = useI18n("ui");
-  const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);
+  const statuses = Object.entries({ flaky, muted }).filter(([, value]) => value);
 
   const Content = () => {
     return (
@@ -59,6 +59,14 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-tabs"]}>
           <TrTabsList>
             <TrTab id="overview">{t("overview")}</TrTab>
+            {resolution && (
+              <TrTab id="resolutionCategories">
+                <div className={styles["test-result-tab"]}>
+                  {t("resolutionCategories")}
+                  <Counter size={"s"} count={1} />
+                </div>
+              </TrTab>
+            )}
             <TrTab id="history">
               <div className={styles["test-result-tab"]}>
                 {t("history")}

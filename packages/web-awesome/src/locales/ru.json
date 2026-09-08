@@ -22,7 +22,8 @@
     "globalAttachments": "Глобальные Вложения",
     "globalErrors": "Глобальные Ошибки",
     "qualityGates": "Ворота Качества",
-    "categories": "Категории"
+    "categories": "Категории",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Поиск",
@@ -56,7 +57,18 @@
       "regressed": "Показать результаты тестов, которые изменили статус на \"неуспешный\" с \"успешный\" или \"сломанный\"",
       "malfunctioned": "Показать результаты тестов, которые изменили статус на \"сломанный\" с \"успешный\" или \"неуспешный\"",
       "tags": "Показать результаты тестов, которые имеют указанные теги",
-      "categories": "Показать результаты тестов, которые имеют указанные категории"
+      "categories": "Показать результаты тестов, которые имеют указанные категории",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -112,7 +124,8 @@
     "no-test-case-results": "Нет результатов тест-кейсов",
     "no-environments-results": "Информация об окружениях отсутствует",
     "no-categories-results": "Нет доступных результатов по категориям",
-    "no-metrics-results": "Метрики отсутствуют"
+    "no-metrics-results": "Метрики отсутствуют",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "блокер",
@@ -160,7 +173,8 @@
     "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "shortcuts": {
     "title": "Горячие клавиши",
@@ -212,6 +226,7 @@
       "testTabNext": "Следующая вкладка теста",
       "testTabPrev": "Предыдущая вкладка теста",
       "tabOverview": "Вкладка обзор",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка история",
       "tabRetries": "Вкладка перезапуски",
       "tabAttachments": "Вкладка вложения",
@@ -219,7 +234,8 @@
       "toggleLabels": "Показать/скрыть лейблы",
       "toggleParameters": "Показать/скрыть параметры",
       "toggleLinks": "Показать/скрыть ссылки",
-      "backToTree": "Назад к дереву"
+      "backToTree": "Назад к дереву",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {
@@ -500,7 +516,12 @@
       "regressed": "Ранее \"успешный\" или \"сломанный\" тест, который теперь \"неуспешный\"",
       "malfunctioned": "Ранее \"успешный\" или \"неуспешный\" тест, который теперь \"сломанный\"",
       "retries": "{{count}} повторов",
-      "flaky": "Нестабилен между запусками"
+      "flaky": "Нестабилен между запусками",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Новые",
     "fixed": "Исправленные",
