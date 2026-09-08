@@ -25,6 +25,7 @@ import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
 type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
+  cwd?: string;
   name?: Config["name"];
   output?: Config["output"];
   open?: Config["open"];
@@ -334,6 +335,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
       ? { ...(config.resolutions ?? { rules: [] }), knownIssuesPath }
       : undefined;
   const output = resolve(override.output ?? config.output ?? "./allure-report");
+  const cwd = resolve(override.cwd ?? process.cwd());
   const variables = config.variables ?? {};
   const resultsDir = normalizeResultsDir(config.resultsDir);
   let pluginInstances: PluginInstance[] = [];
@@ -363,6 +365,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   return {
     name,
+    cwd,
     output,
     open,
     port,
@@ -446,7 +449,7 @@ export const readConfig = async (
       config = DEFAULT_CONFIG;
   }
 
-  const fullConfig = await resolveConfig(config, override);
+  const fullConfig = await resolveConfig(config, { ...override, cwd });
 
   return fullConfig;
 };

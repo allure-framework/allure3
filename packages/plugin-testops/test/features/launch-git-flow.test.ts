@@ -120,6 +120,76 @@ describe("Launch git flow", () => {
     );
   });
 
+  it("attaches git context from ALLURE_CI_COMMIT when git CLI is unavailable", async () => {
+    const commit = "a".repeat(40);
+
+    vi.mocked(isGitAvailable).mockReturnValue(false);
+    vi.stubEnv("ALLURE_CI_COMMIT", commit);
+    vi.stubEnv("ALLURE_CI_REPO_NAME", "myorg/myrepo");
+    vi.stubEnv("ALLURE_CI_GIT_PROVIDER", "github");
+    vi.stubEnv("ALLURE_CI_SOURCE_BRANCH", "feature");
+
+    await startPlugin({ gitFlow: true } as TestOpsPluginOptions);
+
+    expect(collectGitFacts).not.toHaveBeenCalled();
+    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(fixtures.launchName, fixtures.launchTags, {
+      contextType: "branch",
+      repository: {
+        providerType: "github",
+        name: "myorg/myrepo",
+        url: "https://github.com/myorg/myrepo.git",
+      },
+      commit: {
+        hash: commit,
+        url: `https://github.com/myorg/myrepo/commit/${commit}`,
+        lineage: undefined,
+      },
+      branch: {
+        name: "feature",
+        url: "https://github.com/myorg/myrepo/tree/feature",
+      },
+    });
+  });
+
+  it("replaces collected commit and clears stale ancestors via ALLURE_CI_COMMIT", async () => {
+    const collectedCommit = "a".repeat(40);
+    const overrideCommit = "d".repeat(40);
+    const parent = "b".repeat(40);
+
+    const ci = {
+      ...githubCi,
+      provider: GitProvider.Github,
+      repository: { slug: "myorg/myrepo" },
+      sourceBranch: "feature",
+    };
+    (detect as Mock).mockReturnValue(ci);
+    vi.mocked(collectGitFacts).mockReturnValue({
+      commit: collectedCommit,
+      firstParentAncestors: [parent],
+    });
+    vi.stubEnv("ALLURE_CI_COMMIT", overrideCommit);
+
+    await startPlugin({ gitFlow: true } as TestOpsPluginOptions);
+
+    expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith(fixtures.launchName, fixtures.launchTags, {
+      contextType: "branch",
+      repository: {
+        providerType: "github",
+        name: "myorg/myrepo",
+        url: "https://github.com/myorg/myrepo.git",
+      },
+      commit: {
+        hash: overrideCommit,
+        url: `https://github.com/myorg/myrepo/commit/${overrideCommit}`,
+        lineage: undefined,
+      },
+      branch: {
+        name: "feature",
+        url: "https://github.com/myorg/myrepo/tree/feature",
+      },
+    });
+  });
+
   it("posts branch git context on createLaunch", async () => {
     const commit = "a".repeat(40);
     const parent = "b".repeat(40);
