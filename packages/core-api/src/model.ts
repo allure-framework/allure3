@@ -61,6 +61,7 @@ export interface TestResult {
   flaky: boolean;
   muted: boolean;
   resolution?: ResolutionCategory;
+  resolutionComment?: string;
 
   transition?: TestStatusTransition;
 

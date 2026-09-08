@@ -1,4 +1,4 @@
-import type { DefaultTreeGroup, TestStatus } from "@allurereport/core-api";
+import type { DefaultTreeGroup, ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 
 export type Status = TestStatus | "total";
 
@@ -9,6 +9,22 @@ export type RecursiveTree = DefaultTreeGroup & {
   nodeId: string;
   leaves: TreeLeaf[];
   trees: RecursiveTree[];
+};
+
+export type TreeLeaf = {
+  id: string;
+  nodeId: string;
+  name: string;
+  status?: TestStatus;
+  duration?: number;
+  groupOrder?: number;
+  flaky?: boolean;
+  retry?: boolean;
+  retriesCount?: number;
+  resolution?: ResolutionCategory;
+  transition?: TestStatusTransition;
+  transitionTooltip?: string;
+  tooltips?: Record<string, string>;
 };
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";

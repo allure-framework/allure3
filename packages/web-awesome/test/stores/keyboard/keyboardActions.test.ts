@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { ReportTree, ReportTreeLeaf } from "../../../../types";
+import type { ReportTestResult, ReportTree, ReportTreeLeaf } from "../../../../types";
 import { environmentsStore } from "../../../src/stores/env";
 import { activePane, treeFocusId } from "../../../src/stores/keyboard";
 import {
@@ -9,13 +9,16 @@ import {
   getHotkeyScope,
   goToNextTestResult,
   goToPrevTestResult,
+  goToTestResultTab,
   navigateDownInTestResultPane,
   navigateUpInTestResultPane,
+  openTestResultFromTree,
   toggleMetadataSection,
 } from "../../../src/stores/keyboardActions";
 import { layoutStore } from "../../../src/stores/layout";
 import { testResultFocusId } from "../../../src/stores/testResultOverviewNav";
 import { testResultNavStore, testResultStore } from "../../../src/stores/testResults";
+import { TEST_RESULT_TAB } from "../../../src/stores/testResultTabs";
 import { collapsedTrees, treeStore } from "../../../src/stores/tree";
 
 // ---------------------------------------------------------------------------
@@ -29,6 +32,34 @@ const setHash = (hash: string) => {
 
 const setNav = (ids: string[]) => {
   testResultNavStore.value = { loading: false, error: undefined, data: ids };
+};
+
+const setTestResults = (results: Record<string, Partial<ReportTestResult>>) => {
+  testResultStore.value = {
+    loading: false,
+    error: undefined,
+    data: Object.fromEntries(
+      Object.entries(results).map(([id, result]) => [
+        id,
+        {
+          id,
+          nodeId: id,
+          name: `Test ${id}`,
+          status: "passed",
+          setup: [],
+          teardown: [],
+          steps: [],
+          labels: [],
+          groupedLabels: {},
+          links: [],
+          parameters: [],
+          breadcrumbs: [],
+          history: [],
+          ...result,
+        } as ReportTestResult,
+      ]),
+    ),
+  };
 };
 
 const makeLeaf = (id: string, order = 0): ReportTreeLeaf => ({
@@ -45,7 +76,7 @@ const makeLeaf = (id: string, order = 0): ReportTreeLeaf => ({
   retriesCount: 0,
 });
 
-const setupTree = (leafIds: string[]) => {
+const setupTree = (leafIds: string[], leafOverrides: Record<string, Partial<ReportTreeLeaf>> = {}) => {
   environmentsStore.value = {
     loading: false,
     error: undefined,
@@ -57,7 +88,7 @@ const setupTree = (leafIds: string[]) => {
     data: {
       default: {
         root: { groups: [], leaves: leafIds },
-        leavesById: Object.fromEntries(leafIds.map((id, i) => [id, makeLeaf(id, i)])),
+        leavesById: Object.fromEntries(leafIds.map((id, i) => [id, { ...makeLeaf(id, i), ...leafOverrides[id] }])),
         groupsById: {},
       } as ReportTree,
     },
@@ -122,6 +153,26 @@ describe("goToNextTestResult", () => {
     setNav(["tr-1", "tr-2", "tr-3"]);
     goToNextTestResult();
     expect(window.location.hash).toBe("#tr-2/history");
+  });
+
+  it("[base] resets resolution categories tab when the next result has no resolution", () => {
+    setHash("tr-1/resolutionCategories");
+    setNav(["tr-1", "tr-2"]);
+    setTestResults({ "tr-1": { resolution: "issue" }, "tr-2": {} });
+
+    goToNextTestResult();
+
+    expect(window.location.hash).toBe("#tr-2");
+  });
+
+  it("[base] preserves resolution categories tab when the next result has resolution", () => {
+    setHash("tr-1/resolutionCategories");
+    setNav(["tr-1", "tr-2"]);
+    setTestResults({ "tr-1": { resolution: "issue" }, "tr-2": { resolution: "accepted" } });
+
+    goToNextTestResult();
+
+    expect(window.location.hash).toBe("#tr-2/resolutionCategories");
   });
 
   it("[base] clears treeFocusId after navigating", () => {
@@ -215,6 +266,16 @@ describe("goToPrevTestResult", () => {
     setNav(["tr-1", "tr-2", "tr-3"]);
     goToPrevTestResult();
     expect(window.location.hash).toBe("#tr-2/retries");
+  });
+
+  it("[base] resets resolution categories tab when the previous result has no resolution", () => {
+    setHash("tr-2/resolutionCategories");
+    setNav(["tr-1", "tr-2"]);
+    setTestResults({ "tr-1": {}, "tr-2": { resolution: "issue" } });
+
+    goToPrevTestResult();
+
+    expect(window.location.hash).toBe("#tr-1");
   });
 
   it("[base] clears treeFocusId after navigating", () => {
@@ -321,6 +382,66 @@ describe("navigateUpInTestResultPane", () => {
     setNav(["tr-1", "tr-2", "tr-3"]);
     navigateUpInTestResultPane();
     expect(window.location.hash).toBe("#tr-1/history");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// goToTestResultTab
+// ---------------------------------------------------------------------------
+
+describe("goToTestResultTab", () => {
+  beforeEach(resetAll);
+  afterEach(resetAll);
+
+  it("navigates to resolution categories tab for a resolved test result", () => {
+    setHash("tr-1");
+    setTestResults({ "tr-1": { resolution: "issue" } });
+
+    goToTestResultTab(TEST_RESULT_TAB.ResolutionCategories);
+
+    expect(window.location.hash).toBe("#tr-1/resolutionCategories");
+  });
+
+  it("does not navigate to resolution categories tab for an unresolved test result", () => {
+    setHash("tr-1");
+    setTestResults({ "tr-1": {} });
+
+    goToTestResultTab(TEST_RESULT_TAB.ResolutionCategories);
+
+    expect(window.location.hash).toBe("#tr-1");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// openTestResultFromTree
+// ---------------------------------------------------------------------------
+
+describe("openTestResultFromTree", () => {
+  beforeEach(resetAll);
+  afterEach(resetAll);
+
+  it("[split] resets resolution categories tab when the focused tree result has no resolution", () => {
+    layoutStore.value = "split";
+    activePane.value = "tree";
+    setHash("tr-1/resolutionCategories");
+    setupTree(["tr-2"]);
+    treeFocusId.value = "tr-2";
+
+    openTestResultFromTree();
+
+    expect(window.location.hash).toBe("#tr-2");
+  });
+
+  it("[split] preserves resolution categories tab when the focused tree result has resolution", () => {
+    layoutStore.value = "split";
+    activePane.value = "tree";
+    setHash("tr-1/resolutionCategories");
+    setupTree(["tr-2"], { "tr-2": { resolution: "issue" } });
+    treeFocusId.value = "tr-2";
+
+    openTestResultFromTree();
+
+    expect(window.location.hash).toBe("#tr-2/resolutionCategories");
   });
 });
 

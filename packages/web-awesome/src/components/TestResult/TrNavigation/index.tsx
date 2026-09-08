@@ -1,13 +1,12 @@
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { highlightAllUnder } from "prismjs";
 import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
-import { trCurrentTab } from "@/stores/testResult";
 import { testResultNavStore } from "@/stores/testResults";
+import { getTestResultTabForTestResultId } from "@/stores/testResultTabs";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
@@ -36,7 +35,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
         icon={icon}
         style="ghost"
         data-testid={testId}
-        onClick={() => navigateToTestResult({ testResultId: trId, tab: trCurrentTab.value })}
+        onClick={() => navigateToTestResult({ testResultId: trId, tab: getTestResultTabForTestResultId(trId) })}
       />
     </TooltipWrapper>
   );
@@ -44,7 +43,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 
 const HOVER_CLOSE_DELAY = 300;
 
-const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: string }) => {
+const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
   const { fullName, testCaseId, retryHash } = props;
   const [copied, setCopied] = useState(false);
   const { t } = useI18n("ui");
@@ -92,7 +91,7 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
   }, []);
 
   return (
-    <div data-testid="test-result-fullname" className={styles.fullName}>
+    <div data-testid="test-result-copy-control" className={styles.fullName}>
       <Menu
         size="s"
         placement="bottom-start"
@@ -126,9 +125,11 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
           onMouseLeave={() => scheduleMenuClose()}
         >
           <Menu.Section>
-            <Menu.Item dataTestId="test-result-copy-fullname" onClick={() => copyValue(fullName)}>
-              {t("fullname")}
-            </Menu.Item>
+            {fullName && (
+              <Menu.Item dataTestId="test-result-copy-fullname" onClick={() => copyValue(fullName)}>
+                {t("fullname")}
+              </Menu.Item>
+            )}
             {testCaseId && (
               <Menu.Item dataTestId="test-result-copy-test-case-id" onClick={() => copyValue(testCaseId)}>
                 {t("test-case-id")}
@@ -142,9 +143,11 @@ const FullName = (props: { fullName: string; testCaseId?: string; retryHash?: st
           </Menu.Section>
         </div>
       </Menu>
-      <Code tag="div" size="s" className={styles.text}>
-        {fullName}
-      </Code>
+      {fullName && (
+        <Code data-testid="test-result-fullname" tag="div" size="s" className={styles.text}>
+          {fullName}
+        </Code>
+      )}
     </div>
   );
 };
@@ -191,16 +194,17 @@ export const TrNavigation = (props: Props) => {
 
   const isHidden = !!testResult?.isRetry;
   const hasFullName = !!testResult?.fullName;
+  const hasCopyMenu = hasFullName || !!testResult.testCase?.id || !!testResult.retryHash;
 
   // Nothing to show
-  if ((isHidden || !hasData.value) && !hasFullName) {
+  if ((isHidden || !hasData.value) && !hasCopyMenu) {
     return null;
   }
 
   return (
     <div className={styles.nav}>
-      {hasFullName && (
-        <FullName
+      {hasCopyMenu && (
+        <TestResultCopyMenu
           fullName={testResult.fullName}
           testCaseId={testResult.testCase?.id}
           retryHash={testResult.retryHash}
