@@ -1,7 +1,7 @@
-import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
 
-import { NO_SEVERITY, PARAMS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
+import { NO_SEVERITY, PARAMS, RESOLUTIONS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -37,6 +37,10 @@ export const validateStatus = (status: string): status is TestStatus => {
 
 export const validateSeverity = (severity: string): boolean => {
   return SEVERITIES.includes(severity);
+};
+
+export const validateResolution = (resolution: string): resolution is ResolutionCategory => {
+  return RESOLUTIONS.includes(resolution as ResolutionCategory);
 };
 
 export const migrateFilterParam = () => {
@@ -90,6 +94,7 @@ export const hasActiveFilters = (filters: Filters): boolean => {
     filters.status ||
     filters.flaky ||
     filters.retry ||
+    (filters.resolution && filters.resolution.length > 0) ||
     (filters.transition && filters.transition.length > 0) ||
     (filters.tags && filters.tags.length > 0) ||
     (filters.categories && filters.categories.length > 0) ||
@@ -114,6 +119,12 @@ export const constructFilterParams = (filters: Filters) => {
 
   if (filters.retry) {
     params.set(PARAMS.RETRY, "true");
+  }
+
+  if (filters.resolution) {
+    filters.resolution.forEach((resolution) => {
+      params.append(PARAMS.RESOLUTION, resolution);
+    });
   }
 
   if (filters.transition) {
@@ -153,6 +164,10 @@ export const isRetryFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFi
 
 export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFieldFilter => {
   return filter.type === "field" && filter.value.type === "boolean" && filter.value.key === "flaky";
+};
+
+export const isResolutionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
+  return filter.type === "group" && filter.fieldKey === "resolution";
 };
 
 export const isTagFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {

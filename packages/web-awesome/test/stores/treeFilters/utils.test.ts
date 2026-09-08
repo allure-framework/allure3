@@ -30,6 +30,7 @@ describe("stores > treeFilters > utils", () => {
       [{ status: "failed" }, "status"],
       [{ flaky: true }, "flaky"],
       [{ retry: true }, "retry"],
+      [{ resolution: ["issue"] }, "resolution"],
       [{ transition: ["new"] }, "transition"],
       [{ tags: ["smoke"] }, "tags"],
       [{ categories: ["Product Bug"] }, "categories"],
@@ -47,6 +48,7 @@ describe("stores > treeFilters > utils", () => {
       expect(
         hasActiveFilters({
           transition: [],
+          resolution: [],
           tags: [],
           categories: [],
           severity: [],
@@ -149,6 +151,12 @@ describe("stores > treeFilters > utils", () => {
       const params = constructFilterParams({ severity: ["blocker", "none"] });
 
       expect(params.getAll("severity")).toEqual(["blocker", "none"]);
+    });
+
+    it("should write resolution category filter params", () => {
+      const params = constructFilterParams({ resolution: ["issue", "muted"] });
+
+      expect(params.getAll("resolution")).toEqual(["issue", "muted"]);
     });
   });
 });

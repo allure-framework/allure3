@@ -105,6 +105,7 @@ describe("stores > treeFilters > actions", () => {
       { key: "query", value: undefined },
       { key: "retry", value: undefined },
       { key: "flaky", value: undefined },
+      { key: "resolution", value: [] },
       { key: "transition", value: [] },
       { key: "tags", value: [] },
       { key: "categories", value: [] },
@@ -129,6 +130,6 @@ describe("stores > treeFilters > actions", () => {
     clearTreeFilterParams();
 
     expect(setParamsMock).toHaveBeenCalledTimes(1);
-    expect(setParamsMock.mock.calls[0]).toHaveLength(8);
+    expect(setParamsMock.mock.calls[0]).toHaveLength(9);
   });
 });

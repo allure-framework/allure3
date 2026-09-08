@@ -7,6 +7,7 @@ import { clearTreeFilters, hasActiveTreeFilters, setTreeFilter, treeQuickFilters
 import {
   isCategoryFilter,
   isFlakyFilter,
+  isResolutionFilter,
   isRetryFilter,
   isSeverityFilter,
   isTagFilter,
@@ -15,6 +16,7 @@ import {
 
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
+import { ResolutionFilter } from "./ResolutionFilter";
 import { RetryFlakyFilter } from "./RetryFlaky";
 import { SeverityFilter } from "./SeverityFilter";
 import { TagsFilter } from "./TagsFilter";
@@ -36,6 +38,10 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
 
   if (isSeverityFilter(filter)) {
     return <SeverityFilter group={filter} onChange={onChange} />;
+  }
+
+  if (isResolutionFilter(filter)) {
+    return <ResolutionFilter group={filter} onChange={onChange} />;
   }
 
   if (type === "field" && field.type === "boolean") {
