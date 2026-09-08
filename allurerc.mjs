@@ -11,6 +11,66 @@ const msMetric = (title, group) => ({
   group,
 });
 
+const awesomeMetricTitles = {
+  readData: "Read report data",
+  environmentMap: "Build environment map",
+  stats: "Generate statistics",
+  charts: "Generate charts",
+  convert: "Convert test results",
+  categories: "Generate categories",
+  timeline: "Generate timeline",
+  testCases: "Write test cases",
+  tree: "Generate tree",
+  nav: "Generate navigation",
+  searchIndex: "Generate search index",
+  testEnvGroups: "Write test environment groups",
+  environmentsOutput: "Write environment views",
+  attachments: "Write attachments",
+  globals: "Write globals",
+  singleFileReportFiles: "Collect single-file data",
+  staticFiles: "Write static files",
+  "summary.create": "Create plugin summary",
+};
+
+const awesomeMetrics = Object.fromEntries(
+  Object.entries(awesomeMetricTitles).map(([key, title]) => [
+    `generate.plugin.awesome.${key}`,
+    msMetric(title, "awesome"),
+  ]),
+);
+
+const readResultsMetricTitles = {
+  xcresultCheck: "Check xcresult bundle",
+  readdir: "Read results directory",
+  "realpath.totalMs": "Resolve result paths total",
+  "realpath.avgMs": "Resolve result path average",
+};
+
+const readResultsMetrics = Object.fromEntries(
+  Object.entries(readResultsMetricTitles).map(([key, title]) => [
+    `generate.readResults.${key}`,
+    msMetric(title, "generate"),
+  ]),
+);
+
+const storeMetricTitles = {
+  "visitTestResult.convert": "Convert test results",
+  "visitTestResult.defaultLabels": "Apply default labels",
+  "visitTestResult.environment": "Map environments",
+  "visitTestResult.retry": "Calculate retry hashes",
+  "visitTestResult.history": "Resolve history",
+  "visitTestResult.resolution": "Classify resolutions",
+  "visitTestResult.indexes": "Index test results",
+  "visitAttachmentFile.metadata": "Read attachment metadata",
+};
+
+const storeMetrics = Object.fromEntries(
+  Object.entries(storeMetricTitles).flatMap(([key, title]) => [
+    [`store.${key}.totalMs`, msMetric(`${title} total`, "store")],
+    [`store.${key}.avgMs`, msMetric(`${title} average`, "store")],
+  ]),
+);
+
 /**
  * @type {import("allure").AllureConfig}
  */
@@ -102,6 +162,12 @@ const config = {
       generate: {
         title: "Generate",
       },
+      awesome: {
+        title: "Awesome",
+      },
+      store: {
+        title: "Store",
+      },
       publish: {
         title: "Publish",
       },
@@ -130,6 +196,11 @@ const config = {
       "publish.upload.plugin.classic": msMetric("Classic upload", "publish"),
       "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish"),
       "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish"),
+      ...readResultsMetrics,
+      "generate.readResults.reader.read.totalMs": msMetric("Read result files total", "generate"),
+      "generate.readResults.reader.read.avgMs": msMetric("Read result file average", "generate"),
+      ...storeMetrics,
+      ...awesomeMetrics,
     },
   },
 };

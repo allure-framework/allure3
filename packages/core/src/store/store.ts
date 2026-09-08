@@ -71,6 +71,7 @@ import {
 } from "../utils/environment.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
+import { measurePerfAggregate, measurePerfAggregateSync, PERF_METRIC_NAMES } from "../utils/perf.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { calculateParametersHash, calculateRetryHash, RetrySubstore } from "./retrySubstore.js";
 
@@ -788,73 +789,91 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
    */
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
-    const testResult = testResultRawToState(
-      {
-        testCases: this.#testCases,
-        attachments: this.#attachments,
-        visitAttachmentLink: (link) => attachmentLinks.push(link),
-      },
-      raw,
-      context,
+    const testResult = measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultConvert, () =>
+      testResultRawToState(
+        {
+          testCases: this.#testCases,
+          attachments: this.#attachments,
+          visitAttachmentLink: (link) => attachmentLinks.push(link),
+        },
+        raw,
+        context,
+      ),
     );
-    const defaultLabelsNames = Object.keys(this.#defaultLabels);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultDefaultLabels, () => {
+      const defaultLabelsNames = Object.keys(this.#defaultLabels);
 
-    if (defaultLabelsNames.length) {
-      defaultLabelsNames.forEach((labelName) => {
-        if (!testResult.labels.find((label) => label.name === labelName)) {
-          const defaultLabelValue = this.#defaultLabels[labelName];
+      if (defaultLabelsNames.length) {
+        defaultLabelsNames.forEach((labelName) => {
+          if (!testResult.labels.find((label) => label.name === labelName)) {
+            const defaultLabelValue = this.#defaultLabels[labelName];
 
-          ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
-            testResult.labels.push({
-              name: labelName,
-              value: labelValue,
+            ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
+              testResult.labels.push({
+                name: labelName,
+                value: labelValue,
+              });
             });
-          });
-        }
-      });
-    }
+          }
+        });
+      }
+    });
 
-    const environmentIdentity =
-      this.#environment ??
-      (() => {
-        const match = this.#cachedEnvironmentEntries.find(([, { matcher }]) => matcher({ labels: testResult.labels }));
+    const environmentIdentity = measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultEnvironment, () => {
+      const identity =
+        this.#environment ??
+        (() => {
+          const match = this.#cachedEnvironmentEntries.find(([, { matcher }]) =>
+            matcher({ labels: testResult.labels }),
+          );
 
-        if (!match) {
-          return DEFAULT_ENVIRONMENT_IDENTITY;
-        }
+          if (!match) {
+            return DEFAULT_ENVIRONMENT_IDENTITY;
+          }
 
-        const [id, descriptor] = match;
+          const [id, descriptor] = match;
 
-        return { id, name: descriptor.name ?? id };
-      })();
+          return { id, name: descriptor.name ?? id };
+        })();
 
-    testResult.environment = environmentIdentity.name;
-    this.#addEnvironments([environmentIdentity]);
+      testResult.environment = identity.name;
+      this.#addEnvironments([identity]);
 
-    const parametersHash =
-      typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
-        ? raw.parametersHash
-        : calculateParametersHash(testResult.parameters);
+      return identity;
+    });
 
-    testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultRetry, () => {
+      const parametersHash =
+        typeof raw.parametersHash === "string" && raw.parametersHash.length > 0
+          ? raw.parametersHash
+          : calculateParametersHash(testResult.parameters);
 
-    const trHistory = this.#history ? await this.historyByTr(testResult) : undefined;
+      testResult.retryHash = calculateRetryHash(testResult.testCase?.id, parametersHash, environmentIdentity.id);
+    });
+
+    const trHistory = this.#history
+      ? await measurePerfAggregate(PERF_METRIC_NAMES.storeVisitTestResultHistory, () => this.historyByTr(testResult))
+      : undefined;
 
     if (trHistory !== undefined) {
       testResult.transition = getStatusTransition(testResult, trHistory);
       testResult.flaky = isFlaky(testResult, trHistory);
     }
 
-    this.#classifyResolution(testResult);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultResolution, () => {
+      this.#classifyResolution(testResult);
+    });
 
-    this.#testResults.set(testResult.id, testResult);
-    this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
-    this.#retrySubstore.recordIngestOrder(testResult.id);
-    this.#retrySubstore.upsert(testResult);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultIndexes, () => {
+      this.#testResults.set(testResult.id, testResult);
+      this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
+      this.#retrySubstore.recordIngestOrder(testResult.id);
+      this.#retrySubstore.upsert(testResult);
 
-    index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
-    index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
-    index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
+      index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
+      index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
+      index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
+    });
 
     this.#realtimeDispatcher?.sendTestResult(testResult.id);
   }
@@ -880,31 +899,37 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
-    const originalFileName = resultFile.getOriginalFileName();
-    const id = md5(originalFileName);
+    const { id, originalFileName } = measurePerfAggregateSync(
+      PERF_METRIC_NAMES.storeVisitAttachmentFileMetadata,
+      () => {
+        const originalFileName = resultFile.getOriginalFileName();
+        const id = md5(originalFileName);
 
-    this.#attachmentContents.set(id, resultFile);
+        this.#attachmentContents.set(id, resultFile);
+        const maybeLink = this.#attachments.get(id);
 
-    const maybeLink = this.#attachments.get(id);
+        if (maybeLink) {
+          const link = maybeLink as AttachmentLinkLinked;
 
-    if (maybeLink) {
-      const link = maybeLink as AttachmentLinkLinked;
+          link.missed = false;
+          link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
+          link.contentType = link.contentType ?? resultFile.getContentType();
+          link.contentLength = resultFile.getContentLength();
+        } else {
+          this.#attachments.set(id, {
+            used: false,
+            missed: false,
+            id,
+            originalFileName,
+            ext: resultFile.getExtension(),
+            contentType: resultFile.getContentType(),
+            contentLength: resultFile.getContentLength(),
+          });
+        }
 
-      link.missed = false;
-      link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
-      link.contentType = link.contentType ?? resultFile.getContentType();
-      link.contentLength = resultFile.getContentLength();
-    } else {
-      this.#attachments.set(id, {
-        used: false,
-        missed: false,
-        id,
-        originalFileName,
-        ext: resultFile.getExtension(),
-        contentType: resultFile.getContentType(),
-        contentLength: resultFile.getContentLength(),
-      });
-    }
+        return { id, originalFileName };
+      },
+    );
 
     for (const globalAttachmentId of this.#globalAttachmentIds) {
       const globalAttachment = this.#attachments.get(globalAttachmentId);
