@@ -86,11 +86,11 @@ describe("stores > treeFilters > severity", () => {
   });
 
   describe("filter predicate", () => {
-    const leaves = [
+    const leaves: { nodeId: string; severity?: string }[] = [
       { nodeId: "1", severity: "blocker" },
       { nodeId: "2", severity: "critical" },
       { nodeId: "3", severity: "normal" },
-      { nodeId: "4", severity: "none" },
+      { nodeId: "4" },
     ];
 
     const matchingNodeIds = () => {
@@ -111,20 +111,26 @@ describe("stores > treeFilters > severity", () => {
       expect(matchingNodeIds()).toEqual(["1", "2"]);
     });
 
-    it("should match test results without a severity label", () => {
+    it("should match test results without a severity property", () => {
       setSearch("?severity=none");
 
       expect(matchingNodeIds()).toEqual(["4"]);
+    });
+
+    it("should match selected severities next to test results without a severity property", () => {
+      setSearch("?severity=blocker&severity=none");
+
+      expect(matchingNodeIds()).toEqual(["1", "4"]);
     });
 
     it("should combine the severity filter with other filters", () => {
       setSearch("?severity=blocker&severity=none&status=failed");
 
       const predicate = buildFilterPredicate(treeNonQueryFilters.value);
-      const statusLeaves = [
+      const statusLeaves: { nodeId: string; severity?: string; status: string }[] = [
         { nodeId: "1", severity: "blocker", status: "failed" },
         { nodeId: "2", severity: "blocker", status: "passed" },
-        { nodeId: "3", severity: "none", status: "failed" },
+        { nodeId: "3", status: "failed" },
         { nodeId: "4", severity: "normal", status: "failed" },
       ];
 

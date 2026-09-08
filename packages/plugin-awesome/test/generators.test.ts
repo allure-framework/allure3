@@ -632,7 +632,7 @@ describe("generateQualityGateResults", () => {
     });
   });
 
-  it('should expose the severity label on tree leaves and fall back to "none"', async () => {
+  it("should expose the severity label on tree leaves and omit it when there is none", async () => {
     const writtenWidgets = new Map<string, unknown>();
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
@@ -674,7 +674,7 @@ describe("generateQualityGateResults", () => {
     const leavesById = results.default[0].testResultsTree?.leavesById ?? {};
 
     expect(leavesById["tr-blocker"]).toMatchObject({ severity: "blocker" });
-    expect(leavesById["tr-no-severity"]).toMatchObject({ severity: "none" });
+    expect(leavesById["tr-no-severity"]).not.toHaveProperty("severity");
   });
 
   it("should omit the tree when no related test result can be resolved", async () => {

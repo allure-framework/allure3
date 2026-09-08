@@ -1,11 +1,12 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import type { AwesomeFilter, Filters } from "../../../src/stores/treeFilters/model.js";
+import type { AwesomeFilter, AwesomeFilterGroupSimple, Filters } from "../../../src/stores/treeFilters/model.js";
 import {
   constructFilterParams,
   hasActiveFilters,
   isSeverityFilter,
+  toSeverityPredicateFilter,
   validateSeverity,
 } from "../../../src/stores/treeFilters/utils.js";
 
@@ -97,6 +98,49 @@ describe("stores > treeFilters > utils", () => {
           value: { key: "severity", value: "blocker", type: "string", strict: true },
         }),
       ).toBe(false);
+    });
+  });
+
+  describe("toSeverityPredicateFilter", () => {
+    const severityGroup = (...severities: string[]): AwesomeFilterGroupSimple => ({
+      type: "group",
+      logicalOperator: "AND",
+      fieldKey: "severity",
+      value: severities.map((severity) => ({
+        type: "field",
+        logicalOperator: "OR",
+        value: { key: "severity", value: severity, type: "string", strict: true },
+      })),
+    });
+
+    it("should keep the assigned severities as they are", () => {
+      const group = severityGroup("blocker", "minor");
+
+      expect(toSeverityPredicateFilter(group)).toEqual(group);
+    });
+
+    it("should match the missing property for the no severity option", () => {
+      expect(toSeverityPredicateFilter(severityGroup("none"))).toEqual({
+        type: "group",
+        logicalOperator: "AND",
+        fieldKey: "severity",
+        value: [
+          {
+            type: "field",
+            logicalOperator: "OR",
+            value: { key: "severity", value: null, type: "null" },
+          },
+        ],
+      });
+    });
+
+    it("should convert only the no severity option of a mixed selection", () => {
+      const { value } = toSeverityPredicateFilter(severityGroup("blocker", "none"));
+
+      expect(value.map((filter) => filter.value)).toEqual([
+        { key: "severity", value: "blocker", type: "string", strict: true },
+        { key: "severity", value: null, type: "null" },
+      ]);
     });
   });
 

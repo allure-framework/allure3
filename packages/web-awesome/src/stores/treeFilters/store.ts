@@ -30,6 +30,7 @@ import {
   isSeverityFilter,
   isTagFilter,
   isTransitionFilter,
+  toSeverityPredicateFilter,
   validateSeverity,
   validateStatus,
   validateTransition,
@@ -265,7 +266,7 @@ export const treeNonQueryFilters = computed(() => {
   }
 
   if (urlSeverityFilter.value.length > 0) {
-    filters.push(treeSeverityFilter.value);
+    filters.push(toSeverityPredicateFilter(treeSeverityFilter.value));
   }
 
   if (urlTagsFilter.value.length > 0) {

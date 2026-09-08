@@ -7,12 +7,6 @@ export const severityLevels: readonly SeverityLevel[] = ["blocker", "critical", 
 
 export const severityLabelName = "severity";
 
-/**
- * Sentinel value used by reports to represent a test result without a severity label,
- * so that "no severity" can be filtered for explicitly.
- */
-export const noSeverityValue = "none";
-
 export const fallbackTestCaseIdLabelName = "_fallbackTestCaseId";
 
 export const unsuccessfulStatuses = new Set<TestStatus>(["failed", "broken"]);

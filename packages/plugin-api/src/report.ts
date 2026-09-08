@@ -123,7 +123,7 @@ export type ReportTreeLeaf = Pick<
   tags?: string[];
   categories?: string[];
   /**
-   * Value of the test result's `severity` label, or `"none"` when the label is absent.
+   * Value of the test result's `severity` label. Absent when the test result has no severity label.
    */
   severity?: string;
 };

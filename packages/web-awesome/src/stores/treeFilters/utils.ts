@@ -1,7 +1,7 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
 
-import { PARAMS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
+import { NO_SEVERITY, PARAMS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -170,3 +170,27 @@ export const isTransitionFilter = (filter: AwesomeFilter): filter is AwesomeFilt
 export const isSeverityFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
   return filter.type === "group" && filter.fieldKey === "severity";
 };
+
+/**
+ * Converts the severity filter group into the form used to match tree leaves.
+ *
+ * Test results without a severity label have no `severity` property, so the "no severity" option
+ * has to match the missing property instead of comparing it to a value.
+ */
+export const toSeverityPredicateFilter = (group: AwesomeFilterGroupSimple): AwesomeFilterGroupSimple => ({
+  ...group,
+  value: group.value.map((filter) => {
+    if (filter.value.type !== "string" || filter.value.value !== NO_SEVERITY) {
+      return filter;
+    }
+
+    return {
+      ...filter,
+      value: {
+        key: filter.value.key,
+        value: null,
+        type: "null",
+      },
+    };
+  }),
+});

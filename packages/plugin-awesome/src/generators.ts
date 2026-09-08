@@ -24,7 +24,6 @@ import {
   createStylesLinkTag,
   incrementStatistic,
   joinPosixPath,
-  noSeverityValue,
   nullsLast,
   ordinal,
   severityLabelName,
@@ -474,8 +473,13 @@ const leafFactory = ({
     retriesCount,
     transition,
     tooltips,
-    severity: groupedLabels[severityLabelName]?.[0] ?? noSeverityValue,
   };
+
+  const severity = groupedLabels[severityLabelName]?.[0];
+
+  if (severity) {
+    leaf.severity = severity;
+  }
 
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {
     leaf.tags = groupedLabels.tag;

@@ -1,9 +1,10 @@
-import { capitalize, noSeverityValue, severityLevels } from "@allurereport/core-api";
+import { capitalize, severityLevels } from "@allurereport/core-api";
 import { allureIcons } from "@allurereport/web-components";
 import { useMemo } from "preact/hooks";
 
 import { useI18n } from "@/stores";
 
+import { NO_SEVERITY } from "../../stores/treeFilters/constants";
 import type { AwesomeFilterGroupSimple } from "../../stores/treeFilters/model";
 import { MultipleChoiceFieldFilter } from "./BaseFilters";
 
@@ -13,10 +14,10 @@ const severityIcons: Record<string, string> = {
   normal: allureIcons.lineGeneralEqual,
   minor: allureIcons.lineArrowsChevronDown,
   trivial: allureIcons.lineArrowsChevronDownDouble,
-  [noSeverityValue]: allureIcons.lineGeneralXClose,
+  [NO_SEVERITY]: allureIcons.lineGeneralXClose,
 };
 
-const severityOptions = [...severityLevels, noSeverityValue];
+const severityOptions = [...severityLevels, NO_SEVERITY];
 
 export const SeverityFilter = (props: {
   group: AwesomeFilterGroupSimple;
