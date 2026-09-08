@@ -19,8 +19,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 concurrency:
   group: update-bundle-baseline-${{ inputs.pr_number }}
@@ -30,11 +28,17 @@ jobs:
   gate:
     name: Validate request
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
     outputs:
       should_run: ${{ steps.resolve.outputs.should_run }}
       pr_number: ${{ steps.resolve.outputs.pr_number }}
       head_ref: ${{ steps.resolve.outputs.head_ref }}
       head_sha: ${{ steps.resolve.outputs.head_sha }}
+      head_repo: ${{ steps.resolve.outputs.head_repo }}
+      can_push: ${{ steps.resolve.outputs.can_push }}
       actor: ${{ steps.resolve.outputs.actor }}
     steps:
       - name: Resolve PR and authorize
@@ -81,12 +85,15 @@ jobs:
             exit 0
           fi
 
-          if [[ "${head_repo}" != "${GITHUB_REPOSITORY}" || "${is_fork}" == "true" ]]; then
-            message="Cannot update baseline on fork PRs. Push a baseline commit from the fork, or re-open as a same-repo branch."
-            echo "::error::${message}"
-            gh pr comment "${PR_NUMBER}" --body "${message}" || true
-            echo "should_run=false" >> "${GITHUB_OUTPUT}"
-            exit 0
+          if [[ -z "${head_repo}" ]]; then
+            echo "::error::Cannot resolve the head repository for PR #${PR_NUMBER}."
+            exit 1
+          fi
+
+          if [[ "${head_repo}" == "${GITHUB_REPOSITORY}" && "${is_fork}" != "true" ]]; then
+            can_push=true
+          else
+            can_push=false
           fi
 
           {
@@ -94,16 +101,21 @@ jobs:
             echo "pr_number=${PR_NUMBER}"
             echo "head_ref=${head_ref}"
             echo "head_sha=${head_sha}"
+            echo "head_repo=${head_repo}"
+            echo "can_push=${can_push}"
             echo "actor=${REQUESTER}"
           } >> "${GITHUB_OUTPUT}"
 
-          echo "Authorized @${REQUESTER} for PR #${PR_NUMBER} (${head_ref}@${head_sha})"
+          echo "Authorized @${REQUESTER} for PR #${PR_NUMBER} (${head_repo}:${head_ref}@${head_sha}, can_push=${can_push})"
 
   measure:
     name: Measure and write baseline
     needs: gate
     if: needs.gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     container:
       image: node:24-bookworm
     outputs:
@@ -121,6 +133,7 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v7
         with:
+          repository: ${{ needs.gate.outputs.head_repo }}
           ref: ${{ needs.gate.outputs.head_sha }}
           persist-credentials: false
 
@@ -201,11 +214,54 @@ jobs:
             echo "delta_total_mb=$(signed_mb "${delta_total_mb}")"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Stage baseline artifact
+      - name: Validate and stage baseline artifact
         if: steps.measure.outputs.changed == 'true'
         run: |
-          mkdir -p .ci-artifacts
-          cp .github/allure-bundle-size.baseline.json .ci-artifacts/allure-bundle-size.baseline.json
+          set -euo pipefail
+
+          command -v jq >/dev/null || (apt-get update -qq && apt-get install -y -qq jq >/dev/null)
+
+          SRC=".github/allure-bundle-size.baseline.json"
+          DEST_DIR=".ci-artifacts"
+          DEST="${DEST_DIR}/allure-bundle-size.baseline.json"
+
+          if [[ ! -f "${SRC}" || -L "${SRC}" ]]; then
+            echo "::error::The updated baseline must be one regular JSON file."
+            exit 1
+          fi
+
+          if [[ "$(wc -c < "${SRC}" | tr -d ' ')" -gt 4096 ]]; then
+            echo "::error::The updated baseline is unexpectedly large."
+            exit 1
+          fi
+
+          jq -e '
+            type == "object" and
+            (keys | sort) == ([
+              "depsBytes",
+              "internalClosureCount",
+              "measuredAt",
+              "rootPackage",
+              "selfBytes",
+              "totalBytes"
+            ] | sort) and
+            .rootPackage == "allure" and
+            (.measuredAt | type == "string") and
+            (.internalClosureCount | type == "number" and floor == . and . >= 0) and
+            (.selfBytes | type == "number" and floor == . and . >= 0) and
+            (.depsBytes | type == "number" and floor == . and . >= 0) and
+            (.totalBytes | type == "number" and floor == . and . >= 0) and
+            .totalBytes == (.selfBytes + .depsBytes)
+          ' "${SRC}" >/dev/null
+
+          rm -rf "${DEST_DIR}"
+          mkdir -p "${DEST_DIR}"
+          jq '.' "${SRC}" > "${DEST}"
+
+          if [[ "$(find "${DEST_DIR}" -type f | wc -l | tr -d ' ')" != "1" ]]; then
+            echo "::error::The baseline artifact contains unexpected files."
+            exit 1
+          fi
 
       - name: Upload updated baseline
         if: steps.measure.outputs.changed == 'true'
@@ -232,6 +288,8 @@ jobs:
       needs.gate.outputs.should_run == 'true' &&
       needs.measure.result == 'failure'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Comment failure
         env:
@@ -253,8 +311,11 @@ jobs:
   commit:
     name: Commit baseline to PR branch
     needs: [gate, measure]
-    if: needs.gate.outputs.should_run == 'true'
+    if: needs.gate.outputs.should_run == 'true' && needs.gate.outputs.can_push == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Comment when baseline unchanged
         if: needs.measure.outputs.changed != 'true'
@@ -338,6 +399,49 @@ jobs:
           name: updated-allure-bundle-size-baseline
           path: .ci-artifacts
 
+      - name: Validate updated baseline
+        if: needs.measure.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+
+          BASELINE_PATH=".ci-artifacts/allure-bundle-size.baseline.json"
+          if [[ ! -f "${BASELINE_PATH}" || -L "${BASELINE_PATH}" ]]; then
+            echo "::error::The baseline artifact must contain one regular JSON file."
+            exit 1
+          fi
+
+          if [[ "$(find .ci-artifacts -type f | wc -l | tr -d ' ')" != "1" ]]; then
+            echo "::error::The baseline artifact contains unexpected files."
+            exit 1
+          fi
+
+          if [[ "$(wc -c < "${BASELINE_PATH}" | tr -d ' ')" -gt 4096 ]]; then
+            echo "::error::The baseline artifact is unexpectedly large."
+            exit 1
+          fi
+
+          jq -e '
+            type == "object" and
+            (keys | sort) == ([
+              "depsBytes",
+              "internalClosureCount",
+              "measuredAt",
+              "rootPackage",
+              "selfBytes",
+              "totalBytes"
+            ] | sort) and
+            .rootPackage == "allure" and
+            (.measuredAt | type == "string") and
+            (.internalClosureCount | type == "number" and floor == . and . >= 0) and
+            (.selfBytes | type == "number" and floor == . and . >= 0) and
+            (.depsBytes | type == "number" and floor == . and . >= 0) and
+            (.totalBytes | type == "number" and floor == . and . >= 0) and
+            .totalBytes == (.selfBytes + .depsBytes)
+          ' "${BASELINE_PATH}" >/dev/null
+
+          jq '.' "${BASELINE_PATH}" > "${BASELINE_PATH}.validated"
+          mv "${BASELINE_PATH}.validated" "${BASELINE_PATH}"
+
       - name: Commit and push baseline
         id: push
         if: needs.measure.outputs.changed == 'true'
@@ -357,6 +461,11 @@ jobs:
           git config user.email "${GIT_COMMIT_AUTHOR_EMAIL}"
 
           git add -- .github/allure-bundle-size.baseline.json
+          if [[ "$(git diff --cached --name-only)" != ".github/allure-bundle-size.baseline.json" ]]; then
+            echo "::error::Unexpected files were staged for the baseline update."
+            exit 1
+          fi
+
           if git diff --cached --quiet; then
             echo "changed=false" >> "${GITHUB_OUTPUT}"
             exit 0
@@ -425,5 +534,92 @@ jobs:
           | Total | ${BEFORE_TOTAL} MB | ${AFTER_TOTAL} MB | ${DELTA_TOTAL} MB |
 
           Triggered by @${ACTOR} via \`/update-bundle-baseline\`.
+          EOF
+          )"
+
+  handoff-fork:
+    name: Provide baseline update for fork PR
+    needs: [gate, measure]
+    if: >
+      needs.gate.outputs.should_run == 'true' &&
+      needs.gate.outputs.can_push != 'true' &&
+      needs.measure.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Verify PR head has not moved
+        id: verify-head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.gate.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [[ "${current_sha}" != "${EXPECTED_SHA}" ]]; then
+            echo "current=false" >> "${GITHUB_OUTPUT}"
+            gh pr comment "${PR_NUMBER}" --body "The PR head moved after the bundle-size measurement. Please run \`/update-bundle-baseline\` again."
+            exit 0
+          fi
+
+          echo "current=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Comment when baseline unchanged
+        if: steps.verify-head.outputs.current == 'true' && needs.measure.outputs.changed != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          ACTOR: ${{ needs.gate.outputs.actor }}
+          SELF: ${{ needs.measure.outputs.after_self_mb }}
+          DEPS: ${{ needs.measure.outputs.after_deps_mb }}
+          TOTAL: ${{ needs.measure.outputs.after_total_mb }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
+          Baseline already matches the current measurement for this PR head.
+
+          | Metric | Size |
+          | --- | ---: |
+          | Allure code | ${SELF} MB |
+          | Deps | ${DEPS} MB |
+          | Total | ${TOTAL} MB |
+
+          Requested by @${ACTOR}.
+          EOF
+          )"
+
+      - name: Comment with fork update instructions
+        if: steps.verify-head.outputs.current == 'true' && needs.measure.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          ACTOR: ${{ needs.gate.outputs.actor }}
+          HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BEFORE_SELF: ${{ needs.measure.outputs.before_self_mb }}
+          BEFORE_DEPS: ${{ needs.measure.outputs.before_deps_mb }}
+          BEFORE_TOTAL: ${{ needs.measure.outputs.before_total_mb }}
+          AFTER_SELF: ${{ needs.measure.outputs.after_self_mb }}
+          AFTER_DEPS: ${{ needs.measure.outputs.after_deps_mb }}
+          AFTER_TOTAL: ${{ needs.measure.outputs.after_total_mb }}
+          DELTA_SELF: ${{ needs.measure.outputs.delta_self_mb }}
+          DELTA_DEPS: ${{ needs.measure.outputs.delta_deps_mb }}
+          DELTA_TOTAL: ${{ needs.measure.outputs.delta_total_mb }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --body "$(cat <<EOF
+          Measured an updated Allure bundle size baseline for this fork PR at \`${HEAD_SHA}\`.
+
+          GitHub does not allow this workflow to push the update to a contributor-owned fork. Please download the \`updated-allure-bundle-size-baseline\` artifact from the [workflow run](${RUN_URL}), replace \`.github/allure-bundle-size.baseline.json\` with the downloaded file, and push the change to this PR branch.
+
+          | Metric | Before | After | Δ |
+          | --- | ---: | ---: | ---: |
+          | Allure code | ${BEFORE_SELF} MB | ${AFTER_SELF} MB | ${DELTA_SELF} MB |
+          | Deps | ${BEFORE_DEPS} MB | ${AFTER_DEPS} MB | ${DELTA_DEPS} MB |
+          | Total | ${BEFORE_TOTAL} MB | ${AFTER_TOTAL} MB | ${DELTA_TOTAL} MB |
+
+          Requested by @${ACTOR} via \`/update-bundle-baseline\`.
           EOF
           )"
