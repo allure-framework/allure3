@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -21,17 +21,13 @@ import { PERF_METRIC_NAMES, perfMetricsFileName, resetPerfMetrics } from "../src
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
 
-const outsideCwdManifestPath = (filePath: string): string => `<outside-cwd>/${basename(filePath)}`;
+const manifestPath = (cwd: string, filePath: string): string => relative(cwd, filePath).split(sep).join("/");
 
 const readArtifactsManifest = async (output: string) => {
   return JSON.parse(await readFile(join(output, ARTIFACTS_MANIFEST_FILENAME), "utf8")) as {
-    schemaVersion: 1;
-    dumps: { path: string; status: string; error?: string }[];
-    globalAttachments: {
-      patterns: string[];
-      files: { name: string; path: string }[];
-    };
-  };
+    name: string;
+    path: string;
+  }[];
 };
 
 const readPerfMetrics = async (output: string, reportUuid: string) =>
@@ -118,8 +114,14 @@ beforeEach(async () => {
 describe("AllureReport.restoreState (dump zip)", () => {
   const zipPaths: string[] = [];
   const tempDirs: string[] = [];
+  let previousCwd: string;
+
+  beforeEach(() => {
+    previousCwd = process.cwd();
+  });
 
   afterEach(async () => {
+    process.chdir(previousCwd);
     vi.restoreAllMocks();
     delete process.env.ALLURE_PERF_METRICS;
     resetPerfMetrics();
@@ -159,13 +161,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
     const output = join(dir, "report");
 
     await writeDumpZip(zipPath, []);
+    process.chdir(dir);
 
     const config = await resolveConfig(
       {
         name: "Allure Report",
         output,
       },
-      { plugins: {} },
+      { cwd: dir, plugins: {} },
     );
     const report = new AllureReport(config);
 
@@ -173,22 +176,79 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    await expect(readArtifactsManifest(output)).resolves.toEqual({
-      schemaVersion: 1,
-      dumps: [
-        {
-          path: outsideCwdManifestPath(zipPath),
-          status: "restored",
-        },
-      ],
-      globalAttachments: {
-        patterns: [],
-        files: [],
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "state.zip",
+        path: "state.zip",
       },
-    });
+    ]);
   });
 
-  it("records missing and failed dump restore attempts in the local artifacts manifest", async () => {
+  it("writes dump paths outside the generation cwd as relative paths", async () => {
+    const cwd = await tempDir();
+    const outsideDir = await tempDir();
+    const zipPath = join(outsideDir, "state.zip");
+    const output = join(cwd, "report");
+
+    await writeDumpZip(zipPath, []);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    await report.restoreState([zipPath]);
+    await report.start();
+    await report.done();
+
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "state.zip",
+        path: manifestPath(cwd, zipPath),
+      },
+    ]);
+  });
+
+  it("deduplicates dump files before restoring them", async () => {
+    const dir = await tempDir();
+    const zipPath = join(dir, "state.zip");
+    const output = join(dir, "report");
+    const consoleInfoSpy = vi.spyOn(nodeConsole, "info").mockImplementation(() => {});
+
+    await writeDumpZip(zipPath, []);
+    process.chdir(dir);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd: dir, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    try {
+      await report.restoreState([zipPath, zipPath]);
+      await report.start();
+      await report.done();
+
+      await expect(readArtifactsManifest(output)).resolves.toEqual([
+        {
+          name: "state.zip",
+          path: "state.zip",
+        },
+      ]);
+      expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleInfoSpy.mockRestore();
+    }
+  });
+
+  it("omits missing and failed dump restore attempts from the local artifacts manifest", async () => {
     const dir = await tempDir();
     const missingZipPath = join(dir, "missing.zip");
     const brokenZipPath = join(dir, "broken.zip");
@@ -203,13 +263,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
       },
     ]);
     await writeDumpZip(validZipPath, []);
+    process.chdir(dir);
 
     const config = await resolveConfig(
       {
         name: "Allure Report",
         output,
       },
-      { plugins: {} },
+      { cwd: dir, plugins: {} },
     );
     const report = new AllureReport(config);
 
@@ -220,20 +281,10 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
       const manifest = await readArtifactsManifest(output);
 
-      expect(manifest.dumps).toEqual([
+      expect(manifest).toEqual([
         {
-          path: outsideCwdManifestPath(missingZipPath),
-          status: "missing",
-          error: "Dump file does not exist",
-        },
-        {
-          path: outsideCwdManifestPath(brokenZipPath),
-          status: "failed",
-          error: expect.stringContaining("Missing required dump entry"),
-        },
-        {
-          path: outsideCwdManifestPath(validZipPath),
-          status: "restored",
+          name: "valid.zip",
+          path: "valid.zip",
         },
       ]);
     } finally {
@@ -255,13 +306,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
         data: await readFile(nestedZipPath),
       },
     ]);
+    process.chdir(dir);
 
     const config = await resolveConfig(
       {
         name: "Allure Report",
         output,
       },
-      { plugins: {} },
+      { cwd: dir, plugins: {} },
     );
     const report = new AllureReport(config);
 
@@ -269,20 +321,12 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const outerManifestPath = outsideCwdManifestPath(outerZipPath);
-
-    await expect(readArtifactsManifest(output)).resolves.toMatchObject({
-      dumps: [
-        {
-          path: outerManifestPath,
-          status: "expanded",
-        },
-        {
-          path: `${outerManifestPath}!/${nestedEntryName}`,
-          status: "restored",
-        },
-      ],
-    });
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "artifact.zip",
+        path: manifestPath(dir, outerZipPath),
+      },
+    ]);
   });
 
   it("writes opt-in dump restore perf metrics", async () => {

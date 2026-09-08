@@ -1295,6 +1295,12 @@ describe("readConfig", () => {
     } catch {}
   });
 
+  it("should preserve the requested working directory", async () => {
+    const config = await readConfig(fixturesDir);
+
+    expect(config.cwd).toBe(resolve(fixturesDir));
+  });
+
   it("should read a .js config", async () => {
     const configName = "config.js";
     const configContent = "export default { name: 'Foo' };";

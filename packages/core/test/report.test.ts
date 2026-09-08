@@ -1,7 +1,7 @@
 import console from "node:console";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, sep } from "node:path";
+import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
@@ -33,17 +33,13 @@ const allureServiceConfig = (overrides: Partial<typeof defaultUploadConfig> = {}
   ...overrides,
 });
 
-const normalizeManifestPath = (filePath: string): string => filePath.split(sep).join("/");
+const manifestPath = (cwd: string, filePath: string): string => relative(cwd, filePath).split(sep).join("/");
 
 const readArtifactsManifest = async (output: string) => {
   return JSON.parse(await readFile(join(output, ARTIFACTS_MANIFEST_FILENAME), "utf8")) as {
-    schemaVersion: 1;
-    dumps: { path: string; status: string; error?: string }[];
-    globalAttachments: {
-      patterns: string[];
-      files: { name: string; path: string }[];
-    };
-  };
+    name: string;
+    path: string;
+  }[];
 };
 
 vi.mock("@allurereport/service", async (importOriginal) => {
@@ -1142,12 +1138,7 @@ describe("report", () => {
     await allureReport.start();
     await allureReport.done();
 
-    await expect(readArtifactsManifest(output)).resolves.toMatchObject({
-      globalAttachments: {
-        patterns: ["*.log"],
-        files: [{ name: "workflow.log", path: "workflow.log" }],
-      },
-    });
+    await expect(readArtifactsManifest(output)).resolves.toEqual([{ name: "workflow.log", path: "workflow.log" }]);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalled();
     for (const [params] of (AllureServiceClientMock.prototype.uploadReport as Mock).mock.calls) {
       expect(params.files).not.toHaveProperty(ARTIFACTS_MANIFEST_FILENAME);
@@ -1522,7 +1513,7 @@ describe("report", () => {
     expect((attachments[0] as unknown as Attachment)?.name).toBe("duplicated.log");
   });
 
-  it("should ignore absolute global attachments outside working directory", async () => {
+  it("should attach absolute global attachments outside working directory", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-cwd-"));
     const outsideDir = await mkdtemp(join(tmpdir(), "allure3-global-attachments-outside-"));
     const insideFile = join(cwd, "inside.log");
@@ -1538,8 +1529,6 @@ describe("report", () => {
       globalAttachments: [outsideFile, "*.log"],
     });
 
-    expect(isAbsolute(outsideFile)).toBe(true);
-
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
@@ -1547,11 +1536,10 @@ describe("report", () => {
     const attachments = await allureReport.store.allGlobalAttachments();
     const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
-    expect(names).toEqual(["inside.log"]);
-    expect(names).not.toContain("outside.log");
+    expect(names).toEqual(["inside.log", "outside.log"]);
   });
 
-  it("should ignore possibly sensitive files outside working directory", async () => {
+  it("should attach explicitly configured files outside working directory", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-cwd-"));
     const outsideRoot = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-outside-"));
     const insideFile = join(cwd, "artifacts", "safe.txt");
@@ -1576,8 +1564,7 @@ describe("report", () => {
     const attachments = await allureReport.store.allGlobalAttachments();
     const names = attachments.map((a) => (a as unknown as Attachment).name).sort();
 
-    expect(names).toEqual(["safe.txt"]);
-    expect(names).not.toContain("token.txt");
+    expect(names).toEqual(["safe.txt", "token.txt"]);
   });
 
   it("should write global attachments to the local artifacts manifest", async () => {
@@ -1602,7 +1589,7 @@ describe("report", () => {
         output,
         globalAttachments,
       },
-      { plugins: {} },
+      { cwd, plugins: {} },
     );
     const allureReport = new AllureReport(config);
 
@@ -1611,8 +1598,11 @@ describe("report", () => {
 
     const manifest = await readArtifactsManifest(output);
 
-    expect(manifest.globalAttachments.patterns).toEqual(globalAttachments);
-    expect(manifest.globalAttachments.files.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+    expect(manifest.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+      {
+        name: "outside.log",
+        path: manifestPath(cwd, outsideFile),
+      },
       {
         name: "nested.txt",
         path: "artifacts/nested.txt",
@@ -1622,7 +1612,6 @@ describe("report", () => {
         path: "global.log",
       },
     ]);
-    expect(manifest.globalAttachments.files.map(({ path }) => path)).not.toContain(normalizeManifestPath(outsideFile));
   });
 
   it("should not fail when the local artifacts manifest cannot be written", async () => {
