@@ -1,8 +1,7 @@
 import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
-import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { ReportOptions, ReportTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
@@ -10,8 +9,6 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
-  const reportOptions = getReportOptions<ReportOptions & { id: string }>();
-
   if (!item.url) {
     return (
       <div className={styles["test-result-prev-status"]}>
@@ -20,13 +17,8 @@ const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }
     );
   }
 
-  const { origin, pathname } = new URL(item.url);
-  const navigateUrl = new URL([pathname, reportOptions.id].join("/"), origin);
-
-  navigateUrl.hash = item.id;
-
   return (
-    <a className={styles["test-result-prev-status"]} href={navigateUrl.toString()}>
+    <a className={styles["test-result-prev-status"]} href={item.url}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </a>
   );

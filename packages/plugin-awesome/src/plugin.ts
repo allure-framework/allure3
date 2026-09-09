@@ -189,7 +189,10 @@ export class AwesomePlugin implements Plugin {
     await generateAllCharts(this.#writer!, store, this.options, context);
     const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
+    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, {
+      pluginId: context.id,
+      hideLabels,
+    });
 
     applyCategoriesToTestResults(convertedTrs, categories);
     await generateCategories(this.#writer!, {

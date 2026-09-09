@@ -69,6 +69,7 @@ import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
+import { buildServiceHistoryUrl } from "./history.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
@@ -161,8 +162,9 @@ export const generateTestResults = async (
   store: AllureStore,
   trs: TestResult[],
   options: {
+    pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
-  } = {},
+  },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
   const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
@@ -177,7 +179,10 @@ export const generateTestResults = async (
     });
     const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
-    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
+      ...item,
+      url: buildServiceHistoryUrl(item.url, options.pluginId, item.id),
+    }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;

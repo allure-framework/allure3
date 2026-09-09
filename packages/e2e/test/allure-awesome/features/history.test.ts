@@ -98,6 +98,8 @@ test.describe("history", () => {
   });
 
   test.describe("with remote history", () => {
+    const historicalResultId = "7d99d8872696437419752cf967fe6592";
+
     test.beforeAll(async () => {
       bootstrap = await bootstrapReport({
         reportConfig: { ...fixtures.reportConfig },
@@ -105,22 +107,38 @@ test.describe("history", () => {
           {
             ...fixtures.history[0],
             url: fixtures.url,
+            testResults: {
+              ...fixtures.history[0].testResults,
+              [historyId]: {
+                ...fixtures.history[0].testResults[historyId],
+                id: historicalResultId,
+              },
+            },
           },
         ],
         testResults: [...fixtures.testResults],
       });
     });
 
-    test("should show history for the test result with external links", async () => {
+    test("should use the generated destination in both history views", async () => {
       await treePage.clickNthLeaf(0);
       await testResultPage.historyTabLocator.click();
 
+      const expectedUrl = `${fixtures.url}/awesome#${historicalResultId}`;
+      const historyLinks = testResultPage.historyItemLocator.nth(0).getByRole("link");
+      const previousLink = testResultPage.prevStatusLocator.nth(0).getByRole("link");
+
       await expect(testResultPage.historyItemLocator).toHaveCount(1);
       await expect(testResultPage.prevStatusLocator).toHaveCount(1);
-      await expect(testResultPage.historyItemLocator.nth(0).getByRole("link")).toHaveCount(2);
-      await expect(testResultPage.historyItemLocator.nth(0).getByRole("link").first()).toBeVisible();
-      await expect(testResultPage.prevStatusLocator.nth(0).getByRole("link")).toHaveCount(1);
-      await expect(testResultPage.prevStatusLocator.nth(0).getByRole("link")).toBeVisible();
+      await expect(historyLinks).toHaveCount(2);
+      await expect(historyLinks.nth(0)).toBeVisible();
+      await expect(historyLinks.nth(1)).toBeVisible();
+      await expect(historyLinks.nth(0)).toHaveAttribute("href", expectedUrl);
+      await expect(historyLinks.nth(1)).toHaveAttribute("href", expectedUrl);
+      await expect(historyLinks.nth(1)).toHaveAttribute("target", "_blank");
+      await expect(previousLink).toHaveCount(1);
+      await expect(previousLink).toBeVisible();
+      await expect(previousLink).toHaveAttribute("href", expectedUrl);
     });
   });
 });
