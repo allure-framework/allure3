@@ -18,6 +18,7 @@ export type Filters = {
   transition?: TestStatusTransition[];
   tags?: string[];
   categories?: string[];
+  severity?: string[];
 };
 
 export type AwesomeFieldFilter = FieldFilter<keyof ReportTreeLeaf>;

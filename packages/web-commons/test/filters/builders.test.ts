@@ -126,6 +126,27 @@ describe("filters > builders", () => {
         });
       });
 
+      test("should build AQL expression for null field", () => {
+        const filter: Filter = {
+          type: "field",
+          value: {
+            key: "severity",
+            value: null,
+            type: "null",
+          },
+          logicalOperator: "AND",
+        };
+
+        const result = buildFieldFilters([filter]);
+
+        expect(result).toMatchObject({
+          type: "condition",
+          left: { identifier: "severity" },
+          operator: "EQ",
+          right: { value: "null", type: "NULL" },
+        });
+      });
+
       test("should build AQL expression for array field (strict mode - IN operator)", () => {
         const filter: Filter = {
           type: "field",
@@ -526,6 +547,23 @@ describe("filters > builders", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].age).toBe(25);
+    });
+
+    test("should create predicate for null field matching missing and null values", () => {
+      const items = [{ name: "test1", severity: "blocker" }, { name: "test2" }, { name: "test3", severity: null }];
+
+      const filters: Filter[] = [
+        {
+          type: "field",
+          value: { key: "severity", value: null, type: "null" },
+          logicalOperator: "AND",
+        },
+      ];
+
+      const predicate = buildFilterPredicate(filters);
+      const result = items.filter(predicate);
+
+      expect(result.map(({ name }) => name)).toEqual(["test2", "test3"]);
     });
 
     test("should create predicate for boolean field", () => {

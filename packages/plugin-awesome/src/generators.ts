@@ -27,6 +27,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  severityLabelName,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -481,6 +482,12 @@ const leafFactory = ({
     transition,
     tooltips,
   };
+
+  const severity = groupedLabels[severityLabelName]?.[0];
+
+  if (severity) {
+    leaf.severity = severity;
+  }
 
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {
     leaf.tags = groupedLabels.tag;
