@@ -1,13 +1,16 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
 import { fixtureResultToTrStepItem } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
+import {
+  getStepTreeExpansionPolicy,
+  isOpenByDefaultForPolicy,
+} from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
 import { useI18n } from "@/stores/locale";
-import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { isTreeOpened, toggleTree } from "@/stores/tree";
 import { trOverviewFocusAttrs, trOverviewHeaderFocusClass } from "@/utils/trOverviewFocus";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
@@ -19,14 +22,12 @@ export type TrTeardownProps = {
 
 export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id }) => {
   const teardownId = id ? `${id}-teardown` : null;
-  const isEarlyCollapsed = teardownId ? !collapsedTrees.value.has(teardownId) : true;
-  const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
+  const openedByDefault = isOpenByDefaultForPolicy(getStepTreeExpansionPolicy(), true);
+  const isOpened = teardownId ? isTreeOpened(teardownId, openedByDefault) : openedByDefault;
 
   const handleClick = () => {
-    setIsOpen(!isOpened);
-
     if (teardownId) {
-      toggleTree(teardownId);
+      toggleTree(teardownId, openedByDefault);
     }
   };
 
@@ -35,6 +36,7 @@ export const TrTeardown: FunctionalComponent<TrTeardownProps> = ({ teardown, id 
   return (
     <div className={styles["test-result-steps"]}>
       <TrDropdown
+        data-testid="test-result-teardown-dropdown"
         className={trOverviewHeaderFocusClass(teardownId)}
         {...trOverviewFocusAttrs(teardownId)}
         icon={allureIcons.lineHelpersFlag}
