@@ -239,6 +239,13 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow historyUrlBase", () => {
+    expect(validateConfig({ historyUrlBase: "https://bucket.example/runs/42" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should allow resultsDir", () => {
     expect(validateConfig({ resultsDir: "./allure-results" })).toEqual({
       valid: true,
@@ -552,6 +559,21 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture, { historyPath: "./custom/history.jsonl" });
 
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
+  });
+
+  it("should return the configured history URL base", async () => {
+    const resolved = await resolveConfig({ historyUrlBase: "https://bucket.example/runs/42" });
+
+    expect(resolved.historyUrlBase).toBe("https://bucket.example/runs/42");
+  });
+
+  it("should allow the history URL base to be overridden", async () => {
+    const resolved = await resolveConfig(
+      { historyUrlBase: "https://bucket.example/runs/config" },
+      { historyUrlBase: "https://bucket.example/runs/cli" },
+    );
+
+    expect(resolved.historyUrlBase).toBe("https://bucket.example/runs/cli");
   });
 
   it("should not set default known issues path when no known issues policy is configured", async () => {

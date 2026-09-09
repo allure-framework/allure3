@@ -1,10 +1,10 @@
 import console from "node:console";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
-import type { TestResult } from "@allurereport/core-api";
+import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -404,6 +404,134 @@ describe("report", () => {
 
     expect(historyContent).not.toEqual(initialHistoryContent);
     expect(historyContent.startsWith(initialHistoryContent)).toBe(true);
+  });
+
+  it.each([
+    {
+      name: "flattened output",
+      pluginIds: ["awesome"],
+      expected: "https://bucket.example/runs/42/index.html?token=x",
+    },
+    {
+      name: "multi-report output",
+      pluginIds: ["awesome", "classic"],
+      expected: "https://bucket.example/runs/42/?token=x",
+    },
+    {
+      name: "history-only output",
+      pluginIds: [],
+      expected: "https://bucket.example/runs/42/?token=x",
+    },
+  ])("should persist the actual URL for $name", async ({ pluginIds, expected }) => {
+    const root = await mkdtemp(join(tmpdir(), "allure3-history-url-base-"));
+    const output = join(root, "report");
+    const historyPath = join(root, "history.jsonl");
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+        historyPath,
+        historyUrlBase: "https://bucket.example/runs/42?token=x",
+      },
+      { plugins: {} },
+    );
+    const plugins = pluginIds.map((id) => {
+      const plugin = createPlugin(id);
+
+      plugin.plugin.done.mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from(id));
+      });
+
+      return plugin;
+    });
+
+    config.plugins = plugins;
+
+    try {
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      await allureReport.store.visitTestResult(
+        {
+          uuid: "current-result",
+          name: "current test",
+          fullName: "suite.current test",
+          status: "passed",
+        },
+        { readerId: "report.test.ts" },
+      );
+      await allureReport.done();
+
+      const point = JSON.parse((await readFile(historyPath, "utf8")).trim()) as HistoryDataPoint;
+
+      expect(point.url).toBe(expected);
+      expect(Object.values(point.testResults)).toHaveLength(1);
+      expect(Object.values(point.testResults)[0].url).toBe(expected);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("should append local history when no report plugins are enabled", async () => {
+    const root = await mkdtemp(join(tmpdir(), "allure3-history-url-base-empty-output-"));
+    const historyPath = join(root, "history.jsonl");
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output: join(root, "report"),
+        historyPath,
+        historyUrlBase: "https://bucket.example/runs/42",
+      },
+      { plugins: {} },
+    );
+
+    try {
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+      await allureReport.done();
+
+      const point = JSON.parse((await readFile(historyPath, "utf8")).trim()) as HistoryDataPoint;
+
+      expect(point.url).toBe("https://bucket.example/runs/42/");
+      expect(point.testResults).toEqual({});
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("should validate historyUrlBase only for the effective local provider", async () => {
+    const root = await mkdtemp(join(tmpdir(), "allure3-history-url-base-validation-"));
+
+    try {
+      const localConfig = await resolveConfig(
+        { output: join(root, "local"), historyPath: join(root, "history.jsonl") },
+        { plugins: {} },
+      );
+      const noHistoryConfig = await resolveConfig({ output: join(root, "none") }, { plugins: {} });
+      const serviceConfig = await resolveConfig(
+        {
+          output: join(root, "service"),
+          historyPath: join(root, "ignored-history.jsonl"),
+          allureService: allureServiceConfig(),
+        },
+        { plugins: {} },
+      );
+
+      expect(() => new AllureReport({ ...localConfig, historyUrlBase: "relative/path" })).toThrowError(
+        /Invalid historyUrlBase.*absolute URL/u,
+      );
+      expect(
+        () => new AllureReport({ ...localConfig, historyUrlBase: "https://bucket.example/runs/42#current" }),
+      ).toThrowError(/Invalid historyUrlBase.*fragment/u);
+      expect(
+        () => new AllureReport({ ...localConfig, historyUrlBase: "https://bucket.example/runs/42#" }),
+      ).toThrowError(/Invalid historyUrlBase.*fragment/u);
+      expect(() => new AllureReport({ ...noHistoryConfig, historyUrlBase: "relative/path" })).not.toThrow();
+      expect(() => new AllureReport({ ...serviceConfig, historyUrlBase: "relative/path" })).not.toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("should read result directory files with bounded concurrency", async () => {

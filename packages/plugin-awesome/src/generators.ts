@@ -5,6 +5,7 @@ import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type HistoryTestResultUrlResolver,
   type MetricSample,
   type ResolutionCategory,
   type Statistic,
@@ -164,10 +165,12 @@ export const generateTestResults = async (
   options: {
     pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
+    resolveHistoryUrl?: HistoryTestResultUrlResolver;
   },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
   const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
+  const resolveHistoryUrl = options.resolveHistoryUrl ?? buildServiceHistoryUrl;
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
@@ -181,7 +184,7 @@ export const generateTestResults = async (
 
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
       ...item,
-      url: buildServiceHistoryUrl(item.url, options.pluginId, item.id),
+      url: resolveHistoryUrl(item.url, options.pluginId, item.id),
     }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;

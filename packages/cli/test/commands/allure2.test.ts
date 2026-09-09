@@ -132,6 +132,8 @@ describe("allure2 command", () => {
       "baz",
       "--history-path",
       "qux",
+      "--history-url-base",
+      "https://bucket.example/runs/42",
       "./allure-results",
     ]);
 
@@ -141,6 +143,7 @@ describe("allure2 command", () => {
       output: "bar",
       resolutions: { knownIssuesPath: "baz" },
       historyPath: "qux",
+      historyUrlBase: "https://bucket.example/runs/42",
     });
   });
 

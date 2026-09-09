@@ -18,6 +18,7 @@ export type GeneratorParams = {
   rootDir: string;
   reportDir: string;
   resultsDir: string;
+  historyPath?: string;
   testResults?: Partial<TestResult>[];
   rawTestResults?: Partial<TestResult>[];
   rawTestResultContainers?: {
@@ -59,6 +60,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     rootDir,
     reportDir,
     resultsDir,
+    historyPath: providedHistoryPath,
     testResults = [],
     rawTestResults = [],
     rawTestResultContainers = [],
@@ -68,13 +70,14 @@ export const generateReport = async (payload: GeneratorParams) => {
     qualityGateResults,
   } = payload;
   const hasHistory = history.length > 0;
-  const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
+  const useHistory = Boolean(providedHistoryPath) || hasHistory;
+  const historyPath = providedHistoryPath ?? resolve(rootDir, `history-${randomUUID()}.jsonl`);
 
-  if (!existsSync(historyPath)) {
+  if (useHistory && !existsSync(historyPath)) {
     await writeFile(historyPath, "");
   }
 
-  if (hasHistory) {
+  if (!providedHistoryPath && hasHistory) {
     await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"), { encoding: "utf-8" });
   }
 
@@ -82,7 +85,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     ...reportConfig,
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
-    historyPath: hasHistory ? historyPath : undefined,
+    historyPath: useHistory ? historyPath : undefined,
   });
   const runtime = new ReporterRuntime({
     writer: new FileSystemWriter({

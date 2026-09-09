@@ -65,6 +65,10 @@ export class ClassicCommand extends Command {
     description: "The path to history file",
   });
 
+  historyUrlBase = Option.String("--history-url-base", {
+    description: "The public base URL of the generated report directory",
+  });
+
   knownIssues = Option.String("--known-issues", {
     description: "Path to known issues file",
   });
@@ -81,6 +85,7 @@ export class ClassicCommand extends Command {
       name: this.reportName,
       resolutions: { knownIssuesPath: this.knownIssues },
       historyPath: this.historyPath,
+      ...(this.historyUrlBase !== undefined ? { historyUrlBase: this.historyUrlBase } : {}),
     });
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 

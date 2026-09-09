@@ -47,7 +47,7 @@ import pLimit from "p-limit";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { AllureLocalHistory, createHistory } from "./history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryUrlBase, setHistoryDataPointUrl } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
@@ -135,6 +135,7 @@ export class AllureReport {
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
+  readonly #historyUrlBase: string | undefined;
   readonly #appendHistory: boolean;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
@@ -169,6 +170,7 @@ export class AllureReport {
       reportFiles,
       realTime,
       historyPath,
+      historyUrlBase,
       historyLimit,
       appendHistory,
       defaultLabels = {},
@@ -223,6 +225,9 @@ export class AllureReport {
     }
 
     this.#categories = normalizeCategoriesConfig(categories);
+
+    this.#historyUrlBase =
+      !this.#allureServiceClient && historyPath && historyUrlBase ? normalizeHistoryUrlBase(historyUrlBase) : undefined;
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
@@ -1243,9 +1248,20 @@ export class AllureReport {
         outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
       );
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
+      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
+
+      if (this.#historyUrlBase) {
+        const historyUrl = new URL(this.#historyUrlBase);
+
+        if (shouldFlattenOutput) {
+          historyUrl.pathname = `${historyUrl.pathname}index.html`;
+        }
+
+        this.#historyDataPoint = setHistoryDataPointUrl(this.#historyDataPoint!, historyUrl.toString());
+      }
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-      if (outputDirectoryEntries.length === 1) {
+      if (shouldFlattenOutput) {
         const reportPath = join(this.#output, outputDirectoryEntries[0].file);
         const reportContent = await readdir(reportPath);
 

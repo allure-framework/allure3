@@ -1,3 +1,4 @@
+import type { FullConfig } from "@allurereport/core";
 import type { TestError } from "@allurereport/core-api";
 import type { ExitCode } from "@allurereport/plugin-api";
 import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
@@ -11,6 +12,7 @@ import {
 
 export type BootstrapReportParams = Omit<GeneratorParams, "rootDir" | "reportDir" | "resultsDir" | "reportConfig"> & {
   reportConfig: ReportConfig;
+  additionalPlugins?: NonNullable<FullConfig["plugins"]>;
   globals?: {
     exitCode?: ExitCode;
     errors?: TestError[];
@@ -20,8 +22,10 @@ export type BootstrapReportParams = Omit<GeneratorParams, "rootDir" | "reportDir
 };
 
 export const bootstrapReport = async (params: BootstrapReportParams, pluginConfig?: AwesomePluginOptions) => {
+  const { additionalPlugins = [], ...generatorParams } = params;
+
   return baseBootstrapReport({
-    ...params,
+    ...generatorParams,
     reportConfig: {
       ...params.reportConfig,
       plugins: [
@@ -33,6 +37,7 @@ export const bootstrapReport = async (params: BootstrapReportParams, pluginConfi
             ...pluginConfig,
           },
         },
+        ...additionalPlugins,
       ],
     },
   });

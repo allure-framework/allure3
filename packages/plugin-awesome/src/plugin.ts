@@ -192,6 +192,7 @@ export class AwesomePlugin implements Plugin {
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, {
       pluginId: context.id,
       hideLabels,
+      resolveHistoryUrl: context.history?.resolveTestResultUrl,
     });
 
     applyCategoriesToTestResults(convertedTrs, categories);

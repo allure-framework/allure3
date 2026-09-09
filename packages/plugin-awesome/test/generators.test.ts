@@ -416,6 +416,47 @@ describe("generateMetricsWidget", () => {
 });
 
 describe("generateTestResults", () => {
+  const historyFixture = (history: HistoryTestResult[]) => {
+    const testResult = mockTestResult("tr-1", "current test", "passed");
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", history]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    return { testResult, writer, store };
+  };
+
+  it("should use the selected history provider resolver", async () => {
+    const item: HistoryTestResult = Object.freeze({
+      id: "old-result",
+      name: "historical test",
+      status: "passed",
+      url: "https://bucket.example/runs/42/",
+    });
+    const resolveHistoryUrl = vi.fn(() => "https://bucket.example/runs/42/awesome/index.html#old-result");
+    const { writer, store, testResult } = historyFixture([item]);
+
+    const [converted] = await generateTestResults(writer, store, [testResult], {
+      pluginId: "awesome",
+      resolveHistoryUrl,
+    });
+
+    expect(resolveHistoryUrl).toHaveBeenCalledWith(item.url, "awesome", item.id);
+    expect(converted.history[0].url).toBe("https://bucket.example/runs/42/awesome/index.html#old-result");
+    expect(item.url).toBe("https://bucket.example/runs/42/");
+  });
+
   it("should sort setup and teardown fixtures by start time", async () => {
     const testResult = mockTestResult("tr-1", "test", "passed");
     const writer: AwesomeDataWriter = {
