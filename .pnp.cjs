@@ -353,7 +353,7 @@ const RAW_RUNTIME_STATE =
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
           ["yaml", "npm:2.8.3"],\
-          ["yoctocolors", "npm:2.1.2"],\
+          ["yoctocolors", "npm:2.2.0"],\
           ["zip-stream", "npm:7.0.5"]\
         ],\
         "linkType": "SOFT"\
@@ -645,7 +645,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -665,7 +665,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -12767,7 +12767,7 @@ const RAW_RUNTIME_STATE =
           ["typanion", "npm:3.14.0"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -26865,6 +26865,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/yoctocolors-npm-2.1.2-ba5f016605-6ee42d665a.zip/node_modules/yoctocolors/",\
         "packageDependencies": [\
           ["yoctocolors", "npm:2.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.2.0", {\
+        "packageLocation": "./.yarn/cache/yoctocolors-npm-2.2.0-a17f3c9d07-8b2761daad.zip/node_modules/yoctocolors/",\
+        "packageDependencies": [\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
