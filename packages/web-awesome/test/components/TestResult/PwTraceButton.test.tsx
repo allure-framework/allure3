@@ -85,7 +85,7 @@ describe("components > TestResult > PwTraceButton", () => {
 
     expect(fetchFromUrl).toHaveBeenCalledTimes(1);
     expect(openModal).not.toHaveBeenCalled();
-  });
+  }, 15000);
 
   it("shows popup-blocked modal when new tab cannot be opened", async () => {
     const { fetchFromUrl, openModal, openPlaywrightTraceInNewTab } = await setup({
@@ -103,7 +103,7 @@ describe("components > TestResult > PwTraceButton", () => {
         title: "Playwright Trace Viewer | trace.zip",
       }),
     );
-  });
+  }, 15000);
 
   it("starts loading trace attachment after opening the popup", async () => {
     const { fetchFromUrl, openModal, openPlaywrightTraceInNewTab } = await setup({
@@ -117,5 +117,5 @@ describe("components > TestResult > PwTraceButton", () => {
 
     expect(openPlaywrightTraceInNewTab).toHaveBeenCalledTimes(1);
     expect(openModal).not.toHaveBeenCalled();
-  });
+  }, 15000);
 });

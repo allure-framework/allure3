@@ -53,6 +53,7 @@ export type ReportOptions = {
   ci?: CiDescriptor;
   executor?: ReportExecutorInfo;
   runSummary?: ReportRunSummary;
+  runSummaryByEnv?: Record<string, ReportRunSummary>;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
 };
