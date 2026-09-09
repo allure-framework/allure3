@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"
+  },
+  "nav": {
+    "comingSoon": "Yakında"
   }
 }

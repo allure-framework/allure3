@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "Adjunto no encontrado"
+  },
+  "nav": {
+    "comingSoon": "Próximamente"
   }
 }

@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"
+  },
+  "nav": {
+    "comingSoon": "Bientôt"
   }
 }

@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"
+  },
+  "nav": {
+    "comingSoon": "Kommer snart"
   }
 }
