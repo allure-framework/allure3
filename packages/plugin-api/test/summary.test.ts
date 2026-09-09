@@ -101,7 +101,7 @@ describe("summary utils", () => {
       testResult({ id: "n1", name: "new", status: "passed", duration: 7 }),
       testResult({ id: "n2", name: "new-2", status: "failed", duration: 9 }),
     ];
-    const stats = { total: 3 } as any;
+    const stats = { total: 3, resolutions: { issues: 1, muted: 1, accepted: 1 } } as any;
     const historyReadHistory = vi.fn().mockResolvedValue([{ branch: "main" }]);
     const history = { readHistory: historyReadHistory } as unknown as AllureHistory;
     const store = {

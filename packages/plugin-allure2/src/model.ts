@@ -106,7 +106,9 @@ export interface Allure2TestResult {
 
 // report related models
 
-export const statisticKeys: (keyof Statistic)[] = ["failed", "broken", "skipped", "passed", "unknown", "total"];
+type StatisticKey = "failed" | "broken" | "skipped" | "passed" | "unknown" | "total";
+
+export const statisticKeys: StatisticKey[] = ["failed", "broken", "skipped", "passed", "unknown", "total"];
 
 export interface GroupTime {
   start?: number;

@@ -48,6 +48,22 @@ const statisticByTestResults = async (
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
   const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
+  const incrementResolution = (testResult: (typeof testResults)[number]) => {
+    if (testResult.resolution === "issue") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.issues = (statistic.resolutions.issues ?? 0) + 1;
+    }
+
+    if (testResult.resolution === "muted") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.muted = (statistic.resolutions.muted ?? 0) + 1;
+    }
+
+    if (testResult.resolution === "accepted") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.accepted = (statistic.resolutions.accepted ?? 0) + 1;
+    }
+  };
 
   for (const testResult of testResults) {
     if (testResult.isRetry) {
@@ -67,6 +83,8 @@ const statisticByTestResults = async (
     if (testResult.transition === "new") {
       statistic.new = (statistic.new ?? 0) + 1;
     }
+
+    incrementResolution(testResult);
   }
 
   return statistic;
