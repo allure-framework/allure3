@@ -68,6 +68,17 @@
     padding: 8px 0 8px 16px;
   }
 
+  .badge {
+    margin-left: auto;
+    margin-right: 8px;
+    flex: none;
+    white-space: nowrap;
+    padding: 2px 3px;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+  }
+
   .link-active {
     color: $sidebar-active-text-color;
     border-right: 4px solid $sidebar-active-accent-color;
@@ -75,6 +86,23 @@
 
   .link:hover {
     color: $sidebar-hover-text-color;
+  }
+
+  .link-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .link-disabled .icon {
+    opacity: 0.55;
+  }
+
+  .link-disabled .text {
+    opacity: 0.75;
+  }
+
+  .link-disabled:hover {
+    color: $text-muted-color;
   }
 
   .language-small {
@@ -108,7 +136,8 @@
     }
 
     .text,
-    .brand-text {
+    .brand-text,
+    .badge {
       visibility: hidden;
       opacity: 0;
       white-space: nowrap;

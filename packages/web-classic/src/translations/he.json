@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"
+  },
+  "nav": {
+    "comingSoon": "בקרוב"
   }
 }

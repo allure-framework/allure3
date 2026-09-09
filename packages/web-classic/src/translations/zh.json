@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "未找到附件"
+  },
+  "nav": {
+    "comingSoon": "即将推出"
   }
 }
