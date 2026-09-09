@@ -124,7 +124,8 @@
     "graphs": "Graphs",
     "packages": "Packages",
     "suites": "Suites",
-    "timeline": "Timeline"
+    "timeline": "Timeline",
+    "comingSoon": "Coming soon"
   },
   "charts": {
     "currentStatus": {

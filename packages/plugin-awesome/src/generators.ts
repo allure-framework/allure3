@@ -27,6 +27,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  severityLabelName,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
@@ -482,6 +483,12 @@ const leafFactory = ({
     tooltips,
   };
 
+  const severity = groupedLabels[severityLabelName]?.[0];
+
+  if (severity) {
+    leaf.severity = severity;
+  }
+
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {
     leaf.tags = groupedLabels.tag;
   }
@@ -749,6 +756,7 @@ export const generateStaticFiles = async (
     reportName: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
+    runSummaryByEnv?: Record<string, ReportRunSummary>;
   },
 ) => {
   const {
@@ -767,6 +775,7 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
   } = payload;
@@ -823,6 +832,7 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     layout,
     allureVersion,
     sections,

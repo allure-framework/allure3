@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"
+  },
+  "nav": {
+    "comingSoon": "近日公開"
   }
 }

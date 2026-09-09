@@ -113,5 +113,8 @@
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"
+  },
+  "nav": {
+    "comingSoon": "Скоро"
   }
 }

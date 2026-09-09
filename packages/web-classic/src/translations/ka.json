@@ -115,5 +115,8 @@
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"
+  },
+  "nav": {
+    "comingSoon": "მალე"
   }
 }

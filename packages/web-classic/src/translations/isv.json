@@ -212,5 +212,8 @@
     "trend": {
       "name": "Trend"
     }
+  },
+  "nav": {
+    "comingSoon": "Skoro"
   }
 }

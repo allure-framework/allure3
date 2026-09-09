@@ -19,6 +19,7 @@ vi.mock("@/stores/treeFilters/utils", () => ({
   isFlakyFilter: () => false,
   isResolutionFilter: () => false,
   isRetryFilter: () => false,
+  isSeverityFilter: () => false,
   isTagFilter: () => false,
   isTransitionFilter: () => false,
 }));
@@ -35,6 +36,10 @@ vi.mock("@/components/ReportFilters/RetryFlaky", () => ({
 
 vi.mock("@/components/ReportFilters/TransitionFilter", () => ({
   TransitionFilter: () => null,
+}));
+
+vi.mock("@/components/ReportFilters/SeverityFilter", () => ({
+  SeverityFilter: () => null,
 }));
 
 vi.mock("@/components/ReportFilters/ResolutionFilter", () => ({

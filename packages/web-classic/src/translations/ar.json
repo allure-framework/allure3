@@ -124,7 +124,8 @@
     "graphs": "الرسوم البيانية",
     "packages": "الحزم",
     "suites": "مجموعات الاختبار",
-    "timeline": "الخط الزمني"
+    "timeline": "الخط الزمني",
+    "comingSoon": "قريبًا"
   },
   "charts": {
     "trend": {

@@ -132,7 +132,8 @@
     "critical": "critical",
     "normal": "normal",
     "minor": "minor",
-    "trivial": "trivial"
+    "trivial": "trivial",
+    "none": "no severity"
   },
   "execution": {
     "name": "Execution",

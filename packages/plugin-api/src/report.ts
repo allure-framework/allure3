@@ -53,6 +53,7 @@ export type ReportOptions = {
   ci?: CiDescriptor;
   executor?: ReportExecutorInfo;
   runSummary?: ReportRunSummary;
+  runSummaryByEnv?: Record<string, ReportRunSummary>;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
 };
@@ -134,6 +135,10 @@ export type ReportTreeLeaf = Pick<
   tooltips?: Record<string, string>;
   tags?: string[];
   categories?: string[];
+  /**
+   * Value of the test result's `severity` label. Absent when the test result has no severity label.
+   */
+  severity?: string;
 };
 
 export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

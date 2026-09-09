@@ -113,5 +113,8 @@
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"
+  },
+  "nav": {
+    "comingSoon": "Wkrótce"
   }
 }

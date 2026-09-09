@@ -45,6 +45,8 @@ export class TestResultPage extends CommonPage {
   prevStatusLocator: Locator;
 
   linksLocator: Locator;
+  setupDropdownLocator: Locator;
+  teardownDropdownLocator: Locator;
   stepsSubtreeToggleLocator: Locator;
 
   constructor(readonly page: Page) {
@@ -89,6 +91,8 @@ export class TestResultPage extends CommonPage {
     this.prevStatusLocator = page.getByTestId("test-result-prev-status");
 
     this.linksLocator = page.getByTestId("test-result-meta-links");
+    this.setupDropdownLocator = page.getByTestId("test-result-setup-dropdown");
+    this.teardownDropdownLocator = page.getByTestId("test-result-teardown-dropdown");
     this.stepsSubtreeToggleLocator = page.getByTestId("test-result-steps-subtree-toggle");
   }
 

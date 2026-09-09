@@ -9,6 +9,7 @@ let treePage: TreePage;
 let testResultPage: TestResultPage;
 
 const now = Date.now();
+const testResultUuid = "step-toggle-test-result";
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
@@ -26,8 +27,9 @@ test.beforeEach(async ({ page, browserName }) => {
         appendHistory: false,
         knownIssuesPath: undefined,
       },
-      testResults: [
+      rawTestResults: [
         {
+          uuid: testResultUuid,
           name: "step toggle test",
           fullName: "sample.js#step toggle test",
           historyId: "step-toggle",
@@ -75,6 +77,31 @@ test.beforeEach(async ({ page, browserName }) => {
           ],
         },
       ],
+      rawTestResultContainers: [
+        {
+          children: [testResultUuid],
+          befores: [
+            {
+              name: "setup fixture",
+              status: Status.PASSED,
+              stage: Stage.FINISHED,
+              start: now,
+              stop: now + 50,
+              steps: [],
+            },
+          ],
+          afters: [
+            {
+              name: "teardown fixture",
+              status: Status.PASSED,
+              stage: Stage.FINISHED,
+              start: now + 950,
+              stop: now + 1000,
+              steps: [],
+            },
+          ],
+        },
+      ],
     },
     {
       stepTreeExpansion: "collapsed",
@@ -87,6 +114,24 @@ test.beforeEach(async ({ page, browserName }) => {
 
 test.afterAll(async () => {
   await bootstrap?.shutdown?.();
+});
+
+test("should collapse setup, body and teardown sections by default", async () => {
+  const setupFixture = testResultPage.getStepByName("setup fixture");
+  const level1Step = testResultPage.getStepByName("level 1");
+  const teardownFixture = testResultPage.getStepByName("teardown fixture");
+
+  await expect(setupFixture.locator).toHaveCount(0);
+  await expect(level1Step.locator).toHaveCount(0);
+  await expect(teardownFixture.locator).toHaveCount(0);
+
+  await testResultPage.setupDropdownLocator.click();
+  await expect(setupFixture.locator).toHaveCount(1);
+
+  await testResultPage.teardownDropdownLocator.click();
+  await expect(teardownFixture.locator).toHaveCount(1);
+
+  await expect(level1Step.locator).toHaveCount(0);
 });
 
 test("should cycle body subtree toggle state like categories", async () => {
