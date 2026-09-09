@@ -217,7 +217,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.19.41"],\
           ["allure", "workspace:packages/cli"],\
           ["babel-plugin-prismjs", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.1.0"],\
-          ["lefthook", "npm:2.1.4"],\
+          ["lefthook", "npm:2.1.12"],\
           ["oxfmt", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:0.52.0"],\
           ["oxlint", "virtual:faff2d6bbbfe8a75ffa822e4e2c9d6861f70260957cff3a04b309e5d7532cbe0f6f127e57e0b49d503fc80f26df022ab52fa403206590dff4e5ed4990a8f83a2#npm:1.67.0"],\
           ["oxlint-tsgolint", "npm:0.23.0"],\
@@ -445,7 +445,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:20.19.41"],\
           ["allure", "workspace:packages/cli"],\
           ["babel-plugin-prismjs", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.1.0"],\
-          ["lefthook", "npm:2.1.4"],\
+          ["lefthook", "npm:2.1.12"],\
           ["oxfmt", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:0.52.0"],\
           ["oxlint", "virtual:faff2d6bbbfe8a75ffa822e4e2c9d6861f70260957cff3a04b309e5d7532cbe0f6f127e57e0b49d503fc80f26df022ab52fa403206590dff4e5ed4990a8f83a2#npm:1.67.0"],\
           ["oxlint-tsgolint", "npm:0.23.0"],\
@@ -18719,110 +18719,110 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["lefthook", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-npm-2.1.4-2b04213a19/node_modules/lefthook/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-npm-2.1.12-ba60c1b5a6/node_modules/lefthook/",\
         "packageDependencies": [\
-          ["lefthook", "npm:2.1.4"],\
-          ["lefthook-darwin-arm64", "npm:2.1.4"],\
-          ["lefthook-darwin-x64", "npm:2.1.4"],\
-          ["lefthook-freebsd-arm64", "npm:2.1.4"],\
-          ["lefthook-freebsd-x64", "npm:2.1.4"],\
-          ["lefthook-linux-arm64", "npm:2.1.4"],\
-          ["lefthook-linux-x64", "npm:2.1.4"],\
-          ["lefthook-openbsd-arm64", "npm:2.1.4"],\
-          ["lefthook-openbsd-x64", "npm:2.1.4"],\
-          ["lefthook-windows-arm64", "npm:2.1.4"],\
-          ["lefthook-windows-x64", "npm:2.1.4"]\
+          ["lefthook", "npm:2.1.12"],\
+          ["lefthook-darwin-arm64", "npm:2.1.12"],\
+          ["lefthook-darwin-x64", "npm:2.1.12"],\
+          ["lefthook-freebsd-arm64", "npm:2.1.12"],\
+          ["lefthook-freebsd-x64", "npm:2.1.12"],\
+          ["lefthook-linux-arm64", "npm:2.1.12"],\
+          ["lefthook-linux-x64", "npm:2.1.12"],\
+          ["lefthook-openbsd-arm64", "npm:2.1.12"],\
+          ["lefthook-openbsd-x64", "npm:2.1.12"],\
+          ["lefthook-windows-arm64", "npm:2.1.12"],\
+          ["lefthook-windows-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-darwin-arm64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-darwin-arm64-npm-2.1.4-431f2b1ff0/node_modules/lefthook-darwin-arm64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-darwin-arm64-npm-2.1.12-f19e071e9d/node_modules/lefthook-darwin-arm64/",\
         "packageDependencies": [\
-          ["lefthook-darwin-arm64", "npm:2.1.4"]\
+          ["lefthook-darwin-arm64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-darwin-x64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-darwin-x64-npm-2.1.4-d0044a4d0b/node_modules/lefthook-darwin-x64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-darwin-x64-npm-2.1.12-a5c7ee6bd5/node_modules/lefthook-darwin-x64/",\
         "packageDependencies": [\
-          ["lefthook-darwin-x64", "npm:2.1.4"]\
+          ["lefthook-darwin-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-freebsd-arm64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-freebsd-arm64-npm-2.1.4-ef081621c7/node_modules/lefthook-freebsd-arm64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-freebsd-arm64-npm-2.1.12-395b79d5c4/node_modules/lefthook-freebsd-arm64/",\
         "packageDependencies": [\
-          ["lefthook-freebsd-arm64", "npm:2.1.4"]\
+          ["lefthook-freebsd-arm64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-freebsd-x64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-freebsd-x64-npm-2.1.4-34fb97301f/node_modules/lefthook-freebsd-x64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-freebsd-x64-npm-2.1.12-50f160b616/node_modules/lefthook-freebsd-x64/",\
         "packageDependencies": [\
-          ["lefthook-freebsd-x64", "npm:2.1.4"]\
+          ["lefthook-freebsd-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-linux-arm64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-linux-arm64-npm-2.1.4-df4589e948/node_modules/lefthook-linux-arm64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-linux-arm64-npm-2.1.12-979e82fa68/node_modules/lefthook-linux-arm64/",\
         "packageDependencies": [\
-          ["lefthook-linux-arm64", "npm:2.1.4"]\
+          ["lefthook-linux-arm64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-linux-x64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-linux-x64-npm-2.1.4-1a3b43f45b/node_modules/lefthook-linux-x64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-linux-x64-npm-2.1.12-06484f9b0a/node_modules/lefthook-linux-x64/",\
         "packageDependencies": [\
-          ["lefthook-linux-x64", "npm:2.1.4"]\
+          ["lefthook-linux-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-openbsd-arm64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-openbsd-arm64-npm-2.1.4-8a47193be3/node_modules/lefthook-openbsd-arm64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-openbsd-arm64-npm-2.1.12-446722d1c7/node_modules/lefthook-openbsd-arm64/",\
         "packageDependencies": [\
-          ["lefthook-openbsd-arm64", "npm:2.1.4"]\
+          ["lefthook-openbsd-arm64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-openbsd-x64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-openbsd-x64-npm-2.1.4-81b8b9e464/node_modules/lefthook-openbsd-x64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-openbsd-x64-npm-2.1.12-8bdd4d44da/node_modules/lefthook-openbsd-x64/",\
         "packageDependencies": [\
-          ["lefthook-openbsd-x64", "npm:2.1.4"]\
+          ["lefthook-openbsd-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-windows-arm64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-windows-arm64-npm-2.1.4-89ddf5b275/node_modules/lefthook-windows-arm64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-windows-arm64-npm-2.1.12-e0020ed444/node_modules/lefthook-windows-arm64/",\
         "packageDependencies": [\
-          ["lefthook-windows-arm64", "npm:2.1.4"]\
+          ["lefthook-windows-arm64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["lefthook-windows-x64", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/unplugged/lefthook-windows-x64-npm-2.1.4-7a002ec7ce/node_modules/lefthook-windows-x64/",\
+      ["npm:2.1.12", {\
+        "packageLocation": "./.yarn/unplugged/lefthook-windows-x64-npm-2.1.12-1dabdd824a/node_modules/lefthook-windows-x64/",\
         "packageDependencies": [\
-          ["lefthook-windows-x64", "npm:2.1.4"]\
+          ["lefthook-windows-x64", "npm:2.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\
