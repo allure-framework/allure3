@@ -60,6 +60,7 @@ export interface TestResult {
 
   flaky: boolean;
   muted: boolean;
+  known: boolean;
   resolution?: ResolutionCategory;
   resolutionComment?: string;
 

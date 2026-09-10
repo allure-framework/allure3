@@ -257,6 +257,431 @@ describe("test results", () => {
     });
   });
 
+  it("should accept known failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known failed", status: "failed", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      muted: false,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should mute muted failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat result known", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted and known", status: "failed", muted: true, known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      known: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+  });
+
+  it("should accept known broken results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known broken", status: "broken", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+  });
+
+  it("should not accept known passed results", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known passed", status: "passed", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr.known).toBe(true);
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+  });
+
+  it("should let known beat matching muted resolution rule", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "would mute if not known",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat matching accepted resolution rule", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "would accept if not muted",
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let matching issue rule beat result muted", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-1",
+      type: "jira",
+    });
+  });
+
+  it("should let matching issue rule beat result known", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-2", type: "jira" },
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-2",
+      type: "jira",
+    });
+  });
+
+  it("should keep known accepted after dump restore even with matching muted rule", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "rule would mute",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should keep dumped resolution when restore rules no longer match", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-stale")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "stale muted", status: "failed", testId: "tc-stale" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "noise",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should preserve issue on restore when no new rule matches", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-KEEP", type: "jira" },
+            comment: "tracked forever",
+            testCaseId: [md5("tc-issue-keep")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-keep" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "tracked forever",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-KEEP",
+      type: "jira",
+      comment: "tracked forever",
+    });
+  });
+
+  it("should overwrite dumped resolution when restore rules match a new resolution", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "will overwrite", status: "failed", testId: "tc-overwrite" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-9", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "tracked",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-9",
+      type: "jira",
+      comment: "tracked",
+    });
+  });
+
+  it("should classify result muted on restore without resolutionsConfig", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      resolution: undefined,
+      resolutionComment: undefined,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+  });
+
+  it("should overwrite issue with result muted on restore and clear association", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-MUTE", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-issue-mute")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-mute" }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      muted: true,
+      known: false,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toBeUndefined();
+  });
+
   it("should classify failures by resolution rules and leave passed tests unclassified", async () => {
     const store = new DefaultAllureStore({
       resolutionsConfig: {

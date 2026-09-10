@@ -34,6 +34,7 @@ const createTestResult = (
     environment,
     flaky: false,
     muted: false,
+    known: false,
     isRetry: false,
     labels,
     parameters,
