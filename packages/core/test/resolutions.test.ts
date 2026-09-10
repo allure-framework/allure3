@@ -9,6 +9,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   getResolutionByRules,
   isIgnoredFailure,
+  KNOWN_FROM_RESULT_RESOLUTION,
+  MUTED_FROM_RESULT_RESOLUTION,
   resolveExactIssuesFilePath,
   validateResolutionsConfig,
   writeKnownIssues,
@@ -108,6 +110,90 @@ describe("resolution rules", () => {
     expect(isIgnoredFailure({ resolution: "issue" } as any)).toBe(false);
     expect(isIgnoredFailure({ resolution: "muted" } as any)).toBe(true);
     expect(isIgnoredFailure({ resolution: "accepted" } as any)).toBe(true);
+  });
+
+  it("accepts known failed/broken results without config rules", () => {
+    expect(getResolutionByRules({ known: true, status: "failed" } as TestResult)).toBe(KNOWN_FROM_RESULT_RESOLUTION);
+    expect(getResolutionByRules({ known: true, status: "broken" } as TestResult)).toBe(KNOWN_FROM_RESULT_RESOLUTION);
+    expect(getResolutionByRules({ known: true, status: "passed" } as TestResult)).toBeUndefined();
+  });
+
+  it("mutes muted failed/broken results without config rules", () => {
+    expect(getResolutionByRules({ muted: true, status: "failed" } as TestResult)).toBe(MUTED_FROM_RESULT_RESOLUTION);
+    expect(getResolutionByRules({ muted: true, status: "broken" } as TestResult)).toBe(MUTED_FROM_RESULT_RESOLUTION);
+    expect(getResolutionByRules({ muted: true, status: "passed" } as TestResult)).toBeUndefined();
+  });
+
+  it("lets result muted beat result known", () => {
+    expect(getResolutionByRules({ muted: true, known: true, status: "failed" } as TestResult)).toBe(
+      MUTED_FROM_RESULT_RESOLUTION,
+    );
+  });
+
+  it("lets known beat matching muted config rules", () => {
+    const result = {
+      known: true,
+      status: "failed",
+      testCase: { id: "tc-1" },
+      environment: "prod",
+    } as TestResult;
+
+    expect(
+      getResolutionByRules(result, {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "would mute",
+            testCaseId: ["tc-1"],
+            environment: ["prod"],
+          },
+        ],
+      }),
+    ).toBe(KNOWN_FROM_RESULT_RESOLUTION);
+  });
+
+  it("lets result muted beat matching accepted config rules", () => {
+    const result = {
+      muted: true,
+      status: "failed",
+      testCase: { id: "tc-1" },
+      environment: "prod",
+    } as TestResult;
+
+    expect(
+      getResolutionByRules(result, {
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "would accept",
+            testCaseId: ["tc-1"],
+            environment: ["prod"],
+          },
+        ],
+      }),
+    ).toBe(MUTED_FROM_RESULT_RESOLUTION);
+  });
+
+  it("lets matching issue config rule beat result muted", () => {
+    const result = {
+      muted: true,
+      status: "failed",
+      testCase: { id: "tc-1" },
+      environment: "prod",
+    } as TestResult;
+
+    expect(getResolutionByRules(result, config)).toBe(config.rules[0]);
+  });
+
+  it("lets matching issue config rule beat result known", () => {
+    const result = {
+      known: true,
+      status: "failed",
+      testCase: { id: "tc-1" },
+      environment: "prod",
+    } as TestResult;
+
+    expect(getResolutionByRules(result, config)).toBe(config.rules[0]);
   });
 });
 
