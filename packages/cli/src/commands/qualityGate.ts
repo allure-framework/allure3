@@ -170,13 +170,17 @@ export class QualityGateCommand extends Command {
       await allureReport.readDirectory(directory);
     }
 
-    await allureReport.done();
-
     const allTrs = await allureReport.store.allTestResults({ includeRetries: false });
     const validationResults = await allureReport.validate({
       trs: allTrs,
       environment: resolvedEnvironment?.id,
     });
+
+    if (validationResults.results.length > 0) {
+      allureReport.realtimeDispatcher.sendQualityGateResults(validationResults.results);
+    }
+
+    await allureReport.done();
 
     if (validationResults.results.length === 0) {
       exit(0);
