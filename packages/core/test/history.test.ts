@@ -8,13 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  AllureLocalHistory,
-  buildLocalHistoryUrl,
-  createHistory,
-  normalizeHistoryUrlBase,
-  setHistoryDataPointUrl,
-} from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryUrlBase, setHistoryDataPointUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -666,17 +660,20 @@ describe("local history URLs", () => {
 
   it.each([
     {
-      name: "multi-report directory",
+      name: "url with base directory",
       url: "https://bucket.example/runs/42/?token=x",
       expected: "https://bucket.example/runs/42/custom-awesome/index.html?token=x#old-result",
     },
     {
-      name: "flattened entry document",
+      name: "url with exact report",
       url: "https://bucket.example/runs/42/index.html?token=x",
       expected: "https://bucket.example/runs/42/index.html?token=x#old-result",
     },
     { name: "blank URL", url: "", expected: "" },
   ])("should resolve $name", ({ url, expected }) => {
-    expect(buildLocalHistoryUrl(url, "custom-awesome", "old-result")).toBe(expected);
+    const historyPath = getDataPath("empty.jsonl");
+    const history = new AllureLocalHistory({ historyPath });
+
+    expect(history.resolveTestResultUrl(url, "custom-awesome", "old-result")).toBe(expected);
   });
 });

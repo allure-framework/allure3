@@ -90,23 +90,14 @@ export const normalizeHistoryUrlBase = (historyUrlBase: string): string => {
     throw new Error(`Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: fragments are not allowed`);
   }
 
+  if (/\.html\/?$/iu.test(url.pathname)) {
+    throw new Error(
+      `Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: expected a base URL, not an HTML document`,
+    );
+  }
+
+  // Always add trailing / at the end of pathname
   url.pathname = `${url.pathname.replace(/\/+$/u, "")}/`;
-
-  return url.toString();
-};
-
-export const buildLocalHistoryUrl = (historyUrl: string, pluginId: string, historicalResultId: string): string => {
-  if (!historyUrl) {
-    return "";
-  }
-
-  const url = new URL(historyUrl);
-
-  if (url.pathname.endsWith("/")) {
-    url.pathname = `${url.pathname}${pluginId}/index.html`;
-  }
-
-  url.hash = historicalResultId;
 
   return url.toString();
 };
@@ -150,7 +141,21 @@ export class AllureLocalHistory implements AllureHistory {
     },
   ) {}
 
-  resolveTestResultUrl = buildLocalHistoryUrl;
+  resolveTestResultUrl(historyUrl: string, pluginId: string, historicalResultId: string): string {
+    if (!historyUrl) {
+      return "";
+    }
+
+    const url = new URL(historyUrl);
+
+    if (url.pathname.endsWith("/")) {
+      url.pathname = `${url.pathname}${pluginId}/index.html`;
+    }
+
+    url.hash = historicalResultId;
+
+    return url.toString();
+  }
 
   async readHistory() {
     if (this.#cachedHistory.length > 0) {
