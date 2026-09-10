@@ -10,9 +10,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
-  const navigateUrl = getHistoryNavigationUrl(item.url, item.id);
-
-  if (!navigateUrl) {
+  if (!item.url) {
     return (
       <div className={styles["test-result-prev-status"]}>
         <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
@@ -21,7 +19,7 @@ const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }
   }
 
   return (
-    <a className={styles["test-result-prev-status"]} href={navigateUrl}>
+    <a className={styles["test-result-prev-status"]} href={item.url}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </a>
   );

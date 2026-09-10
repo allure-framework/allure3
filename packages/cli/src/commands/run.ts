@@ -94,6 +94,10 @@ export class RunCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyUrlBase = Option.String("--history-url-base", {
+    description: "The public base URL of the generated report directory",
+  });
+
   hideLabels = Option.Array("--hide-labels", {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
@@ -167,6 +171,7 @@ export class RunCommand extends Command {
       port: this.port,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      ...(this.historyUrlBase !== undefined ? { historyUrlBase: this.historyUrlBase } : {}),
       resolutions: { knownIssuesPath: this.knownIssues },
     });
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);

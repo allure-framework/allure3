@@ -42,6 +42,10 @@ export class HistoryCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyUrlBase = Option.String("--history-url-base", {
+    description: "The public base URL of the generated report directory",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name",
   });
@@ -57,13 +61,17 @@ export class HistoryCommand extends Command {
       return;
     }
 
-    const config = await resolveConfig({
-      historyPath: this.historyPath ?? "history.jsonl",
-      historyLimit: this.historyLimit ? Number(this.historyLimit) : undefined,
-      name: this.reportName ?? "Allure Report",
-      // disable all plugins
-      plugins: {},
-    });
+    const config = await resolveConfig(
+      {
+        historyPath: this.historyPath ?? "history.jsonl",
+        historyUrlBase: this.historyUrlBase ?? rawConfig.historyUrlBase,
+        historyLimit: this.historyLimit ? Number(this.historyLimit) : undefined,
+        name: this.reportName ?? "Allure Report",
+        // disable all plugins
+        plugins: {},
+      },
+      { plugins: {} },
+    );
 
     const allureReport = new AllureReport(config);
 

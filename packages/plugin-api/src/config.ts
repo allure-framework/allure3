@@ -18,6 +18,7 @@ export interface Config {
   port?: string;
   hideLabels?: (string | RegExp)[];
   historyPath?: string;
+  historyUrlBase?: string;
   historyLimit?: number;
   resolutions?: ResolutionsConfig;
   defaultLabels?: DefaultLabelsConfig;

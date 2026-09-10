@@ -8,7 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory, createHistory } from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryUrlBase, setHistoryDataPointUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -608,5 +608,72 @@ describe("createHistory", () => {
 
     expect(history.url).toBe(remoteUrl);
     expect(history.testResults["history-id"].url).toBe(remoteUrl);
+  });
+});
+
+describe("local history URLs", () => {
+  it.each([
+    ["https://bucket.example/runs/42", "https://bucket.example/runs/42/"],
+    ["https://bucket.example/runs/42/?token=x", "https://bucket.example/runs/42/?token=x"],
+    ["file:///tmp/reports/42", "file:///tmp/reports/42/"],
+  ])("should normalize a run-directory base: %s", (input, expected) => {
+    expect(normalizeHistoryUrlBase(input)).toBe(expected);
+  });
+
+  it("should reject a relative base", () => {
+    expect(() => normalizeHistoryUrlBase("runs/42")).toThrowError(/Invalid historyUrlBase.*absolute URL/u);
+  });
+
+  it("should reject a base fragment", () => {
+    expect(() => normalizeHistoryUrlBase("https://bucket.example/runs/42#current")).toThrowError(
+      /Invalid historyUrlBase.*fragment/u,
+    );
+  });
+
+  it("should replace run and test URLs without mutating the source history point", () => {
+    const source: HistoryDataPoint = {
+      uuid: "run-1",
+      name: "Run 1",
+      timestamp: 1,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+      testResults: {
+        stable: {
+          id: "old-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+    };
+
+    const updated = setHistoryDataPointUrl(source, "https://bucket.example/runs/42/index.html");
+
+    expect(updated.url).toBe("https://bucket.example/runs/42/index.html");
+    expect(updated.testResults.stable.url).toBe("https://bucket.example/runs/42/index.html");
+    expect(updated).not.toBe(source);
+    expect(updated.testResults.stable).not.toBe(source.testResults.stable);
+    expect(source.url).toBe("");
+    expect(source.testResults.stable.url).toBe("");
+  });
+
+  it.each([
+    {
+      name: "url with base directory",
+      url: "https://bucket.example/runs/42/?token=x",
+      expected: "https://bucket.example/runs/42/custom-awesome/index.html?token=x#old-result",
+    },
+    {
+      name: "url with exact report",
+      url: "https://bucket.example/runs/42/index.html?token=x",
+      expected: "https://bucket.example/runs/42/index.html?token=x#old-result",
+    },
+    { name: "blank URL", url: "", expected: "" },
+  ])("should resolve $name", ({ url, expected }) => {
+    const historyPath = getDataPath("empty.jsonl");
+    const history = new AllureLocalHistory({ historyPath });
+
+    expect(history.resolveTestResultUrl(url, "custom-awesome", "old-result")).toBe(expected);
   });
 });

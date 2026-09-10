@@ -76,7 +76,7 @@ test.describe("history", () => {
     });
   });
 
-  test.describe("with local history", () => {
+  test.describe("with local history and no base history url", () => {
     test.beforeAll(async () => {
       bootstrap = await bootstrapReport({
         reportConfig: { ...fixtures.reportConfig },
@@ -94,6 +94,33 @@ test.describe("history", () => {
 
       await expect(testResultPage.historyItemLocator.nth(0).getByRole("link")).not.toBeVisible();
       await expect(testResultPage.prevStatusLocator.nth(0).getByRole("link")).not.toBeVisible();
+    });
+  });
+
+  test.describe("with local history and base url configured", () => {
+    test.beforeAll(async () => {
+      bootstrap = await bootstrapReport({
+        reportConfig: { ...fixtures.reportConfig, historyUrlBase: fixtures.url },
+        history: [
+          {
+            ...fixtures.history[0],
+            url: fixtures.url,
+          },
+        ],
+        testResults: [...fixtures.testResults],
+      });
+    });
+
+    test("should show history for the test result", async () => {
+      await treePage.clickNthLeaf(0);
+      await testResultPage.historyTabLocator.click();
+
+      await expect(testResultPage.historyItemLocator).toHaveCount(1);
+      await expect(testResultPage.prevStatusLocator).toHaveCount(1);
+      await expect(testResultPage.historyItemLocator.nth(0).getByRole("link")).toHaveCount(2);
+      await expect(testResultPage.historyItemLocator.nth(0).getByRole("link").first()).toBeVisible();
+      await expect(testResultPage.prevStatusLocator.nth(0).getByRole("link")).toHaveCount(1);
+      await expect(testResultPage.prevStatusLocator.nth(0).getByRole("link")).toBeVisible();
     });
   });
 

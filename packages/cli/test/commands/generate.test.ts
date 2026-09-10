@@ -114,7 +114,16 @@ describe("generate command", () => {
     (readConfig as Mock).mockResolvedValueOnce({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--output", "foo", "--report-name", "bar", "baz"]);
+    await run(GenerateCommand, [
+      "generate",
+      "--output",
+      "foo",
+      "--report-name",
+      "bar",
+      "--history-url-base",
+      "https://bucket.example/runs/42",
+      "baz",
+    ]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
@@ -124,6 +133,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
+      historyUrlBase: "https://bucket.example/runs/42",
       resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(

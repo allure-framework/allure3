@@ -77,6 +77,39 @@ const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number>
   );
 };
 
+export const normalizeHistoryUrlBase = (historyUrlBase: string): string => {
+  let url: URL;
+
+  try {
+    url = new URL(historyUrlBase);
+  } catch (cause) {
+    throw new Error(`Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: expected an absolute URL`, { cause });
+  }
+
+  if (url.href.includes("#")) {
+    throw new Error(`Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: fragments are not allowed`);
+  }
+
+  if (/\.html\/?$/iu.test(url.pathname)) {
+    throw new Error(
+      `Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: expected a base URL, not an HTML document`,
+    );
+  }
+
+  // Always add trailing / at the end of pathname
+  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/`;
+
+  return url.toString();
+};
+
+export const setHistoryDataPointUrl = (point: HistoryDataPoint, url: string): HistoryDataPoint => ({
+  ...point,
+  url,
+  testResults: Object.fromEntries(
+    Object.entries(point.testResults).map(([historyId, item]) => [historyId, { ...item, url }]),
+  ),
+});
+
 export const createHistory = (
   reportUuid: string,
   reportName: string = "Allure Report",
@@ -107,6 +140,24 @@ export class AllureLocalHistory implements AllureHistory {
       limit?: number;
     },
   ) {}
+
+  resolveTestResultUrl(historyUrl: string, pluginId: string, historicalResultId: string): string {
+    if (!historyUrl) {
+      return "";
+    }
+
+    const url = new URL(historyUrl);
+
+    // for local history, url entries end with / in case of multi report configuration, thus plugin id and index.html is added
+    // if url pathname does not end with /, it assumes single flattened report structure without plugin id
+    if (url.pathname.endsWith("/")) {
+      url.pathname = `${url.pathname}${pluginId}/index.html`;
+    }
+
+    url.hash = historicalResultId;
+
+    return url.toString();
+  }
 
   async readHistory() {
     if (this.#cachedHistory.length > 0) {

@@ -5,6 +5,7 @@ import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type HistoryTestResultUrlResolver,
   type MetricSample,
   type ResolutionCategory,
   type Statistic,
@@ -161,8 +162,10 @@ export const generateTestResults = async (
   store: AllureStore,
   trs: TestResult[],
   options: {
+    pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
-  } = {},
+    resolveHistoryUrl?: HistoryTestResultUrlResolver;
+  },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
   const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
@@ -177,7 +180,10 @@ export const generateTestResults = async (
     });
     const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
-    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
+      ...item,
+      url: options.resolveHistoryUrl?.(item.url, options.pluginId, item.id) ?? "",
+    }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
