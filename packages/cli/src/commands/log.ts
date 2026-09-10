@@ -7,6 +7,7 @@ import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
+import { resolveCommandEnvironment } from "../utils/environment.js";
 import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class LogCommand extends Command {
@@ -54,6 +55,11 @@ export class LogCommand extends Command {
     description: "Print stack trace for failed tests",
   });
 
+  qualityGateResults = Option.Boolean("--quality-gate-results", true, {
+    description:
+      "Print quality gate validation results after tests (default: true). Pass --no-quality-gate-results to hide them",
+  });
+
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
@@ -61,8 +67,10 @@ export class LogCommand extends Command {
       allSteps: this.allSteps ?? false,
       withTrace: this.withTrace ?? false,
       groupBy: this.groupBy ?? "suite",
+      qualityGateResults: this.qualityGateResults,
     } as LogPluginOptions;
     const config = await readConfig(cwd, this.config);
+    const resolvedEnvironment = resolveCommandEnvironment(config, {});
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 
     if (!resultDirectories.length) {
@@ -80,12 +88,24 @@ export class LogCommand extends Command {
       },
     ];
 
-    const allureReport = new AllureReport(config);
+    const allureReport = new AllureReport({
+      ...config,
+      environment: resolvedEnvironment?.id,
+    });
 
     await allureReport.start();
 
     for (const directory of resultDirectories) {
       await allureReport.readDirectory(directory);
+    }
+
+    if (this.qualityGateResults && allureReport.hasQualityGate) {
+      const allTrs = await allureReport.store.allTestResults({ includeRetries: false });
+      const validationResults = await allureReport.validate({ trs: allTrs, environment: resolvedEnvironment?.id });
+
+      if (validationResults.results.length > 0) {
+        allureReport.realtimeDispatcher.sendQualityGateResults(validationResults.results);
+      }
     }
 
     await allureReport.done();

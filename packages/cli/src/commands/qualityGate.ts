@@ -182,17 +182,13 @@ export class QualityGateCommand extends Command {
       environment: resolvedEnvironment?.id,
     });
 
-    if (validationResults.results.length === 0) {
-      if (this.printResults) {
-        console.log(JSON.stringify(validationResults.results));
-      }
-
-      exit(0);
-      return;
-    }
-
     if (this.printResults) {
       console.log(JSON.stringify(validationResults.results));
+    }
+
+    if (validationResults.results.length === 0) {
+      exit(0);
+      return;
     }
 
     // eslint-disable-next-line no-console
