@@ -431,6 +431,7 @@ describe("generateTestResults", () => {
         historyByTrId: new Map([["tr-1", history]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
     } as unknown as AllureStore;
 
     return { testResult, writer, store };
@@ -540,7 +541,7 @@ describe("generateTestResults", () => {
       }),
     } as unknown as AllureStore;
 
-    const [converted] = await generateTestResults(writer, store, [testResult]);
+    const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
 
     expect(converted).toMatchObject({
       resolution: "issue",
