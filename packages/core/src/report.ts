@@ -109,6 +109,16 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
 
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
 
+const getExecutorReportUrl = (executor: unknown): string | undefined => {
+  if (!executor || typeof executor !== "object" || !("reportUrl" in executor)) {
+    return undefined;
+  }
+
+  const { reportUrl } = executor as { reportUrl?: unknown };
+
+  return typeof reportUrl === "string" && reportUrl.length > 0 ? reportUrl : undefined;
+};
+
 const closeReadStream = async (stream: ReadStream): Promise<void> => {
   if (stream.closed) {
     return;
@@ -271,16 +281,32 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
+  #resolveHistoryReportUrl = async (): Promise<string> => {
+    if (this.reportUrl) {
+      return this.reportUrl;
+    }
+
+    const executorReportUrl = getExecutorReportUrl(await this.#store.metadataByKey("allure2_executor"));
+
+    if (executorReportUrl) {
+      this.reportUrl = executorReportUrl;
+      return executorReportUrl;
+    }
+
+    return "";
+  };
+
   #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
     const allTrs = await this.#store.allTestResults();
     const allTcs = await this.#store.allTestCases();
+    const historyReportUrl = await this.#resolveHistoryReportUrl();
 
     return createHistory(
       this.reportUuid,
       this.reportName,
       allTcs,
       allTrs,
-      this.reportUrl,
+      historyReportUrl,
       await this.#store.allMetrics(),
     );
   };
@@ -1183,6 +1209,8 @@ export class AllureReport {
         await this.dumpState();
         return;
       }
+
+      await this.#resolveHistoryReportUrl();
 
       // isolate logs of different reports dumps: done and summary
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
