@@ -35,6 +35,7 @@ const fixtures = {
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
   info: vi.fn(),
+  log: vi.fn(),
   error: vi.fn(),
 }));
 vi.mock("node:process", async (importOriginal) => ({
@@ -168,6 +169,64 @@ describe("quality-gate command", () => {
 
     await commandPromise;
 
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("should print empty quality gate results as JSON when there are no violations", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--print-results",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+
+    expect(console.log).toHaveBeenCalledWith("[]");
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it("should print failed quality gate results as JSON without replacing the failure message", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([{ id: "failed-1", status: "failed" }]),
+      testResultById: vi.fn(),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
+      results: fixtures.qualityGateValidationResults,
+    });
+    (stringifyQualityGateResults as Mock).mockReturnValue("quality gate failed");
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--print-results",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(fixtures.qualityGateValidationResults));
+    expect(console.error).toHaveBeenCalledWith("quality gate failed");
     expect(exit).toHaveBeenCalledWith(1);
   });
 

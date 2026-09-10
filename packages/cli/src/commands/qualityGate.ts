@@ -70,6 +70,10 @@ export class QualityGateCommand extends Command {
     description: "Path to known issues file",
   });
 
+  printResults = Option.Boolean("--print-results", {
+    description: "Print quality gate validation results as JSON",
+  });
+
   environment = environmentOption();
 
   environmentName = environmentNameOption();
@@ -179,8 +183,16 @@ export class QualityGateCommand extends Command {
     });
 
     if (validationResults.results.length === 0) {
+      if (this.printResults) {
+        console.log(JSON.stringify(validationResults.results));
+      }
+
       exit(0);
       return;
+    }
+
+    if (this.printResults) {
+      console.log(JSON.stringify(validationResults.results));
     }
 
     // eslint-disable-next-line no-console
