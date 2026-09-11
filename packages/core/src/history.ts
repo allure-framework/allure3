@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { WriteStream } from "node:fs";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -154,17 +155,15 @@ export class AllureLocalHistory implements AllureHistory {
 
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
 
+    let dst: WriteStream | undefined;
+
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
-      if (limit === 0 && historyExists) {
-        await historyFile.truncate(0);
+      if (limit === 0) {
+        if (historyExists) await historyFile.truncate(0);
         return;
       }
 
-      if (limit === 0 && !historyExists) {
-        return;
-      }
+      dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
@@ -183,7 +182,9 @@ export class AllureLocalHistory implements AllureHistory {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
-      await historyFile.close();
+      const closing = historyFile.close();
+      dst?.destroy();
+      await closing;
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {
