@@ -83,6 +83,8 @@ export const utiToMediaType: Record<string, string> = {
   "public.tiff": "image/tiff",
   "com.apple.pict": "image/x-pict",
   "public.png": "image/png",
+  "public.webp": "image/webp",
+  "org.webmproject.webp": "image/webp",
   "public.xbitmap-image": "image/x-quicktime",
   "com.apple.quicktime-image": "image/x-quicktime",
   "com.apple.quicktime-movie": "video/quicktime",
