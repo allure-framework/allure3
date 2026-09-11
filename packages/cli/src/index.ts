@@ -19,6 +19,7 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
   LogCommand,
@@ -72,6 +73,7 @@ cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 void cli
