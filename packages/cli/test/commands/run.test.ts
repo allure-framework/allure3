@@ -387,7 +387,16 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--known-issues", "known.json", "--", "npm", "test"]);
+    await run(RunCommand, [
+      "run",
+      "--known-issues",
+      "known.json",
+      "--history-base-url",
+      "https://bucket.example/runs/42",
+      "--",
+      "npm",
+      "test",
+    ]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
@@ -396,6 +405,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
+      historyBaseUrl: "https://bucket.example/runs/42",
       resolutions: { knownIssuesPath: "known.json" },
     });
   });

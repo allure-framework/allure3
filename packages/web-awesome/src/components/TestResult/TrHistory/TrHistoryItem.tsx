@@ -1,9 +1,8 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
-import { useMemo, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
-import { getHistoryNavigationUrl } from "@/components/TestResult/historyNavigation";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
@@ -41,16 +40,14 @@ const HistoryDate = (props: { date: string | undefined }) => {
 
 export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
   const { historyTr } = props;
-  const { status, error, duration, id, url } = historyTr;
+  const { status, error, duration, url } = historyTr;
   const [isOpened, setIsOpen] = useState(false);
   const historyDate = getDate(historyTr);
   const formattedDuration = duration ? formatDuration(duration) : undefined;
 
   const { t } = useI18n("controls");
 
-  const navigateUrl = useMemo(() => {
-    return getHistoryNavigationUrl(url, id);
-  }, [id, url]);
+  const navigateUrl = url || undefined;
 
   const renderExternalLink = () => {
     if (!navigateUrl) {
