@@ -8,6 +8,7 @@ import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentNameById } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
+import { globalEntriesByEnv } from "@/utils/globals";
 
 import * as styles from "./styles.scss";
 
@@ -61,32 +62,15 @@ export const ReportGlobalErrors = () => {
     <Loadable
       source={globalsStore}
       renderData={({ errors = [], errorsByEnv = {} }) => {
-        if (currentEnvironment.value) {
-          const currentEnvErrors = errorsByEnv[currentEnvironment.value] ?? [];
-
-          if (!currentEnvErrors.length) {
-            return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
-          }
-
-          return renderErrorSections([[currentEnvironment.value, currentEnvErrors]]);
-        }
-
-        const entries = Object.entries(errorsByEnv).filter(([, envErrors]) => envErrors.length > 0);
-
-        if (!entries.length && !errors.length) {
-          return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
-        }
+        const entries = globalEntriesByEnv(errors, errorsByEnv, currentEnvironment.value);
 
         if (!entries.length) {
-          return renderErrorsContent(errors);
-        }
-
-        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
-          return renderErrorsContent(entries[0][1] ?? []);
-        }
-
-        if (!errors.length) {
           return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
+        }
+
+        // nothing is environment specific in the current view, no need to group by environment
+        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
+          return renderErrorsContent(entries[0][1]);
         }
 
         return renderErrorSections(entries);
