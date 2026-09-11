@@ -132,6 +132,42 @@ describe("quality-gate command", () => {
     expect(exit).toHaveBeenCalledWith(0);
   });
 
+  it("should publish final quality gate results before report finalization", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+      qualityGate: fixtures.qualityGateConfig,
+    });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([{ id: "failed-1", status: "failed" }]),
+      testResultById: vi.fn(),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({
+      results: fixtures.qualityGateValidationResults,
+    });
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--config",
+      fixtures.config,
+      fixtures.resultsDir,
+    ]);
+
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith(
+      fixtures.qualityGateValidationResults,
+    );
+    expect(
+      (AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults as Mock).mock.invocationCallOrder[0],
+    ).toBeLessThan((AllureReportMock.prototype.done as unknown as Mock).mock.invocationCallOrder[0]);
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
   it("should exit with code 1 on fast-fail during realtime validation", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
