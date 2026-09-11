@@ -1,15 +1,15 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`utils > printTest > prints error trace if \`withTrace\` is true 1`] = `""`;
+exports[`utils > printTest > prints error trace if \`withTrace\` is true 1`] = `"⨯ Test name 100ms"`;
 
-exports[`utils > printTest > prints the test with all steps if \`allSteps\` is true 1`] = `""`;
+exports[`utils > printTest > prints the test with all steps if \`allSteps\` is true 1`] = `"⨯ Test name 100ms"`;
 
-exports[`utils > printTest > prints the test with all steps if allSteps is true 1`] = `""`;
+exports[`utils > printTest > prints the test with all steps if allSteps is true 1`] = `"✓ Test name 100ms"`;
 
-exports[`utils > printTest > prints the test without passed steps 1`] = `""`;
+exports[`utils > printTest > prints the test without passed steps 1`] = `"✓ Test name 100ms"`;
 
-exports[`utils > printTest > prints the test without steps if there are no failed steps 1`] = `""`;
+exports[`utils > printTest > prints the test without steps if there are no failed steps 1`] = `"✓ Test name 100ms"`;
 
-exports[`utils > stringifyStepResultTitle > returns title with status, name and duration 1`] = `"[32m✓[39m step [33m100ms[39m"`;
+exports[`utils > stringifyStepResultTitle > returns title with status, name and duration 1`] = `"✓ step 100ms"`;
 
-exports[`utils > stringifyTestResultTitle > returns title with status, name and duration 1`] = `"[32m✓[39m [33m100ms[39m"`;
+exports[`utils > stringifyTestResultTitle > returns title with status, name and duration 1`] = `"✓ 100ms"`;

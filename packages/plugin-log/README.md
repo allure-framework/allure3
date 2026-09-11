@@ -46,9 +46,9 @@ export default defineConfig({
 
 The plugin accepts the following options:
 
-| Option      | Description                      | Type                                     | Default |
-|-------------|----------------------------------|------------------------------------------|---------|
-| `allSteps`  | Include all steps in the report  | `boolean`                                | `false` |
-| `withTrace` | Include step trace in the report | `boolean`                                | `false` |
-| `groupBy`   | Group tests by given label       | `suites \| features \| packages \| none` | `none`  |
-
+| Option               | Description                                      | Type                                     | Default |
+|----------------------|--------------------------------------------------|------------------------------------------|---------|
+| `allSteps`           | Include all steps in the report                  | `boolean`                                | `false` |
+| `withTrace`          | Include step trace in the report                 | `boolean`                                | `false` |
+| `groupBy`            | Group tests by given label                       | `suites \| features \| packages \| none` | `none`  |
+| `qualityGateResults` | Include quality gate validation results in logs  | `boolean`                                | `true`  |
