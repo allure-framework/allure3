@@ -13,7 +13,8 @@ export class GitlabGenerateCommand extends Command {
     description: "Generate test report and post report summary in merge request comments",
     details:
       "This command generates a report from the provided Allure Results directories. When api access token is configured, " +
-      "integration will post summary as comment for merge request pipelines and attempt to lookup history file from previously executed job.",
+      "integration will post summary as comment for merge request pipelines and attempt to lookup history file from previously executed job ." +
+      "This integration is designed to be executed from within GitLab CI job.",
     examples: [["gitlab publish ./allure-results", "Generate a report from the ./allure-results directory"]],
   });
 
