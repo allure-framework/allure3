@@ -34,7 +34,7 @@ describe("history command", () => {
       "history",
       "--history-path",
       "history.jsonl",
-      "--history-url-base",
+      "--history-base-url",
       "https://bucket.example/runs/42",
       "/tmp/allure-results",
     ]);
@@ -42,7 +42,7 @@ describe("history command", () => {
     expect(resolveConfig).toHaveBeenCalledWith(
       {
         historyPath: "history.jsonl",
-        historyUrlBase: "https://bucket.example/runs/42",
+        historyBaseUrl: "https://bucket.example/runs/42",
         historyLimit: undefined,
         name: "Allure Report",
         plugins: {},
@@ -52,9 +52,9 @@ describe("history command", () => {
     expect(AllureReport).toHaveBeenCalledWith({ plugins: [] });
   });
 
-  it("should use historyUrlBase from config when the CLI option is absent", async () => {
+  it("should use historyBaseUrl from config when the CLI option is absent", async () => {
     (readRawConfig as Mock).mockResolvedValue({
-      historyUrlBase: "https://bucket.example/runs/config",
+      historyBaseUrl: "https://bucket.example/runs/config",
     });
 
     await run(HistoryCommand, ["history", "/tmp/allure-results"]);
@@ -62,7 +62,7 @@ describe("history command", () => {
     expect(resolveConfig).toHaveBeenCalledWith(
       {
         historyPath: "history.jsonl",
-        historyUrlBase: "https://bucket.example/runs/config",
+        historyBaseUrl: "https://bucket.example/runs/config",
         historyLimit: undefined,
         name: "Allure Report",
         plugins: {},

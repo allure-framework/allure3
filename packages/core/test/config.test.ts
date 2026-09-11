@@ -239,8 +239,8 @@ describe("validateConfig", () => {
     });
   });
 
-  it("should allow historyUrlBase", () => {
-    expect(validateConfig({ historyUrlBase: "https://bucket.example/runs/42" })).toEqual({
+  it("should allow historyBaseUrl", () => {
+    expect(validateConfig({ historyBaseUrl: "https://bucket.example/runs/42" })).toEqual({
       valid: true,
       fields: [],
     });
@@ -562,18 +562,18 @@ describe("resolveConfig", () => {
   });
 
   it("should return the configured history URL base", async () => {
-    const resolved = await resolveConfig({ historyUrlBase: "https://bucket.example/runs/42" });
+    const resolved = await resolveConfig({ historyBaseUrl: "https://bucket.example/runs/42" });
 
-    expect(resolved.historyUrlBase).toBe("https://bucket.example/runs/42");
+    expect(resolved.historyBaseUrl).toBe("https://bucket.example/runs/42");
   });
 
   it("should allow the history URL base to be overridden", async () => {
     const resolved = await resolveConfig(
-      { historyUrlBase: "https://bucket.example/runs/config" },
-      { historyUrlBase: "https://bucket.example/runs/cli" },
+      { historyBaseUrl: "https://bucket.example/runs/config" },
+      { historyBaseUrl: "https://bucket.example/runs/cli" },
     );
 
-    expect(resolved.historyUrlBase).toBe("https://bucket.example/runs/cli");
+    expect(resolved.historyBaseUrl).toBe("https://bucket.example/runs/cli");
   });
 
   it("should not set default known issues path when no known issues policy is configured", async () => {

@@ -47,7 +47,7 @@ import pLimit from "p-limit";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { AllureLocalHistory, createHistory, normalizeHistoryUrlBase, setHistoryDataPointUrl } from "./history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
@@ -156,7 +156,7 @@ export class AllureReport {
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
-  readonly #historyUrlBase: string | undefined;
+  readonly #historyBaseUrl: string | undefined;
   readonly #appendHistory: boolean;
   readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
@@ -191,7 +191,7 @@ export class AllureReport {
       reportFiles,
       realTime,
       historyPath,
-      historyUrlBase,
+      historyBaseUrl,
       historyLimit,
       appendHistory,
       defaultLabels = {},
@@ -247,8 +247,8 @@ export class AllureReport {
 
     this.#categories = normalizeCategoriesConfig(categories);
 
-    this.#historyUrlBase =
-      !this.#allureServiceClient && historyPath && historyUrlBase ? normalizeHistoryUrlBase(historyUrlBase) : undefined;
+    this.#historyBaseUrl =
+      !this.#allureServiceClient && historyPath && historyBaseUrl ? normalizeHistoryBaseUrl(historyBaseUrl) : undefined;
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
@@ -1289,8 +1289,8 @@ export class AllureReport {
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
       const shouldFlattenOutput = outputDirectoryEntries.length === 1;
 
-      if (this.#historyUrlBase) {
-        const historyUrl = new URL(this.#historyUrlBase);
+      if (this.#historyBaseUrl) {
+        const historyUrl = new URL(this.#historyBaseUrl);
 
         if (shouldFlattenOutput) {
           historyUrl.pathname = `${historyUrl.pathname}index.html`;

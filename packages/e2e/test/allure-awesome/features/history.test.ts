@@ -100,7 +100,7 @@ test.describe("history", () => {
   test.describe("with local history and base url configured", () => {
     test.beforeAll(async () => {
       bootstrap = await bootstrapReport({
-        reportConfig: { ...fixtures.reportConfig, historyUrlBase: fixtures.url },
+        reportConfig: { ...fixtures.reportConfig, historyBaseUrl: fixtures.url },
         history: [
           {
             ...fixtures.history[0],

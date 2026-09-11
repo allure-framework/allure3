@@ -391,7 +391,7 @@ describe("run command", () => {
       "run",
       "--known-issues",
       "known.json",
-      "--history-url-base",
+      "--history-base-url",
       "https://bucket.example/runs/42",
       "--",
       "npm",
@@ -405,7 +405,7 @@ describe("run command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      historyUrlBase: "https://bucket.example/runs/42",
+      historyBaseUrl: "https://bucket.example/runs/42",
       resolutions: { knownIssuesPath: "known.json" },
     });
   });

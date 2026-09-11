@@ -8,7 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory, createHistory, normalizeHistoryUrlBase, setHistoryDataPointUrl } from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -617,16 +617,16 @@ describe("local history URLs", () => {
     ["https://bucket.example/runs/42/?token=x", "https://bucket.example/runs/42/?token=x"],
     ["file:///tmp/reports/42", "file:///tmp/reports/42/"],
   ])("should normalize a run-directory base: %s", (input, expected) => {
-    expect(normalizeHistoryUrlBase(input)).toBe(expected);
+    expect(normalizeHistoryBaseUrl(input)).toBe(expected);
   });
 
   it("should reject a relative base", () => {
-    expect(() => normalizeHistoryUrlBase("runs/42")).toThrowError(/Invalid historyUrlBase.*absolute URL/u);
+    expect(() => normalizeHistoryBaseUrl("runs/42")).toThrow(/Invalid historyBaseUrl.*absolute URL/u);
   });
 
   it("should reject a base fragment", () => {
-    expect(() => normalizeHistoryUrlBase("https://bucket.example/runs/42#current")).toThrowError(
-      /Invalid historyUrlBase.*fragment/u,
+    expect(() => normalizeHistoryBaseUrl("https://bucket.example/runs/42#current")).toThrow(
+      /Invalid historyBaseUrl.*fragment/u,
     );
   });
 

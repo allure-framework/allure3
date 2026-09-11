@@ -597,7 +597,7 @@ describe("report", () => {
     });
   });
 
-  it("should validate historyUrlBase only for the effective local provider", async () => {
+  it("should validate historyBaseUrl only for the effective local provider", async () => {
     const root = await mkdtemp(join(tmpdir(), "allure3-history-url-base-validation-"));
 
     try {
@@ -615,17 +615,17 @@ describe("report", () => {
         { plugins: {} },
       );
 
-      expect(() => new AllureReport({ ...localConfig, historyUrlBase: "relative/path" })).toThrow(
-        /Invalid historyUrlBase.*absolute URL/u,
+      expect(() => new AllureReport({ ...localConfig, historyBaseUrl: "relative/path" })).toThrow(
+        /Invalid historyBaseUrl.*absolute URL/u,
       );
       expect(
-        () => new AllureReport({ ...localConfig, historyUrlBase: "https://bucket.example/runs/42#current" }),
-      ).toThrow(/Invalid historyUrlBase.*fragment/u);
-      expect(() => new AllureReport({ ...localConfig, historyUrlBase: "https://bucket.example/runs/42#" })).toThrow(
-        /Invalid historyUrlBase.*fragment/u,
+        () => new AllureReport({ ...localConfig, historyBaseUrl: "https://bucket.example/runs/42#current" }),
+      ).toThrow(/Invalid historyBaseUrl.*fragment/u);
+      expect(() => new AllureReport({ ...localConfig, historyBaseUrl: "https://bucket.example/runs/42#" })).toThrow(
+        /Invalid historyBaseUrl.*fragment/u,
       );
-      expect(() => new AllureReport({ ...noHistoryConfig, historyUrlBase: "relative/path" })).not.toThrow();
-      expect(() => new AllureReport({ ...serviceConfig, historyUrlBase: "relative/path" })).not.toThrow();
+      expect(() => new AllureReport({ ...noHistoryConfig, historyBaseUrl: "relative/path" })).not.toThrow();
+      expect(() => new AllureReport({ ...serviceConfig, historyBaseUrl: "relative/path" })).not.toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }

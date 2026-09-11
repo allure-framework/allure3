@@ -133,7 +133,7 @@ describe("classic command", () => {
       "baz",
       "--history-path",
       "qux",
-      "--history-url-base",
+      "--history-base-url",
       "https://bucket.example/runs/42",
       "./allure-results",
     ]);
@@ -144,7 +144,7 @@ describe("classic command", () => {
       output: "bar",
       resolutions: { knownIssuesPath: "baz" },
       historyPath: "qux",
-      historyUrlBase: "https://bucket.example/runs/42",
+      historyBaseUrl: "https://bucket.example/runs/42",
     });
   });
 

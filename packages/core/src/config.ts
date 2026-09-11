@@ -32,7 +32,7 @@ export interface ConfigOverride {
   port?: Config["port"];
   hideLabels?: Config["hideLabels"];
   historyPath?: Config["historyPath"];
-  historyUrlBase?: Config["historyUrlBase"];
+  historyBaseUrl?: Config["historyBaseUrl"];
   historyLimit?: Config["historyLimit"];
   resolutions?: Pick<NonNullable<Config["resolutions"]>, "knownIssuesPath">;
   plugins?: Config["plugins"];
@@ -166,7 +166,7 @@ export const validateConfig = (config: Config) => {
     "port",
     "hideLabels",
     "historyPath",
-    "historyUrlBase",
+    "historyBaseUrl",
     "historyLimit",
     "resolutions",
     "plugins",
@@ -326,7 +326,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const port = override.port ?? config.port ?? undefined;
   const hideLabels = override.hideLabels ?? config.hideLabels;
   const historyPath = override.historyPath ?? config.historyPath;
-  const historyUrlBase = override.historyUrlBase ?? config.historyUrlBase;
+  const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
   const configuredKnownIssuesPath = override.resolutions?.knownIssuesPath ?? config.resolutions?.knownIssuesPath;
@@ -381,7 +381,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     appendHistory,
     historyLimit,
     historyPath: historyPath ? resolve(historyPath) : undefined,
-    historyUrlBase,
+    historyBaseUrl,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},

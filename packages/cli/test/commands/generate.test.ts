@@ -120,7 +120,7 @@ describe("generate command", () => {
       "foo",
       "--report-name",
       "bar",
-      "--history-url-base",
+      "--history-base-url",
       "https://bucket.example/runs/42",
       "baz",
     ]);
@@ -133,7 +133,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      historyUrlBase: "https://bucket.example/runs/42",
+      historyBaseUrl: "https://bucket.example/runs/42",
       resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(

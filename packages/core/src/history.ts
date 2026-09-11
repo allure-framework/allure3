@@ -77,22 +77,22 @@ const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number>
   );
 };
 
-export const normalizeHistoryUrlBase = (historyUrlBase: string): string => {
+export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
   let url: URL;
 
   try {
-    url = new URL(historyUrlBase);
+    url = new URL(historyBaseUrl);
   } catch (cause) {
-    throw new Error(`Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: expected an absolute URL`, { cause });
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected an absolute URL`, { cause });
   }
 
   if (url.href.includes("#")) {
-    throw new Error(`Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: fragments are not allowed`);
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: fragments are not allowed`);
   }
 
   if (/\.html\/?$/iu.test(url.pathname)) {
     throw new Error(
-      `Invalid historyUrlBase ${JSON.stringify(historyUrlBase)}: expected a base URL, not an HTML document`,
+      `Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected a base URL, not an HTML document`,
     );
   }
 
