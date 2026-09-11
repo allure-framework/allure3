@@ -36,6 +36,12 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
+  it("does not expose retry identity under the legacy historyId name", () => {
+    const result = convertTestResult(createTestResult({ retryHash: "retry-hash" }));
+
+    expect(result).not.toHaveProperty("historyId");
+  });
+
   it("converts markdown description to html when descriptionHtml is missing", () => {
     const result = convertTestResult(createTestResult({ description: "**bold** text" }));
 

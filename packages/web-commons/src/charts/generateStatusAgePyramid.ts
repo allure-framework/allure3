@@ -33,9 +33,7 @@ export const generateStatusAgePyramid = (props: {
   const { options, storeData } = props;
   const { limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const { historyDataPoints, testResults } = storeData;
-
   const currentReportTimestamp = testResults.reduce((acc, testResult) => Math.max(acc, testResult.stop ?? 0), 0);
-
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit).sort(
     // Sort by timestamp ascending, so earliest first and latest last
     (a, b) => a.timestamp - b.timestamp,
@@ -56,21 +54,20 @@ export const generateStatusAgePyramid = (props: {
     };
   }
 
-  const currTrIds = new Set(testResults.map((tr) => tr.historyId ?? tr.id));
-
+  const currTrIds = new Set(testResults.map((tr) => tr.retryHash ?? tr.id));
   const hdps = limitedHistoryPoints.map((datapoint) => ({
     ...datapoint,
     testResults: Object.values(datapoint.testResults).reduce(
       (acc, testResult) => {
-        if (!testResult.historyId) {
+        if (!testResult.retryHash) {
           return acc;
         }
 
-        const isInCurrentRun = currTrIds.has(testResult.historyId);
+        const isInCurrentRun = currTrIds.has(testResult.retryHash);
 
         // Skip all tests that are not in the current run
         if (isInCurrentRun) {
-          acc[testResult.historyId] = testResult;
+          acc[testResult.retryHash] = testResult;
         }
 
         return acc;
@@ -78,7 +75,6 @@ export const generateStatusAgePyramid = (props: {
       {} as Record<string, HistoryTestResult>,
     ),
   }));
-
   const dataPoints = [
     ...hdps.map((hdp) => ({
       ...hdp,
@@ -87,7 +83,7 @@ export const generateStatusAgePyramid = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
+          acc[testResult.retryHash ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,
@@ -101,7 +97,6 @@ export const generateStatusAgePyramid = (props: {
   dataPoints.forEach((dp, index, dps) => {
     const { testResults: trs } = dp;
     const historyAfter = dps.slice(index, dps.length - 1);
-
     const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
 
     for (const cTr of currentTrs) {
@@ -113,7 +108,7 @@ export const generateStatusAgePyramid = (props: {
       }
 
       const historyAfterTrsStatuses: (TestStatus | undefined)[] = historyAfter.map(
-        (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
+        (hdp) => hdp.testResults[cTr.retryHash!]?.status ?? undefined,
       );
 
       // If the test status changed in a later run, skip it

@@ -570,7 +570,7 @@ console.error("emitted newly added test diagnostic");
       const expectedResult = {
         ...baseResult,
         uuid: "agent-expect-test-uuid",
-        historyId: "agent-expect-test-history",
+        retryHash: "agent-expect-test-history",
         name: "reports the newly added test",
         fullName: expectedFullName,
         status: "passed",
@@ -735,7 +735,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureAResult = {
         ...baseResult,
         uuid: "feature-a-uuid",
-        historyId: "feature-a-history",
+        retryHash: "feature-a-history",
         name: "feature A",
         fullName: "suite feature A",
         status: "passed",
@@ -748,7 +748,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureBResult = {
         ...baseResult,
         uuid: "feature-b-uuid",
-        historyId: "feature-b-history",
+        retryHash: "feature-b-history",
         name: "feature B",
         fullName: "suite feature B",
         status: "passed",
@@ -846,7 +846,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await writeJsonl(join(previousManifestDir, "tests.jsonl"), [
         {
           environment_id: "default",
-          history_id: "feature-a-history",
+          retry_hash: "feature-a-history",
           test_result_id: "feature-a-tr",
           full_name: "suite feature A",
           package: "suite",
@@ -870,7 +870,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         },
         {
           environment_id: "default",
-          history_id: "feature-b-history",
+          retry_hash: "feature-b-history",
           test_result_id: "feature-b-tr",
           full_name: "suite feature B",
           package: "suite",

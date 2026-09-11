@@ -598,7 +598,7 @@ describe("createHistory", () => {
       {
         id: "test-result-id",
         name: "test result",
-        historyId: "history-id",
+        retryHash: "retry-hash",
         status: "passed",
         labels: [],
       } as TestResult,
@@ -607,6 +607,6 @@ describe("createHistory", () => {
     const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
 
     expect(history.url).toBe(remoteUrl);
-    expect(history.testResults["history-id"].url).toBe(remoteUrl);
+    expect(history.testResults["retry-hash"].url).toBe(remoteUrl);
   });
 });

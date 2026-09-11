@@ -64,7 +64,7 @@ const buildGrouping = (
     id?: string;
     name?: string;
     error?: TestResult["error"];
-    historyId?: string;
+    retryHash?: string;
   },
   category: CategoryDefinition,
 ): UploadCategory["grouping"] => {
@@ -81,7 +81,7 @@ const buildGrouping = (
   }
 
   if (category.groupEnvironments) {
-    const historyValue = tr.historyId ?? tr.id ?? EMPTY_VALUE;
+    const historyValue = tr.retryHash ?? tr.id ?? EMPTY_VALUE;
     const historyName = tr.name?.trim() ? tr.name : historyValue;
 
     grouping.push({
