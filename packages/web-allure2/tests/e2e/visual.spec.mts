@@ -36,6 +36,7 @@ const settlePage = async (page: Page): Promise<void> => {
 
 test.describe("Visual Parity", () => {
   test.skip(process.platform === "win32", "Allure 2.46.0 does not provide Windows visual baselines");
+  test.use({ timezoneId: "UTC" });
 
   test("captures the overview dashboard", async ({ page }) => {
     await openReport(page, {

@@ -58,7 +58,9 @@ class PieChartView extends BaseChartView {
   getChartData() {
     const total = this.statistic.total || 0;
     const stats = this.statistic;
-    this.data = values
+    // Preserve the report's slice order while excluding totals and other metadata.
+    this.data = Object.keys(stats)
+      .filter((key) => values.some((status) => status === key))
       .map((key) => ({
         name: key.toUpperCase(),
         value: stats[key] || 0,
