@@ -7,8 +7,10 @@ import {
   QualityGate,
   QualityGateState,
   convertQualityGateResultsToTestErrors,
+  filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "../../src/qualityGate/qualityGate.js";
+import { minTestsCountRule } from "../../src/qualityGate/rules.js";
 
 const createTestResult = (id: string, status: TestStatus, historyId?: string, isRetry = false) =>
   ({
@@ -18,6 +20,9 @@ const createTestResult = (id: string, status: TestStatus, historyId?: string, is
     historyId,
     isRetry,
   }) as TestResult;
+// default rule messages are highlighted with ANSI codes whenever the terminal supports colors
+const ansiPattern = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
+const stripAnsi = (value: string) => value.replaceAll(ansiPattern, "");
 const createValidationResult = (
   success: boolean,
   rule: string,
@@ -40,6 +45,19 @@ beforeEach(async () => {
   await label("coverage", "quality-gates");
 });
 
+describe("filterFailedQualityGateResults", () => {
+  it("should keep failed results only", () => {
+    const failed = createValidationResult(false, "maxFailures", 2, 1, "failed");
+    const passed = createValidationResult(true, "minTestsCount", 2, 1, "passed");
+
+    expect(filterFailedQualityGateResults([passed, failed])).toEqual([failed]);
+  });
+
+  it("should return empty array when every rule has been passed", () => {
+    expect(filterFailedQualityGateResults([createValidationResult(true, "maxFailures", 0, 1, "passed")])).toEqual([]);
+  });
+});
+
 describe("stringifyQualityGateResults", () => {
   it("should return empty string for empty results", () => {
     const results: QualityGateValidationResult[] = [];
@@ -57,6 +75,27 @@ describe("stringifyQualityGateResults", () => {
     expect(result).toContain("Quality Gate failed with following issues:");
     expect(result).toContain("Maximum number of failed tests 2 is more, than expected 1");
     expect(result).toContain("maxFailures");
+    expect(result).toContain("1 quality gate rules have been failed.");
+  });
+
+  it("should return empty string when every rule has been passed", () => {
+    const results: QualityGateValidationResult[] = [
+      createValidationResult(true, "maxFailures", 0, 1, "The number of failed tests 0 is within the threshold 1"),
+    ];
+
+    expect(stringifyQualityGateResults(results)).toBe("");
+  });
+
+  it("should omit passed rules from the formatted output", () => {
+    const results: QualityGateValidationResult[] = [
+      createValidationResult(true, "minTestsCount", 2, 1, "The total number of tests 2 meets the threshold 1"),
+      createValidationResult(false, "maxFailures", 2, 1, "Maximum number of failed tests 2 is more, than expected 1"),
+    ];
+    const result = stringifyQualityGateResults(results);
+
+    expect(result).toContain("Maximum number of failed tests 2 is more, than expected 1");
+    expect(result).not.toContain("The total number of tests 2 meets the threshold 1");
+    expect(result).not.toContain("minTestsCount");
     expect(result).toContain("1 quality gate rules have been failed.");
   });
 
@@ -96,6 +135,14 @@ describe("convertQualityGateResultsToTestErrors", () => {
       actual: 2,
       expected: 1,
     });
+  });
+
+  it("should not convert passed validation results", () => {
+    const results: QualityGateValidationResult[] = [
+      createValidationResult(true, "maxFailures", 0, 1, "The number of failed tests 0 is within the threshold 1"),
+    ];
+
+    expect(convertQualityGateResultsToTestErrors(results)).toEqual([]);
   });
 
   it("should convert multiple validation results to test errors", () => {
@@ -271,10 +318,11 @@ describe("QualityGate", () => {
       );
     });
 
-    it("should validate test results against rules and return empty array when all rules pass", async () => {
+    it("should report passed rules with their success message", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
         message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
+        successMessage: ({ actual, expected }) => `Mock rule passed with ${actual} vs ${expected}`,
         validate: async () => ({
           success: true,
           actual: 2,
@@ -292,8 +340,76 @@ describe("QualityGate", () => {
         trs: testResults,
       });
 
-      expect(results).toEqual([]);
+      expect(results).toHaveLength(1);
+      expect(results[0].success).toBe(true);
+      expect(results[0].rule).toBe("mockRule");
+      expect(results[0].actual).toBe(2);
+      expect(results[0].expected).toBe(3);
+      expect(results[0].message).toBe("Mock rule passed with 2 vs 3");
       expect(fastFailed).toBe(false);
+    });
+
+    it("should fall back to a generic message when a passed rule has no success message", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
+        validate: async () => ({
+          success: true,
+          actual: 2,
+          testResults: [],
+        }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 3 }],
+        use: [mockRule],
+      });
+
+      const { results } = await qualityGate.validate({
+        trs: [createTestResult("1", "passed")],
+      });
+
+      expect(results).toHaveLength(1);
+      expect(stripAnsi(results[0].message)).toBe("The rule has been passed; actual 2, expected 3");
+    });
+
+    it("should report both passed and failed rules of the same config", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0, minTestsCount: 1 }],
+      });
+
+      const { results, fastFailed } = await qualityGate.validate({
+        trs: [createTestResult("1", "failed")],
+      });
+
+      expect(results).toHaveLength(2);
+      expect(results.map(({ rule, success }) => ({ rule, success }))).toEqual([
+        { rule: "maxFailures", success: false },
+        { rule: "minTestsCount", success: true },
+      ]);
+      expect(fastFailed).toBe(false);
+    });
+
+    it("shouldn't fast fail because of a passed rule", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => "failed",
+        validate: async () => ({
+          success: true,
+          actual: 0,
+          testResults: [],
+        }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 0, fastFail: true }, { minTestsCount: 1 }],
+        use: [mockRule, minTestsCountRule],
+      });
+
+      const { results, fastFailed } = await qualityGate.validate({
+        trs: [createTestResult("1", "passed")],
+      });
+
+      expect(fastFailed).toBe(false);
+      expect(results.map(({ rule }) => rule)).toEqual(["mockRule", "minTestsCount"]);
     });
 
     it("shouldn't call subsequent rulesets when a rule with fastFail: true fails", async () => {
@@ -360,7 +476,7 @@ describe("QualityGate", () => {
         trs: testResults,
       });
 
-      expect(results).toEqual([]);
+      expect(results).toEqual([expect.objectContaining({ rule: "maxFailures", success: true, actual: 0 })]);
       expect(fastFailed).toBe(false);
     });
 
@@ -395,7 +511,7 @@ describe("QualityGate", () => {
         trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
       });
 
-      expect(results).toEqual([]);
+      expect(results).toEqual([expect.objectContaining({ rule: "minTestsCount", success: true })]);
       expect(state.getResult("minTestsCount")).toBe(3);
     });
 
@@ -794,7 +910,7 @@ describe("QualityGate", () => {
         trs: testResults,
       });
 
-      expect(result.results).toHaveLength(0);
+      expect(result.results).toEqual([expect.objectContaining({ rule: "mockRuleNoState", success: true })]);
     });
 
     it("should throw error for unknown rule", async () => {

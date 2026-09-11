@@ -34,8 +34,8 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
 };
 
 export const TrError: FunctionalComponent<
-  TestError & { className?: string; status?: TestStatus; showMessage?: boolean }
-> = ({ className, message = "", trace, actual, expected, status, showMessage = true, ...rest }) => {
+  TestError & { className?: string; status?: TestStatus; showMessage?: boolean; title?: string }
+> = ({ className, message = "", trace, actual, expected, status, showMessage = true, title, ...rest }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
@@ -65,7 +65,7 @@ export const TrError: FunctionalComponent<
               bold
               className={clsx(styles["test-result-error-text"], styles[`tr-color-${status}`])}
             >
-              {t("error")}
+              {title ?? t("error")}
             </Text>
             <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
               <IconButton

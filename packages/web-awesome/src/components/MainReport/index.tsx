@@ -193,12 +193,14 @@ const MainReport = () => {
                     const currentEnvResults = currentEnvironment.value
                       ? (results[currentEnvironment.value] ?? [])
                       : Object.values(results).flatMap((envResults) => envResults);
+                    // the counter reports every evaluated rule and turns red as soon as one of them fails
+                    const hasFailures = currentEnvResults.some(({ success }) => !success);
 
                     return (
                       <RootTab id={ReportRootTab.QualityGate}>
                         {t("qualityGates")}{" "}
                         <Counter
-                          status={currentEnvResults.length > 0 ? "failed" : undefined}
+                          status={currentEnvResults.length === 0 ? undefined : hasFailures ? "failed" : "passed"}
                           count={currentEnvResults.length}
                         />
                       </RootTab>
