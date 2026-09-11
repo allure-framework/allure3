@@ -1,0 +1,74 @@
+:root[data-color-scheme="nord"] {
+  --color-bg-canvas: #2e3440;
+  --color-bg-primary: #242933;
+  --color-bg-secondary: #2e3440;
+  --color-bg-raised: #3b4252;
+  --color-bg-neutral: #4c566a;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-inverse-primary: #1a1e26;
+  --color-bg-inverse-raised: #1f2430;
+
+  --color-text-primary: #eceff4;
+  --color-text-secondary: #d0d8e8;
+  --color-text-muted: #66748a;
+  --color-text-inverse: #2e3440;
+  --color-text-on-accent: #2e3440;
+  --color-icon-primary: #d0d8e8;
+  --color-icon-secondary: #8896b0;
+  --color-icon-muted: #677080;
+
+  --color-border-subtle: rgba(76, 86, 106, 0.18);
+  --color-border-default: rgba(76, 86, 106, 0.35);
+  --color-border-medium: rgba(76, 86, 106, 0.5);
+  --color-border-control: rgba(76, 86, 106, 0.42);
+  --color-border-strong: #c0c8d8;
+
+  --color-control-bg: rgba(76, 86, 106, 0.2);
+  --color-control-bg-hover: rgba(76, 86, 106, 0.32);
+  --color-control-bg-active: rgba(76, 86, 106, 0.42);
+  --color-control-bg-ghost: transparent;
+  --color-control-bg-ghost-hover: rgba(76, 86, 106, 0.12);
+  --color-control-bg-ghost-active: rgba(76, 86, 106, 0.2);
+  --color-scrollbar: #4c566a;
+
+  --color-nav-item-bg-hover: rgba(76, 86, 106, 0.12);
+  --color-nav-item-bg-active: rgba(136, 192, 208, 0.14);
+  --color-nav-item-bg-active-hover: rgba(136, 192, 208, 0.22);
+  --color-nav-item-text-active: #88c0d0;
+  --color-nav-item-icon-active: #88c0d0;
+  --color-row-bg-hover: rgba(76, 86, 106, 0.1);
+  --color-row-bg-selected: rgba(76, 86, 106, 0.2);
+  --color-row-bg-selected-hover: rgba(76, 86, 106, 0.28);
+  --color-sorter-fg: #4c566a;
+  --color-sorter-fg-hover: #c0c8d8;
+  --color-sorter-fg-active: #88c0d0;
+
+  --color-link-text: #81a1c1;
+  --color-link-text-hover: #81a1c1;
+  --color-link-text-active: #6991b1;
+
+  --color-intent-primary-bg: #88c0d0;
+  --color-intent-primary-bg-hover: #78b0c0;
+  --color-intent-primary-bg-active: #68a0b0;
+  --color-intent-primary-text: #88c0d0;
+  --color-intent-primary-on-bg: #2e3440;
+
+  --color-tag-default-bg: rgba(76, 86, 106, 0.2);
+  --color-tag-default-text: #d8dee9;
+  --color-tag-secondary-bg: #3b4252;
+  --color-tag-secondary-text: #c0c8d8;
+
+  --color-syntax-number: #b48ead;
+  --color-syntax-property: #d8dee9;
+  --color-syntax-string: #a3be8c;
+  --color-syntax-keyword: #81a1c1;
+  --color-syntax-function: #88c0d0;
+  --color-syntax-type: #8fbcbb;
+  --color-syntax-muted-accent: #b48ead;
+
+  --color-decorative-1-text: #b48ead;
+  --color-decorative-2-text: #bf616a;
+  --color-decorative-3-text: #d08770;
+  --color-decorative-4-text: #ebcb8b;
+  --color-decorative-5-text: #8fbcbb;
+}
