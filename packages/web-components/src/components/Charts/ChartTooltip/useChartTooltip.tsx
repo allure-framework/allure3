@@ -66,7 +66,8 @@ export const useChartTooltip = (text: string, tooltipText = text) => {
 
   return {
     triggerProps: {
-      "tabIndex": 0,
+      // SVG attribute names are case-sensitive; lowercase also works for HTML targets.
+      "tabindex": 0,
       "data-chart-tooltip-trigger": true,
       "aria-describedby": id,
       "onMouseEnter": (event: MouseEvent) => {

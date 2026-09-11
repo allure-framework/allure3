@@ -140,6 +140,8 @@ for (const scenario of scenarios) {
 
           await target.focus();
 
+          await expect(target).toBeFocused();
+
           await expect(page.getByRole("tooltip")).toContainText(
             scenario.name === "all excluded"
               ? "There are no passed, failed, or broken tests."
@@ -155,6 +157,8 @@ for (const scenario of scenarios) {
           await expect(layer).toBeVisible();
 
           await layer.focus();
+
+          await expect(layer).toBeFocused();
 
           await expect(page.getByRole("tooltip")).toContainText(scenario.rate);
 
