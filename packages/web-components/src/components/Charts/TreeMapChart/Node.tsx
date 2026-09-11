@@ -3,6 +3,8 @@ import { useTheme } from "@nivo/theming";
 import type { NodeProps } from "@nivo/treemap";
 import { animated, to } from "@react-spring/web";
 
+import { useChartTooltip } from "../ChartTooltip/useChartTooltip.js";
+
 export const TreeMapNodeComponent = <Datum extends object>({
   node,
   animatedProps,
@@ -12,7 +14,8 @@ export const TreeMapNodeComponent = <Datum extends object>({
   labelSkipSize,
 }: NodeProps<Datum>) => {
   const theme = useTheme();
-
+  const text = (node.data as { successRateText?: string }).successRateText;
+  const { triggerProps, tooltip } = useChartTooltip(text ?? "");
   const showLabel =
     enableLabel && node.isLeaf && (labelSkipSize === 0 || Math.min(node.width, node.height) > labelSkipSize);
 
@@ -30,13 +33,15 @@ export const TreeMapNodeComponent = <Datum extends object>({
         strokeWidth={borderWidth}
         stroke={node.borderColor}
         fillOpacity={node.opacity}
-        onMouseEnter={node.onMouseEnter}
         onMouseMove={node.onMouseMove}
-        onMouseLeave={node.onMouseLeave}
         onClick={node.onClick}
+        {...(text ? triggerProps : { onMouseEnter: node.onMouseEnter, onMouseLeave: node.onMouseLeave })}
+        aria-label={text}
+        role={text ? "img" : undefined}
         rx={6}
         ry={6}
       />
+      {text && tooltip}
       {showLabel && (
         <Text
           data-testid={`label.${node.id}`}

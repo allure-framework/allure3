@@ -57,7 +57,13 @@ export const TreeMapChart: FunctionalComponent<
   }
 
   return (
-    <div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }} className={styles.treeMapChart}>
+    <div
+      role={"successRateText" in data ? "group" : "img"}
+      aria-label={rootAriaLabel}
+      tabIndex={"successRateText" in data ? undefined : 0}
+      style={{ width, height }}
+      className={styles.treeMapChart}
+    >
       <ResponsiveTreeMapChart<TreeMapNode>
         data={data}
         parentLabel={parentLabel}

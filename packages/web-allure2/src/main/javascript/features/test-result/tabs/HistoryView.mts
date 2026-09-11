@@ -1,3 +1,5 @@
+import { getSuccessRate } from "@allurereport/core-api";
+
 import "./HistoryView.scss";
 import { defineMountableElement } from "../../../core/view/elementView.mts";
 import { renderHistory } from "./renderHistory.mts";
@@ -12,12 +14,12 @@ type HistoryData = NonNullable<NonNullable<TestResult["extra"]>["history"]>;
 
 const formatNumber = (n: number): string => (Math.floor(n * 100) / 100).toString();
 
-const getSuccessRate = (history: HistoryData | null | undefined): string => {
+const getHistorySuccessRate = (history: HistoryData | null | undefined): string => {
   if (!history || !history.statistic || !history.statistic.total) {
     return "unknown";
   }
-  const { passed, total } = history.statistic;
-  return `${formatNumber(((passed || 0) / total) * 100)}%`;
+
+  return `${formatNumber(getSuccessRate(history.statistic) * 100)}%`;
 };
 
 const HistoryView = (options: HistoryOptions) => {
@@ -32,7 +34,7 @@ const HistoryView = (options: HistoryOptions) => {
         renderHistory({
           cls: "test-result-history",
           history,
-          successRate: getSuccessRate(history),
+          successRate: getHistorySuccessRate(history),
         }),
       );
       return el;

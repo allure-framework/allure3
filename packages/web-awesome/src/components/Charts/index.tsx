@@ -171,6 +171,7 @@ const getChartWidgetByType = (
       return (
         <TreeMapChartWidget
           chartType={ChartType.SuccessRateDistribution}
+          i18n={(key, values) => t(`successRate.${key}`, values)}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -195,6 +196,7 @@ const getChartWidgetByType = (
 
       return (
         <TestingPyramidWidget
+          i18n={(key, values) => t(`successRate.${key}`, values)}
           title={chartData.title}
           data={isDataEmpty ? [] : chartData.data}
           translations={{ "no-results": empty("no-results") }}

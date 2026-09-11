@@ -446,6 +446,19 @@
       "groups": {
         "other": "Inne"
       }
+    },
+    "successRate": {
+      "successRate": "Współczynnik powodzenia: {{rate}}",
+      "successRateDescription": "Obliczany na podstawie testów zaliczonych, niezaliczonych i uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone.",
+      "noResults": "Brak wyników testów.",
+      "noEligibleResults": "Brak testów zaliczonych, niezaliczonych lub uszkodzonych. Testy pominięte i o nieznanym statusie są wykluczone ze współczynnika powodzenia.",
+      "slice_one": "{{count}} test ({{percent}}% wszystkich testów)",
+      "slice_other": "{{count}} testów ({{percent}}% wszystkich testów)",
+      "layer": "Warstwa: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% wszystkich testów)",
+      "slice": "{{count}} testów ({{percent}}% wszystkich testów)",
+      "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
+      "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
     }
   },
   "transitions": {

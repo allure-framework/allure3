@@ -5,8 +5,10 @@
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 12px;
-  max-width: 600px;
-  min-width: max-content;
+  max-width: min(32rem, calc(100vw - 16px));
+  width: max-content;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .custom-tooltip--top {
@@ -35,4 +37,18 @@
   top: 50%;
   transform: translateY(-50%);
   margin-top: 4px;
+}
+
+:global([data-chart-tooltip-trigger]:focus-visible) {
+  outline: 2px solid var(--color-intent-primary-bg);
+  outline-offset: 3px;
+}
+
+:global([data-chart-tooltip] .tooltip-content) {
+  line-height: 1.25;
+  text-align: center;
+}
+:global([data-chart-tooltip]) {
+  text-align: center;
+  line-height: 1.25;
 }

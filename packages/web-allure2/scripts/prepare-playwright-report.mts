@@ -24,6 +24,8 @@ export interface ReportRequest {
 }
 
 export const DEFAULT_REPORTS: ReportRequest[] = [
+  { fixture: "success-rate", mode: REPORT_MODES.DIRECTORY },
+  { fixture: "success-rate", mode: REPORT_MODES.SINGLE_FILE },
   { fixture: "ui-demo", mode: REPORT_MODES.SINGLE_FILE },
   { fixture: "ui-demo", mode: REPORT_MODES.DIRECTORY },
   { fixture: "detected-links", mode: REPORT_MODES.SINGLE_FILE },
@@ -82,6 +84,32 @@ const prepareFixtureInput = (fixture: string): string => {
   const sourceDir = getFixtureInputDir(fixture);
   const inputDir = path.join(e2eInputRoot, fixture);
   fs.rmSync(inputDir, { force: true, recursive: true });
+
+  if (fixture === "success-rate") {
+    fs.mkdirSync(inputDir, { recursive: true });
+
+    for (const [status, count] of Object.entries({ passed: 493, failed: 45, skipped: 95 })) {
+      for (let index = 0; index < count; index++) {
+        const uuid = `${status}-${index}`;
+
+        fs.writeFileSync(
+          path.join(inputDir, `${uuid}-result.json`),
+          JSON.stringify({
+            uuid,
+            name: uuid,
+            fullName: uuid,
+            historyId: uuid,
+            status,
+            start: 1_700_000_000_000 + index,
+            stop: 1_700_000_000_010 + index,
+          }),
+        );
+      }
+    }
+
+    return inputDir;
+  }
+
   fs.cpSync(sourceDir, inputDir, { recursive: true });
 
   const historyDir = path.join(sourceDir, "history");
@@ -104,11 +132,12 @@ export const getReportIndexPath = ({ fixture, mode }: ReportRequest): string =>
 export const prepareSingleReport = ({ fixture, mode }: ReportRequest): string => {
   const ensuredMode = ensureMode(mode);
   const sourceDir = getFixtureInputDir(fixture);
-  if (!fs.existsSync(sourceDir)) {
+
+  if (fixture !== "success-rate" && !fs.existsSync(sourceDir)) {
     throw new Error(`Fixture "${fixture}" does not exist at ${sourceDir}`);
   }
-  const inputDir = prepareFixtureInput(fixture);
 
+  const inputDir = prepareFixtureInput(fixture);
   const outputDir = getReportOutputDir({ fixture, mode: ensuredMode });
   fs.rmSync(outputDir, { force: true, recursive: true });
 

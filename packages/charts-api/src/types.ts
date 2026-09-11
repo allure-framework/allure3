@@ -164,6 +164,7 @@ export interface TestingPyramidChartData {
     layer: string;
     testCount: number;
     successRate: number;
+    eligibleCount?: number;
     percentage: number;
   }[];
 }

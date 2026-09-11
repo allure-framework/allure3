@@ -508,6 +508,19 @@
       "groups": {
         "other": "Прочее"
       }
+    },
+    "successRate": {
+      "successRate": "Доля успешных: {{rate}}",
+      "successRateDescription": "Рассчитывается по успешным, упавшим и сломанным тестам. Пропущенные тесты и тесты с неизвестным статусом исключены.",
+      "noResults": "Нет результатов тестов.",
+      "noEligibleResults": "Нет успешных, упавших или сломанных тестов. Пропущенные тесты и тесты с неизвестным статусом исключены из расчёта доли успешных.",
+      "slice_one": "{{count}} тест ({{percent}}% всех тестов)",
+      "slice_other": "{{count}} тестов ({{percent}}% всех тестов)",
+      "layer": "Уровень: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% всех тестов)",
+      "slice": "{{count}} тестов ({{percent}}% всех тестов)",
+      "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
+      "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
     }
   },
   "transitions": {

@@ -118,5 +118,18 @@
   },
   "nav": {
     "comingSoon": "近日公開"
+  },
+  "charts": {
+    "successRate": {
+      "successRate": "成功率: {{rate}}",
+      "successRateDescription": "成功、失敗、異常終了のテストから算出します。スキップされたテストとステータス不明のテストは除外します。",
+      "noResults": "テスト結果はありません。",
+      "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。",
+      "slice_one": "{{count}} 件のテスト（全テストの {{percent}}%）",
+      "slice_other": "{{count}} 件のテスト（全テストの {{percent}}%）",
+      "layer": "レイヤー: {{layer}}",
+      "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
+      "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
+    }
   }
 }
