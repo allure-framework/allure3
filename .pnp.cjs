@@ -1159,7 +1159,7 @@ const RAW_RUNTIME_STATE =
           ["d3-brush", "npm:3.0.0"],\
           ["d3-format", "npm:3.1.0"],\
           ["d3-interpolate", "npm:3.0.1"],\
-          ["d3-regression", "npm:1.3.10"],\
+          ["d3-regression", "npm:2.2.0"],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-selection", "npm:3.0.0"],\
           ["d3-shape", "npm:3.2.0"],\
@@ -15182,10 +15182,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["d3-regression", [\
-      ["npm:1.3.10", {\
-        "packageLocation": "./.yarn/cache/d3-regression-npm-1.3.10-44bfa2f85d-c052c3a4d8.zip/node_modules/d3-regression/",\
+      ["npm:2.2.0", {\
+        "packageLocation": "./.yarn/cache/d3-regression-npm-2.2.0-7abc6b7f95-92f7a8ae22.zip/node_modules/d3-regression/",\
         "packageDependencies": [\
-          ["d3-regression", "npm:1.3.10"]\
+          ["d3-regression", "npm:2.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
