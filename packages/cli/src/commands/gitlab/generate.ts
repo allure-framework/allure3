@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { cwd as processCwd } from "node:process";
 
 import { readConfig } from "@allurereport/core";
@@ -61,7 +62,8 @@ export class GitlabGenerateCommand extends Command {
   async execute() {
     const cwd = processCwd();
     const output = this.output ?? "allure-report";
-    const config = await readConfig(cwd, this.config, {
+    const configPath = this.config && existsSync(this.config) ? this.config : undefined;
+    const config = await readConfig(cwd, configPath, {
       output,
       name: this.reportName,
       historyBaseUrl: this.historyBaseUrl,
