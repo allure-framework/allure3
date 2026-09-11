@@ -94,6 +94,19 @@ const statisticByTestResults = async (
 const isActiveStatisticTestResult = (testResult: TestResult) =>
   testResult.resolution !== "muted" && testResult.resolution !== "accepted";
 
+type PluginPerformance = {
+  measure<T>(name: string, fn: () => Promise<T>): Promise<T>;
+  count(
+    name: string,
+    value?: number,
+    metadata?: { title: string; unit: string; group: string; groupTitle: string; better: "neutral" },
+  ): void;
+};
+
+type PerfAwarePluginContext = PluginContext & {
+  perf?: PluginPerformance;
+};
+
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
@@ -109,66 +122,124 @@ export class AwesomePlugin implements Plugin {
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const perf = (context as PerfAwarePluginContext).perf;
+    const measure = <T>(name: string, fn: () => Promise<T>) => perf?.measure(name, fn) ?? fn();
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
-    const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const executor = await store.metadataByKey<ReportExecutorInfo>("allure2_executor");
-    const attachments = await store.allAttachments();
-    const allTrs = await store.allTestResults({ includeRetries: true, filter });
-    const runSummary = getRunSummary(allTrs);
-    const statistics = await store.testsStatistic(filter);
-    const environments = await store.allEnvironmentIdentities();
-    const envStatistics = new Map<string, Statistic>();
-    const pieStatistics = await statisticByTestResults(store, allTrs.filter(isActiveStatisticTestResult));
-    const pieEnvStatistics = new Map<string, Statistic>();
-    const allTestEnvGroups = await store.allTestEnvGroups();
-    const globalAttachments = await store.allGlobalAttachments();
-    const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
-    const globalExitCode = await store.globalExitCode();
-    const globalErrors = await store.allGlobalErrors();
-    const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
-    const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
+    const {
+      environmentItems,
+      executor,
+      attachments,
+      allTrs,
+      runSummary,
+      statistics,
+      environments,
+      allTestEnvGroups,
+      globalAttachments,
+      globalAttachmentsByEnv,
+      globalExitCode,
+      globalErrors,
+      globalErrorsByEnv,
+      qualityGateResults,
+    } = await measure("readData", async () => {
+      const testResults = await store.allTestResults({ includeRetries: true, filter });
+
+      return {
+        environmentItems: await store.metadataByKey<EnvironmentItem[]>("allure_environment"),
+        executor: await store.metadataByKey<ReportExecutorInfo>("allure2_executor"),
+        attachments: await store.allAttachments(),
+        allTrs: testResults,
+        runSummary: getRunSummary(testResults),
+        statistics: await store.testsStatistic(filter),
+        environments: await store.allEnvironmentIdentities(),
+        allTestEnvGroups: await store.allTestEnvGroups(),
+        globalAttachments: await store.allGlobalAttachments(),
+        globalAttachmentsByEnv: await store.allGlobalAttachmentsByEnv(),
+        globalExitCode: await store.globalExitCode(),
+        globalErrors: await store.allGlobalErrors(),
+        globalErrorsByEnv: await store.allGlobalErrorsByEnv(),
+        qualityGateResults: await store.qualityGateResultsByEnvironmentId(),
+      };
+    });
+    if (perf && attachments.length > 0) {
+      perf.count("attachments.count", attachments.length, {
+        title: "Attachments",
+        unit: "attachments",
+        group: "workload",
+        groupTitle: "Workload",
+        better: "neutral",
+      });
+      perf.count(
+        "attachmentBytes",
+        attachments.reduce(
+          (total, attachment) => total + ("contentLength" in attachment ? (attachment.contentLength ?? 0) : 0),
+          0,
+        ),
+        {
+          title: "Attachment bytes",
+          unit: "bytes",
+          group: "workload",
+          groupTitle: "Workload",
+          better: "neutral",
+        },
+      );
+    }
     const envIdByTrId = new Map<string, string>();
 
-    await Promise.all(
-      allTrs.map(async (tr) => {
-        const environmentId = await store.environmentIdByTrId(tr.id);
+    await measure("environmentMap", async () => {
+      await Promise.all(
+        allTrs.map(async (tr) => {
+          const environmentId = await store.environmentIdByTrId(tr.id);
 
-        if (!environmentId) {
-          return;
-        }
+          if (!environmentId) {
+            return;
+          }
 
-        envIdByTrId.set(tr.id, environmentId);
-      }),
-    );
+          envIdByTrId.set(tr.id, environmentId);
+        }),
+      );
+    });
 
     const trsByEnvId = new Map<string, typeof allTrs>();
 
-    for (const tr of allTrs) {
-      const environmentId = envIdByTrId.get(tr.id);
+    await measure("stats", async () => {
+      const envStatistics = new Map<string, Statistic>();
+      const pieStatistics = await statisticByTestResults(store, allTrs.filter(isActiveStatisticTestResult));
+      const pieEnvStatistics = new Map<string, Statistic>();
 
-      if (!environmentId) {
-        continue;
+      for (const tr of allTrs) {
+        const environmentId = envIdByTrId.get(tr.id);
+
+        if (!environmentId) {
+          continue;
+        }
+
+        const group = trsByEnvId.get(environmentId);
+
+        if (group) {
+          group.push(tr);
+        } else {
+          trsByEnvId.set(environmentId, [tr]);
+        }
       }
 
-      const group = trsByEnvId.get(environmentId);
+      await Promise.all(
+        environments.map(async ({ id }) => {
+          const envTrs = trsByEnvId.get(id) ?? [];
 
-      if (group) {
-        group.push(tr);
-      } else {
-        trsByEnvId.set(environmentId, [tr]);
-      }
-    }
+          envStatistics.set(id, await statisticByTestResults(store, envTrs));
+          pieEnvStatistics.set(id, await statisticByTestResults(store, envTrs.filter(isActiveStatisticTestResult)));
+        }),
+      );
 
-    await Promise.all(
-      environments.map(async ({ id }) => {
-        const envTrs = trsByEnvId.get(id) ?? [];
-
-        envStatistics.set(id, await statisticByTestResults(store, envTrs));
-        pieEnvStatistics.set(id, await statisticByTestResults(store, envTrs.filter(isActiveStatisticTestResult)));
-      }),
-    );
-
+      await generateStatistic(this.#writer!, {
+        stats: statistics,
+        statsByEnv: envStatistics,
+        pieStats: pieStatistics,
+        pieStatsByEnv: pieEnvStatistics,
+        envs: environments,
+      });
+    });
     const runSummaryByEnv: Record<string, ReportRunSummary> = {};
 
     for (const { id } of environments) {
@@ -178,75 +249,90 @@ export class AwesomePlugin implements Plugin {
         runSummaryByEnv[id] = envRunSummary;
       }
     }
-
-    await generateStatistic(this.#writer!, {
-      stats: statistics,
-      statsByEnv: envStatistics,
-      pieStats: pieStatistics,
-      pieStatsByEnv: pieEnvStatistics,
-      envs: environments,
-    });
-    await generateAllCharts(this.#writer!, store, this.options, context);
+    await measure("charts", () => generateAllCharts(this.#writer!, store, this.options, context));
     const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
+    const convertedTrs = await measure("convert", () =>
+      generateTestResults(this.#writer!, store, allTrs, { hideLabels }),
+    );
+    if (perf) {
+      perf.count("convertedTestResults.count", convertedTrs.length, {
+        title: "Converted test results",
+        unit: "test results",
+        group: "workload",
+        groupTitle: "Workload",
+        better: "neutral",
+      });
+    }
 
-    applyCategoriesToTestResults(convertedTrs, categories);
-    await generateCategories(this.#writer!, {
-      tests: convertedTrs,
-      categories,
-      environmentCount: environments.length,
-      environments: environments.map(({ name }) => name),
-      defaultEnvironment: "default",
-      selectedEnvironmentCount: environments.length,
+    await measure("categories", async () => {
+      applyCategoriesToTestResults(convertedTrs, categories);
+      await generateCategories(this.#writer!, {
+        tests: convertedTrs,
+        categories,
+        environmentCount: environments.length,
+        environments: environments.map(({ name }) => name),
+        defaultEnvironment: "default",
+        selectedEnvironmentCount: environments.length,
+      });
+      await generateResolutionCategories(this.#writer!, convertedTrs);
     });
-    await generateResolutionCategories(this.#writer!, convertedTrs);
     const hasGroupBy = groupBy.length > 0;
 
-    await generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId);
+    await measure("timeline", () => generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId));
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
 
     await generateHistoryDataPoints(this.#writer!, store);
-    await generateTestCases(this.#writer!, convertedTrs);
-    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
-    await generateNav(this.#writer!, convertedTrs, "nav.json");
-    await generateSearchIndex(this.#writer!, convertedTrs, "search-index.json");
-    await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
+    await measure("testCases", () => generateTestCases(this.#writer!, convertedTrs));
+    await measure("tree", () =>
+      generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath }),
+    );
+    await measure("nav", () => generateNav(this.#writer!, convertedTrs, "nav.json"));
+    await measure("searchIndex", () => generateSearchIndex(this.#writer!, convertedTrs, "search-index.json"));
+    await measure("testEnvGroups", () => generateTestEnvGroups(this.#writer!, allTestEnvGroups));
 
     const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
 
-    for (const reportEnvironment of environments) {
-      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
-      const envConvertedTrs = envTrs
-        .map((tr) => convertedTrsById.get(tr.id))
-        .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));
+    await measure("environmentsOutput", async () => {
+      for (const reportEnvironment of environments) {
+        const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
+        const envConvertedTrs = envTrs
+          .map((tr) => convertedTrsById.get(tr.id))
+          .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));
 
-      await generateTree(this.#writer!, joinPosixPath(reportEnvironment.id, "tree.json"), treeLabels, envConvertedTrs, {
-        appendTitlePath,
-      });
-      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
-      await generateSearchIndex(
-        this.#writer!,
-        envConvertedTrs,
-        joinPosixPath(reportEnvironment.id, "search-index.json"),
-      );
-      await generateCategories(this.#writer!, {
-        tests: envConvertedTrs,
-        categories,
-        environmentCount: 1,
-        defaultEnvironment: "default",
-        selectedEnvironmentCount: 1,
-        filename: joinPosixPath(reportEnvironment.id, "categories.json"),
-      });
-      await generateResolutionCategories(
-        this.#writer!,
-        envConvertedTrs,
-        joinPosixPath(reportEnvironment.id, "resolution-categories.json"),
-      );
-    }
+        await generateTree(
+          this.#writer!,
+          joinPosixPath(reportEnvironment.id, "tree.json"),
+          treeLabels,
+          envConvertedTrs,
+          {
+            appendTitlePath,
+          },
+        );
+        await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
+        await generateSearchIndex(
+          this.#writer!,
+          envConvertedTrs,
+          joinPosixPath(reportEnvironment.id, "search-index.json"),
+        );
+        await generateCategories(this.#writer!, {
+          tests: envConvertedTrs,
+          categories,
+          environmentCount: 1,
+          defaultEnvironment: "default",
+          selectedEnvironmentCount: 1,
+          filename: joinPosixPath(reportEnvironment.id, "categories.json"),
+        });
+        await generateResolutionCategories(
+          this.#writer!,
+          envConvertedTrs,
+          joinPosixPath(reportEnvironment.id, "resolution-categories.json"),
+        );
+      }
+    });
 
     await generateTreeFilters(this.#writer!, convertedTrs);
 
@@ -256,7 +342,9 @@ export class AwesomePlugin implements Plugin {
     await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
     if (attachments?.length) {
-      await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
+      await measure("attachments", () =>
+        generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id)),
+      );
     }
 
     await generateQualityGateResults(this.#writer!, qualityGateResults, {
@@ -264,36 +352,46 @@ export class AwesomePlugin implements Plugin {
       labels: treeLabels,
       appendTitlePath,
     });
-    await generateGlobals(this.#writer!, {
-      globalAttachments,
-      globalAttachmentsByEnv,
-      globalErrors,
-      globalErrorsByEnv,
-      globalExitCode,
-      contentFunction: (id) => store.attachmentContentById(id),
-    });
+    await measure("globals", () =>
+      generateGlobals(this.#writer!, {
+        globalAttachments,
+        globalAttachmentsByEnv,
+        globalErrors,
+        globalErrorsByEnv,
+        globalExitCode,
+        contentFunction: (id) => store.attachmentContentById(id),
+      }),
+    );
 
-    const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
+    const reportDataFiles = !singleFile
+      ? []
+      : perf
+        ? await perf.measure("singleFileReportFiles", async () =>
+            (this.#writer as InMemoryReportDataWriter).reportFiles(),
+          )
+        : (this.#writer as InMemoryReportDataWriter).reportFiles();
 
     const configuredSections = this.options.sections ?? ["charts", "timeline"];
     const sections = hasMetrics
       ? [...new Set([...configuredSections, "metrics"])]
       : configuredSections.filter((section) => section !== "metrics");
 
-    await generateStaticFiles({
-      ...this.options,
-      sections,
-      id: context.id,
-      allureVersion: context.allureVersion,
-      reportFiles: context.reportFiles,
-      reportUuid: context.reportUuid,
-      reportName: context.reportName,
-      ci: context.ci,
-      executor,
-      runSummary,
-      runSummaryByEnv,
-      reportDataFiles,
-    });
+    await measure("staticFiles", () =>
+      generateStaticFiles({
+        ...this.options,
+        sections,
+        id: context.id,
+        allureVersion: context.allureVersion,
+        reportFiles: context.reportFiles,
+        reportUuid: context.reportUuid,
+        reportName: context.reportName,
+        ci: context.ci,
+        executor,
+        runSummary,
+        runSummaryByEnv,
+        reportDataFiles,
+      }),
+    );
   };
 
   start = async (context: PluginContext) => {
@@ -318,18 +416,22 @@ export class AwesomePlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    return createPluginSummary({
-      name: this.options.reportName || context.reportName,
-      plugin: "Awesome",
-      meta: {
-        reportId: context.reportUuid,
-        singleFile: this.options.singleFile ?? false,
-        withTestResultsLinks: true,
-      },
-      filter: this.options.filter,
-      ci: context.ci,
-      history: context.history,
-      store,
-    });
+    const perf = (context as PerfAwarePluginContext).perf;
+    const create = () =>
+      createPluginSummary({
+        name: this.options.reportName || context.reportName,
+        plugin: "Awesome",
+        meta: {
+          reportId: context.reportUuid,
+          singleFile: this.options.singleFile ?? false,
+          withTestResultsLinks: true,
+        },
+        filter: this.options.filter,
+        ci: context.ci,
+        history: context.history,
+        store,
+      });
+
+    return perf?.measure("summary.create", create) ?? create();
   }
 }
