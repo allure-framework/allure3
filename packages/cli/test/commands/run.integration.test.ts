@@ -59,6 +59,8 @@ const writeJsonl = async (filePath: string, lines: unknown[]) => {
   await writeFile(filePath, lines.map((line) => JSON.stringify(line)).join("\n"), "utf-8");
 };
 
+const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
+
 const resolveYarnInvocation = async () => {
   const yarnRc = await readFile(yarnRcPath, "utf-8");
   const configuredYarnPath = /^yarnPath:\s+(.+)$/m.exec(yarnRc)?.[1]?.trim();
@@ -315,6 +317,89 @@ export default config;
     await step("verify generated report uses TypeScript config", async () => {
       await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
       expect(stderr).toBe("");
+    });
+  }, 240_000);
+
+  it("prints quality gate results from the built log command after test results", async () => {
+    const fixtureDir = join(tempDir, "log-quality-gates");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const failedResultPath = join(resultsDir, "failed-result.json");
+    const configSource = `
+export default {
+  qualityGate: {
+    rules: [{ maxFailures: 0 }]
+  }
+};
+`.trimStart();
+    const failedResult = {
+      uuid: "failed-result",
+      historyId: "failed-history",
+      name: "Failed test",
+      fullName: "Quality Gate Suite > Failed test",
+      status: "failed",
+      start: 1,
+      stop: 2,
+    };
+    let stdout = "";
+    let stderr = "";
+    let disabledStdout = "";
+    let disabledStderr = "";
+
+    await step("prepare log quality gate fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeJson(failedResultPath, failedResult);
+      await attachment("log quality gate config", configSource, "text/plain");
+    });
+
+    await step("run built log command with quality gate results enabled", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "log",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        resultsDir,
+      ]);
+
+      stdout = stripAnsi(result.stdout);
+      stderr = result.stderr;
+      await attachCommandOutput("log with quality gates", result);
+    });
+
+    await step("run built log command with quality gate results disabled", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "log",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--no-quality-gate-results",
+        resultsDir,
+      ]);
+
+      disabledStdout = stripAnsi(result.stdout);
+      disabledStderr = result.stderr;
+      await attachCommandOutput("log without quality gates", result);
+    });
+
+    await step("verify quality gates are printed after tests and can be disabled", async () => {
+      expect(stderr).toBe("");
+      expect(stdout).toContain("Failed test");
+      expect(stdout).toContain("Total tests: 1");
+      expect(stdout).toContain("Tests: 1 failed");
+      expect(stdout).toContain("Quality gates");
+      expect(stdout).toContain("⨯ maxFailures");
+      expect(stdout).toContain("The number of failed tests 1 exceeds the allowed threshold value 0");
+      expect(stdout.indexOf("Tests: 1 failed")).toBeLessThan(stdout.indexOf("Quality gates"));
+
+      expect(disabledStdout).toContain("Tests: 1 failed");
+      expect(disabledStdout).not.toContain("Quality gates");
+      expect(disabledStdout).not.toContain("maxFailures");
+      expect(disabledStderr).toBe("");
     });
   }, 240_000);
 
