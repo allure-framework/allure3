@@ -1,3 +1,4 @@
+import type { TreeGroup, WithChildren } from "@allurereport/core-api";
 import { buildFilterPredicate, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
@@ -190,3 +191,55 @@ export const filteredTree = computed(() => {
 export const noTestsFound = computed(
   () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
 );
+
+export type TreeBreadcrumb = {
+  nodeId: string;
+  name: string;
+};
+
+const findBreadcrumbs = (
+  node: WithChildren,
+  groupsById: Record<string, TreeGroup<ReportTreeGroup>>,
+  leafNodeId: string,
+  path: TreeBreadcrumb[],
+): TreeBreadcrumb[] | undefined => {
+  if (node.leaves?.includes(leafNodeId)) {
+    return path;
+  }
+
+  for (const groupId of node.groups ?? []) {
+    const group = groupsById[groupId];
+
+    if (!group) {
+      continue;
+    }
+
+    const found = findBreadcrumbs(group, groupsById, leafNodeId, [...path, { nodeId: group.nodeId, name: group.name }]);
+
+    if (found) {
+      return found;
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * Path of the test result through the report tree, as it's actually grouped,
+ * so every segment points to an existing tree node.
+ */
+export const getTreeBreadcrumbs = (testResultId?: string): TreeBreadcrumb[] => {
+  if (!testResultId) {
+    return [];
+  }
+
+  for (const tree of Object.values(treeStore.value.data ?? {})) {
+    const path = findBreadcrumbs(tree.root, tree.groupsById, testResultId, []);
+
+    if (path) {
+      return path;
+    }
+  }
+
+  return [];
+};

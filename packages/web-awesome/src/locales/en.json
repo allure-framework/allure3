@@ -178,7 +178,9 @@
     "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Breadcrumbs",
+    "breadcrumbs-hidden": "Show hidden breadcrumbs"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
