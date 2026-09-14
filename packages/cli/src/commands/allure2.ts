@@ -65,6 +65,10 @@ export class Allure2Command extends Command {
     description: "The path to history file",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   knownIssues = Option.String("--known-issues", {
     description: "Path to known issues file",
   });
@@ -81,6 +85,7 @@ export class Allure2Command extends Command {
       name: this.reportName,
       resolutions: { knownIssuesPath: this.knownIssues },
       historyPath: this.historyPath,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
     });
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
 

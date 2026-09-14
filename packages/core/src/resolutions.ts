@@ -183,16 +183,49 @@ const matches = (rule: ResolutionRule, testResult: TestResult): boolean => {
   );
 };
 
+export const MUTED_FROM_RESULT_RESOLUTION = {
+  resolution: "muted",
+  comment: "Muted from result",
+} as const satisfies IgnoredResolutionRule;
+
+export const KNOWN_FROM_RESULT_RESOLUTION = {
+  resolution: "accepted",
+  comment: "Accepted from result (known)",
+} as const satisfies IgnoredResolutionRule;
+
 export const getResolutionByRules = (
   testResult: TestResult,
   config?: ResolutionsConfig,
 ): ResolutionRule | undefined => {
-  if ((testResult.status !== "failed" && testResult.status !== "broken") || !config?.rules.length) {
+  if (testResult.status !== "failed" && testResult.status !== "broken") {
     return undefined;
   }
 
-  // Resolution priority overrides config order; ties keep the first matching rule.
-  for (const resolution of ["issue", "muted", "accepted"] as const) {
+  // Prefer config issue, then result muted, then result known, then config muted and accepted
+  const issueRule = config?.rules.find(
+    (candidate) => candidate.resolution === "issue" && matches(candidate, testResult),
+  );
+
+  if (issueRule) {
+    return issueRule;
+  }
+
+  // Integration set muted flag on test result
+  if (testResult.muted) {
+    return MUTED_FROM_RESULT_RESOLUTION;
+  }
+
+  // Integration set known flag on test result
+  if (testResult.known) {
+    return KNOWN_FROM_RESULT_RESOLUTION;
+  }
+
+  if (!config?.rules.length) {
+    return undefined;
+  }
+
+  // Remaining muted/accepted config rules; ties keep the first matching rule.
+  for (const resolution of ["muted", "accepted"] as const) {
     const rule = config.rules.find(
       (candidate) => candidate.resolution === resolution && matches(candidate, testResult),
     );

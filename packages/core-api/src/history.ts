@@ -39,10 +39,13 @@ export interface HistoryDataPoint {
   url: string;
 }
 
+export type HistoryTestResultUrlResolver = (historyUrl: string, pluginId: string, historicalResultId: string) => string;
+
 /**
  * Provides ability to load and update report history
  */
 export interface AllureHistory {
   readHistory(params?: { repo?: string; branch?: string }): Promise<HistoryDataPoint[]>;
   appendHistory(history: HistoryDataPoint): Promise<void>;
+  resolveTestResultUrl?: HistoryTestResultUrlResolver;
 }

@@ -55,13 +55,7 @@
   align-items: center;
 }
 
-.test-result-info-statuses {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.test-result-info-status {
+.test-result-info-flaky {
   display: flex;
   align-items: center;
   gap: 2px;

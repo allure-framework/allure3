@@ -472,18 +472,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #classifyResolution(testResult: TestResult) {
     const rule = getResolutionByRules(testResult, this.#resolutionsConfig);
 
-    testResult.resolution = rule?.resolution;
-    testResult.resolutionComment = rule?.comment;
-
-    this.#removeResolutionIssueAssociation(testResult.id);
-
-    if (rule?.resolution !== "issue") {
+    // Keep existing resolution when nothing new matches (dump/restore preserve).
+    if (!rule?.resolution) {
       return;
     }
 
-    const resolutionIssue: ResolutionIssue = { ...rule.issue, comment: rule.comment };
+    this.#removeResolutionIssueAssociation(testResult.id);
 
-    this.#associateResolutionIssue(resolutionIssue, testResult.id);
+    testResult.resolution = rule.resolution;
+    testResult.resolutionComment = rule.comment;
+
+    if (rule.resolution === "issue") {
+      this.#associateResolutionIssue({ ...rule.issue, comment: rule.comment }, testResult.id);
+    }
   }
 
   #associateResolutionIssue(resolutionIssue: ResolutionIssue, testResultId: string) {
@@ -1866,14 +1867,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
     this.#rebuildRetrySubstore();
 
-    if (this.#resolutionsConfig) {
-      this.#resolutionIssues.clear();
-      this.#testResultIdsByResolutionIssueId.clear();
-      this.#resolutionIssueIdByTestResultId.clear();
-
-      for (const testResult of this.#testResults.values()) {
-        this.#classifyResolution(testResult);
-      }
+    for (const testResult of this.#testResults.values()) {
+      this.#classifyResolution(testResult);
     }
 
     qualityGateResults.forEach((result, index) => {

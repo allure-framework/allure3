@@ -48,6 +48,11 @@ export class TreePage extends CommonPage {
   regressedFilterLocator: Locator;
   malfunctionedFilterLocator: Locator;
 
+  acceptedFilterLocator: Locator;
+  mutedFilterLocator: Locator;
+  issueFilterLocator: Locator;
+  resolutionFilterLocator: Locator;
+
   filterTooltipLocator: Locator;
 
   clearFiltersButtonLocator: Locator;
@@ -98,6 +103,11 @@ export class TreePage extends CommonPage {
     this.fixedFilterLocator = page.getByTestId("fixed-filter");
     this.regressedFilterLocator = page.getByTestId("regressed-filter");
     this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
+
+    this.acceptedFilterLocator = page.getByTestId("accepted-filter");
+    this.mutedFilterLocator = page.getByTestId("muted-filter");
+    this.issueFilterLocator = page.getByTestId("issue-filter");
+    this.resolutionFilterLocator = page.getByTestId("resolution-filter");
 
     this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
     this.clearFiltersButtonLocator = page.getByRole("button", { name: "Clear filters" });
@@ -172,6 +182,18 @@ export class TreePage extends CommonPage {
     return this.leafLocator.filter({
       has: this.page.getByText(title, { exact: true }),
     });
+  }
+
+  getLeafResolutionAcceptedLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-accepted");
+  }
+
+  getLeafResolutionMutedLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-muted");
+  }
+
+  getLeafResolutionIssueLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-issue");
   }
 
   async getMetadataValue(
@@ -340,6 +362,22 @@ export class TreePage extends CommonPage {
     await this.page.getByRole("button", { name: "Transition" }).click();
 
     await this.malfunctionedFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async toggleAcceptedResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.acceptedFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async toggleMutedResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.mutedFilterLocator.click();
 
     await this.closeMenu();
   }

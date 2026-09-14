@@ -136,7 +136,7 @@ __metadata:
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
     yaml: "npm:^2.8.3"
-    yoctocolors: "npm:^2.1.2"
+    yoctocolors: "npm:^2.2.0"
     zip-stream: "npm:^7.0.5"
   languageName: unknown
   linkType: soft
@@ -362,7 +362,7 @@ __metadata:
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
-    axios: "npm:^1.18.1"
+    axios: "npm:^1.20.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
@@ -383,7 +383,7 @@ __metadata:
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.2"
+    yoctocolors: "npm:^2.2.0"
   languageName: unknown
   linkType: soft
 
@@ -401,7 +401,7 @@ __metadata:
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.2"
+    yoctocolors: "npm:^2.2.0"
   languageName: unknown
   linkType: soft
 
@@ -456,7 +456,7 @@ __metadata:
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
-    axios: "npm:^1.18.1"
+    axios: "npm:^1.20.0"
     form-data: "npm:^4.0.6"
     lodash-es: "npm:^4.18.1"
     p-limit: "npm:^7.3.0"
@@ -534,7 +534,7 @@ __metadata:
     "@vitest/snapshot": "npm:^2.1.8"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
-    axios: "npm:^1.18.1"
+    axios: "npm:^1.20.0"
     open: "npm:^11.0.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -554,7 +554,7 @@ __metadata:
     allure-js-commons: "npm:^3"
     allure-playwright: "npm:^3.10.2"
     allure-vitest: "npm:^3"
-    axios: "npm:^1.18.1"
+    axios: "npm:^1.20.0"
     get-port: "npm:^7.1.0"
     npm-run-all2: "npm:^7.0.1"
     open: "npm:^11.0.0"
@@ -867,7 +867,7 @@ __metadata:
     d3-brush: "npm:^3.0.0"
     d3-format: "npm:^3.1.0"
     d3-interpolate: "npm:^3.0.1"
-    d3-regression: "npm:^1.3.10"
+    d3-regression: "npm:^2.2.0"
     d3-scale: "npm:^4.0.2"
     d3-selection: "npm:^3.0.0"
     d3-shape: "npm:^3.2.0"
@@ -8852,7 +8852,7 @@ __metadata:
     typanion: "npm:^3.14.0"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
-    yoctocolors: "npm:^2.1.2"
+    yoctocolors: "npm:^2.2.0"
   bin:
     allure: ./cli.js
   languageName: unknown
@@ -9140,15 +9140,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.18.1":
-  version: 1.18.1
-  resolution: "axios@npm:1.18.1"
+"axios@npm:^1.20.0":
+  version: 1.20.0
+  resolution: "axios@npm:1.20.0"
   dependencies:
     follow-redirects: "npm:^1.16.0"
-    form-data: "npm:^4.0.5"
+    form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/c4cdced3ee0a9bf7dcae189fbc74a124aa079d4f04dbd995e602d39c1419476e8d021f87ee39ac8d8398e5a55e6d0b986238b3645f0d9177ac80de87c2a73f18
+  checksum: 10/0376b6178baecbe0f5d36088f5b5f6c21362ce301e0731f77172f9c89be740bdee20d8ae6ab186340d7cb752020c6a4f1381290e5a5cd10f6f9003941615ac77
   languageName: node
   linkType: hard
 
@@ -10454,10 +10454,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-regression@npm:^1.3.10":
-  version: 1.3.10
-  resolution: "d3-regression@npm:1.3.10"
-  checksum: 10/c052c3a4d89ff60e4ea105ab52173e9b024cef524e3e51125ac7ba25b66ecb6dc49196e8624151e0117e44c83b6a10781d76ec923925d541452d5a500e1dc1c1
+"d3-regression@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "d3-regression@npm:2.2.0"
+  checksum: 10/92f7a8ae22717499c7dead90ab8a8d79ce748cb5c2eda311f0d17b21fd04801325cca06f150bcc14024009fac6f16df135223fb42ee55b224d8bcf313036051d
   languageName: node
   linkType: hard
 
@@ -11705,7 +11705,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.1, form-data@npm:^4.0.5, form-data@npm:^4.0.6":
+"form-data@npm:^4.0.1, form-data@npm:^4.0.6":
   version: 4.0.6
   resolution: "form-data@npm:4.0.6"
   dependencies:
@@ -18943,10 +18943,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yoctocolors@npm:^2, yoctocolors@npm:^2.1.2":
+"yoctocolors@npm:^2":
   version: 2.1.2
   resolution: "yoctocolors@npm:2.1.2"
   checksum: 10/6ee42d665a4cc161c7de3f015b2a65d6c65d2808bfe3b99e228bd2b1b784ef1e54d1907415c025fc12b400f26f372bfc1b71966c6c738d998325ca422eb39363
+  languageName: node
+  linkType: hard
+
+"yoctocolors@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "yoctocolors@npm:2.2.0"
+  checksum: 10/8b2761daad30ca3b5b717fc12d9a30aea23f8d757d355b29b6b53c3a570de236fd85b17040c5196b18573fe38a4a981f48f111efa9a29c743e0878e26137b2b1
   languageName: node
   linkType: hard
 

@@ -353,7 +353,7 @@ const RAW_RUNTIME_STATE =
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
           ["yaml", "npm:2.8.3"],\
-          ["yoctocolors", "npm:2.1.2"],\
+          ["yoctocolors", "npm:2.2.0"],\
           ["zip-stream", "npm:7.0.5"]\
         ],\
         "linkType": "SOFT"\
@@ -622,7 +622,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["axios", "npm:1.18.1"],\
+          ["axios", "npm:1.20.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -645,7 +645,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -665,7 +665,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -726,7 +726,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["axios", "npm:1.18.1"],\
+          ["axios", "npm:1.20.0"],\
           ["form-data", "npm:4.0.6"],\
           ["lodash-es", "npm:4.18.1"],\
           ["p-limit", "npm:7.3.0"],\
@@ -812,7 +812,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["axios", "npm:1.18.1"],\
+          ["axios", "npm:1.20.0"],\
           ["open", "npm:11.0.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
@@ -834,7 +834,7 @@ const RAW_RUNTIME_STATE =
           ["allure-js-commons", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:3.9.0"],\
           ["allure-playwright", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:3.10.2"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["axios", "npm:1.18.1"],\
+          ["axios", "npm:1.20.0"],\
           ["get-port", "npm:7.1.0"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["open", "npm:11.0.0"],\
@@ -1159,7 +1159,7 @@ const RAW_RUNTIME_STATE =
           ["d3-brush", "npm:3.0.0"],\
           ["d3-format", "npm:3.1.0"],\
           ["d3-interpolate", "npm:3.0.1"],\
-          ["d3-regression", "npm:1.3.10"],\
+          ["d3-regression", "npm:2.2.0"],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-selection", "npm:3.0.0"],\
           ["d3-shape", "npm:3.2.0"],\
@@ -12767,7 +12767,7 @@ const RAW_RUNTIME_STATE =
           ["typanion", "npm:3.14.0"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yoctocolors", "npm:2.1.2"]\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -13359,10 +13359,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["axios", [\
-      ["npm:1.18.1", {\
-        "packageLocation": "./.yarn/cache/axios-npm-1.18.1-cfe396e04f-c4cdced3ee.zip/node_modules/axios/",\
+      ["npm:1.20.0", {\
+        "packageLocation": "./.yarn/cache/axios-npm-1.20.0-0de8ee0ccf-0376b6178b.zip/node_modules/axios/",\
         "packageDependencies": [\
-          ["axios", "npm:1.18.1"],\
+          ["axios", "npm:1.20.0"],\
           ["follow-redirects", "virtual:a313c479c5c7e54d9ec8fbeeea69ff640f56b8989ea2dff42351a3fa5c4061fb80a52d8ede0f0826a181a216820c2d2c3f15da881e7fdf31cef1c446e42f0c45#npm:1.16.0"],\
           ["form-data", "npm:4.0.6"],\
           ["https-proxy-agent", "npm:5.0.1"],\
@@ -15182,10 +15182,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["d3-regression", [\
-      ["npm:1.3.10", {\
-        "packageLocation": "./.yarn/cache/d3-regression-npm-1.3.10-44bfa2f85d-c052c3a4d8.zip/node_modules/d3-regression/",\
+      ["npm:2.2.0", {\
+        "packageLocation": "./.yarn/cache/d3-regression-npm-2.2.0-7abc6b7f95-92f7a8ae22.zip/node_modules/d3-regression/",\
         "packageDependencies": [\
-          ["d3-regression", "npm:1.3.10"]\
+          ["d3-regression", "npm:2.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -26637,6 +26637,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/yoctocolors-npm-2.1.2-ba5f016605-6ee42d665a.zip/node_modules/yoctocolors/",\
         "packageDependencies": [\
           ["yoctocolors", "npm:2.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.2.0", {\
+        "packageLocation": "./.yarn/cache/yoctocolors-npm-2.2.0-a17f3c9d07-8b2761daad.zip/node_modules/yoctocolors/",\
+        "packageDependencies": [\
+          ["yoctocolors", "npm:2.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\

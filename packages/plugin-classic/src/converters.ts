@@ -36,6 +36,7 @@ export const convertTestResult = (tr: TestResult): ReportTestResult => {
     historyId: tr.historyId,
     flaky: tr.flaky,
     muted: tr.muted,
+    known: tr.known,
     isRetry: tr.isRetry,
     labels: tr.labels,
     groupedLabels: mapLabelsByName(tr.labels),

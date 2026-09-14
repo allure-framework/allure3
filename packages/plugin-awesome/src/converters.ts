@@ -45,6 +45,7 @@ export const convertTestResult = (
     historyId: tr.historyId,
     flaky: tr.flaky,
     muted: tr.muted,
+    known: tr.known,
     resolution: tr.resolution,
     resolutionComment: tr.resolutionComment,
     isRetry: tr.isRetry,

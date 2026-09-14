@@ -48,6 +48,25 @@ describe("convertTestResult", () => {
     expect(result.retryHash).toBe("retry-hash");
   });
 
+  it("keeps known resolution fields on convert", () => {
+    const result = convertTestResult(
+      createTestResult({
+        status: "failed",
+        known: true,
+        muted: false,
+        resolution: "accepted",
+        resolutionComment: "Accepted from result (known)",
+      }),
+    );
+
+    expect(result).toMatchObject({
+      known: true,
+      muted: false,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+  });
+
   it("converts markdown description to html when descriptionHtml is missing", () => {
     const result = convertTestResult(createTestResult({ description: "**bold** text" }));
 
