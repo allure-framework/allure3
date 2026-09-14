@@ -22,7 +22,8 @@
     "globalAttachments": "Global Attachments",
     "globalErrors": "Global Errors",
     "qualityGates": "Quality Gates",
-    "categories": "Categories"
+    "categories": "Categories",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Search",
@@ -56,7 +57,18 @@
       "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
       "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status",
       "tags": "Show test results that have the specified tags",
-      "categories": "Show test results that have the specified categories"
+      "categories": "Show test results that have the specified categories",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "No test steps information available",
     "no-test-case-results": "No test case results",
     "no-environments-results": "No environments information available",
-    "no-categories-results": "No categories results available"
+    "no-categories-results": "No categories results available",
+    "no-metrics-results": "No metrics available",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blocker",
     "critical": "critical",
     "normal": "normal",
     "minor": "minor",
-    "trivial": "trivial"
+    "trivial": "trivial",
+    "none": "no severity"
   },
   "execution": {
     "name": "Execution",
@@ -138,6 +153,7 @@
     "category": "Category",
     "description": "Description",
     "links": "Links",
+    "relatedTestResults": "Related test results ({{count}})",
     "overview": "Overview",
     "history": "History",
     "attachments": "Attachments",
@@ -149,7 +165,11 @@
     "showMore": "Show more",
     "copy": "Copy",
     "copy-email": "Copy email",
+    "fullname": "Fullname",
+    "retry-hash": "Retry hash",
+    "test-case-id": "Test case ID",
     "attempt": "Attempt {{attempt}} of {{total}}",
+    "retry": "Retry {{attempt}} of {{total}}",
     "at": "at",
     "generated": "Generated",
     "variables": "Variables",
@@ -157,7 +177,8 @@
     "pwTracePopupBlocked": "Browser blocked opening Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -209,6 +230,7 @@
       "testTabNext": "Next test tab",
       "testTabPrev": "Previous test tab",
       "tabOverview": "Overview tab",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "History tab",
       "tabRetries": "Retries tab",
       "tabAttachments": "Attachments tab",
@@ -216,7 +238,8 @@
       "toggleLabels": "Toggle labels",
       "toggleParameters": "Toggle parameters",
       "toggleLinks": "Toggle links",
-      "backToTree": "Back to tree"
+      "backToTree": "Back to tree",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {
@@ -258,7 +281,8 @@
   "sections": {
     "report": "Report",
     "charts": "Graphs",
-    "timeline": "Timeline"
+    "timeline": "Timeline",
+    "metrics": "Metrics"
   },
   "timeline": {
     "empty": "No data",
@@ -454,6 +478,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Performance metrics",
+      "phaseSummary": "Metric summary",
+      "currentValues": "Current values",
+      "historyTitle": "Metric history",
+      "noHistory": "No history for this metric yet",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metric",
+        "phase": "Metric set",
+        "count": "Count",
+        "total": "Total",
+        "avg": "Avg",
+        "min": "Min",
+        "max": "Max",
+        "value": "Value",
+        "delta": "Delta",
+        "trend": "Trend",
+        "source": "Source",
+        "report": "Report",
+        "date": "Date"
+      },
+      "summary": "{{groups}} summary rows / {{metrics}} metrics",
+      "groups": {
+        "other": "Other"
+      }
+    },
+    "successRate": {
+      "successRate": "Success rate: {{rate}}",
+      "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
+      "noResults": "There are no test results.",
+      "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+      "slice_one": "{{count}} test ({{percent}}% of all tests)",
+      "slice_other": "{{count}} tests ({{percent}}% of all tests)",
+      "layer": "Layer: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
+      "slice": "{{count}} tests ({{percent}}% of all tests)"
     }
   },
   "transitions": {
@@ -463,7 +525,12 @@
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
-      "flaky": "Inconsistent across runs"
+      "flaky": "Inconsistent across runs",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "new",
     "fixed": "fixed",

@@ -1,0 +1,31 @@
+@use "../../../theme/spacing.scss" as *;
+.test-result-history {
+  .label {
+    flex: 0 0 auto;
+    margin-inline-end: gap(1);
+  }
+
+  &__row {
+    padding: gap(1) gap(2) gap(1) 0;
+  }
+
+  &__entry,
+  &__link {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: gap(1);
+  }
+
+  &__link {
+    text-decoration: none;
+  }
+
+  &__time {
+    white-space: nowrap;
+  }
+
+  &__success-rate {
+    padding-bottom: gap(1);
+  }
+}

@@ -1,7 +1,7 @@
 import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
@@ -10,7 +10,7 @@ import { navigateTo } from "@/index";
 import * as styles from "./styles.scss";
 
 export type TestResultHeaderProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TestResultHeader: FunctionalComponent<TestResultHeaderProps> = ({ testResult }) => {

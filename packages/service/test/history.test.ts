@@ -95,8 +95,8 @@ describe("AllureRemoteHistory", () => {
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
           limit: undefined,
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent(fixtures.branch),
+          repo: fixtures.repo,
+          branch: fixtures.branch,
         },
       });
       expect(result).toEqual([fixtures.historyDataPoint]);
@@ -139,9 +139,9 @@ describe("AllureRemoteHistory", () => {
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
-          limit: "10",
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent(fixtures.branch),
+          limit: 10,
+          repo: fixtures.repo,
+          branch: fixtures.branch,
         },
       });
       expect(result).toEqual([fixtures.historyDataPoint]);
@@ -155,8 +155,8 @@ describe("AllureRemoteHistory", () => {
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
           limit: undefined,
-          repo: encodeURIComponent(fixtures.repo),
-          branch: encodeURIComponent("feature"),
+          repo: fixtures.repo,
+          branch: "feature",
         },
       });
       expect(result).toEqual([fixtures.historyDataPoint]);
@@ -170,8 +170,8 @@ describe("AllureRemoteHistory", () => {
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
         params: {
           limit: undefined,
-          repo: encodeURIComponent("other-repo"),
-          branch: encodeURIComponent("feature"),
+          repo: "other-repo",
+          branch: "feature",
         },
       });
       expect(result).toEqual([fixtures.historyDataPoint]);

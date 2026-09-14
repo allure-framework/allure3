@@ -705,6 +705,7 @@ test.describe("attachments", () => {
 
       if (popup) {
         await popup.waitForURL("https://trace.playwright.dev/", { timeout: 5_000 });
+        await expect(popup.getByText("start.test.ts")).toBeVisible({ timeout: 10_000 });
         return;
       }
 

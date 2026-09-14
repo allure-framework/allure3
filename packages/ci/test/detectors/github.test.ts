@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
+
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { github } from "../../src/detectors/github.js";
 import { getEnv } from "../../src/utils.js";
@@ -7,13 +9,22 @@ import { getEnv } from "../../src/utils.js";
 beforeEach(async () => {
   await story("github");
 });
+
 vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
+}));
+
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
+
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
 
 describe("github", () => {
   describe("detected", () => {
@@ -226,6 +237,21 @@ describe("github", () => {
       expect(github.jobRunBranch).toBe("feature-branch");
     });
 
+    it("should keep slashes in branch names from GITHUB_REF variable", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_HEAD_REF") {
+          return "";
+        }
+
+        if (key === "GITHUB_REF") {
+          return "refs/heads/feature/foo";
+        }
+      });
+
+      expect(github.jobRunBranch).toBe("feature/foo");
+      expect(github.sourceBranch).toBe("feature/foo");
+    });
+
     it("should return empty string when neither environment variable is set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "GITHUB_HEAD_REF" || key === "GITHUB_REF") {
@@ -234,6 +260,27 @@ describe("github", () => {
       });
 
       expect(github.jobRunBranch).toBe("");
+    });
+
+    it("should return empty string for tag refs when ref type is tag", () => {
+      mockEnv({
+        GITHUB_REF: "refs/tags/v1.0.0",
+        GITHUB_REF_NAME: "v1.0.0",
+        GITHUB_REF_TYPE: "tag",
+      });
+
+      expect(github.jobRunBranch).toBe("");
+      expect(github.sourceBranch).toBeUndefined();
+    });
+
+    it("should return empty string for tag refs when ref type is unavailable", () => {
+      mockEnv({
+        GITHUB_REF: "refs/tags/v1.0.0",
+        GITHUB_REF_NAME: "v1.0.0",
+      });
+
+      expect(github.jobRunBranch).toBe("");
+      expect(github.sourceBranch).toBeUndefined();
     });
   });
 
@@ -266,6 +313,19 @@ describe("github", () => {
       expect(github.pullRequestUrl).toBe("");
     });
 
+    it("should return empty string when branch name ends with /merge", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "release/merge";
+        }
+
+        return "";
+      });
+
+      expect(github.pullRequestUrl).toBe("");
+      expect(github.pullRequest).toBeUndefined();
+    });
+
     it("should return empty string when ref name is empty", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "GITHUB_REF_NAME") {
@@ -274,6 +334,25 @@ describe("github", () => {
       });
 
       expect(github.pullRequestUrl).toBe("");
+    });
+
+    it("should resolve pull request URL from GITHUB_EVENT_PATH for pull_request_target workflows", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+          GITHUB_SERVER_URL: "https://github.com",
+          GITHUB_REPOSITORY: "myorg/myrepo",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123 } }));
+
+      expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
     });
   });
 
@@ -306,6 +385,23 @@ describe("github", () => {
       });
 
       expect(github.pullRequestName).toBe("");
+    });
+
+    it("should resolve pull request name from GITHUB_EVENT_PATH for pull_request_target workflows", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        const env: Record<string, string> = {
+          GITHUB_HEAD_REF: "feature/foo",
+          GITHUB_BASE_REF: "main",
+          GITHUB_REF: "refs/heads/main",
+          GITHUB_REF_NAME: "main",
+          GITHUB_EVENT_PATH: "/tmp/event.json",
+        };
+
+        return env[key] ?? "";
+      });
+      (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 123 } }));
+
+      expect(github.pullRequestName).toBe("Pull request #123");
     });
   });
 });

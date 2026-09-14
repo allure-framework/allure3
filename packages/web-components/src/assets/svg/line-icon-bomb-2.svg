@@ -1,12 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-  <g clip-path="url(#a)">
-    <path vector-effect="non-scaling-stroke" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-          stroke-width="1.5"
-          d="m9.566 3.1 1.3-1.3a1.607 1.607 0 0 1 2.267 0L14.2 2.867a1.6 1.6 0 0 1 0 2.266l-1.3 1.3m1.766-5.1-1 1m-.333 6.334a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z"/>
-  </g>
-  <defs>
-    <clipPath id="a">
-      <path vector-effect="non-scaling-stroke" fill="currentColor" d="M0 0h16v16H0z"/>
-    </clipPath>
-  </defs>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M13.8784 6.11918L15.4389 4.55866C15.8003 4.19899 16.2895 3.99707 16.7993 3.99707C17.3092 3.99707 17.7984 4.19899 18.1598 4.55866L19.4402 5.83908C19.6193 6.01752 19.7613 6.22954 19.8583 6.463C19.9552 6.69645 20.0051 6.94675 20.0051 7.19953C20.0051 7.45231 19.9552 7.70261 19.8583 7.93607C19.7613 8.16952 19.6193 8.38155 19.4402 8.55998L17.8797 10.1205M20.0004 3.99847L18.8 5.19887M18.3999 12.8014C18.3999 16.7791 15.1753 20.0038 11.1975 20.0038C7.21973 20.0038 3.99512 16.7791 3.99512 12.8014C3.99512 8.82362 7.21973 5.599 11.1975 5.599C15.1753 5.599 18.3999 8.82362 18.3999 12.8014Z"
+    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+    stroke-linejoin="round"/>
 </svg>

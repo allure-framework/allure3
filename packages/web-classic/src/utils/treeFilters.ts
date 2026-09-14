@@ -14,9 +14,9 @@ import {
 
 import type { TreeFiltersState, TreeSortBy } from "@/stores/tree";
 
-import type { ClassicRecursiveTree, ClassicTree, ClassicTreeGroup, ClassicTreeLeaf } from "../../types";
+import type { ReportRecursiveTree, ReportTree, ReportTreeGroup, ReportTreeLeaf } from "../../types";
 
-export const isIncluded = (leaf: TreeLeaf<ClassicTreeLeaf>, filterOptions: TreeFiltersState) => {
+export const isIncluded = (leaf: TreeLeaf<ReportTreeLeaf>, filterOptions: TreeFiltersState) => {
   const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
   const statusMatched =
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
@@ -28,8 +28,8 @@ export const isIncluded = (leaf: TreeLeaf<ClassicTreeLeaf>, filterOptions: TreeF
   return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
 };
 
-const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<ClassicTreeLeaf>> => {
-  const typedCompareBy = compareBy<TreeLeaf<ClassicTreeLeaf>>;
+const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<ReportTreeLeaf>> => {
+  const typedCompareBy = compareBy<TreeLeaf<ReportTreeLeaf>>;
   switch (sortBy) {
     case "order":
       return typedCompareBy("groupOrder", ordinal());
@@ -69,7 +69,7 @@ const withDirection = <T extends { name: string }>(
   ]);
 };
 
-export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<ClassicTreeLeaf>> => {
+export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<ReportTreeLeaf>> => {
   const cmp = leafComparatorByTreeSortBy(filterOptions.sortBy);
 
   return withDirection(cmp, filterOptions);
@@ -83,12 +83,12 @@ export const groupComparator = (filterOptions: TreeFiltersState): Comparator<Def
 
 export const filterLeaves = (
   leaves: string[] = [],
-  leavesById: ClassicTree["leavesById"],
+  leavesById: ReportTree["leavesById"],
   filterOptions: TreeFiltersState,
 ) => {
   const filteredLeaves = [...leaves]
     .map((leafId) => leavesById[leafId])
-    .filter((leaf: TreeLeaf<ClassicTreeLeaf>) => isIncluded(leaf, filterOptions));
+    .filter((leaf: TreeLeaf<ReportTreeLeaf>) => isIncluded(leaf, filterOptions));
 
   const comparator = leafComparator(filterOptions);
   return filteredLeaves.sort(comparator);
@@ -100,11 +100,11 @@ export const filterLeaves = (
  * @param payload
  */
 export const createRecursiveTree = (payload: {
-  group: ClassicTreeGroup;
-  groupsById: ClassicTree["groupsById"];
-  leavesById: ClassicTree["leavesById"];
+  group: ReportTreeGroup;
+  groupsById: ReportTree["groupsById"];
+  leavesById: ReportTree["leavesById"];
   filterOptions?: TreeFiltersState;
-}): ClassicRecursiveTree => {
+}): ReportRecursiveTree => {
   const { group, groupsById, leavesById, filterOptions } = payload;
   const groupLeaves: string[] = group.leaves ?? [];
 
@@ -122,7 +122,7 @@ export const createRecursiveTree = (payload: {
       ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
 
   const statistic: Statistic = emptyStatistic();
-  trees.forEach((rt: ClassicRecursiveTree) => {
+  trees.forEach((rt: ReportRecursiveTree) => {
     if (rt.statistic) {
       const additional: Statistic = rt.statistic;
 
@@ -142,7 +142,7 @@ export const createRecursiveTree = (payload: {
   };
 };
 
-export const isRecursiveTreeEmpty = (tree: ClassicRecursiveTree): boolean => {
+export const isRecursiveTreeEmpty = (tree: ReportRecursiveTree): boolean => {
   if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }

@@ -1,13 +1,30 @@
-import { type AllureHistory, type CiDescriptor, type TestResult, getWorstStatus } from "@allurereport/core-api";
+import {
+  AllureCheckResult,
+  type AllureHistory,
+  type CiDescriptor,
+  type TestResult,
+  getWorstStatus,
+} from "@allurereport/core-api";
 
-import type { PluginSummary, SummaryTestResult } from "../plugin.js";
+import type { PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
 import type { AllureStore } from "../store.js";
 
-export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult => ({
+export const convertToTestResultSummary = (tr: TestResult): TestResultSummary => ({
   id: tr.id,
   name: tr.name,
-  status: tr.status,
   duration: tr.duration,
+  status: tr.status,
+  ...(tr.environment ? { environment: tr.environment } : {}),
+});
+
+export const createTestResultRegistry = (testResults: TestResult[]): TestResultRegistry => ({
+  byId: Object.fromEntries(testResults.map((testResult) => [testResult.id, convertToTestResultSummary(testResult)])),
+});
+
+export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCheckResult => ({
+  id: check.id,
+  name: check.name,
+  status: check.status,
 });
 
 export const createPluginSummary = async (params: {
@@ -20,10 +37,12 @@ export const createPluginSummary = async (params: {
   meta: Record<string, any>;
 }): Promise<PluginSummary> => {
   const { name, filter, plugin, store, history, meta } = params;
+  const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
-  const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
+  const retryFlags = await Promise.all(allTrs.map(async (tr) => (await store.retriesByTr(tr)).length > 0));
+  const retryTrs = allTrs.filter((_, index) => retryFlags[index]);
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
   const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
   const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
@@ -32,9 +51,10 @@ export const createPluginSummary = async (params: {
   return {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
-    newTests: newTrs.map(convertToSummaryTestResult),
-    flakyTests: flakyTrs.map(convertToSummaryTestResult),
-    retryTests: retryTrs.map(convertToSummaryTestResult),
+    newTests: newTrs.map(({ id }) => id),
+    flakyTests: flakyTrs.map(({ id }) => id),
+    retryTests: retryTrs.map(({ id }) => id),
+    checks: allChecks.map(convertToSummaryCheckResult),
     name,
     duration,
     createdAt,

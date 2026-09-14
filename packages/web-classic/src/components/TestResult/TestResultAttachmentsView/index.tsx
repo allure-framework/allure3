@@ -1,6 +1,6 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { useI18n } from "@/stores";
@@ -8,7 +8,7 @@ import { useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
 export type TestResultAttachmentViewProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TestResultAttachmentView: FunctionalComponent<TestResultAttachmentViewProps> = ({ testResult }) => {

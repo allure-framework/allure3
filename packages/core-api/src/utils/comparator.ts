@@ -63,7 +63,7 @@ export const byStatus: SortFunction<TestStatus | undefined> = () => {
   });
 };
 export const byStatistic: SortFunction<Statistic | undefined> = () => {
-  const compares = statusesList.map((status) => compareBy<Statistic>(status, reverse(ordinal()), 0));
+  const compares = statusesList.map((status) => compareBy<Statistic, TestStatus>(status, reverse(ordinal()), 0));
   return nullsLast(andThen(compares));
 };
 

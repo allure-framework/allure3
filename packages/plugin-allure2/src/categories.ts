@@ -14,15 +14,21 @@ export const matchCategories = (
   categories: Allure2Category[],
   result: { statusMessage?: string; statusTrace?: string; status: Allure2Status; flaky: boolean },
 ) => {
-  const matched = categories.filter((category) => categoryMatch(category, result));
+  const matched = categories.find((category) => categoryMatch(category, result));
 
-  if (matched.length === 0 && categoryMatch(productDefects, result)) {
-    matched.push(productDefects);
+  if (matched) {
+    return [matched];
   }
-  if (matched.length === 0 && categoryMatch(testDefects, result)) {
-    matched.push(testDefects);
+
+  if (categoryMatch(productDefects, result)) {
+    return [productDefects];
   }
-  return matched;
+
+  if (categoryMatch(testDefects, result)) {
+    return [testDefects];
+  }
+
+  return [];
 };
 
 const categoryMatch = (

@@ -13,6 +13,8 @@ const { fetchReportJsonDataMock, setParamsMock } = vi.hoisted(() => ({
   setParamsMock: vi.fn(),
 }));
 
+const treeFiltersErrorMessage = "Failed to fetch tree filters data:\n\n";
+
 vi.mock("@allurereport/web-commons", async () => {
   const actual = await vi.importActual<typeof import("@allurereport/web-commons")>("@allurereport/web-commons");
 
@@ -25,13 +27,19 @@ vi.mock("@allurereport/web-commons", async () => {
 
 import { ReportFetchError } from "@allurereport/web-commons";
 
-import { fetchTreeFiltersData } from "../../../src/stores/treeFilters/actions.js";
-import { treeCategories, treeTags } from "../../../src/stores/treeFilters/store.js";
+import {
+  clearTreeFilterParams,
+  fetchTreeFiltersData,
+  setSeverityFilter,
+} from "../../../src/stores/treeFilters/actions.js";
+import { clearTreeFilters } from "../../../src/stores/treeFilters/store.js";
+import { treeCategories, treeFiltersResetNonce, treeTags } from "../../../src/stores/treeFilters/store.js";
 
 describe("stores > treeFilters > actions", () => {
   beforeEach(() => {
     treeTags.value = [];
     treeCategories.value = [];
+    treeFiltersResetNonce.value = 0;
     fetchReportJsonDataMock.mockReset();
     setParamsMock.mockReset();
   });
@@ -39,6 +47,7 @@ describe("stores > treeFilters > actions", () => {
   afterEach(() => {
     treeTags.value = [];
     treeCategories.value = [];
+    treeFiltersResetNonce.value = 0;
     vi.restoreAllMocks();
   });
 
@@ -56,7 +65,7 @@ describe("stores > treeFilters > actions", () => {
 
     expect(treeTags.value).toEqual([]);
     expect(treeCategories.value).toEqual([]);
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).not.toHaveBeenCalledWith(treeFiltersErrorMessage, expect.anything());
   });
 
   it("should populate filters from fetched data", async () => {
@@ -84,7 +93,43 @@ describe("stores > treeFilters > actions", () => {
 
     expect(treeTags.value).toEqual(["seed-tag"]);
     expect(treeCategories.value).toEqual(["seed-category"]);
-    expect(consoleErrorSpy).toHaveBeenCalledOnce();
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch tree filters data:\n\n", error);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(treeFiltersErrorMessage, error);
+  });
+
+  it("should reset all filter params when clearing tree filters", () => {
+    clearTreeFilters();
+
+    expect(treeFiltersResetNonce.value).toBe(1);
+    expect(setParamsMock).toHaveBeenCalledTimes(1);
+    expect(setParamsMock).toHaveBeenCalledWith(
+      { key: "query", value: undefined },
+      { key: "retry", value: undefined },
+      { key: "flaky", value: undefined },
+      { key: "resolution", value: [] },
+      { key: "transition", value: [] },
+      { key: "tags", value: [] },
+      { key: "categories", value: [] },
+      { key: "severity", value: [] },
+      { key: "status", value: undefined },
+    );
+  });
+
+  it("should write severity values to the url as a repeated param", () => {
+    setSeverityFilter(["blocker", "none"]);
+
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "severity", value: ["blocker", "none"] });
+  });
+
+  it("should clear the severity param when no severity is selected", () => {
+    setSeverityFilter([]);
+
+    expect(setParamsMock).toHaveBeenCalledWith({ key: "severity", value: [] });
+  });
+
+  it("should reset filter params in a single URL update", () => {
+    clearTreeFilterParams();
+
+    expect(setParamsMock).toHaveBeenCalledTimes(1);
+    expect(setParamsMock.mock.calls[0]).toHaveLength(9);
   });
 });

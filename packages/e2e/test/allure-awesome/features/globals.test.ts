@@ -1,9 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { epic, feature, label, parameter, story } from "allure-js-commons";
 
 import { GlobalsPage, TestResultPage } from "../../pageObjects";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig } from "../utils/mocks.js";
+
+async function expectSelectedEnvBucket(page: Page, tabLocator: Locator, visibleTexts: string[], hiddenTexts: string[]) {
+  await expect(tabLocator).toContainText("1");
+
+  for (const text of visibleTexts) {
+    await expect(page.getByText(text)).toBeVisible();
+  }
+
+  for (const text of hiddenTexts) {
+    await expect(page.getByText(text)).toHaveCount(0);
+  }
+}
 
 test.describe("globals", () => {
   let bootstrap: ReportBootstrap;
@@ -202,6 +214,15 @@ test.describe("globals", () => {
       await expect(page.getByText("foo-global.txt")).toBeVisible();
       await expect(page.getByText("bar-global.txt")).toBeVisible();
 
+      await globalsPage.selectEnv("foo");
+
+      await expectSelectedEnvBucket(
+        page,
+        globalsPage.globalAttachmentsTabLocator,
+        ["foo-global.txt"],
+        ["default-global.txt", "bar-global.txt"],
+      );
+
       await globalsPage.attachScreenshot();
     });
   });
@@ -312,6 +333,15 @@ test.describe("globals", () => {
       await expect(page.getByText("default global error")).toBeVisible();
       await expect(page.getByText("foo global error")).toBeVisible();
       await expect(page.getByText("bar global error")).toBeVisible();
+
+      await globalsPage.selectEnv("foo");
+
+      await expectSelectedEnvBucket(
+        page,
+        globalsPage.globalErrorsTabLocator,
+        ["foo global error"],
+        ["default global error", "bar global error"],
+      );
 
       await globalsPage.attachScreenshot();
     });

@@ -157,6 +157,23 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.readDirectory).not.toHaveBeenCalled();
   });
 
+  it("should still read config.resultsDir when dumps are present", async () => {
+    vi.mocked(glob).mockReset();
+
+    vi.mocked(glob).mockResolvedValueOnce(["dump1.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["./from-config/"]);
+
+    await generate({
+      cwd: ".",
+      config: { resultsDir: ["./from-config"] } as FullConfig,
+      resultsDir: [],
+      dump: ["dump1.zip"],
+    });
+
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["dump1.zip"]);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./from-config/");
+  });
+
   it("should restore state from both state dump files and results directories", async () => {
     vi.mocked(glob).mockReset();
 

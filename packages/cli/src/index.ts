@@ -1,11 +1,15 @@
 import { readFileSync } from "node:fs";
-import { argv } from "node:process";
+import process, { argv } from "node:process";
 
 import { Builtins, Cli } from "clipanion";
 
 import {
   AgentCommand,
+  AGENT_TASK_MAP_HELP,
+  AgentCapabilitiesCommand,
+  AgentInspectCommand,
   AgentLatestCommand,
+  AgentQueryCommand,
   AgentSelectCommand,
   AgentStateDirCommand,
   Allure2Command,
@@ -17,7 +21,6 @@ import {
   GenerateCommand,
   HistoryCommand,
   JiraClearCommand,
-  KnownIssueCommand,
   LogCommand,
   OpenCommand,
   QualityGateCommand,
@@ -25,8 +28,10 @@ import {
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsPlanCommand,
   TestPlanCommand,
   WatchCommand,
+  isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
 
 const [node, app, ...args] = argv;
@@ -43,7 +48,10 @@ const cli = new Cli({
 
 cli.register(AwesomeCommand);
 cli.register(Allure2Command);
+cli.register(AgentCapabilitiesCommand);
+cli.register(AgentInspectCommand);
 cli.register(AgentLatestCommand);
+cli.register(AgentQueryCommand);
 cli.register(AgentSelectCommand);
 cli.register(AgentStateDirCommand);
 cli.register(AgentCommand);
@@ -54,19 +62,31 @@ cli.register(DashboardCommand);
 cli.register(GenerateCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
-cli.register(KnownIssueCommand);
 cli.register(LogCommand);
 cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
 cli.register(SlackCommand);
+cli.register(TestOpsPlanCommand);
 cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
-cli.runExit(args);
+void cli
+  .run(args)
+  .then((exitCode) => {
+    if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
+      process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
+    }
+
+    process.exitCode = exitCode;
+  })
+  .catch((error: unknown) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 
 export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";

@@ -62,6 +62,23 @@ describe("generate command", () => {
     expect(serve).not.toHaveBeenCalled();
   });
 
+  it("should pass known issues override to readConfig", async () => {
+    (readConfig as Mock).mockResolvedValue({ open: false });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "--known-issues", "known.json", "baz"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      open: undefined,
+      port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
+      resolutions: { knownIssuesPath: "known.json" },
+    });
+  });
+
   it("should call generate with dump files when provided", async () => {
     (readConfig as Mock).mockResolvedValue({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
@@ -97,16 +114,27 @@ describe("generate command", () => {
     (readConfig as Mock).mockResolvedValueOnce({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--output", "foo", "--report-name", "bar", "baz"]);
+    await run(GenerateCommand, [
+      "generate",
+      "--output",
+      "foo",
+      "--report-name",
+      "bar",
+      "--history-base-url",
+      "https://bucket.example/runs/42",
+      "baz",
+    ]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      output: "foo",
       name: "bar",
+      output: "foo",
       open: undefined,
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
+      historyBaseUrl: "https://bucket.example/runs/42",
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -127,12 +155,13 @@ describe("generate command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      output: undefined,
       name: undefined,
+      output: undefined,
       open: undefined,
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -152,12 +181,13 @@ describe("generate command", () => {
     await run(GenerateCommand, ["generate", "--config", "bar.js", "baz"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), "bar.js", {
-      output: undefined,
       name: undefined,
+      output: undefined,
       open: undefined,
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -188,7 +218,15 @@ describe("generate command", () => {
 
     await run(GenerateCommand, ["generate", "--open", "bar"]);
 
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, expect.objectContaining({ open: true }));
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      open: true,
+      port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
+      resolutions: { knownIssuesPath: undefined },
+    });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         config: { output: "foo", open: true },
@@ -215,14 +253,15 @@ describe("generate command", () => {
 
     await run(GenerateCommand, ["generate", "--open", "--port", "10201", "bar"]);
 
-    expect(readConfig).toHaveBeenCalledWith(
-      expect.any(String),
-      undefined,
-      expect.objectContaining({
-        open: true,
-        port: "10201",
-      }),
-    );
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      open: true,
+      port: "10201",
+      hideLabels: undefined,
+      historyLimit: undefined,
+      resolutions: { knownIssuesPath: undefined },
+    });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         config: { output: "foo", open: true, port: 10202 },
@@ -276,6 +315,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: ["baz", "qux"],
       historyLimit: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({

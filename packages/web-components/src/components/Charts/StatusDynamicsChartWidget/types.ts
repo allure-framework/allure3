@@ -17,7 +17,7 @@ export type I18nProp = (key: I18nKeys, props?: Record<string, unknown>) => strin
 
 export type Props = {
   title?: string;
-  data: { statistic: Statistic; id: string; timestamp: number; name: string }[];
+  data: { statistic: Statistic; id: string; timestamp: number; name: string; url?: string }[];
   limit?: number;
   statuses?: TestStatus[];
   i18n: I18nProp;

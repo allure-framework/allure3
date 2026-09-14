@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult, TestError, TestStatus } from "@allurereport/core-api";
-import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
+import type { ReportFixtureResult, ReportTestResult } from "types";
 
 export type TestLevelErrorItem = {
   type: "error";
@@ -63,6 +63,10 @@ export const isDisplayableTestError = (error?: TestErrorLike) => {
   );
 };
 
+export const hasDisplayableTestStatusDetails = (status: TestStatus | undefined, error?: TestErrorLike) => {
+  return (status === "failed" || status === "broken" || status === "skipped") && isDisplayableTestError(error);
+};
+
 const canHostSyntheticError = (step: DefaultTestStepResult, error: TestErrorLike) => {
   if (step.status !== "failed" && step.status !== "broken") {
     return false;
@@ -95,7 +99,7 @@ const createTestLevelErrorItem = (
 });
 
 const buildStepBodyItems = (
-  steps: AwesomeTestResult["steps"],
+  steps: ReportTestResult["steps"],
   syntheticErrorItem: TestLevelErrorItem | undefined,
 ): BuildResult => {
   const bodyItems: TrBodyItem[] = [];
@@ -128,10 +132,10 @@ const buildStepBodyItems = (
   return { bodyItems, didPlaceSyntheticError };
 };
 
-export const getStepBodyItems = (steps: AwesomeTestResult["steps"]): TrBodyItem[] =>
+export const getStepBodyItems = (steps: ReportTestResult["steps"]): TrBodyItem[] =>
   buildStepBodyItems(steps, undefined).bodyItems;
 
-export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStepItem => {
+export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepItem => {
   const err = fixture.error;
 
   return {
@@ -154,17 +158,16 @@ export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStep
 };
 
 export const getBodyItems = (
-  testResult?: Pick<AwesomeTestResult, "id" | "status" | "steps" | "error">,
+  testResult?: Pick<ReportTestResult, "id" | "status" | "steps" | "error">,
   fallbackTitle = "Error",
 ): TrBodyItem[] => {
   if (!testResult) {
     return [];
   }
 
-  const syntheticErrorItem =
-    (testResult.status === "failed" || testResult.status === "broken") && isDisplayableTestError(testResult.error)
-      ? createTestLevelErrorItem(testResult.id, testResult.status, testResult.error, fallbackTitle)
-      : undefined;
+  const syntheticErrorItem = hasDisplayableTestStatusDetails(testResult.status, testResult.error)
+    ? createTestLevelErrorItem(testResult.id, testResult.status, testResult.error, fallbackTitle)
+    : undefined;
 
   const { bodyItems, didPlaceSyntheticError } = buildStepBodyItems(testResult.steps, syntheticErrorItem);
 

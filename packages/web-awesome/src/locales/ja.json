@@ -22,7 +22,8 @@
     "globalAttachments": "グローバル添付ファイル",
     "globalErrors": "グローバルエラー",
     "qualityGates": "品質ゲート",
-    "categories": "カテゴリ"
+    "categories": "カテゴリ",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "検索",
@@ -56,7 +57,18 @@
       "regressed": "ステータスが「成功」または「破損」から「失敗」に変更されたテスト結果を表示します",
       "malfunctioned": "ステータスが「成功」または「失敗」から「破損」に変更されたテスト結果を表示します",
       "tags": "指定されたタグを持つテスト結果を表示します",
-      "categories": "指定したカテゴリを持つテスト結果を表示します"
+      "categories": "指定したカテゴリを持つテスト結果を表示します",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "テスト手順の情報は利用できません",
     "no-test-case-results": "テストケースの結果がありません",
     "no-environments-results": "環境情報が利用できません",
-    "no-categories-results": "利用可能なカテゴリはありません"
+    "no-categories-results": "利用可能なカテゴリはありません",
+    "no-metrics-results": "利用できるメトリクスはありません",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "ブロッカー",
     "critical": "重大",
     "normal": "通常",
     "minor": "小規模",
-    "trivial": "些細"
+    "trivial": "些細",
+    "none": "重要度なし"
   },
   "execution": {
     "name": "実行",
@@ -138,6 +153,7 @@
     "category": "カテゴリ",
     "description": "説明",
     "links": "リンク",
+    "relatedTestResults": "関連するテスト結果（{{count}}）",
     "overview": "概要",
     "history": "履歴",
     "attachments": "添付ファイル",
@@ -150,6 +166,7 @@
     "copy": "コピー",
     "copy-email": "メールをコピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
+    "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
     "generated": "生成日時",
     "variables": "変数",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "ブラウザーが Playwright Trace Viewer の表示をブロックしました。",
     "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "グラフ",
-    "timeline": "タイムライン"
+    "timeline": "タイムライン",
+    "metrics": "メトリクス"
   },
   "timeline": {
     "empty": "データなし",
@@ -394,6 +413,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "パフォーマンスメトリクス",
+      "phaseSummary": "メトリクス概要",
+      "currentValues": "現在の値",
+      "historyTitle": "メトリクス履歴",
+      "noHistory": "このメトリクスの履歴はまだありません",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "メトリクス",
+        "phase": "メトリクスセット",
+        "count": "件数",
+        "total": "合計",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "value": "値",
+        "delta": "差分",
+        "trend": "傾向",
+        "source": "ソース",
+        "report": "レポート",
+        "date": "日付"
+      },
+      "summary": "概要行 {{groups}} 件 / メトリクス {{metrics}} 件",
+      "groups": {
+        "other": "その他"
+      }
+    },
+    "successRate": {
+      "successRate": "成功率: {{rate}}",
+      "successRateDescription": "成功、失敗、異常終了のテストから算出します。スキップされたテストとステータス不明のテストは除外します。",
+      "noResults": "テスト結果はありません。",
+      "noEligibleResults": "成功、失敗、異常終了のテストはありません。スキップされたテストとステータス不明のテストは成功率から除外します。",
+      "slice_one": "{{count}} 件のテスト（全テストの {{percent}}%）",
+      "slice_other": "{{count}} 件のテスト（全テストの {{percent}}%）",
+      "layer": "レイヤー: {{layer}}",
+      "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
+      "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
     }
   },
   "transitions": {
@@ -403,7 +460,12 @@
       "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
       "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった",
       "retries": "{{count}} 回の再試行",
-      "flaky": "実行ごとに結果が不安定"
+      "flaky": "実行ごとに結果が不安定",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "新規",
     "fixed": "修正済み",
@@ -482,6 +544,7 @@
       "testTabNext": "次のテストタブ",
       "testTabPrev": "前のテストタブ",
       "tabOverview": "概要タブ",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "履歴タブ",
       "tabRetries": "リトライタブ",
       "tabAttachments": "添付ファイルタブ",
@@ -489,7 +552,8 @@
       "toggleLabels": "ラベルを表示/非表示",
       "toggleParameters": "パラメータを表示/非表示",
       "toggleLinks": "リンクを表示/非表示",
-      "backToTree": "ツリーに戻る"
+      "backToTree": "ツリーに戻る",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

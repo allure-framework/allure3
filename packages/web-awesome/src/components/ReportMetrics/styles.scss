@@ -1,0 +1,360 @@
+.metrics {
+  padding: 24px;
+  min-height: 320px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.meta,
+.detailsMetric {
+  color: var(--color-text-secondary);
+}
+
+.phaseGroup {
+  &:not(:first-of-type) {
+    margin-top: 18px;
+  }
+}
+
+.groupTitle {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.metricName {
+  display: block;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.metricValue,
+.delta,
+.table td:not(:first-child) {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricValue {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.metricGroup {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.delta {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+
+  &[data-direction="good"] {
+    color: var(--color-status-passed-chart);
+  }
+
+  &[data-direction="bad"] {
+    color: var(--color-status-failed-chart);
+  }
+}
+
+.sparkline {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 32px;
+
+  polyline {
+    fill: none;
+    stroke: var(--color-intent-primary-text);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+}
+
+.section {
+  &:not(:first-child) {
+    margin-top: 20px;
+  }
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+summary.sectionTitle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: var(--color-bg-primary);
+}
+
+.table {
+  --metrics-row-active-bg: var(--color-control-bg-ghost-hover);
+
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: collapse;
+  background: var(--color-bg-primary);
+
+  th,
+  td {
+    padding: 9px 8px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    vertical-align: middle;
+    text-align: left;
+  }
+
+  th {
+    border-bottom: 0;
+    background: var(--color-bg-primary);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  tbody tr {
+    transition: background-color var(--color-change-transition-duration);
+  }
+
+  tbody tr:last-child > td {
+    border-bottom: 0;
+  }
+
+  td:not(:first-child) {
+    white-space: nowrap;
+  }
+}
+
+.table:has(tbody tr:first-child:hover, tbody tr:first-child:focus-within, tbody tr:first-child[data-expanded="true"]) {
+  th:first-child {
+    border-bottom-left-radius: 6px;
+  }
+
+  th:last-child {
+    border-bottom-right-radius: 6px;
+  }
+}
+
+.summaryTable {
+  min-width: 900px;
+}
+
+.summaryMetricCol {
+  width: 31%;
+}
+
+.summaryCountCol {
+  width: 7%;
+}
+
+.summaryValueCol {
+  width: 11%;
+}
+
+.summaryDeltaCol {
+  width: 10%;
+}
+
+.summaryTrendCol {
+  width: 8%;
+}
+
+.currentTable {
+  min-width: 820px;
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.currentMetricCol {
+  width: 34%;
+}
+
+.currentValueCol,
+.currentDeltaCol {
+  width: 12%;
+}
+
+.currentSourceCol {
+  width: 42%;
+}
+
+.expandableRow {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-within,
+  &[data-expanded="true"] {
+    background: var(--metrics-row-active-bg);
+  }
+
+  &[data-expanded="true"] > td {
+    border-bottom: 0;
+  }
+}
+
+.metricButton {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.rowArrow {
+  margin-top: 1px;
+}
+
+.expandedRow {
+  > td {
+    padding: 0;
+    border-bottom: 0;
+    background: var(--metrics-row-active-bg);
+  }
+
+  &[data-expanded="true"] > td {
+    padding: 0 0 12px;
+  }
+}
+
+.expandedContent {
+  display: grid;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--color-bg-primary);
+}
+
+.historyDetails {
+  min-height: 0;
+  overflow: hidden;
+
+  .table {
+    min-width: 0;
+  }
+}
+
+.historyTable {
+  th,
+  td {
+    overflow-wrap: anywhere;
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    white-space: normal;
+  }
+}
+
+.historyReportCol {
+  width: 26%;
+}
+
+.historyDateCol {
+  width: 32%;
+}
+
+.historyValueCol,
+.historyDeltaCol {
+  width: 21%;
+}
+
+.detailsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.detailsMetric,
+.metricName {
+  overflow-wrap: anywhere;
+}
+
+.detailsValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 12px;
+}
+
+.empty,
+.emptyInline,
+.loader {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.empty,
+.loader {
+  padding: 48px 0;
+}
+
+.emptyInline {
+  justify-content: flex-start;
+  padding: 12px 0;
+  color: var(--color-text-secondary);
+}
+
+[dir="rtl"] {
+  .table th,
+  .table td,
+  .metricButton {
+    text-align: right;
+  }
+}
+
+@media (max-width: 960px) {
+  .metrics {
+    padding: 16px;
+  }
+}

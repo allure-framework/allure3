@@ -1,4 +1,4 @@
-import { allureIcons } from "@/components/SvgIcon";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 
 type IconDisplayProps = {
@@ -11,9 +11,7 @@ const getAllureIcons = () => Object.entries(allureIcons).map(([name, id]) => ({ 
 const IconDisplay = ({ name, id }: IconDisplayProps) => {
   return (
     <div style={{ textAlign: "center", margin: "16px", color: "var(--on-text-secondary)" }}>
-      <svg width={24} height={24}>
-        <use xlinkHref={`#${id}`} />
-      </svg>
+      <SvgIcon id={id} size="l" />
       <Text tag={"p"} style={{ marginTop: 8 }}>
         {name}
       </Text>

@@ -3,9 +3,9 @@ import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
-import { TrInfoStatuses } from "@/components/TestResult/TrInfo/TrInfoStatuses";
+import { TrFlaky } from "@/components/TestResult/TrInfo/TrFlaky";
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
 import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
@@ -19,18 +19,17 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 export type TrInfoProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
-  const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop, categories } =
+  const { name, status, flaky, resolution, duration, labels, history, retries, attachments, stop, categories } =
     testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const categoryName = categories?.[0]?.name;
   const { t } = useI18n("ui");
-  const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);
 
   const Content = () => {
     return (
@@ -44,7 +43,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
           {Boolean(status) && <TrStatus status={status} />}
           {Boolean(history?.length) && <TrPrevStatuses history={history} />}
           <TrSeverity severity={severity} />
-          {Boolean(statuses.length) && <TrInfoStatuses statuses={statuses} />}
+          {flaky && <TrFlaky />}
           {categoryName && (
             <Text tag={"div"} size={"s"} className={styles["test-result-category"]}>
               {t("category")}: {categoryName}
@@ -59,6 +58,14 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-tabs"]}>
           <TrTabsList>
             <TrTab id="overview">{t("overview")}</TrTab>
+            {resolution && (
+              <TrTab id="resolutionCategories">
+                <div className={styles["test-result-tab"]}>
+                  {t("resolutionCategories")}
+                  <Counter size={"s"} count={1} />
+                </div>
+              </TrTab>
+            )}
             <TrTab id="history">
               <div className={styles["test-result-tab"]}>
                 {t("history")}

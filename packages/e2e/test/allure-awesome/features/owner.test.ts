@@ -81,8 +81,9 @@ test.describe("owner label (RFC 2822)", () => {
 
     await page.getByText("John Doe").click();
 
-    await expect(page.getByRole("button", { name: "Copy email" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+    const ownerPopup = page.getByRole("list");
+    await expect(ownerPopup.getByRole("button", { name: "Copy email" })).toBeVisible();
+    await expect(ownerPopup.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
   });
 
   test("should show URL link and Copy button in owner popup for RFC 2822 URL", async ({ page }) => {
@@ -95,8 +96,9 @@ test.describe("owner label (RFC 2822)", () => {
 
     await page.getByText("Jane Smith").click();
 
-    await expect(page.getByRole("link", { name: /github\.com/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+    const ownerPopup = page.getByRole("list");
+    await expect(ownerPopup.getByRole("link", { name: /github\.com/ })).toBeVisible();
+    await expect(ownerPopup.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
   });
 
   test("should show only Copy button in owner popup for plain text owner", async ({ page }) => {
@@ -109,8 +111,9 @@ test.describe("owner label (RFC 2822)", () => {
 
     await page.getByText("QA Team").click();
 
-    await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy email" })).not.toBeVisible();
+    const ownerPopup = page.getByRole("list");
+    await expect(ownerPopup.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+    await expect(ownerPopup.getByRole("button", { name: "Copy email" })).not.toBeVisible();
   });
 
   test("should show only Copy button in owner popup when owner is plain email address", async ({ page }) => {
@@ -123,7 +126,8 @@ test.describe("owner label (RFC 2822)", () => {
 
     await page.getByText(ownerPlainEmail).click();
 
-    await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy email" })).not.toBeVisible();
+    const ownerPopup = page.getByRole("list");
+    await expect(ownerPopup.getByRole("button", { name: "Copy", exact: true })).toBeVisible();
+    await expect(ownerPopup.getByRole("button", { name: "Copy email" })).not.toBeVisible();
   });
 });

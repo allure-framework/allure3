@@ -24,9 +24,8 @@ describe("categories", () => {
         flaky: false,
       },
     );
-    expect(matched).to.have.lengthOf(2, "should match provided category");
+    expect(matched).to.have.lengthOf(1, "should use the first matching category");
     expect(matched[0]).to.have.property("name", "failed category");
-    expect(matched[1]).to.have.property("name", "multi category");
   });
   it("should match by message", () => {
     const matched = matchCategories(
@@ -42,9 +41,8 @@ describe("categories", () => {
         flaky: false,
       },
     );
-    expect(matched).to.have.lengthOf(2, "should match provided category");
+    expect(matched).to.have.lengthOf(1, "should use the first matching category");
     expect(matched[0]).to.have.property("name", "some message category");
-    expect(matched[1]).to.have.property("name", "all matched category");
   });
   it("should match by message multi-line", () => {
     const matched = matchCategories(
@@ -60,9 +58,8 @@ describe("categories", () => {
         flaky: false,
       },
     );
-    expect(matched).to.have.lengthOf(2, "should match provided category");
+    expect(matched).to.have.lengthOf(1, "should use the first matching category");
     expect(matched[0]).to.have.property("name", "some message category");
-    expect(matched[1]).to.have.property("name", "all matched category");
   });
   it("should match by trace", () => {
     const matched = matchCategories(
@@ -78,9 +75,8 @@ describe("categories", () => {
         flaky: false,
       },
     );
-    expect(matched).to.have.lengthOf(2, "should match provided category");
+    expect(matched).to.have.lengthOf(1, "should use the first matching category");
     expect(matched[0]).to.have.property("name", "some message category");
-    expect(matched[1]).to.have.property("name", "all matched category");
   });
   it("should match by trace multi-line", () => {
     const matched = matchCategories(
@@ -96,8 +92,7 @@ describe("categories", () => {
         flaky: false,
       },
     );
-    expect(matched).to.have.lengthOf(2, "should match provided category");
+    expect(matched).to.have.lengthOf(1, "should use the first matching category");
     expect(matched[0]).to.have.property("name", "some message category");
-    expect(matched[1]).to.have.property("name", "all matched category");
   });
 });

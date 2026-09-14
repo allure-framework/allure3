@@ -1,8 +1,8 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { AwesomeReportOptions, Layout } from "types";
+import type { ReportOptions, Layout } from "types";
 
-const reportOptions = getReportOptions<AwesomeReportOptions>();
+const reportOptions = getReportOptions<ReportOptions>();
 
 const DEFAULT_LAYOUT = "base";
 

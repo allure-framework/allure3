@@ -22,7 +22,8 @@
     "globalAttachments": "Globale Bijlagen",
     "globalErrors": "Globale Fouten",
     "qualityGates": "Kwaliteitspoorten",
-    "categories": "Categorieën"
+    "categories": "Categorieën",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Zoeken",
@@ -56,7 +57,18 @@
       "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
       "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status",
       "tags": "Toont testresultaten die de opgegeven tags hebben",
-      "categories": "Toont testresultaten die de opgegeven categorieën hebben"
+      "categories": "Toont testresultaten die de opgegeven categorieën hebben",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
     "no-test-case-results": "Geen testresultaten",
     "no-environments-results": "Geen informatie over omgevingen beschikbaar",
-    "no-categories-results": "Geen categorieresultaten beschikbaar"
+    "no-categories-results": "Geen categorieresultaten beschikbaar",
+    "no-metrics-results": "Geen metrieken beschikbaar",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blokkerend",
     "critical": "kritiek",
     "normal": "normaal",
     "minor": "klein",
-    "trivial": "onbeduidend"
+    "trivial": "onbeduidend",
+    "none": "geen ernst"
   },
   "execution": {
     "name": "Uitvoering",
@@ -138,6 +153,7 @@
     "category": "Categorie",
     "description": "Beschrijving",
     "links": "Links",
+    "relatedTestResults": "Gerelateerde testresultaten ({{count}})",
     "overview": "Overzicht",
     "history": "Geschiedenis",
     "attachments": "Bijlagen",
@@ -150,6 +166,7 @@
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
+    "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",
     "generated": "Gegenereerd",
     "variables": "Variabelen",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "De browser heeft het openen van Playwright Trace Viewer geblokkeerd.",
     "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafieken",
-    "timeline": "Tijdlijn"
+    "timeline": "Tijdlijn",
+    "metrics": "Metrieken"
   },
   "timeline": {
     "empty": "Geen gegevens",
@@ -394,6 +413,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Prestatiestatistieken",
+      "phaseSummary": "Metriekoverzicht",
+      "currentValues": "Huidige waarden",
+      "historyTitle": "Metriekgeschiedenis",
+      "noHistory": "Nog geen geschiedenis voor deze metriek",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metriek",
+        "phase": "Metriekset",
+        "count": "Aantal",
+        "total": "Totaal",
+        "avg": "Gem.",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Waarde",
+        "delta": "Wijziging",
+        "trend": "Trend",
+        "source": "Bron",
+        "report": "Rapport",
+        "date": "Datum"
+      },
+      "summary": "{{groups}} overzichtsrijen / {{metrics}} metrieken",
+      "groups": {
+        "other": "Overig"
+      }
+    },
+    "successRate": {
+      "successRate": "Slagingspercentage: {{rate}}",
+      "successRateDescription": "Berekend op basis van geslaagde, mislukte en defecte tests. Overgeslagen tests en tests met onbekende status zijn uitgesloten.",
+      "noResults": "Er zijn geen testresultaten.",
+      "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage.",
+      "slice_one": "{{count}} test ({{percent}}% van alle tests)",
+      "slice_other": "{{count}} tests ({{percent}}% van alle tests)",
+      "layer": "Laag: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
+      "slice": "{{count}} tests ({{percent}}% van alle tests)"
     }
   },
   "transitions": {
@@ -403,7 +460,12 @@
       "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
       "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
       "retries": "{{count}} pogingen",
-      "flaky": "Inconsistent tussen runs"
+      "flaky": "Inconsistent tussen runs",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Nieuw",
     "fixed": "Opgelost",
@@ -482,6 +544,7 @@
       "testTabNext": "Volgende testtab",
       "testTabPrev": "Vorige testtab",
       "tabOverview": "Tab overzicht",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab geschiedenis",
       "tabRetries": "Tab nieuwe pogingen",
       "tabAttachments": "Tab bijlagen",
@@ -489,7 +552,8 @@
       "toggleLabels": "Labels tonen/verbergen",
       "toggleParameters": "Parameters tonen/verbergen",
       "toggleLinks": "Links tonen/verbergen",
-      "backToTree": "Terug naar boom"
+      "backToTree": "Terug naar boom",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

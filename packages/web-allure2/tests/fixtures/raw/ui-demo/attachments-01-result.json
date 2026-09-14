@@ -1,0 +1,506 @@
+{
+  "name": "attachmentsInStep",
+  "status": "passed",
+  "uuid": "553eced7847bf99b73c7e41ad1b89369",
+  "start": 1710000172000,
+  "stop": 1710000191840,
+  "labels": [
+    {
+      "name": "severity",
+      "value": "normal"
+    },
+    {
+      "name": "testClass",
+      "value": "test.labels.module_severity_test"
+    },
+    {
+      "name": "package",
+      "value": "test.labels.module_severity_test"
+    },
+    {
+      "name": "epic",
+      "value": "Report UI"
+    },
+    {
+      "name": "feature",
+      "value": "Attachments"
+    },
+    {
+      "name": "story",
+      "value": "Inline attachment gallery"
+    },
+    {
+      "name": "host",
+      "value": "charlie.local"
+    },
+    {
+      "name": "thread",
+      "value": "2208@charlie.local.main(1)"
+    }
+  ],
+  "steps": [
+    {
+      "status": "passed",
+      "name": "application/xml",
+      "start": 1710000172000,
+      "stop": 1710000173440,
+      "attachments": [
+        {
+          "name": "application/xml",
+          "type": "application/xml",
+          "source": "attachment-report.xml"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/csv",
+      "start": 1710000173840,
+      "stop": 1710000175280,
+      "attachments": [
+        {
+          "name": "text/csv",
+          "type": "text/csv",
+          "source": "attachment-data.csv"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/tab-separated-values",
+      "start": 1710000175680,
+      "stop": 1710000177120,
+      "attachments": [
+        {
+          "name": "text/tab-separated-values",
+          "type": "text/tab-separated-values",
+          "source": "attachment-table.tsv"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/css",
+      "start": 1710000177520,
+      "stop": 1710000178960,
+      "attachments": [
+        {
+          "name": "text/css",
+          "type": "text/css",
+          "source": "attachment-styles.css"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html small",
+      "start": 1710000179000,
+      "stop": 1710000179040,
+      "attachments": [
+        {
+          "name": "text/html small",
+          "type": "text/html",
+          "source": "attachment-html-small.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html long",
+      "start": 1710000179080,
+      "stop": 1710000179120,
+      "attachments": [
+        {
+          "name": "text/html long",
+          "type": "text/html",
+          "source": "attachment-html-long.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html collapsible",
+      "start": 1710000179160,
+      "stop": 1710000179200,
+      "attachments": [
+        {
+          "name": "text/html collapsible",
+          "type": "text/html",
+          "source": "attachment-html-collapsible.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html jQuery",
+      "start": 1710000179240,
+      "stop": 1710000179280,
+      "attachments": [
+        {
+          "name": "text/html jQuery",
+          "type": "text/html",
+          "source": "attachment-html-jquery.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html external media",
+      "start": 1710000179300,
+      "stop": 1710000179320,
+      "attachments": [
+        {
+          "name": "text/html external media",
+          "type": "text/html",
+          "source": "attachment-html-external-media.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html searchable table",
+      "start": 1710000179320,
+      "stop": 1710000179340,
+      "attachments": [
+        {
+          "name": "text/html searchable table",
+          "type": "text/html",
+          "source": "attachment-html-searchable-table.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html XSS probe",
+      "start": 1710000179340,
+      "stop": 1710000179345,
+      "attachments": [
+        {
+          "name": "text/html XSS probe",
+          "type": "text/html",
+          "source": "attachment-html-xss-probe.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html invalid",
+      "start": 1710000179345,
+      "stop": 1710000179352,
+      "attachments": [
+        {
+          "name": "text/html invalid",
+          "type": "text/html",
+          "source": "attachment-html-invalid.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/html over limit",
+      "start": 1710000179352,
+      "stop": 1710000179360,
+      "attachments": [
+        {
+          "name": "text/html over limit",
+          "type": "text/html",
+          "source": "attachment-html-over-limit.html"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "text/uri-list",
+      "start": 1710000179360,
+      "stop": 1710000180800,
+      "attachments": [
+        {
+          "name": "text/uri-list",
+          "type": "text/uri-list",
+          "source": "attachment-links.uri"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "image/svg+xml",
+      "start": 1710000181200,
+      "stop": 1710000182640,
+      "attachments": [
+        {
+          "name": "image/svg+xml",
+          "type": "image/svg+xml",
+          "source": "attachment-diagram.svg"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "image/png",
+      "start": 1710000183040,
+      "stop": 1710000184480,
+      "attachments": [
+        {
+          "name": "image/png",
+          "type": "image/png",
+          "source": "attachment-screenshot.png"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "application/json",
+      "start": 1710000184880,
+      "stop": 1710000186320,
+      "attachments": [
+        {
+          "name": "application/json",
+          "type": "application/json",
+          "source": "attachment-request.json"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange",
+      "start": 1710000186400,
+      "stop": 1710000186680,
+      "attachments": [
+        {
+          "name": "HTTP Exchange",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange image",
+      "start": 1710000186680,
+      "stop": 1710000186700,
+      "attachments": [
+        {
+          "name": "HTTP Exchange image",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-image.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange form",
+      "start": 1710000186700,
+      "stop": 1710000186720,
+      "attachments": [
+        {
+          "name": "HTTP Exchange form",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-form.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange multipart",
+      "start": 1710000186720,
+      "stop": 1710000186740,
+      "attachments": [
+        {
+          "name": "HTTP Exchange multipart",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-multipart.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange stream",
+      "start": 1710000186740,
+      "stop": 1710000186760,
+      "attachments": [
+        {
+          "name": "HTTP Exchange stream",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-stream.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange request only",
+      "start": 1710000186760,
+      "stop": 1710000186780,
+      "attachments": [
+        {
+          "name": "HTTP Exchange request only",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-request-only.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange HTML",
+      "start": 1710000186780,
+      "stop": 1710000186800,
+      "attachments": [
+        {
+          "name": "HTTP Exchange HTML",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-html.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange video",
+      "start": 1710000186800,
+      "stop": 1710000186820,
+      "attachments": [
+        {
+          "name": "HTTP Exchange video",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-video.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange error",
+      "start": 1710000186820,
+      "stop": 1710000186840,
+      "attachments": [
+        {
+          "name": "HTTP Exchange error",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-error.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange gRPC trailers",
+      "start": 1710000186840,
+      "stop": 1710000186860,
+      "attachments": [
+        {
+          "name": "HTTP Exchange gRPC trailers",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-grpc-trailers.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange informational response",
+      "start": 1710000186860,
+      "stop": 1710000186880,
+      "attachments": [
+        {
+          "name": "HTTP Exchange informational response",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-informational.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange redirect",
+      "start": 1710000186880,
+      "stop": 1710000186900,
+      "attachments": [
+        {
+          "name": "HTTP Exchange redirect",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-redirect.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange compression",
+      "start": 1710000186900,
+      "stop": 1710000186920,
+      "attachments": [
+        {
+          "name": "HTTP Exchange compression",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-compression.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange binary",
+      "start": 1710000186920,
+      "stop": 1710000186940,
+      "attachments": [
+        {
+          "name": "HTTP Exchange binary",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-binary.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "HTTP Exchange upgrade",
+      "start": 1710000186940,
+      "stop": 1710000186960,
+      "attachments": [
+        {
+          "name": "HTTP Exchange upgrade",
+          "type": "application/vnd.allure.http+json",
+          "source": "attachment-http-upgrade.httpexchange"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "application/vnd.allure.image.diff",
+      "start": 1710000187000,
+      "stop": 1710000188160,
+      "steps": [],
+      "attachments": [
+        {
+          "name": "application/vnd.allure.image.diff",
+          "type": "application/vnd.allure.image.diff",
+          "source": "attachment-banner.imagediff"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "component",
+          "value": "onboarding-banner"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "video/webm",
+      "start": 1710000188560,
+      "stop": 1710000190000,
+      "attachments": [
+        {
+          "name": "video/webm",
+          "type": "video/webm",
+          "source": "attachment-session.webm"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "image/jpeg",
+      "start": 1710000190400,
+      "stop": 1710000191840,
+      "attachments": [
+        {
+          "name": "image/jpeg",
+          "type": "image/jpeg",
+          "source": "attachment-thumbnail.jpeg"
+        }
+      ]
+    }
+  ],
+  "fullName": "test.labels.module_severity_test.TestDecorated#test_method_of_decorated_class"
+}

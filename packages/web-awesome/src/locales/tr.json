@@ -22,7 +22,8 @@
     "globalAttachments": "Küresel Ekler",
     "globalErrors": "Küresel Hatalar",
     "qualityGates": "Kalite Kapıları",
-    "categories": "Kategoriler"
+    "categories": "Kategoriler",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Ara",
@@ -56,7 +57,18 @@
       "regressed": "\"başarılı\" veya \"bozuk\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
       "malfunctioned": "\"başarılı\" veya \"başarısız\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster",
       "tags": "Belirtilen etiketlere sahip test sonuçlarını göster",
-      "categories": "Belirtilen kategorilere sahip test sonuçlarını göster"
+      "categories": "Belirtilen kategorilere sahip test sonuçlarını göster",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
     "no-test-case-results": "Test vakası sonuçları yok",
     "no-environments-results": "Ortam bilgisi mevcut değil",
-    "no-categories-results": "Kategoriler için sonuç bulunamadı"
+    "no-categories-results": "Kategoriler için sonuç bulunamadı",
+    "no-metrics-results": "Kullanılabilir metrik yok",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "engelleyici",
     "critical": "kritik",
     "normal": "normal",
     "minor": "küçük",
-    "trivial": "önemsiz"
+    "trivial": "önemsiz",
+    "none": "önem derecesi yok"
   },
   "execution": {
     "name": "Yürütme",
@@ -138,6 +153,7 @@
     "category": "Kategori",
     "description": "Açıklama",
     "links": "Bağlantılar",
+    "relatedTestResults": "İlgili test sonuçları ({{count}})",
     "overview": "Genel Bakış",
     "history": "Geçmiş",
     "attachments": "Ekler",
@@ -150,6 +166,7 @@
     "copy": "Kopyala",
     "copy-email": "E-postayı kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
+    "retry": "Yeniden deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
     "generated": "Oluşturuldu",
     "variables": "Değişkenler",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "Tarayıcı Playwright Trace Viewer’ın açılmasını engelledi.",
     "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafikler",
-    "timeline": "Zaman çizelgesi"
+    "timeline": "Zaman çizelgesi",
+    "metrics": "Metrikler"
   },
   "timeline": {
     "empty": "Veri yok",
@@ -394,6 +413,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Performans metrikleri",
+      "phaseSummary": "Metrik özeti",
+      "currentValues": "Geçerli değerler",
+      "historyTitle": "Metrik geçmişi",
+      "noHistory": "Bu metrik için henüz geçmiş yok",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrik",
+        "phase": "Metrik seti",
+        "count": "Sayı",
+        "total": "Toplam",
+        "avg": "Ort.",
+        "min": "Min.",
+        "max": "Maks.",
+        "value": "Değer",
+        "delta": "Değişim",
+        "trend": "Eğilim",
+        "source": "Kaynak",
+        "report": "Rapor",
+        "date": "Tarih"
+      },
+      "summary": "{{groups}} özet satırı / {{metrics}} metrik",
+      "groups": {
+        "other": "Diğer"
+      }
+    },
+    "successRate": {
+      "successRate": "Başarı oranı: {{rate}}",
+      "successRateDescription": "Başarılı, başarısız ve bozuk testlerden hesaplanır. Atlanan ve durumu bilinmeyen testler hariç tutulur.",
+      "noResults": "Test sonucu yok.",
+      "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez.",
+      "slice_one": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
+      "slice_other": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
+      "layer": "Katman: {{layer}}",
+      "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
+      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     }
   },
   "transitions": {
@@ -403,7 +460,12 @@
       "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
       "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\"",
       "retries": "{{count}} yeniden deneme",
-      "flaky": "Çalıştırmalar arasında tutarsız"
+      "flaky": "Çalıştırmalar arasında tutarsız",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Yeni",
     "fixed": "Düzeltildi",
@@ -482,6 +544,7 @@
       "testTabNext": "Sonraki test sekmesi",
       "testTabPrev": "Önceki test sekmesi",
       "tabOverview": "Genel bakış sekmesi",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Geçmiş sekmesi",
       "tabRetries": "Yeniden denemeler sekmesi",
       "tabAttachments": "Ekler sekmesi",
@@ -489,7 +552,8 @@
       "toggleLabels": "Etiketleri göster/gizle",
       "toggleParameters": "Parametreleri göster/gizle",
       "toggleLinks": "Bağlantıları göster/gizle",
-      "backToTree": "Ağaca geri dön"
+      "backToTree": "Ağaca geri dön",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

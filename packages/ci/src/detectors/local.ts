@@ -1,7 +1,29 @@
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { basename } from "node:path";
 
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
+
+import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
+
+const LOCAL_JOB_UID = "local";
+const LOCAL_JOB_RUN_UID = randomUUID();
+
+const readGitRemoteUrl = (): string => {
+  const output = spawnSync("git", ["remote", "get-url", "origin"]);
+
+  if (output.error) {
+    return "";
+  }
+
+  return output.stdout.toString().trim();
+};
+
+const getRepository = () => {
+  const remoteUrl = readGitRemoteUrl();
+
+  return remoteUrl ? resolveRepositoryFromGitUrl(remoteUrl) : undefined;
+};
 
 export const local: CiDescriptor = {
   type: CiType.Local,
@@ -21,7 +43,7 @@ export const local: CiDescriptor = {
   },
 
   get jobUid(): string {
-    return "";
+    return LOCAL_JOB_UID;
   },
 
   get jobUrl(): string {
@@ -33,7 +55,7 @@ export const local: CiDescriptor = {
   },
 
   get jobRunUid(): string {
-    return "";
+    return LOCAL_JOB_RUN_UID;
   },
 
   get jobRunUrl(): string {
@@ -61,4 +83,26 @@ export const local: CiDescriptor = {
   get pullRequestName(): string {
     return "";
   },
+
+  get provider() {
+    return getRepository()?.provider;
+  },
+
+  get repository() {
+    const repository = getRepository();
+
+    return repository
+      ? {
+          slug: repository.slug,
+          url: repository.url,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    return this.jobRunBranch || undefined;
+  },
 };
+
+export const isLocalCiDescriptor = (ci: CiDescriptor): ci is Omit<CiDescriptor, "type"> & { type: CiType.Local } =>
+  ci.type === CiType.Local;

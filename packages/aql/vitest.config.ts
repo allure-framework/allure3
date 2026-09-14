@@ -13,14 +13,7 @@ export default defineConfig({
      * Enable --expose-gc flag for memory profiling tests
      * This allows using global.gc() in tests for more accurate memory measurements
      */
-    poolOptions: {
-      threads: {
-        execArgv: ["--expose-gc"],
-      },
-      forks: {
-        execArgv: ["--expose-gc"],
-      },
-    },
+    execArgv: ["--expose-gc"],
     reporters: [
       "default",
       [

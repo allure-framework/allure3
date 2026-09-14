@@ -42,7 +42,11 @@ const App = () => {
     };
   }, []);
 
-  const ActiveComponent = useMemo(() => tabComponents[route.value.tabName] || (() => null), [route.value.tabName]);
+  const ActiveComponent = useMemo(
+    () => tabComponents[route.value.tabName] || (() => null),
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
+    [route.value.tabName],
+  );
 
   if (!currentLocale.value) {
     return <PageLoader />;

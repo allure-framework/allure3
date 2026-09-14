@@ -9,20 +9,37 @@ import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
+import svgr from "@svgr/rollup";
 import autoprefixer from "autoprefixer";
 import postcssImport from "postcss-import";
 import { defineConfig } from "rollup";
 import copy from "rollup-plugin-copy";
 import dts from "rollup-plugin-dts";
 import postcss from "rollup-plugin-postcss";
-import svg from "rollup-plugin-svg-sprites";
+
+import { svgrOptions } from "./svgr.config.js";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
+const YARN_DEPENDENCY_PATH = /[/\\]\.yarn[/\\]/;
+
+const onLog = (level, log, defaultHandler) => {
+  if (log.code === "CIRCULAR_DEPENDENCY") {
+    if (log.ids?.length && log.ids.every((id) => YARN_DEPENDENCY_PATH.test(id))) {
+      return;
+    }
+
+    defaultHandler("error", log);
+    return;
+  }
+
+  defaultHandler(level, log);
+};
 
 export default defineConfig([
   {
     input: "src/index.ts",
+    onLog,
     output: [
       {
         dir: "dist",
@@ -62,7 +79,7 @@ export default defineConfig([
         extensions: [".js", ".jsx", ".ts", ".tsx"],
         exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
-      svg(),
+      svgr(svgrOptions),
       postcss({
         modules: true,
         extract: true,
@@ -93,6 +110,16 @@ export default defineConfig([
       },
     ],
     external: ["preact", "preact/hooks", "react", "react-dom", /\.s?css$/],
-    plugins: [dts()],
+    plugins: [
+      alias({
+        entries: [
+          {
+            find: "@",
+            replacement: SRC_PATH,
+          },
+        ],
+      }),
+      dts(),
+    ],
   },
 ]);

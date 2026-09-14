@@ -14,7 +14,7 @@ import {
   normalizeCommandEnvironmentOptions,
   resolveCommandEnvironment,
 } from "../utils/environment.js";
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -40,11 +40,11 @@ export class QualityGateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   fastFail = Option.Boolean("--fast-fail", {
@@ -67,7 +67,7 @@ export class QualityGateCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+    description: "Path to known issues file",
   });
 
   environment = environmentOption();
@@ -87,9 +87,9 @@ export class QualityGateCommand extends Command {
     normalizeCommandEnvironmentOptions(environmentOptions);
 
     const cwd = await realpath(this.cwd ?? processCwd());
-    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
+    const { maxFailures, minTestsCount, successRate, fastFail } = this;
     const config = await readConfig(cwd, this.config, {
-      knownIssuesPath,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const rules: Record<string, any> = {};
@@ -136,14 +136,13 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
 
-    const knownIssues = await allureReport.store.allKnownIssues();
     const state = new QualityGateState();
 
     allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
@@ -152,7 +151,6 @@ export class QualityGateCommand extends Command {
       const { results, fastFailed } = await allureReport.validate({
         trs: nonRetryTrs,
         environment: resolvedEnvironment?.id,
-        knownIssues,
         state,
       });
 
@@ -177,7 +175,6 @@ export class QualityGateCommand extends Command {
     const allTrs = await allureReport.store.allTestResults({ includeRetries: false });
     const validationResults = await allureReport.validate({
       trs: allTrs,
-      knownIssues,
       environment: resolvedEnvironment?.id,
     });
 

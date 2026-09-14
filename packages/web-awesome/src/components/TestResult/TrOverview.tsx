@@ -1,9 +1,10 @@
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
-import { getBodyItems } from "@/components/TestResult/bodyItems";
+import { getBodyItems, hasDisplayableTestStatusDetails } from "@/components/TestResult/bodyItems";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrDescription } from "@/components/TestResult/TrDescription";
+import { TrError } from "@/components/TestResult/TrError";
 import { TrLinks } from "@/components/TestResult/TrLinks";
 import { TrMetadata } from "@/components/TestResult/TrMetadata";
 import { TrParameters } from "@/components/TestResult/TrParameters";
@@ -18,12 +19,12 @@ import { currentTrId } from "@/stores/testResult";
 import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TrOverviewProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
   useTestResultOverviewFocusScroll();
-  const { parameters, groupedLabels, links, descriptionHtml, setup, teardown, id } = testResult || {};
+  const { parameters, groupedLabels, links, descriptionHtml, setup, teardown, id, error, status } = testResult || {};
   const testResultId = id ?? currentTrId.value;
   const { t } = useI18n("ui");
   const bodyItems = getBodyItems(testResult, t("error"));
@@ -31,9 +32,15 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
   );
+  const showTopError = hasDisplayableTestStatusDetails(status, error);
 
   return (
     <>
+      {showTopError && (
+        <div className={styles["test-result-errors"]}>
+          <TrError {...error} status={status} />
+        </div>
+      )}
       {Boolean(pwTraces?.length) && <TrPwTraces pwTraces={pwTraces} />}
       {Boolean(parameters?.length) && <TrParameters id={testResultId} parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (

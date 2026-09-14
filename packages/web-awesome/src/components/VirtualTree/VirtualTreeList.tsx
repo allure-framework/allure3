@@ -35,6 +35,7 @@ const useLeafTooltips = (row: VirtualLeafRow) => {
     transition: row.transition ? t(`description.${row.transition}`) : undefined,
     flaky: row.flaky ? t("description.flaky") : undefined,
     retries: row.retriesCount ? t("description.retries", { count: row.retriesCount }) : undefined,
+    resolution: row.resolution ? t(`description.resolution.${row.resolution}`) : undefined,
   };
 };
 
@@ -53,6 +54,7 @@ const LeafRow = ({ row, trId, focusedId }: { row: VirtualLeafRow; trId?: string;
       transition={row.transition}
       transitionTooltip={row.transitionTooltip}
       tooltips={tooltips}
+      resolution={row.resolution}
       flaky={row.flaky}
       marked={row.nodeId === trId}
       focused={row.id === focusedId}
@@ -93,6 +95,23 @@ export const VirtualTreeList = () => {
       if (idx >= 0) scrollToIndex(idx, "auto");
     }
   }, [focusedId]);
+
+  useLayoutEffect(() => {
+    if (!trId || focusedId) return;
+
+    const index = rows.findIndex((row) => row.kind === "leaf" && (row.nodeId === trId || row.id === trId));
+
+    if (index < 0) return;
+
+    const node = document.querySelector(`[data-tree-node-id="${rows[index]!.id}"]`);
+
+    if (node instanceof HTMLElement) {
+      scrollFocusIntoView(node, { kind: "leaf" });
+      return;
+    }
+
+    scrollToIndex(index, "auto");
+  }, [trId]);
 
   return (
     <div

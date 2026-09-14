@@ -1,0 +1,10 @@
+@use "../../../theme/spacing.scss" as *;
+.test-result-retries {
+  &__row {
+    padding: gap(1) gap(2) gap(1) gap(2);
+    &:hover {
+      background-color: var(--color-row-bg-hover);
+    }
+    cursor: pointer;
+  }
+}

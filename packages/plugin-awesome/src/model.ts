@@ -1,6 +1,6 @@
 import type { ChartOptions } from "@allurereport/charts-api";
 import type { CiDescriptor, EnvironmentsConfig, TestResult } from "@allurereport/core-api";
-import type { StepTreeExpansion } from "@allurereport/web-awesome";
+import type { StepTreeExpansion } from "@allurereport/plugin-api";
 
 export type AwesomeOptions = {
   reportName?: string;

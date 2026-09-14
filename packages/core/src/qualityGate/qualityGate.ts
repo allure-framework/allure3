@@ -1,7 +1,13 @@
-import { type KnownTestFailure, type TestError, type TestResult } from "@allurereport/core-api";
-import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
+import { type MetricSample, type TestError, type TestResult } from "@allurereport/core-api";
+import type {
+  QualityGateConfig,
+  QualityGateMetricHistoryPoint,
+  QualityGateRule,
+  QualityGateValidationResult,
+} from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
 
+import { isIgnoredFailure } from "../resolutions.js";
 import { qualityGateDefaultRules } from "./rules.js";
 
 /**
@@ -39,14 +45,32 @@ export const convertQualityGateResultsToTestErrors = (results: QualityGateValida
 };
 
 export class QualityGateState {
-  #state: Record<string, any> = {};
+  #state: Record<string, { result: unknown; testResults: string[] }> = {};
+  #processedTestResultIds = new Set<string>();
 
-  setResult(rule: string, value: any) {
-    this.#state[rule] = value;
+  setResult(rule: string, value: unknown, testResults: string[] = []) {
+    const previousTestResults = this.#state[rule]?.testResults ?? [];
+
+    this.#state[rule] = {
+      result: value,
+      testResults: [...new Set([...previousTestResults, ...testResults])],
+    };
   }
 
   getResult(rule: string) {
-    return this.#state[rule];
+    return this.#state[rule]?.result;
+  }
+
+  getTestResults(rule: string) {
+    return [...(this.#state[rule]?.testResults ?? [])];
+  }
+
+  markTestResultsProcessed(testResults: TestResult[]) {
+    testResults.forEach(({ id }) => this.#processedTestResultIds.add(id));
+  }
+
+  isTestResultProcessed(trId: string) {
+    return this.#processedTestResultIds.has(trId);
   }
 }
 
@@ -56,12 +80,23 @@ export class QualityGate {
   async validate(payload: {
     state?: QualityGateState;
     trs: TestResult[];
-    knownIssues: KnownTestFailure[];
+    metrics?: MetricSample[];
+    previousHistory?: QualityGateMetricHistoryPoint[];
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, knownIssues, environment } = payload;
+    const { state, trs, metrics = [], previousHistory = [], environment } = payload;
+    const trsToValidateById = new Map<string, TestResult>();
 
-    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
+    for (const tr of trs) {
+      if (tr.isRetry || isIgnoredFailure(tr) || state?.isTestResultProcessed(tr.id)) {
+        continue;
+      }
+
+      trsToValidateById.set(tr.id, tr);
+    }
+
+    const trsToValidate = trsToValidateById.values().toArray();
+    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
 
@@ -77,6 +112,8 @@ export class QualityGate {
         break;
       }
 
+      const filteredTrs = ruleset.filter ? trsToValidate.filter(ruleset.filter) : trsToValidate;
+
       for (const [key, expected] of Object.entries(ruleset)) {
         // reserved rules configuration keys
         if (key === "filter" || key === "id" || key === "fastFail") {
@@ -91,16 +128,16 @@ export class QualityGate {
           );
         }
 
-        const trsToValidate = ruleset.filter ? trs.filter(ruleset.filter) : trs;
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
-          trs: trsToValidate,
+          trs: filteredTrs,
           state: {
             getResult: () => state?.getResult?.(ruleId),
-            setResult: (value: any) => state?.setResult?.(ruleId, value),
+            setResult: (value: unknown, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),
           },
           expected,
-          knownIssues,
+          metrics,
+          previousHistory,
           environment,
         });
 
@@ -111,12 +148,13 @@ export class QualityGate {
         results.push({
           ...result,
           expected,
-          rule: ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule,
+          rule: ruleId,
           message: rule.message({
             actual: result.actual,
             expected,
           }),
           environment,
+          testResults: [...new Set([...(state?.getTestResults(ruleId) ?? []), ...result.testResults])],
         });
 
         if (ruleset.fastFail) {
@@ -125,6 +163,8 @@ export class QualityGate {
         }
       }
     }
+
+    state?.markTestResultsProcessed(trsToValidate);
 
     return {
       fastFailed,

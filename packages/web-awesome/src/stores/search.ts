@@ -1,11 +1,11 @@
 import { ReportFetchError, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import MiniSearch from "minisearch";
-import type { AwesomeSearchDocument } from "types";
+import type { ReportSearchDocument } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
 
-const SEARCH_FIELDS: (keyof AwesomeSearchDocument)[] = [
+const SEARCH_FIELDS: (keyof ReportSearchDocument)[] = [
   "id",
   "name",
   "fullName",
@@ -19,10 +19,10 @@ const SEARCH_FIELDS: (keyof AwesomeSearchDocument)[] = [
   "historyId",
 ];
 
-const STORE_FIELDS: (keyof AwesomeSearchDocument)[] = ["nodeId", "name"];
+const STORE_FIELDS: (keyof ReportSearchDocument)[] = ["nodeId", "name"];
 
-export const createSearchIndex = (documents: AwesomeSearchDocument[]) => {
-  const searchIndex = new MiniSearch<AwesomeSearchDocument>({
+export const createSearchIndex = (documents: ReportSearchDocument[]) => {
+  const searchIndex = new MiniSearch<ReportSearchDocument>({
     fields: SEARCH_FIELDS,
     storeFields: STORE_FIELDS,
     searchOptions: {
@@ -50,7 +50,7 @@ export const createSearchIndex = (documents: AwesomeSearchDocument[]) => {
   return searchIndex;
 };
 
-export const searchNodeIds = (searchIndex: MiniSearch<AwesomeSearchDocument>, query: string) => {
+export const searchNodeIds = (searchIndex: MiniSearch<ReportSearchDocument>, query: string) => {
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
@@ -60,7 +60,7 @@ export const searchNodeIds = (searchIndex: MiniSearch<AwesomeSearchDocument>, qu
   return new Set(searchIndex.search(normalizedQuery).map(({ nodeId }) => nodeId));
 };
 
-export const searchIndexesStore = signal<StoreSignalState<Record<string, MiniSearch<AwesomeSearchDocument>>>>({
+export const searchIndexesStore = signal<StoreSignalState<Record<string, MiniSearch<ReportSearchDocument>>>>({
   loading: false,
   error: undefined,
   data: {},
@@ -105,10 +105,10 @@ export const fetchEnvSearchIndexes = async (envs: string[]) => {
     const documentsByEnv = await Promise.allSettled(
       envsToFetch.map(async (env) => ({
         env,
-        documents: await fetchReportJsonData<AwesomeSearchDocument[]>(searchIndexPath(env), { bustCache: true }),
+        documents: await fetchReportJsonData<ReportSearchDocument[]>(searchIndexPath(env), { bustCache: true }),
       })),
     );
-    const loadedSearchIndexes: Record<string, MiniSearch<AwesomeSearchDocument>> = {};
+    const loadedSearchIndexes: Record<string, MiniSearch<ReportSearchDocument>> = {};
     let error: string | undefined;
 
     for (const [index, result] of documentsByEnv.entries()) {

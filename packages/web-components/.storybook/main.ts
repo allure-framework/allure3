@@ -1,8 +1,14 @@
-import type { StorybookConfig } from "@storybook/preact-webpack5";
-import autoprefixer from "autoprefixer";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import type { StorybookConfig } from "@storybook/preact-webpack5";
+import autoprefixer from "autoprefixer";
 import postcssImport from "postcss-import";
+
+import { svgrOptions } from "../svgr.config.js";
+
+const require = createRequire(import.meta.url);
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -68,15 +74,12 @@ const config: StorybookConfig = {
       ],
     });
 
-    // Use SVG sprite for icons from src/assets/svg (similar to rollup-plugin-svg-sprites)
+    // Render package icons the same way as the Rollup build does.
     const svgIconsDir = join(baseDir, "../src/assets/svg");
 
     // Exclude our icons directory from the default Storybook SVG rule (if it exists)
     const svgRule = config.module!.rules!.find(
-      (rule) =>
-        typeof rule === "object" &&
-        !!(rule as any).test &&
-        (rule as any).test.toString().includes("svg"),
+      (rule) => typeof rule === "object" && !!(rule as any).test && (rule as any).test.toString().includes("svg"),
     ) as any;
 
     if (svgRule) {
@@ -90,17 +93,14 @@ const config: StorybookConfig = {
       }
     }
 
-    // Add svg-sprite-loader for icons used by SvgIcon component
+    // Add SVGR for icons used by SvgIcon component
     config.module!.rules!.push({
       test: /\.svg$/,
       include: [svgIconsDir],
       use: [
         {
-          loader: require.resolve("svg-sprite-loader"),
-          options: {
-            // icon.id will be used inside <use xlinkHref={`#${id}`} />
-            symbolId: "[name]",
-          },
+          loader: require.resolve("@svgr/webpack"),
+          options: svgrOptions,
         },
       ],
     });

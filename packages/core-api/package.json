@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core-api",
-  "version": "3.9.0",
+  "version": "3.17.0",
   "description": "Allure Core API",
   "keywords": [
     "allure"
@@ -29,7 +29,7 @@
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@types/d3-shape": "^3.1.8",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
@@ -37,6 +37,6 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }

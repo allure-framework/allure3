@@ -1,9 +1,7 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
-import { getReportOptions } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
-import { useMemo, useState } from "preact/hooks";
-import type { AwesomeReportOptions } from "types";
+import { useState } from "preact/hooks";
 
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
@@ -41,27 +39,15 @@ const HistoryDate = (props: { date: string | undefined }) => {
 };
 
 export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
-  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
   const { historyTr } = props;
-  const { status, error, duration, id, url } = historyTr;
+  const { status, error, duration, url } = historyTr;
   const [isOpened, setIsOpen] = useState(false);
   const historyDate = getDate(historyTr);
   const formattedDuration = duration ? formatDuration(duration) : undefined;
 
   const { t } = useI18n("controls");
 
-  const navigateUrl = useMemo(() => {
-    if (!url) {
-      return undefined;
-    }
-
-    const { origin, pathname } = new URL(url);
-    const navUrl = new URL([pathname, reportOptions.id].join("/"), origin);
-
-    navUrl.hash = id;
-
-    return navUrl.toString();
-  }, [id, url]);
+  const navigateUrl = url || undefined;
 
   const renderExternalLink = () => {
     if (!navigateUrl) {
@@ -71,7 +57,7 @@ export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
     return (
       <TooltipWrapper tooltipText={t("openInNewTab")}>
         <IconButton
-          href={navigateUrl.toString()}
+          href={navigateUrl}
           target={"_blank"}
           icon={allureIcons.lineGeneralLinkExternal}
           style={"ghost"}
@@ -105,9 +91,12 @@ export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
     <div data-testid={"test-result-history-item"}>
       <div className={styles["test-result-history-item-header"]}>
         {Boolean(error) && (
-          <span onClick={() => setIsOpen(!isOpened)}>
-            <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
-          </span>
+          <ArrowButton
+            aria-label={"toggle history error"}
+            isOpened={isOpened}
+            icon={allureIcons.arrowsChevronDown}
+            onClick={() => setIsOpen((value) => !value)}
+          />
         )}
         {navigateUrl ? (
           <a href={navigateUrl} className={styles["test-result-history-item-wrap"]}>

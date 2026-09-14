@@ -1,43 +1,56 @@
 "theme:workflow":
-  - ".github/**"
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
 
 "theme:build":
-  - ".editorconfig"
-  - ".oxlintrc.json"
-  - ".oxfmtrc.jsonc"
-  - ".oxfmtignore"
-  - ".gitignore"
-  - "package.json"
-  - "tsconfig.json"
-  - ".husky/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".editorconfig"
+          - ".oxlintrc.json"
+          - ".oxfmtrc.jsonc"
+          - ".oxfmtignore"
+          - ".gitignore"
+          - "package.json"
+          - "tsconfig.json"
+          - ".husky/**"
 
 "theme:plugin":
-  - "packages/plugin-allure2/**"
-  - "packages/plugin-classic/**"
-  - "packages/plugin-csv/**"
-  - "packages/plugin-dashboard/**"
-  - "packages/plugin-jira/**"
-  - "packages/plugin-log/**"
-  - "packages/plugin-progress/**"
-  - "packages/plugin-server-reload/**"
-  - "packages/plugin-slack/**"
-  - "packages/plugin-testplan/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/plugin-allure2/**"
+          - "packages/plugin-classic/**"
+          - "packages/plugin-csv/**"
+          - "packages/plugin-dashboard/**"
+          - "packages/plugin-jira/**"
+          - "packages/plugin-log/**"
+          - "packages/plugin-progress/**"
+          - "packages/plugin-server-reload/**"
+          - "packages/plugin-slack/**"
+          - "packages/plugin-testplan/**"
 
 "theme:cli":
-  - "packages/plugin-log/**"
-  - "packages/plugin-progress/**"
-  - "packages/cli/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/plugin-log/**"
+          - "packages/plugin-progress/**"
+          - "packages/cli/**"
 
 "theme:reader":
-  - "packages/plugin-reader/**"
+  - changed-files:
+      - any-glob-to-any-file: "packages/reader/**"
 
 "theme:awesome":
-  - "packages/plugin-awesome/**"
-  - "packages/web-awesome/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/plugin-awesome/**"
+          - "packages/web-awesome/**"
 
 "theme:dashboard":
-  - "packages/plugin-dashboard/**"
-  - "packages/web-dashboard/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/plugin-dashboard/**"
+          - "packages/web-dashboard/**"
 
 "theme:testops":
-  - "packages/plugin-testops/**"
+  - changed-files:
+      - any-glob-to-any-file: "packages/plugin-testops/**"

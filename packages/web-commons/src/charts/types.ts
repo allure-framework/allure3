@@ -43,6 +43,7 @@ export interface StatusDynamicsChartData {
     id: string;
     timestamp: number;
     name: string;
+    url?: string;
   }[];
   limit?: number;
   statuses?: TestStatus[];

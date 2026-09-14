@@ -7,7 +7,7 @@ import Allure2Plugin, { type Allure2PluginOptions } from "@allurereport/plugin-a
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class Allure2Command extends Command {
   static paths = [["allure2"]];
@@ -34,11 +34,11 @@ export class Allure2Command extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -65,20 +65,16 @@ export class Allure2Command extends Command {
     description: "The path to history file",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   knownIssues = Option.String("--known-issues", {
-    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+    description: "Path to known issues file",
   });
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
-    if (!resultDirectories.length) {
-      console.error(red(`No test results directories found matching pattern: ${patterns}`));
-      exit(1);
-      return;
-    }
-
     const before = new Date().getTime();
     const defaultAllure2Options = {
       singleFile: this.singleFile ?? false,
@@ -87,9 +83,17 @@ export class Allure2Command extends Command {
     const config = await readConfig(cwd, this.config, {
       output: this.output,
       name: this.reportName,
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
       historyPath: this.historyPath,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
     });
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
+
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
+      exit(1);
+      return;
+    }
 
     config.plugins = [
       {

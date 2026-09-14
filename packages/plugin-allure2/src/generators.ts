@@ -1,25 +1,23 @@
-import { readFile } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
-import {
-  createBaseUrlScript,
-  createFaviconLinkTag,
-  createReportDataScript,
-  stringifyForInlineScript,
-  createScriptTag,
-  createStylesLinkTag,
-} from "@allurereport/core-api";
+import type { AttachmentLink, GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
+import { createBaseUrlScript, createScriptTag, createStylesLinkTag } from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import { findUp } from "find-up";
+import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import Handlebars from "handlebars";
 
-import type { Allure2Options } from "./model.js";
 import type {
   Allure2Category,
+  Allure2CategoriesTrendItem,
+  Allure2DurationTrendItem,
   Allure2ExecutorInfo,
+  Allure2GlobalsData,
   Allure2HistoryTrendItem,
+  Allure2LegacyHistoryTrendItem,
+  Allure2RetryTrendItem,
   Allure2TestResult,
   GroupTime,
   StatusChartData,
@@ -27,10 +25,12 @@ import type {
 } from "./model.js";
 import type { Classifier, TreeLayer } from "./tree.js";
 import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
-import { updateStatistic, updateTime } from "./utils.js";
+import { createStatistic, updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
 
-export type TemplateManifest = Record<string, string>;
+export type TemplateManifest = ReportStaticManifest;
+
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
   for (let i = 0; i < items.length; i += concurrency) {
@@ -42,14 +42,11 @@ const template = `<!DOCTYPE html>
 <html dir="ltr" lang="{{reportLanguage}}">
 <head>
     <meta charset="utf-8">
+    <meta name="allure-report-uuid" content="{{reportUuid}}">
     <title>{{reportName}}</title>
     {{{ headTags }}}
-    <script>
-      window.allureReportOptions = {{{ reportOptions }}};
-    </script>
 </head>
 <body>
-    <svg id="__SVG_SPRITE_NODE__" aria-hidden="true" style="position: absolute; width: 0; height: 0"></svg>
     <div id="alert"></div>
     <div id="content">
         <span class="spinner">
@@ -57,19 +54,29 @@ const template = `<!DOCTYPE html>
         </span>
     </div>
     <div id="popup"></div>
+    <script>
+      window.__allureCoreLoaded = new Promise(function (resolve, reject) {
+        window.__allureResolveCoreLoaded = resolve;
+        window.__allureRejectCoreLoaded = reject;
+      });
+    </script>
     {{{ bodyTags }}}
+    <script>
+      if (typeof window.__allureResolveCoreLoaded === "function") {
+        window.__allureResolveCoreLoaded([]);
+      }
+    </script>
     ${createBaseUrlScript()}
     {{#if analyticsEnable}}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNDJ3J7WT0"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'G-LNDJ3J7WT0', {
+        gtag('config', 'G-FVWC4GKEYS', {
           'allureVersion': '{{allureVersion}}',
-          'report':'classic',
           'reportUuid': '{{reportUuid}}',
-          'single_file': '{{singleFile}}'
+          'single_file': {{singleFile}}
         });
     </script>
     {{/if}}
@@ -80,43 +87,35 @@ const template = `<!DOCTYPE html>
 
 const compiledTemplate = Handlebars.compile(template);
 
-export const getPackageRoot = async (): Promise<string> => {
-  const packageJsonPath = await findUp("package.json", {
-    cwd: dirname(fileURLToPath(import.meta.url)),
-  });
+const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
+  const reportFilesDeclaration = reportFiles
+    .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
+    .join(",");
 
-  return dirname(packageJsonPath!);
+  return `
+    <script>
+      window.reportDataReady = false;
+      window.reportData = window.reportData || {};
+
+      function d(name, value) {
+        return new Promise(function (resolve) {
+          window.reportData[name] = value;
+          resolve(true);
+        });
+      }
+    </script>
+    <script>
+      Promise.allSettled([${reportFilesDeclaration}]).then(function () {
+        window.reportDataReady = true;
+      });
+    </script>
+  `;
 };
 
-export const readTemplateManifest = async (
-  packageRoot: string,
-  singleFileMode?: boolean,
-): Promise<TemplateManifest> => {
-  const templateManifestPath = join(packageRoot, "static", singleFileMode ? "single" : "multi", "manifest.json");
-  const templateManifest = await readFile(templateManifestPath, { encoding: "utf-8" });
+export const readTemplateManifest = async (): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest) as TemplateManifest;
-};
-
-export const readManifestEntry = async (options: {
-  fileName: string;
-  singleFile?: boolean;
-  mimeType: string;
-  reportFiles: ReportFiles;
-  inserter: (content: string) => string;
-  packageRoot: string;
-}) => {
-  const { fileName, singleFile, mimeType, inserter, reportFiles, packageRoot } = options;
-  const filePath = join(packageRoot, "static", singleFile ? "single" : "multi", fileName);
-  const scriptContentBuffer = await readFile(filePath);
-
-  if (singleFile) {
-    return inserter(`data:${mimeType};base64,${scriptContentBuffer.toString("base64")}`);
-  }
-
-  await reportFiles.addFile(fileName, scriptContentBuffer);
-
-  return inserter(fileName);
+  return manifest;
 };
 
 export const generateStaticFiles = async (payload: {
@@ -128,81 +127,39 @@ export const generateStaticFiles = async (payload: {
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
-  const packageRoot = await getPackageRoot();
   const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
-  const manifest = await readTemplateManifest(packageRoot, singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
+  const mainJs = manifest["main.js"];
+  const mainCss = manifest["main.css"];
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
-  for (const key in manifest) {
-    const fileName = manifest[key];
-
-    if (key === "favicon.ico") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createFaviconLinkTag,
-        mimeType: "image/x-icon",
-        packageRoot,
-      });
-
-      headTags.push(tag);
-      continue;
+  if (!singleFile) {
+    if (mainCss) {
+      headTags.push(createStylesLinkTag(mainCss));
     }
 
-    if (key === "main.css") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createStylesLinkTag,
-        mimeType: "text/css",
-        packageRoot,
-      });
+    bodyTags.push(createScriptTag(mainJs));
+    await copyReportStaticAssets(staticAssets, reportFiles);
+  } else {
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
 
-      headTags.push(tag);
-      continue;
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    if (key === "main.js") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createScriptTag,
-        mimeType: "text/javascript",
-        packageRoot,
-      });
+    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
 
-      bodyTags.push(tag);
-      continue;
-    }
-
-    // we don't need to handle another files in single file mode
-    if (singleFile) {
-      continue;
-    }
-
-    const filePath = join(packageRoot, "static", singleFile ? "single" : "multi", fileName);
-    const fileContent = await readFile(filePath);
-
-    await reportFiles.addFile(basename(filePath), fileContent);
+    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
   }
-
-  const reportOptions: Allure2Options = {
-    reportName: reportName ?? "Allure Report",
-    reportLanguage: reportLanguage ?? "en",
-    createdAt: Date.now(),
-  };
 
   try {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
-      reportOptions: stringifyForInlineScript(reportOptions),
-      analyticsEnable: true,
+      reportFilesScript: singleFile ? createEmbeddedReportDataScript(reportDataFiles) : "",
+      analyticsEnable: process.env.ALLURE_NO_ANALYTICS?.toLowerCase() !== "true",
       allureVersion,
       reportLanguage,
       reportUuid,
@@ -293,7 +250,7 @@ export const generateSummaryJson = async (
   reportName: string,
   tests: Allure2TestResult[],
 ) => {
-  const statistic: Statistic = { total: 0 };
+  const statistic = createStatistic();
   const time: GroupTime = {};
 
   tests
@@ -348,62 +305,122 @@ export const generateDefaultWidgetData = async (
   }
 };
 
-export const generateEmptyTrendData = async (writer: Allure2DataWriter, ...fileNames: string[]) => {
-  for (const fileName of fileNames) {
-    await writer.writeWidget(fileName, [
-      {
-        uid: "invalid",
-        name: "invalid",
-        statistic: { total: 0 },
-      },
-    ]);
-  }
-};
+const trendIdentity = (executor?: Partial<Allure2ExecutorInfo>) => ({
+  buildOrder: executor?.buildOrder,
+  reportName: executor?.reportName,
+  reportUrl: executor?.reportUrl,
+});
 
-export const generateTrendData = async (
+const prependTrendItem = <T>(current: T, previous: T[]): T[] => [current, ...previous].slice(0, 20);
+
+export const generateHistoryTrendData = async (
   writer: Allure2DataWriter,
   reportName: string,
   tests: Allure2TestResult[],
   historyDataPoints: HistoryDataPoint[],
+  legacyHistory: Allure2LegacyHistoryTrendItem[] = [],
+  executor?: Partial<Allure2ExecutorInfo>,
 ) => {
-  const statistic: Statistic = { total: 0 };
+  const statistic = createStatistic();
   tests
     .filter((test) => !test.isRetry)
     .forEach((test) => {
       updateStatistic(statistic, test);
     });
 
-  const history = historyDataPoints.map((point) => {
-    const stat: Statistic = { total: 0 };
+  const history: Allure2HistoryTrendItem[] = legacyHistory.length
+    ? legacyHistory.map(({ data, statistic: legacyStatistic, ...item }) => ({
+        ...item,
+        data: createStatistic(data ?? legacyStatistic),
+      }))
+    : historyDataPoints
+        .map((point) => {
+          const stat = createStatistic();
 
-    Object.values(point.testResults).forEach((testResult) => {
-      updateStatistic(stat, testResult);
+          Object.values(point.testResults).forEach((testResult) => {
+            updateStatistic(stat, testResult);
+          });
+
+          return {
+            data: stat,
+            reportName: point.name,
+            reportUrl: point.url,
+            timestamp: point.timestamp,
+          };
+        })
+        .sort((left, right) => right.timestamp - left.timestamp)
+        .map(({ timestamp: _timestamp, ...item }, index, values) => ({
+          ...item,
+          buildOrder: values.length - index,
+        }));
+
+  const current: Allure2HistoryTrendItem = {
+    data: statistic,
+    ...(executor
+      ? trendIdentity(executor)
+      : {
+          buildOrder: history.length + 1,
+          reportName,
+        }),
+  };
+
+  await writer.writeWidget("history-trend.json", prependTrendItem(current, history));
+};
+
+export const generateDurationTrendData = async (
+  writer: Allure2DataWriter,
+  tests: Allure2TestResult[],
+  history: Allure2DurationTrendItem[] = [],
+  executor?: Partial<Allure2ExecutorInfo>,
+) => {
+  const time: GroupTime = {};
+  tests.forEach((test) => updateTime(time, test));
+
+  const current: Allure2DurationTrendItem = {
+    data: { duration: time.duration ?? 0 },
+    ...trendIdentity(executor),
+  };
+
+  await writer.writeWidget("duration-trend.json", prependTrendItem(current, history));
+};
+
+export const generateRetryTrendData = async (
+  writer: Allure2DataWriter,
+  tests: Allure2TestResult[],
+  history: Allure2RetryTrendItem[] = [],
+  executor?: Partial<Allure2ExecutorInfo>,
+) => {
+  const current: Allure2RetryTrendItem = {
+    data: {
+      run: tests.filter((test) => !test.isRetry).length,
+      retry: tests.filter((test) => test.isRetry).length,
+    },
+    ...trendIdentity(executor),
+  };
+
+  await writer.writeWidget("retry-trend.json", prependTrendItem(current, history));
+};
+
+export const generateCategoriesTrendData = async (
+  writer: Allure2DataWriter,
+  tests: Allure2TestResult[],
+  history: Allure2CategoriesTrendItem[] = [],
+  executor?: Partial<Allure2ExecutorInfo>,
+) => {
+  const categories: Record<string, number> = {};
+  tests.forEach((test) => {
+    const testCategories: Allure2Category[] = test.extra.categories ?? [];
+    testCategories.forEach(({ name }) => {
+      categories[name] = (categories[name] ?? 0) + 1;
     });
-
-    return {
-      data: stat,
-      timestamp: point.timestamp,
-      reportName: point.name,
-    } as Allure2HistoryTrendItem & { timestamp: number };
   });
 
-  history
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .forEach((element, index) => {
-      element.buildOrder = history.length - index;
-    });
+  const current: Allure2CategoriesTrendItem = {
+    data: categories,
+    ...trendIdentity(executor),
+  };
 
-  const data = [
-    {
-      data: statistic,
-      timestamp: new Date().getTime(),
-      buildOrder: history.length + 1,
-      reportName: reportName,
-    },
-    ...history,
-  ];
-
-  await writer.writeWidget("history-trend.json", data);
+  await writer.writeWidget("categories-trend.json", prependTrendItem(current, history));
 };
 
 export const generateAttachmentsData = async (
@@ -426,4 +443,43 @@ export const generateAttachmentsData = async (
     result.set(id, src);
   }
   return result;
+};
+
+export const generateGlobalsData = async (
+  writer: Allure2DataWriter,
+  globalErrors: TestError[],
+  globalAttachments: GlobalAttachmentLink[],
+  attachmentMap: Map<string, string>,
+  attachmentTimestamps: Record<string, number> = {},
+  errorTimestamps: Array<number | undefined> = [],
+) => {
+  const data: Allure2GlobalsData = {
+    errors: globalErrors.map(({ message, trace, actual, expected }, index) => ({
+      message,
+      trace,
+      actual,
+      expected,
+      timestamp: errorTimestamps[index],
+    })),
+    attachments: globalAttachments.flatMap((attachment) => {
+      const source = attachmentMap.get(attachment.id);
+
+      if (!source) {
+        return [];
+      }
+
+      return [
+        {
+          uid: attachment.id,
+          name: attachment.name,
+          source,
+          type: attachment.contentType ?? "application/octet-stream",
+          size: !attachment.missed ? attachment.contentLength : undefined,
+          timestamp: attachment.originalFileName ? attachmentTimestamps[attachment.originalFileName] : undefined,
+        },
+      ];
+    }),
+  };
+
+  await writer.writeWidget("globals.json", data);
 };

@@ -22,7 +22,8 @@
     "globalAttachments": "Pièces jointes globales",
     "globalErrors": "Erreurs globales",
     "qualityGates": "Portails de Qualité",
-    "categories": "Catégories"
+    "categories": "Catégories",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Recherche",
@@ -56,7 +57,18 @@
       "regressed": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"cassé\" à \"échoué\"",
       "malfunctioned": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"échoué\" à \"cassé\"",
       "tags": "Afficher les résultats des tests qui ont les tags spécifiés",
-      "categories": "Afficher les résultats des tests qui ont les catégories spécifiées"
+      "categories": "Afficher les résultats des tests qui ont les catégories spécifiées",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "Aucune information sur les étapes de test disponible",
     "no-test-case-results": "Aucun résultat de cas de test",
     "no-environments-results": "Aucune information sur les environnements disponible",
-    "no-categories-results": "Aucune catégorie disponible"
+    "no-categories-results": "Aucune catégorie disponible",
+    "no-metrics-results": "Aucune métrique disponible",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloquant",
     "critical": "critique",
     "normal": "normal",
     "minor": "mineur",
-    "trivial": "trivial"
+    "trivial": "trivial",
+    "none": "sans sévérité"
   },
   "execution": {
     "name": "Exécution",
@@ -138,6 +153,7 @@
     "category": "Catégorie",
     "description": "Description",
     "links": "Liens",
+    "relatedTestResults": "Résultats de test associés ({{count}})",
     "overview": "Vue d'ensemble",
     "history": "Historique",
     "attachments": "Pièces jointes",
@@ -150,6 +166,7 @@
     "copy": "Copier",
     "copy-email": "Copier l'e-mail",
     "attempt": "Tentative {{attempt}} sur {{total}}",
+    "retry": "Reprise {{attempt}} sur {{total}}",
     "at": "à",
     "generated": "Généré",
     "variables": "Variables",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "Le navigateur a bloqué l’ouverture de Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Autorisez les pop-ups et réessayez.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, avec le code de sortie {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, avec le code de sortie {{actual}} (original {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, avec le code de sortie {{actual}} (original {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Ouvrir dans un nouvel onglet",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "Graphes",
-    "timeline": "Chronologie"
+    "timeline": "Chronologie",
+    "metrics": "Métriques"
   },
   "timeline": {
     "empty": "Aucune donnée",
@@ -394,6 +413,45 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Métriques de performance",
+      "phaseSummary": "Résumé des métriques",
+      "currentValues": "Valeurs actuelles",
+      "historyTitle": "Historique de la métrique",
+      "noHistory": "Aucun historique pour cette métrique pour le moment",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Métrique",
+        "phase": "Jeu de métriques",
+        "count": "Nombre",
+        "total": "Total",
+        "avg": "Moy.",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Valeur",
+        "delta": "Écart",
+        "trend": "Tendance",
+        "source": "Source",
+        "report": "Rapport",
+        "date": "Date"
+      },
+      "summary": "{{groups}} lignes de résumé / {{metrics}} métriques",
+      "groups": {
+        "other": "Autre"
+      }
+    },
+    "successRate": {
+      "successRate": "Taux de réussite : {{rate}}",
+      "successRateDescription": "Calculé à partir des tests réussis, échoués et en erreur. Les tests ignorés et de statut inconnu sont exclus.",
+      "noResults": "Aucun résultat de test.",
+      "noEligibleResults": "Aucun test réussi, échoué ou en erreur. Les tests ignorés et de statut inconnu sont exclus du taux de réussite.",
+      "slice_one": "{{count}} test ({{percent}}% de tous les tests)",
+      "slice_other": "{{count}} tests ({{percent}}% de tous les tests)",
+      "layer": "Niveau : {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% de tous les tests)",
+      "slice": "{{count}} tests ({{percent}}% de tous les tests)",
+      "slice_many": "{{count}} tests ({{percent}}% de tous les tests)"
     }
   },
   "transitions": {
@@ -403,7 +461,12 @@
       "regressed": "Test précédemment \"réussi\" ou \"cassé\" qui est maintenant \"échoué\"",
       "malfunctioned": "Test précédemment \"réussi\" ou \"échoué\" qui est maintenant \"cassé\"",
       "retries": "{{count}} tentatives",
-      "flaky": "Incohérent entre les exécutions"
+      "flaky": "Incohérent entre les exécutions",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Nouveaux",
     "fixed": "Corrigés",
@@ -482,6 +545,7 @@
       "testTabNext": "Onglet test suivant",
       "testTabPrev": "Onglet test précédent",
       "tabOverview": "Onglet aperçu",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Onglet historique",
       "tabRetries": "Onglet tentatives",
       "tabAttachments": "Onglet pièces jointes",
@@ -489,7 +553,8 @@
       "toggleLabels": "Afficher/masquer les étiquettes",
       "toggleParameters": "Afficher/masquer les paramètres",
       "toggleLinks": "Afficher/masquer les liens",
-      "backToTree": "Retour à l'arborescence"
+      "backToTree": "Retour à l'arborescence",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

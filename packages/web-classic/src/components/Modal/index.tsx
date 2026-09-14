@@ -4,7 +4,7 @@ import { signal } from "@preact/signals";
 import type { FunctionalComponent, VNode } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@/utils/attachments";
@@ -78,7 +78,7 @@ const ModalGallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = []
 };
 
 export type ModalProps = {
-  testResult: ClassicTestResult;
+  testResult: ReportTestResult;
 };
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {

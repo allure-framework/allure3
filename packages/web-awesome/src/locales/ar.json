@@ -22,7 +22,8 @@
     "globalAttachments": "المرفقات العامة",
     "globalErrors": "الأخطاء العامة",
     "qualityGates": "بوابات الجودة",
-    "categories": "الفئات"
+    "categories": "الفئات",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "بحث",
@@ -56,7 +57,18 @@
       "regressed": "عرض نتائج الاختبارات التي تغيرت إلى حالة \"فشل\" من حالة \"ناجح\" أو \"معطل\"",
       "malfunctioned": "عرض نتائج الاختبارات التي تغيرت إلى حالة \"معطل\" من حالة \"ناجح\" أو \"فشل\"",
       "tags": "عرض نتائج الاختبارات التي تحتوي على الوسوم المحددة",
-      "categories": "عرض نتائج الاختبارات التي تحتوي على الفئات المحددة"
+      "categories": "عرض نتائج الاختبارات التي تحتوي على الفئات المحددة",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "لا تتوفر معلومات عن خطوات الاختبار",
     "no-test-case-results": "لا توجد نتائج حالات اختبار",
     "no-environments-results": "لا تتوفر معلومات عن البيئات",
-    "no-categories-results": "لا تتوفر نتائج الفئات"
+    "no-categories-results": "لا تتوفر نتائج الفئات",
+    "no-metrics-results": "لا توجد مقاييس متاحة",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "مانع",
     "critical": "خطورة عالية",
     "normal": "عادي",
     "minor": "ثانوي",
-    "trivial": "بسيط"
+    "trivial": "بسيط",
+    "none": "بدون خطورة"
   },
   "execution": {
     "name": "التنفيذ",
@@ -138,6 +153,7 @@
     "category": "الفئة",
     "description": "الوصف",
     "links": "الروابط",
+    "relatedTestResults": "نتائج الاختبارات ذات الصلة ({{count}})",
     "overview": "نظرة عامة",
     "history": "السجل",
     "attachments": "المرفقات",
@@ -150,12 +166,14 @@
     "copy": "نسخ",
     "copy-email": "نسخ البريد الإلكتروني",
     "attempt": "المحاولة {{attempt}} من {{total}}",
+    "retry": "إعادة المحاولة {{attempt}} من {{total}}",
     "at": "في",
     "generated": "تم الإنشاء",
     "variables": "المتغيرات",
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",
@@ -193,7 +211,8 @@
   "sections": {
     "report": "التقرير",
     "charts": "الرسوم البيانية",
-    "timeline": "الخط الزمني"
+    "timeline": "الخط الزمني",
+    "metrics": "المقاييس"
   },
   "timeline": {
     "empty": "لا توجد بيانات",
@@ -389,6 +408,48 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "مقاييس الأداء",
+      "phaseSummary": "ملخص المقاييس",
+      "currentValues": "القيم الحالية",
+      "historyTitle": "سجل المقياس",
+      "noHistory": "لا يوجد سجل لهذا المقياس بعد",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "المقياس",
+        "phase": "مجموعة المقاييس",
+        "count": "العدد",
+        "total": "الإجمالي",
+        "avg": "المتوسط",
+        "min": "الحد الأدنى",
+        "max": "الحد الأقصى",
+        "value": "القيمة",
+        "delta": "التغيير",
+        "trend": "الاتجاه",
+        "source": "المصدر",
+        "report": "التقرير",
+        "date": "التاريخ"
+      },
+      "summary": "{{groups}} صفوف ملخص / {{metrics}} مقاييس",
+      "groups": {
+        "other": "أخرى"
+      }
+    },
+    "successRate": {
+      "successRate": "نسبة النجاح: {{rate}}",
+      "successRateDescription": "تُحسب من الاختبارات الناجحة والفاشلة والمتعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة.",
+      "noResults": "لا توجد نتائج اختبارات.",
+      "noEligibleResults": "لا توجد اختبارات ناجحة أو فاشلة أو متعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة من نسبة النجاح.",
+      "slice_one": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_other": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "layer": "المستوى: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% من جميع الاختبارات)",
+      "slice": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_zero": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
+      "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
+      "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
     }
   },
   "transitions": {
@@ -398,7 +459,12 @@
       "regressed": "اختبار كان \"ناجح\" أو \"معطل\" سابقاً وأصبح الآن \"فشل\"",
       "malfunctioned": "اختبار كان \"ناجح\" أو \"فشل\" سابقاً وأصبح الآن \"معطل\"",
       "retries": "{{count}} محاولات إعادة",
-      "flaky": "غير مستقر عبر التشغيلات"
+      "flaky": "غير مستقر عبر التشغيلات",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "جديد",
     "fixed": "تم الإصلاح",
@@ -477,6 +543,7 @@
       "testTabNext": "تبويب الاختبار التالي",
       "testTabPrev": "تبويب الاختبار السابق",
       "tabOverview": "تبويب النظرة العامة",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "تبويب السجل",
       "tabRetries": "تبويب إعادة المحاولات",
       "tabAttachments": "تبويب المرفقات",
@@ -484,7 +551,8 @@
       "toggleLabels": "إظهار/إخفاء التسميات",
       "toggleParameters": "إظهار/إخفاء المعاملات",
       "toggleLinks": "إظهار/إخفاء الروابط",
-      "backToTree": "العودة إلى الشجرة"
+      "backToTree": "العودة إلى الشجرة",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

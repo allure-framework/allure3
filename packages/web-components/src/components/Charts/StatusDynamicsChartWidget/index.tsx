@@ -27,10 +27,12 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
     id: string;
     name: string;
     timestamp: number;
+    url?: string;
   } & Statistic)[] = data.map((item) => ({
     id: item.id,
     name: item.name,
     timestamp: item.timestamp,
+    url: item.url,
     ...item.statistic,
   }));
 
@@ -57,6 +59,12 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
     );
   }
 
+  const handleBarClick = (value: { data: { id: string; url?: string } }) => {
+    if (value.data.id !== "current" && value.data.url) {
+      window.open(value.data.url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <Widget title={title}>
       <BarChart
@@ -65,6 +73,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
         legend={legend}
         indexBy={"id"}
         hasValueFn={(arg) => arg.total > 0}
+        onBarClick={handleBarClick}
         formatIndexBy={(arg) => {
           if (arg.id === "current") {
             return i18n("tooltips.current");

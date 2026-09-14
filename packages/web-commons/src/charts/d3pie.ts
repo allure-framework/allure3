@@ -1,10 +1,8 @@
 import type { BasePieSlice, PieChartValues } from "@allurereport/charts-api";
 import type { Statistic } from "@allurereport/core-api";
-import { statusesList } from "@allurereport/core-api";
+import { getSuccessRate, statusesList } from "@allurereport/core-api";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
-
-const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
 const createD3ArcGenerator = () =>
   arc<PieArcDatum<BasePieSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
@@ -59,7 +57,7 @@ export const getPieChartValues = (stats: Statistic): PieChartValues => {
       };
     })
     .filter((item) => item !== null);
-  const percentage = getPercentage(stats.passed ?? 0, stats.total);
+  const percentage = Math.floor(getSuccessRate(stats) * 10000) / 100;
 
   return {
     slices,

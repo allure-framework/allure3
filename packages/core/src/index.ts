@@ -5,9 +5,10 @@ export * from "./utils/path.js";
 export * from "./utils/new.js";
 export * from "./utils/flaky.js";
 export * from "./utils/environment.js";
+export * from "./utils/resultsDir.js";
 export * from "./history.js";
-export * from "./known.js";
-export { resolveConfig, readConfig, getPluginInstance } from "./config.js";
+export * from "./resolutions.js";
+export { resolveConfig, readConfig, readRawConfig, getPluginInstance } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
 export {
@@ -19,6 +20,10 @@ export {
   maxDurationRule,
   allTestsContainEnvRule,
   environmentsTestedRule,
+  metricMaxRule,
+  metricMinRule,
+  metricMaxDeltaRule,
+  metricMaxDeltaPercentRule,
   convertQualityGateResultsToTestErrors,
   stringifyQualityGateResults,
 } from "./qualityGate/index.js";

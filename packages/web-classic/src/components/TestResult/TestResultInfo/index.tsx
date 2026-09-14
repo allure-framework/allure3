@@ -1,7 +1,7 @@
 import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TestResultInfoStatuses } from "@/components/TestResult/TestResultInfo/TestResultInfoStatuses";
 import { TestResultNavigation } from "@/components/TestResult/TestResultNavigation";
@@ -15,7 +15,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 export type TestResultInfoProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {

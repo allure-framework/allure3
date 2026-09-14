@@ -1,6 +1,42 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
+import { resolveRepositoryFromGitUrl } from "../helpers/gitProvider.js";
 import { getEnv, getReponameFromRepoUrl } from "../utils.js";
+
+const getRepository = () => {
+  const gitUrl = getEnv("GIT_URL");
+
+  return gitUrl ? resolveRepositoryFromGitUrl(gitUrl) : undefined;
+};
+
+const isTagBuild = (): boolean => Boolean(getEnv("TAG_NAME"));
+
+const getGitPluginBranch = (): string | undefined => {
+  const localBranch = (getEnv("GIT_LOCAL_BRANCH") || "").trim();
+
+  if (localBranch) {
+    return localBranch;
+  }
+
+  const gitBranch = (getEnv("GIT_BRANCH") || "").trim();
+
+  if (!gitBranch) {
+    return undefined;
+  }
+
+  const normalizedBranch = gitBranch.replace(/^refs\/heads\//, "");
+  const remoteBranchMatch = normalizedBranch.match(/^(?:refs\/remotes\/|remotes\/)?[^/]+\/(.+)$/);
+
+  return remoteBranchMatch?.[1] ?? normalizedBranch;
+};
+
+const getBranchName = (): string | undefined => {
+  if (isTagBuild()) {
+    return undefined;
+  }
+
+  return getEnv("BRANCH_NAME") || getGitPluginBranch();
+};
 
 export const jenkins: CiDescriptor = {
   type: CiType.Jenkins,
@@ -44,7 +80,7 @@ export const jenkins: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("BRANCH_NAME");
+    return getBranchName() ?? "";
   },
 
   get pullRequestUrl(): string {
@@ -53,5 +89,44 @@ export const jenkins: CiDescriptor = {
 
   get pullRequestName(): string {
     return getEnv("CHANGE_TITLE");
+  },
+
+  get provider() {
+    return getRepository()?.provider;
+  },
+
+  get repository() {
+    const repository = getRepository();
+
+    return repository
+      ? {
+          slug: repository.slug,
+          url: repository.url,
+        }
+      : undefined;
+  },
+
+  get sourceBranch() {
+    if (isTagBuild()) {
+      return undefined;
+    }
+
+    return getEnv("CHANGE_BRANCH") || getBranchName();
+  },
+
+  get targetBranch() {
+    return isTagBuild() ? undefined : getEnv("CHANGE_TARGET") || undefined;
+  },
+
+  get pullRequest() {
+    const changeId = getEnv("CHANGE_ID");
+
+    return changeId
+      ? {
+          id: changeId,
+          url: this.pullRequestUrl || getEnv("CHANGE_URL") || undefined,
+          title: this.pullRequestName || getEnv("CHANGE_TITLE") || undefined,
+        }
+      : undefined;
   },
 };

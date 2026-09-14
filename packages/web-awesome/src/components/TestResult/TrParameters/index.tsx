@@ -1,6 +1,6 @@
 import { Button } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
@@ -13,7 +13,7 @@ const PARAMETERS_VISIBLE_LIMIT = 8;
 
 export type TrParametersProps = {
   id?: string;
-  parameters: AwesomeTestResult["parameters"];
+  parameters: ReportTestResult["parameters"];
 };
 
 export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, parameters }) => {

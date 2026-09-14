@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--ad-other-modal-overlay);
+  background: var(--color-bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@
 
 .modal-wrapper {
   position: relative;
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   max-width: 90%;
   max-height: 80vh;
   width: 90vw;
@@ -113,7 +113,7 @@
   user-select: none;
 
   &.active {
-    border: 1px solid var(--constant-on-border-heavy);
+    border: 1px solid var(--color-border-inverse-strong);
   }
 }
 

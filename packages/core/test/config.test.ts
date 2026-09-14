@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
-import type { Config } from "@allurereport/plugin-api";
+import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,8 +13,10 @@ import {
   getPluginId,
   getPluginInstance,
   loadJsonConfig,
+  loadTsConfig,
   loadYamlConfig,
   readConfig,
+  readRawConfig,
   resolveConfig,
   resolvePlugin,
   validateConfig,
@@ -27,8 +29,8 @@ class PluginFixture {}
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
-
 beforeEach(async () => {
+  vi.clearAllMocks();
   await epic("coverage");
   await feature("report-config");
   await story("config");
@@ -46,7 +48,7 @@ describe("findConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should find allurerc.js in cwd", async () => {
@@ -68,6 +70,27 @@ describe("findConfig", () => {
 
     const found = await findConfig(fixturesDir);
     expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
+  });
+
+  it("should find allurerc.ts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.ts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.ts"));
+  });
+
+  it("should find allurerc.mts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.mts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.mts"));
+  });
+
+  it("should find allurerc.cts in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.cts"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.cts"));
   });
 
   it("should find allurerc.json in cwd", async () => {
@@ -92,10 +115,13 @@ describe("findConfig", () => {
   });
 
   describe("default config files priority", () => {
-    it("shoild attempt finding allurerc.js before allurerc.mjs", async () => {
+    it("should attempt finding allurerc.js before allurerc.mjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.js"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -104,9 +130,12 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.js"));
     });
 
-    it("shoild attempt finding allurerc.mjs before allurerc.cjs", async () => {
+    it("should attempt finding allurerc.mjs before allurerc.cjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -115,8 +144,11 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.mjs"));
     });
 
-    it("shoild attempt finding allurerc.cjs before allurerc.json", async () => {
+    it("should attempt finding allurerc.cjs before allurerc.json", async () => {
       await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -125,7 +157,40 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
     });
 
-    it("shoild attempt finding allurerc.json before allurerc.yaml", async () => {
+    it("should attempt finding allurerc.ts before allurerc.mts", async () => {
+      await writeFile(join(fixturesDir, "allurerc.ts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.ts"));
+    });
+
+    it("should attempt finding allurerc.mts before allurerc.cts", async () => {
+      await writeFile(join(fixturesDir, "allurerc.mts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.mts"));
+    });
+
+    it("should attempt finding allurerc.cts before allurerc.json", async () => {
+      await writeFile(join(fixturesDir, "allurerc.cts"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.cts"));
+    });
+
+    it("should attempt finding allurerc.json before allurerc.yaml", async () => {
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
@@ -134,7 +199,7 @@ describe("findConfig", () => {
       expect(found).toEqual(resolve(fixturesDir, "allurerc.json"));
     });
 
-    it("shoild attempt finding allurerc.yaml before allurerc.yml", async () => {
+    it("should attempt finding allurerc.yaml before allurerc.yml", async () => {
       await writeFile(join(fixturesDir, "allurerc.yaml"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.yml"), "", "utf-8");
 
@@ -169,6 +234,24 @@ describe("findConfig", () => {
 describe("validateConfig", () => {
   it("should return a positive result if the config is valid", () => {
     expect(validateConfig({ name: "Allure" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
+  it("should allow historyBaseUrl", () => {
+    expect(validateConfig({ historyBaseUrl: "https://bucket.example/runs/42" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
+  it("should allow resultsDir", () => {
+    expect(validateConfig({ resultsDir: "./allure-results" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+    expect(validateConfig({ resultsDir: ["./a", "./b"] })).toEqual({
       valid: true,
       fields: [],
     });
@@ -325,6 +408,14 @@ describe("resolveConfig", () => {
     expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
   });
 
+  it("normalizes resultsDir string and array; omits empty values", async () => {
+    expect((await resolveConfig({ resultsDir: "./a" })).resultsDir).toEqual(["./a"]);
+    expect((await resolveConfig({ resultsDir: [" ./a ", "./b"] })).resultsDir).toEqual([" ./a ", "./b"]);
+    expect((await resolveConfig({ resultsDir: "" })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: [] })).resultsDir).toBeUndefined();
+    expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toEqual(["  "]);
+  });
+
   it("does not inject storage plugin and preserves allureService config", async () => {
     const resolved = await resolveConfig({
       allureService: {
@@ -470,29 +561,91 @@ describe("resolveConfig", () => {
     expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
   });
 
-  it("should set default known issues path if it's not provided", async () => {
-    const fixture = {} as Config;
-    const resolved = await resolveConfig(fixture);
+  it("should return the configured history URL base", async () => {
+    const resolved = await resolveConfig({ historyBaseUrl: "https://bucket.example/runs/42" });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./allure/known.json"));
+    expect(resolved.historyBaseUrl).toBe("https://bucket.example/runs/42");
   });
 
-  it("should return provided known issues path", async () => {
+  it("should allow the history URL base to be overridden", async () => {
+    const resolved = await resolveConfig(
+      { historyBaseUrl: "https://bucket.example/runs/config" },
+      { historyBaseUrl: "https://bucket.example/runs/cli" },
+    );
+
+    expect(resolved.historyBaseUrl).toBe("https://bucket.example/runs/cli");
+  });
+
+  it("should not set default known issues path when no known issues policy is configured", async () => {
+    const resolved = await resolveConfig({} as Config);
+
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
+  });
+
+  it("should derive default known issues path when known issues rules are configured", async () => {
+    const resolved = await resolveConfig({
+      resolutions: {
+        links: { jira: { urlTemplate: "https://jira.example/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: ["tc-1"],
+          },
+        ],
+      },
+    });
+
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known-issues.json"));
+  });
+
+  it("should derive default known issues path when resolutions are configured", async () => {
+    const resolved = await resolveConfig({
+      resolutions: {
+        rules: [],
+      },
+    });
+
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known-issues.json"));
+  });
+
+  it("should ignore empty known path", async () => {
+    const resolved = await resolveConfig({
+      resolutions: { knownIssuesPath: "", rules: [] },
+    });
+
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
+  });
+
+  it("should read known file from provided exact file path", async () => {
     const fixture = {
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     };
     const resolved = await resolveConfig(fixture);
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./known.json"));
   });
 
-  it("should allow to override given known issues path", async () => {
+  it("should allow to override given exact known path", async () => {
     const fixture = {
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     };
-    const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
+    const resolved = await resolveConfig(fixture, {
+      resolutions: { knownIssuesPath: "./custom-known.json" },
+    });
 
-    expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
+    expect(resolved.resolutions?.knownIssuesPath).toEqual(resolve("./custom-known.json"));
+  });
+
+  it("should leave paths undefined when override is empty", async () => {
+    const resolved = await resolveConfig(
+      {
+        resolutions: { knownIssuesPath: "./known.json", rules: [] },
+      },
+      { resolutions: { knownIssuesPath: "" } },
+    );
+
+    expect(resolved.resolutions?.knownIssuesPath).toBeUndefined();
   });
 
   it("should allow to override given history limit", async () => {
@@ -606,6 +759,39 @@ describe("resolveConfig", () => {
       },
       plugin: expect.any(PluginFixture),
     });
+  });
+
+  it("should pass explicit plugin enabled state to plugin constructor", async () => {
+    const constructorMock = vi.fn();
+
+    class PluginWithConstructorFixture {
+      constructor(options?: Record<string, any>, context?: PluginConstructorContext) {
+        constructorMock(options, context);
+      }
+    }
+
+    (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginWithConstructorFixture });
+
+    await resolveConfig({
+      plugins: {
+        custom: {
+          import: "custom-plugin",
+          options: {
+            foo: "bar",
+          },
+        },
+        enabled: {
+          enabled: true,
+        },
+        disabled: {
+          enabled: false,
+        },
+      },
+    });
+
+    expect(constructorMock).toHaveBeenCalledWith({ foo: "bar" }, {});
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: true });
+    expect(constructorMock).toHaveBeenCalledWith(undefined, { enabled: false });
   });
 
   it("should throw an error when config contains unsupported fields", async () => {
@@ -982,7 +1168,7 @@ describe("loadJsonConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should load valid json config file", async () => {
@@ -1035,14 +1221,16 @@ describe("loadYamlConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   it("should load valid yaml config file", async () => {
     const configPath = join(fixturesDir, "config.yaml");
     const yamlContent = `name: Test Report
 historyPath: ./history.jsonl
-knownIssuesPath: ./known.json`;
+resolutions:
+  knownIssuesPath: ./known.json
+  rules: []`;
     await writeFile(configPath, yamlContent, "utf-8");
 
     const config = await loadYamlConfig(configPath);
@@ -1050,7 +1238,7 @@ knownIssuesPath: ./known.json`;
     expect(config).toEqual({
       name: "Test Report",
       historyPath: "./history.jsonl",
-      knownIssuesPath: "./known.json",
+      resolutions: { knownIssuesPath: "./known.json", rules: [] },
     });
   });
 
@@ -1070,6 +1258,52 @@ knownIssuesPath: ./known.json`;
   });
 });
 
+describe("loadTsConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-loadTsConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch {}
+  });
+
+  it("should load a TypeScript config file", async () => {
+    const configPath = join(fixturesDir, "config.ts");
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({
+  name: "Typed Report",
+  historyPath: "./history.jsonl",
+});
+
+export default config;
+`;
+
+    await writeFile(configPath, configContent, "utf-8");
+
+    const config = await loadTsConfig(configPath);
+
+    expect(config).toEqual({
+      name: "Typed Report",
+      historyPath: "./history.jsonl",
+    });
+  });
+
+  it("should throw when a TypeScript config file is invalid", async () => {
+    const configPath = join(fixturesDir, "invalid.ts");
+
+    await writeFile(configPath, "export default {", "utf-8");
+
+    await expect(loadTsConfig(configPath)).rejects.toThrow();
+  });
+});
+
 describe("readConfig", () => {
   let fixturesDir: string;
 
@@ -1080,7 +1314,13 @@ describe("readConfig", () => {
   afterEach(async () => {
     try {
       await rm(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
+  });
+
+  it("should preserve the requested working directory", async () => {
+    const config = await readConfig(fixturesDir);
+
+    expect(config.cwd).toBe(resolve(fixturesDir));
   });
 
   it("should read a .js config", async () => {
@@ -1113,6 +1353,43 @@ describe("readConfig", () => {
     expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
   });
 
+  it("should read a .ts config", async () => {
+    const configName = "config.ts";
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({ name: "Foo" });
+
+export default config;
+`;
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .mts config", async () => {
+    const configName = "config.mts";
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .cts config", async () => {
+    const configName = "config.cts";
+    const configContent = "module.exports = { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
   it("should read a .json config", async () => {
     const configName = "config.json";
     const configContent = '{ "name": "Foo" }';
@@ -1134,11 +1411,20 @@ describe("readConfig", () => {
   });
 
   it("should read a .yml config", async () => {
-    const configName = "config.yaml";
+    const configName = "config.yml";
     const configContent = 'name: "Foo"';
     await writeFile(join(fixturesDir, configName), configContent, "utf-8");
 
     const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should discover and read allurerc.ts", async () => {
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, "allurerc.ts"), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir);
 
     expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
   });
@@ -1151,5 +1437,56 @@ describe("readConfig", () => {
     const config = await readConfig(fixturesDir, configName);
 
     expect(config).toEqual(expect.objectContaining({ hideLabels: ["owner"] }));
+  });
+});
+
+describe("readRawConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-readRawConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch {}
+  });
+
+  it("should read a raw .ts config", async () => {
+    const configName = "config.ts";
+    const configContent = `
+import { defineConfig } from "@allurereport/plugin-api";
+import type { Config } from "@allurereport/plugin-api";
+
+const config: Config = defineConfig({
+  name: "Foo",
+  plugins: {
+    awesome: {
+      options: {
+        reportName: "Typed Awesome",
+      },
+    },
+  },
+});
+
+export default config;
+`;
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readRawConfig(fixturesDir, configName);
+
+    expect(config).toEqual(
+      expect.objectContaining({
+        name: "Foo",
+        plugins: expect.objectContaining({
+          awesome: expect.objectContaining({
+            options: {
+              reportName: "Typed Awesome",
+            },
+          }),
+        }),
+      }),
+    );
   });
 });

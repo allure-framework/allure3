@@ -2,10 +2,13 @@ import { act, cleanup, renderHook } from "@testing-library/preact";
 import { epic, feature, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.stubGlobal(
-  "ResizeObserver",
-  vi.fn(() => ({ observe: vi.fn(), disconnect: vi.fn() })),
-);
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+vi.stubGlobal("ResizeObserver", ResizeObserverMock);
 
 import { ESTIMATE_ROW_HEIGHT, useVirtualList } from "../../../src/components/VirtualTree/useVirtualList.js";
 

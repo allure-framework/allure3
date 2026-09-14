@@ -1,0 +1,22 @@
+@use "../../../../mixins.scss" as *;
+
+.bar {
+  height: var(--line-height-s);
+  overflow: hidden;
+  border-radius: var(--radius-0-5);
+  background: var(--color-control-bg);
+  display: inline-flex;
+  width: 100%;
+  &__fill {
+    display: inline-block;
+    overflow: hidden;
+    height: var(--line-height-s);
+    background: var(--color-status-unknown-chart-fill);
+    text-align: center;
+    color: var(--color-status-unknown-on-bg);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-s);
+    @include status-chart-fill-bg();
+  }
+}

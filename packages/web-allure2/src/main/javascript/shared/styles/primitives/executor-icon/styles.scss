@@ -1,0 +1,60 @@
+@use "../../../../theme/spacing.scss" as *;
+.executor-icon {
+  background: url(./default-icon.png) center no-repeat;
+  background-size: contain;
+  display: block;
+  flex: 0 0 gap(4);
+  height: gap(4);
+  width: gap(4);
+  &__jenkins {
+    background-image: url(./jenkins.svg);
+  }
+
+  &__bamboo {
+    background-image: url(./bamboo.svg);
+  }
+
+  &__teamcity {
+    background-image: url(./teamcity.svg);
+  }
+
+  &__gitlab {
+    background-image: url(./gitlab.svg);
+  }
+
+  &__github {
+    background-image: url(./github.svg);
+
+    @supports (mask-image: url("")) or (-webkit-mask-image: url("")) {
+      background-color: var(--color-icon-primary);
+      background-image: none;
+      mask-image: url(./github.svg);
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+      -webkit-mask-image: url(./github.svg);
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+    }
+  }
+
+  &__circleci {
+    background-image: url(./circleci.svg);
+  }
+
+  &__bitbucket {
+    background-image: url(./bitbucket.svg);
+  }
+
+  &__azure {
+    background-image: url(./azure.svg);
+  }
+}
+
+.executor {
+  align-items: center;
+  display: flex;
+  gap: gap(1);
+  line-height: var(--line-height-m) !important;
+}

@@ -1,7 +1,7 @@
 declare module "*.svg" {
-  const content: {
-    id: string;
-  };
+  import type { ComponentType, SVGAttributes } from "preact";
+
+  const content: ComponentType<SVGAttributes<SVGSVGElement>>;
 
   export default content;
 }

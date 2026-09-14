@@ -3,7 +3,7 @@ import type { HistoryTestResult, TestResult, TreeGroup, TreeLeaf } from "@allure
 import { createTreeByLabels, md5 } from "@allurereport/plugin-api";
 
 import { isChildrenLeavesOnly } from "../chart-utils.js";
-import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
+import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMapUtils.js";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
 type ChangeType = "new" | "deleted" | "enabled" | "disabled" | "unchanged";

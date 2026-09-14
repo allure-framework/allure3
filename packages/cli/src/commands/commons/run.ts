@@ -6,13 +6,14 @@ import { join, resolve } from "node:path";
 import process from "node:process";
 
 import { AllureReport, QualityGateState, stringifyQualityGateResults } from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
+import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
+import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
@@ -21,12 +22,14 @@ import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
+import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
   code: number | null;
   stdout: string;
   stderr: string;
   qualityGateResults: QualityGateValidationResult[];
+  fastFailed: boolean;
 };
 
 export type RunLogsMode = "pipe" | "inherit" | "ignore";
@@ -49,9 +52,22 @@ export const executeNestedAllureCommand = async (params: {
   return await terminationOf(nestedProcess);
 };
 
+const attachResultsDirectoryWatchers = (params: {
+  cwd: string;
+  resultsPatterns: readonly string[];
+  onUpdate: (newDirs: Set<string>, deletedDirs: Set<string>) => Promise<void>;
+}): Watcher => {
+  if (params.resultsPatterns.length > 0) {
+    return allureResultsDirectoriesGlobWatcher(params.cwd, params.resultsPatterns, params.onUpdate, {
+      indexDelay: 600,
+    });
+  }
+
+  return allureResultsDirectoriesWatcher(params.cwd, params.onUpdate, { indexDelay: 600 });
+};
+
 export const runTests = async (params: {
   allureReport: AllureReport;
-  knownIssues: KnownTestFailure[];
   cwd: string;
   command: string;
   commandArgs: string[];
@@ -61,10 +77,10 @@ export const runTests = async (params: {
   silent?: boolean;
   logs?: RunLogsMode;
   logProcessExit?: boolean;
+  resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
   const {
     allureReport,
-    knownIssues,
     cwd,
     command,
     commandArgs,
@@ -74,6 +90,7 @@ export const runTests = async (params: {
     withQualityGate,
     silent,
     logProcessExit = true,
+    resultsPatterns = [],
   } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
@@ -86,9 +103,10 @@ export const runTests = async (params: {
       minProcessingDelay: 1_000,
     },
   );
-  const allureResultsWatch = allureResultsDirectoriesWatcher(
+  const allureResultsWatch = attachResultsDirectoryWatchers({
     cwd,
-    async (newAllureResults, deletedAllureResults) => {
+    resultsPatterns,
+    onUpdate: async (newAllureResults, deletedAllureResults) => {
       for (const delAr of deletedAllureResults) {
         const watcher = allureResultsWatchers.get(delAr);
 
@@ -123,8 +141,7 @@ export const runTests = async (params: {
         await watcher.initialScan();
       }
     },
-    { indexDelay: 600 },
-  );
+  });
 
   await allureResultsWatch.initialScan();
 
@@ -138,14 +155,20 @@ export const runTests = async (params: {
     environmentVariables,
     logs,
   });
+
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
+  let fastFailTriggered = false;
   let testProcessStdout = "";
   let testProcessStderr = "";
 
   if (withQualityGate) {
     qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+      if (fastFailTriggered) {
+        return;
+      }
+
       const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
       const filteredTrs = trs.filter((tr) => tr !== undefined);
 
@@ -157,7 +180,6 @@ export const runTests = async (params: {
         trs: filteredTrs,
         state: qualityGateState,
         environment,
-        knownIssues,
       });
 
       // process only fast-failed checks here
@@ -165,8 +187,11 @@ export const runTests = async (params: {
         return;
       }
 
-      allureReport.realtimeDispatcher.sendQualityGateResults(results);
+      qualityGateUnsub?.();
+
+      fastFailTriggered = true;
       qualityGateResults = results;
+      qualityGateUnsub = undefined;
 
       try {
         await stopProcessTree(testProcess.pid!);
@@ -229,12 +254,12 @@ export const runTests = async (params: {
     stdout: testProcessStdout,
     stderr: testProcessStderr,
     qualityGateResults,
+    fastFailed: fastFailTriggered,
   };
 };
 
 export const executeAllureRun = async (params: {
   allureReport: AllureReport;
-  knownIssues: KnownTestFailure[];
   cwd: string;
   command: string;
   commandArgs: string[];
@@ -246,13 +271,13 @@ export const executeAllureRun = async (params: {
   ignoreLogs?: boolean;
   maxRerun?: number;
   logProcessExit?: boolean;
+  resultsPatterns?: readonly string[];
 }): Promise<{
   globalExitCode: ExitCode;
   testProcessResult: TestProcessResult | null;
 }> => {
   const {
     allureReport,
-    knownIssues,
     cwd,
     command,
     commandArgs,
@@ -264,6 +289,7 @@ export const executeAllureRun = async (params: {
     ignoreLogs,
     maxRerun = 0,
     logProcessExit = true,
+    resultsPatterns = [],
   } = params;
   await allureReport.start();
 
@@ -279,7 +305,6 @@ export const executeAllureRun = async (params: {
       logs,
       silent,
       allureReport,
-      knownIssues,
       cwd,
       command,
       commandArgs,
@@ -287,10 +312,18 @@ export const executeAllureRun = async (params: {
       environmentVariables,
       withQualityGate,
       logProcessExit,
+      resultsPatterns,
     });
 
-    for (let rerun = 0; rerun < maxRerun; rerun++) {
-      const failed = await allureReport.store.failedTestResults();
+    const allFailuresAfterInitialRun = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterInitialRun = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterInitialRun.length > 0 && blockingFailuresAfterInitialRun.length === 0 && testProcessResult) {
+      globalExitCode.actual = 0;
+    }
+
+    for (let rerun = 0; rerun < maxRerun && testProcessResult && !testProcessResult.fastFailed; rerun++) {
+      const failed = await allureReport.store.blockingFailedTestResults();
 
       if (failed.length === 0) {
         console.log("no failed tests is detected.");
@@ -311,7 +344,6 @@ export const executeAllureRun = async (params: {
         silent,
         logs,
         allureReport,
-        knownIssues,
         cwd,
         command,
         commandArgs,
@@ -323,11 +355,19 @@ export const executeAllureRun = async (params: {
         },
         withQualityGate,
         logProcessExit,
+        resultsPatterns,
       });
 
       await rm(tmpDir, { recursive: true });
 
       logTests(await allureReport.store.allTestResults());
+    }
+
+    const allFailuresAfterReruns = await allureReport.store.failedTestResults();
+    const blockingFailuresAfterReruns = await allureReport.store.blockingFailedTestResults();
+
+    if (allFailuresAfterReruns.length > 0 && blockingFailuresAfterReruns.length === 0 && testProcessResult) {
+      globalExitCode.actual = 0;
     }
 
     const trs = await allureReport.store.allTestResults({ includeRetries: false });
@@ -336,7 +376,6 @@ export const executeAllureRun = async (params: {
     if (withQualityGate && !qualityGateResults.length) {
       const { results } = await allureReport.validate({
         trs,
-        knownIssues,
         environment,
       });
 
@@ -384,7 +423,10 @@ export const executeAllureRun = async (params: {
 
     stdoutResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, "stdout.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(
+      stdoutResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stdout"),
+    );
   }
 
   if (!ignoreLogs && testProcessResult?.stderr) {
@@ -393,7 +435,10 @@ export const executeAllureRun = async (params: {
 
     stderrResultFile.contentType = "text/plain";
 
-    allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
+    allureReport.realtimeDispatcher.sendGlobalAttachment(
+      stderrResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stderr"),
+    );
 
     if (processFailed) {
       allureReport.realtimeDispatcher.sendGlobalError({

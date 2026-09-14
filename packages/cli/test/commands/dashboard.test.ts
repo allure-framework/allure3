@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("dashboard");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("dashboard command", () => {

@@ -8,7 +8,7 @@ import {
 } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
-import type { AwesomeReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { ensureAtSeparator } from "@/utils/atSeparator";
 
@@ -45,7 +45,7 @@ export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?
 export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value));
 
 export const getLocale = async () => {
-  const { reportLanguage } = getReportOptions<AwesomeReportOptions>() ?? {};
+  const { reportLanguage } = getReportOptions<ReportOptions>() ?? {};
   const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
 
   await setLocale(locale as LangLocale);

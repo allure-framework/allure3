@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { gitlab } from "../../src/detectors/gitlab.js";
 import { getEnv } from "../../src/utils.js";
 
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
+
 beforeEach(async () => {
   await story("gitlab");
 });
@@ -212,6 +216,53 @@ describe("gitlab", () => {
 
       expect(gitlab.jobRunBranch).toBe("");
     });
+
+    it("should prefer CI_COMMIT_BRANCH for branch pipelines", () => {
+      mockEnv({
+        CI_COMMIT_BRANCH: "feature/foo",
+        CI_COMMIT_REF_NAME: "feature/foo",
+      });
+
+      expect(gitlab.jobRunBranch).toBe("feature/foo");
+    });
+
+    it("should not return tag name as job run branch", () => {
+      mockEnv({
+        CI_COMMIT_REF_NAME: "v1.0.0",
+        CI_COMMIT_TAG: "v1.0.0",
+      });
+
+      expect(gitlab.jobRunBranch).toBe("");
+    });
+  });
+
+  describe("sourceBranch", () => {
+    it("should return merge request source branch", () => {
+      mockEnv({
+        CI_MERGE_REQUEST_SOURCE_BRANCH_NAME: "feature/foo",
+        CI_COMMIT_REF_NAME: "refs/merge-requests/7/head",
+      });
+
+      expect(gitlab.sourceBranch).toBe("feature/foo");
+    });
+
+    it("should return branch pipeline branch", () => {
+      mockEnv({
+        CI_COMMIT_BRANCH: "feature/bar",
+        CI_COMMIT_REF_NAME: "feature/bar",
+      });
+
+      expect(gitlab.sourceBranch).toBe("feature/bar");
+    });
+
+    it("should not return tag name as source branch", () => {
+      mockEnv({
+        CI_COMMIT_REF_NAME: "v1.0.0",
+        CI_COMMIT_TAG: "v1.0.0",
+      });
+
+      expect(gitlab.sourceBranch).toBeUndefined();
+    });
   });
 
   describe("pullRequestUrl", () => {
@@ -251,6 +302,24 @@ describe("gitlab", () => {
       });
 
       expect(gitlab.pullRequestUrl).toBe("https://gitlab.example.com/myorg/myrepo/-/merge_requests/123");
+    });
+
+    it("should prefer merge request project URL", () => {
+      mockEnv({
+        CI_MERGE_REQUEST_IID: "123",
+        CI_MERGE_REQUEST_PROJECT_URL: "https://gitlab.com/parent/repo",
+        CI_PROJECT_URL: "https://gitlab.com/fork/repo",
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("https://gitlab.com/parent/repo/-/merge_requests/123");
+    });
+
+    it("should return empty string when project URL is missing", () => {
+      mockEnv({
+        CI_MERGE_REQUEST_IID: "123",
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("");
     });
   });
 });

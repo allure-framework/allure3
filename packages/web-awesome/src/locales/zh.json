@@ -22,7 +22,8 @@
     "globalAttachments": "全局附件",
     "globalErrors": "全局错误",
     "qualityGates": "质量门",
-    "categories": "分类"
+    "categories": "分类",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "搜索",
@@ -56,7 +57,18 @@
       "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
       "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果",
       "tags": "显示具有指定标签的测试结果",
-      "categories": "显示具有指定分类的测试结果"
+      "categories": "显示具有指定分类的测试结果",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "没有可用的测试步骤信息",
     "no-test-case-results": "没有测试用例结果",
     "no-environments-results": "没有环境信息",
-    "no-categories-results": "暂无可用的分类结果"
+    "no-categories-results": "暂无可用的分类结果",
+    "no-metrics-results": "没有可用指标",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "阻断",
     "critical": "严重",
     "normal": "正常",
     "minor": "次要",
-    "trivial": "轻微"
+    "trivial": "轻微",
+    "none": "无严重程度"
   },
   "execution": {
     "name": "执行",
@@ -138,6 +153,7 @@
     "category": "分类",
     "description": "描述",
     "links": "链接",
+    "relatedTestResults": "相关测试结果（{{count}}）",
     "overview": "概览",
     "history": "历史",
     "attachments": "附件",
@@ -150,6 +166,7 @@
     "copy": "复制",
     "copy-email": "复制邮箱",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
+    "retry": "第 {{attempt}} 次重试，共 {{total}} 次",
     "at": "在",
     "generated": "已生成",
     "variables": "变量",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
+    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "图形",
-    "timeline": "时间轴"
+    "timeline": "时间轴",
+    "metrics": "指标"
   },
   "timeline": {
     "empty": "无数据",
@@ -394,6 +413,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "性能指标",
+      "phaseSummary": "指标摘要",
+      "currentValues": "当前值",
+      "historyTitle": "指标历史",
+      "noHistory": "此指标暂无历史记录",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "指标",
+        "phase": "指标集",
+        "count": "数量",
+        "total": "总计",
+        "avg": "平均",
+        "min": "最小",
+        "max": "最大",
+        "value": "值",
+        "delta": "变化",
+        "trend": "趋势",
+        "source": "来源",
+        "report": "报告",
+        "date": "日期"
+      },
+      "summary": "{{groups}} 个摘要行 / {{metrics}} 个指标",
+      "groups": {
+        "other": "其他"
+      }
+    },
+    "successRate": {
+      "successRate": "成功率：{{rate}}",
+      "successRateDescription": "根据通过、失败和损坏的测试计算。跳过和状态未知的测试不计入。",
+      "noResults": "没有测试结果。",
+      "noEligibleResults": "没有通过、失败或损坏的测试。跳过和状态未知的测试不计入成功率。",
+      "slice_one": "{{count}} 个测试（占全部测试的 {{percent}}%）",
+      "slice_other": "{{count}} 个测试（占全部测试的 {{percent}}%）",
+      "layer": "层级：{{layer}}",
+      "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
+      "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
     }
   },
   "transitions": {
@@ -403,7 +460,12 @@
       "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
       "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了",
       "retries": "{{count}} 次重试",
-      "flaky": "多次运行结果不一致"
+      "flaky": "多次运行结果不一致",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "新的",
     "fixed": "已修复",
@@ -482,6 +544,7 @@
       "testTabNext": "下一个测试标签页",
       "testTabPrev": "上一个测试标签页",
       "tabOverview": "概览标签页",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "历史标签页",
       "tabRetries": "重试标签页",
       "tabAttachments": "附件标签页",
@@ -489,7 +552,8 @@
       "toggleLabels": "显示/隐藏标签",
       "toggleParameters": "显示/隐藏参数",
       "toggleLinks": "显示/隐藏链接",
-      "backToTree": "返回树形结构"
+      "backToTree": "返回树形结构",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

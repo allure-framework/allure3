@@ -1,12 +1,10 @@
-import { readdir } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { dirname } from "node:path";
-
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
+import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AllureCheckResult } from "../../core-api/src/model.js";
 import AwesomePlugin from "../src/index.js";
 
 beforeEach(async () => {
@@ -16,11 +14,9 @@ beforeEach(async () => {
   await label("coverage", "plugin-awesome");
 });
 
-const require = createRequire(import.meta.url);
-
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
-  const trsToProcess = trs.filter(filter);
+  const trsToProcess = trs.filter((tr) => !tr.isRetry && filter(tr));
 
   return trsToProcess.reduce(
     (acc, test) => {
@@ -29,6 +25,21 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
       }
 
       acc[test.status]!++;
+
+      if (test.resolution === "issue") {
+        acc.resolutions ??= {};
+        acc.resolutions.issues = (acc.resolutions.issues ?? 0) + 1;
+      }
+
+      if (test.resolution === "muted") {
+        acc.resolutions ??= {};
+        acc.resolutions.muted = (acc.resolutions.muted ?? 0) + 1;
+      }
+
+      if (test.resolution === "accepted") {
+        acc.resolutions ??= {};
+        acc.resolutions.accepted = (acc.resolutions.accepted ?? 0) + 1;
+      }
 
       return acc;
     },
@@ -67,6 +78,16 @@ const fixtures: any = {
       status: "skipped",
     },
   },
+  checkResults: [
+    {
+      name: "foo",
+      status: "passed",
+    },
+    {
+      name: "bar",
+      status: "failed",
+    },
+  ] as AllureCheckResult[],
   context: {
     reportUuid: "report-uuid",
   } as PluginContext,
@@ -84,6 +105,8 @@ const fixtures: any = {
       return trs;
     },
     allNewTestResults: () => Promise.resolve([]),
+    allCheckResults: () => Promise.resolve([]),
+    retriesByTr: () => Promise.resolve([]),
     testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
 
@@ -115,6 +138,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        checks: [],
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,
@@ -143,6 +167,49 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        checks: [],
+        meta: {
+          reportId: fixtures.context.reportUuid,
+          singleFile: false,
+          withTestResultsLinks: true,
+        },
+      });
+    });
+
+    it("should returns info for all check results in the store", async () => {
+      const plugin = new AwesomePlugin({ reportName: "Sample report" });
+      const info = await plugin.info(fixtures.context, {
+        ...fixtures.store,
+        allCheckResults: () => Promise.resolve(fixtures.checkResults),
+      });
+
+      expect(info).toEqual({
+        createdAt: 0,
+        duration: 0,
+        name: "Sample report",
+        plugin: "Awesome",
+        status: "failed",
+        stats: {
+          passed: 1,
+          failed: 1,
+          broken: 1,
+          skipped: 1,
+          unknown: 1,
+          total: 5,
+        },
+        newTests: [],
+        flakyTests: [],
+        retryTests: [],
+        checks: [
+          {
+            name: fixtures.checkResults[0].name,
+            status: fixtures.checkResults[0].status,
+          },
+          {
+            name: fixtures.checkResults[1].name,
+            status: fixtures.checkResults[1].status,
+          },
+        ],
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,
@@ -225,10 +292,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -264,6 +333,120 @@ describe("plugin", () => {
   });
 
   describe("generated widget files", () => {
+    it("should write pie chart statistics without muted and accepted failures", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-passed",
+          name: "passed test",
+          status: "passed",
+          labels: [],
+        },
+        {
+          id: "tr-issue",
+          name: "issue test",
+          status: "failed",
+          resolution: "issue",
+          labels: [],
+        },
+        {
+          id: "tr-muted",
+          name: "muted test",
+          status: "failed",
+          resolution: "muted",
+          labels: [],
+        },
+        {
+          id: "tr-accepted",
+          name: "accepted test",
+          status: "broken",
+          resolution: "accepted",
+          labels: [],
+        },
+      ] as unknown as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue([]),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({ charts: [] });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 4,
+        passed: 1,
+        failed: 2,
+        broken: 1,
+        resolutions: {
+          issues: 1,
+          muted: 1,
+          accepted: 1,
+        },
+      });
+      expect(JSON.parse(addedFiles.get("widgets/pie_chart.json")!.toString("utf-8"))).toMatchObject({
+        percentage: 50,
+        slices: [
+          expect.objectContaining({ status: "failed", count: 1 }),
+          expect.objectContaining({ status: "passed", count: 1 }),
+        ],
+      });
+    });
+
     it("always writes widgets/allure_environment.json (and environments.json) in multi-file mode when metadata is absent", async () => {
       const testResults: TestResult[] = [
         {
@@ -272,7 +455,7 @@ describe("plugin", () => {
           status: "passed",
           labels: [],
         },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
 
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -314,10 +497,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -356,7 +541,8 @@ describe("plugin", () => {
       const stagingTestResult = {
         id: "tr-staging",
         name: "staging test",
-        status: "passed",
+        status: "failed",
+        resolution: "accepted",
         environment: "staging",
         labels: [],
         parameters: [],
@@ -364,7 +550,7 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [stagingTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -410,10 +596,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -437,11 +625,17 @@ describe("plugin", () => {
 
       expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        failed: 1,
+        resolutions: {
+          accepted: 1,
+        },
       });
       expect(JSON.parse(addedFiles.get("widgets/staging/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        failed: 1,
+        resolutions: {
+          accepted: 1,
+        },
       });
       expect(JSON.parse(addedFiles.get("widgets/default/statistic.json")!.toString("utf-8"))).toEqual({
         total: 0,
@@ -462,7 +656,8 @@ describe("plugin", () => {
       const qaATestResult = {
         id: "tr-qa-a",
         name: "qa a test",
-        status: "passed",
+        status: "broken",
+        resolution: "muted",
         environment: "QA",
         labels: [],
         parameters: [],
@@ -470,11 +665,12 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const qaBTestResult = {
         id: "tr-qa-b",
         name: "qa b test",
         status: "failed",
+        resolution: "issue",
         environment: "QA",
         labels: [],
         parameters: [],
@@ -482,7 +678,7 @@ describe("plugin", () => {
         steps: [],
         isRetry: false,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -528,10 +724,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -563,11 +761,17 @@ describe("plugin", () => {
       ]);
       expect(JSON.parse(addedFiles.get("widgets/qa_a/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
-        passed: 1,
+        broken: 1,
+        resolutions: {
+          muted: 1,
+        },
       });
       expect(JSON.parse(addedFiles.get("widgets/qa_b/statistic.json")!.toString("utf-8"))).toEqual({
         total: 1,
         failed: 1,
+        resolutions: {
+          issues: 1,
+        },
       });
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");
@@ -590,7 +794,7 @@ describe("plugin", () => {
         start: 1,
         stop: 11,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const qaBTestResult = {
         id: "tr-qa-b",
         name: "qa b test",
@@ -607,7 +811,7 @@ describe("plugin", () => {
         start: 2,
         stop: 22,
         sourceMetadata: { readerId: "system", metadata: {} },
-      } as TestResult;
+      } as unknown as TestResult;
       const testResults = [qaATestResult, qaBTestResult];
       const addedFiles = new Map<string, Buffer>();
       const reportFiles: ReportFiles = {
@@ -653,10 +857,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
 
@@ -696,20 +902,32 @@ describe("plugin", () => {
   });
 
   describe("report assets", () => {
+    const environmentIdOf = (tr: TestResult) => tr.environment ?? "default";
+
     const makeSingleFileStore = (testResults: TestResult[], metadata: Record<string, unknown> = {}): AllureStore =>
       ({
         metadataByKey: vi.fn(async (key: string) => metadata[key]),
-        allEnvironments: vi.fn().mockResolvedValue(["default"]),
-        allEnvironmentIdentities: vi
-          .fn()
-          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
+        allEnvironments: vi.fn(async () => [...new Set(testResults.map(environmentIdOf))]),
+        allEnvironmentIdentities: vi.fn(
+          async () =>
+            [...new Set(testResults.map(environmentIdOf))].map((id) => ({
+              id,
+              name: id,
+            })) satisfies EnvironmentIdentity[],
+        ),
         allAttachments: vi.fn().mockResolvedValue([]),
         allTestResults: vi.fn(async (options?: { includeRetries?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
-        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
+        testResultsByEnvironmentId: vi.fn(async (envId: string) =>
+          testResults.filter((tr) => environmentIdOf(tr) === envId),
+        ),
+        environmentIdByTrId: vi.fn(async (trId: string) => {
+          const tr = testResults.find(({ id }) => id === trId);
+
+          return tr ? environmentIdOf(tr) : undefined;
+        }),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
         allTestEnvGroups: vi.fn().mockResolvedValue([]),
         allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -728,10 +946,12 @@ describe("plugin", () => {
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allMetrics: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
+        resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       }) as unknown as AllureStore;
 
@@ -777,15 +997,14 @@ describe("plugin", () => {
       };
       const testResults = [
         { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
       const plugin = new AwesomePlugin();
-      const multiDist = dirname(require.resolve("@allurereport/web-awesome/dist/multi/manifest.json"));
-      const expectedAssets = (await readdir(multiDist)).filter((fileName) => fileName !== "manifest.json");
+      const staticAssets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
 
       await plugin.start(makeSingleFileContext(reportFiles));
       await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
 
-      for (const fileName of expectedAssets) {
+      for (const fileName of staticAssets.files.keys()) {
         expect(addedFiles.has(fileName), `"${fileName}" must be copied to the report`).toBe(true);
       }
     });
@@ -817,6 +1036,7 @@ describe("plugin", () => {
       const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
 
       expect(indexHtml, "index.html must be generated").not.toBe("");
+      expect(indexHtml).toContain("data:text/javascript;base64,");
 
       const embeddedData = extractEmbeddedData(indexHtml);
 
@@ -875,6 +1095,53 @@ describe("plugin", () => {
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
     });
 
+    it("should expose metrics section only when current metrics exist", async () => {
+      const testResults = [
+        { id: "tr-1", name: "passed test", status: "passed", environment: "default", labels: [] },
+      ] as unknown as TestResult[];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ sections: ["metrics"], singleFile: true });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+      const reportOptions = extractReportOptions(indexHtml);
+      const embeddedData = extractEmbeddedData(indexHtml);
+
+      expect(reportOptions.sections).not.toContain("metrics");
+      expect(embeddedData["widgets/metrics.json"]).toBeUndefined();
+
+      const metricsStore = {
+        ...makeSingleFileStore(testResults),
+        allMetrics: vi.fn().mockResolvedValue([
+          {
+            id: "metric-1",
+            key: "sandbox.report.awesome",
+            value: 120,
+            start: 0,
+            stop: 120,
+          },
+        ]),
+      } as unknown as AllureStore;
+
+      addedFiles.clear();
+      await plugin.done(makeSingleFileContext(reportFiles), metricsStore);
+
+      const metricsIndexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+      const metricsReportOptions = extractReportOptions(metricsIndexHtml);
+      const metricsEmbeddedData = extractEmbeddedData(metricsIndexHtml);
+
+      expect(metricsReportOptions.sections).toContain("metrics");
+      expect(metricsEmbeddedData["widgets/metrics.json"]).toBeDefined();
+    });
+
     it("should include launch timing and allure2 executor metadata in report options", async () => {
       const testResults: TestResult[] = [
         {
@@ -896,7 +1163,7 @@ describe("plugin", () => {
           stop: 2500,
           labels: [],
         },
-      ] as TestResult[];
+      ] as unknown as TestResult[];
       const executor = {
         name: "TeamCity",
         type: "teamcity",
@@ -928,6 +1195,59 @@ describe("plugin", () => {
         duration: 2000,
       });
       expect(reportOptions.executor).toEqual(executor);
+    });
+
+    it("should include a separate launch interval for every environment", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-staging",
+          name: "staging test",
+          status: "passed",
+          environment: "staging",
+          start: 1000,
+          stop: 3000,
+          labels: [],
+        },
+        {
+          id: "tr-staging-retry",
+          name: "staging test",
+          status: "failed",
+          environment: "staging",
+          isRetry: true,
+          start: 500,
+          stop: 900,
+          labels: [],
+        },
+        {
+          id: "tr-prod",
+          name: "prod test",
+          status: "passed",
+          environment: "prod",
+          start: 10_000,
+          stop: 12_500,
+          labels: [],
+        },
+      ] as unknown as TestResult[];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
+
+      const reportOptions = extractReportOptions(addedFiles.get("index.html")?.toString("utf-8") ?? "");
+
+      // The report-wide summary still spans everything, the per-environment ones must not.
+      expect(reportOptions.runSummary).toEqual({ start: 500, stop: 12_500, duration: 12_000 });
+      expect(reportOptions.runSummaryByEnv).toEqual({
+        staging: { start: 500, stop: 3000, duration: 2500 },
+        prod: { start: 10_000, stop: 12_500, duration: 2500 },
+      });
     });
   });
 });

@@ -8,19 +8,21 @@ export const TestOpsClientMock = vi.fn(function () {});
 TestOpsClientMock.prototype = {
   uploadTestResult: vi.fn(),
   createLaunch: vi.fn(),
+  attachToLaunch: vi.fn(),
   createSession: vi.fn(),
   createNamedEnvs: vi.fn(),
   uploadTestResults: vi.fn().mockImplementation(async ({ trs }) => trs),
   uploadGlobalAttachments: vi.fn(),
   uploadGlobalErrors: vi.fn(),
   isTestOpsClientError: vi.fn().mockReturnValue(false),
+  checkLaunchProgress: vi.fn().mockResolvedValue(true),
   launchUrl: undefined,
   launchId: 123,
-  namedEnvs: [],
   startUpload: vi.fn(),
   stopUpload: vi.fn(),
   createLaunchCategoriesBulk: vi.fn().mockResolvedValue([]),
   closeLaunch: vi.fn(),
+  reopenLaunch: vi.fn(),
   getNamedEnvFor: vi.fn().mockReturnValue(undefined),
 };
 
@@ -33,11 +35,14 @@ AllureStoreMock.prototype = {
   environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
   allGlobalErrors: vi.fn().mockResolvedValue([]),
   allGlobalAttachments: vi.fn().mockResolvedValue([]),
+  allCheckResults: vi.fn().mockResolvedValue([]),
   attachmentsByTrId: vi.fn(),
+  attachmentById: vi.fn(),
   attachmentContentById: vi.fn(),
   fixturesByTrId: vi.fn(),
   metadataByKey: vi.fn(),
   testsStatistic: vi.fn(),
+  retriesByTr: vi.fn().mockResolvedValue([]),
   qualityGateResults: vi.fn().mockResolvedValue([]),
 };
 
@@ -50,8 +55,10 @@ export const AxiosMock = {
       use: vi.fn(),
     },
   },
+  get: vi.fn().mockResolvedValue({ data: { closed: false } }),
   post: vi.fn(),
   postForm: vi.fn(),
+  patch: vi.fn(),
 };
 
 export const AxiosCreateMock = vi.fn(() => AxiosMock);

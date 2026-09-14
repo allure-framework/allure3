@@ -88,6 +88,24 @@ describe("testResultRawToState", () => {
     });
   });
 
+  it("should ignore AS_ID placeholder when calculating test case id", async () => {
+    const testId = "a test id";
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        testId,
+        labels: [{ name: "AS_ID", value: "-1" }],
+      },
+      { readerId },
+    );
+
+    expect(result.testCase).toMatchObject({
+      id: md5(testId),
+      externalId: testId,
+    });
+    expect(result.testCase?.allureId).toBeUndefined();
+  });
+
   it("should include parameters in history id", async () => {
     const testId = "a test id";
     const parameters = [
@@ -296,6 +314,23 @@ describe("testResultRawToState", () => {
           ],
         },
       ]);
+    });
+  });
+
+  describe("known failures", () => {
+    it("should set known true and not set resolution from known; store classifies later", async () => {
+      const result = await functionUnderTest(
+        emptyStateData,
+        { status: "failed", known: true, muted: true, flaky: true },
+        { readerId },
+      );
+      expect(result).toMatchObject({
+        known: true,
+        muted: true,
+        flaky: true,
+      });
+      expect(result.resolution).toBeUndefined();
+      expect(result.resolutionComment).toBeUndefined();
     });
   });
 

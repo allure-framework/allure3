@@ -36,6 +36,15 @@ export type AttachmentData =
 
 type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
 
+const PLAYWRIGHT_TRACE_CONTENT_TYPE = "application/vnd.allure.playwright-trace";
+const PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE = "application/zip";
+
+const downloadContentType = (contentType: string) => {
+  return contentType.split(";")[0].trim().toLowerCase() === PLAYWRIGHT_TRACE_CONTENT_TYPE
+    ? PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE
+    : contentType;
+};
+
 export const fetchFromUrl = async ({ id, ext, contentType }: AttachmentPayload) => {
   const fileName = `${id || "-"}${ext || ""}`;
 
@@ -92,7 +101,7 @@ export const fetchAttachment = async (
 };
 
 export const blobAttachment = async (id: string, ext: string, contentType: string) => {
-  const response = await fetchFromUrl({ id, ext, contentType });
+  const response = await fetchFromUrl({ id, ext, contentType: downloadContentType(contentType) });
   return await response.blob();
 };
 
@@ -330,6 +339,7 @@ export const attachmentType = (type?: string): AttachmentType | null => {
     case "application/x-bzip2":
     case "application/gzip":
     case "application/zip":
+    case PLAYWRIGHT_TRACE_CONTENT_TYPE:
       return "archive";
     case "application/vnd.allure.image.diff":
       return "image-diff";

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-api",
-  "version": "3.9.0",
+  "version": "3.17.0",
   "description": "Allure Plugin API",
   "keywords": [
     "allure"
@@ -9,14 +9,17 @@
   "author": "Qameta Software",
   "repository": "https://github.com/allure-framework/allure3",
   "files": [
-    "dist"
+    "dist",
+    "!dist/packStaticAssets.d.ts",
+    "!dist/packStaticAssets.js"
   ],
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./static-assets": "./dist/staticAssets.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
@@ -26,16 +29,18 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*"
+    "@allurereport/core-api": "workspace:*",
+    "tar-stream": "3.1.7"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/tar-stream": "^3.1.4",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }

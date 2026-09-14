@@ -29,7 +29,7 @@
   align-items: flex-start;
 
   &:hover {
-    background: var(--bg-control-flat-medium);
+    background: var(--color-control-bg-hover);
   }
 }
 
@@ -47,7 +47,7 @@
 .item-time {
   margin-left: auto;
   line-height: 20px;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-retries-item-content {
@@ -55,7 +55,7 @@
 }
 
 .test-result-retries-item-link {
-  color: var(--on-icon-secondary);
+  color: var(--color-icon-secondary);
 }
 
 .test-result-retries-item-status {

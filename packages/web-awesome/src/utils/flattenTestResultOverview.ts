@@ -5,6 +5,7 @@ import { hasTestLevelErrorContent } from "@/components/TestResult/bodyItems";
 import {
   getStepTreeExpansionPolicy,
   hasStepContent,
+  isOpenByDefaultForPolicy,
   isStepOpenedByDefault,
   type StepTreeExpansion,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
@@ -133,11 +134,12 @@ export const flattenTestResultOverview = (input: FlattenTestResultOverviewInput)
     lastSectionId = id;
     return id;
   };
+  const fixtureSectionOpenedByDefault = isOpenByDefaultForPolicy(policy, true);
 
   if (hasSetup) {
-    const setupId = appendSection("setup");
+    const setupId = appendSection("setup", fixtureSectionOpenedByDefault);
 
-    if (isGroupOpened(setupId, true) && setupBodyItems.length > 0) {
+    if (isGroupOpened(setupId, fixtureSectionOpenedByDefault) && setupBodyItems.length > 0) {
       const setupSteps = flattenBodyItems(setupBodyItems, 1, setupId, policy, isGroupOpened);
       result.push(...setupSteps);
 
@@ -171,9 +173,9 @@ export const flattenTestResultOverview = (input: FlattenTestResultOverviewInput)
   }
 
   if (hasTeardown) {
-    const teardownId = appendSection("teardown");
+    const teardownId = appendSection("teardown", fixtureSectionOpenedByDefault);
 
-    if (isGroupOpened(teardownId, true) && teardownBodyItems.length > 0) {
+    if (isGroupOpened(teardownId, fixtureSectionOpenedByDefault) && teardownBodyItems.length > 0) {
       result.push(...flattenBodyItems(teardownBodyItems, 1, teardownId, policy, isGroupOpened));
     }
   }

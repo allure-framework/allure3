@@ -16,24 +16,35 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GIT_COMMIT_AUTHOR_EMAIL: ${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com
+      GIT_COMMIT_AUTHOR_NAME: ${{ vars.ALLURE_CI_APP_SLUG }}[bot]
     steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.ALLURE_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ALLURE_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: "Check release version"
         run: |
           expr "${{ github.event.inputs.releaseVersion }}" : '\(^[1-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\(-beta\.[0-9][0-9]*\)\{0,1\}\)$'
 
       - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.QAMETA_CI }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: "Configure CI Git User"
         run: |
-          git config --global user.name qameta-ci
-          git config --global user.email qameta-ci@qameta.io
+          git config --global user.name "${GIT_COMMIT_AUTHOR_NAME}"
+          git config --global user.email "${GIT_COMMIT_AUTHOR_EMAIL}"
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: 'yarn'
+          node-version: "24.14.x"
+          cache: "yarn"
 
       - name: "Yarn install"
         run: |
@@ -52,11 +63,11 @@ jobs:
           git push origin ${GITHUB_REF}
 
       - name: "Publish Github Release"
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v3.0.0
         with:
           route: POST /repos/${{ github.repository }}/releases
           tag_name: v${{ github.event.inputs.releaseVersion }}
           generate_release_notes: true
           target_commitish: ${{ github.ref }}
         env:
-          GITHUB_TOKEN: ${{ secrets.QAMETA_CI }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

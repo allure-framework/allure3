@@ -44,6 +44,8 @@ export default watchDirectory;
 export type { Watcher } from "./watcher.js";
 export {
   findMatching,
+  difference,
+  watch,
   newFilesInDirectoryWatcher,
   allureResultsDirectoriesWatcher,
   delayedFileProcessingWatcher,

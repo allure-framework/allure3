@@ -83,6 +83,10 @@
     cursor: crosshair;
   }
 
+  & .segment {
+    cursor: pointer;
+  }
+
   & .legend {
     font-family: Sans-Serif;
 

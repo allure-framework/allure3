@@ -1,4 +1,6 @@
-import { fork } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
+import { execFile, fork } from "node:child_process";
+import { EventEmitter } from "node:events";
 import { rmSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,9 +8,9 @@ import path from "node:path";
 import { platform } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { stopProcessTree } from "../src/utils/process.js";
+import { runProcess, stopProcessTree, terminationOf } from "../src/utils/process.js";
 
 const spinProcessTreeScript = `
   import { fork } from "node:child_process";
@@ -92,6 +94,34 @@ type ProcessRunInfo = {
   exitCodes: Promise<ProcessTreeExitCodes>;
 };
 
+const warmUpWindowsProcessEnumeration = async () => {
+  await new Promise<void>((resolve, reject) => {
+    execFile(
+      "powershell.exe",
+      [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `& {
+          [System.Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($False, $False)
+          Get-CimInstance -Class Win32_Process | Select-Object -First 1 | ForEach-Object {
+            "$($_.ParentProcessId) $($_.ProcessId) $($_.ExecutablePath)"
+          }
+        }`,
+      ],
+      { encoding: "utf-8", timeout: 30_000 },
+      (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      },
+    );
+  });
+};
+
 const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promise<ProcessRunInfo> => {
   const workingDirectory = await mkdtemp(path.join(tmpdir(), "cli-test-terminate-"));
   const scriptPath = path.join(workingDirectory, "spawn.mjs");
@@ -168,6 +198,58 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
   };
 };
 
+describe("runProcess", () => {
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-run");
+    await story("process");
+    await label("coverage", "cli-run");
+  });
+
+  it("runs shell commands with args without Node DEP0190 warning", async () => {
+    const workingDirectory = await mkdtemp(path.join(tmpdir(), "cli-test-run-process-"));
+    const scriptPath = path.join(workingDirectory, "argv.mjs");
+
+    await writeFile(scriptPath, "console.log(JSON.stringify(process.argv.slice(2)));\n", "utf-8");
+
+    try {
+      const childProcess = runProcess({
+        command: process.execPath,
+        commandArgs: [scriptPath, "value with spaces"],
+        cwd: workingDirectory,
+        logs: "pipe",
+        shell: true,
+      });
+      let stdout = "";
+      let stderr = "";
+
+      childProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
+        stdout += data;
+      });
+      childProcess.stderr?.setEncoding("utf8").on?.("data", (data: string) => {
+        stderr += data;
+      });
+
+      await expect(terminationOf(childProcess)).resolves.toBe(0);
+      expect(JSON.parse(stdout.trim())).toEqual(["value with spaces"]);
+      expect(stderr).not.toContain("[DEP0190]");
+    } finally {
+      rmSync(workingDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it("resolves instead of crashing when the process emits 'error' (e.g. a spawn failure)", async () => {
+    // spawn 'error' behavior differs by platform (Windows spawns through a shell by default,
+    // so a bad command exits normally instead of erroring) — emit it directly to test terminationOf
+    const fakeProcess = new EventEmitter() as unknown as ChildProcess;
+    const termination = terminationOf(fakeProcess);
+
+    fakeProcess.emit("error", new Error("spawn ENOENT"));
+
+    await expect(termination).resolves.toBeNull();
+  });
+});
+
 describe("stopProcessTree", () => {
   beforeEach(async () => {
     await epic("coverage");
@@ -178,6 +260,10 @@ describe("stopProcessTree", () => {
 
   // stopProcessTree on Windows calls powershell.exe so it might need more time to finish
   describe("on Windows", { skip: platform != "win32", timeout: 10_000 }, () => {
+    beforeAll(async () => {
+      await warmUpWindowsProcessEnumeration();
+    }, 30_000);
+
     it("should stop a tree of a single process", async () => {
       const {
         pids: { pid },

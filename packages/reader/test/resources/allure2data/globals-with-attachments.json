@@ -1,6 +1,7 @@
 {
   "attachments": [
     {
+      "timestamp": 1724662800000,
       "name": "Global log",
       "type": "text/plain",
       "source": "global-log.txt"

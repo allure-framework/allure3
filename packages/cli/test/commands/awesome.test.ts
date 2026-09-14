@@ -137,6 +137,8 @@ describe("awesome command", () => {
       "baz",
       "--history-path",
       "qux",
+      "--history-base-url",
+      "https://bucket.example/runs/42",
       "./allure-results",
     ]);
 
@@ -144,9 +146,9 @@ describe("awesome command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: "foo",
       output: "bar",
-      knownIssuesPath: "baz",
+      resolutions: { knownIssuesPath: "baz" },
       historyPath: "qux",
-      hideLabels: undefined,
+      historyBaseUrl: "https://bucket.example/runs/42",
     });
   });
 
@@ -158,9 +160,9 @@ describe("awesome command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      name: undefined,
       output: undefined,
-      knownIssuesPath: undefined,
+      name: undefined,
+      resolutions: { knownIssuesPath: undefined },
       historyPath: undefined,
       hideLabels: undefined,
     });
@@ -178,7 +180,7 @@ describe("awesome command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
       name: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
       historyPath: undefined,
       hideLabels: ["owner", "tag"],
     });

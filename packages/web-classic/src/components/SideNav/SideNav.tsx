@@ -1,4 +1,4 @@
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Tag, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { h } from "preact";
 import { useState } from "preact/hooks";
@@ -14,10 +14,10 @@ const tabs = [
   { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: false },
   { tabName: "behaviors", title: "Behaviors", icon: "lineFilesClipboardCheck", active: false },
   { tabName: "categories", title: "Categories", icon: "lineFilesFile2", active: false },
-  { tabName: "graphs", title: "Graphs", icon: "lineChartsBarChartSquare", active: false },
+  { tabName: "graphs", title: "Graphs", icon: "lineChartsBarChartSquare", active: false, comingSoon: true },
   { tabName: "packages", title: "Packages", icon: "lineDevDataflow3", active: false },
   { tabName: "suites", title: "Suites", icon: "lineFilesFolder", active: false },
-  { tabName: "timeline", title: "Timeline", icon: "lineTimeClockStopwatch", active: false },
+  { tabName: "timeline", title: "Timeline", icon: "lineTimeClockStopwatch", active: false, comingSoon: true },
 ];
 const SideNav = () => {
   const { t: controls } = useI18n("controls");
@@ -38,26 +38,46 @@ const SideNav = () => {
         </Text>
       </a>
       <ul className={styles.menu}>
-        {tabs?.map((tab) => (
-          <li
-            className={styles.item}
-            data-tooltip={tab.title}
-            data-ga4-event="tab_click"
-            data-ga4-param-tab={tab.tabName}
-            key={tab.tabName}
-          >
-            <a
-              href={`#${tab.tabName}`}
-              className={clsx(styles.link, { [styles["link-active"]]: activeTab.value === tab.tabName })}
-              onClick={() => navigateTo(tab.tabName)}
+        {tabs?.map((tab) => {
+          const isDisabled = Boolean(tab.comingSoon);
+
+          return (
+            <li
+              className={styles.item}
+              data-tooltip={isDisabled ? nav("comingSoon") : tab.title}
+              data-ga4-event="tab_click"
+              data-ga4-param-tab={tab.tabName}
+              key={tab.tabName}
             >
-              <span className={styles.icon}>
-                <SvgIcon id={allureIcons[tab.icon]} />
-              </span>
-              <Text className={styles.text}>{nav(tab.tabName)}</Text>
-            </a>
-          </li>
-        ))}
+              <a
+                href={isDisabled ? undefined : `#${tab.tabName}`}
+                aria-disabled={isDisabled || undefined}
+                tabIndex={isDisabled ? -1 : undefined}
+                className={clsx(styles.link, {
+                  [styles["link-active"]]: !isDisabled && activeTab.value === tab.tabName,
+                  [styles["link-disabled"]]: isDisabled,
+                })}
+                onClick={(event) => {
+                  if (isDisabled) {
+                    event.preventDefault();
+                    return;
+                  }
+                  navigateTo(tab.tabName);
+                }}
+              >
+                <span className={styles.icon}>
+                  <SvgIcon id={allureIcons[tab.icon]} />
+                </span>
+                <Text className={styles.text}>{nav(tab.tabName)}</Text>
+                {isDisabled ? (
+                  <Tag className={styles.badge} skin="secondary">
+                    {nav("comingSoon")}
+                  </Tag>
+                ) : null}
+              </a>
+            </li>
+          );
+        })}
       </ul>
       <div className={styles.strut} />
       <div className={styles.footer}>

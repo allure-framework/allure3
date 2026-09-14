@@ -257,6 +257,593 @@ describe("test results", () => {
     });
   });
 
+  it("should accept known failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known failed", status: "failed", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      muted: false,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should mute muted failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat result known", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted and known", status: "failed", muted: true, known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      known: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+  });
+
+  it("should accept known broken results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known broken", status: "broken", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+  });
+
+  it("should not accept known passed results", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known passed", status: "passed", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr.known).toBe(true);
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+  });
+
+  it("should let known beat matching muted resolution rule", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "would mute if not known",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat matching accepted resolution rule", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "would accept if not muted",
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let matching issue rule beat result muted", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-1",
+      type: "jira",
+    });
+  });
+
+  it("should let matching issue rule beat result known", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-2", type: "jira" },
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-2",
+      type: "jira",
+    });
+  });
+
+  it("should keep known accepted after dump restore even with matching muted rule", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "rule would mute",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should keep dumped resolution when restore rules no longer match", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-stale")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "stale muted", status: "failed", testId: "tc-stale" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "noise",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should preserve issue on restore when no new rule matches", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-KEEP", type: "jira" },
+            comment: "tracked forever",
+            testCaseId: [md5("tc-issue-keep")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-keep" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "tracked forever",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-KEEP",
+      type: "jira",
+      comment: "tracked forever",
+    });
+  });
+
+  it("should overwrite dumped resolution when restore rules match a new resolution", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "will overwrite", status: "failed", testId: "tc-overwrite" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-9", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "tracked",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-9",
+      type: "jira",
+      comment: "tracked",
+    });
+  });
+
+  it("should classify result muted on restore without resolutionsConfig", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      resolution: undefined,
+      resolutionComment: undefined,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+  });
+
+  it("should overwrite issue with result muted on restore and clear association", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-MUTE", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-issue-mute")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-mute" }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      muted: true,
+      known: false,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toBeUndefined();
+  });
+
+  it("should classify failures by resolution rules and leave passed tests unclassified", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "Accepted risk",
+            testCaseId: [md5("tc-1"), md5("tc-2"), md5("tc-3")],
+          },
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-1"), md5("tc-2")],
+          },
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            comment: "Tracked defect",
+            testCaseId: [md5("tc-1")],
+            messageRegexp: "tracked defect",
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      {
+        name: "issue by rule",
+        status: "failed",
+        testId: "tc-1",
+        message: "tracked defect reproduced",
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "muted by rule",
+        status: "broken",
+        testId: "tc-2",
+      },
+      { readerId },
+    );
+    await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-2" }, { readerId });
+    await store.visitTestResult({ name: "accepted by rule", status: "failed", testId: "tc-3" }, { readerId });
+
+    const testResults = await store.allTestResults({ includeRetries: true });
+    const resolutionIssues = await store.allResolutionIssues();
+    const blockingFailed = await store.blockingFailedTestResults();
+    const issueResult = testResults.find((tr) => tr.name === "issue by rule")!;
+
+    expect(issueResult.resolution).toBe("issue");
+    expect(issueResult.resolutionComment).toBe("Tracked defect");
+    expect(issueResult.links).toEqual([]);
+    expect(testResults.find((tr) => tr.name === "muted by rule")).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "noise",
+    });
+    expect(testResults.find((tr) => tr.name === "accepted by rule")).toMatchObject({
+      resolution: "accepted",
+      resolutionComment: "Accepted risk",
+    });
+    expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
+    expect(blockingFailed).toEqual([issueResult]);
+    expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira", comment: "Tracked defect" }]);
+    await expect(store.resolutionIssueByTestResultId(issueResult.id)).resolves.toEqual(resolutionIssues[0]);
+    await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
+  });
+
+  it("should restore resolution issue associations from the dump index", async () => {
+    const resolutionsConfig = {
+      links: { jira: { urlTemplate: "https://example.org/%s" } },
+      rules: [
+        {
+          resolution: "issue" as const,
+          issue: { id: "SHOP-1", type: "jira" },
+          testCaseId: [md5("tc-1")],
+        },
+      ],
+    };
+    const source = new DefaultAllureStore({ resolutionsConfig });
+    await source.visitTestResult({ name: "failed", status: "failed", testId: "tc-1" }, { readerId });
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore();
+
+    expect(dump.indexTestResultByResolutionIssue).toEqual({ "SHOP-1": [expect.any(String)] });
+
+    await target.restoreState(dump);
+    const [restored] = await target.allTestResults();
+
+    expect(restored.resolution).toBe("issue");
+    await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toEqual({
+      id: "SHOP-1",
+      type: "jira",
+    });
+    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([restored]);
+
+    await target.restoreState({
+      ...dump,
+      testResults: { [restored.id]: { ...restored, status: "passed", resolution: undefined } },
+      resolutionIssues: {},
+      indexTestResultByResolutionIssue: {},
+    });
+
+    await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toBeUndefined();
+    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
+  });
+
+  it("should include resolution counters in test statistics", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-issue")],
+          },
+          {
+            resolution: "muted",
+            comment: "muted failure",
+            testCaseId: [md5("tc-muted")],
+          },
+          {
+            resolution: "accepted",
+            comment: "accepted failure",
+            testCaseId: [md5("tc-accepted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "issue latest", status: "failed", testId: "tc-issue", start: 1000 },
+      { readerId },
+    );
+    await store.visitTestResult({ name: "issue retry", status: "failed", testId: "tc-issue", start: 0 }, { readerId });
+    await store.visitTestResult({ name: "muted", status: "broken", testId: "tc-muted" }, { readerId });
+    await store.visitTestResult({ name: "accepted", status: "failed", testId: "tc-accepted" }, { readerId });
+    await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-passed" }, { readerId });
+
+    await expect(store.testsStatistic()).resolves.toMatchObject({
+      total: 4,
+      failed: 2,
+      broken: 1,
+      passed: 1,
+      resolutions: {
+        issues: 1,
+        muted: 1,
+        accepted: 1,
+      },
+    });
+    await expect(store.testsStatistic((tr) => tr.status === "failed")).resolves.toMatchObject({
+      total: 2,
+      failed: 2,
+      resolutions: {
+        issues: 1,
+        accepted: 1,
+      },
+    });
+  });
+
   it("should mark retries as isRetry", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
@@ -284,6 +871,52 @@ describe("test results", () => {
         }),
       ]),
     );
+  });
+
+  it("should not group class-level fixture failures with AS_ID placeholder as retries", async () => {
+    const store = new DefaultAllureStore();
+    const testA: RawTestResult = {
+      uuid: "test-a-result",
+      name: "TestA",
+      fullName: "org.example.TestA",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestA]",
+      historyId: "test-a-history",
+      status: "broken",
+      message: "setup failed in TestA",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestA]" },
+        { name: "suite", value: "org.example.TestA" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+    const testB: RawTestResult = {
+      uuid: "test-b-result",
+      name: "TestB",
+      fullName: "org.example.TestB",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestB]",
+      historyId: "test-b-history",
+      status: "broken",
+      message: "setup failed in TestB",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestB]" },
+        { name: "suite", value: "org.example.TestB" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+
+    await store.visitTestResult(testA, { readerId });
+    await store.visitTestResult(testB, { readerId });
+
+    const testResults = await store.allTestResults();
+    const statistic = await store.testsStatistic();
+
+    expect(testResults.map(({ name }) => name).sort()).toEqual(["TestA", "TestB"]);
+    expect(testResults.every(({ isRetry }) => !isRetry)).toBe(true);
+    expect(statistic).toMatchObject({
+      total: 2,
+      broken: 2,
+    });
+    expect(statistic.retries).toBeUndefined();
   });
 
   it("should not mark latest environment test result as retry", async () => {
@@ -776,30 +1409,6 @@ describe("allNewTestResults", () => {
 
     expect(noMatch).toEqual([]);
     expect(match).toEqual([expect.objectContaining({ name: "tr1" })]);
-  });
-});
-
-describe("unknownFailedTestResults", () => {
-  it("should treat migrated failed test as known when known issue contains fallback historyId", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      known: [{ historyId: fallbackHistoryId }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "failed test",
-        testId: "new-test-case-id",
-        status: "failed",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      },
-      { readerId },
-    );
-
-    const unknownFailed = await store.unknownFailedTestResults();
-
-    expect(unknownFailed).toEqual([]);
   });
 });
 
@@ -2326,13 +2935,14 @@ describe("environments", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
     const store = new DefaultAllureStore();
 
@@ -2934,9 +3544,10 @@ describe("dump state", () => {
     expect(dump.indexAttachmentByTestResult).toBeDefined();
     expect(dump.indexTestResultByHistoryId).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
     expect(dump.qualityGateResults).toEqual([]);
   });
 
@@ -2962,10 +3573,12 @@ describe("dump state", () => {
     const globalError1 = {
       message: "Global setup error",
       trace: "Error stack trace 1",
+      environment: "default",
     };
     const globalError2 = {
       message: "Global teardown error",
       trace: "Error stack trace 2",
+      environment: "default",
     };
     const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
 
@@ -3053,9 +3666,10 @@ describe("dump state", () => {
     expect(dump.indexAttachmentByTestResult).toBeDefined();
     expect(dump.indexTestResultByHistoryId).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
   });
 
   it("should restore globalAttachments and globalErrors from dump", async () => {
@@ -3067,6 +3681,7 @@ describe("dump state", () => {
       used: false,
       missed: false,
       contentLength: 100,
+      environment: "default",
     };
     const globalAttachment2 = {
       id: "global-attachment-2",
@@ -3076,6 +3691,7 @@ describe("dump state", () => {
       used: false,
       missed: false,
       contentLength: 2048,
+      environment: "default",
     };
     const globalError1 = {
       message: "Global setup error",
@@ -3105,13 +3721,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -3178,6 +3795,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {
         "test-result-id": [attachmentId],
@@ -3186,7 +3804,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
     const attachmentContent = new BufferResultFile(Buffer.from("name\tvalue", "utf-8"), "datatable.tsv");
     const store = new DefaultAllureStore();
@@ -3228,6 +3846,7 @@ describe("dump state", () => {
     const initialError = {
       message: "Initial error",
       trace: "Initial stack trace",
+      environment: "default",
     };
     const mockInitialAttachmentFile = {
       getOriginalFileName: () => "initial.log",
@@ -3253,6 +3872,7 @@ describe("dump state", () => {
     const dumpError = {
       message: "Dump error",
       trace: "Dump stack trace",
+      environment: "default",
     };
     const dump = {
       testResults: {},
@@ -3265,13 +3885,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [dumpAttachment.id],
       globalErrors: [dumpError],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3283,8 +3904,10 @@ describe("dump state", () => {
     expect(allGlobalAttachments.some((att) => att.name === "initial.log")).toBe(true);
     expect(allGlobalAttachments.some((att) => att.originalFileName === "dump.log")).toBe(true);
     expect(allGlobalErrors).toHaveLength(2);
-    expect(allGlobalErrors).toContain(initialError);
-    expect(allGlobalErrors).toContain(dumpError);
+    expect(allGlobalErrors).toContainEqual(initialError);
+    expect(allGlobalErrors).toContainEqual(dumpError);
+    expect(allGlobalErrors.find((error) => error.message === "Initial error")).toEqual(initialError);
+    expect(allGlobalErrors.find((error) => error.message === "Dump error")).toEqual(dumpError);
   });
 
   it("should handle restoreState with missing globalAttachments and globalErrors gracefully", async () => {
@@ -3303,6 +3926,7 @@ describe("dump state", () => {
       indexTestResultByHistoryId: {},
       environments: ["default"],
       reportVariables: {},
+      checkResults: {},
     };
 
     const store = new DefaultAllureStore();
@@ -3338,6 +3962,7 @@ describe("dump state", () => {
       fixtures: {},
       globalAttachments: [],
       globalErrors: [],
+      checkResults: {},
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       // Missing new index properties to test graceful handling
@@ -3377,7 +4002,7 @@ describe("dump state", () => {
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
 
     const newStore = new DefaultAllureStore();
 
@@ -3437,6 +4062,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {
@@ -3445,7 +4071,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore({
@@ -3552,7 +4178,8 @@ describe("dump state", () => {
       },
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
+      checkResults: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3632,6 +4259,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {
@@ -3640,7 +4268,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3742,13 +4370,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [dumpResult],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3763,6 +4392,7 @@ describe("dump state", () => {
   it("should add, dump, and restore check results", async () => {
     const store = new DefaultAllureStore();
     const checkResult = {
+      id: "check-result-id",
       name: "Lint",
       status: "passed" as const,
       tags: ["ci", "linux"],
@@ -3774,15 +4404,31 @@ describe("dump state", () => {
 
     await store.addCheckResult(checkResult);
 
+    const [initialResult] = await store.allCheckResults();
+
+    expect(initialResult).toEqual(checkResult);
+
+    initialResult.tags?.push("mutated");
+    initialResult.details.message = "changed";
+
     expect(await store.allCheckResults()).toEqual([checkResult]);
 
     const dump = store.dumpState();
 
-    expect(dump.checkResults).toEqual([checkResult]);
+    expect(dump.checkResults).toEqual({
+      [checkResult.id]: checkResult,
+    });
 
     const newStore = new DefaultAllureStore();
 
     await newStore.restoreState(dump, {});
+
+    const [restoredResult] = await newStore.allCheckResults();
+
+    expect(restoredResult).toEqual(checkResult);
+
+    restoredResult.tags?.push("mutated");
+    restoredResult.details.message = "changed";
 
     expect(await newStore.allCheckResults()).toEqual([checkResult]);
   });
@@ -3817,13 +4463,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -3854,13 +4501,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [{ message: "prod global error", environment: "Prod" }],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -3891,13 +4539,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [{ rule: "maxFailures", success: false, message: "prod qg", environment: "Prod" }],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -3918,13 +4567,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).resolves.toBeUndefined();
@@ -3953,13 +4603,14 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -4005,6 +4656,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
+      checkResults: {},
       qualityGateResults: [
         {
           rule: "maxFailures",
@@ -4024,7 +4676,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      indexKnownByHistoryId: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore();

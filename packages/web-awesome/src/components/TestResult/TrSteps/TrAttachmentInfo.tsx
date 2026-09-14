@@ -47,10 +47,11 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
     event.stopPropagation();
     openModal({
       data: item,
+      preview: isPreviewable,
       component: (
         <Attachment
           item={item}
-          previewable={true}
+          previewable={isPreviewable}
           i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
         />
       ),
@@ -62,10 +63,17 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
       openModal({
         isModalOpen: true,
         data: item,
-        component: <Attachment item={item} i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }} />,
+        preview: isPreviewable,
+        component: (
+          <Attachment
+            item={item}
+            previewable={isPreviewable}
+            i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+          />
+        ),
       });
     }
-  }, [item, tAttachments]);
+  }, [item, isPreviewable, tAttachments]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();

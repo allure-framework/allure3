@@ -1,13 +1,11 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
-import { red } from "yoctocolors";
 
 import {
   environmentNameOption,
@@ -16,15 +14,22 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
-import { executeAgentMode } from "./agent.js";
+import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
+
+const missingRunCommandUsageError = () =>
+  new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
 
 export class RunCommand extends Command {
   static paths = [["run"]];
 
   static usage = Command.Usage({
     description: "Run specified command",
-    details: "This command runs the specified command and collects Allure results.",
+    details:
+      "This command runs the specified command and collects Allure results. " +
+      "Override results discovery with repeated `--results-dir` (CLI overrides `config.resultsDir`). " +
+      "When neither is set, directories named `allure-results` are discovered dynamically. " +
+      "Quote globs in the shell so they are not expanded early.",
     examples: [
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
@@ -32,11 +37,15 @@ export class RunCommand extends Command {
         "run --dump=my-dump -- npm run test",
         "Run npm run test and pack inner report state into my-dump.zip archive to restore the state in the next run",
       ],
+      [
+        "run --results-dir './artifacts/**/allure-results' -- npm test",
+        "Override results discovery with a quoted glob",
+      ],
     ],
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -60,7 +69,8 @@ export class RunCommand extends Command {
   });
 
   rerun = Option.String("--rerun", {
-    description: "The number of reruns for failed tests (default: 0)",
+    description:
+      "The number of reruns for failed tests. Quality gate validation is skipped when rerun is greater than 0 (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -84,10 +94,26 @@ export class RunCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   hideLabels = Option.Array("--hide-labels", {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to known issues file",
+  });
+
+  resultsDir = Option.Array("--results-dir", {
+    description:
+      "Glob pattern or path for Allure results directories (repeatable). Overrides config.resultsDir. Quote globs in the shell",
+  });
+
+  /**
+   * Nested test command after `--`. Nested `--` inside the command argv are preserved when present.
+   */
   commandToRun = Option.Rest();
 
   get logs() {
@@ -99,28 +125,10 @@ export class RunCommand extends Command {
   }
 
   async execute() {
-    const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
+    const { command, commandArgs } = parseRunCommand(this.commandToRun as string[]);
 
-    if (!args || !args.length) {
-      throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
-    }
-
-    const legacyAgentOutput = process.env.ALLURE_AGENT_OUTPUT;
-
-    if (legacyAgentOutput) {
-      await executeAgentMode({
-        configPath: this.config,
-        cwd: this.cwd,
-        output: resolve(process.cwd(), legacyAgentOutput),
-        expectations: process.env.ALLURE_AGENT_EXPECTATIONS
-          ? resolve(process.cwd(), process.env.ALLURE_AGENT_EXPECTATIONS)
-          : undefined,
-        environment: this.environment,
-        environmentName: this.environmentName,
-        silent: this.silent,
-        args,
-      });
-      return;
+    if (!command) {
+      throw missingRunCommandUsageError();
     }
 
     const before = new Date().getTime();
@@ -131,8 +139,6 @@ export class RunCommand extends Command {
       console.log(`exit code ${exitCode} (${after - before}ms)`);
     });
 
-    const command = args[0];
-    const commandArgs = args.slice(1);
     const cwd = await realpath(this.cwd ?? process.cwd());
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
@@ -164,16 +170,18 @@ export class RunCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
-    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withQualityGate = !!config.qualityGate;
-    const withRerun = !!this.rerun;
+    const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
-    if (withQualityGate && withRerun) {
-      console.error(red("At this moment, quality gate and rerun can't be used at the same time!"));
-      console.error(red("Consider using --rerun=0 or disable quality gate in the config to run tests"));
-      exit(-1);
+    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
+    const withRerun = maxRerun > 0;
+    const withQualityGate = !!config.qualityGate && !withRerun;
+
+    if (config.qualityGate && withRerun) {
+      console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
     }
 
     try {
@@ -186,6 +194,7 @@ export class RunCommand extends Command {
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,
+      qualityGate: withQualityGate ? config.qualityGate : undefined,
       dump: this.dump,
       realTime: false,
       plugins: [
@@ -203,10 +212,8 @@ export class RunCommand extends Command {
             ]),
       ],
     });
-    const knownIssues = await allureReport.store.allKnownIssues();
     const { globalExitCode } = await executeAllureRun({
       allureReport,
-      knownIssues,
       cwd,
       command,
       commandArgs,
@@ -217,6 +224,7 @@ export class RunCommand extends Command {
       silent: this.silent,
       ignoreLogs: this.ignoreLogs,
       maxRerun,
+      resultsPatterns,
     });
 
     if (config.open) {

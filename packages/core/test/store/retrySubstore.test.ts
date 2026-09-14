@@ -297,13 +297,25 @@ describe("RetrySubstore", () => {
       expect(rs.ingestOrderIdsForDump()).toEqual([second.id, first.id]);
     });
 
-    it("clears ingest order on restore", () => {
+    it("resetIngestOrder clears recorded ingest order", () => {
       const rs = new RetrySubstore();
 
       rs.recordIngestOrder("a");
-      rs.restoreIngestOrder([], () => true);
+      rs.resetIngestOrder();
 
       expect(rs.ingestOrderIdsForDump()).toEqual([]);
+    });
+
+    it("accumulates ingest order across multiple restoreIngestOrder calls", () => {
+      const rs = new RetrySubstore();
+      const first = makeTr("first");
+      const second = makeTr("second");
+      const third = makeTr("third");
+
+      rs.restoreIngestOrder([first.id], () => true);
+      rs.restoreIngestOrder([second.id, third.id], () => true);
+
+      expect(rs.ingestOrderIdsForDump()).toEqual([first.id, second.id, third.id]);
     });
 
     it("keeps ingest order across retry substore reset", () => {

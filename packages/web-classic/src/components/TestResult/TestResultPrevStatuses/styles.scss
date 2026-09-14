@@ -20,7 +20,7 @@
       top: 0;
       bottom: 0;
       margin: auto;
-      background: var(--on-border-medium);
+      background: var(--color-border-medium);
     }
   }
 }
@@ -47,8 +47,8 @@
 
 .test-result-prev-status-tooltip {
   text-align: center;
-  background-color: var(--constant-bg-base-modal);
-  color: var(--constant-on-text-primary);
+  background-color: var(--color-bg-inverse-raised);
+  color: var(--color-text-inverse);
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 12px;

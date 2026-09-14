@@ -1,6 +1,6 @@
 import type { Statistic, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { computed } from "@preact/signals";
-import type { AwesomeRecursiveTree, AwesomeTreeLeaf } from "types";
+import type { ReportRecursiveTree, ReportTreeLeaf } from "types";
 
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentNameById, environmentsStore } from "@/stores/env";
@@ -20,6 +20,7 @@ export type VirtualLeafRow = {
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
+  resolution?: ReportTreeLeaf["resolution"];
 };
 
 export type VirtualGroupRow = {
@@ -31,7 +32,7 @@ export type VirtualGroupRow = {
   nodeId: string;
   name: string;
   statistic?: Statistic;
-  tree: AwesomeRecursiveTree;
+  tree: ReportRecursiveTree;
   idPrefix?: string;
 };
 
@@ -53,7 +54,7 @@ const isFailedOrBrokenNode = (statistic?: Statistic) =>
 export const getDefaultOpenedState = (statistic?: Statistic, root = false) => root || isFailedOrBrokenNode(statistic);
 
 export function flattenTreeWithData(
-  tree: AwesomeRecursiveTree,
+  tree: ReportRecursiveTree,
   depth: number,
   isGroupOpened: (id: string, openedByDefault: boolean) => boolean,
   options: { isRoot?: boolean; idPrefix?: string } = {},
@@ -93,7 +94,7 @@ export function flattenTreeWithData(
       rows.push(...flattenTreeWithData(subTree, childDepth, isGroupOpened, { idPrefix }));
     }
 
-    for (const leaf of tree.leaves as AwesomeTreeLeaf[]) {
+    for (const leaf of tree.leaves as ReportTreeLeaf[]) {
       rows.push({
         kind: "leaf",
         id: toScopedId(leaf.nodeId),
@@ -108,6 +109,7 @@ export function flattenTreeWithData(
         transition: leaf.transition,
         transitionTooltip: leaf.transitionTooltip,
         tooltips: leaf.tooltips,
+        resolution: leaf.resolution,
       });
     }
   }
@@ -119,7 +121,7 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
   if (noTests.value || noTestsFound.value) return [];
 
   const envs = environmentsStore.value.data;
-  const trees = filteredTree.value as Record<string, AwesomeRecursiveTree>;
+  const trees = filteredTree.value as Record<string, ReportRecursiveTree>;
 
   if (envs.length === 1) {
     const soleId = envs[0]!.id;
@@ -129,7 +131,7 @@ export const flatVirtualRows = computed((): VirtualRow[] => {
   }
 
   const currentTree = currentEnvironment.value
-    ? (trees[currentEnvironment.value] as AwesomeRecursiveTree | undefined)
+    ? (trees[currentEnvironment.value] as ReportRecursiveTree | undefined)
     : undefined;
 
   if (currentTree) {

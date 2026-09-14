@@ -11,6 +11,10 @@ vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
 }));
 
+const mockEnv = (env: Record<string, string>) => {
+  (getEnv as Mock).mockImplementation((key: string) => env[key] ?? "");
+};
+
 describe("drone", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,7 +23,7 @@ describe("drone", () => {
   describe("getJobRunUID", () => {
     it("should return the correct job run UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_BUILD_NUMBER") {
+        if (key === "DRONE_BUILD_NUMBER") {
           return "12345";
         }
       });
@@ -29,7 +33,7 @@ describe("drone", () => {
 
     it("should return empty string when environment variable is not set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_BUILD_NUMBER") {
+        if (key === "DRONE_BUILD_NUMBER") {
           return "";
         }
       });
@@ -132,7 +136,7 @@ describe("drone", () => {
         if (key === "DRONE_BUILD_LINK") {
           return "https://drone.example.com/myorg/myrepo/12345";
         }
-        if (key === "CI_BUILD_NUMBER") {
+        if (key === "DRONE_BUILD_NUMBER") {
           return "12345";
         }
       });
@@ -156,7 +160,7 @@ describe("drone", () => {
   describe("jobRunUID", () => {
     it("should return the correct job run UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_BUILD_NUMBER") {
+        if (key === "DRONE_BUILD_NUMBER") {
           return "12345";
         }
       });
@@ -199,65 +203,121 @@ describe("drone", () => {
 
       expect(drone.jobRunBranch).toBe("main");
     });
+
+    it("should return empty string for tag builds", () => {
+      mockEnv({
+        DRONE_BRANCH: "v1.0.0",
+        DRONE_TAG: "v1.0.0",
+      });
+
+      expect(drone.jobRunBranch).toBe("");
+    });
   });
 
   describe("pullRequestUrl", () => {
-    it("should return the correct pull request URL for GitHub", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_GITHUB_SERVER") {
-          return "https://github.com";
-        }
-
-        if (key === "DRONE_REPO_LINK") {
-          return "https://github.com/owner/repo";
-        }
-
-        if (key === "DRONE_PULL_REQUEST") {
-          return "123";
-        }
+    it("should return the correct pull request URL for GitHub from repository link", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://github.com/owner/repo",
+        DRONE_PULL_REQUEST: "123",
       });
 
       expect(drone.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
     });
 
-    it("should return the correct pull request URL for GitLab", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_GITLAB_SERVER") {
-          return "https://gitlab.com";
-        }
-
-        if (key === "DRONE_REPO_LINK") {
-          return "https://gitlab.com/owner/repo";
-        }
-
-        if (key === "DRONE_PULL_REQUEST") {
-          return "456";
-        }
+    it("should return the correct pull request URL for GitLab from repository link", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://gitlab.com/owner/repo",
+        DRONE_PULL_REQUEST: "456",
       });
 
       expect(drone.pullRequestUrl).toBe("https://gitlab.com/owner/repo/-/merge_requests/456");
     });
 
-    it("should return empty string for other repository providers", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_GITHUB_SERVER") {
-          return "https://github.com";
-        }
+    it("should return the correct pull request URL for Bitbucket from repository link", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://bitbucket.org/owner/repo",
+        DRONE_PULL_REQUEST: "789",
+      });
 
-        if (key === "DRONE_GITLAB_SERVER") {
-          return "https://gitlab.com";
-        }
+      expect(drone.pullRequestUrl).toBe("https://bitbucket.org/owner/repo/pull-requests/789");
+    });
 
-        if (key === "DRONE_REPO_LINK") {
-          return "https://bitbucket.org/owner/repo";
-        }
-
-        if (key === "DRONE_PULL_REQUEST") {
-          return "789";
-        }
+    it("should return empty string for unsupported repository providers", () => {
+      mockEnv({
+        DRONE_REPO_LINK: "https://example.com/owner/repo",
+        DRONE_PULL_REQUEST: "789",
       });
 
       expect(drone.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("sourceBranch", () => {
+    it("should return the source branch for pull requests", () => {
+      mockEnv({
+        DRONE_PULL_REQUEST: "123",
+        DRONE_SOURCE_BRANCH: "feature/foo",
+        DRONE_BRANCH: "main",
+      });
+
+      expect(drone.sourceBranch).toBe("feature/foo");
+    });
+
+    it("should return undefined when pull request source branch is unavailable", () => {
+      mockEnv({
+        DRONE_PULL_REQUEST: "123",
+        DRONE_BRANCH: "main",
+      });
+
+      expect(drone.sourceBranch).toBeUndefined();
+    });
+
+    it("should return the branch for push builds", () => {
+      mockEnv({
+        DRONE_BRANCH: "feature/foo",
+      });
+
+      expect(drone.sourceBranch).toBe("feature/foo");
+    });
+
+    it("should return undefined for tag builds", () => {
+      mockEnv({
+        DRONE_BRANCH: "v1.0.0",
+        DRONE_TAG: "v1.0.0",
+      });
+
+      expect(drone.sourceBranch).toBeUndefined();
+    });
+  });
+
+  describe("targetBranch", () => {
+    it("should return the target branch for pull requests", () => {
+      mockEnv({
+        DRONE_PULL_REQUEST: "123",
+        DRONE_BRANCH: "main",
+        DRONE_TARGET_BRANCH: "main",
+      });
+
+      expect(drone.targetBranch).toBe("main");
+    });
+
+    it("should fall back to DRONE_BRANCH for pull request target branch", () => {
+      mockEnv({
+        DRONE_PULL_REQUEST: "123",
+        DRONE_BRANCH: "main",
+      });
+
+      expect(drone.targetBranch).toBe("main");
+    });
+
+    it("should return undefined for tag builds", () => {
+      mockEnv({
+        DRONE_BRANCH: "v1.0.0",
+        DRONE_TARGET_BRANCH: "v1.0.0",
+        DRONE_TAG: "v1.0.0",
+      });
+
+      expect(drone.targetBranch).toBeUndefined();
     });
   });
 

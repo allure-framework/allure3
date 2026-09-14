@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "preact/hooks";
 
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentNameById } from "@/stores/env";
+import { navigateToTestResult } from "@/stores/router";
 import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 
@@ -92,7 +93,13 @@ export const Timeline = () => {
                 <GridItem key={host} className={styles["overview-grid-item"]}>
                   <Widget title={t("host", { host })}>
                     {data.length > 0 && (
-                      <AllureTimeline data={data} dataId={host} width={100} translations={translations} />
+                      <AllureTimeline
+                        data={data}
+                        dataId={host}
+                        width={100}
+                        translations={translations}
+                        onTestResultClick={(testResultId) => navigateToTestResult({ testResultId })}
+                      />
                     )}
                     {data.length === 0 && <div className={styles.empty}>{t("empty_host", { host })}</div>}
                   </Widget>

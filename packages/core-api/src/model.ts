@@ -1,4 +1,5 @@
 import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
+import type { ResolutionCategory } from "./resolutions.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
@@ -7,6 +8,7 @@ export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "ne
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
 export interface AllureCheckResult {
+  id: string;
   name: string;
   status: AllureCheckStatus;
   tags?: string[];
@@ -59,6 +61,8 @@ export interface TestResult {
   flaky: boolean;
   muted: boolean;
   known: boolean;
+  resolution?: ResolutionCategory;
+  resolutionComment?: string;
 
   transition?: TestStatusTransition;
 
@@ -175,6 +179,11 @@ export type AttachmentLinkInvalid = Omit<AttachmentLinkExpected, "originalFileNa
 };
 
 export type AttachmentLink = AttachmentLinkFile | AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
+
+export type GlobalAttachmentLink = AttachmentLink & {
+  name: string;
+  environment?: string;
+};
 
 export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-dashboard",
-  "version": "3.9.0",
+  "version": "3.17.0",
   "description": "Allure Dashboard Plugin – plugin for generating dashboard with a mix of charts",
   "keywords": [
     "allure",
@@ -25,7 +25,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-dashboard/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
     "lint": "oxlint --import-plugin src test features stories",
@@ -36,18 +36,18 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
-    "@allurereport/web-dashboard": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
-    "@types/d3-shape": "^3.1.6",
+    "@allurereport/web-dashboard": "workspace:*",
+    "@types/d3-shape": "^3.1.8",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }

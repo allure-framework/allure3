@@ -15,10 +15,10 @@ const environmentNames: Record<string, string> = {
   qa_env: "QA",
 };
 
-const setupGlobalsComponent = async (data: Record<string, unknown>) => {
+const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvironment = "") => {
   vi.resetModules();
 
-  const currentEnvironment = signal("");
+  const currentEnvironment = signal(selectedEnvironment);
   const globalsStore = signal({
     loading: false,
     error: undefined,
@@ -163,5 +163,81 @@ describe("components > Report globals", () => {
     expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
     expect(screen.getByText('environment: "QA" (1)')).toBeInTheDocument();
     expect(screen.getByText('environment: "Prod" (1)')).toBeInTheDocument();
+  }, 15000);
+
+  it("should keep only selected attachment bucket", async () => {
+    await setupGlobalsComponent(
+      {
+        attachments: [],
+        attachmentsByEnv: {
+          default: [
+            {
+              id: "default",
+              name: "default.log",
+              originalFileName: "default.log",
+              ext: ".log",
+              used: true,
+              missed: false,
+              environment: "default",
+            },
+          ],
+          qa_env: [
+            {
+              id: "qa",
+              name: "qa.log",
+              originalFileName: "qa.log",
+              ext: ".log",
+              used: true,
+              missed: false,
+              environment: "QA",
+            },
+          ],
+          prod_env: [
+            {
+              id: "prod",
+              name: "prod.log",
+              originalFileName: "prod.log",
+              ext: ".log",
+              used: true,
+              missed: false,
+              environment: "Prod",
+            },
+          ],
+        },
+      },
+      "qa_env",
+    );
+
+    const { ReportGlobalAttachments } = await import("@/components/ReportGlobalAttachments");
+
+    render(<ReportGlobalAttachments />);
+
+    expect(screen.getByText('environment: "QA" (1)')).toBeInTheDocument();
+    expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
+    expect(screen.queryByText('environment: "Prod" (1)')).not.toBeInTheDocument();
+    expect(screen.getByText("qa.log")).toBeInTheDocument();
+  }, 15000);
+
+  it("should keep only selected error bucket", async () => {
+    await setupGlobalsComponent(
+      {
+        errors: [],
+        errorsByEnv: {
+          default: [{ message: "Default failure", environment: "default" }],
+          qa_env: [{ message: "QA failure", environment: "QA" }],
+          prod_env: [{ message: "Prod failure", environment: "Prod" }],
+        },
+      },
+      "qa_env",
+    );
+
+    const { ReportGlobalErrors } = await import("@/components/ReportGlobalErrors");
+
+    render(<ReportGlobalErrors />);
+
+    expect(screen.getByText('environment: "QA" (1)')).toBeInTheDocument();
+    expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
+    expect(screen.queryByText('environment: "Prod" (1)')).not.toBeInTheDocument();
+    expect(screen.getByText("QA failure")).toBeInTheDocument();
   }, 15000);
 });

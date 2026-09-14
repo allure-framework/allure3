@@ -164,6 +164,7 @@ export interface TestingPyramidChartData {
     layer: string;
     testCount: number;
     successRate: number;
+    eligibleCount?: number;
     percentage: number;
   }[];
 }
@@ -182,6 +183,7 @@ export interface StatusDynamicsChartData {
     id: string;
     timestamp: number;
     name: string;
+    url?: string;
   }[];
   limit?: number;
   statuses?: TestStatus[];

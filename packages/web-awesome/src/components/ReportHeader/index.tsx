@@ -1,12 +1,13 @@
 import { formatDuration } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
-import type { AwesomeReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { useI18n } from "@/stores";
+import { currentEnvironment } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
 import { timestampToDate } from "@/utils/time";
 
@@ -22,11 +23,15 @@ const reportDateOptions: Intl.DateTimeFormatOptions = {
 };
 
 export const ReportHeader = () => {
-  const { reportName, createdAt, runSummary } = getReportOptions<AwesomeReportOptions>() ?? {};
+  const { reportName, createdAt, runSummary, runSummaryByEnv } = getReportOptions<ReportOptions>() ?? {};
   const { t } = useI18n("ui");
+  const environmentId = currentEnvironment.value;
+  // With a single environment selected, show that environment's own launch interval instead of the
+  // report-wide one, which spans the earliest start and the latest stop across all environments.
+  const selectedRunSummary = environmentId ? runSummaryByEnv?.[environmentId] : runSummary;
   const formattedCreatedAt = timestampToDate(createdAt as number, reportDateOptions);
-  const formattedReportTime = runSummary
-    ? `${timestampToDate(runSummary.start, reportDateOptions)} (${formatDuration(runSummary.duration)})`
+  const formattedReportTime = selectedRunSummary
+    ? `${timestampToDate(selectedRunSummary.start, reportDateOptions)} (${formatDuration(selectedRunSummary.duration)})`
     : formattedCreatedAt;
 
   return (

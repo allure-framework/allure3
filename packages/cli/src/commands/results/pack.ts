@@ -4,10 +4,12 @@ import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { exit } from "node:process";
 
+import { readRawConfig } from "@allurereport/core";
 import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
-import { glob } from "glob";
 import { green, red } from "yoctocolors";
+
+import { resolveAndFindResultsDirs } from "../../utils/resultsPatterns.js";
 
 export class ResultsPackCommand extends Command {
   static paths = [["results", "pack"]];
@@ -27,11 +29,15 @@ export class ResultsPackCommand extends Command {
 
   resultsDir = Option.String({
     required: false,
-    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Pattern to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   name = Option.String("--name", {
     description: "The archive name (default: allure-results.zip)",
+  });
+
+  config = Option.String("--config,-c", {
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -61,28 +67,20 @@ export class ResultsPackCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
+    const rawConfig = await readRawConfig(cwd, this.config);
+    const cliPatterns = this.resultsDir ? [this.resultsDir] : [];
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, cliPatterns, rawConfig.resultsDir);
     const archiveName = this.name ?? "allure-results.zip";
-    const resultsDirectories = (
-      await glob(resultsDir, {
-        mark: true,
-        nodir: false,
-        dot: true,
-        absolute: true,
-        windowsPathsNoEscape: true,
-        cwd,
-      })
-    ).filter((p) => /(\/|\\)$/.test(p));
     const resultsFiles = new Set<string>();
 
-    if (resultsDirectories.length === 0) {
+    if (resultDirectories.length === 0) {
       // eslint-disable-next-line no-console
-      console.error(red(`No test results directories found matching pattern: ${resultsDir}`));
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
 
-    for (const dir of resultsDirectories) {
+    for (const dir of resultDirectories) {
       const files = await fs.readdir(dir);
 
       if (files.length === 0) {

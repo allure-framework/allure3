@@ -1,7 +1,7 @@
 import type { BarCustomLayerProps, BarDatum, BarSvgProps, ComputedBarDatum } from "@nivo/bar";
 import { useMotionConfig } from "@nivo/core";
 import { animated, useSpring } from "@react-spring/web";
-import { toNumber } from "lodash";
+import toNumber from "lodash/toNumber.js";
 import { createContext, createElement } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useContext, useId, useMemo } from "preact/hooks";
@@ -62,6 +62,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     indexBy: Extract<keyof T, string>;
     hasValueFn?: (data: T) => boolean;
     layout?: "vertical" | "horizontal";
+    onBarClick?: (value: { data: T }) => void;
   },
 ): any => {
   const {
@@ -72,6 +73,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     tooltip,
     indexBy,
     layout = "vertical",
+    onBarClick,
     bars: allBars,
     hasValueFn = (item: T) =>
       Object.entries(item)
@@ -138,6 +140,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
             isFocusable={isFocusable}
             onTooltipShow={handleShowTooltip}
             onTooltipHide={handleHideTooltip}
+            onClick={onBarClick}
           />
         );
       })}
@@ -162,6 +165,7 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   indexBy,
   onTooltipShow,
   onTooltipHide,
+  onClick,
 }: {
   x: number;
   y: number;
@@ -173,6 +177,7 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   indexBy: Extract<keyof T, string>;
   onTooltipShow: (target: HTMLElement, data: T) => void;
   onTooltipHide: (target: HTMLElement) => void;
+  onClick?: (value: { data: T }) => void;
 }) => {
   const [hoverState, setHoverState] = useBarChartState();
   const { animate, config: motionConfig } = useMotionConfig();
@@ -227,6 +232,10 @@ const BarChartItemHoverArea = <T extends BarDatum>({
     [onTooltipHide, setHoverState],
   );
 
+  const handleClick = useCallback(() => {
+    onClick?.({ data: value });
+  }, [onClick, value]);
+
   return (
     <animated.rect
       x={x}
@@ -235,9 +244,11 @@ const BarChartItemHoverArea = <T extends BarDatum>({
       width={width}
       height={height}
       fill={animatedFill}
+      style={onClick ? { cursor: "pointer" } : undefined}
       onMouseMove={isInteractive ? handleTooltip : undefined}
       onMouseEnter={isInteractive ? handleMouseEnter : undefined}
       onMouseLeave={isInteractive ? handleMouseLeave : undefined}
+      onClick={isInteractive && onClick ? handleClick : undefined}
       onFocus={isInteractive && isFocusable ? handleFocus : undefined}
       onBlur={isInteractive && isFocusable ? handleBlur : undefined}
     />

@@ -3,14 +3,8 @@ import { createHash } from "node:crypto";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { fallbackTestCaseIdLabelName, type HistoryDataPoint, type TestParameter } from "../../src/index.js";
 import {
-  fallbackTestCaseIdLabelName,
-  type HistoryDataPoint,
-  type TestParameter,
-  type TestResult,
-} from "../../src/index.js";
-import {
-  filterUnknownByKnownIssues,
   getFallbackHistoryId,
   getHistoryIdCandidates,
   normalizeHistoryDataPoint,
@@ -78,45 +72,6 @@ describe("history utils", () => {
 
   it("should return empty array when both history id candidates are missing", () => {
     expect(getHistoryIdCandidates({})).toEqual([]);
-  });
-
-  it("should filter unknown tests by known issue history candidates", () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const trs = [
-      {
-        id: "1",
-        name: "test 1",
-        status: "failed",
-        historyId: "new-history-id",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-        parameters: [],
-        flaky: false,
-        muted: false,
-        known: false,
-        isRetry: false,
-        links: [],
-        steps: [],
-        sourceMetadata: { readerId: "", metadata: {} },
-      } as TestResult,
-      {
-        id: "2",
-        name: "test 2",
-        status: "failed",
-        historyId: "another-history-id",
-        labels: [],
-        parameters: [],
-        flaky: false,
-        muted: false,
-        known: false,
-        isRetry: false,
-        links: [],
-        steps: [],
-        sourceMetadata: { readerId: "", metadata: {} },
-      } as TestResult,
-    ];
-
-    expect(filterUnknownByKnownIssues(trs, new Set([fallbackHistoryId]))).toEqual([trs[1]]);
   });
 
   it("should select the first matching history candidate for each datapoint", () => {

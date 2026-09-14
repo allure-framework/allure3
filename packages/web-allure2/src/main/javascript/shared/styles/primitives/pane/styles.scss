@@ -1,0 +1,55 @@
+@use "../../../../theme/spacing.scss" as *;
+.pane {
+  &__subtitle {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+    padding-inline-start: gap(1);
+    margin: gap(1) 0;
+  }
+
+  &__title {
+    align-items: center;
+    color: var(--color-text-primary);
+    min-height: gap(7);
+    padding: gap(2) gap(3);
+    width: 100%;
+    display: flex;
+    position: relative;
+    margin: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-extra-bold);
+    line-height: var(--line-height-l);
+    &_borderless {
+      border: none;
+    }
+  }
+  &__search {
+    display: inline-block;
+    padding: 0 0.5em;
+    width: 100%;
+  }
+  &__title-text {
+    text-align: left;
+  }
+  &__controls {
+    & > a {
+      text-decoration: none;
+      color: var(--color-text-primary);
+      opacity: 0.7;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__section {
+    margin: gap(2) 0;
+    padding: 0 gap(2);
+  }
+
+  &__section-title {
+    margin: 0 0 gap(2);
+  }
+}

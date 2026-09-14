@@ -1,13 +1,20 @@
-import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
+import {
+  incrementStatistic,
+  type EnvironmentItem,
+  type Statistic,
+  type TestResult,
+  joinPosixPath,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ReportExecutorInfo,
+  type ReportRunSummary,
   type Plugin,
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import type { AwesomeExecutorInfo } from "@allurereport/web-awesome";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -18,8 +25,10 @@ import {
   generateEnvirontmentsList,
   generateGlobals,
   generateHistoryDataPoints,
+  generateMetricsWidget,
   generateNav,
   generateQualityGateResults,
+  generateResolutionCategories,
   generateSearchIndex,
   generateStaticFiles,
   generateStatistic,
@@ -40,6 +49,22 @@ const statisticByTestResults = async (
 ): Promise<Statistic> => {
   const statistic: Statistic = { total: 0 };
   const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
+  const incrementResolution = (testResult: (typeof testResults)[number]) => {
+    if (testResult.resolution === "issue") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.issues = (statistic.resolutions.issues ?? 0) + 1;
+    }
+
+    if (testResult.resolution === "muted") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.muted = (statistic.resolutions.muted ?? 0) + 1;
+    }
+
+    if (testResult.resolution === "accepted") {
+      statistic.resolutions ??= {};
+      statistic.resolutions.accepted = (statistic.resolutions.accepted ?? 0) + 1;
+    }
+  };
 
   for (const testResult of testResults) {
     if (testResult.isRetry) {
@@ -59,28 +84,43 @@ const statisticByTestResults = async (
     if (testResult.transition === "new") {
       statistic.new = (statistic.new ?? 0) + 1;
     }
+
+    incrementResolution(testResult);
   }
 
   return statistic;
 };
+
+const isActiveStatisticTestResult = (testResult: TestResult) =>
+  testResult.resolution !== "muted" && testResult.resolution !== "accepted";
 
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
+  #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
+    if (!this.#writer) {
+      throw new Error("call start first");
+    }
+
+    await this.#generate(context, store);
+  };
+
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const executor = await store.metadataByKey<AwesomeExecutorInfo>("allure2_executor");
+    const executor = await store.metadataByKey<ReportExecutorInfo>("allure2_executor");
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeRetries: true, filter });
     const runSummary = getRunSummary(allTrs);
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
+    const pieStatistics = await statisticByTestResults(store, allTrs.filter(isActiveStatisticTestResult));
+    const pieEnvStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
     const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
@@ -102,22 +142,58 @@ export class AwesomePlugin implements Plugin {
       }),
     );
 
+    const trsByEnvId = new Map<string, typeof allTrs>();
+
+    for (const tr of allTrs) {
+      const environmentId = envIdByTrId.get(tr.id);
+
+      if (!environmentId) {
+        continue;
+      }
+
+      const group = trsByEnvId.get(environmentId);
+
+      if (group) {
+        group.push(tr);
+      } else {
+        trsByEnvId.set(environmentId, [tr]);
+      }
+    }
+
     await Promise.all(
       environments.map(async ({ id }) => {
-        const envTrs = await store.testResultsByEnvironmentId(id, { includeRetries: true });
+        const envTrs = trsByEnvId.get(id) ?? [];
 
         envStatistics.set(id, await statisticByTestResults(store, envTrs));
+        pieEnvStatistics.set(id, await statisticByTestResults(store, envTrs.filter(isActiveStatisticTestResult)));
       }),
     );
+
+    const runSummaryByEnv: Record<string, ReportRunSummary> = {};
+
+    for (const { id } of environments) {
+      const envRunSummary = getRunSummary(trsByEnvId.get(id) ?? []);
+
+      if (envRunSummary) {
+        runSummaryByEnv[id] = envRunSummary;
+      }
+    }
 
     await generateStatistic(this.#writer!, {
       stats: statistics,
       statsByEnv: envStatistics,
+      pieStats: pieStatistics,
+      pieStatsByEnv: pieEnvStatistics,
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
+    const hasMetrics = await generateMetricsWidget(this.#writer!, store, context.reportUuid);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
+    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, {
+      pluginId: context.id,
+      hideLabels,
+      resolveHistoryUrl: context.history?.resolveTestResultUrl,
+    });
 
     applyCategoriesToTestResults(convertedTrs, categories);
     await generateCategories(this.#writer!, {
@@ -128,6 +204,7 @@ export class AwesomePlugin implements Plugin {
       defaultEnvironment: "default",
       selectedEnvironmentCount: environments.length,
     });
+    await generateResolutionCategories(this.#writer!, convertedTrs);
     const hasGroupBy = groupBy.length > 0;
 
     await generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId);
@@ -168,6 +245,11 @@ export class AwesomePlugin implements Plugin {
         selectedEnvironmentCount: 1,
         filename: joinPosixPath(reportEnvironment.id, "categories.json"),
       });
+      await generateResolutionCategories(
+        this.#writer!,
+        envConvertedTrs,
+        joinPosixPath(reportEnvironment.id, "resolution-categories.json"),
+      );
     }
 
     await generateTreeFilters(this.#writer!, convertedTrs);
@@ -181,7 +263,11 @@ export class AwesomePlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
-    await generateQualityGateResults(this.#writer!, qualityGateResults);
+    await generateQualityGateResults(this.#writer!, qualityGateResults, {
+      tests: convertedTrs,
+      labels: treeLabels,
+      appendTitlePath,
+    });
     await generateGlobals(this.#writer!, {
       globalAttachments,
       globalAttachmentsByEnv,
@@ -193,8 +279,14 @@ export class AwesomePlugin implements Plugin {
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
+    const configuredSections = this.options.sections ?? ["charts", "timeline"];
+    const sections = hasMetrics
+      ? [...new Set([...configuredSections, "metrics"])]
+      : configuredSections.filter((section) => section !== "metrics");
+
     await generateStaticFiles({
       ...this.options,
+      sections,
       id: context.id,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
@@ -203,6 +295,7 @@ export class AwesomePlugin implements Plugin {
       ci: context.ci,
       executor,
       runSummary,
+      runSummaryByEnv,
       reportDataFiles,
     });
   };
@@ -221,19 +314,11 @@ export class AwesomePlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   done = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {

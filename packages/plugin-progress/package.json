@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-progress",
-  "version": "3.9.0",
+  "version": "3.17.0",
   "description": "Allure Plugin to show generation progress in console",
   "keywords": [
     "allure",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "yoctocolors": "^2.1.1"
+    "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -43,6 +43,6 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }

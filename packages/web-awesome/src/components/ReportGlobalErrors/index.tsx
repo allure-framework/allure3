@@ -30,6 +30,33 @@ export const ReportGlobalErrors = () => {
     <div className={styles["report-global-errors-container"]}>{renderErrors(errors)}</div>
   );
 
+  const renderErrorSections = (entries: Array<[string, PluginGlobalError[]]>) => (
+    <div className={styles["report-global-errors-container"]}>
+      {entries.map(([environmentId, envErrors]) => {
+        const isOpened = !collapsedEnvs.includes(environmentId);
+        const toggleEnv = () => {
+          setCollapsedEnvs((prev) =>
+            isOpened ? prev.concat(environmentId) : prev.filter((currentId) => currentId !== environmentId),
+          );
+        };
+
+        return (
+          <div key={environmentId} className={styles["report-global-errors-section"]}>
+            <MetadataButton
+              isOpened={isOpened}
+              setIsOpen={toggleEnv}
+              title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(environmentId)}"`}
+              titleTooltipText={environmentNameById(environmentId)}
+              truncateTitle
+              counter={envErrors.length}
+            />
+            {isOpened ? renderErrors(envErrors) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <Loadable
       source={globalsStore}
@@ -41,7 +68,7 @@ export const ReportGlobalErrors = () => {
             return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
           }
 
-          return renderErrorsContent(currentEnvErrors);
+          return renderErrorSections([[currentEnvironment.value, currentEnvErrors]]);
         }
 
         const entries = Object.entries(errorsByEnv).filter(([, envErrors]) => envErrors.length > 0);
@@ -62,32 +89,7 @@ export const ReportGlobalErrors = () => {
           return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
         }
 
-        return (
-          <div className={styles["report-global-errors-container"]}>
-            {entries.map(([environmentId, envErrors]) => {
-              const isOpened = !collapsedEnvs.includes(environmentId);
-              const toggleEnv = () => {
-                setCollapsedEnvs((prev) =>
-                  isOpened ? prev.concat(environmentId) : prev.filter((currentId) => currentId !== environmentId),
-                );
-              };
-
-              return (
-                <div key={environmentId} className={styles["report-global-errors-section"]}>
-                  <MetadataButton
-                    isOpened={isOpened}
-                    setIsOpen={toggleEnv}
-                    title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(environmentId)}"`}
-                    titleTooltipText={environmentNameById(environmentId)}
-                    truncateTitle
-                    counter={envErrors.length}
-                  />
-                  {isOpened ? renderErrors(envErrors) : null}
-                </div>
-              );
-            })}
-          </div>
-        );
+        return renderErrorSections(entries);
       }}
     />
   );

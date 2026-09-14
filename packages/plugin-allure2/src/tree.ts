@@ -27,6 +27,7 @@ export interface TreeLeaf extends TreeNode {
   newPassed: boolean;
   retriesCount: number;
   retriesStatusChange: boolean;
+  retry: boolean;
   tags: string[];
   parameters: string[];
 }
@@ -61,6 +62,7 @@ const createLeaf = (endNode: TreeGroup, test: Allure2TestResult) => {
     newPassed: test.newPassed,
     retriesCount: test.retriesCount,
     retriesStatusChange: test.retriesStatusChange,
+    retry: test.retry,
     parameters: test.parameters.filter((p) => p.value).map((p) => p.value!),
     tags: test.extra.tags ?? [],
   };

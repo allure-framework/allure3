@@ -11,14 +11,14 @@
 }
 
 .test-result-breadcrumb-link {
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .test-result-breadcrumb {
   display: flex;
   gap: 4px;
   align-items: center;
-  color: var(--on-text-secondary);
+  color: var(--color-text-secondary);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;

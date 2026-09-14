@@ -1,11 +1,9 @@
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-
 import { createBaseUrlScript, createScriptTag, stringifyForInlineScript } from "@allurereport/core-api";
 import type { PluginSummary } from "@allurereport/plugin-api";
+import { getReportStaticAsset, readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import Handlebars from "handlebars";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 export type TemplateManifest = Record<string, string>;
 
@@ -32,20 +30,19 @@ const template = `<!DOCTYPE html>
 `;
 
 export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve("@allurereport/web-summary/dist/manifest.json");
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
 export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[] }) => {
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest();
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const bodyTags: string[] = [];
 
   const mainJs = manifest["main.js"];
-  const mainJsSource = require.resolve(`@allurereport/web-summary/dist/${mainJs}`);
-  const mainJsContentBuffer = await readFile(mainJsSource);
+  const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
 
   bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
 

@@ -1,5 +1,5 @@
 import type { BarDatum } from "@nivo/bar";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate.js";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 

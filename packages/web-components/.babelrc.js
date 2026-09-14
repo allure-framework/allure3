@@ -1,25 +1,29 @@
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+
 export default {
   presets: [
     [
-      "@babel/preset-env",
+      require.resolve("@babel/preset-env"),
       {
         targets: {
           node: "current",
         },
       },
     ],
-    ["@babel/preset-typescript", { isTSX: true, allExtensions: true, jsxPragma: "h" }],
+    [require.resolve("@babel/preset-typescript"), { isTSX: true, allExtensions: true, jsxPragma: "h" }],
   ],
   plugins: [
     [
-      "@babel/plugin-transform-react-jsx",
+      require.resolve("@babel/plugin-transform-react-jsx"),
       {
         runtime: "automatic",
         importSource: "preact",
       },
     ],
     [
-      "prismjs",
+      require.resolve("babel-plugin-prismjs"),
       {
         languages: [
           "javascript",

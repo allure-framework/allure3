@@ -1,9 +1,21 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { AttachmentLink, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import type { ResultFile } from "@allurereport/plugin-api";
-import type { AwesomeSearchDocument, AwesomeTestResult } from "@allurereport/web-awesome";
+import type {
+  AttachmentLink,
+  EnvironmentIdentity,
+  Statistic,
+  HistoryTestResult,
+  TestFixtureResult,
+  TestResult,
+} from "@allurereport/core-api";
+import type {
+  AllureStore,
+  ReportQualityGateResults,
+  ReportSearchDocument,
+  ReportTestResult,
+  PluginContext,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,7 +23,13 @@ import {
   generateAllCharts,
   generateAttachmentsFiles,
   generateGlobals,
+  generateMetricsWidget,
+  generateQualityGateResults,
+  generateResolutionCategories,
   generateSearchIndex,
+  generateStatistic,
+  generateTestResults,
+  generateTree,
   getRunSummary,
 } from "../src/generators.js";
 
@@ -75,13 +93,44 @@ const mockTestResult = (id: string, name: string, status: TestResult["status"]):
     labels: [],
     flaky: false,
     muted: false,
-    known: false,
     isRetry: false,
     sourceMetadata: { readerId: "system", metadata: {} },
     parameters: [],
     links: [],
     steps: [],
   }) as TestResult;
+
+const createWriter = () => {
+  const writtenWidgets = new Map<string, unknown>();
+  const writer: AwesomeDataWriter = {
+    writeData: vi.fn().mockResolvedValue(undefined),
+    writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+      writtenWidgets.set(fileName, data);
+    }),
+    writeTestCase: vi.fn().mockResolvedValue(undefined),
+    writeAttachment: vi.fn().mockResolvedValue(undefined),
+  };
+
+  return { writer, writtenWidgets };
+};
+
+const mockFixtureResult = (
+  id: string,
+  type: TestFixtureResult["type"],
+  name: string,
+  start: number,
+): TestFixtureResult =>
+  ({
+    id,
+    testResultIds: ["tr-1"],
+    type,
+    name,
+    status: "passed",
+    start,
+    duration: 1,
+    steps: [],
+    sourceMetadata: { readerId: "system", metadata: {} },
+  }) as TestFixtureResult;
 
 describe("generateAllCharts", () => {
   it("should filter chart data when filter is passed in options", async () => {
@@ -126,6 +175,7 @@ describe("generateAllCharts", () => {
       allVariables: vi.fn().mockResolvedValue([]),
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allMetrics: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -218,6 +268,7 @@ describe("generateAllCharts", () => {
       allVariables: vi.fn().mockResolvedValue([]),
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allMetrics: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -251,6 +302,347 @@ describe("generateAllCharts", () => {
     expect(qaBChart?.data).toEqual({
       failed: 1,
       total: 1,
+    });
+  });
+});
+
+describe("generateMetricsWidget", () => {
+  it("should write current metrics and history metrics when current metrics exist", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allMetrics: vi.fn().mockResolvedValue([
+        {
+          key: "generate.total.avgMs",
+          value: 200,
+          id: "generate-total",
+          start: 0,
+          stop: 1,
+          source: "generate-total-performance.json",
+          title: "Generate total",
+          unit: "ms",
+          better: "lower",
+        },
+      ]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          url: "https://example.com/report",
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+        {
+          uuid: "history-empty",
+          name: "Empty report",
+          timestamp: 1_700_000_001_000,
+          metrics: {},
+        },
+        {
+          uuid: "report-uuid",
+          name: "Current report",
+          timestamp: 1_700_000_002_000,
+          metrics: {
+            "generate.total.avgMs": 200,
+          },
+        },
+      ]),
+    } as unknown as AllureStore;
+
+    await expect(generateMetricsWidget(writer, store, "report-uuid")).resolves.toBe(true);
+
+    expect(writtenWidgets.get("metrics.json")).toEqual({
+      current: [
+        {
+          key: "generate.total.avgMs",
+          value: 200,
+          id: "generate-total",
+          start: 0,
+          stop: 1,
+          title: "Generate total",
+          unit: "ms",
+          source: "generate-total-performance.json",
+          better: "lower",
+        },
+      ],
+      history: [
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          url: "https://example.com/report",
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+      ],
+    });
+  });
+
+  it("should not write metrics widget when current metrics are absent", async () => {
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      allMetrics: vi.fn().mockResolvedValue([]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([
+        {
+          uuid: "history-1",
+          name: "Previous report",
+          timestamp: 1_700_000_000_000,
+          metrics: {
+            "generate.total.avgMs": 250,
+          },
+        },
+      ]),
+    } as unknown as AllureStore;
+
+    await expect(generateMetricsWidget(writer, store, "report-uuid")).resolves.toBe(false);
+
+    expect(writer.writeWidget).not.toHaveBeenCalled();
+  });
+});
+
+describe("generateTestResults", () => {
+  const historyFixture = (history: HistoryTestResult[]) => {
+    const testResult = mockTestResult("tr-1", "current test", "passed");
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", history]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    return { testResult, writer, store };
+  };
+
+  it("should use the selected history provider resolver", async () => {
+    const item: HistoryTestResult = Object.freeze({
+      id: "old-result",
+      name: "historical test",
+      status: "passed",
+      url: "https://bucket.example/runs/42/",
+    });
+    const resolveHistoryUrl = vi.fn(() => "https://bucket.example/runs/42/awesome/index.html#old-result");
+    const { writer, store, testResult } = historyFixture([item]);
+
+    const [converted] = await generateTestResults(writer, store, [testResult], {
+      pluginId: "awesome",
+      resolveHistoryUrl,
+    });
+
+    expect(resolveHistoryUrl).toHaveBeenCalledWith(item.url, "awesome", item.id);
+    expect(converted.history[0].url).toBe("https://bucket.example/runs/42/awesome/index.html#old-result");
+    expect(item.url).toBe("https://bucket.example/runs/42/");
+  });
+
+  it("should sort setup and teardown fixtures by start time", async () => {
+    const testResult = mockTestResult("tr-1", "test", "passed");
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([
+          [
+            "tr-1",
+            [
+              mockFixtureResult("before-each", "before", "beforeEach", 200),
+              mockFixtureResult("before-all", "before", "beforeAll", 100),
+              mockFixtureResult("after-all", "after", "afterAll", 400),
+              mockFixtureResult("after-each", "after", "afterEach", 300),
+            ],
+          ],
+        ]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
+
+    expect(converted?.setup.map(({ name }) => name)).toEqual(["beforeAll", "beforeEach"]);
+    expect(converted?.teardown.map(({ name }) => name)).toEqual(["afterEach", "afterAll"]);
+  });
+
+  it("should include the matched resolution issue in generated test result JSON", async () => {
+    const testResult = {
+      ...mockTestResult("tr-1", "failed test", "failed"),
+      resolution: "issue",
+      resolutionComment: "BUG-1 still fails in checkout",
+    } satisfies TestResult;
+    const { writer } = createWriter();
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue({
+        id: "BUG-1",
+        type: "jira",
+        comment: "BUG-1 still fails in checkout",
+      }),
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
+
+    expect(converted).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "BUG-1 still fails in checkout",
+      resolutionIssue: {
+        id: "BUG-1",
+        type: "jira",
+        comment: "BUG-1 still fails in checkout",
+      },
+    });
+  });
+});
+
+describe("generateTree", () => {
+  it("should include resolution category in tree leaves", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-issue", "issue test", "failed"),
+        groupedLabels: {},
+        resolution: "issue",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-clean", "clean test", "passed"),
+        groupedLabels: {},
+      } as ReportTestResult,
+    ];
+
+    await generateTree(writer, "tree.json", [], tests);
+
+    const tree = writtenWidgets.get("tree.json") as { leavesById: Record<string, { resolution?: string }> };
+
+    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue" });
+    expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
+  });
+});
+
+describe("generateResolutionCategories", () => {
+  it("should write resolution groups with related non-retry test results", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
+        historyId: "history-1",
+        resolution: "issue",
+        resolutionComment: "Checkout discount is not applied",
+        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
+        historyId: "history-2",
+        resolution: "issue",
+        resolutionComment: "Checkout discount is not applied",
+        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-muted", "muted failure", "broken"),
+        resolution: "muted",
+        resolutionComment: "Muted while infra is unstable",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-accepted", "accepted failure", "failed"),
+        resolution: "accepted",
+        resolutionComment: "Accepted risk for the release",
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-retry", "retry issue", "failed"),
+        isRetry: true,
+        resolution: "issue",
+        resolutionIssue: { id: "BUG-2", type: "jira" },
+      } as ReportTestResult,
+      mockTestResult("tr-clean", "clean test", "passed") as ReportTestResult,
+    ];
+
+    await generateResolutionCategories(writer, tests);
+
+    expect(writtenWidgets.get("resolution-categories.json")).toEqual({
+      groups: [
+        {
+          id: "issue:BUG-1",
+          resolution: "issue",
+          name: "BUG-1",
+          comment: "Checkout discount is not applied",
+          issue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+          testResults: [
+            expect.objectContaining({ nodeId: "tr-issue-1", id: "history-1", resolution: "issue", groupOrder: 1 }),
+            expect.objectContaining({ nodeId: "tr-issue-2", id: "history-2", resolution: "issue", groupOrder: 2 }),
+          ],
+        },
+        {
+          id: "muted:Muted while infra is unstable",
+          resolution: "muted",
+          name: "Muted while infra is unstable",
+          comment: "Muted while infra is unstable",
+          issue: undefined,
+          testResults: [expect.objectContaining({ nodeId: "tr-muted", resolution: "muted" })],
+        },
+        {
+          id: "accepted:Accepted risk for the release",
+          resolution: "accepted",
+          name: "Accepted risk for the release",
+          comment: "Accepted risk for the release",
+          issue: undefined,
+          testResults: [expect.objectContaining({ nodeId: "tr-accepted", resolution: "accepted" })],
+        },
+      ],
+    });
+  });
+});
+
+describe("generateStatistic", () => {
+  it("should write pie chart data from active statistics without changing raw statistics", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const stats: Statistic = { total: 3, passed: 1, failed: 2 };
+    const activeStats: Statistic = { total: 2, passed: 1, failed: 1 };
+
+    await generateStatistic(writer, {
+      stats,
+      statsByEnv: new Map(),
+      pieStats: activeStats,
+      envs: [],
+    });
+
+    expect(writtenWidgets.get("statistic.json")).toEqual(stats);
+    expect(writtenWidgets.get("pie_chart.json")).toMatchObject({
+      percentage: 50,
+      slices: [
+        expect.objectContaining({ status: "failed", count: 1 }),
+        expect.objectContaining({ status: "passed", count: 1 }),
+      ],
     });
   });
 });
@@ -354,7 +746,6 @@ describe("generateSearchIndex", () => {
       isRetry: false,
       flaky: false,
       muted: false,
-      known: false,
       labels: [
         { name: "owner", value: "Igor Martynov" },
         { name: "feature", value: "Checkout" },
@@ -375,18 +766,18 @@ describe("generateSearchIndex", () => {
         message: "Assertion error: Expected 1 to be 2",
       },
       categories: [{ name: "Product defects" }],
-    } as AwesomeTestResult;
+    } as ReportTestResult;
     const retryTest = {
       ...visibleTest,
       id: "tr-retry",
       isRetry: true,
       name: "retry test",
-    } as AwesomeTestResult;
+    } as ReportTestResult;
 
     await generateSearchIndex(writer, [visibleTest, retryTest], "qa/search-index.json");
 
     expect(writer.writeWidget).toHaveBeenCalledWith("qa/search-index.json", expect.any(Array));
-    const documents = writtenWidgets.get("qa/search-index.json") as AwesomeSearchDocument[];
+    const documents = writtenWidgets.get("qa/search-index.json") as ReportSearchDocument[];
 
     expect(documents).toHaveLength(1);
     expect(documents[0]).toMatchObject({
@@ -406,6 +797,129 @@ describe("generateSearchIndex", () => {
     expect(documents[0]?.labels).not.toContain("ignored");
     expect(documents[0]?.parameters).not.toContain("secret-token");
     expect(documents[0]?.parameters).not.toContain("hidden-value");
+  });
+});
+
+describe("generateQualityGateResults", () => {
+  it("should embed a tree containing only related test results", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const tests = [
+      {
+        ...mockTestResult("tr-related", "related test", "failed"),
+        groupedLabels: {},
+      },
+      {
+        ...mockTestResult("tr-unrelated", "unrelated test", "passed"),
+        groupedLabels: {},
+      },
+    ] as ReportTestResult[];
+
+    await generateQualityGateResults(
+      writer,
+      {
+        default: [
+          {
+            rule: "maxFailures",
+            success: false,
+            expected: 0,
+            actual: 1,
+            message: "Too many failures",
+            testResults: ["tr-related", "tr-related", "tr-missing"],
+          },
+        ],
+      },
+      { tests },
+    );
+
+    const results = writtenWidgets.get("quality-gate.json") as ReportQualityGateResults;
+    const [result] = results.default;
+
+    expect(result.testResults).toEqual(["tr-related", "tr-related", "tr-missing"]);
+    expect(Object.keys(result.testResultsTree?.leavesById ?? {})).toEqual(["tr-related"]);
+    expect(result.testResultsTree?.leavesById["tr-related"]).toMatchObject({
+      nodeId: "tr-related",
+      name: "related test",
+      status: "failed",
+    });
+  });
+
+  it("should expose the severity label on tree leaves and omit it when there is none", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+    const tests = [
+      {
+        ...mockTestResult("tr-blocker", "blocker test", "failed"),
+        groupedLabels: { severity: ["blocker"] },
+      },
+      {
+        ...mockTestResult("tr-no-severity", "test without severity", "failed"),
+        groupedLabels: {},
+      },
+    ] as AwesomeTestResult[];
+
+    await generateQualityGateResults(
+      writer,
+      {
+        default: [
+          {
+            rule: "maxFailures",
+            success: false,
+            expected: 0,
+            actual: 2,
+            message: "Too many failures",
+            testResults: ["tr-blocker", "tr-no-severity"],
+          },
+        ],
+      },
+      { tests },
+    );
+
+    const results = writtenWidgets.get("quality-gate.json") as AwesomeQualityGateResults;
+    const leavesById = results.default[0].testResultsTree?.leavesById ?? {};
+
+    expect(leavesById["tr-blocker"]).toMatchObject({ severity: "blocker" });
+    expect(leavesById["tr-no-severity"]).not.toHaveProperty("severity");
+  });
+
+  it("should omit the tree when no related test result can be resolved", async () => {
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await generateQualityGateResults(writer, {
+      default: [
+        {
+          rule: "maxFailures",
+          success: false,
+          expected: 0,
+          actual: 0,
+          message: "Too many failures",
+          testResults: [],
+        },
+      ],
+    });
+
+    expect(writer.writeWidget).toHaveBeenCalledWith("quality-gate.json", {
+      default: [expect.not.objectContaining({ testResultsTree: expect.anything() })],
+    });
   });
 });
 

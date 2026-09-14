@@ -1,6 +1,8 @@
-import { sanitize } from "@allurereport/web-commons";
+import { sanitizeHtmlDocument } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
+
+import { getIframeContentHeight } from "./iframe";
 
 import styles from "./styles.scss";
 
@@ -24,9 +26,10 @@ export type HtmlAttachmentPreviewProps = {
 
 export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ attachment }) => {
   const [blobUrl, setBlobUrl] = useState<string>("");
+  const [height, setHeight] = useState(0);
 
   const rawText = attachment.text ?? "";
-  const sanitizedText = rawText.length > 0 ? sanitize(rawText) : "";
+  const sanitizedText = rawText.length > 0 ? sanitizeHtmlDocument(rawText) : "";
 
   useEffect(() => {
     if (sanitizedText) {
@@ -40,7 +43,7 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
           wrapped = DARK_STYLE + sanitizedText;
         }
       }
-      const blob = new Blob([wrapped], { type: "text/html" });
+      const blob = new Blob([wrapped], { type: "text/html; charset=utf-8" });
       const url = URL.createObjectURL(blob);
       setBlobUrl(url);
 
@@ -50,13 +53,28 @@ export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ a
     }
   }, [sanitizedText]);
 
+  const handleLoad = (e: Event) => {
+    const iframe = e.currentTarget as HTMLIFrameElement;
+    setHeight(getIframeContentHeight(iframe));
+  };
+
   if (!sanitizedText) {
     return null;
   }
 
   return (
-    <div className={styles["html-attachment-preview"]}>
-      <iframe src={blobUrl} width="100%" height="100%" frameBorder="0" sandbox="allow-same-origin" />
+    <div className={styles["html-attachment-preview"]} data-testid="html-attachment-preview">
+      {blobUrl && (
+        <iframe
+          title="HTML attachment"
+          src={blobUrl}
+          width="100%"
+          height={height || undefined}
+          frameBorder="0"
+          sandbox="allow-same-origin"
+          onLoad={handleLoad}
+        />
+      )}
     </div>
   );
 };

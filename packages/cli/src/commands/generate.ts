@@ -34,11 +34,11 @@ export class GenerateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   output = Option.String("--output,-o", {
@@ -72,8 +72,18 @@ export class GenerateCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   hideLabels = Option.Array("--hide-labels", {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
+  knownIssues = Option.String("--known-issues", {
+    description:
+      "Path to known issues file. " +
+      "Allure loads the file and updates it every time with the actual resolutions data of type `issue`",
   });
 
   async execute() {
@@ -85,7 +95,9 @@ export class GenerateCommand extends Command {
       open: this.open,
       port: this.port,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
 
     await generate({

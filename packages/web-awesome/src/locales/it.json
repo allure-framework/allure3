@@ -22,7 +22,8 @@
     "globalAttachments": "Allegati Globali",
     "globalErrors": "Errori Globali",
     "qualityGates": "Porte di Qualità",
-    "categories": "Categorie"
+    "categories": "Categorie",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Cerca",
@@ -56,7 +57,18 @@
       "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"danneggiato\" a \"fallito\"",
       "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"fallito\" a \"danneggiato\"",
       "tags": "Mostra i risultati dei test che hanno i tag specificati",
-      "categories": "Mostra i risultati dei test che hanno le categorie specificate"
+      "categories": "Mostra i risultati dei test che hanno le categorie specificate",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted"
     }
   },
   "sort-by": {
@@ -111,14 +123,17 @@
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
     "no-test-case-results": "Nessun risultato dei casi di test",
     "no-environments-results": "Nessuna informazione sugli ambienti disponibile",
-    "no-categories-results": "Nessuna categoria disponibile"
+    "no-categories-results": "Nessuna categoria disponibile",
+    "no-metrics-results": "Nessuna metrica disponibile",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloccante",
     "critical": "critico",
     "normal": "normale",
     "minor": "minore",
-    "trivial": "banale"
+    "trivial": "banale",
+    "none": "senza gravità"
   },
   "execution": {
     "name": "Esecuzione",
@@ -138,6 +153,7 @@
     "category": "Categoria",
     "description": "Descrizione",
     "links": "Link",
+    "relatedTestResults": "Risultati dei test correlati ({{count}})",
     "overview": "Panoramica",
     "history": "Cronologia",
     "attachments": "Allegati",
@@ -150,6 +166,7 @@
     "copy": "Copia",
     "copy-email": "Copia email",
     "attempt": "Tentativo {{attempt}} di {{total}}",
+    "retry": "Ripetizione {{attempt}} di {{total}}",
     "at": "a",
     "generated": "Generato",
     "variables": "Variabili",
@@ -157,7 +174,8 @@
     "pwTracePopupBlocked": "Il browser ha bloccato l'apertura di Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Consenti i popup e riprova.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})",
+    "resolutionCategories": "Resolutions"
   },
   "controls": {
     "newTabAttachment": "Apri in una nuova scheda",
@@ -198,7 +216,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafici",
-    "timeline": "Cronologia"
+    "timeline": "Cronologia",
+    "metrics": "Metriche"
   },
   "timeline": {
     "empty": "Nessun dato",
@@ -394,6 +413,45 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Metriche delle prestazioni",
+      "phaseSummary": "Riepilogo metriche",
+      "currentValues": "Valori attuali",
+      "historyTitle": "Storico della metrica",
+      "noHistory": "Nessuno storico ancora per questa metrica",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrica",
+        "phase": "Set di metriche",
+        "count": "Conteggio",
+        "total": "Totale",
+        "avg": "Media",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Valore",
+        "delta": "Variazione",
+        "trend": "Tendenza",
+        "source": "Origine",
+        "report": "Report",
+        "date": "Data"
+      },
+      "summary": "{{groups}} righe di riepilogo / {{metrics}} metriche",
+      "groups": {
+        "other": "Altro"
+      }
+    },
+    "successRate": {
+      "successRate": "Percentuale di successo: {{rate}}",
+      "successRateDescription": "Calcolata sui test superati, falliti e con errori. I test saltati e con stato sconosciuto sono esclusi.",
+      "noResults": "Non ci sono risultati dei test.",
+      "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo.",
+      "slice_one": "{{count}} test ({{percent}}% di tutti i test)",
+      "slice_other": "{{count}} test ({{percent}}% di tutti i test)",
+      "layer": "Livello: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% di tutti i test)",
+      "slice": "{{count}} test ({{percent}}% di tutti i test)",
+      "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
     }
   },
   "transitions": {
@@ -403,7 +461,12 @@
       "regressed": "Test precedentemente \"superato\" o \"danneggiato\" che ora è \"fallito\"",
       "malfunctioned": "Test precedentemente \"superato\" o \"fallito\" che ora è \"danneggiato\"",
       "retries": "{{count}} tentativi",
-      "flaky": "Incoerente tra le esecuzioni"
+      "flaky": "Incoerente tra le esecuzioni",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Nuovi",
     "fixed": "Corretti",
@@ -482,6 +545,7 @@
       "testTabNext": "Tab test successivo",
       "testTabPrev": "Tab test precedente",
       "tabOverview": "Tab panoramica",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab cronologia",
       "tabRetries": "Tab nuovi tentativi",
       "tabAttachments": "Tab allegati",
@@ -489,7 +553,8 @@
       "toggleLabels": "Mostra/nascondi etichette",
       "toggleParameters": "Mostra/nascondi parametri",
       "toggleLinks": "Mostra/nascondi link",
-      "backToTree": "Torna all'albero"
+      "backToTree": "Torna all'albero",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

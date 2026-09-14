@@ -1,11 +1,11 @@
 import * as console from "node:console";
 import process, { exit } from "node:process";
 
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, readRawConfig, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class HistoryCommand extends Command {
   static paths = [["history"]];
@@ -31,7 +31,7 @@ export class HistoryCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   historyPath = Option.String("--history-path,-h", {
@@ -42,25 +42,36 @@ export class HistoryCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name",
   });
 
   async execute() {
-    const { resultDirectories, patterns } = await findAllureResultDirectories(process.cwd(), this.resultsDir);
+    const cwd = process.cwd();
+    const rawConfig = await readRawConfig(cwd);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, rawConfig.resultsDir);
+
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
 
-    const config = await resolveConfig({
-      historyPath: this.historyPath ?? "history.jsonl",
-      historyLimit: this.historyLimit ? Number(this.historyLimit) : undefined,
-      name: this.reportName ?? "Allure Report",
-      // disable all plugins
-      plugins: {},
-    });
+    const config = await resolveConfig(
+      {
+        historyPath: this.historyPath ?? "history.jsonl",
+        historyBaseUrl: this.historyBaseUrl ?? rawConfig.historyBaseUrl,
+        historyLimit: this.historyLimit ? Number(this.historyLimit) : undefined,
+        name: this.reportName ?? "Allure Report",
+        // disable all plugins
+        plugins: {},
+      },
+      { plugins: {} },
+    );
 
     const allureReport = new AllureReport(config);
 

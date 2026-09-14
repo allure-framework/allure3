@@ -1,18 +1,18 @@
 import { EmptyView } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 
-import { type AwesomeTestResult } from "@/../types";
+import { type ReportTestResult } from "@/../types";
 import { TrHistoryItem } from "@/components/TestResult/TrHistory/TrHistoryItem";
 import { useI18n } from "@/stores";
 
 import * as styles from "./styles.scss";
 
 export type TrHistoryViewProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 const TrHistoryView: FunctionalComponent<TrHistoryViewProps> = (props) => {
-  const { testResult = {} as AwesomeTestResult } = props;
+  const { testResult = {} as ReportTestResult } = props;
   const { history = [] } = testResult;
   const { t } = useI18n("empty");
 

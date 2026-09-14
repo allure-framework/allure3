@@ -7,7 +7,7 @@ import {
   type VirtualGroupRow,
   type VirtualLeafRow,
 } from "../../src/stores/virtualTree.js";
-import type { AwesomeRecursiveTree, AwesomeTreeLeaf } from "../../types.js";
+import type { ReportRecursiveTree, ReportTreeLeaf } from "../../types.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -18,7 +18,7 @@ beforeEach(async () => {
 const alwaysOpen = () => true;
 const alwaysClosed = () => false;
 
-function makeLeaf(nodeId: string, overrides: Partial<AwesomeTreeLeaf> = {}): AwesomeTreeLeaf {
+function makeLeaf(nodeId: string, overrides: Partial<ReportTreeLeaf> = {}): ReportTreeLeaf {
   return {
     nodeId,
     id: nodeId,
@@ -38,9 +38,9 @@ function makeLeaf(nodeId: string, overrides: Partial<AwesomeTreeLeaf> = {}): Awe
 function makeTree(
   nodeId: string,
   name: string,
-  leaves: AwesomeTreeLeaf[],
-  trees: AwesomeRecursiveTree[] = [],
-): AwesomeRecursiveTree {
+  leaves: ReportTreeLeaf[],
+  trees: ReportRecursiveTree[] = [],
+): ReportRecursiveTree {
   return {
     nodeId,
     name,

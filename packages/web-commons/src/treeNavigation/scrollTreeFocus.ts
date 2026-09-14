@@ -71,8 +71,29 @@ export const scrollTreeFocusIntoView = (
   const delta = computeTreeFocusScrollDelta(nodeRect, rootRect, kind, inset);
 
   if (Math.abs(delta) > 1) {
-    scrollRoot.scrollTop += delta;
+    const pinToTop = kind === "group" || kind === "env";
+
+    if (pinToTop) {
+      // Compute absolute content position so scrollTop never goes negative.
+      // scrollTop += delta can clamp to 0, leaving the node behind the sticky header.
+      const contentY = nodeRect.top - rootRect.top + scrollRoot.scrollTop;
+      scrollRoot.scrollTop = Math.max(0, contentY - inset);
+    } else {
+      scrollRoot.scrollTop += delta;
+    }
   }
+};
+
+const computeStickyInset = (scrollRoot: HTMLElement, baseInset: number): number => {
+  let total = baseInset;
+
+  for (const el of Array.from(scrollRoot.querySelectorAll("[data-tree-sticky-header]"))) {
+    if (el instanceof HTMLElement) {
+      total += el.offsetHeight;
+    }
+  }
+
+  return total;
 };
 
 export const scrollFocusIntoView = (
@@ -83,7 +104,9 @@ export const scrollFocusIntoView = (
   const scrollRoot = findFocusScrollRoot(target, containerAttribute);
 
   if (scrollRoot) {
-    scrollTreeFocusIntoView(target, scrollRoot, options?.kind, options?.inset);
+    const inset = computeStickyInset(scrollRoot, options?.inset ?? 4);
+
+    scrollTreeFocusIntoView(target, scrollRoot, options?.kind, inset);
     return;
   }
 

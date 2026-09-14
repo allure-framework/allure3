@@ -3,15 +3,13 @@ name: "Set theme labels"
 on:
   - pull_request_target
 
-permissions:
-  contents: read
-
 jobs:
   triage:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
-      - uses: actions/labeler@v4
+      - uses: actions/labeler@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}

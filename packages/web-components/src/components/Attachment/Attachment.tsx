@@ -13,6 +13,7 @@ import { allureIcons } from "../SvgIcon";
 import { AttachmentCode } from "./AttachmentCode";
 import { AttachmentImage } from "./AttachmentImage";
 import { AttachmentImageDiff } from "./AttachmentImageDiff";
+import { AttachmentTable } from "./AttachmentTable";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
 import { HttpAttachment } from "./HttpAttachment";
@@ -28,7 +29,7 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "code": AttachmentCode,
   "uri": AttachmentCode,
   "css": AttachmentCode,
-  "table": AttachmentCode,
+  "table": AttachmentTable,
   "html": AttachmentCode,
   "markdown": AttachmentCode,
   "text": AttachmentCode,

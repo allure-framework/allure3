@@ -1,5 +1,12 @@
-import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
-import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/web-classic";
+import {
+  type TestFixtureResult,
+  type TestLabel,
+  type TestResult,
+  type TestStepResult,
+  isStep,
+  redactParameters,
+} from "@allurereport/core-api";
+import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -17,7 +24,7 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, {});
 };
 
-export const convertTestResult = (tr: TestResult): ClassicTestResult => {
+export const convertTestResult = (tr: TestResult): ReportTestResult => {
   return {
     id: tr.id,
     name: tr.name,
@@ -33,9 +40,9 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     isRetry: tr.isRetry,
     labels: tr.labels,
     groupedLabels: mapLabelsByName(tr.labels),
-    parameters: tr.parameters,
+    parameters: redactParameters(tr.parameters),
     links: tr.links,
-    steps: tr.steps,
+    steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
@@ -49,11 +56,19 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
+  if (isStep(tsr)) {
+    return {
+      ...tsr,
+      parameters: redactParameters(tsr.parameters),
+      steps: (tsr.steps ?? []).map(convertTestStepResult),
+    };
+  }
+
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): ClassicFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

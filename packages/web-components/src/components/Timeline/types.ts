@@ -16,6 +16,7 @@ export type TimelineSegment = {
   label: string;
   labelGroup: string[]; // used to group segments by labels
   id: string;
+  testResultId: string;
 };
 
 export type TimelineDataGroup = {

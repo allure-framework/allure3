@@ -3,7 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { Button, Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import type { AwesomeExecutorInfo, AwesomeReportOptions } from "types";
+import type { ReportExecutorInfo, ReportOptions } from "types";
 
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
@@ -112,7 +112,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   );
 };
 
-const getExecutorLabel = (executor?: AwesomeExecutorInfo) => {
+const getExecutorLabel = (executor?: ReportExecutorInfo) => {
   if (!executor) return undefined;
   if (executor.name && executor.buildName) return `${executor.name} · ${executor.buildName}`;
 
@@ -126,7 +126,7 @@ const getExecutorLabel = (executor?: AwesomeExecutorInfo) => {
   );
 };
 
-const getExecutorMetadata = (executor?: AwesomeExecutorInfo): MetadataItem[] => {
+const getExecutorMetadata = (executor?: ReportExecutorInfo): MetadataItem[] => {
   const label = getExecutorLabel(executor);
 
   return label
@@ -136,7 +136,7 @@ const getExecutorMetadata = (executor?: AwesomeExecutorInfo): MetadataItem[] => 
 
 export const ReportMetadata = () => {
   const envId = currentEnvironment.value;
-  const { executor } = getReportOptions<AwesomeReportOptions>();
+  const { executor } = getReportOptions<ReportOptions>();
   const executorMetadata = getExecutorMetadata(executor);
   const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
 

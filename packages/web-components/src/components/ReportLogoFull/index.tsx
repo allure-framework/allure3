@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 
-import { SvgIcon, Text, allureIcons } from "../../";
+import { SvgIcon, allureIcons } from "../SvgIcon";
+import { Text } from "../Typography";
 
 import styles from "./styles.scss";
 

@@ -1,7 +1,7 @@
 import type { Statistic, TestStatus } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import { getPieChartValues } from "@allurereport/web-commons";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize.js";
 import { useMemo } from "preact/hooks";
 
 import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
@@ -13,6 +13,8 @@ import { MetadataItem, MetadataTestType } from "./components/MetadataItem";
 import type { I18nProp, ReportSummary } from "./model";
 
 import styles from "./styles.scss";
+
+export type { ReportSummary } from "./model";
 
 export type ReportSummaryCardProps = {
   i18n: I18nProp;
@@ -44,10 +46,20 @@ const CreatedAt = (props: { createdAt?: number; i18n: I18nProp }) => {
   );
 };
 
-const Pie = (props: { statistic: Statistic }) => {
-  const { statistic } = props;
+const Pie = (props: { statistic: Statistic; i18n: I18nProp }) => {
+  const { statistic, i18n } = props;
   const { percentage, slices } = getPieChartValues(statistic);
-  return <SuccessRatePieChart className={styles.chart} slices={slices} percentage={Math.floor(percentage)} />;
+
+  return (
+    <SuccessRatePieChart
+      className={styles.chart}
+      slices={slices}
+      percentage={percentage}
+      i18n={(key, values) =>
+        i18n((key.startsWith("status.") ? key : `successRate.${key}`) as Parameters<I18nProp>[0], values) ?? key
+      }
+    />
+  );
 };
 
 const ReportStatus = (props: { status: TestStatus; duration: number; i18n: I18nProp }) => {
@@ -202,7 +214,7 @@ export const ReportSummaryCard = (props: ReportSummaryCardProps) => {
           />
         </div>
         <div className={styles.pie}>
-          <Pie statistic={stats} />
+          <Pie statistic={stats} i18n={i18n} />
         </div>
       </div>
       <ReportStatistics stats={stats} i18n={i18n} />

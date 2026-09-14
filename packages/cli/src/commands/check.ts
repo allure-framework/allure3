@@ -62,6 +62,7 @@ const buildCheckResult = (
   message: string | undefined,
   error: string | undefined,
 ): AllureCheckResult => ({
+  id: randomUUID(),
   name,
   status,
   ...(tags?.length ? { tags } : {}),
@@ -92,7 +93,7 @@ const collectCheckCommandOutput = (checkProcess: ReturnType<typeof runProcess>):
 
 const writeCheckResultFile = async (output: string, result: AllureCheckResult) => {
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, `${randomUUID()}-check.json`), `${JSON.stringify(result)}\n`, "utf-8");
+  await writeFile(join(output, `${result.id}-check.json`), `${JSON.stringify(result)}\n`, "utf-8");
 };
 
 const dumpCheckResult = async (
@@ -143,7 +144,7 @@ export class CheckCommand extends Command {
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {

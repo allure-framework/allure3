@@ -39,10 +39,13 @@ dist
 dist-tests
 *.tgz
 *.log
+!packages/web-allure2/tests/fixtures/**/*.log
+.playwright-cli/
 .gradle
 schema
 build
 **/allure-results
+!packages/sandbox/allure-results/
 **/.nyc_output
 **/package.tgz
 **/wallaby.js
@@ -60,3 +63,7 @@ allure-results.zip
 docs/kb/.obsidian/
 
 .tmp
+.agent-workspace
+
+bench
+allure-production-deps.no-axios-handlebars.reachable.ndjson

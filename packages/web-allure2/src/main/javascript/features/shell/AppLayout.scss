@@ -1,0 +1,21 @@
+.app {
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  display: flex;
+  &__nav {
+    padding: 0 0;
+  }
+  &__content {
+    background: var(--color-bg-primary);
+    position: relative;
+    flex: 1;
+    overflow: auto;
+
+    &_no-scroll {
+      overflow: hidden;
+    }
+  }
+  &__header {
+    background: var(--color-bg-primary);
+  }
+}

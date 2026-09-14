@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/service",
-  "version": "3.9.0",
+  "version": "3.17.0",
   "description": "Allure Service API",
   "keywords": [
     "allure",
@@ -32,8 +32,8 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "axios": "^1.15.2",
-    "open": "^10.1.0"
+    "axios": "^1.20.0",
+    "open": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -43,6 +43,6 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.0"
   }
 }

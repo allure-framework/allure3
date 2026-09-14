@@ -1,7 +1,14 @@
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
-import { azure, getBuildID, getDefinitionID, getProjectID, getRootURL } from "../../src/detectors/azure.js";
+import {
+  azure,
+  getBuildID,
+  getDefinitionID,
+  getProjectID,
+  getRootURL,
+  isClassicRelease,
+} from "../../src/detectors/azure.js";
 import { getEnv } from "../../src/utils.js";
 
 beforeEach(async () => {
@@ -21,6 +28,16 @@ describe("azure", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "SYSTEM_COLLECTIONURI") {
           return "https://dev.azure.com/organization";
+        }
+      });
+
+      expect(getRootURL()).toBe("https://dev.azure.com/organization");
+    });
+
+    it("should drop the trailing slash Azure always adds", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "SYSTEM_COLLECTIONURI") {
+          return "https://dev.azure.com/organization/";
         }
       });
 
@@ -260,6 +277,34 @@ describe("azure", () => {
 
       expect(azure.jobRunBranch).toBe("main");
     });
+
+    it("should return the full branch path from Build.SourceBranch", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_SOURCEBRANCH") {
+          return "refs/heads/feature/tools";
+        }
+
+        if (key === "BUILD_SOURCEBRANCHNAME") {
+          return "tools";
+        }
+      });
+
+      expect(azure.jobRunBranch).toBe("feature/tools");
+    });
+
+    it("should not return tag refs as a job run branch", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_SOURCEBRANCH") {
+          return "refs/tags/v1.0.0";
+        }
+
+        if (key === "BUILD_SOURCEBRANCHNAME") {
+          return "v1.0.0";
+        }
+      });
+
+      expect(azure.jobRunBranch).toBe("");
+    });
   });
 
   describe("pullRequestUrl", () => {
@@ -297,6 +342,24 @@ describe("azure", () => {
       });
 
       expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/456");
+    });
+
+    it("should return the correct pull request URL for TfsGit using pull request ID", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "TfsGit";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://dev.azure.com/organization/project/_git/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTID") {
+          return "457";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/457");
     });
 
     it("should return the correct pull request URL for TfsVersionControl", () => {
@@ -351,6 +414,82 @@ describe("azure", () => {
       });
 
       expect(azure.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("isClassicRelease", () => {
+    it("should return true when RELEASE_RELEASEID is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "42";
+        }
+      });
+
+      expect(isClassicRelease()).toBe(true);
+    });
+
+    it("should return false when RELEASE_RELEASEID is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "";
+        }
+      });
+
+      expect(isClassicRelease()).toBe(false);
+    });
+  });
+
+  describe("classic release pipeline", () => {
+    it("should use RELEASE_DEFINITIONNAME for jobName", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "42";
+        }
+
+        if (key === "RELEASE_DEFINITIONNAME") {
+          return "My Release Definition";
+        }
+      });
+
+      expect(azure.jobName).toBe("My Release Definition");
+    });
+
+    it("should use RELEASE_RELEASEID for jobRunUid", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "42";
+        }
+      });
+
+      expect(azure.jobRunUid).toBe("42");
+    });
+
+    it("should use RELEASE_RELEASEWEBURL for jobRunUrl", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "42";
+        }
+
+        if (key === "RELEASE_RELEASEWEBURL") {
+          return "https://dev.azure.com/organization/project/_releaseProgress?releaseId=42";
+        }
+      });
+
+      expect(azure.jobRunUrl).toBe("https://dev.azure.com/organization/project/_releaseProgress?releaseId=42");
+    });
+
+    it("should use RELEASE_RELEASENAME for jobRunName", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "RELEASE_RELEASEID") {
+          return "42";
+        }
+
+        if (key === "RELEASE_RELEASENAME") {
+          return "Release-42";
+        }
+      });
+
+      expect(azure.jobRunName).toBe("Release-42");
     });
   });
 });

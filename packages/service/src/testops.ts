@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { extname, join as joinPosix } from "node:path/posix";
 
 import { type HistoryDataPoint } from "@allurereport/core-api";
@@ -11,8 +10,10 @@ import {
 } from "./model.js";
 import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
 import { parseServiceToken } from "./utils/token.js";
+import { createUploadForm } from "./utils/upload.js";
 
 const DEFAULT_UPLOAD_CONTENT_TYPE = "application/octet-stream";
+const UPLOAD_BATCH_MAX_BYTES = 8 * 1024 * 1024;
 const CONTENT_TYPES: Record<string, string> = {
   ".css": "text/css",
   ".gif": "image/gif",
@@ -117,26 +118,33 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
   }
 
   async addReportAsset(payload: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }) {
-    const { filename, file, filepath, signal } = payload;
-
-    if (!file && !filepath) {
-      throw new Error("File or filepath is required");
-    }
-
-    let content = file;
-
-    if (!content) {
-      content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
-
-    const form = new FormData();
-
-    form.set("filename", filename);
-    form.set("file", createUploadBlob(content, filename), filename);
-
+    const { file, filepath, filename, signal } = payload;
+    const { form } = await createUploadForm([{ filename, file, filepath, signal }], createUploadBlob, signal);
     const client = await this.#authorizedClient();
 
     return client.post("/api/test-report/upload", {
+      body: form,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      ...(signal ? { signal } : {}),
+    });
+  }
+
+  async addReportAssets(payload: {
+    files: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }[];
+    signal?: AbortSignal;
+  }) {
+    const { files, signal } = payload;
+
+    if (files.length === 0) {
+      return undefined;
+    }
+
+    const { form } = await createUploadForm(files, createUploadBlob, signal);
+    const client = await this.#authorizedClient();
+
+    return client.post("/api/test-report/upload/batch", {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -153,24 +161,14 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     filepath?: string;
     signal?: AbortSignal;
   }) {
-    const { reportUuid, filename, file, filepath, pluginId, signal } = payload;
+    const { reportUuid, pluginId, filename, file, filepath, signal } = payload;
     const reportFilename = pluginId ? joinPosix(pluginId, filename) : filename;
-
-    if (!file && !filepath) {
-      throw new Error("File or filepath is required");
-    }
-
-    let content = file;
-
-    if (!content) {
-      content = signal ? await readFile(filepath!, { signal }) : await readFile(filepath!);
-    }
-
-    const form = new FormData();
-
-    form.set("filename", reportFilename);
-    form.set("file", createUploadBlob(content, reportFilename), reportFilename);
-
+    const { form } = await createUploadForm(
+      [{ filename, file, filepath, signal }],
+      createUploadBlob,
+      signal,
+      () => reportFilename,
+    );
     const client = await this.#authorizedClient();
 
     await client.post(`/api/test-report/${reportUuid}/upload`, {
@@ -184,14 +182,51 @@ export class AllureTestOpsClient implements AllureServiceApiClient {
     return createReportFileUrl(this.#url, reportUuid, reportFilename);
   }
 
+  async addReportFiles(payload: {
+    reportUuid: string;
+    pluginId?: string;
+    files: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }[];
+    signal?: AbortSignal;
+  }) {
+    const { reportUuid, pluginId, files, signal } = payload;
+
+    if (files.length === 0) {
+      return {};
+    }
+
+    const { entries, form } = await createUploadForm(files, createUploadBlob, signal, (filename) =>
+      pluginId ? joinPosix(pluginId, filename) : filename,
+    );
+
+    const client = await this.#authorizedClient();
+
+    await client.post(`/api/test-report/${reportUuid}/upload/batch`, {
+      body: form,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      ...(signal ? { signal } : {}),
+    });
+
+    return Object.fromEntries(
+      entries.map(({ filename, reportFilename }) => [
+        filename,
+        createReportFileUrl(this.#url, reportUuid, reportFilename),
+      ]),
+    );
+  }
+
   async uploadReport(payload: UploadReportPayload) {
     return uploadReport({
       ...payload,
       uploadConcurrency: this.config.uploadConcurrency,
       uploadMaxAttempts: this.config.uploadMaxAttempts,
       uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
+      uploadBatchMaxBytes: UPLOAD_BATCH_MAX_BYTES,
       addReportAsset: this.addReportAsset.bind(this),
+      addReportAssets: this.addReportAssets.bind(this),
       addReportFile: this.addReportFile.bind(this),
+      addReportFiles: this.addReportFiles.bind(this),
     });
   }
 }

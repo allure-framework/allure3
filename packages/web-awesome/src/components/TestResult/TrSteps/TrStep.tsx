@@ -71,18 +71,7 @@ export const TrStep: FunctionComponent<{
   item: TrStepItem;
   stepIndex?: number;
 }> = ({ item, stepIndex }) => {
-  const { item: stepData, bodyItems, suppressInlineError } = item;
-  const inlineError = {
-    message: stepData.message ?? stepData.error?.message,
-    trace: stepData.trace ?? stepData.error?.trace,
-    actual: stepData.error?.actual,
-    expected: stepData.error?.expected,
-  };
-  const hasInlineError = Boolean(
-    (inlineError.message || inlineError.trace || hasErrorDiff(inlineError)) &&
-    !stepData.hasSimilarErrorInSubSteps &&
-    !suppressInlineError,
-  );
+  const { item: stepData, bodyItems } = item;
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
   const openedByDefault = isStepOpenedByDefault(policy, stepData.status, bodyItems);

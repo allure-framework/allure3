@@ -9,13 +9,13 @@ import { useI18n } from "@/stores";
 import { navigateToTestResult, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
-import type { AwesomeTestResult } from "../../../../types";
+import type { ReportTestResult } from "../../../../types";
 
 import * as styles from "./styles.scss";
 
 export const TrEnvironmentItem: FunctionalComponent<{
   env: string;
-  testResult: AwesomeTestResult;
+  testResult: ReportTestResult;
   current?: boolean;
 }> = ({ env, testResult, current = false }) => {
   const { status, error, stop, duration, id } = testResult;

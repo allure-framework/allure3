@@ -6,6 +6,7 @@ export interface Attachment {
 
 export interface GlobalAttachment extends Attachment {
   environment?: string;
+  timestamp?: number;
 }
 
 // TODO we need to ensure case insensitive enums mapping + do not fail in case of invalid values
@@ -61,6 +62,7 @@ export interface StatusDetails {
 
 export interface GlobalStatusDetails extends StatusDetails {
   environment?: string;
+  timestamp?: number;
 }
 
 interface ExecutableItem {

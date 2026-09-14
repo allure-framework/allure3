@@ -1,7 +1,7 @@
 import { SearchBox } from "@allurereport/web-components";
 
 import { useI18n } from "@/stores/locale";
-import { setTreeQueryFilter, treeQueryFilterValue } from "@/stores/treeFilters/store";
+import { setTreeQueryFilter, treeFiltersResetNonce, treeQueryFilterValue } from "@/stores/treeFilters/store";
 
 const handleQuerySearch = (value: string) => {
   if (!value) {
@@ -17,8 +17,9 @@ export const ReportSearch = () => {
 
   return (
     <SearchBox
+      key={treeFiltersResetNonce.value}
       placeholder={t("search-placeholder")}
-      value={treeQueryFilterValue.value}
+      value={treeQueryFilterValue.value ?? ""}
       onChange={handleQuerySearch}
       changeDebounce={150}
     />

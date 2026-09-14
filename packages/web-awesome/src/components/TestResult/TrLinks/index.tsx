@@ -6,7 +6,7 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 
-import { AwesomeTestResult } from "../../../../types";
+import { ReportTestResult } from "../../../../types";
 
 import * as styles from "./styles.scss";
 
@@ -57,7 +57,7 @@ const TrLink: FunctionalComponent<{
 
 export type TrLinksProps = {
   id?: string;
-  links: AwesomeTestResult["links"];
+  links: ReportTestResult["links"];
 };
 
 export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {

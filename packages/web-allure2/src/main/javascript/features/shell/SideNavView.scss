@@ -1,0 +1,270 @@
+@use "../../theme/spacing.scss" as *;
+$side-nav-expanded-width: 184px;
+$side-nav-collapsed-width: gap(9);
+$side-nav-icon-size: gap(3);
+$side-nav-brand-size: gap(5);
+$side-nav-collapsed-item-width: gap(7);
+$side-nav-icon-lane-width: $side-nav-collapsed-item-width;
+$side-nav-control-size: gap(4);
+
+.side-nav {
+  background: var(--color-bg-secondary);
+  border-inline-end: 1px solid var(--color-border-subtle);
+  width: $side-nav-expanded-width;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+
+  &__head {
+    margin: gap(2) gap(1);
+    padding: 0 0 gap(1);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  &__brand {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: gap(1);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-extra-bold);
+    inline-size: 100%;
+    line-height: var(--line-height-l);
+    min-block-size: gap(6);
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  &__brand-icon {
+    display: block;
+    inline-size: $side-nav-brand-size;
+    block-size: $side-nav-brand-size;
+    background: url("allure_logo.svg") no-repeat center;
+    background-size: $side-nav-brand-size;
+  }
+
+  &__menu {
+    margin: 0;
+    left: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    gap: gap(1);
+    margin-top: auto;
+    margin-bottom: gap(4);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  &__item {
+    display: block;
+    font-size: var(--font-size-m);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__link,
+  &__collapse,
+  &__theme,
+  &__language {
+    align-items: center;
+    border: 0;
+    box-sizing: border-box;
+    display: flex;
+    background: transparent;
+    font: inherit;
+    line-height: var(--line-height-l);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    inline-size: calc(100% - gap(2));
+    width: calc(100% - gap(2));
+    margin: 0 gap(1);
+    padding-block: 0;
+    padding-inline: 0;
+    min-block-size: gap(6);
+    border-radius: var(--radius-0-5);
+    text-align: start;
+    transition:
+      background-color var(--color-change-transition-duration),
+      color var(--color-change-transition-duration),
+      transform var(--interaction-transition-duration);
+
+    &_active {
+      background: var(--color-nav-item-bg-active);
+      color: var(--color-nav-item-text-active);
+      border-inline-end: none;
+
+      .side-nav__icon {
+        color: var(--color-nav-item-icon-active);
+      }
+    }
+    &:hover {
+      background: var(--color-nav-item-bg-hover);
+      color: var(--color-text-primary);
+
+      .side-nav__icon {
+        color: var(--color-icon-primary);
+      }
+    }
+    &_active:hover {
+      background: var(--color-nav-item-bg-active-hover);
+      color: var(--color-nav-item-text-active);
+
+      .side-nav__icon {
+        color: var(--color-nav-item-icon-active);
+      }
+    }
+
+    &_error {
+      color: var(--color-status-failed-text);
+
+      .side-nav__icon {
+        color: var(--color-status-failed-text);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus-ring);
+      outline-offset: -2px;
+    }
+  }
+
+  &__icon-lane {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 $side-nav-icon-lane-width;
+    inline-size: $side-nav-icon-lane-width;
+    justify-content: center;
+    min-inline-size: $side-nav-icon-lane-width;
+    position: relative;
+  }
+
+  &__badge {
+    align-items: center;
+    background: var(--color-status-failed-bg);
+    border: 1px solid var(--color-bg-secondary);
+    border-radius: var(--radius-pill);
+    color: var(--color-status-failed-on-bg);
+    display: inline-flex;
+    font-size: 9px;
+    font-weight: var(--font-weight-bold);
+    height: gap(2);
+    justify-content: center;
+    line-height: 1;
+    min-width: gap(2);
+    padding: 0 gap(0.25);
+    position: absolute;
+    right: gap(0.75);
+    top: gap(0.5);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__icon {
+    block-size: $side-nav-icon-size;
+    color: var(--color-icon-secondary);
+    inline-size: $side-nav-icon-size;
+  }
+
+  &__text {
+    display: block;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+    padding-inline-end: gap(2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__brand-text {
+    color: inherit;
+  }
+
+  &__language-small {
+    align-items: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    font-weight: var(--font-weight-bold);
+    flex: 0 0 $side-nav-control-size;
+    height: $side-nav-control-size;
+    justify-content: center;
+    line-height: var(--line-height-s);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    width: $side-nav-control-size;
+  }
+  &__collapse {
+    cursor: pointer;
+  }
+
+  &__collapse-icon {
+    transition: transform 0.1s;
+    transform: rotate(180deg);
+  }
+
+  &_collapsed {
+    width: $side-nav-collapsed-width;
+
+    .side-nav__collapse-icon {
+      transform: none;
+    }
+
+    .side-nav__footer {
+      align-items: center;
+    }
+
+    .side-nav__text,
+    .side-nav__brand-text {
+      display: none;
+    }
+
+    .side-nav__brand {
+      block-size: gap(6);
+      inline-size: 100%;
+      margin-bottom: 0;
+      min-block-size: gap(6);
+      padding-inline: 0;
+    }
+
+    .side-nav__brand,
+    .side-nav__collapse,
+    .side-nav__link,
+    .side-nav__theme,
+    .side-nav__language {
+      white-space: nowrap;
+    }
+
+    .side-nav__language-small {
+      inline-size: $side-nav-control-size;
+      min-inline-size: $side-nav-control-size;
+      margin: 0 auto;
+    }
+
+    .side-nav__collapse,
+    .side-nav__link,
+    .side-nav__theme,
+    .side-nav__language {
+      inline-size: $side-nav-collapsed-item-width;
+      width: $side-nav-collapsed-item-width;
+    }
+
+    .side-nav__icon-lane {
+      flex-basis: $side-nav-collapsed-item-width;
+      inline-size: $side-nav-collapsed-item-width;
+      min-inline-size: $side-nav-collapsed-item-width;
+    }
+  }
+}
