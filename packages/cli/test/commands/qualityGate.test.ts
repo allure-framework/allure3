@@ -5,7 +5,7 @@ import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { QualityGateCommand } from "../../src/commands/qualityGate.js";
 import { AllureReportMock } from "../utils.js";
@@ -374,10 +374,19 @@ describe("quality-gate command", () => {
   });
 
   describe("interrupted validation", () => {
+    // clearAllMocks only resets the call history, so the spy has to be restored explicitly to keep
+    // the mocked process.once from leaking into the tests that run after these ones
+    let processOnceSpy: MockInstance | undefined;
+
+    afterEach(() => {
+      processOnceSpy?.mockRestore();
+      processOnceSpy = undefined;
+    });
+
     const captureBeforeExitListeners = () => {
       const listeners: (() => void)[] = [];
 
-      vi.spyOn(process, "once").mockImplementation(((event: string, listener: () => void) => {
+      processOnceSpy = vi.spyOn(process, "once").mockImplementation(((event: string, listener: () => void) => {
         if (event === "beforeExit") {
           listeners.push(listener);
         }
