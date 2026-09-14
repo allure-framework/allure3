@@ -51,13 +51,13 @@ function makeContainerEl(scrollEl: HTMLElement): HTMLElement {
   return el;
 }
 
-describe("useVirtualList — own scroll container", () => {
+describe("useVirtualList — visible window", () => {
   it("renders initial visible items covering the viewport", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
 
     const visibleWithoutOverscan = Math.ceil(200 / ESTIMATE_ROW_HEIGHT);
     const expected = visibleWithoutOverscan + OVERSCAN;
@@ -69,9 +69,9 @@ describe("useVirtualList — own scroll container", () => {
   it("first item starts at offset 0", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN));
 
     expect(result.current.virtualItems[0]!.start).toBe(0);
     document.body.removeChild(el);
@@ -80,9 +80,9 @@ describe("useVirtualList — own scroll container", () => {
   it("totalSize equals count * ESTIMATE_ROW_HEIGHT before any measurements", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN));
 
     expect(result.current.totalSize).toBe(50 * ESTIMATE_ROW_HEIGHT);
     document.body.removeChild(el);
@@ -91,9 +91,9 @@ describe("useVirtualList — own scroll container", () => {
   it("shifts visible window when scroll position changes", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
 
     const initialFirst = result.current.virtualItems[0]!.index;
     expect(initialFirst).toBe(0);
@@ -111,9 +111,9 @@ describe("useVirtualList — own scroll container", () => {
   it("item starts track cumulative height of preceding items", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN));
 
     const items = result.current.virtualItems;
     for (let i = 1; i < items.length; i++) {
@@ -125,9 +125,9 @@ describe("useVirtualList — own scroll container", () => {
   it("returns no items when count is 0", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 0, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 0, OVERSCAN));
 
     expect(result.current.virtualItems).toHaveLength(0);
     expect(result.current.totalSize).toBe(0);
@@ -137,9 +137,9 @@ describe("useVirtualList — own scroll container", () => {
   it("scrollToIndex sets scrollTop to item position (align: start)", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
 
     act(() => result.current.scrollToIndex(20, "start"));
 
@@ -150,9 +150,9 @@ describe("useVirtualList — own scroll container", () => {
   it("scrollToIndex does not scroll when item is already visible (align: auto)", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
 
     act(() => result.current.scrollToIndex(1, "auto"));
 
@@ -163,9 +163,9 @@ describe("useVirtualList — own scroll container", () => {
   it("totalSize updates after measureElement provides actual heights", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 10, OVERSCAN, true));
+    const { result } = renderHook(() => useVirtualList(containerRef, 10, OVERSCAN));
 
     const itemEl = document.createElement("div");
     itemEl.setAttribute("data-index", "0");
@@ -190,7 +190,7 @@ describe("useVirtualList — external scroll container", () => {
     document.body.appendChild(scrollEl);
     const containerRef = { current: containerEl };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN, false));
+    const { result } = renderHook(() => useVirtualList(containerRef, 50, OVERSCAN));
 
     expect(result.current.virtualItems.length).toBeGreaterThan(0);
     document.body.removeChild(scrollEl);
@@ -202,7 +202,7 @@ describe("useVirtualList — external scroll container", () => {
     document.body.appendChild(scrollEl);
     const containerRef = { current: containerEl };
 
-    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN, false));
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
 
     act(() => {
       (scrollEl as any).scrollTop = 5 * ESTIMATE_ROW_HEIGHT;
@@ -219,9 +219,9 @@ describe("useVirtualList — count changes", () => {
   it("clears measured heights when count changes", () => {
     const el = makeScrollEl(0, 200);
     document.body.appendChild(el);
-    const containerRef = { current: el };
+    const containerRef = { current: makeContainerEl(el) };
 
-    const { result, rerender } = renderHook(({ count }) => useVirtualList(containerRef, count, OVERSCAN, true), {
+    const { result, rerender } = renderHook(({ count }) => useVirtualList(containerRef, count, OVERSCAN), {
       initialProps: { count: 10 },
     });
 

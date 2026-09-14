@@ -1,10 +1,8 @@
 import { scrollFocusIntoView, scrollTreePaneToTop } from "@allurereport/web-commons";
 import { TreeItem } from "@allurereport/web-components";
-import clsx from "clsx";
-import { useLayoutEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 import { getFlatTreeNode, setTreeFocusId, treeFocusId, treeScrollPaneToTopPending } from "@/stores/keyboard";
-import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
@@ -65,7 +63,7 @@ const LeafRow = ({ row, trId, focusedId }: { row: VirtualLeafRow; trId?: string;
 
 export const VirtualTreeList = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const split = isSplitMode.value;
+  const scrolledToTrId = useRef<string | undefined>(undefined);
   const rows = flatVirtualRows.value;
   const trId = currentTrId.value;
   const focusedId = treeFocusId.value;
@@ -75,10 +73,9 @@ export const VirtualTreeList = () => {
     containerRef,
     rows.length,
     OVERSCAN,
-    split,
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!focusedId) return;
 
     const node = document.querySelector(`[data-tree-node-id="${focusedId}"]`);
@@ -96,12 +93,16 @@ export const VirtualTreeList = () => {
     }
   }, [focusedId]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!trId || focusedId) return;
+
+    if (scrolledToTrId.current === trId) return;
 
     const index = rows.findIndex((row) => row.kind === "leaf" && (row.nodeId === trId || row.id === trId));
 
     if (index < 0) return;
+
+    scrolledToTrId.current = trId;
 
     const node = document.querySelector(`[data-tree-node-id="${rows[index]!.id}"]`);
 
@@ -111,14 +112,10 @@ export const VirtualTreeList = () => {
     }
 
     scrollToIndex(index, "auto");
-  }, [trId]);
+  }, [trId, rows]);
 
   return (
-    <div
-      ref={containerRef}
-      data-tree-scroll-container={split || undefined}
-      className={clsx(split && styles["virtual-tree-container"])}
-    >
+    <div ref={containerRef}>
       <div style={{ height: totalSize, position: "relative" }}>
         <div
           style={{

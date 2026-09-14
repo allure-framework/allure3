@@ -29,7 +29,6 @@ export function useVirtualList(
   containerRef: { current: HTMLElement | null },
   count: number,
   overscan: number,
-  ownScrollContainer: boolean,
 ): VirtualListResult {
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
@@ -46,7 +45,7 @@ export function useVirtualList(
     const containerEl = containerRef.current;
     if (!containerEl) return;
 
-    const scrollEl = ownScrollContainer ? containerEl : findScrollContainer(containerEl);
+    const scrollEl = findScrollContainer(containerEl);
     if (!scrollEl) return;
 
     const getContainerOffset = (): number => {
@@ -135,23 +134,28 @@ export function useVirtualList(
   };
 
   const scrollToIndex = (index: number, align: "start" | "center" | "auto" = "auto") => {
-    const ctx = scrollCtxRef.current;
-    if (!ctx) return;
-    const { scrollEl, getContainerOffset } = ctx;
-    const containerOffset = getContainerOffset();
-    const itemStart = getItemOffset(index) + containerOffset;
-    const itemHeight = measuredHeights.current.get(index) ?? ESTIMATE_ROW_HEIGHT;
-    if (align === "start") {
-      scrollEl.scrollTop = itemStart;
-    } else if (align === "center") {
-      scrollEl.scrollTop = itemStart - scrollEl.clientHeight / 2 + itemHeight / 2;
-    } else {
-      if (itemStart < scrollEl.scrollTop) {
+    const applyScroll = () => {
+      const ctx = scrollCtxRef.current;
+      if (!ctx) return;
+      const { scrollEl, getContainerOffset } = ctx;
+      const containerOffset = getContainerOffset();
+      const itemStart = getItemOffset(index) + containerOffset;
+      const itemHeight = measuredHeights.current.get(index) ?? ESTIMATE_ROW_HEIGHT;
+      if (align === "start") {
         scrollEl.scrollTop = itemStart;
-      } else if (itemStart + itemHeight > scrollEl.scrollTop + scrollEl.clientHeight) {
-        scrollEl.scrollTop = itemStart + itemHeight - scrollEl.clientHeight;
+      } else if (align === "center") {
+        scrollEl.scrollTop = itemStart - scrollEl.clientHeight / 2 + itemHeight / 2;
+      } else {
+        if (itemStart < scrollEl.scrollTop) {
+          scrollEl.scrollTop = itemStart;
+        } else if (itemStart + itemHeight > scrollEl.scrollTop + scrollEl.clientHeight) {
+          scrollEl.scrollTop = itemStart + itemHeight - scrollEl.clientHeight;
+        }
       }
-    }
+    };
+
+    applyScroll();
+    requestAnimationFrame(applyScroll);
   };
 
   return { totalSize: getTotalSize(), virtualItems, measureElement, scrollToIndex };
