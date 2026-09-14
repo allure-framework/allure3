@@ -867,7 +867,7 @@ __metadata:
     d3-brush: "npm:^3.0.0"
     d3-format: "npm:^3.1.0"
     d3-interpolate: "npm:^3.0.1"
-    d3-regression: "npm:^1.3.10"
+    d3-regression: "npm:^2.2.0"
     d3-scale: "npm:^4.0.2"
     d3-selection: "npm:^3.0.0"
     d3-shape: "npm:^3.2.0"
@@ -10454,10 +10454,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-regression@npm:^1.3.10":
-  version: 1.3.10
-  resolution: "d3-regression@npm:1.3.10"
-  checksum: 10/c052c3a4d89ff60e4ea105ab52173e9b024cef524e3e51125ac7ba25b66ecb6dc49196e8624151e0117e44c83b6a10781d76ec923925d541452d5a500e1dc1c1
+"d3-regression@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "d3-regression@npm:2.2.0"
+  checksum: 10/92f7a8ae22717499c7dead90ab8a8d79ce748cb5c2eda311f0d17b21fd04801325cca06f150bcc14024009fac6f16df135223fb42ee55b224d8bcf313036051d
   languageName: node
   linkType: hard
 
