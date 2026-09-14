@@ -19,6 +19,15 @@ export type ReportSummary = {
 type StatusI18nKeys = "status.failed" | "status.broken" | "status.passed" | "status.skipped" | "status.unknown";
 type MetadataI18nKeys = "metadata.new" | "metadata.retry" | "metadata.flaky";
 
-type I18nKeys = MetadataI18nKeys | StatusI18nKeys | "in" | "new" | "retry" | "flaky" | "total" | "createdAt";
+type I18nKeys =
+  | `successRate.${string}`
+  | MetadataI18nKeys
+  | StatusI18nKeys
+  | "in"
+  | "new"
+  | "retry"
+  | "flaky"
+  | "total"
+  | "createdAt";
 
 export type I18nProp = (key: I18nKeys, props?: Record<string, any>) => string | undefined;

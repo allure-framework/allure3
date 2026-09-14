@@ -503,6 +503,17 @@
       "groups": {
         "other": "Other"
       }
+    },
+    "successRate": {
+      "successRate": "Success rate: {{rate}}",
+      "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
+      "noResults": "There are no test results.",
+      "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+      "slice_one": "{{count}} test ({{percent}}% of all tests)",
+      "slice_other": "{{count}} tests ({{percent}}% of all tests)",
+      "layer": "Layer: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
+      "slice": "{{count}} tests ({{percent}}% of all tests)"
     }
   },
   "transitions": {

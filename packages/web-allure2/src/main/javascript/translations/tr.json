@@ -8,7 +8,15 @@
       "name": "Önem Derecesi"
     },
     "status": {
-      "name": "Durum"
+      "name": "Durum",
+      "successRate": "Başarı oranı: {{rate}}",
+      "successRateDescription": "Başarılı, başarısız ve bozuk testlerden hesaplanır. Atlanan ve durumu bilinmeyen testler hariç tutulur.",
+      "noResults": "Test sonucu yok.",
+      "noEligibleResults": "Başarılı, başarısız veya bozuk test yok. Atlanan ve durumu bilinmeyen testler başarı oranına dahil edilmez.",
+      "slice_one": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
+      "slice_other": "{{count}} test (tüm testlerin %{{percent}} kadarı)",
+      "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
+      "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
     },
     "trend": {
       "empty": "Gösterilecek bir şey yok",

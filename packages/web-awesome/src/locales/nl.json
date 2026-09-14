@@ -438,6 +438,17 @@
       "groups": {
         "other": "Overig"
       }
+    },
+    "successRate": {
+      "successRate": "Slagingspercentage: {{rate}}",
+      "successRateDescription": "Berekend op basis van geslaagde, mislukte en defecte tests. Overgeslagen tests en tests met onbekende status zijn uitgesloten.",
+      "noResults": "Er zijn geen testresultaten.",
+      "noEligibleResults": "Er zijn geen geslaagde, mislukte of defecte tests. Overgeslagen tests en tests met onbekende status tellen niet mee voor het slagingspercentage.",
+      "slice_one": "{{count}} test ({{percent}}% van alle tests)",
+      "slice_other": "{{count}} tests ({{percent}}% van alle tests)",
+      "layer": "Laag: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
+      "slice": "{{count}} tests ({{percent}}% van alle tests)"
     }
   },
   "transitions": {

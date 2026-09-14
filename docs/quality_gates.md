@@ -239,3 +239,11 @@ export default defineConfig({
   },
 });
 ```
+
+## Success rate
+
+The `successRate` rule compares an unrounded ratio from 0 to 1 against the configured minimum. For example, `successRate: 0.9` requires at least 90%.
+
+The ratio is `passed / (passed + failed + broken)`. Skipped and unknown results are excluded from this metric, but remain in report totals and status distributions. A run with no eligible results has a numeric success rate of zero and fails any positive success-rate threshold. Existing retry and resolution exclusions still apply before quality gate evaluation.
+
+Report success-rate charts use the same denominator. Displayed percentages are truncated to at most two decimal places. Pie slices and test-count proportions use all five statuses, so the passed slice percentage can differ from the success-rate caption. Empty pies display `???`; nonempty pies with no passed results display `0%`, with an explanation when no eligible results exist.

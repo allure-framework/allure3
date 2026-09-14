@@ -438,6 +438,18 @@
       "groups": {
         "other": "Outro"
       }
+    },
+    "successRate": {
+      "successRate": "Taxa de sucesso: {{rate}}",
+      "successRateDescription": "Calculada a partir dos testes aprovados, reprovados e com erros. Os testes ignorados e com estado desconhecido são excluídos.",
+      "noResults": "Não há resultados de testes.",
+      "noEligibleResults": "Não há testes aprovados, reprovados ou com erros. Os testes ignorados e com estado desconhecido são excluídos da taxa de sucesso.",
+      "slice_one": "{{count}} teste ({{percent}}% de todos os testes)",
+      "slice_other": "{{count}} testes ({{percent}}% de todos os testes)",
+      "layer": "Camada: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% de todos os testes)",
+      "slice": "{{count}} testes ({{percent}}% de todos os testes)",
+      "slice_many": "{{count}} testes ({{percent}}% de todos os testes)"
     }
   },
   "transitions": {

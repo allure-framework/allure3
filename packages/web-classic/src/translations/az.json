@@ -133,6 +133,17 @@
     },
     "pie": {
       "title": "Testin Uğur Faizi"
+    },
+    "successRate": {
+      "successRate": "Uğur faizi: {{rate}}",
+      "successRateDescription": "Uğurlu, uğursuz və nasaz testlər əsasında hesablanır. Ötürülmüş və statusu naməlum testlər daxil edilmir.",
+      "noResults": "Test nəticələri yoxdur.",
+      "noEligibleResults": "Uğurlu, uğursuz və ya nasaz testlər yoxdur. Ötürülmüş və statusu naməlum testlər uğur faizinə daxil edilmir.",
+      "slice_one": "{{count}} test (bütün testlərin {{percent}}%-i)",
+      "slice_other": "{{count}} test (bütün testlərin {{percent}}%-i)",
+      "layer": "Səviyyə: {{layer}}",
+      "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
+      "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
     }
   }
 }

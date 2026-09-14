@@ -215,5 +215,20 @@
   },
   "nav": {
     "comingSoon": "Skoro"
+  },
+  "charts": {
+    "successRate": {
+      "successRate": "Procent uspěha: {{rate}}",
+      "successRateDescription": "Izračunano iz uspěšnyh, neuspěšnyh i slomanyh testov. Propustjene testy i testy s neznanym statusom sut izključene.",
+      "noResults": "Nema rezultatov testov.",
+      "noEligibleResults": "Nema uspěšnyh, neuspěšnyh ili slomanyh testov. Propustjene testy i testy s neznanym statusom sut izključene iz procenta uspěha.",
+      "slice_one": "{{count}} test ({{percent}}% vsih testov)",
+      "slice_other": "{{count}} testov ({{percent}}% vsih testov)",
+      "layer": "Sloj: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% vsih testov)",
+      "slice": "{{count}} testov ({{percent}}% vsih testov)",
+      "slice_few": "{{count}} testy ({{percent}}% vsih testov)",
+      "slice_many": "{{count}} testov ({{percent}}% vsih testov)"
+    }
   }
 }

@@ -4,6 +4,13 @@ import type {
   TestingPyramidChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
+import {
+  emptyStatistic,
+  getSuccessRate,
+  getSuccessRateTotal,
+  incrementStatistic,
+  type Statistic,
+} from "@allurereport/core-api";
 
 const DEFAULT_LAYERS = ["unit", "integration", "e2e"] as const;
 
@@ -29,20 +36,7 @@ export const generateTestingPyramidChart = (
     layersMap.set(layer.toLocaleLowerCase(), layer);
   });
 
-  const statsByLayers = new Map<
-    string,
-    {
-      passed: number;
-      total: number;
-    }
-  >();
-
-  layers.forEach((layer) => {
-    statsByLayers.set(layer, {
-      passed: 0,
-      total: 0,
-    });
-  });
+  const statsByLayers = new Map<string, Statistic>(layers.map((layer) => [layer, emptyStatistic()]));
 
   for (const testResult of testResults) {
     const trLayer = testResult.labels.find((label) => label.name === "layer")?.value;
@@ -59,11 +53,7 @@ export const generateTestingPyramidChart = (
 
     const data = statsByLayers.get(layer)!;
 
-    data.total++;
-
-    if (testResult.status === "passed") {
-      data.passed++;
-    }
+    incrementStatistic(data, testResult.status);
   }
 
   return {
@@ -75,7 +65,8 @@ export const generateTestingPyramidChart = (
       return {
         layer,
         testCount: data.total,
-        successRate: getPercentage(data.passed, data.total),
+        successRate: Math.floor(getSuccessRate(data) * 10000) / 100,
+        eligibleCount: getSuccessRateTotal(data),
         percentage: getPercentage(data.total, testResults.length),
       };
     }),

@@ -137,7 +137,7 @@
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.10.2",
-    "allure-vitest": "3.8.0",
+    "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^10.1.1",
     "babel-plugin-prismjs": "^2.1.0",

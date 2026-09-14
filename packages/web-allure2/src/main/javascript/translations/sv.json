@@ -8,7 +8,15 @@
       "name": "Allvarlighetsgrad"
     },
     "status": {
-      "name": "Tillstånd"
+      "name": "Tillstånd",
+      "successRate": "Andel godkända: {{rate}}",
+      "successRateDescription": "Beräknas från godkända, underkända och trasiga tester. Överhoppade tester och tester med okänd status utesluts.",
+      "noResults": "Det finns inga testresultat.",
+      "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända.",
+      "slice_one": "{{count}} test ({{percent}}% av alla tester)",
+      "slice_other": "{{count}} tester ({{percent}}% av alla tester)",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
+      "slice": "{{count}} tester ({{percent}}% av alla tester)"
     },
     "trend": {
       "empty": "Det finns ingenting att visa här",

@@ -23,6 +23,7 @@ export * from "./utils/label.js";
 export * from "./utils/parameter.js";
 export * from "./utils/testplan.js";
 export * from "./utils/status.js";
+export * from "./utils/successRate.js";
 export * from "./utils/environment.js";
 export * from "./utils/history.js";
 export * from "./utils/strings.js";

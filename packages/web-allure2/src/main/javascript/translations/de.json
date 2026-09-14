@@ -8,7 +8,15 @@
       "name": "Ausmaß"
     },
     "status": {
-      "name": "Zustand"
+      "name": "Zustand",
+      "successRate": "Erfolgsquote: {{rate}}",
+      "successRateDescription": "Berechnet aus erfolgreichen, fehlgeschlagenen und defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind ausgeschlossen.",
+      "noResults": "Es gibt keine Testergebnisse.",
+      "noEligibleResults": "Es gibt keine erfolgreichen, fehlgeschlagenen oder defekten Tests. Übersprungene Tests und Tests mit unbekanntem Status sind von der Erfolgsquote ausgeschlossen.",
+      "slice_one": "{{count}} Test ({{percent}}% aller Tests)",
+      "slice_other": "{{count}} Tests ({{percent}}% aller Tests)",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% aller Tests)",
+      "slice": "{{count}} Tests ({{percent}}% aller Tests)"
     },
     "trend": {
       "empty": "Hier gibt es nichts zu zeigen",

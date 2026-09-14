@@ -161,10 +161,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/e2e@workspace:packages/e2e"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
+    "@allurereport/plugin-classic": "workspace:*"
+    "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
     "@faker-js/faker": "npm:^10.5.0"
@@ -586,6 +589,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-allure2@workspace:packages/web-allure2"
   dependencies:
+    "@allurereport/core-api": "workspace:*"
     "@playwright/test": "npm:^1.62.1"
     "@types/d3-array": "npm:^3.2.2"
     "@types/d3-axis": "npm:^3.0.6"
@@ -856,7 +860,7 @@ __metadata:
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3.10.2"
-    allure-vitest: "npm:3.8.0"
+    allure-vitest: "npm:^3"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -8748,20 +8752,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.8.0":
-  version: 3.8.0
-  resolution: "allure-js-commons@npm:3.8.0"
-  dependencies:
-    md5: "npm:^2.3.0"
-  peerDependencies:
-    allure-playwright: 3.8.0
-  peerDependenciesMeta:
-    allure-playwright:
-      optional: true
-  checksum: 10/2860fc901f560b89250c7acb613c555cf5ae6c5d6355511f624b331661387a8b5d36cf759dcf9d0d15aea5e760739f2e4794a438a0da779658589dedfb12dd90
-  languageName: node
-  linkType: hard
-
 "allure-js-commons@npm:3.9.0, allure-js-commons@npm:^3":
   version: 3.9.0
   resolution: "allure-js-commons@npm:3.9.0"
@@ -8784,18 +8774,6 @@ __metadata:
   peerDependencies:
     "@playwright/test": ">=1.53.0"
   checksum: 10/e7270965dc888f439648a72ec0aaaaeddda0f0738942e9bea6001c0c440d60db6dd9057a6454121c25e1184780944fd311f415e64e9eea359fbc7407e9448d5b
-  languageName: node
-  linkType: hard
-
-"allure-vitest@npm:3.8.0":
-  version: 3.8.0
-  resolution: "allure-vitest@npm:3.8.0"
-  dependencies:
-    allure-js-commons: "npm:3.8.0"
-  peerDependencies:
-    "@vitest/runner": ">=1.3.0"
-    vitest: ">=1.3.0"
-  checksum: 10/99eca6a1d8b01e5ee0d9403a764ae437b0d8f251e5ad8adb30a0ca1f8b2d5535449b80df2cc8ade89daa3a5018adc63883dfe9ca58b4fd386bc03c0b66be8bf8
   languageName: node
   linkType: hard
 

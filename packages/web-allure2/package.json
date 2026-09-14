@@ -42,6 +42,7 @@
     "lint:code:fix": "oxlint --import-plugin --config .oxlintrc.json --fix src/main/javascript scripts tests/e2e playwright.config.mts"
   },
   "devDependencies": {
+    "@allurereport/core-api": "workspace:*",
     "@playwright/test": "^1.62.1",
     "@types/d3-array": "^3.2.2",
     "@types/d3-axis": "^3.0.6",

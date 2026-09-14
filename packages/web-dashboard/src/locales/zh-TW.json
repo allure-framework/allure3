@@ -210,6 +210,17 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "successRate": {
+      "successRate": "成功率：{{rate}}",
+      "successRateDescription": "根據通過、失敗和損壞的測試計算。跳過和狀態未知的測試不計入。",
+      "noResults": "沒有測試結果。",
+      "noEligibleResults": "沒有通過、失敗或損壞的測試。跳過和狀態未知的測試不計入成功率。",
+      "slice_one": "{{count}} 個測試（占全部測試的 {{percent}}%）",
+      "slice_other": "{{count}} 個測試（占全部測試的 {{percent}}%）",
+      "layer": "層級：{{layer}}",
+      "statusSlice": "{{count}} {{status}} （占全部測試的 {{percent}}%）",
+      "slice": "{{count}} 個測試（占全部測試的 {{percent}}%）"
     }
   },
   "transitions": {

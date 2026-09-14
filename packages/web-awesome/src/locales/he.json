@@ -438,6 +438,18 @@
       "groups": {
         "other": "אחר"
       }
+    },
+    "successRate": {
+      "successRate": "שיעור הצלחה: {{rate}}",
+      "successRateDescription": "מחושב לפי בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות.",
+      "noResults": "אין תוצאות בדיקות.",
+      "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה.",
+      "slice_one": "בדיקה אחת: {{count}} ({{percent}}% מכל הבדיקות)",
+      "slice_other": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
+      "layer": "שכבה: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% מכל הבדיקות)",
+      "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
+      "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
     }
   },
   "transitions": {

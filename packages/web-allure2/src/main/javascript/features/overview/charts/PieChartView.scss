@@ -1,0 +1,16 @@
+@use "../../../theme/spacing.scss" as *;
+
+.pie-chart-tooltip {
+  pointer-events: auto;
+  line-height: 1.25;
+  text-align: center;
+  max-width: min(32rem, calc(100vw - 16px));
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.chart__caption:focus-visible,
+.chart__arc:focus-visible,
+.chart__legend-row:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: gap(0.5);
+}

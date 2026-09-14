@@ -20,6 +20,18 @@
       "retry_zero": "Nessun test ripetuto",
       "retry_one": "{{count}} test ripetuto",
       "retry_other": "{{count}} test ripetuti"
+    },
+    "successRate": {
+      "successRate": "Percentuale di successo: {{rate}}",
+      "successRateDescription": "Calcolata sui test superati, falliti e con errori. I test saltati e con stato sconosciuto sono esclusi.",
+      "noResults": "Non ci sono risultati dei test.",
+      "noEligibleResults": "Non ci sono test superati, falliti o con errori. I test saltati e con stato sconosciuto sono esclusi dalla percentuale di successo.",
+      "slice_one": "{{count}} test ({{percent}}% di tutti i test)",
+      "slice_other": "{{count}} test ({{percent}}% di tutti i test)",
+      "layer": "Livello: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% di tutti i test)",
+      "slice": "{{count}} test ({{percent}}% di tutti i test)",
+      "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
     }
   },
   "ui": {

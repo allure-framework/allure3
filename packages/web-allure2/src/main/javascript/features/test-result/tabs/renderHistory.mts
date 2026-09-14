@@ -1,3 +1,5 @@
+import { getSuccessRateTotal } from "@allurereport/core-api";
+
 import dateHelper from "../../../helpers/date.mts";
 import translate from "../../../helpers/t.mts";
 import timeHelper from "../../../helpers/time.mts";
@@ -65,7 +67,7 @@ export const renderHistory = ({ cls, history, successRate }: HistoryRenderOption
     ? translate("testResult.history.statistic", {
         hash: {
           passed: statistic.passed,
-          total: statistic.total,
+          total: getSuccessRateTotal(statistic),
         },
       })
     : "";
