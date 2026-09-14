@@ -144,9 +144,11 @@ const closeStream = async (stream: Readable | Writable): Promise<void> => {
   }
 
   await new Promise<void>((resolve) => {
+    // only "close" tells us the handle reference has been released; an "error" is emitted before
+    // it, so it must not end the wait -- but it still has to be swallowed, because releasing the
+    // resources must not fail the operation the stream has already completed
+    stream.once("error", () => {});
     stream.once("close", () => resolve());
-    // releasing the resources must not fail the operation the stream has already completed
-    stream.once("error", () => resolve());
     stream.destroy();
   });
 };
