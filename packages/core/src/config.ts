@@ -182,6 +182,7 @@ export const validateConfig = (config: Config) => {
     "categories",
     "globalAttachments",
     "resultsDir",
+    "dump",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -328,6 +329,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
+  const dump = config.dump;
   const appendHistory = config.appendHistory ?? true;
   const configuredKnownIssuesPath = override.resolutions?.knownIssuesPath ?? config.resolutions?.knownIssuesPath;
   const knownIssuesPathInput =
@@ -382,6 +384,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     historyLimit,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     historyBaseUrl,
+    dump,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
