@@ -176,6 +176,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       groupOrder={leaf.groupOrder as number}
       duration={leaf.duration}
       retriesCount={leaf.retriesCount}
+      retriesStatusChange={leaf.retriesStatusChange}
       resolution={leaf.resolution}
       transition={leaf.transition}
       transitionTooltip={leaf.transitionTooltip}

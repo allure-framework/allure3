@@ -47,12 +47,12 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
   );
 };
 
-const createRelatedByTestResultIdsMock = () =>
+const createRelatedByTestResultIdsMock = (retries: ReadonlyMap<string, TestResult[]> = new Map()) =>
   vi.fn(async (trIds: readonly string[]) => ({
     attachmentsByTrId: new Map(trIds.map((trId) => [trId, []])),
     fixturesByTrId: new Map(trIds.map((trId) => [trId, []])),
     historyByTrId: new Map(trIds.map((trId) => [trId, undefined])),
-    retriesByTrId: new Map(trIds.map((trId) => [trId, []])),
+    retriesByTrId: new Map(trIds.map((trId) => [trId, retries.get(trId) ?? []])),
   }));
 
 const fixtures: any = {
@@ -904,7 +904,11 @@ describe("plugin", () => {
   describe("report assets", () => {
     const environmentIdOf = (tr: TestResult) => tr.environment ?? "default";
 
-    const makeSingleFileStore = (testResults: TestResult[], metadata: Record<string, unknown> = {}): AllureStore =>
+    const makeSingleFileStore = (
+      testResults: TestResult[],
+      metadata: Record<string, unknown> = {},
+      retries: ReadonlyMap<string, TestResult[]> = new Map(),
+    ): AllureStore =>
       ({
         metadataByKey: vi.fn(async (key: string) => metadata[key]),
         allEnvironments: vi.fn(async () => [...new Set(testResults.map(environmentIdOf))]),
@@ -942,7 +946,7 @@ describe("plugin", () => {
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
-        relatedByTestResultIds: createRelatedByTestResultIdsMock(),
+        relatedByTestResultIds: createRelatedByTestResultIdsMock(retries),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
         envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
@@ -1247,6 +1251,90 @@ describe("plugin", () => {
       expect(reportOptions.runSummaryByEnv).toEqual({
         staging: { start: 500, stop: 3000, duration: 2500 },
         prod: { start: 10_000, stop: 12_500, duration: 2500 },
+      });
+    });
+
+    it("should emit retry status change flags and environment-specific counters", async () => {
+      const changed = {
+        id: "tr-changed",
+        name: "changed",
+        status: "passed",
+        environment: "staging",
+        isRetry: false,
+        labels: [],
+      } as unknown as TestResult;
+      const changedRetry = {
+        id: "retry-changed",
+        name: "changed",
+        status: "failed",
+        environment: "staging",
+        isRetry: true,
+        labels: [],
+      } as unknown as TestResult;
+      const unchanged = {
+        id: "tr-unchanged",
+        name: "unchanged",
+        status: "failed",
+        environment: "prod",
+        isRetry: false,
+        labels: [],
+      } as unknown as TestResult;
+      const unchangedRetry = {
+        id: "retry-unchanged",
+        name: "unchanged",
+        status: "failed",
+        environment: "prod",
+        isRetry: true,
+        labels: [],
+      } as unknown as TestResult;
+      const retries = new Map<string, TestResult[]>([
+        [changed.id, [changedRetry]],
+        [unchanged.id, [unchangedRetry]],
+      ]);
+      const testResults = [changed, changedRetry, unchanged, unchangedRetry];
+      const store = makeSingleFileStore(testResults, {}, retries);
+
+      store.testsStatistic = vi.fn().mockResolvedValue({
+        total: 2,
+        passed: 1,
+        failed: 1,
+        retries: 2,
+        retriesStatusChange: 1,
+      });
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true, charts: [] });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), store);
+
+      const embeddedData = extractEmbeddedData(addedFiles.get("index.html")?.toString("utf-8") ?? "");
+      const decode = (path: string) => JSON.parse(Buffer.from(embeddedData[path], "base64").toString("utf-8"));
+
+      expect(decode("widgets/statistic.json")).toMatchObject({ retries: 2, retriesStatusChange: 1 });
+      expect(decode("widgets/staging/statistic.json")).toMatchObject({
+        total: 1,
+        passed: 1,
+        retries: 1,
+        retriesStatusChange: 1,
+      });
+      expect(decode("widgets/prod/statistic.json")).toMatchObject({ total: 1, failed: 1, retries: 1 });
+      expect(decode("widgets/prod/statistic.json").retriesStatusChange).toBeUndefined();
+      expect(decode("data/test-results/tr-changed.json")).toMatchObject({
+        retry: true,
+        retriesCount: 1,
+        retriesStatusChange: true,
+      });
+      expect(decode("data/test-results/tr-unchanged.json")).toMatchObject({
+        retry: true,
+        retriesCount: 1,
+        retriesStatusChange: false,
       });
     });
   });
