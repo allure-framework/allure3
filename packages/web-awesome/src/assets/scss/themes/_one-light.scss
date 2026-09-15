@@ -12,12 +12,12 @@
 
   --color-text-primary: #383a42;
   --color-text-secondary: #696c77;
-  --color-text-muted: #a0a1a7;
+  --color-text-muted: #6a6b72;
   --color-text-inverse: #fafafa;
-  --color-text-on-accent: #ffffff;
+  --color-text-on-accent: #101010;
   --color-icon-primary: #696c77;
-  --color-icon-secondary: #a0a1a7;
-  --color-icon-muted: #a0a1a7;
+  --color-icon-secondary: #8d8f96;
+  --color-icon-muted: #8d8f96;
 
   --color-border-subtle: rgba(56, 58, 66, 0.08);
   --color-border-default: rgba(56, 58, 66, 0.2);
@@ -45,14 +45,14 @@
   --color-sorter-fg-hover: #696c77;
   --color-sorter-fg-active: #4078f2;
 
-  --color-link-text: #4078f2;
+  --color-link-text: #2d6af1;
   --color-link-text-hover: #4078f2;
   --color-link-text-active: #2d65e0;
 
   --color-intent-primary-bg: #4078f2;
   --color-intent-primary-bg-hover: #2d65e0;
   --color-intent-primary-bg-active: #1a52ce;
-  --color-intent-primary-text: #4078f2;
+  --color-intent-primary-text: #2d6af1;
   --color-intent-primary-on-bg: #ffffff;
 
   --color-intent-danger-bg: #e45649;
@@ -93,25 +93,25 @@
 
   --color-status-failed-bg: #e45649;
   --color-status-failed-bg-subtle: rgba(228, 86, 73, 0.1);
-  --color-status-failed-text: #e45649;
+  --color-status-failed-text: #da3020;
   --color-status-failed-border: #e45649;
-  --color-status-failed-on-bg: #ffffff;
+  --color-status-failed-on-bg: #101010;
   --color-status-failed-chart: #e45649;
   --color-status-failed-chart-fill: #e45649;
 
   --color-status-broken-bg: #c18401;
   --color-status-broken-bg-subtle: rgba(193, 132, 1, 0.1);
-  --color-status-broken-text: #c18401;
+  --color-status-broken-text: #986801;
   --color-status-broken-border: #c18401;
-  --color-status-broken-on-bg: #ffffff;
+  --color-status-broken-on-bg: #101010;
   --color-status-broken-chart: #c18401;
   --color-status-broken-chart-fill: #c18401;
 
   --color-status-passed-bg: #50a14f;
   --color-status-passed-bg-subtle: rgba(80, 161, 79, 0.1);
-  --color-status-passed-text: #50a14f;
+  --color-status-passed-text: #3f7f3e;
   --color-status-passed-border: #50a14f;
-  --color-status-passed-on-bg: #ffffff;
+  --color-status-passed-on-bg: #101010;
   --color-status-passed-chart: #50a14f;
   --color-status-passed-chart-fill: #50a14f;
 
@@ -119,26 +119,26 @@
   --color-status-skipped-bg-subtle: rgba(160, 161, 167, 0.15);
   --color-status-skipped-text: #696c77;
   --color-status-skipped-border: #a0a1a7;
-  --color-status-skipped-on-bg: #ffffff;
-  --color-status-skipped-chart: #a0a1a7;
+  --color-status-skipped-on-bg: #101010;
+  --color-status-skipped-chart: #8d8f96;
   --color-status-skipped-chart-fill: #a0a1a7;
 
   --color-tag-default-bg: rgba(56, 58, 66, 0.08);
   --color-tag-default-text: #383a42;
   --color-tag-secondary-bg: #e5e5e5;
-  --color-tag-secondary-text: #696c77;
+  --color-tag-secondary-text: #62656f;
 
   --color-syntax-number: #986801;
   --color-syntax-property: #383a42;
-  --color-syntax-string: #50a14f;
+  --color-syntax-string: #418240;
   --color-syntax-keyword: #a626a4;
-  --color-syntax-function: #4078f2;
-  --color-syntax-type: #0184bb;
+  --color-syntax-function: #326ef1;
+  --color-syntax-type: #017db1;
   --color-syntax-muted-accent: #a626a4;
 
   --color-decorative-1-text: #a626a4;
-  --color-decorative-2-text: #e45649;
-  --color-decorative-3-text: #d75f00;
-  --color-decorative-4-text: #c18401;
-  --color-decorative-5-text: #0184bb;
+  --color-decorative-2-text: #da3020;
+  --color-decorative-3-text: #be5400;
+  --color-decorative-4-text: #986801;
+  --color-decorative-5-text: #0179ac;
 }

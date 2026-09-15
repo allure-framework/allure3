@@ -9,6 +9,10 @@
   width: 100%;
 }
 
+.wrapper button {
+  box-shadow: var(--control-frame, none);
+}
+
 .btnWrapper {
   position: relative;
 

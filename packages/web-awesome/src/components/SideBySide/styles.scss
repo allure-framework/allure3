@@ -22,10 +22,10 @@
   box-shadow: var(--shadow-small);
   overflow: hidden;
   min-height: 0;
-  border-top: 2px solid transparent;
+  border: 1px solid transparent;
 
   &[data-pane-active] {
-    border-top-color: var(--color-intent-primary-text);
+    border-color: var(--color-intent-primary-text);
   }
 
   > * {
@@ -40,10 +40,10 @@
   border-radius: 0 12px 12px 0;
   box-shadow: var(--shadow-small);
   overflow: hidden;
-  border-top: 2px solid transparent;
+  border: 1px solid transparent;
 
   &[data-pane-active] {
-    border-top-color: var(--color-intent-primary-text);
+    border-color: var(--color-intent-primary-text);
   }
 }
 

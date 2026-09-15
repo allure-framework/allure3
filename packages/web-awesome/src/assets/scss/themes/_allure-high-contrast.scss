@@ -1,28 +1,26 @@
 /* High Contrast — WCAG AAA (≥7:1) for low vision and achromatopsia.
    Light: dark saturated colors on white. Dark: vivid colors on near-black. */
 
-:root[data-color-scheme="allure-high-contrast-light"],
-:root[data-color-scheme="allure-high-contrast-dark"] {
-  color-scheme: light dark;
-}
-
 :root[data-color-scheme="allure-high-contrast-light"] {
-  --color-bg-canvas: #ffffff;
+  color-scheme: light;
+
+  --color-bg-canvas: #e6e6e6;
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f5f5f5;
+  --color-bg-secondary: #e6e6e6;
   --color-bg-raised: #ffffff;
-  --color-bg-neutral: #d0d0d0;
+  --color-bg-neutral: #c4c4c4;
 
   --color-text-primary: #000000;
   --color-text-secondary: #1a1a1a;
   --color-text-muted: #555555;
   --color-icon-primary: #1a1a1a;
   --color-icon-secondary: #555555;
+  --color-icon-muted: #555555;
 
-  --color-border-subtle: rgba(0, 0, 0, 0.1);
-  --color-border-default: rgba(0, 0, 0, 0.35);
-  --color-border-medium: rgba(0, 0, 0, 0.55);
-  --color-border-control: rgba(0, 0, 0, 0.45);
+  --color-border-subtle: rgba(0, 0, 0, 0.25);
+  --color-border-default: rgba(0, 0, 0, 0.5);
+  --color-border-medium: rgba(0, 0, 0, 0.65);
+  --color-border-control: rgba(0, 0, 0, 0.55);
   --color-border-strong: #000000;
 
   --color-status-failed-bg: #b30000;
@@ -79,22 +77,25 @@
 }
 
 :root[data-color-scheme="allure-high-contrast-dark"] {
-  --color-bg-canvas: #0a0a0a;
-  --color-bg-primary: #111111;
-  --color-bg-secondary: #0a0a0a;
-  --color-bg-raised: #1a1a1a;
-  --color-bg-neutral: #2a2a2a;
+  color-scheme: dark;
+
+  --color-bg-canvas: #000000;
+  --color-bg-primary: #1a1a1a;
+  --color-bg-secondary: #000000;
+  --color-bg-raised: #242424;
+  --color-bg-neutral: #333333;
 
   --color-text-primary: #ffffff;
   --color-text-secondary: #e0e0e0;
   --color-text-muted: #aaaaaa;
   --color-icon-primary: #e0e0e0;
   --color-icon-secondary: #aaaaaa;
+  --color-icon-muted: #aaaaaa;
 
-  --color-border-subtle: rgba(255, 255, 255, 0.12);
-  --color-border-default: rgba(255, 255, 255, 0.35);
-  --color-border-medium: rgba(255, 255, 255, 0.55);
-  --color-border-control: rgba(255, 255, 255, 0.45);
+  --color-border-subtle: rgba(255, 255, 255, 0.25);
+  --color-border-default: rgba(255, 255, 255, 0.5);
+  --color-border-medium: rgba(255, 255, 255, 0.65);
+  --color-border-control: rgba(255, 255, 255, 0.55);
   --color-border-strong: #ffffff;
 
   --color-status-failed-bg: #ff5050;
@@ -148,4 +149,19 @@
   --color-intent-success-text: #60ff80;
   --color-intent-success-border: #60ff80;
   --color-intent-success-on-bg: #000000;
+}
+
+:root[data-color-scheme^="allure-high-contrast"] {
+  --shadow-small: 0 0 0 1px var(--color-border-default);
+  --shadow-medium: 0 0 0 1px var(--color-border-default);
+  --shadow-large: 0 0 0 1px var(--color-border-default);
+  --shadow-raised: 0 0 0 1px var(--color-border-default);
+
+  --section-frame: 1px solid var(--color-border-default);
+  --section-radius: 8px;
+  --section-padding-inline: 12px;
+  --section-gutter: 24px;
+  --section-gap: 12px;
+  --section-padding-block: 6px;
+  --control-frame: inset 0 0 0 1px var(--color-border-default);
 }

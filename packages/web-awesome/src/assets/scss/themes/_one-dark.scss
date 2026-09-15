@@ -1,24 +1,24 @@
 :root[data-color-scheme="one-dark"] {
-  --color-bg-canvas: #282c34;
+  --color-bg-canvas: #1b1f23;
   --color-bg-primary: #21252b;
-  --color-bg-secondary: #282c34;
+  --color-bg-secondary: #1b1f23;
   --color-bg-raised: #2c313a;
   --color-bg-neutral: #3e4451;
   --color-bg-overlay: rgba(0, 0, 0, 0.6);
   --color-bg-inverse-primary: #181b1f;
   --color-bg-inverse-raised: #1c1f24;
 
-  --color-text-primary: #d0d7e3;
+  --color-text-primary: #abb2bf;
   --color-text-secondary: #a8b0bd;
-  --color-text-muted: #727a87;
-  --color-text-inverse: #282c34;
+  --color-text-muted: #8d949f;
+  --color-text-inverse: #abb2bf;
   --color-text-on-accent: #282c34;
   --color-icon-primary: #a8b0bd;
   --color-icon-secondary: #727a87;
-  --color-icon-muted: #5c6370;
+  --color-icon-muted: #686f7e;
 
   --color-border-subtle: rgba(92, 99, 112, 0.14);
-  --color-border-default: rgba(92, 99, 112, 0.28);
+  --color-border-default: rgba(92, 99, 112, 0.32);
   --color-border-medium: rgba(92, 99, 112, 0.42);
   --color-border-control: rgba(92, 99, 112, 0.36);
   --color-border-strong: #828997;
@@ -56,12 +56,12 @@
   --color-tag-default-bg: rgba(92, 99, 112, 0.18);
   --color-tag-default-text: #abb2bf;
   --color-tag-secondary-bg: #2c313a;
-  --color-tag-secondary-text: #828997;
+  --color-tag-secondary-text: #9399a5;
 
   --color-syntax-number: #d19a66;
   --color-syntax-property: #abb2bf;
   --color-syntax-string: #98c379;
-  --color-syntax-keyword: #c678dd;
+  --color-syntax-keyword: #c87cde;
   --color-syntax-function: #61afef;
   --color-syntax-type: #56b6c2;
   --color-syntax-muted-accent: #c678dd;
@@ -71,4 +71,37 @@
   --color-decorative-3-text: #d19a66;
   --color-decorative-4-text: #e5c07b;
   --color-decorative-5-text: #56b6c2;
+
+  --color-status-failed-bg: #e06c75;
+  --color-status-failed-bg-subtle: rgba(224, 108, 117, 0.18);
+  --color-status-failed-text: #e06c75;
+  --color-status-failed-border: #e06c75;
+  --color-status-failed-on-bg: #101010;
+  --color-status-failed-chart: #e06c75;
+  --color-status-failed-chart-fill: #e06c75;
+
+  --color-status-broken-bg: #e5c07b;
+  --color-status-broken-bg-subtle: rgba(229, 192, 123, 0.18);
+  --color-status-broken-text: #e5c07b;
+  --color-status-broken-border: #e5c07b;
+  --color-status-broken-on-bg: #101010;
+  --color-status-broken-chart: #e5c07b;
+  --color-status-broken-chart-fill: #e5c07b;
+
+  --color-status-passed-bg: #98c379;
+  --color-status-passed-bg-subtle: rgba(152, 195, 121, 0.18);
+  --color-status-passed-text: #98c379;
+  --color-status-passed-border: #98c379;
+  --color-status-passed-on-bg: #101010;
+  --color-status-passed-chart: #98c379;
+  --color-status-passed-chart-fill: #98c379;
+
+  --color-status-skipped-bg: #8d949f;
+  --color-status-skipped-bg-subtle: rgba(141, 148, 159, 0.18);
+  --color-status-skipped-text: #8d949f;
+  --color-status-skipped-border: #8d949f;
+  --color-status-skipped-on-bg: #101010;
+  --color-status-skipped-chart: #8d949f;
+  --color-status-skipped-chart-fill: #8d949f;
+
 }

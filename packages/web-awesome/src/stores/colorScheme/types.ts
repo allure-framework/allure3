@@ -10,7 +10,10 @@ export type ThemeFamily =
   | "tokyo-night"
   | "monokai"
   | "dracula"
-  | "nord";
+  | "nord"
+  | "darcula"
+  | "vscode"
+  | "gruvbox";
 
 export type ColorScheme =
   | "default"
@@ -31,12 +34,17 @@ export type ColorScheme =
   | "tokyo-night"
   | "monokai"
   | "dracula"
-  | "nord";
+  | "nord"
+  | "darcula"
+  | "intellij-light"
+  | "vscode-dark"
+  | "vscode-light"
+  | "gruvbox-dark"
+  | "gruvbox-light";
 
 export interface ThemeFamilyOption {
   key: ThemeFamily;
   label: string;
-  preview: string;
   light: ColorScheme;
   dark: ColorScheme;
 }

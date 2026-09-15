@@ -1,9 +1,9 @@
 :root[data-color-scheme="solarized-light"] {
   color-scheme: light;
 
-  --color-bg-canvas: #fdf6e3;
-  --color-bg-primary: #eee8d5;
-  --color-bg-secondary: #fdf6e3;
+  --color-bg-canvas: #eee8d5;
+  --color-bg-primary: #fdf6e3;
+  --color-bg-secondary: #eee8d5;
   --color-bg-raised: #fffef8;
   --color-bg-neutral: #c8c0aa;
   --color-bg-overlay: rgba(0, 0, 0, 0.35);
@@ -11,13 +11,13 @@
   --color-bg-inverse-raised: #073642;
 
   --color-text-primary: #073642;
-  --color-text-secondary: #586e75;
-  --color-text-muted: #93a1a1;
+  --color-text-secondary: #566b72;
+  --color-text-muted: #5d6b6b;
   --color-text-inverse: #fdf6e3;
-  --color-text-on-accent: #fdf6e3;
+  --color-text-on-accent: #101010;
   --color-icon-primary: #586e75;
-  --color-icon-secondary: #93a1a1;
-  --color-icon-muted: #93a1a1;
+  --color-icon-secondary: #809090;
+  --color-icon-muted: #809090;
 
   --color-border-subtle: rgba(7, 54, 66, 0.08);
   --color-border-default: rgba(7, 54, 66, 0.18);
@@ -45,14 +45,14 @@
   --color-sorter-fg-hover: #586e75;
   --color-sorter-fg-active: #268bd2;
 
-  --color-link-text: #268bd2;
+  --color-link-text: #2074af;
   --color-link-text-hover: #268bd2;
   --color-link-text-active: #1a7bc2;
 
   --color-intent-primary-bg: #268bd2;
   --color-intent-primary-bg-hover: #1a7bc2;
   --color-intent-primary-bg-active: #0e6bb2;
-  --color-intent-primary-text: #268bd2;
+  --color-intent-primary-text: #2074af;
   --color-intent-primary-on-bg: #fdf6e3;
 
   --color-intent-danger-bg: #dc322f;
@@ -93,52 +93,52 @@
 
   --color-status-failed-bg: #dc322f;
   --color-status-failed-bg-subtle: rgba(220, 50, 47, 0.1);
-  --color-status-failed-text: #dc322f;
+  --color-status-failed-text: #d72724;
   --color-status-failed-border: #dc322f;
-  --color-status-failed-on-bg: #fdf6e3;
+  --color-status-failed-on-bg: #ffffff;
   --color-status-failed-chart: #dc322f;
   --color-status-failed-chart-fill: #dc322f;
 
   --color-status-broken-bg: #b58900;
   --color-status-broken-bg-subtle: rgba(181, 137, 0, 0.1);
-  --color-status-broken-text: #b58900;
+  --color-status-broken-text: #8c6a00;
   --color-status-broken-border: #b58900;
-  --color-status-broken-on-bg: #fdf6e3;
-  --color-status-broken-chart: #b58900;
+  --color-status-broken-on-bg: #101010;
+  --color-status-broken-chart: #b08500;
   --color-status-broken-chart-fill: #b58900;
 
   --color-status-passed-bg: #859900;
   --color-status-passed-bg-subtle: rgba(133, 153, 0, 0.1);
-  --color-status-passed-text: #859900;
+  --color-status-passed-text: #667500;
   --color-status-passed-border: #859900;
-  --color-status-passed-on-bg: #fdf6e3;
-  --color-status-passed-chart: #859900;
+  --color-status-passed-on-bg: #101010;
+  --color-status-passed-chart: #819400;
   --color-status-passed-chart-fill: #859900;
 
   --color-status-skipped-bg: #93a1a1;
   --color-status-skipped-bg-subtle: rgba(147, 161, 161, 0.15);
   --color-status-skipped-text: #586e75;
   --color-status-skipped-border: #93a1a1;
-  --color-status-skipped-on-bg: #fdf6e3;
-  --color-status-skipped-chart: #93a1a1;
+  --color-status-skipped-on-bg: #101010;
+  --color-status-skipped-chart: #809090;
   --color-status-skipped-chart-fill: #93a1a1;
 
   --color-tag-default-bg: rgba(7, 54, 66, 0.12);
   --color-tag-default-text: #073642;
   --color-tag-secondary-bg: #c8c0aa;
-  --color-tag-secondary-text: #586e75;
+  --color-tag-secondary-text: #405055;
 
-  --color-syntax-number: #6c71c4;
+  --color-syntax-number: #686dc3;
   --color-syntax-property: #073642;
-  --color-syntax-string: #2aa198;
-  --color-syntax-keyword: #859900;
-  --color-syntax-function: #268bd2;
-  --color-syntax-type: #b58900;
+  --color-syntax-string: #228179;
+  --color-syntax-keyword: #6a7a00;
+  --color-syntax-function: #217ab8;
+  --color-syntax-type: #916e00;
   --color-syntax-muted-accent: #6c71c4;
 
-  --color-decorative-1-text: #6c71c4;
-  --color-decorative-2-text: #dc322f;
-  --color-decorative-3-text: #cb4b16;
-  --color-decorative-4-text: #b58900;
-  --color-decorative-5-text: #2aa198;
+  --color-decorative-1-text: #6166c0;
+  --color-decorative-2-text: #d72724;
+  --color-decorative-3-text: #c24815;
+  --color-decorative-4-text: #8c6a00;
+  --color-decorative-5-text: #217d76;
 }

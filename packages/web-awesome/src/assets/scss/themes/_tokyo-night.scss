@@ -10,15 +10,15 @@
 
   --color-text-primary: #d5dcff;
   --color-text-secondary: #bac0e0;
-  --color-text-muted: #6d7699;
-  --color-text-inverse: #1a1b2e;
+  --color-text-muted: #888fab;
+  --color-text-inverse: #d5dcff;
   --color-text-on-accent: #1a1b2e;
   --color-icon-primary: #bac0e0;
   --color-icon-secondary: #6d7699;
-  --color-icon-muted: #565f89;
+  --color-icon-muted: #6872a0;
 
   --color-border-subtle: rgba(86, 95, 137, 0.12);
-  --color-border-default: rgba(86, 95, 137, 0.28);
+  --color-border-default: rgba(86, 95, 137, 0.34);
   --color-border-medium: rgba(86, 95, 137, 0.4);
   --color-border-control: rgba(86, 95, 137, 0.35);
   --color-border-strong: #a9b1d6;
@@ -71,4 +71,37 @@
   --color-decorative-3-text: #ff9e64;
   --color-decorative-4-text: #e0af68;
   --color-decorative-5-text: #73daca;
+
+  --color-status-failed-bg: #f7768e;
+  --color-status-failed-bg-subtle: rgba(247, 118, 142, 0.18);
+  --color-status-failed-text: #f7768e;
+  --color-status-failed-border: #f7768e;
+  --color-status-failed-on-bg: #101010;
+  --color-status-failed-chart: #f7768e;
+  --color-status-failed-chart-fill: #f7768e;
+
+  --color-status-broken-bg: #e0af68;
+  --color-status-broken-bg-subtle: rgba(224, 175, 104, 0.18);
+  --color-status-broken-text: #e0af68;
+  --color-status-broken-border: #e0af68;
+  --color-status-broken-on-bg: #101010;
+  --color-status-broken-chart: #e0af68;
+  --color-status-broken-chart-fill: #e0af68;
+
+  --color-status-passed-bg: #9ece6a;
+  --color-status-passed-bg-subtle: rgba(158, 206, 106, 0.18);
+  --color-status-passed-text: #9ece6a;
+  --color-status-passed-border: #9ece6a;
+  --color-status-passed-on-bg: #101010;
+  --color-status-passed-chart: #9ece6a;
+  --color-status-passed-chart-fill: #9ece6a;
+
+  --color-status-skipped-bg: #7982a9;
+  --color-status-skipped-bg-subtle: rgba(121, 130, 169, 0.18);
+  --color-status-skipped-text: #8990b3;
+  --color-status-skipped-border: #7982a9;
+  --color-status-skipped-on-bg: #101010;
+  --color-status-skipped-chart: #7982a9;
+  --color-status-skipped-chart-fill: #7982a9;
+
 }

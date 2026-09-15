@@ -2,12 +2,9 @@
    Red/green axis is preserved; avoid blue↔green confusion and yellow↔pink.
    Uses red (failed), teal-green (passed), dark orange (broken). */
 
-:root[data-color-scheme="allure-tritanopia-light"],
-:root[data-color-scheme="allure-tritanopia-dark"] {
-  color-scheme: light dark;
-}
-
 :root[data-color-scheme="allure-tritanopia-light"] {
+  color-scheme: light;
+
   --color-status-failed-bg: #c00000;
   --color-status-failed-bg-subtle: rgba(192, 0, 0, 0.1);
   --color-status-failed-text: #c00000;
@@ -62,11 +59,13 @@
 }
 
 :root[data-color-scheme="allure-tritanopia-dark"] {
+  color-scheme: dark;
+
   --color-status-failed-bg: #ff5050;
   --color-status-failed-bg-subtle: rgba(255, 80, 80, 0.18);
   --color-status-failed-text: #ff5050;
   --color-status-failed-border: #e03838;
-  --color-status-failed-on-bg: #ffffff;
+  --color-status-failed-on-bg: #101010;
   --color-status-failed-chart: #ff5050;
   --color-status-failed-chart-fill: #e03838;
 

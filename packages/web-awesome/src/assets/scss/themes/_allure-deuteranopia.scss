@@ -2,12 +2,9 @@
    Replaces red→vermillion, green→blue, amber→purple.
    Palette: Okabe-Ito (doi:10.1038/nmeth.1618) */
 
-:root[data-color-scheme="allure-deuteranopia-light"],
-:root[data-color-scheme="allure-deuteranopia-dark"] {
-  color-scheme: light dark;
-}
-
 :root[data-color-scheme="allure-deuteranopia-light"] {
+  color-scheme: light;
+
   --color-status-failed-bg: #c14000;
   --color-status-failed-bg-subtle: rgba(193, 64, 0, 0.1);
   --color-status-failed-text: #c14000;
@@ -62,11 +59,13 @@
 }
 
 :root[data-color-scheme="allure-deuteranopia-dark"] {
+  color-scheme: dark;
+
   --color-status-failed-bg: #e06020;
   --color-status-failed-bg-subtle: rgba(224, 96, 32, 0.18);
   --color-status-failed-text: #e06020;
   --color-status-failed-border: #c85018;
-  --color-status-failed-on-bg: #ffffff;
+  --color-status-failed-on-bg: #101010;
   --color-status-failed-chart: #e06020;
   --color-status-failed-chart-fill: #d05818;
 
@@ -82,7 +81,7 @@
   --color-status-broken-bg-subtle: rgba(176, 112, 212, 0.18);
   --color-status-broken-text: #b070d4;
   --color-status-broken-border: #9858bc;
-  --color-status-broken-on-bg: #ffffff;
+  --color-status-broken-on-bg: #101010;
   --color-status-broken-chart: #b070d4;
   --color-status-broken-chart-fill: #9858bc;
 
