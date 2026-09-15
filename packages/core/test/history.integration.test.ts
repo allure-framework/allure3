@@ -105,7 +105,9 @@ describe("AllureLocalHistory", () => {
 
       await writeFile(
         scriptPath,
-        `import { AllureLocalHistory } from "@allurereport/core/dist/history.js";
+        `import { fileURLToPath } from "node:url";
+
+import { AllureLocalHistory } from "@allurereport/core/dist/history.js";
 
 const dataPoint = (uuid) => ({
   uuid,
@@ -115,7 +117,9 @@ const dataPoint = (uuid) => ({
   testResults: {},
   metrics: {},
 });
-const params = { historyPath: new URL("./history.jsonl", import.meta.url).pathname, limit: 5 };
+// \`URL#pathname\` keeps the leading slash and the percent-encoding on Windows (\`/C:/Users/RUNNER%7E1/...\`),
+// which \`path.resolve\` then turns into \`C:\\C:\\...\`; \`fileURLToPath\` yields a proper platform path
+const params = { historyPath: fileURLToPath(new URL("./history.jsonl", import.meta.url)), limit: 5 };
 
 // writing a new file, appending to an existing one and reading it back all open streams on a
 // FileHandle with \`autoClose: false\`; leaving one behind makes \`close()\` never settle
