@@ -77,9 +77,9 @@ export class WatchCommand extends Command {
     description: "Don't clear terminal output on the data refresh",
   });
 
-  newOnly = Option.Boolean("--new-only", true, {
+  newOnly = Option.Boolean("--new-only", false, {
     description:
-      "Skip whatever test results already exist on disk at startup and only react to results written after the watch has started, instead of ingesting the existing backlog first (default: true). Pass --no-new-only to ingest the existing backlog too",
+      "Skip test results that already exist on disk at startup and only react to new results (default: false). Existing results are loaded unless --new-only is passed",
   });
 
   async execute() {
