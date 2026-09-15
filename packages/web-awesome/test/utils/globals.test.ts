@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { flatGlobalEntriesByEnv, globalEntriesByEnv, hasEnvironmentBreakdown } from "@/utils/globals";
+import { flatGlobalEntriesByEnv, globalEntriesByEnv } from "@/utils/globals";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -85,17 +85,5 @@ describe("utils > flatGlobalEntriesByEnv", () => {
 
   it("should count only the own bucket when the default environment is a configured one", () => {
     expect(flatGlobalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "qa_env", null)).toEqual(["qa"]);
-  });
-});
-
-describe("utils > hasEnvironmentBreakdown", () => {
-  it("should detect a per-environment breakdown", () => {
-    expect(hasEnvironmentBreakdown(entriesByEnv)).toBe(true);
-    expect(hasEnvironmentBreakdown({ default: ["shared"] })).toBe(true);
-  });
-
-  it("should treat an empty index as no breakdown", () => {
-    expect(hasEnvironmentBreakdown({})).toBe(false);
-    expect(hasEnvironmentBreakdown({ default: [], qa_env: [] })).toBe(false);
   });
 });

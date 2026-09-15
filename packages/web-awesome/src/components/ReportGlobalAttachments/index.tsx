@@ -8,7 +8,7 @@ import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentNameById, sharedEnvironmentId } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
-import { globalEntriesByEnv, hasEnvironmentBreakdown } from "@/utils/globals";
+import { globalEntriesByEnv } from "@/utils/globals";
 
 import * as styles from "./styles.scss";
 
@@ -82,14 +82,10 @@ export const ReportGlobalAttachments = () => {
           return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
         }
 
-        // a report without a per-environment breakdown, or the "All" view of one where nothing is
-        // environment specific: there is nothing to tell apart, render a plain list. While a single
-        // environment is selected the section headers stay, they tell the shared bucket apart from
-        // the entries of that environment
-        if (
-          !hasEnvironmentBreakdown(attachmentsByEnv) ||
-          (!currentEnvironment.value && entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT)
-        ) {
+        // the "All" view of a report where nothing is environment specific: there is nothing to tell
+        // apart, render a plain list. While a single environment is selected the section headers
+        // stay, they tell the shared bucket apart from the entries of that environment
+        if (!currentEnvironment.value && entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
           return renderAttachmentsContent(entries[0][1]);
         }
 

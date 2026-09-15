@@ -8,7 +8,7 @@ import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentNameById, sharedEnvironmentId } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
-import { globalEntriesByEnv, hasEnvironmentBreakdown } from "@/utils/globals";
+import { globalEntriesByEnv } from "@/utils/globals";
 
 import * as styles from "./styles.scss";
 
@@ -68,14 +68,10 @@ export const ReportGlobalErrors = () => {
           return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
         }
 
-        // a report without a per-environment breakdown, or the "All" view of one where nothing is
-        // environment specific: there is nothing to tell apart, render a plain list. While a single
-        // environment is selected the section headers stay, they tell the shared bucket apart from
-        // the entries of that environment
-        if (
-          !hasEnvironmentBreakdown(errorsByEnv) ||
-          (!currentEnvironment.value && entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT)
-        ) {
+        // the "All" view of a report where nothing is environment specific: there is nothing to tell
+        // apart, render a plain list. While a single environment is selected the section headers
+        // stay, they tell the shared bucket apart from the entries of that environment
+        if (!currentEnvironment.value && entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
           return renderErrorsContent(entries[0][1]);
         }
 

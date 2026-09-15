@@ -289,7 +289,7 @@ describe("components > Report globals", () => {
     render(<ReportGlobalAttachments />);
 
     expect(screen.getByText("legacy.log")).toBeInTheDocument();
-    expect(screen.queryByText(/environment:/)).not.toBeInTheDocument();
+    expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
   }, 15000);
 
   it("should show the empty state when neither the selected nor the shared attachment bucket has entries", async () => {

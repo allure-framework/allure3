@@ -47,13 +47,6 @@ export const globalEntriesByEnv = <T>(
 };
 
 /**
- * `true` when the widget carries a per-environment breakdown, i.e. its entries can be told apart by
- * environment at all. Reports without one have nothing to group, they render a plain list.
- */
-export const hasEnvironmentBreakdown = (entriesByEnv: Record<string, unknown[]>): boolean =>
-  Object.values(entriesByEnv).some((entries) => entries.length > 0);
-
-/**
  * Flattens the buckets resolved by {@link globalEntriesByEnv}, e.g. to count them in a tab.
  */
 export const flatGlobalEntriesByEnv = <T>(
