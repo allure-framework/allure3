@@ -95,7 +95,7 @@ export class QualityGate {
       trsToValidateById.set(tr.id, tr);
     }
 
-    const trsToValidate = trsToValidateById.values().toArray();
+    const trsToValidate = [...trsToValidateById.values()];
     const { rules, use = [...qualityGateDefaultRules] as QualityGateRule[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
