@@ -24,6 +24,7 @@ import {
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
+  hasRetriesStatusChange,
   incrementStatistic,
   joinPosixPath,
   nullsLast,
@@ -187,6 +188,7 @@ export const generateTestResults = async (
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
+    convertedTr.retriesStatusChange = hasRetriesStatusChange(tr, convertedTr.retries);
     convertedTr.isRetry = tr.isRetry;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
@@ -470,6 +472,7 @@ const leafFactory = ({
   start,
   retry,
   retriesCount,
+  retriesStatusChange,
   resolution,
   transition,
   tooltips,
@@ -488,6 +491,7 @@ const leafFactory = ({
     start,
     retry,
     retriesCount,
+    retriesStatusChange,
     resolution,
     resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
@@ -531,6 +535,7 @@ const resolutionTestResultFactory = (test: ReportTestResult, index: number): Rep
   transition: test.transition,
   retry: test.retry,
   retriesCount: test.retriesCount,
+  retriesStatusChange: test.retriesStatusChange,
   resolution: test.resolution,
   groupOrder: index + 1,
   tooltips: test.tooltips,

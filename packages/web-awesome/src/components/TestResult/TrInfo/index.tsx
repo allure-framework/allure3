@@ -6,6 +6,7 @@ import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TrFlaky } from "@/components/TestResult/TrInfo/TrFlaky";
+import { TrRetriesStatusChange } from "@/components/TestResult/TrInfo/TrRetriesStatusChange";
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
 import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
@@ -23,8 +24,20 @@ export type TrInfoProps = {
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
-  const { name, status, flaky, resolution, duration, labels, history, retries, attachments, stop, categories } =
-    testResult ?? {};
+  const {
+    name,
+    status,
+    flaky,
+    retriesStatusChange,
+    resolution,
+    duration,
+    labels,
+    history,
+    retries,
+    attachments,
+    stop,
+    categories,
+  } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
@@ -42,6 +55,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-info-data"]}>
           {Boolean(status) && <TrStatus status={status} />}
           {Boolean(history?.length) && <TrPrevStatuses history={history} />}
+          {retriesStatusChange && <TrRetriesStatusChange />}
           <TrSeverity severity={severity} />
           {flaky && <TrFlaky />}
           {categoryName && (

@@ -21,6 +21,7 @@ export type TreeLeaf = {
   flaky?: boolean;
   retry?: boolean;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
