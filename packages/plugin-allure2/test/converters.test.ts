@@ -259,4 +259,26 @@ describe("convertTestResult", () => {
       },
     });
   });
+
+  it.each([
+    ["passed", ["passed", "passed"]],
+    ["passed", ["skipped", "unknown"]],
+    ["unknown", ["passed", "failed"]],
+  ] satisfies [TestResult["status"], TestResult["status"][]][])(
+    "should not mark current status %s as changed for retries %j",
+    (currentStatus, retryStatuses) => {
+      const result = convertTestResult(
+        {
+          attachmentMap: new Map(),
+          fixtures: [],
+          categories: [],
+          retries: retryStatuses.map((status, index) => createTestResult({ id: `retry-${index}`, status })),
+          history: [],
+        },
+        createTestResult({ status: currentStatus }),
+      );
+
+      expect(result.retriesStatusChange).toBe(false);
+    },
+  );
 });

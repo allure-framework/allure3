@@ -14,6 +14,7 @@
     "total": "总计",
     "flaky": "不稳定的测试",
     "retries": "重跑测试",
+    "retriesStatusChange": "重试时的状态变化",
     "new": "新的测试"
   },
   "tabs": {
@@ -461,6 +462,7 @@
       "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
       "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了",
       "retries": "{{count}} 次重试",
+      "retriesStatusChange": "重试后状态改变",
       "flaky": "多次运行结果不一致",
       "resolution": {
         "issue": "Linked to an issue",

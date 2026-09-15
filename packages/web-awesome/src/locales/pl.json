@@ -14,6 +14,7 @@
     "total": "Wszystkie",
     "flaky": "Niestabilne testy",
     "retries": "Powtórzone testy",
+    "retriesStatusChange": "Zmiany statusu przy ponowieniach",
     "new": "Nowe testy"
   },
   "tabs": {
@@ -471,6 +472,7 @@
       "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
       "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\"",
       "retries": "{{count}} ponowień",
+      "retriesStatusChange": "Status zmieniony po ponownej próbie",
       "flaky": "Niespójny pomiędzy uruchomieniami",
       "resolution": {
         "issue": "Linked to an issue",

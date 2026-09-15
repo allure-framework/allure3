@@ -14,6 +14,7 @@
     "total": "Total",
     "flaky": "Pruebas inestables",
     "retries": "Pruebas repetidas",
+    "retriesStatusChange": "Cambios de estado en reintentos",
     "new": "Pruebas nuevas"
   },
   "tabs": {
@@ -462,6 +463,7 @@
       "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
       "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\"",
       "retries": "{{count}} reintentos",
+      "retriesStatusChange": "El estado cambió después de reintentar",
       "flaky": "Resultados inconsistentes entre ejecuciones",
       "resolution": {
         "issue": "Linked to an issue",
