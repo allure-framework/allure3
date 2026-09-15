@@ -13,6 +13,7 @@ interface TreeItemProps {
   status?: TestStatus;
   duration?: number;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   flaky?: boolean;
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
@@ -34,6 +35,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   status,
   duration,
   retriesCount,
+  retriesStatusChange,
   flaky,
   resolution,
   transition,
@@ -85,6 +87,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
         flaky={flaky}
         resolution={resolution}
         retriesCount={retriesCount}
+        retriesStatusChange={retriesStatusChange}
         transition={transition}
         transitionTooltip={transitionTooltip}
         tooltips={tooltips}

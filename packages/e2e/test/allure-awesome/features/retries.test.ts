@@ -85,19 +85,23 @@ test.describe("retries", () => {
       await expect(treePage.leafLocator).toHaveCount(3);
     });
 
-    test("should show retry icon in the tree for tests with retries", async ({ page }) => {
+    test("should show retry or status change icon in the tree for tests with retries", async ({ page }) => {
       await page.goto(bootstrap.url);
 
       const retryIcons = page.getByTestId("tree-leaf-retries");
+      const retriesStatusChangeIcons = page.getByTestId("tree-leaf-retries-status-change");
 
-      await expect(retryIcons).toHaveCount(2);
+      await expect(retryIcons).toHaveCount(1);
+      await expect(retriesStatusChangeIcons).toHaveCount(1);
 
-      const firstTestWithRetriesIcon = treePage.getLeafByTitle(firstTestWithRetries).getByTestId("tree-leaf-retries");
+      const firstTestWithRetriesIcon = treePage
+        .getLeafByTitle(firstTestWithRetries)
+        .getByTestId("tree-leaf-retries-status-change");
       const anotherTestWithRetriesIcon = treePage
         .getLeafByTitle(secondTestWithRetriesName)
         .getByTestId("tree-leaf-retries");
 
-      await expect(firstTestWithRetriesIcon).toContainText("2");
+      await expect(firstTestWithRetriesIcon).toBeVisible();
       await expect(anotherTestWithRetriesIcon).toContainText("1");
     });
 
