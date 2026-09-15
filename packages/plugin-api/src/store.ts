@@ -83,6 +83,11 @@ export interface AllureStore {
   // environments
   allEnvironments: () => Promise<string[]>;
   allEnvironmentIdentities: () => Promise<EnvironmentIdentity[]>;
+  /**
+   * Ids of the environments declared in the report's `environments` config. Optional to keep
+   * third-party store implementations working; an absent implementation means "nothing declared".
+   */
+  configuredEnvironmentIds?: () => Promise<string[]>;
   testResultsByEnvironment: (env: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
   testResultsByEnvironmentId: (envId: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
   allTestEnvGroups: () => Promise<TestEnvGroup[]>;

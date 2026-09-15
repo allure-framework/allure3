@@ -269,12 +269,65 @@ test.describe("globals", () => {
 
       await globalsPage.selectEnv("foo");
 
+      // while a single environment is selected the shared bucket keeps its header, otherwise there
+      // is no hint that the attachment isn't specific to the selected environment
       await expectSelectedEnvBucket(page, globalsPage.globalAttachmentsTabLocator, "1", ["default-global.txt"], []);
-      await expect(page.getByRole("button", { name: /Environment: "default"/ })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /Environment: "default"/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Environment: "foo"/ })).toHaveCount(0);
 
       await globalsPage.selectEnv("bar");
 
       await expectSelectedEnvBucket(page, globalsPage.globalAttachmentsTabLocator, "1", ["default-global.txt"], []);
+      await expect(page.getByRole("button", { name: /Environment: "default"/ })).toBeVisible();
+
+      await globalsPage.attachScreenshot();
+    });
+
+    test("should keep the default bucket environment specific when the report declares it", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+          environments: {
+            default: {
+              name: "default",
+              matcher: () => false,
+            },
+            foo: {
+              name: "foo",
+              matcher: () => false,
+            },
+          },
+        }),
+        testResults: [],
+        globals: {
+          attachments: {
+            "default-global.txt": Buffer.from("default global attachment", "utf8"),
+          },
+          attachmentsByEnv: {
+            foo: {
+              "foo-global.txt": Buffer.from("foo global attachment", "utf8"),
+            },
+          },
+        },
+      });
+
+      await page.goto(bootstrap.url);
+
+      await expect(globalsPage.globalAttachmentsTabLocator).toContainText("2");
+      await globalsPage.globalAttachmentsTabLocator.click();
+
+      await globalsPage.selectEnv("foo");
+
+      // "default" is a declared environment of this report, so its bucket holds attachments which
+      // are specific to it and isn't shared with the other environments
+      await expectSelectedEnvBucket(
+        page,
+        globalsPage.globalAttachmentsTabLocator,
+        "1",
+        ["foo-global.txt"],
+        ["default-global.txt"],
+      );
 
       await globalsPage.attachScreenshot();
     });

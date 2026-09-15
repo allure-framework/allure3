@@ -15,10 +15,15 @@ const environmentNames: Record<string, string> = {
   qa_env: "QA",
 };
 
-const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvironment = "") => {
+const setupGlobalsComponent = async (
+  data: Record<string, unknown>,
+  selectedEnvironment = "",
+  sharedEnvironment: string | null = "default",
+) => {
   vi.resetModules();
 
   const currentEnvironment = signal(selectedEnvironment);
+  const sharedEnvironmentId = signal(sharedEnvironment);
   const globalsStore = signal({
     loading: false,
     error: undefined,
@@ -36,6 +41,7 @@ const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvi
   }));
   vi.doMock("@/stores/env", () => ({
     currentEnvironment,
+    sharedEnvironmentId,
     environmentNameById: (environmentId: string) => environmentNames[environmentId] ?? environmentId,
   }));
   vi.doMock("@/stores/globals", () => ({
@@ -220,7 +226,7 @@ describe("components > Report globals", () => {
     expect(screen.queryByText("prod.log")).not.toBeInTheDocument();
   }, 15000);
 
-  it("should render shared attachments without environment sections when the selected environment has none", async () => {
+  it("should label the shared attachment bucket when the selected environment has none of its own", async () => {
     await setupGlobalsComponent(
       {
         attachments: [],
@@ -257,7 +263,7 @@ describe("components > Report globals", () => {
     render(<ReportGlobalAttachments />);
 
     expect(screen.getByText("default.log")).toBeInTheDocument();
-    expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
+    expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
     expect(screen.queryByText("prod.log")).not.toBeInTheDocument();
   }, 15000);
 
@@ -340,7 +346,7 @@ describe("components > Report globals", () => {
     expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
   }, 15000);
 
-  it("should render shared errors without environment sections when the selected environment has none", async () => {
+  it("should label the shared error bucket when the selected environment has none of its own", async () => {
     await setupGlobalsComponent(
       {
         errors: [],
@@ -357,7 +363,45 @@ describe("components > Report globals", () => {
     render(<ReportGlobalErrors />);
 
     expect(screen.getByText("Default failure")).toBeInTheDocument();
-    expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
+    expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
     expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
+  }, 15000);
+
+  it("should render the sole default bucket as a plain list in the all view", async () => {
+    await setupGlobalsComponent({
+      errors: [{ message: "Default failure", environment: "default" }],
+      errorsByEnv: {
+        default: [{ message: "Default failure", environment: "default" }],
+      },
+    });
+
+    const { ReportGlobalErrors } = await import("@/components/ReportGlobalErrors");
+
+    render(<ReportGlobalErrors />);
+
+    expect(screen.getByText("Default failure")).toBeInTheDocument();
+    expect(screen.queryByText(/environment:/)).not.toBeInTheDocument();
+  }, 15000);
+
+  it("should keep the default bucket environment specific when the report declares it as an environment", async () => {
+    await setupGlobalsComponent(
+      {
+        errors: [],
+        errorsByEnv: {
+          default: [{ message: "Default failure", environment: "default" }],
+          qa_env: [{ message: "QA failure", environment: "QA" }],
+        },
+      },
+      "qa_env",
+      null,
+    );
+
+    const { ReportGlobalErrors } = await import("@/components/ReportGlobalErrors");
+
+    render(<ReportGlobalErrors />);
+
+    expect(screen.getByText("QA failure")).toBeInTheDocument();
+    expect(screen.queryByText("Default failure")).not.toBeInTheDocument();
+    expect(screen.queryByText('environment: "default" (1)')).not.toBeInTheDocument();
   }, 15000);
 });

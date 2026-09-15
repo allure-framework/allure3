@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { flatGlobalEntriesByEnv, globalEntriesByEnv } from "@/utils/globals";
+import { flatGlobalEntriesByEnv, globalEntriesByEnv, hasEnvironmentBreakdown } from "@/utils/globals";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -57,11 +57,45 @@ describe("utils > globalEntriesByEnv", () => {
     expect(globalEntriesByEnv([], {}, "")).toEqual([]);
     expect(globalEntriesByEnv([], {}, "qa_env")).toEqual([]);
   });
+
+  it("should not share the default bucket when the report declares it as an environment", () => {
+    expect(globalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "qa_env", null)).toEqual([["qa_env", ["qa"]]]);
+    expect(globalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "default", null)).toEqual([
+      ["default", ["shared"]],
+    ]);
+    expect(globalEntriesByEnv(["shared", "prod"], { default: ["shared"], prod_env: ["prod"] }, "qa_env", null)).toEqual(
+      [],
+    );
+  });
+
+  it("should keep every bucket of a report which declares the default environment in the all view", () => {
+    expect(globalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "", null)).toEqual([
+      ["default", ["shared"]],
+      ["qa_env", ["qa"]],
+      ["prod_env", ["prod"]],
+    ]);
+  });
 });
 
 describe("utils > flatGlobalEntriesByEnv", () => {
   it("should flatten the resolved buckets", () => {
     expect(flatGlobalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "qa_env")).toEqual(["qa", "shared"]);
     expect(flatGlobalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "")).toEqual(["shared", "qa", "prod"]);
+  });
+
+  it("should count only the own bucket when the default environment is a configured one", () => {
+    expect(flatGlobalEntriesByEnv(["shared", "qa", "prod"], entriesByEnv, "qa_env", null)).toEqual(["qa"]);
+  });
+});
+
+describe("utils > hasEnvironmentBreakdown", () => {
+  it("should detect a per-environment breakdown", () => {
+    expect(hasEnvironmentBreakdown(entriesByEnv)).toBe(true);
+    expect(hasEnvironmentBreakdown({ default: ["shared"] })).toBe(true);
+  });
+
+  it("should treat an empty index as no breakdown", () => {
+    expect(hasEnvironmentBreakdown({})).toBe(false);
+    expect(hasEnvironmentBreakdown({ default: [], qa_env: [] })).toBe(false);
   });
 });
