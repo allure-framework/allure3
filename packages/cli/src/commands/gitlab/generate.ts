@@ -1,10 +1,64 @@
 import { existsSync } from "node:fs";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { cwd as processCwd } from "node:process";
 
+import { restoreGitlabHistory, upsertGitlabJobNote, detect, GitlabCiDescriptor } from "@allurereport/ci";
 import { readConfig } from "@allurereport/core";
-import { Command, Option } from "clipanion";
+import { CiDescriptor, CiType } from "@allurereport/core-api";
+import { BaseContext, Command, Option } from "clipanion";
 
 import { generate } from "../commons/generate.js";
+
+const defaultHistoryLimit = 100;
+const isDecimalString = (value: string): boolean => /^[0-9]+$/.test(value);
+
+const parseHistoryLimit = (value: unknown): number | undefined => {
+  if (typeof value === "string") {
+    if (!isDecimalString(value)) {
+      return defaultHistoryLimit;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ? parsed : defaultHistoryLimit;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) && Number.isInteger(value) && value >= 0 ? value : defaultHistoryLimit;
+  }
+
+  return defaultHistoryLimit;
+};
+
+const reportBaseUrl = (historyBaseUrl: string | undefined, output: string): string => {
+  const gitlab = detect();
+  const isGitlabCiDescriptor = (ci: CiDescriptor): ci is GitlabCiDescriptor => ci.type === CiType.Gitlab;
+
+  if (!isGitlabCiDescriptor(gitlab)) {
+    throw new Error("GitLab CI environment was not detected");
+  }
+
+  if (isAbsolute(output)) {
+    const projectDirectory = resolve(gitlab.projectDirectory);
+    const absoluteOutput = resolve(output);
+
+    if (absoluteOutput !== projectDirectory && !absoluteOutput.startsWith(join(projectDirectory, sep))) {
+      throw new Error("Absolute output path must be within CI_PROJECT_DIR");
+    }
+
+    output = relative(projectDirectory, absoluteOutput).split(sep).join("/");
+  }
+
+  return historyBaseUrl || `${gitlab.jobArtifactsUrlBase}/${output}`;
+};
+
+const log = (msg: string, context: BaseContext) => {
+  context.stdout.write(msg + "\n");
+};
+
+const err = (msg: string, context: BaseContext) => {
+  context.stderr.write(msg + "\n");
+};
 
 export class GitlabGenerateCommand extends Command {
   static paths = [["gitlab", "generate"]];
@@ -16,7 +70,7 @@ export class GitlabGenerateCommand extends Command {
       "This command generates a report from the provided Allure Results directories. When api access token is configured, " +
       "integration will post summary as comment for merge request pipelines and attempt to lookup history file from previously executed job ." +
       "This integration is designed to be executed from within GitLab CI job.",
-    examples: [["gitlab publish ./allure-results", "Generate a report from the ./allure-results directory"]],
+    examples: [["gitlab generate ./allure-results", "Generate a report from the ./allure-results directory"]],
   });
 
   resultsDir = Option.Rest({
@@ -47,35 +101,77 @@ export class GitlabGenerateCommand extends Command {
   });
 
   historyLimit = Option.String("--history-limit", {
-    description: "Limits the number of history entries to keep (default: unlimited)",
+    description: "Limits the number of history entries to keep (default: 100)",
   });
 
   historyBaseUrl = Option.String("--history-base-url", {
     description: "The public base URL of the generated report directory",
-    required: true,
   });
 
   gitlabToken = Option.String("--gitlab-token", {
-    description: "GitLab api token with api write access",
+    description: "GitLab api token with api write permissions",
   });
 
   async execute() {
     const cwd = processCwd();
+    const token = this.gitlabToken?.trim() || process.env.GITLAB_TOKEN?.trim() || undefined;
     const output = this.output ?? "allure-report";
     const configPath = this.config && existsSync(this.config) ? this.config : undefined;
+    const historyPath = this.historyPath === undefined ? "history.jsonl" : this.historyPath;
     const config = await readConfig(cwd, configPath, {
       output,
       name: this.reportName,
-      historyBaseUrl: this.historyBaseUrl,
-      historyPath: this.historyPath === undefined ? "history.jsonl" : this.historyPath,
-      historyLimit: this.historyLimit === undefined ? 100 : parseInt(this.historyLimit, 10),
+      historyPath: historyPath,
+      historyBaseUrl: reportBaseUrl(this.historyBaseUrl, output),
+      historyLimit: parseHistoryLimit(this.historyLimit),
     });
+    const runGitlabOperation = async (errPrefix: string, operation: () => Promise<void>) => {
+      try {
+        await operation();
+      } catch (error) {
+        err(`${errPrefix}: ${error instanceof Error ? error.message : String(error)}`, this.context);
+      }
+    };
 
-    await generate({
-      dump: this.dump,
-      resultsDir: this.resultsDir,
+    log("Generating allure report", this.context);
+    log("  fetching previous run history", this.context);
+    await runGitlabOperation("  history fetch failed", () =>
+      restoreGitlabHistory({
+        token,
+        historyPath,
+      }),
+    );
+
+    const result = await generate({
       cwd,
       config,
+      dump: this.dump,
+      resultsDir: this.resultsDir,
+      collectSummary: true,
     });
+
+    if (!result) {
+      return;
+    }
+
+    const reportUrl = `${config.historyBaseUrl}/index.html`;
+    log(`GitLab report URL: ${reportUrl}`, this.context);
+
+    if (result.summary && existsSync(join(config.output, "index.html"))) {
+      log("Posting report summary comment", this.context);
+      if (!token) {
+        log("  no API token provided, skipping", this.context);
+        return;
+      }
+
+      const { summary } = result;
+      await runGitlabOperation("  failed to add summary comment", () =>
+        upsertGitlabJobNote({
+          token,
+          summary,
+          reportUrl,
+        }),
+      );
+    }
   }
 }

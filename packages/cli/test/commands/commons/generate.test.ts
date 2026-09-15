@@ -8,6 +8,7 @@ import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generate } from "../../../src/commands/commons/generate.js";
+import { collectReportSummary } from "../../../src/commands/commons/summary.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";
 
@@ -24,6 +25,9 @@ vi.mock("@allurereport/core", async () => {
 });
 vi.mock("../../../src/utils/logs.js", () => ({
   logError: vi.fn(),
+}));
+vi.mock("../../../src/commands/commons/summary.js", () => ({
+  collectReportSummary: vi.fn().mockResolvedValue({ name: "Allure Report" }),
 }));
 vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -195,6 +199,112 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
+  });
+
+  it("should collect an optional summary after ingestion and return it only after done succeeds", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    const events: string[] = [];
+    AllureReportMock.prototype.readDirectory.mockImplementationOnce(async () => {
+      events.push("readDirectory");
+    });
+    vi.mocked(collectReportSummary).mockImplementationOnce(async () => {
+      events.push("summary");
+
+      return {
+        name: "CLI report",
+        duration: 1,
+        stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+        newTests: 1,
+        flakyTests: 0,
+        retryTests: 0,
+      };
+    });
+    AllureReportMock.prototype.done.mockImplementationOnce(async () => {
+      events.push("done");
+    });
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      collectSummary: true,
+    });
+
+    expect(collectReportSummary).toHaveBeenCalledWith(AllureReportMock.prototype.store, "CLI report");
+    expect(result).toEqual({
+      summary: {
+        name: "CLI report",
+        duration: 1,
+        stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+        newTests: 1,
+        flakyTests: 0,
+        retryTests: 0,
+      },
+    });
+    expect(events).toEqual(["readDirectory", "summary", "done"]);
+  });
+
+  it("should not collect summaries for default callers", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+    });
+
+    expect(result).toBeUndefined();
+    expect(collectReportSummary).not.toHaveBeenCalled();
+  });
+
+  it("should warn and finish generation when optional summary collection fails", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(collectReportSummary).mockRejectedValueOnce(new Error("summary failed"));
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      collectSummary: true,
+    });
+
+    expect(result).toEqual({});
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("GitLab summary snapshot skipped"));
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should not return a summary when done fails after snapshot capture", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(collectReportSummary).mockResolvedValueOnce({
+      name: "CLI report",
+      duration: 1,
+      stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      newTests: 1,
+      flakyTests: 0,
+      retryTests: 0,
+    });
+    AllureReportMock.prototype.done.mockRejectedValueOnce(new KnownError("done failed"));
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      collectSummary: true,
+    });
+
+    expect(result).toBeUndefined();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("done failed"));
+    expect(exit).toHaveBeenCalledWith(1);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("should support multiple result directories", async () => {
