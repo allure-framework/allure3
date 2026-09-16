@@ -58,6 +58,7 @@ export const createPluginSummary = async (params: {
     name,
     duration,
     createdAt,
+    ...(filter ? { filtered: true } : {}),
     plugin,
     meta,
   };

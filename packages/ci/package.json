@@ -21,7 +21,8 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./report-context": "./dist/reportContext.js"
+    "./report-context": "./dist/reportContext.js",
+    "./report-markdown": "./dist/reportMarkdown.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
