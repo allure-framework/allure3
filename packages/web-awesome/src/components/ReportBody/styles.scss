@@ -70,3 +70,15 @@
     transform: rotate(180deg);
   }
 }
+
+.treeControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

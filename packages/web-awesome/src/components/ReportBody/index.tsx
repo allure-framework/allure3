@@ -11,6 +11,7 @@ import { TreeList } from "../Tree";
 import { ReportContentProvider } from "./context";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
+import { TreeControls } from "./TreeControls";
 
 import * as styles from "./styles.scss";
 
@@ -55,7 +56,10 @@ const Header = () => {
             }}
           />
         </ReportTabsList>
-        <SortBy />
+        <div className={styles.headerControls}>
+          <TreeControls />
+          <SortBy />
+        </div>
       </div>
     </header>
   );
