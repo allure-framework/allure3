@@ -32,7 +32,12 @@ export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "st
   let stop = -Infinity;
 
   for (const { start: trStart, stop: trStop } of testResults) {
-    if (typeof trStart === "number" && typeof trStop === "number") {
+    if (
+      typeof trStart === "number" &&
+      Number.isFinite(trStart) &&
+      typeof trStop === "number" &&
+      Number.isFinite(trStop)
+    ) {
       start = Math.min(start, trStart);
       stop = Math.max(stop, trStop);
     }

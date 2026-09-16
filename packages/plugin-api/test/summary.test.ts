@@ -151,6 +151,15 @@ describe("summary utils", () => {
     ).toEqual(100);
   });
 
+  it("calculateRunDuration ignores test results with invalid time bounds", () => {
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 50, start: Number.NaN, stop: Number.POSITIVE_INFINITY }),
+      ]),
+    ).toEqual(100);
+  });
+
   it("calculateRunDuration sums durations when test results have no time bounds", () => {
     expect(calculateRunDuration([testResult({ duration: 100 }), testResult({ duration: 90 })])).toEqual(190);
   });
