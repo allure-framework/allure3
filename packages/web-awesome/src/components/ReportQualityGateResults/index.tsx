@@ -6,10 +6,11 @@ import type { ReportQualityGateValidationResult, ReportTree, ReportTreeGroup } f
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
-import { currentEnvironment, environmentNameById } from "@/stores/env";
+import { currentEnvironment, environmentNameById, sharedEnvironmentId } from "@/stores/env";
 import { qualityGateStore } from "@/stores/qualityGate";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
+import { globalEntriesByEnv } from "@/utils/globals";
 import { createTreeLocalizer } from "@/utils/tree";
 import { createRecursiveTree } from "@/utils/treeFilters";
 
@@ -115,31 +116,19 @@ export const ReportQualityGateResults = () => {
     <Loadable
       source={qualityGateStore}
       renderData={(results) => {
-        if (currentEnvironment.value) {
-          const currentEnvResults = results[currentEnvironment.value] ?? [];
-
-          if (!currentEnvResults.length) {
-            return <div className={styles["report-quality-gate-results-empty"]}>{t("no-quality-gate-results")}</div>;
-          }
-
-          return <QualityGateResultsList results={currentEnvResults} />;
-        }
-
-        const entries = Object.entries(results).filter(([, envResults]) => envResults.length > 0);
+        // results dispatched without an environment are indexed under the shared bucket, so they
+        // stay visible while a single environment is selected, next to the results of that one
+        const entries = globalEntriesByEnv([], results, currentEnvironment.value, sharedEnvironmentId.value);
 
         if (!entries.length) {
           return <div className={styles["report-quality-gate-results-empty"]}>{t("no-quality-gate-results")}</div>;
         }
 
-        // single default environment
-        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
-          const currentEnvResults = entries[0][1] ?? [];
-
-          if (!currentEnvResults.length) {
-            return <div className={styles["report-quality-gate-results-empty"]}>{t("no-quality-gate-results")}</div>;
-          }
-
-          return <QualityGateResultsList results={currentEnvResults} />;
+        // the "All" view of a report where nothing is environment specific: there is nothing to tell
+        // apart, render a plain list. While a single environment is selected the section headers
+        // stay, they tell the shared bucket apart from the results of that environment
+        if (!currentEnvironment.value && entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
+          return <QualityGateResultsList results={entries[0][1]} />;
         }
 
         return (

@@ -574,8 +574,16 @@ export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: En
 
 export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store: AllureStore) => {
   const environments = await store.allEnvironmentIdentities();
+  // the default environment is always listed, even when the report config doesn't declare it, so
+  // the frontend needs to know which of the listed environments are configured ones
+  const configuredEnvironmentIds = new Set(await store.configuredEnvironmentIds?.());
 
-  await writer.writeWidget("environments.json", environments);
+  await writer.writeWidget(
+    "environments.json",
+    environments.map((environment) =>
+      configuredEnvironmentIds.has(environment.id) ? { ...environment, configured: true } : environment,
+    ),
+  );
 };
 
 export const generateVariables = async (writer: AwesomeDataWriter, store: AllureStore) => {

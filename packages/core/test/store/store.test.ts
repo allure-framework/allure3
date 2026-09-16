@@ -4233,6 +4233,40 @@ describe("dump state", () => {
     );
   });
 
+  it("should report the environment ids declared by the report config", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        qa: { name: "QA", matcher: () => false },
+        prod: { name: "Prod", matcher: () => false },
+      },
+    });
+
+    // the default environment is always listed, but it isn't a configured one unless declared
+    expect(await store.allEnvironmentIdentities()).toEqual([
+      { id: "default", name: "default" },
+      { id: "qa", name: "QA" },
+      { id: "prod", name: "Prod" },
+    ]);
+    expect(await store.configuredEnvironmentIds()).toEqual(["qa", "prod"]);
+  });
+
+  it("should report the default environment as a configured one when the report config declares it", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        default: { matcher: () => false },
+        prod: { name: "Prod", matcher: () => false },
+      },
+    });
+
+    expect(await store.configuredEnvironmentIds()).toEqual(["default", "prod"]);
+  });
+
+  it("should report no configured environment ids without an environments config", async () => {
+    const store = new DefaultAllureStore();
+
+    expect(await store.configuredEnvironmentIds()).toEqual([]);
+  });
+
   it("should keep previous name-shaped history separate when switching to explicit ids", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {

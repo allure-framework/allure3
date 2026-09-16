@@ -22,6 +22,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
+  generateEnvirontmentsList,
   generateGlobals,
   generateMetricsWidget,
   generateQualityGateResults,
@@ -960,5 +961,65 @@ describe("generateAttachmentsFiles", () => {
     expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
     expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
     expect(result).toEqual(new Map([["written", "written.txt"]]));
+  });
+});
+
+describe("generateEnvirontmentsList", () => {
+  const createWriter = (written: Map<string, unknown>): AwesomeDataWriter => ({
+    writeData: vi.fn().mockResolvedValue(undefined),
+    writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+      written.set(fileName, data);
+    }),
+    writeTestCase: vi.fn().mockResolvedValue(undefined),
+    writeAttachment: vi.fn().mockResolvedValue(undefined),
+  });
+
+  it("should mark the environments declared by the report config", async () => {
+    const written = new Map<string, unknown>();
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([
+        { id: "default", name: "default" },
+        { id: "qa", name: "QA" },
+      ] satisfies EnvironmentIdentity[]),
+      configuredEnvironmentIds: vi.fn().mockResolvedValue(["qa"]),
+    } as unknown as AllureStore;
+
+    await generateEnvirontmentsList(createWriter(written), store);
+
+    expect(written.get("environments.json")).toEqual([
+      { id: "default", name: "default" },
+      { id: "qa", name: "QA", configured: true },
+    ]);
+  });
+
+  it("should mark the default environment when the report config declares it", async () => {
+    const written = new Map<string, unknown>();
+    const store = {
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([
+        { id: "default", name: "default" },
+        { id: "prod", name: "prod" },
+      ] satisfies EnvironmentIdentity[]),
+      configuredEnvironmentIds: vi.fn().mockResolvedValue(["default", "prod"]),
+    } as unknown as AllureStore;
+
+    await generateEnvirontmentsList(createWriter(written), store);
+
+    expect(written.get("environments.json")).toEqual([
+      { id: "default", name: "default", configured: true },
+      { id: "prod", name: "prod", configured: true },
+    ]);
+  });
+
+  it("should keep working for stores which don't expose the configured environments", async () => {
+    const written = new Map<string, unknown>();
+    const store = {
+      allEnvironmentIdentities: vi
+        .fn()
+        .mockResolvedValue([{ id: "default", name: "default" }] satisfies EnvironmentIdentity[]),
+    } as unknown as AllureStore;
+
+    await generateEnvirontmentsList(createWriter(written), store);
+
+    expect(written.get("environments.json")).toEqual([{ id: "default", name: "default" }]);
   });
 });

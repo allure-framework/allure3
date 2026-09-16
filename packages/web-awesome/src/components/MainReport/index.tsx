@@ -12,7 +12,7 @@ import { ReportMetadata } from "@/components/ReportMetadata";
 import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
 import { reportStatsStore, useI18n } from "@/stores";
 import { categoriesStore } from "@/stores/categories";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, sharedEnvironmentId } from "@/stores/env";
 import { globalsStore } from "@/stores/globals";
 import { focusTreePane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
@@ -26,6 +26,7 @@ import {
   rootTabRoute,
 } from "@/stores/router";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
+import { flatGlobalEntriesByEnv } from "@/utils/globals";
 
 import { ReportQualityGateResults } from "../ReportQualityGateResults";
 
@@ -190,9 +191,12 @@ const MainReport = () => {
                 <Loadable
                   source={qualityGateStore}
                   renderData={(results) => {
-                    const currentEnvResults = currentEnvironment.value
-                      ? (results[currentEnvironment.value] ?? [])
-                      : Object.values(results).flatMap((envResults) => envResults);
+                    const currentEnvResults = flatGlobalEntriesByEnv(
+                      [],
+                      results,
+                      currentEnvironment.value,
+                      sharedEnvironmentId.value,
+                    );
 
                     return (
                       <RootTab id={ReportRootTab.QualityGate}>
@@ -208,12 +212,18 @@ const MainReport = () => {
                 <Loadable
                   source={globalsStore}
                   renderData={({ attachments = [], attachmentsByEnv = {}, errors = [], errorsByEnv = {} }) => {
-                    const currentEnvAttachments = currentEnvironment.value
-                      ? (attachmentsByEnv[currentEnvironment.value] ?? [])
-                      : attachments;
-                    const currentEnvErrors = currentEnvironment.value
-                      ? (errorsByEnv[currentEnvironment.value] ?? [])
-                      : errors;
+                    const currentEnvAttachments = flatGlobalEntriesByEnv(
+                      attachments,
+                      attachmentsByEnv,
+                      currentEnvironment.value,
+                      sharedEnvironmentId.value,
+                    );
+                    const currentEnvErrors = flatGlobalEntriesByEnv(
+                      errors,
+                      errorsByEnv,
+                      currentEnvironment.value,
+                      sharedEnvironmentId.value,
+                    );
 
                     return (
                       <>
