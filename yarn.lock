@@ -519,7 +519,7 @@ __metadata:
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
     archiver: "npm:^7.0.1"
-    fast-xml-parser: "npm:^5.7.0"
+    fast-xml-parser: "npm:^5.11.1"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
