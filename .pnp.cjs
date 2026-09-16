@@ -263,7 +263,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@types/d3-shape", "npm:3.1.8"],\
-          ["@types/mime-types", "npm:2.1.4"],\
+          ["@types/mime-types", "npm:3.0.1"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
@@ -788,12 +788,12 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
-          ["@types/mime-types", "npm:2.1.4"],\
+          ["@types/mime-types", "npm:3.0.1"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["mime-types", "npm:2.1.35"],\
+          ["mime-types", "npm:3.0.2"],\
           ["rimraf", "npm:6.1.2"],\
           ["ts-node", "virtual:4b7c90cb2f946def55f93b7d8d07a2c1f17ffccdf8e55c4fed3fcf9dc13a246d8f52f61ef89e9b7e56a7e7879697340ae1b0bc62c7485a37f00b8697c364c79f#npm:10.9.2"],\
           ["tslib", "npm:2.7.0"],\
@@ -11731,10 +11731,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/mime-types", [\
-      ["npm:2.1.4", {\
-        "packageLocation": "./.yarn/cache/@types-mime-types-npm-2.1.4-ea40d0e262-f8c521c54e.zip/node_modules/@types/mime-types/",\
+      ["npm:3.0.1", {\
+        "packageLocation": "./.yarn/cache/@types-mime-types-npm-3.0.1-846d03fc45-96534e23b2.zip/node_modules/@types/mime-types/",\
         "packageDependencies": [\
-          ["@types/mime-types", "npm:2.1.4"]\
+          ["@types/mime-types", "npm:3.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -19328,6 +19328,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["mime-db", "npm:1.52.0"],\
           ["mime-types", "npm:2.1.35"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:3.0.2", {\
+        "packageLocation": "./.yarn/cache/mime-types-npm-3.0.2-d6d24e27e8-9db0ad31f5.zip/node_modules/mime-types/",\
+        "packageDependencies": [\
+          ["mime-db", "npm:1.54.0"],\
+          ["mime-types", "npm:3.0.2"]\
         ],\
         "linkType": "HARD"\
       }]\
