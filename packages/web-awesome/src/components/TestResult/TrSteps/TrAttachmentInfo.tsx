@@ -52,7 +52,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         <Attachment
           item={item}
           previewable={isPreviewable}
-          i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+          i18n={{ controls: tooltip, imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
         />
       ),
     });
@@ -68,12 +68,12 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
           <Attachment
             item={item}
             previewable={isPreviewable}
-            i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+            i18n={{ controls: tooltip, imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
           />
         ),
       });
     }
-  }, [item, isPreviewable, tAttachments]);
+  }, [item, isPreviewable, tAttachments, tooltip]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();

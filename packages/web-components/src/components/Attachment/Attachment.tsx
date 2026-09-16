@@ -111,11 +111,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
   const CurrentComponent = componentsByAttachmentType[componentType];
 
-  // @ts-expect-error TODO: add all translations for attachment types
-  const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
-
   if (DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) && CurrentPreviewComponent && CurrentComponent) {
     const isCodeComponent = CurrentComponent === AttachmentCode;
+    const i18nProp = isCodeComponent
+      ? i18n?.controls
+      : // @ts-expect-error TODO: add all translations for attachment types
+        i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
     const showPreview = !!previewable;
 
     return (
@@ -137,6 +138,9 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   // temp solution before modal component refactoring
   if (previewable && CurrentPreviewComponent) {
+    // @ts-expect-error TODO: add all translations for attachment types
+    const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+
     return <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
   }
 
@@ -145,6 +149,10 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   }
 
   const isCodeComponent = CurrentComponent === AttachmentCode;
+  const i18nProp = isCodeComponent
+    ? i18n?.controls
+    : // @ts-expect-error TODO: add all translations for attachment types
+      i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
 
   return (
     <CurrentComponent
