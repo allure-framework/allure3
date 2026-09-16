@@ -20,7 +20,8 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./report-context": "./dist/reportContext.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
@@ -30,7 +31,9 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*"
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "glob": "^13.0.6"
   },
   "devDependencies": {
     "@types/node": "^20",
