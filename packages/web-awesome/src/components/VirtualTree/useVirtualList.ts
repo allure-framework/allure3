@@ -62,11 +62,14 @@ export function useVirtualList(
     };
 
     update();
+    const initialUpdate = requestAnimationFrame(update);
     scrollEl.addEventListener("scroll", update, { passive: true });
     const ro = new ResizeObserver(update);
     ro.observe(scrollEl);
+    ro.observe(containerEl);
 
     return () => {
+      cancelAnimationFrame(initialUpdate);
       scrollEl.removeEventListener("scroll", update);
       ro.disconnect();
       scrollCtxRef.current = null;

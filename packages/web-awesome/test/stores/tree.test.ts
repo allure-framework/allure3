@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { collapsedEnvironments, environmentsStore } from "../../src/stores/env";
+import { statsByEnvStore } from "../../src/stores";
+import { collapsedEnvironments, currentEnvironment, environmentsStore } from "../../src/stores/env";
 import {
   allTreesCollapsed,
   collapsedTrees,
@@ -10,6 +11,7 @@ import {
   setAllTreesOpened,
   treeStore,
 } from "../../src/stores/tree";
+import { flatVirtualRows } from "../../src/stores/virtualTree";
 import type { ReportTree, ReportTreeLeaf } from "../../types";
 
 const makeLeaf = (id: string, status: "passed" | "failed" = "passed"): ReportTreeLeaf =>
@@ -70,12 +72,18 @@ const setEnvironments = (ids: string[]) => {
     error: undefined,
     data: Object.fromEntries(ids.map((id) => [id, makeEnvTree(id)])),
   };
+  statsByEnvStore.value = {
+    loading: false,
+    error: undefined,
+    data: Object.fromEntries(ids.map((id) => [id, { total: 2, passed: 1, failed: 1 }])),
+  };
 };
 
 beforeEach(() => {
   collapsedTrees.value = new Set();
   expandedTrees.value = new Set();
   collapsedEnvironments.value = [];
+  currentEnvironment.value = "";
 });
 
 describe("stores > tree > collapse all", () => {
@@ -139,5 +147,45 @@ describe("stores > tree > collapse all", () => {
     expect(collapsedEnvironments.value).toEqual([]);
     expect(isTreeOpened("env-a:env-a-passed", false)).toBe(true);
     expect(allTreesCollapsed.value).toBe(false);
+  });
+
+  it("writes unscoped ids and leaves environment sections alone when one environment is selected", () => {
+    setEnvironments(["env-a", "env-b"]);
+    currentEnvironment.value = "env-a";
+
+    setAllTreesOpened(false);
+
+    expect(collapsedEnvironments.value).toEqual([]);
+    expect(isTreeOpened("env-a-failed", true)).toBe(false);
+    expect(isTreeOpened("env-a:env-a-failed", true)).toBe(true);
+    expect(allTreesCollapsed.value).toBe(true);
+  });
+
+  it.each([
+    ["a single environment", ["default"], ""],
+    ["a selected environment", ["env-a", "env-b"], "env-a"],
+    ["all environments", ["env-a", "env-b"], ""],
+    ["a selected environment with no tree", ["env-a", "env-b"], "env-missing"],
+  ])("leaves no expanded group in the rendered rows: %s", (_name, envIds, selected) => {
+    setEnvironments(envIds as string[]);
+    currentEnvironment.value = selected as string;
+
+    setAllTreesOpened(false);
+
+    collapsedEnvironments.value = [];
+
+    const expandedGroups = flatVirtualRows.value
+      .filter((row) => row.kind === "group" && row.isExpanded)
+      .map((row) => row.id);
+
+    expect(expandedGroups).toEqual([]);
+
+    setAllTreesOpened(true);
+
+    const collapsedGroups = flatVirtualRows.value
+      .filter((row) => row.kind === "group" && !row.isExpanded)
+      .map((row) => row.id);
+
+    expect(collapsedGroups).toEqual([]);
   });
 });

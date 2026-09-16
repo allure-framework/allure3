@@ -2,8 +2,20 @@ import { act, cleanup, renderHook } from "@testing-library/preact";
 import { epic, feature, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+type ResizeObserverEntry = { callback: () => void; targets: unknown[] };
+
+const resizeObservers: ResizeObserverEntry[] = [];
+
 class ResizeObserverMock {
-  observe() {}
+  private readonly entry: ResizeObserverEntry;
+
+  constructor(callback: () => void) {
+    this.entry = { callback, targets: [] };
+    resizeObservers.push(this.entry);
+  }
+  observe(target: unknown) {
+    this.entry.targets.push(target);
+  }
   unobserve() {}
   disconnect() {}
 }
@@ -211,6 +223,77 @@ describe("useVirtualList — external scroll container", () => {
 
     const firstIndex = result.current.virtualItems[0]!.index;
     expect(firstIndex).toBeGreaterThan(0);
+    document.body.removeChild(scrollEl);
+  });
+});
+
+describe("useVirtualList — mounted at a restored scroll position", () => {
+  const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+
+  it("picks up a scroll position restored after mount without a scroll event", async () => {
+    const scrollEl = makeScrollEl(0, 200);
+    const containerEl = makeContainerEl(scrollEl);
+    document.body.appendChild(scrollEl);
+    const containerRef = { current: containerEl };
+
+    const { result } = renderHook(() => useVirtualList(containerRef, 200, OVERSCAN));
+
+    expect(result.current.virtualItems[0]!.index).toBe(0);
+
+    await act(async () => {
+      (scrollEl as any).scrollTop = 40 * ESTIMATE_ROW_HEIGHT;
+      await nextFrame();
+    });
+
+    expect(result.current.virtualItems[0]!.index).toBeGreaterThan(0);
+    document.body.removeChild(scrollEl);
+  });
+
+  it("recalculates the window when the container itself resizes", () => {
+    const scrollEl = makeScrollEl(0, 200);
+    const containerEl = makeContainerEl(scrollEl);
+    document.body.appendChild(scrollEl);
+    const containerRef = { current: containerEl };
+    resizeObservers.length = 0;
+
+    const { result } = renderHook(() => useVirtualList(containerRef, 200, OVERSCAN));
+
+    const observingContainer = resizeObservers.filter((observer) => observer.targets.includes(containerEl));
+
+    expect(observingContainer.length).toBeGreaterThan(0);
+
+    act(() => {
+      (scrollEl as any).scrollTop = 30 * ESTIMATE_ROW_HEIGHT;
+      observingContainer.forEach((observer) => observer.callback());
+    });
+
+    expect(result.current.virtualItems[0]!.index).toBeGreaterThan(0);
+    document.body.removeChild(scrollEl);
+  });
+});
+
+describe("useVirtualList — scrollToIndex with estimated heights", () => {
+  const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+
+  it("corrects the landing position once rows report their real heights", async () => {
+    const scrollEl = makeScrollEl(0, 200);
+    const containerEl = makeContainerEl(scrollEl);
+    document.body.appendChild(scrollEl);
+    const containerRef = { current: containerEl };
+
+    const { result } = renderHook(() => useVirtualList(containerRef, 100, OVERSCAN));
+
+    const shorterRow = document.createElement("div");
+    shorterRow.setAttribute("data-index", "0");
+    Object.defineProperty(shorterRow, "getBoundingClientRect", { value: () => ({ height: 16 }) });
+
+    await act(async () => {
+      result.current.scrollToIndex(50, "start");
+      result.current.measureElement(shorterRow);
+      await nextFrame();
+    });
+
+    expect(scrollEl.scrollTop).toBe(49 * ESTIMATE_ROW_HEIGHT + 16);
     document.body.removeChild(scrollEl);
   });
 });
