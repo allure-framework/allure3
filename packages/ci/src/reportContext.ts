@@ -38,7 +38,7 @@ export type ReportContextEnvironment = {
   duration: number;
 };
 
-export type ReportContextReport = PluginSummary & {
+export type ReportContextTestReport = PluginSummary & {
   summaryFile?: string;
   reportPath?: string;
 };
@@ -66,7 +66,7 @@ export type ReportContextTotals = {
 export type ReportContextQualityGate = QualityGateValidationResult[] | Record<string, QualityGateValidationResult[]>;
 
 export type ReportContext = {
-  reports: ReportContextReport[];
+  reports: ReportContextTestReport[];
   testResults?: TestResultRegistry;
   totals: ReportContextTotals;
   environments: ReportContextEnvironment[];
@@ -75,7 +75,7 @@ export type ReportContext = {
 };
 
 export type ReportContextData = {
-  reports?: ReportContextReport[];
+  reports?: ReportContextTestReport[];
   summaries?: PluginSummary[];
   testResults?: TestResultRegistry;
   artifacts?: ReportContextArtifact[];
@@ -145,7 +145,7 @@ const readPluginSummary = async (
   reportDir: string,
   filePath: string,
   onError?: (message: string) => void,
-): Promise<ReportContextReport | undefined> => {
+): Promise<ReportContextTestReport | undefined> => {
   const value = await readOptionalJson(filePath, onError);
 
   if (value === undefined) {
@@ -371,9 +371,9 @@ const createEnvironmentContext = (
   return [...environmentsByName.values()].toSorted((left, right) => left.name.localeCompare(right.name));
 };
 
-const createReport = (summary: PluginSummary): ReportContextReport => ({ ...summary });
+const createReport = (summary: PluginSummary): ReportContextTestReport => ({ ...summary });
 
-const sortReports = (reports: ReportContextReport[]): ReportContextReport[] =>
+const sortReports = (reports: ReportContextTestReport[]): ReportContextTestReport[] =>
   reports.toSorted((left, right) => left.name.localeCompare(right.name));
 
 const getResolutionStats = (summaries: PluginSummary[]): ReportContextResolutionStats => {
@@ -403,7 +403,7 @@ export const readReportContextFiles = async (
   const summaryFiles = await findSummaryFiles(reportDir);
   const reports = (
     await Promise.all(summaryFiles.map((summaryFile) => readPluginSummary(reportDir, summaryFile, onError)))
-  ).filter((summary): summary is ReportContextReport => summary !== undefined);
+  ).filter((summary): summary is ReportContextTestReport => summary !== undefined);
   const registry = normalizeTestResultRegistry(
     await readOptionalJson(join(reportDir, TEST_RESULTS_REGISTRY_FILENAME), onError),
     onError,

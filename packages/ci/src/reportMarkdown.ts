@@ -4,7 +4,7 @@ import type {
   ReportContext,
   ReportContextArtifact,
   ReportContextFlagStats,
-  ReportContextReport,
+  ReportContextTestReport,
   ReportContextResolutionStats,
   ReportContextStatusStats,
 } from "./reportContext.js";
@@ -174,14 +174,14 @@ const renderTable = (rows: SummaryRow[], includeResolutions: boolean): string =>
   return [`| ${headers.join(" | ")} |`, `| ${divider.join(" | ")} |`, ...body.map((row) => `| ${row} |`)].join("\n");
 };
 
-const reportHref = (report: ReportContextReport): string | undefined => report.remoteHref ?? report.href;
+const reportHref = (report: ReportContextTestReport): string | undefined => report.remoteHref ?? report.href;
 
-const reportLabel = (report: ReportContextReport): string => report.plugin ?? report.name;
+const reportLabel = (report: ReportContextTestReport): string => report.plugin ?? report.name;
 
-const reportLinkKind = (report: ReportContextReport): ReportLink["kind"] =>
+const reportLinkKind = (report: ReportContextTestReport): ReportLink["kind"] =>
   report.plugin?.toLowerCase() === "testops" ? "testops" : "report";
 
-const toReportLink = (report: ReportContextReport): ReportLink | undefined => {
+const toReportLink = (report: ReportContextTestReport): ReportLink | undefined => {
   const href = reportHref(report);
 
   return href
@@ -204,7 +204,7 @@ const renderLinks = (label: string, links: ReportLink[]): string | undefined => 
   return `**${escapeHtml(label)}:** ${links.map((item) => link(item.label, item.href)).join(", ")}`;
 };
 
-const renderReportLinks = (reports: ReportContextReport[]): string[] => {
+const renderReportLinks = (reports: ReportContextTestReport[]): string[] => {
   const links = sortLinks(reports.map(toReportLink).filter((item): item is ReportLink => item !== undefined));
   const reportLinks = links.filter(({ kind }) => kind === "report");
   const testOpsLinks = links.filter(({ kind }) => kind === "testops");
@@ -214,7 +214,7 @@ const renderReportLinks = (reports: ReportContextReport[]): string[] => {
   );
 };
 
-const pluginSummaryToStatusStats = (report: ReportContextReport): ReportContextStatusStats => ({
+const pluginSummaryToStatusStats = (report: ReportContextTestReport): ReportContextStatusStats => ({
   failed: report.stats.failed ?? 0,
   broken: report.stats.broken ?? 0,
   passed: report.stats.passed ?? 0,
@@ -223,19 +223,19 @@ const pluginSummaryToStatusStats = (report: ReportContextReport): ReportContextS
   total: report.stats.total ?? 0,
 });
 
-const pluginSummaryToFlags = (report: ReportContextReport): ReportContextFlagStats => ({
+const pluginSummaryToFlags = (report: ReportContextTestReport): ReportContextFlagStats => ({
   new: report.newTests?.length ?? report.stats.new ?? 0,
   flaky: report.flakyTests?.length ?? report.stats.flaky ?? 0,
   retry: report.retryTests?.length ?? report.stats.retries ?? 0,
 });
 
-const pluginSummaryToResolutions = (report: ReportContextReport): ReportContextResolutionStats => ({
+const pluginSummaryToResolutions = (report: ReportContextTestReport): ReportContextResolutionStats => ({
   issues: report.stats.resolutions?.issues ?? 0,
   muted: report.stats.resolutions?.muted ?? 0,
   accepted: report.stats.resolutions?.accepted ?? 0,
 });
 
-const renderFilteredReports = (reports: ReportContextReport[]): string | undefined => {
+const renderFilteredReports = (reports: ReportContextTestReport[]): string | undefined => {
   const rows = reports.map((report) => ({
     name: report.name,
     duration: report.duration,
