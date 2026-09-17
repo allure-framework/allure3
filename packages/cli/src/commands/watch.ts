@@ -204,7 +204,7 @@ export class WatchCommand extends Command {
 
     await discoveryWatcher.initialScan();
 
-    if (skippedResults > 0) {
+    if (this.newOnly && skippedResults > 0) {
       console.info(`skipped ${skippedResults} existing result(s); pass --no-new-only to load them`);
     }
 
