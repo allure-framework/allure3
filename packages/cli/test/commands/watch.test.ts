@@ -181,8 +181,8 @@ describe.each([
   });
 
   it.each([
-    { option: "default", args: [], skipsStartupResults: true, expectedNotice: notice(2) },
-    { option: "--new-only", args: ["--new-only"], skipsStartupResults: true, expectedNotice: notice(2) },
+    { option: "default", args: [], skipsStartupResults: true, expectedNotice: notice(1) },
+    { option: "--new-only", args: ["--new-only"], skipsStartupResults: true, expectedNotice: notice(1) },
     { option: "--no-new-only", args: ["--no-new-only"], skipsStartupResults: false, expectedNotice: undefined },
   ])(
     "$option skips only startup discovery results and keeps ingesting later ones",
@@ -236,7 +236,9 @@ describe.each([
         globWatcherMock.mockImplementationOnce((_cwd, _patterns, update) => createDiscoveryWatcher(update));
       }
 
-      vi.mocked(waitForAbort).mockImplementationOnce(() => shutdown.promise).mockImplementationOnce(() => pendingWait);
+      vi.mocked(waitForAbort)
+        .mockImplementationOnce(() => shutdown.promise)
+        .mockImplementationOnce(() => pendingWait);
 
       try {
         runPromise = Cli.from(WatchCommand).run(["watch", ...args, ...resultsDir]);
@@ -246,9 +248,9 @@ describe.each([
           expect(newFilesInDirectoryWatcherMock).toHaveBeenCalledWith(startupDirectory, expect.any(Function), {
             ignoreInitial: false,
           });
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(
-            skipsStartupResults ? 0 : 1,
-          );
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(skipsStartupResults ? 0 : 1);
           if (skipsStartupResults) {
             expect(vi.mocked(console.info)).toHaveBeenCalledWith(expectedNotice);
           } else {
@@ -260,18 +262,18 @@ describe.each([
         await step("verify startup directories ingest later live results", async () => {
           await callbacks.get(startupDirectory)?.(startupLiveFile);
 
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(
-            skipsStartupResults ? 1 : 2,
-          );
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(skipsStartupResults ? 1 : 2);
           expect(AllureReportMock.prototype.readResult).toHaveBeenLastCalledWith(new PathResultFile(startupLiveFile));
         });
 
         await step("verify directories discovered after startup always ingest their backlog", async () => {
           await discoveryUpdateHandlers[0](new Set([laterDirectory]), new Set());
 
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(
-            skipsStartupResults ? 2 : 3,
-          );
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(skipsStartupResults ? 2 : 3);
           expect(newFilesInDirectoryWatcherMock).toHaveBeenLastCalledWith(laterDirectory, expect.any(Function), {
             ignoreInitial: false,
           });
@@ -330,7 +332,9 @@ describe.each([
       globWatcherMock.mockImplementationOnce((_cwd, _patterns, update) => createDiscoveryWatcher(update));
     }
 
-    vi.mocked(waitForAbort).mockImplementationOnce(() => shutdown.promise).mockImplementationOnce(() => pendingWait);
+    vi.mocked(waitForAbort)
+      .mockImplementationOnce(() => shutdown.promise)
+      .mockImplementationOnce(() => pendingWait);
 
     try {
       runPromise = Cli.from(WatchCommand).run(["watch", "--new-only", ...resultsDir]);
@@ -389,7 +393,9 @@ describe("watch result ingestion", () => {
         await mkdir(startupDirectory, { recursive: true });
         await writeFile(startupExistingFile, JSON.stringify({ uuid: "existing", name: "existing", status: "passed" }));
 
-        vi.mocked(waitForAbort).mockImplementationOnce(() => shutdown.promise).mockImplementationOnce(() => pendingWait);
+        vi.mocked(waitForAbort)
+          .mockImplementationOnce(() => shutdown.promise)
+          .mockImplementationOnce(() => pendingWait);
         vi.mocked(newFilesInDirectoryWatcher).mockImplementation((directory, onNewFile, options) => {
           const watcher = realFileWatcher(directory, onNewFile, { ...options, indexDelay: 10 });
 
@@ -415,7 +421,9 @@ describe("watch result ingestion", () => {
           expect(newFilesInDirectoryWatcherMock).toHaveBeenCalledWith(startupDirectory, expect.any(Function), {
             ignoreInitial: false,
           });
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(loadsStartupResults ? 1 : 0);
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(loadsStartupResults ? 1 : 0);
           if (loadsStartupResults) {
             expect(vi.mocked(console.info)).not.toHaveBeenCalledWith(notice(1));
             expect(AllureReportMock.prototype.readResult).toHaveBeenCalledWith(new PathResultFile(startupExistingFile));
@@ -427,9 +435,9 @@ describe("watch result ingestion", () => {
         await step("verify live results in startup directories are still ingested", async () => {
           await writeFile(startupLiveFile, JSON.stringify({ uuid: "live", name: "live", status: "passed" }));
 
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(
-            loadsStartupResults ? 2 : 1,
-          );
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(loadsStartupResults ? 2 : 1);
           expect(AllureReportMock.prototype.readResult).toHaveBeenLastCalledWith(new PathResultFile(startupLiveFile));
         });
 
@@ -438,9 +446,9 @@ describe("watch result ingestion", () => {
           await writeFile(laterExistingFile, JSON.stringify({ uuid: "later", name: "later", status: "passed" }));
           await discoveryUpdateHandlers[0](new Set([laterDirectory]), new Set());
 
-          await expect.poll(() => AllureReportMock.prototype.readResult.mock.calls.length).toBe(
-            loadsStartupResults ? 3 : 2,
-          );
+          await expect
+            .poll(() => AllureReportMock.prototype.readResult.mock.calls.length)
+            .toBe(loadsStartupResults ? 3 : 2);
           expect(newFilesInDirectoryWatcherMock).toHaveBeenLastCalledWith(laterDirectory, expect.any(Function), {
             ignoreInitial: false,
           });
