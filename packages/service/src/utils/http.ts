@@ -16,11 +16,15 @@ import { isReportDataFile } from "./files.js";
  */
 export class KnownError extends Error {
   status?: number;
+  details?: ServiceHttpErrorDetails;
 
-  constructor(message: string, status?: number, options?: ErrorOptions) {
-    super(message, options);
+  constructor(message: string, status?: number, options?: ErrorOptions & { details?: ServiceHttpErrorDetails }) {
+    const { details, ...errorOptions } = options ?? {};
+
+    super(message, errorOptions);
     this.name = "KnownError";
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -30,15 +34,69 @@ export class KnownError extends Error {
  */
 export class UnknownError extends Error {
   stack?: string;
+  details?: ServiceHttpErrorDetails;
 
-  constructor(message: string, stack?: string, options?: ErrorOptions) {
-    super(message, options);
+  constructor(message: string, stack?: string, options?: ErrorOptions & { details?: ServiceHttpErrorDetails }) {
+    const { details, ...errorOptions } = options ?? {};
+
+    super(message, errorOptions);
     this.name = "UnknownError";
     this.stack = stack;
+    this.details = details;
   }
 }
 
+export type ServiceHttpErrorDetails = {
+  method: string;
+  endpoint: string;
+  status?: number;
+  statusText?: string;
+  responseMessage?: string;
+  rayId?: string;
+  mitigated?: string;
+  retryAfter?: string;
+  networkCode?: string;
+};
+
 const ERROR_MESSAGE_FIELDS = ["message", "error_description", "error", "detail", "title", "description"];
+const MAX_RESPONSE_MESSAGE_LENGTH = 512;
+
+const truncateResponseMessage = (message: string | undefined) => {
+  if (!message) {
+    return undefined;
+  }
+
+  const normalized = message.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= MAX_RESPONSE_MESSAGE_LENGTH) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, MAX_RESPONSE_MESSAGE_LENGTH)}…`;
+};
+
+const responseHeader = (headers: unknown, name: string): string | undefined => {
+  if (!headers || typeof headers !== "object") {
+    return undefined;
+  }
+
+  const headerGetter = (headers as { get?: (headerName: string) => unknown }).get;
+
+  if (typeof headerGetter === "function") {
+    const value = headerGetter.call(headers, name);
+
+    return value === undefined || value === null ? undefined : String(value);
+  }
+
+  const entries = Object.entries(headers as Record<string, unknown>);
+  const entry = entries.find(([headerName]) => headerName.toLowerCase() === name.toLowerCase());
+
+  if (!entry || entry[1] === undefined || entry[1] === null) {
+    return undefined;
+  }
+
+  return Array.isArray(entry[1]) ? entry[1].join(", ") : String(entry[1]);
+};
 
 const stringifyErrorObject = (value: Record<string, unknown>) => {
   try {
@@ -165,13 +223,29 @@ export const formatServiceHttpErrorMessage = (payload: {
   statusText?: string;
   data?: unknown;
   fallbackMessage?: string;
+  contentType?: string;
+  rayId?: string;
+  mitigated?: string;
 }) => {
-  const { method, endpoint, status, statusText, data, fallbackMessage } = payload;
+  const { method, endpoint, status, statusText, data, fallbackMessage, contentType, rayId, mitigated } = payload;
   const request = `${method.toUpperCase()} ${endpoint}`;
-  const statusMessage = status ? ` responded with ${status}${statusText ? ` ${statusText}` : ""}` : " failed";
-  const details = formatResponseErrorData(data) || fallbackMessage;
 
-  return `Allure service request failed: ${request}${statusMessage}${details ? `: ${details}` : ""}`;
+  if (status === 403 && mitigated === "challenge") {
+    return `Allure service request failed: ${request} was blocked by a Cloudflare managed challenge (status 403${
+      rayId ? `, ray ${rayId}` : ""
+    }). Machine API routes must be excluded from browser challenges.`;
+  }
+
+  const statusMessage = status ? ` responded with ${status}${statusText ? ` ${statusText}` : ""}` : " failed";
+  const responseMessage = contentType?.toLowerCase().includes("text/html") ? undefined : formatResponseErrorData(data);
+  const details = truncateResponseMessage(responseMessage || fallbackMessage);
+  const metadata = [rayId ? `ray ${rayId}` : undefined, mitigated ? `cf-mitigated ${mitigated}` : undefined]
+    .filter(Boolean)
+    .join(", ");
+
+  return `Allure service request failed: ${request}${statusMessage}${metadata ? ` (${metadata})` : ""}${
+    details ? `: ${details}` : ""
+  }`;
 };
 
 export const createServiceHttpClient = (
@@ -223,8 +297,26 @@ export const createServiceHttpClient = (
           throw err;
         }
 
-        const { data, status, statusText } = (err as AxiosError).response ?? {};
+        const { data, status, statusText, headers: responseHeaders } = (err as AxiosError).response ?? {};
         const responseStatus = status ?? 500;
+        const contentType = responseHeader(responseHeaders, "content-type");
+        const rayId = responseHeader(responseHeaders, "cf-ray");
+        const mitigated = responseHeader(responseHeaders, "cf-mitigated");
+        const retryAfter = responseHeader(responseHeaders, "retry-after");
+        const responseMessage = truncateResponseMessage(
+          contentType?.toLowerCase().includes("text/html") ? undefined : formatResponseErrorData(data),
+        );
+        const details: ServiceHttpErrorDetails = {
+          method,
+          endpoint,
+          status,
+          statusText,
+          responseMessage,
+          rayId,
+          mitigated,
+          retryAfter,
+          networkCode: (err as AxiosError).code,
+        };
         const errorMessage = formatServiceHttpErrorMessage({
           method,
           endpoint,
@@ -232,13 +324,16 @@ export const createServiceHttpClient = (
           statusText,
           data,
           fallbackMessage: err.message,
+          contentType,
+          rayId,
+          mitigated,
         });
 
         if (responseStatus < 500) {
-          throw new KnownError(errorMessage, responseStatus, { cause: err });
+          throw new KnownError(errorMessage, responseStatus, { cause: err, details });
         }
 
-        throw new UnknownError(errorMessage, err.stack, { cause: err });
+        throw new UnknownError(errorMessage, err.stack, { cause: err, details });
       }
     };
 

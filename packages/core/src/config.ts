@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { validateEnvironmentName } from "@allurereport/core-api";
+import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
@@ -50,19 +50,8 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
 const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
 const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
-
-export const parseIntegerConfigValue = (value: unknown, defaultValue: number, minValue: number): number => {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return defaultValue;
-  }
-
-  const normalized = Math.floor(value);
-
-  return normalized >= minValue ? normalized : defaultValue;
-};
 
 export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
@@ -366,6 +355,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     pluginInstances = await resolvePlugins(pluginsWithAgent);
   }
 
+  const uploadConcurrency = parseIntegerConfigValue(config.allureService?.uploadConcurrency, 1);
+
   return {
     name,
     cwd,
@@ -391,21 +382,13 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
       ? {
           accessToken: config.allureService.accessToken,
           private: config.allureService.private,
-          uploadConcurrency: parseIntegerConfigValue(
-            config.allureService.uploadConcurrency,
-            DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
-            1,
-          ),
-          uploadMaxAttempts: parseIntegerConfigValue(
-            config.allureService.uploadMaxAttempts,
+          ...(uploadConcurrency === undefined ? {} : { uploadConcurrency }),
+          uploadMaxAttempts:
+            parseIntegerConfigValue(config.allureService.uploadMaxAttempts, 1) ??
             DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-            1,
-          ),
-          uploadMaxSimultaneousFailures: parseIntegerConfigValue(
-            config.allureService.uploadMaxSimultaneousFailures,
+          uploadMaxSimultaneousFailures:
+            parseIntegerConfigValue(config.allureService.uploadMaxSimultaneousFailures, 0) ??
             DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-            0,
-          ),
         }
       : undefined,
     categories: config.categories,
