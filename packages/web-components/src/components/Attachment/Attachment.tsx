@@ -110,13 +110,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
   const CurrentComponent = componentsByAttachmentType[componentType];
+  // @ts-expect-error TODO: add all translations for attachment types
+  const typeI18n = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+  const i18nFor = (Component: unknown) => (Component === AttachmentCode ? i18n?.controls : typeI18n);
 
   if (DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) && CurrentPreviewComponent && CurrentComponent) {
     const isCodeComponent = CurrentComponent === AttachmentCode;
-    const i18nProp = isCodeComponent
-      ? i18n?.controls
-      : // @ts-expect-error TODO: add all translations for attachment types
-        i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
     const showPreview = !!previewable;
 
     return (
@@ -125,12 +124,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
           <CurrentComponent
             attachment={attachment.value}
             item={item}
-            i18n={i18nProp}
+            i18n={i18nFor(CurrentComponent)}
             {...(isCodeComponent ? { highlight: highlightCode } : {})}
           />
         </div>
         <div className={styles.attachmentViewPane} hidden={!showPreview}>
-          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />
+          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
         </div>
       </div>
     );
@@ -138,10 +137,9 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   // temp solution before modal component refactoring
   if (previewable && CurrentPreviewComponent) {
-    // @ts-expect-error TODO: add all translations for attachment types
-    const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
-
-    return <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
+    return (
+      <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
+    );
   }
 
   if (!CurrentComponent) {
@@ -149,16 +147,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   }
 
   const isCodeComponent = CurrentComponent === AttachmentCode;
-  const i18nProp = isCodeComponent
-    ? i18n?.controls
-    : // @ts-expect-error TODO: add all translations for attachment types
-      i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
 
   return (
     <CurrentComponent
       attachment={attachment.value}
       item={item}
-      i18n={i18nProp}
+      i18n={i18nFor(CurrentComponent)}
       {...(isCodeComponent ? { highlight: highlightCode } : {})}
     />
   );

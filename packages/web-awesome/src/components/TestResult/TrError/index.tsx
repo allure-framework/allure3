@@ -1,5 +1,6 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
 import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
+import { copyToClipboard } from "@allurereport/web-commons";
 import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
@@ -9,7 +10,6 @@ import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 
@@ -42,6 +42,7 @@ export const TrError: FunctionalComponent<
   const { t: empty } = useI18n("empty");
   const hasTrace = Boolean(trace?.length);
   const hasDiff = hasErrorDiff({ actual, expected });
+  const toggleTrace = () => setIsOpen((open) => !open);
   const openDiff = () =>
     openModal({
       title: tooltip("comparison"),
@@ -78,12 +79,17 @@ export const TrError: FunctionalComponent<
               />
             </TooltipWrapper>
           </div>
-          <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
+          <button
+            type="button"
+            className={styles["test-result-error-message"]}
+            aria-label={t("error")}
+            onClick={toggleTrace}
+          >
             <Code data-testid="test-result-error-message" size={"s"}>
               {/* eslint-disable-next-line react/no-danger */}
               <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
             </Code>
-          </div>
+          </button>
         </>
       ) : showMessage ? (
         empty("no-message-provided")

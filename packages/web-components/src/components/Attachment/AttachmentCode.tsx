@@ -1,5 +1,11 @@
-import { ansiSemanticColors, ansiToHTML, isAnsi, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
-import { useMemo } from "preact/hooks";
+import {
+  ansiSemanticColors,
+  ansiToHTML,
+  copyToClipboard,
+  isAnsi,
+  normalizeAnsiForegroundColors,
+} from "@allurereport/web-commons";
+import { useEffect, useMemo, useState } from "preact/hooks";
 
 import { IconButton } from "../Button";
 import { allureIcons } from "../SvgIcon";
@@ -83,25 +89,6 @@ const shouldShowLineNumbers = (prismLang: string, rawText: string): boolean => {
   return rawText.split("\n").length >= 5;
 };
 
-const copyToClipboard = async (text: string) => {
-  try {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-  } catch {}
-};
-
 export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean }) => {
   const { attachment, item, highlight = true, i18n } = props;
 
@@ -132,18 +119,31 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
   const canCopy = rawText.length > 0;
   const copyLabel = i18n?.("clipboard") ?? "Copy to clipboard";
   const copiedLabel = i18n?.("clipboardSuccess") ?? "Successfully copied";
+  const copyErrorLabel =
+    i18n?.("clipboardError") ??
+    "Can not copy value to clipboard. Seems like this feature is not supported for your browser";
+  const [copyTooltip, setCopyTooltip] = useState(copyLabel);
+
+  useEffect(() => {
+    setCopyTooltip(copyLabel);
+  }, [copyLabel, rawText]);
 
   const copyAction = canCopy && (
-    <div className={styles["attachment-code-actions"]}>
-      <TooltipWrapper tooltipText={copyLabel} tooltipTextAfterClick={copiedLabel}>
+    <div
+      className={styles["attachment-code-actions"]}
+      role="presentation"
+      onClick={(e: MouseEvent) => e.stopPropagation()}
+      onKeyDown={(e: KeyboardEvent) => e.stopPropagation()}
+      onMouseLeave={() => setCopyTooltip(copyLabel)}
+    >
+      <TooltipWrapper tooltipText={copyTooltip}>
         <IconButton
-          style="raised"
+          style="ghost"
           size="s"
           iconSize="s"
           icon={allureIcons.lineGeneralCopy3}
-          onClick={(e: MouseEvent) => {
-            e.stopPropagation();
-            copyToClipboard(rawText);
+          onClick={async () => {
+            setCopyTooltip((await copyToClipboard(rawText)) ? copiedLabel : copyErrorLabel);
           }}
         />
       </TooltipWrapper>
@@ -159,19 +159,20 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
 
     return (
       <div className={styles["attachment-code"]}>
+        {copyAction}
         <pre
           data-testid="code-attachment-content"
           className={preClass}
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
-        {copyAction}
       </div>
     );
   }
 
   return (
     <div className={styles["attachment-code"]}>
+      {copyAction}
       <pre data-testid="code-attachment-content" className={preClass}>
         {highlight && highlightedHtml !== null ? (
           <code
@@ -183,7 +184,6 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
           <code>{rawText}</code>
         )}
       </pre>
-      {copyAction}
     </div>
   );
 };

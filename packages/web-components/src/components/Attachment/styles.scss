@@ -29,28 +29,14 @@
 
 .attachment-code {
   position: relative;
-
-  &:hover,
-  &:focus-within {
-    .attachment-code-actions {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-  }
 }
 
 .attachment-code-actions {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(calc(100% + 12px));
-  transition:
-    opacity var(--interaction-transition-duration) ease-out,
-    transform var(--interaction-transition-duration) ease-out;
+  position: sticky;
+  top: 8px;
+  z-index: 2;
+  float: right;
+  margin: 8px 8px -32px 0;
 }
 
 .test-result-attachment-content-wrapper {
