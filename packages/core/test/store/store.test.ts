@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateParametersHash, calculateRetryHash } from "../../src/store/retrySubstore.js";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
+import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
@@ -3186,6 +3187,60 @@ describe("visitGlobals", () => {
 
     expect(errors).toHaveLength(0);
     expect(attachments).toHaveLength(0);
+  });
+
+  it("should reset process globals without removing reader or runtime globals", async () => {
+    const realtime = new RealtimeChannel();
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: realtime.subscriber,
+      realtimeDispatcher: realtime.dispatcher,
+    });
+    const runtimeAttachment = new BufferResultFile(Buffer.from("runtime"), "runtime.txt");
+    const processAttachment = new BufferResultFile(Buffer.from("stderr"), "stderr.txt");
+
+    await store.visitGlobals({
+      errors: [{ message: "Reader error" }],
+      attachments: [],
+    });
+    realtime.dispatcher.sendGlobalAttachment(runtimeAttachment, "Runtime attachment");
+    realtime.dispatcher.sendProcessGlobalError({ message: "Process error" });
+    realtime.dispatcher.sendProcessGlobalAttachment(processAttachment, "stderr");
+
+    const processAttachmentLink = (await store.allGlobalAttachments()).find(({ name }) => name === "stderr");
+
+    expect(await store.allGlobalErrors()).toEqual([
+      { message: "Reader error", environment: "default" },
+      { message: "Process error", environment: "default" },
+    ]);
+    expect(await store.allGlobalAttachments()).toHaveLength(2);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [
+        { message: "Reader error", environment: "default" },
+        { message: "Process error", environment: "default" },
+      ],
+    });
+
+    realtime.dispatcher.sendProcessGlobalsReset();
+
+    expect(await store.allGlobalErrors()).toEqual([{ message: "Reader error", environment: "default" }]);
+    expect(await store.allGlobalAttachments()).toEqual([
+      expect.objectContaining({
+        name: "Runtime attachment",
+        originalFileName: "runtime.txt",
+      }),
+    ]);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [{ message: "Reader error", environment: "default" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      default: [
+        expect.objectContaining({
+          name: "Runtime attachment",
+          originalFileName: "runtime.txt",
+        }),
+      ],
+    });
+    expect(await store.attachmentContentById(processAttachmentLink!.id)).toBeUndefined();
   });
 
   it("should make global attachments available in allAttachments", async () => {

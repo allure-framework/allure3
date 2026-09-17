@@ -4010,23 +4010,15 @@ export class AgentPlugin implements Plugin {
         { maxTimeout: 0 },
       ),
     );
-    runtime.unsubscribers.push(
-      realtime.onGlobalAttachment(async () => {
-        await queueRuntimeTask(runtime, async () => {
-          // Global artifacts are finalized from the store in done(). Live consumers should
-          // use test-events plus per-test markdown for fast feedback during the run.
+    const onGlobalError = async (error: { message?: string }) => {
+      await queueRuntimeTask(runtime, async () => {
+        await appendRuntimeEvent(runtime, "run_error", {
+          message: error.message ?? "Captured global error",
         });
-      }),
-    );
-    runtime.unsubscribers.push(
-      realtime.onGlobalError(async (error) => {
-        await queueRuntimeTask(runtime, async () => {
-          await appendRuntimeEvent(runtime, "run_error", {
-            message: error.message ?? "Captured global error",
-          });
-        });
-      }),
-    );
+      });
+    };
+
+    runtime.unsubscribers.push(realtime.onGlobalError(onGlobalError));
     runtime.unsubscribers.push(
       realtime.onGlobalExitCode(async (payload) => {
         await queueRuntimeTask(runtime, async () => {
