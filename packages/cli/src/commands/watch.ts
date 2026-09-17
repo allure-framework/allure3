@@ -77,9 +77,9 @@ export class WatchCommand extends Command {
     description: "Don't clear terminal output on the data refresh",
   });
 
-  newOnly = Option.Boolean("--new-only", false, {
+  newOnly = Option.Boolean("--new-only", true, {
     description:
-      "Skip test results that already exist on disk at startup and only react to new results (default: false). Existing results are loaded unless --new-only is passed",
+      "Skip test results that already exist on disk during startup discovery and only react to new results from those startup directories (default: true). Pass --no-new-only to load startup results; directories discovered later still load their existing backlog",
   });
 
   async execute() {
@@ -158,6 +158,7 @@ export class WatchCommand extends Command {
     // only the very first discovery scan reflects pre-existing directories; anything found
     // afterwards is new by definition, so --new-only must not skip its backlog
     let isInitialDiscovery = true;
+    let skippedResults = 0;
 
     const onDiscoveryUpdate = async (newDirectories: Set<string>, deletedDirectories: Set<string>) => {
       for (const deletedDir of deletedDirectories) {
@@ -175,17 +176,23 @@ export class WatchCommand extends Command {
           continue;
         }
 
+        let skipExistingResults = this.newOnly && isInitialDiscovery;
         const watcher = newFilesInDirectoryWatcher(
           newDir,
           async (path) => {
+            if (skipExistingResults) {
+              skippedResults += 1;
+              return;
+            }
             await allureReport.readResult(new PathResultFile(path));
           },
-          { ignoreInitial: this.newOnly && isInitialDiscovery },
+          { ignoreInitial: false },
         );
 
         perDirectoryWatchers.set(newDir, watcher);
 
         await watcher.initialScan();
+        skipExistingResults = false;
       }
 
       isInitialDiscovery = false;
@@ -196,6 +203,10 @@ export class WatchCommand extends Command {
       : allureResultsDirectoriesGlobWatcher(cwd, resultsPatterns, onDiscoveryUpdate, { indexDelay: 600 });
 
     await discoveryWatcher.initialScan();
+
+    if (this.newOnly && skippedResults > 0) {
+      console.info(`skipped ${skippedResults} existing result(s); pass --no-new-only to load them`);
+    }
 
     abortFunctions.push(discoveryWatcher.abort);
     abortFunctions.push(async (immediately?: boolean) => {

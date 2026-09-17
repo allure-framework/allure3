@@ -152,7 +152,7 @@ When you need to monitor test execution live, the `watch` command provides dynam
 npx allure watch <allureResultsDir>
 ```
 
-By default, `watch` loads existing results at startup and continues to load new results as they appear. Pass `--new-only` to skip the results already present at startup; `--no-new-only` explicitly keeps the default behavior. Directories discovered after startup always have their existing results loaded, including with `--new-only`.
+By default, `watch` skips results already present in directories found during startup and continues to load new results as they appear. Pass `--no-new-only` to load those startup results too. Directories discovered later always load their existing backlog, even with `--new-only`.
 
 This command is ideal for iterative development and debugging, allowing you to see immediate feedback as you modify and rerun tests. The browser tab updates seamlessly whenever new results are detected.
 
