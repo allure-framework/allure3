@@ -6,6 +6,16 @@ import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/Me
 import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import { useI18n } from "@/stores/locale";
+import {
+  setTreeFlaky,
+  setTreeRetry,
+  setTreeStatus,
+  setTreeTransitions,
+  treeFlaky,
+  treeRetry,
+  treeStatus,
+  treeTransitions,
+} from "@/stores/treeFilters/store";
 
 import * as styles from "@/components/ReportMetadata/styles.scss";
 
@@ -14,6 +24,49 @@ export interface MetadataSummaryProps {
 }
 
 const metadataTestsTypes = ["flaky", "new", "retries"] as const as (keyof Statistic)[];
+
+const applyTotalFilter = () => {
+  setTreeStatus("total");
+  setTreeFlaky(false);
+  setTreeRetry(false);
+  setTreeTransitions([]);
+};
+
+const applyMetadataFilter = (type: keyof Statistic) => {
+  if (type === "flaky") {
+    setTreeFlaky(!treeFlaky.value);
+  }
+
+  if (type === "new") {
+    setTreeTransitions(
+      treeTransitions.value.includes("new")
+        ? treeTransitions.value.filter((transition) => transition !== "new")
+        : [...treeTransitions.value, "new"],
+    );
+  }
+
+  if (type === "retries") {
+    setTreeRetry(!treeRetry.value);
+  }
+};
+
+const isMetadataFilterActive = (type: keyof Statistic) => {
+  if (type === "flaky") {
+    return treeFlaky.value;
+  }
+
+  if (type === "new") {
+    return treeTransitions.value.includes("new");
+  }
+
+  if (type === "retries") {
+    return treeRetry.value;
+  }
+
+  return false;
+};
+
+const hasActiveMetadataFilter = () => treeFlaky.value || treeRetry.value || treeTransitions.value.includes("new");
 
 export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
   const { t } = useI18n("statuses");
@@ -35,7 +88,13 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
 
       return (
         <div key={type}>
-          <MetadataItem data-testid={`metadata-item-${type}`} props={props} renderComponent={MetadataWithIcon} />
+          <MetadataItem
+            data-testid={`metadata-item-${type}`}
+            props={props}
+            renderComponent={MetadataWithIcon}
+            onClick={() => applyMetadataFilter(type)}
+            active={isMetadataFilterActive(type)}
+          />
         </div>
       );
     })
@@ -58,6 +117,8 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
           key={status}
           props={props}
           renderComponent={MetadataTestType}
+          onClick={() => setTreeStatus(treeStatus.value === status ? "total" : status)}
+          active={treeStatus.value === status}
         />
       );
     });
@@ -65,7 +126,13 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
   return (
     <div class={styles["report-metadata-summary"]}>
       <div className={styles["report-metadata-all-tests"]}>
-        <MetadataItem data-testid="metadata-item-total" props={allTest.value} renderComponent={MetadataWithIcon} />
+        <MetadataItem
+          data-testid="metadata-item-total"
+          props={allTest.value}
+          renderComponent={MetadataWithIcon}
+          onClick={applyTotalFilter}
+          active={treeStatus.value === "total" && !hasActiveMetadataFilter()}
+        />
         {Boolean(metaDataTests.length) && <div className={styles["report-metadata-separator"]} />}
         {metaDataTests}
       </div>
