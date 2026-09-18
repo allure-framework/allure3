@@ -235,7 +235,7 @@ export class TreePage extends CommonPage {
 
     try {
       return (await baseLocator.getByTestId("metadata-value").innerText({ timeout: 1000 })).trim();
-    } catch (err) {
+    } catch {
       return undefined;
     }
   }
@@ -326,12 +326,11 @@ export class TreePage extends CommonPage {
   }
 
   async toggleRetryFilter() {
-    await this.retryFilterLocator.click();
+    await this.metadataRetriesLocator.click();
   }
 
   async toggleFlakyFilter() {
-    // Flaky filter is now a direct button, click it
-    await this.flakyFilterLocator.click();
+    await this.metadataFlakyLocator.click();
   }
 
   async toggleNewFilter() {
