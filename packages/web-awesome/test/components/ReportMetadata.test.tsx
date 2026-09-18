@@ -198,6 +198,26 @@ describe("components > ReportMetadata", () => {
     expect(setTreeFlakyMock).toHaveBeenCalledWith(true);
   });
 
+  it("should always show metadata filters and render empty counts as dashes", () => {
+    render(
+      <MetadataSummary
+        stats={{
+          total: 12,
+          passed: 9,
+          skipped: 1,
+          unknown: 2,
+          new: 0,
+          retries: 0,
+          flaky: 0,
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("metadata-item-new")).toHaveTextContent("New tests-");
+    expect(screen.getByTestId("metadata-item-retries")).toHaveTextContent("Retried tests-");
+    expect(screen.getByTestId("metadata-item-flaky")).toHaveTextContent("Flaky tests-");
+  });
+
   it("should clear summary metadata filters when total is clicked", () => {
     treeFlakyMock.value = true;
     treeRetryMock.value = true;
