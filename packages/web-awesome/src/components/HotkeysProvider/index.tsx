@@ -20,8 +20,6 @@ import {
   focusSearch,
   focusTestResultPaneIfOpen,
   getHotkeyScope,
-  cycleReportRootTabHotkey,
-  cycleTestResultTabHotkey,
   goToNextTestResult,
   goToPrevTestResult,
   goToReportRootTab,
@@ -198,19 +196,6 @@ const createBindings = (): HotkeyBinding[] => [
     scope: "global",
     key: "6",
     handler: () => goToReportRootTab(REPORT_ROOT_TAB.GlobalErrors),
-  },
-  {
-    id: "report-tab-next",
-    scope: "global",
-    key: "Tab",
-    handler: () => cycleReportRootTabHotkey("next"),
-  },
-  {
-    id: "report-tab-prev",
-    scope: "global",
-    key: "Tab",
-    modifiers: { shift: true },
-    handler: () => cycleReportRootTabHotkey("prev"),
   },
   {
     id: "focus-tree-pane-fallback",
@@ -486,19 +471,6 @@ const createBindings = (): HotkeyBinding[] => [
     scope: "testResult",
     key: "6",
     handler: () => goToTestResultTab(TEST_RESULT_TAB.Environments),
-  },
-  {
-    id: "test-result-tab-next",
-    scope: "testResult",
-    key: "Tab",
-    handler: () => cycleTestResultTabHotkey("next"),
-  },
-  {
-    id: "test-result-tab-prev",
-    scope: "testResult",
-    key: "Tab",
-    modifiers: { shift: true },
-    handler: () => cycleTestResultTabHotkey("prev"),
   },
   {
     id: "test-result-overview-down",

@@ -87,6 +87,11 @@ export interface PluginSummary {
   checks?: SummaryCheckResult[];
   createdAt?: number;
   /**
+   * Marks summaries produced from a filtered test result subset. Unfiltered summaries describe the same
+   * generation-wide result set and CI integrations may aggregate their stats instead of repeating them per report.
+   */
+  filtered?: boolean;
+  /**
    * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
    * The field can be used in integrations to make better experience
    */

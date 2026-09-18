@@ -133,3 +133,16 @@ export const scrollTreePaneToTop = (anchor?: HTMLElement | null): void => {
     }
   }
 };
+
+/** Whether the focused row is actually visible inside its scrollport (not scrolled out of sight). */
+export const isFocusInView = (
+  target: HTMLElement,
+  options?: { containerAttribute?: string; inset?: number },
+): boolean => {
+  const containerAttribute = options?.containerAttribute ?? "data-tree-scroll-container";
+  const scrollRoot = findFocusScrollRoot(target, containerAttribute);
+  const rootRect = scrollRoot ? scrollRoot.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+  const inset = scrollRoot ? computeStickyInset(scrollRoot, options?.inset ?? 4) : (options?.inset ?? 4);
+
+  return !isOutOfScrollport(target.getBoundingClientRect(), rootRect, inset);
+};

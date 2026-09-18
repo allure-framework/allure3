@@ -195,7 +195,7 @@ export class RunCommand extends Command {
       ...config,
       environment: resolvedEnvironment?.id,
       qualityGate: withQualityGate ? config.qualityGate : undefined,
-      dump: this.dump,
+      dump: this.dump ?? config.dump,
       realTime: false,
       plugins: [
         ...(config.plugins?.length

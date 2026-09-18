@@ -46,6 +46,7 @@ const iconMap: Record<string, string> = {
   "text/uri-list": lineFilesFileAttachment2,
   "image/svg+xml": lineImagesImage,
   "image/png": lineImagesImage,
+  "image/webp": lineImagesImage,
   "application/json": lineFilesFileAttachment2,
   "application/zip": lineFilesFileAttachment2,
   "video/webm": lineImagesImage,
@@ -71,6 +72,7 @@ export const TrAttachment: FunctionComponent<{
   const [showPreview, setShowPreview] = useState(() => DEFAULT_PREVIEW_TYPES.has(componentTypeForPreview ?? ""));
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
+  const { t: tControls } = useI18n("controls");
   const { missed } = link;
   const componentType = componentTypeForPreview;
   const isValidComponentType = !["archive", null].includes(componentType);
@@ -85,6 +87,10 @@ export const TrAttachment: FunctionComponent<{
   const supportsSyntaxHighlightToggle =
     isSyntaxHighlightable &&
     (componentType === "code" || componentType === "text" || componentType === "markdown" || componentType === "html");
+  const attachmentI18n = {
+    controls: tControls,
+    imageDiff: (key: string) => tAttachments(`imageDiff.${key}`),
+  };
 
   const handleHighlightToggle = () => {
     if (isPreviewable && showPreview) {
@@ -105,17 +111,12 @@ export const TrAttachment: FunctionComponent<{
     openModal({
       data: item,
       preview: isPreviewable,
-      component: <Attachment item={item} previewable={isPreviewable} />,
+      component: <Attachment item={item} previewable={isPreviewable} i18n={attachmentI18n} />,
     });
   };
 
   const content = (
-    <Attachment
-      item={item}
-      previewable={showPreview}
-      highlightCode={highlightCode}
-      i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
-    />
+    <Attachment item={item} previewable={showPreview} highlightCode={highlightCode} i18n={attachmentI18n} />
   );
 
   const attachmentHeaderContent = (

@@ -15,4 +15,8 @@ describe("utils > attachments", () => {
     expect(attachmentType("text/csv; charset=utf-8")).toEqual({ type: "table", icon: "csv" });
     expect(attachmentType("text/tab-separated-values; charset=utf-8")).toEqual({ type: "table", icon: "table" });
   });
+
+  it("detects image attachments including webp", () => {
+    expect(attachmentType("image/webp")).toEqual({ type: "image", icon: "file" });
+  });
 });

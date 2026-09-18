@@ -4,6 +4,7 @@ import {
   collectExpandableSubtreeNodes,
   getExpandableDescendants,
   hasExpandableTreeChildren,
+  isFocusInView,
   resolveNextSubtreeToggleState,
   scrollTreePaneToTop,
   type SubtreeNodeState,
@@ -39,7 +40,7 @@ import {
 import { isSplitMode } from "@/stores/layout";
 import { isModalOpen } from "@/stores/modal";
 import { getReportEnvSectionId, type ReportEnvSection } from "@/stores/reportEnvSections";
-import { cycleReportRootTab, navigateToReportRootTab, REPORT_ROOT_TAB } from "@/stores/reportRootTabs";
+import { navigateToReportRootTab, REPORT_ROOT_TAB } from "@/stores/reportRootTabs";
 import { navigateToRoot, navigateToTestResult, rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentSection } from "@/stores/sections";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
@@ -52,12 +53,7 @@ import {
   toggleTestResultFocusNode,
 } from "@/stores/testResultOverviewNav";
 import { testResultNavStore, testResultStore } from "@/stores/testResults";
-import {
-  cycleTestResultTab,
-  getTestResultTabForTestResultId,
-  navigateToTestResultTabById,
-  TEST_RESULT_TAB,
-} from "@/stores/testResultTabs";
+import { getTestResultTabForTestResultId, navigateToTestResultTabById, TEST_RESULT_TAB } from "@/stores/testResultTabs";
 import { filteredTree, isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
 
 const isTestResultRoute = computed(
@@ -556,13 +552,14 @@ export const openTestResultFromTree = () => {
     return;
   }
 
-  navigateToTestResult({ testResultId: node.testResultId, tab: getTestResultTabForTestResultId(node.testResultId) });
+  const focusedRow = document.querySelector(`[data-tree-node-id="${node.id}"]`);
 
-  if (isSplitMode.value) {
-    focusTestResultPane();
-  } else {
-    focusTestResultPane();
+  if (focusedRow instanceof HTMLElement && !isFocusInView(focusedRow)) {
+    return;
   }
+
+  navigateToTestResult({ testResultId: node.testResultId, tab: getTestResultTabForTestResultId(node.testResultId) });
+  focusTestResultPane();
 };
 
 export const getSearchInput = (): HTMLInputElement | null =>
@@ -690,23 +687,6 @@ export const goToReportRootTab = (tab: (typeof REPORT_ROOT_TAB)[keyof typeof REP
 
   navigateToReportRootTab(tab);
   focusTreePane();
-};
-
-export const cycleReportRootTabHotkey = (direction: "next" | "prev") => {
-  if (!isReportRootTabsContext()) {
-    return;
-  }
-
-  cycleReportRootTab(direction);
-  focusTreePane();
-};
-
-export const cycleTestResultTabHotkey = (direction: "next" | "prev") => {
-  if (!isTestResultHotkeysContext()) {
-    return;
-  }
-
-  cycleTestResultTab(direction);
 };
 
 export const toggleReportEnvSection = (section: ReportEnvSection) => {

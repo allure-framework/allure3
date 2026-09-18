@@ -29,10 +29,10 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "mime-types": "^2.1.35"
+    "mime-types": "^3.0.2"
   },
   "devDependencies": {
-    "@types/mime-types": "^2.1.4",
+    "@types/mime-types": "^3.0.1",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",

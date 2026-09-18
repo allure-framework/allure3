@@ -31,8 +31,6 @@ export const shortcutGroups: ShortcutGroup[] = [
       { binding: { key: "4" }, labelKey: "items.reportTabQualityGate" },
       { binding: { key: "5" }, labelKey: "items.reportTabGlobalAttachments" },
       { binding: { key: "6" }, labelKey: "items.reportTabGlobalErrors" },
-      { binding: { key: "Tab" }, labelKey: "items.reportTabNext" },
-      { binding: { key: "Tab", modifiers: { shift: true } }, labelKey: "items.reportTabPrev" },
     ],
   },
   {
@@ -74,8 +72,6 @@ export const shortcutGroups: ShortcutGroup[] = [
       { binding: { key: "N", code: "KeyN", modifiers: { shift: true } }, labelKey: "items.prevTest" },
       { binding: { key: "ArrowUp" }, labelKey: "items.prevTest" },
       { binding: { key: "k", code: "KeyK" }, labelKey: "items.prevTest" },
-      { binding: { key: "Tab" }, labelKey: "items.testTabNext" },
-      { binding: { key: "Tab", modifiers: { shift: true } }, labelKey: "items.testTabPrev" },
       { binding: { key: "1" }, labelKey: "items.tabOverview" },
       { binding: { key: "2" }, labelKey: "items.tabResolutionCategories" },
       { binding: { key: "3" }, labelKey: "items.tabHistory" },
