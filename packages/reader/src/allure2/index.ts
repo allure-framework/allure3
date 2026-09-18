@@ -60,6 +60,63 @@ const historyMetadataKeys: Record<string, string> = {
   "categories-trend.json": "allure2_categories_trend",
 };
 
+type AssertionDiff = Pick<RawTestResult, "actual" | "expected">;
+
+const stripAnsi = (value: string) =>
+  // eslint-disable-next-line no-control-regex
+  value.replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, "");
+
+const trimDiffValue = (value?: string) => value?.trim().replace(/^["'`](.*)["'`]$/s, "$1");
+
+const findLabeledAssertionDiff = (text: string): AssertionDiff | undefined => {
+  const expected = text.match(/^\s*Expected(?:\s+\w+)?:\s*(?<value>.+)\s*$/im)?.groups?.value;
+  const actual = text.match(/^\s*(?:Received|Actual)(?:\s+\w+)?:\s*(?<value>.+)\s*$/im)?.groups?.value;
+
+  const normalizedActual = trimDiffValue(actual);
+  const normalizedExpected = trimDiffValue(expected);
+
+  return normalizedActual && normalizedExpected
+    ? { actual: normalizedActual, expected: normalizedExpected }
+    : undefined;
+};
+
+const findPytestAssertionDiff = (text: string): AssertionDiff | undefined => {
+  const lines = text.split(/\r?\n/).map((line) =>
+    line
+      .replace(/^\s*(?:E\s+|>\s*)/, "")
+      .replace(/^AssertionError:\s*/, "")
+      .trim(),
+  );
+
+  for (const line of lines) {
+    const match = line.match(/^assert\s+(?<actual>.+?)\s+==\s+(?<expected>.+)$/);
+
+    if (!match?.groups) {
+      continue;
+    }
+
+    const actual = trimDiffValue(match.groups.actual);
+    const expected = trimDiffValue(match.groups.expected);
+
+    if (actual && expected) {
+      return { actual, expected };
+    }
+  }
+
+  return undefined;
+};
+
+const inferAssertionDiff = (message?: string, trace?: string, actual?: string, expected?: string): AssertionDiff => {
+  if (actual || expected) {
+    return { actual, expected };
+  }
+
+  const text = stripAnsi([message, trace].filter(Boolean).join("\n"));
+  const inferredDiff = findLabeledAssertionDiff(text) ?? findPytestAssertionDiff(text);
+
+  return inferredDiff ?? { actual, expected };
+};
+
 const isAllure2AttachmentFileName = (fileName: string): boolean => {
   const attachmentIdx = fileName.lastIndexOf("-attachment");
 
@@ -250,6 +307,14 @@ export const allure2: ResultsReader = {
 const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
   const links = result?.links?.filter(notNull) ?? [];
   const topLevelAttachmentCount = result?.attachments?.filter(notNull).length ?? 0;
+  const message = ensureString(result?.statusDetails?.message);
+  const trace = ensureString(result?.statusDetails?.trace);
+  const diff = inferAssertionDiff(
+    message,
+    trace,
+    ensureString(result?.statusDetails?.actual, ""),
+    ensureString(result?.statusDetails?.expected, ""),
+  );
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
     titlePath: result?.titlePath?.length ? result.titlePath : [],
@@ -265,10 +330,10 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     descriptionHtml: ensureString(result.descriptionHtml),
 
     status: convertStatus(result.status),
-    message: ensureString(result?.statusDetails?.message),
-    trace: ensureString(result?.statusDetails?.trace),
-    actual: ensureString(result?.statusDetails?.actual, ""),
-    expected: ensureString(result?.statusDetails?.expected, ""),
+    message,
+    trace,
+    actual: diff.actual,
+    expected: diff.expected,
     flaky: ensureBoolean(result?.statusDetails?.flaky),
     known: ensureBoolean(result?.statusDetails?.known),
     muted: ensureBoolean(result?.statusDetails?.muted),
