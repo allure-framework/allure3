@@ -8,6 +8,7 @@ import type {
   RawFixtureResult,
   RawStep,
   RawTestAttachment,
+  RawError,
   RawTestLabel,
   RawTestLink,
   RawTestParameter,
@@ -20,7 +21,7 @@ import { XMLParser } from "fast-xml-parser";
 
 import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
-import { ensureBoolean, ensureInt, ensureString } from "../utils.js";
+import { ensureArray, ensureBoolean, ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 import type {
   Attachment,
@@ -32,6 +33,7 @@ import type {
   Link,
   Parameter,
   Status,
+  StatusDetails,
   StepResult,
   TestResult,
   TestResultContainer,
@@ -250,6 +252,14 @@ export const allure2: ResultsReader = {
 const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
   const links = result?.links?.filter(notNull) ?? [];
   const topLevelAttachmentCount = result?.attachments?.filter(notNull).length ?? 0;
+  const errors = ensureArray<StatusDetails>(result?.statusDetails?.errors)
+    ?.filter(notNull)
+    .map<RawError>((error) => ({
+      message: ensureString(error.message),
+      trace: ensureString(error.trace),
+      actual: ensureString(error.actual, ""),
+      expected: ensureString(error.expected, ""),
+    }));
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
     titlePath: result?.titlePath?.length ? result.titlePath : [],
@@ -269,6 +279,7 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     trace: ensureString(result?.statusDetails?.trace),
     actual: ensureString(result?.statusDetails?.actual, ""),
     expected: ensureString(result?.statusDetails?.expected, ""),
+    errors,
     flaky: ensureBoolean(result?.statusDetails?.flaky),
     known: ensureBoolean(result?.statusDetails?.known),
     muted: ensureBoolean(result?.statusDetails?.muted),
