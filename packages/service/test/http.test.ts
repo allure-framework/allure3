@@ -31,9 +31,17 @@ const uploadConfig = {
   uploadMaxSimultaneousFailures: 5,
 };
 
-const createAxiosError = (payload: { status?: number; statusText?: string; data?: unknown; message?: string }) => ({
+const createAxiosError = (payload: {
+  status?: number;
+  statusText?: string;
+  data?: unknown;
+  message?: string;
+  code?: string;
+  headers?: Record<string, string>;
+}) => ({
   isAxiosError: true,
   message: payload.message ?? "Request failed",
+  code: payload.code,
   response:
     payload.status === undefined
       ? undefined
@@ -41,6 +49,7 @@ const createAxiosError = (payload: { status?: number; statusText?: string; data?
           status: payload.status,
           statusText: payload.statusText,
           data: payload.data,
+          headers: payload.headers,
         },
   stack: "axios stack",
 });
@@ -131,6 +140,31 @@ describe("createServiceHttpClient", () => {
     expect(caught).toBeInstanceOf(UnknownError);
     expect((caught as Error).message).toBe("Allure service request failed: GET /api/test-report failed: Network Error");
     expect((caught as Error).cause).toMatchObject({ isAxiosError: true, message: "Network Error" });
+  });
+
+  it("should report Cloudflare challenges without including the HTML response", async () => {
+    axiosMock.get.mockRejectedValue(
+      createAxiosError({
+        status: 403,
+        statusText: "Forbidden",
+        data: "<html><body>large challenge page</body></html>",
+        headers: {
+          "cf-mitigated": "challenge",
+          "cf-ray": "a3b65dc5f8e42b9c",
+          "content-type": "text/html",
+        },
+      }),
+    );
+
+    const client = createServiceHttpClient("https://service.example.com", { accessToken: "token" });
+
+    await expect(client.get("/api/history")).rejects.toMatchObject({
+      status: 403,
+      message:
+        "Allure service request failed: GET /api/history was blocked by a Cloudflare managed challenge (status 403, ray a3b65dc5f8e42b9c). Machine API routes must be excluded from browser challenges.",
+    });
+
+    await expect(client.get("/api/history")).rejects.not.toThrow("large challenge page");
   });
 
   it("should authorize requests with an API token", async () => {

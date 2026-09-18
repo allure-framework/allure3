@@ -16,22 +16,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 import { PERF_METRIC_NAMES, PERF_METRIC_PREFIXES, perfMetricsFileName, resetPerfMetrics } from "../src/utils/perf.js";
-import { AllureServiceClientMock } from "./utils.js";
+import { AllureServiceClientMock, AllureTestOpsClientMock } from "./utils.js";
 
 // Token payload: { "accessToken": "ELzFh8...", "url": "http://localhost:3000" }
 const validAccessToken =
   "ars1.eyJhY2Nlc3NUb2tlbiI6IkVMekZoOFZvaENXeXRrTFlGZ0U2QzVtTS1DWTlyWnd2ZXVYMkRlbmtkTm8iLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAifQ.OEwujL5WsTP0TQ8nFxrUauKfRLslw-S2ZFnlgFPTwO8";
 const defaultUploadConfig = {
-  uploadConcurrency: 100,
   uploadMaxAttempts: 5,
   uploadMaxSimultaneousFailures: 5,
 };
-const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
-const allureServiceConfig = (overrides: Partial<typeof defaultUploadConfig> = {}) => ({
+const allureServiceConfig = (overrides: Partial<typeof defaultUploadConfig> & { uploadConcurrency?: number } = {}) => ({
   accessToken: validAccessToken,
   ...defaultUploadConfig,
   ...overrides,
 });
+const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
 
 const manifestPath = (cwd: string, filePath: string): string => relative(cwd, filePath).split(sep).join("/");
 
@@ -48,6 +47,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     AllureServiceClient: utils.AllureServiceClientMock,
+    AllureTestOpsClient: utils.AllureTestOpsClientMock,
   };
 });
 vi.mock("@allurereport/ci", () => ({
@@ -1417,7 +1417,7 @@ describe("report", () => {
 
     expect(AllureServiceClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        uploadConcurrency: uploadConcurrency ?? defaultUploadConfig.uploadConcurrency,
+        uploadConcurrency: uploadConcurrency ?? 10,
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledTimes(1);
@@ -1429,6 +1429,78 @@ describe("report", () => {
 
   it("should use default uploadConcurrency in service client config", async () => {
     await verifyUploadOptionsForwarding();
+  });
+
+  it("should use TestOps default uploadConcurrency in client config", async () => {
+    const config = await resolveConfig({
+      allureService: {
+        accessToken: "ato1.token",
+      },
+    });
+
+    new AllureReport(config);
+
+    expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uploadConcurrency: 10,
+      }),
+    );
+  });
+
+  it("should default invalid uploadConcurrency for each client", async () => {
+    const storageConfig = await resolveConfig({
+      allureService: {
+        accessToken: validAccessToken,
+      },
+    });
+    const testOpsConfig = await resolveConfig({
+      allureService: {
+        accessToken: "ato1.token",
+      },
+    });
+
+    new AllureReport({
+      ...storageConfig,
+      allureService: {
+        ...storageConfig.allureService!,
+        uploadConcurrency: -1,
+      },
+    });
+    new AllureReport({
+      ...testOpsConfig,
+      allureService: {
+        ...testOpsConfig.allureService!,
+        uploadConcurrency: Number.POSITIVE_INFINITY,
+      },
+    });
+
+    expect(AllureServiceClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uploadConcurrency: 10,
+      }),
+    );
+    expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uploadConcurrency: 10,
+      }),
+    );
+  });
+
+  it("should forward configured uploadConcurrency to TestOps client", async () => {
+    const config = await resolveConfig({
+      allureService: {
+        accessToken: "ato1.token",
+        uploadConcurrency: 250,
+      },
+    });
+
+    new AllureReport(config);
+
+    expect(AllureTestOpsClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uploadConcurrency: 250,
+      }),
+    );
   });
 
   it("should write published plugin links to summary files", async () => {
