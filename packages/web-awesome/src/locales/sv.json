@@ -176,7 +176,9 @@
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Brödsmulor",
+    "breadcrumbs-hidden": "Visa dolda brödsmulor"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

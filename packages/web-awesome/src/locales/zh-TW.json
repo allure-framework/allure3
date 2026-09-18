@@ -176,7 +176,9 @@
     "pwTracePopupBlockedHint": "請允許彈出視窗後重試。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，結束代碼 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，結束代號 {{actual}}（原始 {{original}}）",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "麵包屑導覽",
+    "breadcrumbs-hidden": "顯示隱藏的麵包屑導覽項目"
   },
   "controls": {
     "newTabAttachment": "在新分頁中開啟附件",

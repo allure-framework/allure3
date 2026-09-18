@@ -176,7 +176,9 @@
     "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Kruimelpad",
+    "breadcrumbs-hidden": "Verborgen kruimelpaditems tonen"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

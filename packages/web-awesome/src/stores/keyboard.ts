@@ -296,7 +296,17 @@ effect(() => {
   syncKeyboardStateFromRoute();
 });
 
-const expandPathToLeaf = (tree: RecursiveTree, targetNodeId: string, prefix: string | undefined): boolean => {
+const openTree = (tree: RecursiveTree, prefix: string | undefined) => {
+  const scopedId = prefix ? `${prefix}${tree.nodeId}` : tree.nodeId;
+  const openedByDefault = !tree.statistic || Boolean(tree.statistic.failed || tree.statistic.broken);
+  const isOpen = openedByDefault ? !collapsedTrees.peek().has(scopedId) : expandedTrees.peek().has(scopedId);
+
+  if (!isOpen) {
+    setTreeOpened(scopedId, true, openedByDefault);
+  }
+};
+
+const expandPathToNode = (tree: RecursiveTree, targetNodeId: string, prefix: string | undefined): boolean => {
   for (const leaf of tree.leaves) {
     if (leaf.nodeId === targetNodeId) {
       return true;
@@ -304,20 +314,39 @@ const expandPathToLeaf = (tree: RecursiveTree, targetNodeId: string, prefix: str
   }
 
   for (const sub of tree.trees) {
-    if (expandPathToLeaf(sub, targetNodeId, prefix)) {
-      const scopedId = prefix ? `${prefix}${sub.nodeId}` : sub.nodeId;
-      const openedByDefault = !sub.statistic || Boolean(sub.statistic.failed || sub.statistic.broken);
-      const isOpen = openedByDefault ? !collapsedTrees.peek().has(scopedId) : expandedTrees.peek().has(scopedId);
-
-      if (!isOpen) {
-        setTreeOpened(scopedId, true, openedByDefault);
-      }
+    if (sub.nodeId === targetNodeId || expandPathToNode(sub, targetNodeId, prefix)) {
+      openTree(sub, prefix);
 
       return true;
     }
   }
 
   return false;
+};
+
+/**
+ * Expands every ancestor of the node, then focuses it, so the tree scrolls it into view.
+ */
+export const revealTreeNode = (nodeId: string) => {
+  const envs = environmentsStore.peek().data ?? [];
+  const trees = filteredTree.peek();
+  const curEnv = currentEnvironment.peek();
+  const usePrefix = envs.length > 1 && !curEnv;
+
+  for (const env of envs) {
+    const envTree = trees[env.id];
+
+    if (!envTree) {
+      continue;
+    }
+
+    const prefix = usePrefix ? `${env.id}:` : undefined;
+
+    if (expandPathToNode(envTree, nodeId, prefix)) {
+      treeFocusId.value = prefix ? `${prefix}${nodeId}` : nodeId;
+      return;
+    }
+  }
 };
 
 const expandAndFocusCurrentTest = () => {
@@ -335,25 +364,7 @@ const expandAndFocusCurrentTest = () => {
     return;
   }
 
-  const envs = environmentsStore.peek().data ?? [];
-  const trees = filteredTree.peek();
-  const curEnv = currentEnvironment.peek();
-  const usePrefix = envs.length > 1 && !curEnv;
-
-  for (const env of envs) {
-    const envTree = trees[env.id];
-
-    if (!envTree) {
-      continue;
-    }
-
-    const prefix = usePrefix ? `${env.id}:` : undefined;
-
-    if (expandPathToLeaf(envTree, testResultId, prefix)) {
-      treeFocusId.value = prefix ? `${prefix}${testResultId}` : testResultId;
-      return;
-    }
-  }
+  revealTreeNode(testResultId);
 };
 
 let prevIsSplitMode = isSplitMode.peek();

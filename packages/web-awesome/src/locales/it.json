@@ -176,7 +176,9 @@
     "pwTracePopupBlockedHint": "Consenti i popup e riprova.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Breadcrumbs",
+    "breadcrumbs-hidden": "Mostra i breadcrumb nascosti"
   },
   "controls": {
     "newTabAttachment": "Apri in una nuova scheda",

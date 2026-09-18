@@ -174,7 +174,9 @@
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "مسار التصفح",
+    "breadcrumbs-hidden": "إظهار عناصر مسار التصفح المخفية"
   },
   "controls": {
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",

@@ -176,7 +176,9 @@
     "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "פירורי לחם",
+    "breadcrumbs-hidden": "הצג פירורי לחם מוסתרים"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",
