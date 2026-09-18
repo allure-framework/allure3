@@ -14,6 +14,7 @@
     "total": "Total",
     "flaky": "Testes instáveis",
     "retries": "Testes repetidos",
+    "retriesStatusChange": "Mudanças de status nas tentativas",
     "new": "Testes novos"
   },
   "tabs": {
@@ -459,6 +460,7 @@
       "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
       "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\"",
       "retries": "{{count}} tentativas",
+      "retriesStatusChange": "Status alterado após nova tentativa",
       "flaky": "Inconsistente entre execuções",
       "resolution": {
         "issue": "Linked to an issue",

@@ -241,7 +241,7 @@ describe("generateCategories", () => {
     ];
 
     const tests: ReportTestResult[] = [
-      mkTest({ id: "a", name: "A", status: "failed" as any }),
+      mkTest({ id: "a", name: "A", status: "failed" as any, retriesStatusChange: true }),
       mkTest({ id: "b", name: "B", status: "broken" as any }),
       mkTest({ id: "c", name: "C", status: "passed" as any }),
       mkTest({ id: "h", name: "Hidden", isRetry: true, status: "failed" as any }),
@@ -266,6 +266,7 @@ describe("generateCategories", () => {
     expect(store.nodes["cat:h(Failed)"].type).toBe("category");
 
     expect(store.nodes.a.type).toBe("tr");
+    expect(store.nodes.a.retriesStatusChange).toBe(true);
     expect(store.nodes.b.type).toBe("tr");
 
     expect(store.nodes.c).toBeUndefined();

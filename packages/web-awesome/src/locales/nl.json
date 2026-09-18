@@ -14,6 +14,7 @@
     "total": "Totaal",
     "flaky": "Onstabiele tests",
     "retries": "Herhaalde tests",
+    "retriesStatusChange": "Statuswijzigingen bij nieuwe pogingen",
     "new": "Nieuwe tests"
   },
   "tabs": {
@@ -458,6 +459,7 @@
       "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
       "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
       "retries": "{{count}} pogingen",
+      "retriesStatusChange": "Status gewijzigd na opnieuw proberen",
       "flaky": "Inconsistent tussen runs",
       "resolution": {
         "issue": "Linked to an issue",

@@ -294,6 +294,7 @@ export const generateCategories = async (
       duration: tr.duration,
       flaky: tr.flaky,
       retriesCount: tr.retriesCount,
+      retriesStatusChange: tr.retriesStatusChange,
       transition: tr.transition,
       tooltips: tr.tooltips,
     });

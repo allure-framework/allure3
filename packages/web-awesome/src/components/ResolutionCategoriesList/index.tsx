@@ -150,6 +150,9 @@ const ResolutionCategoriesTestResult: FunctionalComponent<{
     retries:
       testResult.tooltips?.retries ??
       (testResult.retriesCount ? tTransitions("description.retries", { count: testResult.retriesCount }) : undefined),
+    retriesStatusChange:
+      testResult.tooltips?.retriesStatusChange ??
+      (testResult.retriesStatusChange ? tTransitions("description.retriesStatusChange") : undefined),
     resolution: testResult.resolution ? tTransitions(`description.resolution.${testResult.resolution}`) : undefined,
   };
 
@@ -163,6 +166,7 @@ const ResolutionCategoriesTestResult: FunctionalComponent<{
         flaky={testResult.flaky}
         transition={testResult.transition}
         retriesCount={testResult.retriesCount}
+        retriesStatusChange={testResult.retriesStatusChange}
         resolution={testResult.resolution}
         groupOrder={testResult.groupOrder ?? index + 1}
         navigateTo={() => navigateToTestResult({ testResultId: testResult.nodeId })}

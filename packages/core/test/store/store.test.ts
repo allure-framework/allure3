@@ -873,6 +873,37 @@ describe("test results", () => {
     );
   });
 
+  it("should count retried tests whose significant status changed independently from all retried tests", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "changed", status: "failed", testId: "tc-changed", start: 100 }, { readerId });
+    await store.visitTestResult({ name: "changed", status: "passed", testId: "tc-changed", start: 200 }, { readerId });
+    await store.visitTestResult(
+      { name: "unchanged", status: "failed", testId: "tc-unchanged", start: 100 },
+      { readerId },
+    );
+    await store.visitTestResult(
+      { name: "unchanged", status: "failed", testId: "tc-unchanged", start: 200 },
+      { readerId },
+    );
+    await store.visitTestResult({ name: "ignored", status: "skipped", testId: "tc-ignored", start: 100 }, { readerId });
+    await store.visitTestResult({ name: "ignored", status: "passed", testId: "tc-ignored", start: 200 }, { readerId });
+
+    await expect(store.testsStatistic()).resolves.toMatchObject({
+      total: 3,
+      retries: 3,
+      retriesStatusChange: 1,
+      passed: 2,
+      failed: 1,
+    });
+    await expect(store.testsStatistic((tr) => tr.status === "passed")).resolves.toMatchObject({
+      total: 2,
+      retries: 2,
+      retriesStatusChange: 1,
+      passed: 2,
+    });
+  });
+
   it("should not group class-level fixture failures with AS_ID placeholder as retries", async () => {
     const store = new DefaultAllureStore();
     const testA: RawTestResult = {
