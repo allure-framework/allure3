@@ -20,7 +20,10 @@ AllureReportMock.prototype.realtimeSubscriber = {
 AllureReportMock.prototype.realtimeDispatcher = {
   sendQualityGateResults: vi.fn(),
   sendGlobalAttachment: vi.fn(),
+  sendProcessGlobalAttachment: vi.fn(),
   sendGlobalError: vi.fn(),
+  sendProcessGlobalError: vi.fn(),
+  sendProcessGlobalsReset: vi.fn(),
   sendGlobalExitCode: vi.fn(),
 };
 

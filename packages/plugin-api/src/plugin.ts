@@ -157,9 +157,17 @@ export interface RealtimeSubscriber {
     listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
+  onProcessGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
+  ): () => void;
+
   onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
   onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalsReset(listener: () => RealtimeListenerResult): () => void;
 
   onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
@@ -173,9 +181,15 @@ export interface RealtimeSubscriber {
 export interface RealtimeEventsDispatcher {
   sendGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
 
+  sendProcessGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
+
   sendGlobalExitCode(payload: ExitCode): void;
 
   sendGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalsReset(): void;
 
   sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 

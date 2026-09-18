@@ -263,6 +263,48 @@ export const runTests = async (params: {
   };
 };
 
+const publishProcessGlobals = (params: {
+  allureReport: AllureReport;
+  command: string;
+  commandArgs: string[];
+  ignoreLogs?: boolean;
+  processFailed: boolean;
+  testProcessResult: TestProcessResult | null;
+}) => {
+  const { allureReport, command, commandArgs, ignoreLogs, processFailed, testProcessResult } = params;
+
+  if (!ignoreLogs && testProcessResult?.stdout) {
+    const fileName = randomUUID();
+    const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), `${fileName}`);
+
+    stdoutResultFile.contentType = "text/plain";
+
+    allureReport.realtimeDispatcher.sendProcessGlobalAttachment(
+      stdoutResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stdout"),
+    );
+  }
+
+  if (!ignoreLogs && testProcessResult?.stderr) {
+    const fileName = randomUUID();
+    const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), fileName);
+
+    stderrResultFile.contentType = "text/plain";
+
+    allureReport.realtimeDispatcher.sendProcessGlobalAttachment(
+      stderrResultFile,
+      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stderr"),
+    );
+
+    if (processFailed) {
+      allureReport.realtimeDispatcher.sendProcessGlobalError({
+        message: "Test process has failed",
+        trace: testProcessResult.stderr,
+      });
+    }
+  }
+};
+
 export const executeAllureRun = async (params: {
   allureReport: AllureReport;
   cwd: string;
@@ -327,6 +369,17 @@ export const executeAllureRun = async (params: {
       globalExitCode.actual = 0;
     }
 
+    if (maxRerun > 0) {
+      publishProcessGlobals({
+        allureReport,
+        command,
+        commandArgs,
+        ignoreLogs,
+        processFailed: Math.abs(globalExitCode.actual ?? testProcessResult?.code ?? -1) !== 0,
+        testProcessResult,
+      });
+    }
+
     for (let rerun = 0; rerun < maxRerun && testProcessResult && !testProcessResult.fastFailed; rerun++) {
       const failed = await allureReport.store.blockingFailedTestResults();
 
@@ -344,6 +397,8 @@ export const executeAllureRun = async (params: {
       const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
 
       await writeFile(testPlanPath, JSON.stringify(testPlan));
+
+      allureReport.realtimeDispatcher.sendProcessGlobalsReset();
 
       testProcessResult = await runTests({
         silent,
@@ -364,6 +419,23 @@ export const executeAllureRun = async (params: {
       });
 
       await rm(tmpDir, { recursive: true });
+
+      const allFailuresAfterRerun = await allureReport.store.failedTestResults();
+      const blockingFailuresAfterRerun = await allureReport.store.blockingFailedTestResults();
+
+      publishProcessGlobals({
+        allureReport,
+        command,
+        commandArgs,
+        ignoreLogs,
+        processFailed:
+          Math.abs(
+            allFailuresAfterRerun.length > 0 && blockingFailuresAfterRerun.length === 0
+              ? 0
+              : (testProcessResult?.code ?? -1),
+          ) !== 0,
+        testProcessResult,
+      });
 
       logTests(await allureReport.store.allTestResults());
     }
@@ -425,35 +497,15 @@ export const executeAllureRun = async (params: {
 
   const processFailed = Math.abs(globalExitCode.actual ?? globalExitCode.original) !== 0;
 
-  if (!ignoreLogs && testProcessResult?.stdout) {
-    const fileName = randomUUID();
-    const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), `${fileName}`);
-
-    stdoutResultFile.contentType = "text/plain";
-
-    allureReport.realtimeDispatcher.sendGlobalAttachment(
-      stdoutResultFile,
-      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stdout"),
-    );
-  }
-
-  if (!ignoreLogs && testProcessResult?.stderr) {
-    const fileName = randomUUID();
-    const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), fileName);
-
-    stderrResultFile.contentType = "text/plain";
-
-    allureReport.realtimeDispatcher.sendGlobalAttachment(
-      stderrResultFile,
-      formatProcessLogAttachmentName([command, ...commandArgs].join(" "), "stderr"),
-    );
-
-    if (processFailed) {
-      allureReport.realtimeDispatcher.sendGlobalError({
-        message: "Test process has failed",
-        trace: testProcessResult.stderr,
-      });
-    }
+  if (maxRerun === 0) {
+    publishProcessGlobals({
+      allureReport,
+      command,
+      commandArgs,
+      ignoreLogs,
+      processFailed,
+      testProcessResult,
+    });
   }
 
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
