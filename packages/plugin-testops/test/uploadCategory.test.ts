@@ -16,7 +16,7 @@ type CategoryOverrides = Partial<CategoryDefinition>;
 type UploadCategoryTr = TestResultWithCategories & {
   id?: string;
   name?: string;
-  historyId?: string;
+  retryHash?: string;
 };
 
 const matcherFailed: Matcher = { statuses: ["failed"] };
@@ -191,7 +191,7 @@ describe("toUploadCategory", () => {
     const tr = mkTr({
       id: "tr-id-1",
       name: "My failed test",
-      historyId: "hist-id-1",
+      retryHash: "hist-id-1",
       environment: "stage",
     });
     const category = mkCategory({ groupEnvironments: true });

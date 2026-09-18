@@ -94,6 +94,9 @@ export type ReportTestResult = Omit<
   | "steps"
   | "categories"
   | "environment"
+  | "testCaseHash"
+  | "parametersHash"
+  | "environmentHash"
 > & {
   isRetry: boolean;
   setup: ReportFixtureResult[];
@@ -156,7 +159,7 @@ export type ReportSearchDocument = {
   nodeId: string;
   name: string;
   fullName?: string;
-  historyId?: string;
+  retryHash?: string;
   labels?: string;
   owner?: string;
   tags?: string;

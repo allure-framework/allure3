@@ -91,10 +91,10 @@ const createStore = (params: {
 };
 
 describe("generateCharts", () => {
-  it("should map fallback history alias to current historyId for status age pyramid", async () => {
+  it("should ignore fallback identity without a cross-report catalog", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const currentHistoryId = "new-history-id";
+    const fallbackRetryHash = `${fallbackTestCaseId}.${md5("")}`;
+    const currentRetryHash = "new-history-id";
     const store = createStore({
       historyDataPoints: [
         {
@@ -104,9 +104,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [fallbackHistoryId]: {
+            [fallbackRetryHash]: {
               id: "legacy-result-id",
-              historyId: fallbackHistoryId,
+              retryHash: fallbackRetryHash,
               name: "legacy test name",
               status: "failed",
             },
@@ -118,7 +118,7 @@ describe("generateCharts", () => {
           id: "tr-current",
           name: "migrated test",
           status: "failed",
-          historyId: currentHistoryId,
+          retryHash: currentRetryHash,
           stop: 1_700_000_001_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -137,13 +137,13 @@ describe("generateCharts", () => {
 
     expect(historyPoint).toBeDefined();
     expect(currentPoint).toBeDefined();
-    expect(historyPoint?.failed).toBe(1);
+    expect(historyPoint?.failed).toBe(0);
     expect(currentPoint?.failed).toBe(1);
   });
 
   it("should not map ambiguous fallback aliases to current history ids", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const fallbackRetryHash = `${fallbackTestCaseId}.${md5("")}`;
     const store = createStore({
       historyDataPoints: [
         {
@@ -153,9 +153,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [fallbackHistoryId]: {
+            [fallbackRetryHash]: {
               id: "legacy-result-id",
-              historyId: fallbackHistoryId,
+              retryHash: fallbackRetryHash,
               name: "legacy test name",
               status: "failed",
             },
@@ -167,7 +167,7 @@ describe("generateCharts", () => {
           id: "tr-current-1",
           name: "migrated test #1",
           status: "failed",
-          historyId: "new-history-id-1",
+          retryHash: "new-history-id-1",
           stop: 1_700_000_001_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -175,7 +175,7 @@ describe("generateCharts", () => {
           id: "tr-current-2",
           name: "migrated test #2",
           status: "failed",
-          historyId: "new-history-id-2",
+          retryHash: "new-history-id-2",
           stop: 1_700_000_002_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -199,13 +199,13 @@ describe("generateCharts", () => {
   });
 
   it("should use environment-specific history data for environment charts", async () => {
-    const chromeHistoryId = "chrome-history-id";
-    const firefoxHistoryId = "firefox-history-id";
+    const chromeRetryHash = "chrome-history-id";
+    const firefoxRetryHash = "firefox-history-id";
     const chromeTestResult = createTestResult({
       id: "chrome-tr",
       name: "chrome test",
       status: "failed",
-      historyId: chromeHistoryId,
+      retryHash: chromeRetryHash,
       environment: "chrome",
       stop: 1_700_000_001_000,
     });
@@ -213,7 +213,7 @@ describe("generateCharts", () => {
       id: "firefox-tr",
       name: "firefox test",
       status: "failed",
-      historyId: firefoxHistoryId,
+      retryHash: firefoxRetryHash,
       environment: "firefox",
       stop: 1_700_000_002_000,
     });
@@ -232,9 +232,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [chromeHistoryId]: {
+            [chromeRetryHash]: {
               id: "chrome-history-result",
-              historyId: chromeHistoryId,
+              retryHash: chromeRetryHash,
               name: "chrome test",
               status: "failed",
             },
@@ -247,9 +247,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [firefoxHistoryId]: {
+            [firefoxRetryHash]: {
               id: "firefox-history-result",
-              historyId: firefoxHistoryId,
+              retryHash: firefoxRetryHash,
               name: "firefox test",
               status: "failed",
             },
@@ -265,9 +265,9 @@ describe("generateCharts", () => {
             knownTestCaseIds: [],
             metrics: {},
             testResults: {
-              [chromeHistoryId]: {
+              [chromeRetryHash]: {
                 id: "chrome-history-result",
-                historyId: chromeHistoryId,
+                retryHash: chromeRetryHash,
                 name: "chrome test",
                 status: "failed",
               },
@@ -282,9 +282,9 @@ describe("generateCharts", () => {
             knownTestCaseIds: [],
             metrics: {},
             testResults: {
-              [firefoxHistoryId]: {
+              [firefoxRetryHash]: {
                 id: "firefox-history-result",
-                historyId: firefoxHistoryId,
+                retryHash: firefoxRetryHash,
                 name: "firefox test",
                 status: "failed",
               },

@@ -190,7 +190,7 @@ const mkTest = (partial: Partial<ReportTestResult> = {}): ReportTestResult =>
     transition: undefined,
     tooltips: undefined,
     environment: "prod",
-    historyId: undefined,
+    retryHash: undefined,
     error: { message: "boom", trace: "stack" },
     groupedLabels: {},
     ...partial,
@@ -421,21 +421,21 @@ describe("generateCategories", () => {
         name: "Original",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
       mkTest({
         id: "t2",
         name: "Original",
         status: "failed" as any,
         environment: "staging",
-        historyId: "H1",
+        retryHash: "H1",
       }),
       mkTest({
         id: "t3",
         name: "Original",
         status: "failed" as any,
         environment: "   ",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -451,7 +451,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes.length).toBeGreaterThan(0);
 
@@ -479,7 +479,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -495,7 +495,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -521,7 +521,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -537,7 +537,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -570,7 +570,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -586,7 +586,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -618,14 +618,14 @@ describe("generateCategories", () => {
         name: "Original",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
       mkTest({
         id: "t2",
         name: "Original",
         status: "failed" as any,
         environment: "   ",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -641,7 +641,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes.length).toBeGreaterThan(0);
 
