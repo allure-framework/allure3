@@ -223,6 +223,7 @@ const RAW_RUNTIME_STATE =
           ["oxlint-tsgolint", "npm:0.23.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["tslib", "npm:2.7.0"],\
+          ["turbo", "npm:2.10.13"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
@@ -454,6 +455,7 @@ const RAW_RUNTIME_STATE =
           ["oxlint-tsgolint", "npm:0.23.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["tslib", "npm:2.7.0"],\
+          ["turbo", "npm:2.10.13"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"]\
         ],\
         "linkType": "SOFT"\
@@ -10889,6 +10891,60 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@tsconfig-node16-npm-1.0.4-b7cb87d859-2023197859.zip/node_modules/@tsconfig/node16/",\
         "packageDependencies": [\
           ["@tsconfig/node16", "npm:1.0.4"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/darwin-64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-darwin-64-npm-2.10.13-d0c4099fd8/node_modules/@turbo/darwin-64/",\
+        "packageDependencies": [\
+          ["@turbo/darwin-64", "npm:2.10.13"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/darwin-arm64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-darwin-arm64-npm-2.10.13-8d69db6a30/node_modules/@turbo/darwin-arm64/",\
+        "packageDependencies": [\
+          ["@turbo/darwin-arm64", "npm:2.10.13"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/linux-64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-linux-64-npm-2.10.13-66932af1e6/node_modules/@turbo/linux-64/",\
+        "packageDependencies": [\
+          ["@turbo/linux-64", "npm:2.10.13"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/linux-arm64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-linux-arm64-npm-2.10.13-74ae47b301/node_modules/@turbo/linux-arm64/",\
+        "packageDependencies": [\
+          ["@turbo/linux-arm64", "npm:2.10.13"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/windows-64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-windows-64-npm-2.10.13-ec67359e34/node_modules/@turbo/windows-64/",\
+        "packageDependencies": [\
+          ["@turbo/windows-64", "npm:2.10.13"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@turbo/windows-arm64", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/unplugged/@turbo-windows-arm64-npm-2.10.13-e0542da127/node_modules/@turbo/windows-arm64/",\
+        "packageDependencies": [\
+          ["@turbo/windows-arm64", "npm:2.10.13"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -24387,6 +24443,21 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["tslib", "npm:1.14.1"],\
           ["tsyringe", "npm:4.10.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["turbo", [\
+      ["npm:2.10.13", {\
+        "packageLocation": "./.yarn/cache/turbo-npm-2.10.13-36f36d7df1-5f6d6e0d74.zip/node_modules/turbo/",\
+        "packageDependencies": [\
+          ["@turbo/darwin-64", "npm:2.10.13"],\
+          ["@turbo/darwin-arm64", "npm:2.10.13"],\
+          ["@turbo/linux-64", "npm:2.10.13"],\
+          ["@turbo/linux-arm64", "npm:2.10.13"],\
+          ["@turbo/windows-64", "npm:2.10.13"],\
+          ["@turbo/windows-arm64", "npm:2.10.13"],\
+          ["turbo", "npm:2.10.13"]\
         ],\
         "linkType": "HARD"\
       }]\

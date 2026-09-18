@@ -40,6 +40,7 @@
     "oxlint-tsgolint": "^0.23.0",
     "rimraf": "^6",
     "tslib": "^2.7.0",
+    "turbo": "^2.10.13",
     "typescript": "^5"
   },
   "resolutions": {

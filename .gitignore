@@ -29,6 +29,7 @@ node_modules
 
 #Other
 .repo
+.turbo
 
 #Mac OS stuff
 **/.DS_Store
