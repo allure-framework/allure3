@@ -76,7 +76,7 @@ vi.mock("@allurereport/directory-watcher", () => ({
     initialScan: vi.fn().mockResolvedValue(undefined),
     abort: vi.fn().mockResolvedValue(undefined),
   })),
-  difference: vi.fn((before: Set<string>, after: Set<string>) => [new Set(), new Set()]),
+  difference: vi.fn((_before: Set<string>, _after: Set<string>) => [new Set(), new Set()]),
   watch: vi.fn(() => ({
     initialScan: vi.fn().mockResolvedValue(undefined),
     abort: vi.fn().mockResolvedValue(undefined),
@@ -340,6 +340,46 @@ describe("run command", () => {
             plugin: awesomePlugin,
           }),
         ]),
+      }),
+    );
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should keep config dump when run --dump is omitted", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      dump: "./snapshots/stage_1",
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dump: "./snapshots/stage_1",
+      }),
+    );
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should prefer run --dump over config dump", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      dump: "./snapshots/from-config",
+      plugins: [],
+    });
+
+    await run(RunCommand, ["run", "--dump", "./snapshots/from-cli", "--", "npm", "test"]);
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dump: "./snapshots/from-cli",
       }),
     );
     expect(exitMock).toHaveBeenCalledWith(0);
