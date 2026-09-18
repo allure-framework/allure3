@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Хлебные крошки",
+    "breadcrumbs-hidden": "Показать скрытые хлебные крошки"
   },
   "shortcuts": {
     "title": "Горячие клавиши",

@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Çörək qırıntıları",
+    "breadcrumbs-hidden": "Gizli çörək qırıntılarını göstər"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",

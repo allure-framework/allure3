@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "Erlaube Pop-ups und versuche es erneut.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, mit Exit-Code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, mit Exit-Code {{actual}} (ursprünglich {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Brotkrümelnavigation",
+    "breadcrumbs-hidden": "Ausgeblendete Brotkrümel anzeigen"
   },
   "controls": {
     "newTabAttachment": "Anhang in neuem Tab öffnen",

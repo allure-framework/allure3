@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Хлібні крихти",
+    "breadcrumbs-hidden": "Показати приховані хлібні крихти"
   },
   "controls": {
     "newTabAttachment": "Відкрити в новій вкладці",

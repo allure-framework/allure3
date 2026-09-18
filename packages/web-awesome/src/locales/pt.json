@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "Permita pop-ups e tente novamente.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, com código de saída {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, com código de saída {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Migalhas de pão",
+    "breadcrumbs-hidden": "Mostrar migalhas de pão ocultas"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",

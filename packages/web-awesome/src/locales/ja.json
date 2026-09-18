@@ -175,7 +175,9 @@
     "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "パンくずリスト",
+    "breadcrumbs-hidden": "非表示のパンくず項目を表示"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",
