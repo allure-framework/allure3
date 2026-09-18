@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -7,7 +8,6 @@ import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
 import { getTestResultTabForTestResultId } from "@/stores/testResultTabs";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 

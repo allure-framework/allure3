@@ -1,10 +1,20 @@
-import { ansiSemanticColors, ansiToHTML, isAnsi, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
-import { useMemo } from "preact/hooks";
+import {
+  ansiSemanticColors,
+  ansiToHTML,
+  copyToClipboard,
+  isAnsi,
+  normalizeAnsiForegroundColors,
+} from "@allurereport/web-commons";
+import { useEffect, useMemo, useState } from "preact/hooks";
 
+import { IconButton } from "../Button";
+import { allureIcons } from "../SvgIcon";
+import { TooltipWrapper } from "../Tooltip";
 import type { AttachmentProps } from "./model";
+import { Prism } from "./prism-setup.js";
 
 import "./code.scss";
-import { Prism } from "./prism-setup.js";
+import styles from "./styles.scss";
 
 const extToPrismLanguage: Record<string, string> = {
   js: "javascript",
@@ -80,7 +90,7 @@ const shouldShowLineNumbers = (prismLang: string, rawText: string): boolean => {
 };
 
 export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean }) => {
-  const { attachment, item, highlight = true } = props;
+  const { attachment, item, highlight = true, i18n } = props;
 
   if (!attachment || !("text" in attachment)) {
     return null;
@@ -106,35 +116,74 @@ export const AttachmentCode = (props: AttachmentProps & { highlight?: boolean })
     () => (highlight ? highlightCode(rawText, prismLang) : null),
     [highlight, rawText, prismLang],
   );
+  const canCopy = rawText.length > 0;
+  const copyLabel = i18n?.("clipboard") ?? "Copy to clipboard";
+  const copiedLabel = i18n?.("clipboardSuccess") ?? "Successfully copied";
+  const copyErrorLabel =
+    i18n?.("clipboardError") ??
+    "Can not copy value to clipboard. Seems like this feature is not supported for your browser";
+  const [copyTooltip, setCopyTooltip] = useState(copyLabel);
+
+  useEffect(() => {
+    setCopyTooltip(copyLabel);
+  }, [copyLabel, rawText]);
+
+  const copyAction = canCopy && (
+    <div
+      className={styles["attachment-code-actions"]}
+      role="presentation"
+      onClick={(e: MouseEvent) => e.stopPropagation()}
+      onKeyDown={(e: KeyboardEvent) => e.stopPropagation()}
+      onMouseLeave={() => setCopyTooltip(copyLabel)}
+    >
+      <TooltipWrapper tooltipText={copyTooltip}>
+        <IconButton
+          style="ghost"
+          size="s"
+          iconSize="s"
+          icon={allureIcons.lineGeneralCopy3}
+          onClick={async () => {
+            setCopyTooltip((await copyToClipboard(rawText)) ? copiedLabel : copyErrorLabel);
+          }}
+        />
+      </TooltipWrapper>
+    </div>
+  );
 
   if (isAnsi(rawText) && rawText.length > 0 && highlight) {
-    const sanitizedText = ansiToHTML(normalizeAnsiForegroundColors(rawText), {
+    const sanitizedHtml = ansiToHTML(normalizeAnsiForegroundColors(rawText), {
       fg: "var(--color-text-primary)",
       bg: "none",
       colors: ansiSemanticColors,
     });
 
     return (
-      <pre
-        data-testid="code-attachment-content"
-        className={preClass}
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: sanitizedText }}
-      />
+      <div className={styles["attachment-code"]}>
+        {copyAction}
+        <pre
+          data-testid="code-attachment-content"
+          className={preClass}
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+        />
+      </div>
     );
   }
 
   return (
-    <pre data-testid="code-attachment-content" className={preClass}>
-      {highlight && highlightedHtml !== null ? (
-        <code
-          className={`language-${prismLang}`}
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-        />
-      ) : (
-        <code>{rawText}</code>
-      )}
-    </pre>
+    <div className={styles["attachment-code"]}>
+      {copyAction}
+      <pre data-testid="code-attachment-content" className={preClass}>
+        {highlight && highlightedHtml !== null ? (
+          <code
+            className={`language-${prismLang}`}
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+          />
+        ) : (
+          <code>{rawText}</code>
+        )}
+      </pre>
+    </div>
   );
 };

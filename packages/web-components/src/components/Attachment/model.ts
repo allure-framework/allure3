@@ -11,5 +11,6 @@ export type AttachmentProps = {
 };
 
 export type I18nProp = {
+  controls?: (key: string) => string;
   imageDiff: ComponentProps<typeof ImageDiff>["i18n"];
 };
