@@ -7,6 +7,7 @@ import type {
   AttachmentLinkLinked,
   AttachmentTestStepResult,
   TestCase,
+  TestError,
   TestFixtureResult,
   TestLabel,
   TestLink,
@@ -20,6 +21,7 @@ import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawStep,
+  RawError,
   RawTestAttachment,
   RawTestLabel,
   RawTestLink,
@@ -38,6 +40,20 @@ export type StateData = {
   testCases: Map<string, TestCase>;
   attachments: Map<string, AttachmentLink>;
   visitAttachmentLink: (link: AttachmentLink) => void;
+};
+
+const convertRawError = (raw: RawError): TestError => ({
+  message: raw.message,
+  trace: raw.trace,
+  ...(raw.actual && raw.expected ? { expected: raw.expected, actual: raw.actual } : {}),
+});
+
+const convertTestErrors = (raw: RawTestResult): TestResult["errors"] => {
+  const errors = raw.errors?.filter(notNull);
+
+  if (errors?.length) {
+    return errors.map(convertRawError);
+  }
 };
 
 export const testFixtureResultRawToState = (
@@ -75,6 +91,8 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const name = raw.name || "Unknown test";
   const testCase = processTestCase(stateData, raw);
   const parameters = convertParameters(raw.parameters);
+  const error = convertRawError(raw);
+  const errors = convertTestErrors(raw);
 
   return {
     id: md5(raw.uuid || randomUUID()),
@@ -86,11 +104,8 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     historyId: calculateHistoryId(testCase, parameters),
 
     status: raw.status ?? defaultStatus,
-    error: {
-      message: raw.message,
-      trace: raw.trace,
-      ...(raw.actual && raw.expected ? { expected: raw.expected, actual: raw.actual } : {}),
-    },
+    error: errors?.[0] ?? error,
+    errors,
 
     ...processTimings(raw),
 

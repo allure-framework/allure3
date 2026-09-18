@@ -268,6 +268,9 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
   const categories = test.categories?.map((category: ReportCategory) => category.name);
+  const statusMessages = (test.errors?.length ? test.errors : test.error ? [test.error] : [])
+    .map((error) => error.message)
+    .filter(Boolean);
 
   return {
     id: test.id,
@@ -280,7 +283,7 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
     tags: joinSearchValues(tags),
     parameters: joinSearchValues(parameters),
     categories: joinSearchValues(categories ?? []),
-    statusMessage: test.error?.message,
+    statusMessage: joinSearchValues(statusMessages),
     links: joinSearchValues(links),
   };
 };

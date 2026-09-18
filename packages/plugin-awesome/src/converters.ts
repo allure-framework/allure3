@@ -55,6 +55,7 @@ export const convertTestResult = (
     links: tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
+    errors: tr.errors,
     testCase: tr.testCase,
     retryHash: tr.retryHash,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),

@@ -56,6 +56,73 @@ describe("testResultRawToState", () => {
     });
   });
 
+  it("should preserve multiple test errors and expose the first one as the primary error", async () => {
+    const errors = [
+      { message: "first assertion", trace: "first trace", actual: "1", expected: "2" },
+      { message: "second assertion", trace: "second trace" },
+    ];
+
+    const result = await functionUnderTest(emptyStateData, { errors }, { readerId });
+
+    expect(result.error).toEqual({
+      message: "first assertion",
+      trace: "first trace",
+      actual: "1",
+      expected: "2",
+    });
+    expect(result.errors).toEqual([
+      {
+        message: "first assertion",
+        trace: "first trace",
+        actual: "1",
+        expected: "2",
+      },
+      {
+        message: "second assertion",
+        trace: "second trace",
+      },
+    ]);
+  });
+
+  it("should fall back to legacy status details when errors is empty", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      { message: "legacy summary", trace: "legacy trace", errors: [] },
+      { readerId },
+    );
+
+    expect(result.error).toEqual({ message: "legacy summary", trace: "legacy trace" });
+    expect(result.errors).toBeUndefined();
+  });
+
+  it("should prefer structured errors over legacy status details", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        message: "legacy summary",
+        trace: "legacy trace",
+        errors: [{ message: "structured assertion", trace: "structured trace" }],
+      },
+      { readerId },
+    );
+
+    expect(result.error).toEqual({ message: "structured assertion", trace: "structured trace" });
+    expect(result.errors).toEqual([{ message: "structured assertion", trace: "structured trace" }]);
+  });
+
+  it("should ignore null entries in structured errors", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        errors: [null, { message: "structured assertion" }],
+      } as any,
+      { readerId },
+    );
+
+    expect(result.error).toEqual({ message: "structured assertion", trace: undefined });
+    expect(result.errors).toEqual([{ message: "structured assertion", trace: undefined }]);
+  });
+
   it("should set undefined history id for tests without testId or fullName", async () => {
     const result = await functionUnderTest(emptyStateData, {}, { readerId });
     expect(result).toMatchObject({

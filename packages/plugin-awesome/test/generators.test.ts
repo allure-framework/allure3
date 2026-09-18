@@ -765,6 +765,7 @@ describe("generateSearchIndex", () => {
       error: {
         message: "Assertion error: Expected 1 to be 2",
       },
+      errors: [{ message: "Assertion error: Expected 1 to be 2" }, { message: "Second soft assertion failed" }],
       categories: [{ name: "Product defects" }],
     } as ReportTestResult;
     const retryTest = {
@@ -791,7 +792,7 @@ describe("generateSearchIndex", () => {
       tags: "smoke",
       parameters: "browser:chromium browser chromium token",
       categories: "Product defects",
-      statusMessage: "Assertion error: Expected 1 to be 2",
+      statusMessage: "Assertion error: Expected 1 to be 2 Second soft assertion failed",
       links: "Issue 42 https://example.com/ISSUE-42 issue",
     });
     expect(documents[0]?.labels).not.toContain("ignored");

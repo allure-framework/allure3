@@ -22,7 +22,7 @@ type TestErrorLike = Pick<TestError, "message" | "trace" | "actual" | "expected"
 
 type BuildResult = {
   bodyItems: TrBodyItem[];
-  didPlaceSyntheticError: boolean;
+  placedErrorIds: Set<string>;
 };
 
 // Same pattern as @allurereport/web-commons stripAnsi — kept inline to avoid
@@ -31,6 +31,9 @@ type BuildResult = {
 const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
 
 export const getTestLevelErrorId = (testResultId: string) => `__test-error__:${testResultId}`;
+
+export const getTestLevelErrorItemId = (testResultId: string, index: number) =>
+  index === 0 ? getTestLevelErrorId(testResultId) : `${getTestLevelErrorId(testResultId)}:${index}`;
 
 const normalizeErrorText = (value?: string) => {
   if (typeof value !== "string") {
@@ -90,9 +93,10 @@ const createTestLevelErrorItem = (
   status: TestStatus,
   error: TestError,
   fallbackTitle: string,
+  index: number,
 ): TestLevelErrorItem => ({
   type: "error",
-  id: getTestLevelErrorId(testResultId),
+  id: getTestLevelErrorItemId(testResultId, index),
   title: getTestLevelErrorTitle(error.message) || fallbackTitle,
   status,
   error,
@@ -100,10 +104,10 @@ const createTestLevelErrorItem = (
 
 const buildStepBodyItems = (
   steps: ReportTestResult["steps"],
-  syntheticErrorItem: TestLevelErrorItem | undefined,
+  syntheticErrorItems: TestLevelErrorItem[],
 ): BuildResult => {
   const bodyItems: TrBodyItem[] = [];
-  let didPlaceSyntheticError = false;
+  const placedErrorIds = new Set<string>();
 
   for (const step of steps) {
     if (step.type === "attachment") {
@@ -111,29 +115,33 @@ const buildStepBodyItems = (
       continue;
     }
 
-    const nestedResult = buildStepBodyItems(step.steps, syntheticErrorItem);
-    const shouldHostSyntheticError =
-      Boolean(syntheticErrorItem) &&
-      !nestedResult.didPlaceSyntheticError &&
-      canHostSyntheticError(step, syntheticErrorItem.error);
+    const nestedResult = buildStepBodyItems(step.steps, syntheticErrorItems);
+    const hostedErrorItems = syntheticErrorItems.filter(
+      (item) =>
+        !placedErrorIds.has(item.id) &&
+        !nestedResult.placedErrorIds.has(item.id) &&
+        canHostSyntheticError(step, item.error),
+    );
+    const shouldHostSyntheticError = hostedErrorItems.length > 0;
+    const stepPlacedErrorIds = new Set(nestedResult.placedErrorIds);
+
+    hostedErrorItems.forEach((item) => stepPlacedErrorIds.add(item.id));
 
     bodyItems.push({
       type: "step",
       item: step,
-      bodyItems: shouldHostSyntheticError ? [...nestedResult.bodyItems, syntheticErrorItem] : nestedResult.bodyItems,
+      bodyItems: shouldHostSyntheticError ? [...nestedResult.bodyItems, ...hostedErrorItems] : nestedResult.bodyItems,
       suppressInlineError: shouldHostSyntheticError,
     });
 
-    if (nestedResult.didPlaceSyntheticError || shouldHostSyntheticError) {
-      didPlaceSyntheticError = true;
-    }
+    stepPlacedErrorIds.forEach((id) => placedErrorIds.add(id));
   }
 
-  return { bodyItems, didPlaceSyntheticError };
+  return { bodyItems, placedErrorIds };
 };
 
 export const getStepBodyItems = (steps: ReportTestResult["steps"]): TrBodyItem[] =>
-  buildStepBodyItems(steps, undefined).bodyItems;
+  buildStepBodyItems(steps, []).bodyItems;
 
 export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepItem => {
   const err = fixture.error;
@@ -158,21 +166,27 @@ export const fixtureResultToTrStepItem = (fixture: ReportFixtureResult): TrStepI
 };
 
 export const getBodyItems = (
-  testResult?: Pick<ReportTestResult, "id" | "status" | "steps" | "error">,
+  testResult?: Pick<ReportTestResult, "id" | "status" | "steps" | "error" | "errors">,
   fallbackTitle = "Error",
 ): TrBodyItem[] => {
   if (!testResult) {
     return [];
   }
 
-  const syntheticErrorItem = hasDisplayableTestStatusDetails(testResult.status, testResult.error)
-    ? createTestLevelErrorItem(testResult.id, testResult.status, testResult.error, fallbackTitle)
-    : undefined;
+  const errors = testResult.errors?.length ? testResult.errors : testResult.error ? [testResult.error] : [];
+  const syntheticErrorItems = errors
+    .map((error, index) =>
+      hasDisplayableTestStatusDetails(testResult.status, error)
+        ? createTestLevelErrorItem(testResult.id, testResult.status, error, fallbackTitle, index)
+        : undefined,
+    )
+    .filter(Boolean) as TestLevelErrorItem[];
 
-  const { bodyItems, didPlaceSyntheticError } = buildStepBodyItems(testResult.steps, syntheticErrorItem);
+  const { bodyItems, placedErrorIds } = buildStepBodyItems(testResult.steps, syntheticErrorItems);
+  const unplacedErrorItems = syntheticErrorItems.filter((item) => !placedErrorIds.has(item.id));
 
-  if (syntheticErrorItem && !didPlaceSyntheticError) {
-    return [...bodyItems, syntheticErrorItem];
+  if (unplacedErrorItems.length) {
+    return [...bodyItems, ...unplacedErrorItems];
   }
 
   return bodyItems;
