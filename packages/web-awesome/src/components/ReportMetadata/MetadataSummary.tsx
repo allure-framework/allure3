@@ -24,6 +24,7 @@ export interface MetadataSummaryProps {
 }
 
 const metadataTestsTypes = ["flaky", "new", "retries"] as const as (keyof Statistic)[];
+const emptyMetadataCount = "-";
 
 const applyTotalFilter = () => {
   setTreeStatus("total");
@@ -80,11 +81,7 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
 
   const metaDataTests = metadataTestsTypes
     .map((type) => {
-      if (!stats[type]) {
-        return;
-      }
-
-      const props = { title: testSummary(type), count: stats[type] || 0, type: type };
+      const props = { title: testSummary(type), count: stats[type] || emptyMetadataCount, type: type };
 
       return (
         <div key={type}>

@@ -5,7 +5,7 @@ import type { FunctionalComponent } from "preact";
 import * as styles from "./styles.scss";
 
 export type MetadataProps = {
-  count?: number;
+  count?: number | string;
   title?: string;
   type?: string;
   status?: string;
