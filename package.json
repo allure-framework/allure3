@@ -18,9 +18,11 @@
     "audit": "yarn npm audit --all --recursive",
     "build": "yarn workspaces foreach -Avvp --topological-dev run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
+    "coverage": "yarn test:unit && turbo run coverage:report",
     "format": "yarn format:write",
     "report": "yarn allure generate --config=./allurerc.mjs",
     "test": "yarn workspaces foreach -Avvp --exclude sandbox run test",
+    "test:unit": "turbo run test:unit --continue=dependencies-successful --concurrency=90%",
     "lint": "yarn workspaces foreach -Avvt run lint",
     "lint:fix": "yarn workspaces foreach -Avvt run lint:fix",
     "lint:type": "yarn oxlint --type-aware --import-plugin packages --quiet",
@@ -40,6 +42,7 @@
     "oxlint-tsgolint": "^0.23.0",
     "rimraf": "^6",
     "tslib": "^2.7.0",
+    "turbo": "^2.11.5",
     "typescript": "^5"
   },
   "resolutions": {

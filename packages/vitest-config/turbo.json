@@ -1,0 +1,15 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "coverage:merge": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/*/coverage/blob/**"],
+      "outputs": ["coverage/merged-blob/**"]
+    },
+    "coverage:report": {
+      "dependsOn": ["coverage:merge"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/*/coverage/blob/**"],
+      "outputs": ["coverage/report/**"]
+    }
+  }
+}

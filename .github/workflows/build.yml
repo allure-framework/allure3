@@ -27,21 +27,24 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - &uses-node-setup
+        uses: actions/setup-node@v6
         with:
           node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
-      - name: Cache build outputs
+      - &uses-build-cache
+        name: Cache build outputs
         id: build-cache
         uses: actions/cache@v5
         with:
           path: packages/*/dist
           key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build the project
+      - &uses-build
+        name: Build the project
         if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
+        run: yarn turbo build --concurrency=90%
       - name: Lint Project
         run: yarn lint
       - name: Check formatting
@@ -49,9 +52,9 @@ jobs:
       # - name: Type-aware lint
       #   run: yarn lint:type
 
-  test:
+  unit-test:
     needs: lint
-    name: Build on ${{ matrix.os }}
+    name: Unit Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,12 +62,39 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
+      - *uses-node-setup
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
+      - *uses-build-cache
+      - *uses-build
+      - name: Run unit tests
+        env:
+          ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
+          ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
+          TURBO_TELEMETRY_DISABLED: 1
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }}-unit -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-${{ matrix.os }}-unit
+          path: ./allure-results-${{ matrix.os }}-unit.zip
+
+  e2e-test:
+    needs: lint
+    name: E2E Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - *uses-node-setup
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - *uses-build-cache
+      - *uses-build
       - name: Install playwright for static server
         run: yarn workspace @allurereport/static-server playwright install chromium
       - name: Install playwright for e2e
@@ -73,29 +103,19 @@ jobs:
         run: yarn workspace @allurereport/web-allure2 playwright install chromium
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
-      - name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
-      - name: Test Project
+      - name: Run e2e tests
         env:
-          ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
-          ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+          TURBO_TELEMETRY_DISABLED: 1
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }}-e2e -- turbo test:e2e
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: allure-results-${{ matrix.os }}
-          path: ./allure-results-${{ matrix.os }}.zip
+          name: allure-results-${{ matrix.os }}-e2e
+          path: ./allure-results-${{ matrix.os }}-e2e.zip
 
   report:
-    needs: [lint, test]
+    needs: [lint, unit-test, e2e-test]
     name: Build report
     runs-on: ubuntu-latest
     if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -112,40 +132,18 @@ jobs:
       ALLURE_LAUNCH_TAGS: "${{ secrets.ALLURE_LAUNCH_TAGS }}, ${{ github.event_name }}"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
-      - name: Download allure results from Ubuntu
+      - *uses-node-setup
+      - name: Download allure results
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          name: allure-results-ubuntu-latest
-          path: ./
-      - name: Download allure results from macOS
-        uses: actions/download-artifact@v6
-        continue-on-error: true
-        with:
-          name: allure-results-macos-latest
-          path: ./
-      - name: Download allure results from Windows
-        uses: actions/download-artifact@v8
-        continue-on-error: true
-        with:
-          name: allure-results-windows-latest
+          pattern: allure-results-*
           path: ./
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
-      - name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
-      - name: Measure report generation
+      - *uses-build-cache
+      - *uses-build
+      - name: Generate report
         env:
           ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
