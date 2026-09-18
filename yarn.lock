@@ -52,11 +52,13 @@ __metadata:
   resolution: "@allurereport/ci@workspace:packages/ci"
   dependencies:
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2.1.8"
     "@vitest/snapshot": "npm:^2.1.8"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
+    glob: "npm:^13.0.6"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"

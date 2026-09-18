@@ -135,6 +135,7 @@ describe("summary utils", () => {
       name: "summary-name",
       duration: 35,
       createdAt: 250,
+      filtered: true,
       plugin: "summary-plugin",
       meta: { build: 1 },
     });
@@ -158,6 +159,7 @@ describe("summary utils", () => {
     });
 
     expect(summary.status).toBe("passed");
+    expect(summary.filtered).toBeUndefined();
     expect(store.allNewTestResults).toHaveBeenCalledWith(undefined, []);
   });
 });

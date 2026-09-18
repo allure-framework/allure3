@@ -168,6 +168,7 @@ describe("plugin", () => {
         flakyTests: [],
         retryTests: [],
         checks: [],
+        filtered: true,
         meta: {
           reportId: fixtures.context.reportUuid,
           singleFile: false,

@@ -282,11 +282,13 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
+          ["glob", "npm:13.0.6"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
