@@ -134,10 +134,16 @@ jobs:
       - name: Build project
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
-      - name: Generate report
+      - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
+        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
+      - name: Prepare report metrics
+        run: |
+          mkdir -p ./allure-perf-results
+          cp ./allure-perf-report/*-perf.json ./allure-perf-results/
+      - name: Generate report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:
