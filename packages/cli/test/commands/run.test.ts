@@ -60,6 +60,9 @@ vi.mock("@allurereport/core", async () => {
     },
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
+    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
+      results.filter(({ success }) => !success),
+    ),
     isFileNotFoundError: vi.fn().mockReturnValue(false),
   };
 });

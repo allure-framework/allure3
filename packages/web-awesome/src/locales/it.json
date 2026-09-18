@@ -160,6 +160,7 @@
     "retries": "Ritentativi",
     "environments": "Ambienti",
     "error": "Errore",
+    "success": "Successo",
     "goToStep": "Vai al passo",
     "showLess": "Mostra meno",
     "showMore": "Mostra di più",

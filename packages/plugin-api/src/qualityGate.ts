@@ -39,6 +39,11 @@ export type QualityGateMetricHistoryPoint = {
 export type QualityGateRule<T = unknown, K = T> = {
   rule: string;
   message: (payload: { expected: T; actual: K }) => string;
+  /**
+   * Message which is used when the rule has been passed.
+   * When it's not provided, a generic message is generated instead.
+   */
+  successMessage?: (payload: { expected: T; actual: K }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
