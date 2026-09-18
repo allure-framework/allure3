@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   convertToSummaryCheckResult,
   convertToTestResultSummary,
+  calculateRunDuration,
   createPluginSummary,
   createTestResultRegistry,
 } from "../src/utils/summary.js";
@@ -139,6 +140,29 @@ describe("summary utils", () => {
       plugin: "summary-plugin",
       meta: { build: 1 },
     });
+  });
+
+  it("calculateRunDuration uses the wall clock span of parallel test results", () => {
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 90, start: 1010, stop: 1100 }),
+        testResult({ duration: 80, start: 1020, stop: 1100 }),
+      ]),
+    ).toEqual(100);
+  });
+
+  it("calculateRunDuration ignores test results with invalid time bounds", () => {
+    expect(
+      calculateRunDuration([
+        testResult({ duration: 100, start: 1000, stop: 1100 }),
+        testResult({ duration: 50, start: Number.NaN, stop: Number.POSITIVE_INFINITY }),
+      ]),
+    ).toEqual(100);
+  });
+
+  it("calculateRunDuration sums durations when test results have no time bounds", () => {
+    expect(calculateRunDuration([testResult({ duration: 100 }), testResult({ duration: 90 })])).toEqual(190);
   });
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
