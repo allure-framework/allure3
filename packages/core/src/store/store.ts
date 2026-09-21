@@ -1699,6 +1699,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures: mapToObject(this.#fixtures),
       environments: this.#environments,
       reportVariables: this.#reportVariables,
+      metadata: mapToObject(this.#metadata),
       globalAttachmentIds: [...this.#globalAttachmentIds, ...this.#processGlobalAttachmentIds],
       globalErrors: [...this.#globalErrors, ...this.#processGlobalErrors],
       checkResults: mapToObject(this.#checkResultsById),
@@ -1743,6 +1744,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testCases,
       fixtures,
       reportVariables,
+      metadata = {},
       environments,
       globalAttachmentIds = [],
       globalErrors = [],
@@ -1899,6 +1901,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
 
     Object.assign(this.#reportVariables, reportVariables);
+    updateMapWithRecord(this.#metadata, metadata);
     Object.entries(indexAttachmentByTestResult).forEach(([trId, links]) => {
       const attachmentsLinks = links.map((id) => this.#attachments.get(id)).filter(Boolean);
 
