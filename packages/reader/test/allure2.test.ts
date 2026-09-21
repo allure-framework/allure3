@@ -766,6 +766,34 @@ describe("allure2 reader", () => {
     });
   });
 
+  it("should infer assertion diff from Playwright-style expected and received lines", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/status-details-playwright-diff.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    const tr = visitor.visitTestResult.mock.calls[0][0];
+
+    expect(tr).toMatchObject({
+      actual: "actual id",
+      expected: "expected id",
+    });
+  });
+
+  it("should infer assertion diff from Pytest rewritten equality assertions", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/status-details-pytest-diff.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    const tr = visitor.visitTestResult.mock.calls[0][0];
+
+    expect(tr).toMatchObject({
+      actual: "{'id': 'actual'}",
+      expected: "{'id': 'expected'}",
+    });
+  });
+
   it("should parse flaky status detail", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/status-details-flaky.json": generateTestResultName(),
