@@ -152,6 +152,56 @@ describe("report markdown", () => {
     expect(markdown).toContain('**Reports:** <a href="https://example.org/smoke">Awesome</a>');
   });
 
+  it("can render flag counters as platform-provided links", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Awesome report",
+            plugin: "Awesome",
+            remoteHref: "https://example.org/awesome",
+            stats: { total: 10, passed: 10 },
+            status: "passed",
+            duration: 10,
+          },
+          {
+            name: "Smoke report",
+            plugin: "Awesome",
+            remoteHref: "https://example.org/smoke",
+            stats: { total: 2, passed: 1, failed: 1 },
+            status: "failed",
+            duration: 20,
+            filtered: true,
+            newTests: ["1"],
+            retryTests: ["2"],
+          },
+        ],
+        totals: {
+          stats: { total: 10, passed: 10, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+          flags: { new: 1, flaky: 1, retry: 1 },
+          resolutions: { issues: 0, muted: 0, accepted: 0 },
+          duration: 10,
+        },
+      }),
+      {
+        getFlagHref: (flag, row) => {
+          if (flag === "flaky") {
+            return "javascript:alert(1)";
+          }
+
+          return `https://example.org/${row.kind}/${flag}?scope=${encodeURIComponent(row.name)}`;
+        },
+      },
+    );
+
+    expect(markdown).toContain('<a href="https://example.org/total/new?scope=All%20tests">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/total/retry?scope=All%20tests">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/report/new?scope=Smoke%20report">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/report/retry?scope=Smoke%20report">1</a>');
+    expect(markdown).toContain(" | 1 | ");
+    expect(markdown).not.toContain("javascript:alert");
+  });
+
   it("does not render a pie chart for empty statistics", () => {
     const markdown = renderReportSummaryMarkdown(context());
 

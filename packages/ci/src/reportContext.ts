@@ -14,6 +14,9 @@ const SUMMARY_FILENAME = "summary.json";
 const TEST_STATUSES = ["failed", "broken", "passed", "skipped", "unknown"] as const satisfies TestStatus[];
 
 type UnknownRecord = Record<string, unknown>;
+type PluginSummaryLike = PluginSummary & {
+  name?: unknown;
+};
 
 export type ReportContextStatusStats = Record<(typeof TEST_STATUSES)[number], number> & {
   total: number;
@@ -130,13 +133,26 @@ const readOptionalJson = async (filePath: string, onError?: (message: string) =>
   }
 };
 
-const isPluginSummary = (value: unknown): value is PluginSummary => {
-  if (!isRecord(value) || typeof value.name !== "string" || !isRecord(value.stats)) {
+const getReportName = (summary: Pick<PluginSummaryLike, "name">): string => {
+  if (typeof summary.name === "string" && summary.name.trim()) {
+    return summary.name;
+  }
+
+  return "Allure Report";
+};
+
+const isPluginSummary = (value: unknown): value is PluginSummaryLike => {
+  if (!isRecord(value) || !isRecord(value.stats)) {
     return false;
   }
 
   return typeof value.duration === "number" && isTestStatus(value.status);
 };
+
+const normalizePluginSummary = (summary: PluginSummaryLike): PluginSummary => ({
+  ...summary,
+  name: getReportName(summary),
+});
 
 const getReportPath = (reportDir: string, summaryFile: string): string =>
   normalizePath(relative(resolve(reportDir), dirname(resolve(summaryFile))));
@@ -158,7 +174,7 @@ const readPluginSummary = async (
   }
 
   return {
-    ...value,
+    ...normalizePluginSummary(value),
     summaryFile: filePath,
     reportPath: getReportPath(reportDir, filePath),
   };
@@ -371,10 +387,10 @@ const createEnvironmentContext = (
   return [...environmentsByName.values()].toSorted((left, right) => left.name.localeCompare(right.name));
 };
 
-const createReport = (summary: PluginSummary): ReportContextTestReport => ({ ...summary });
+const createReport = (summary: PluginSummary): ReportContextTestReport => normalizePluginSummary(summary);
 
 const sortReports = (reports: ReportContextTestReport[]): ReportContextTestReport[] =>
-  reports.toSorted((left, right) => left.name.localeCompare(right.name));
+  reports.toSorted((left, right) => getReportName(left).localeCompare(getReportName(right)));
 
 const getResolutionStats = (summaries: PluginSummary[]): ReportContextResolutionStats => {
   const stats = emptyResolutionStats();

@@ -265,6 +265,33 @@ describe("report context", () => {
     ]);
   });
 
+  it("should fall back to a default report name when summaries omit it", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure-report-context-missing-name-"));
+    const awesomeDir = join(output, "awesome");
+
+    await mkdir(awesomeDir, { recursive: true });
+    await writeJson(join(awesomeDir, "summary.json"), {
+      ...createSummary(),
+      name: undefined,
+    });
+
+    const contextFromFiles = await createReportContext(output);
+    const contextFromData = createReportContextFromData({
+      summaries: [
+        {
+          ...createSummary({ name: "Named report" }),
+        },
+        {
+          ...createSummary(),
+          name: undefined,
+        } as unknown as PluginSummary,
+      ],
+    });
+
+    expect(contextFromFiles.reports).toEqual([expect.objectContaining({ name: "Allure Report" })]);
+    expect(contextFromData.reports.map(({ name }) => name)).toEqual(["Allure Report", "Named report"]);
+  });
+
   it("should ignore missing or malformed optional files without failing", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure-report-context-malformed-"));
     const errors: string[] = [];
