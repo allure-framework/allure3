@@ -73,6 +73,8 @@ export class ClassicPlugin implements Plugin {
       ...this.options,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
+      sharedAssetsFiles: context.sharedAssetsFiles,
+      unifiedStorage: context.unifiedStorage,
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
@@ -87,7 +89,7 @@ export class ClassicPlugin implements Plugin {
       return;
     }
 
-    this.#writer = new ReportFileDataWriter(context.reportFiles);
+    this.#writer = new ReportFileDataWriter(context.reportFiles, context.sharedReportFiles);
 
     await Promise.resolve();
   };
