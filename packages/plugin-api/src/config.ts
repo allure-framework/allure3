@@ -78,11 +78,16 @@ export interface Config {
    */
   resultsDir?: string | string[];
   /**
-   * Enable unified content-addressable storage for attachments and static assets across plugins.
-   * When enabled, shared files are stored once in a `_shared/` directory and referenced by all plugins.
+   * Enable unified storage for attachments and static assets across plugins.
+   * When enabled, files with the same content are stored once in the `_shared/` directory
+   * and referenced by every plugin instead of being copied into each report.
    */
   unifiedStorage?: boolean;
 }
+
+export const SHARED_DIR = "_shared";
+
+export const ATTACHMENTS_DIR = "data/attachments";
 
 export const defineConfig = (allureConfig: Config): Config => {
   return allureConfig;

@@ -1,6 +1,12 @@
 import type { AttachmentLink, GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
-import { createBaseUrlScript, createScriptTag, createStylesLinkTag } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import {
+  createBaseUrlScript,
+  createScriptTag,
+  createStylesLinkTag,
+  joinPosixPath,
+  stringifyForInlineScript,
+} from "@allurereport/core-api";
+import { ATTACHMENTS_DIR, SHARED_DIR, type ReportFiles, type ResultFile } from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
@@ -87,6 +93,9 @@ const template = `<!DOCTYPE html>
 
 const compiledTemplate = Handlebars.compile(template);
 
+const createAttachmentsBasePathScript = (basePath: string) =>
+  `<script>window.allureAttachmentsBasePath = ${stringifyForInlineScript(basePath)};</script>`;
+
 const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
   const reportFilesDeclaration = reportFiles
     .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
@@ -126,7 +135,7 @@ export const generateStaticFiles = async (payload: {
   reportLanguage: string;
   singleFile: boolean;
   reportFiles: ReportFiles;
-  sharedAssetsFiles?: ReportFiles;
+  sharedReportFiles?: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
@@ -135,7 +144,7 @@ export const generateStaticFiles = async (payload: {
     reportLanguage,
     singleFile,
     reportFiles,
-    sharedAssetsFiles,
+    sharedReportFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -146,8 +155,9 @@ export const generateStaticFiles = async (payload: {
   const mainCss = manifest["main.css"];
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const assetsTarget = sharedAssetsFiles ?? reportFiles;
-  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
+  const sharedAssetsDir = sharedReportFiles ? "allure2" : undefined;
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsDir ? `../${joinPosixPath(SHARED_DIR, sharedAssetsDir)}/` : "";
 
   if (!singleFile) {
     if (mainCss) {
@@ -155,7 +165,12 @@ export const generateStaticFiles = async (payload: {
     }
 
     bodyTags.push(createScriptTag(`${assetsPrefix}${mainJs}`));
-    await copyReportStaticAssets(staticAssets, assetsTarget);
+
+    if (sharedReportFiles) {
+      headTags.push(createAttachmentsBasePathScript(`../${joinPosixPath(SHARED_DIR, ATTACHMENTS_DIR)}`));
+    }
+
+    await copyReportStaticAssets(staticAssets, assetsTarget, sharedAssetsDir);
   } else {
     if (mainCss) {
       const mainCssContent = getReportStaticAsset(staticAssets, mainCss);

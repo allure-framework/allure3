@@ -47,8 +47,6 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   sharedReportFiles?: ReportFiles;
-  sharedAssetsFiles?: ReportFiles;
-  unifiedStorage?: boolean;
   reportUrl?: string;
   realTime?: boolean;
   output: string;

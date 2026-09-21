@@ -30,9 +30,11 @@ import {
   ordinal,
   severityLabelName,
 } from "@allurereport/core-api";
-import type {
-  AllureStore,
-  ReportCategory,
+import {
+  ATTACHMENTS_DIR,
+  SHARED_DIR,
+  type AllureStore,
+  type ReportCategory,
   ReportExecutorInfo,
   ReportFixtureResult,
   ReportOptions,
@@ -759,8 +761,7 @@ export const generateStaticFiles = async (
     id: string;
     allureVersion: string;
     reportFiles: ReportFiles;
-    sharedAssetsFiles?: ReportFiles;
-    unifiedStorage?: boolean;
+    sharedReportFiles?: ReportFiles;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -777,7 +778,7 @@ export const generateStaticFiles = async (
     theme = "auto",
     groupBy,
     reportFiles,
-    sharedAssetsFiles,
+    sharedReportFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -795,8 +796,9 @@ export const generateStaticFiles = async (
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
-  const assetsTarget = sharedAssetsFiles ?? reportFiles;
-  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
+  const sharedAssetsDir = sharedReportFiles ? "awesome" : undefined;
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsDir ? `../${joinPosixPath(SHARED_DIR, sharedAssetsDir)}/` : "";
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -815,7 +817,7 @@ export const generateStaticFiles = async (
       }
     }
 
-    await copyReportStaticAssets(staticAssets, assetsTarget);
+    await copyReportStaticAssets(staticAssets, assetsTarget, sharedAssetsDir);
   } else {
     const mainJs = manifest["main.js"];
     const mainCss = manifest["main.css"];
@@ -832,7 +834,8 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const attachmentsBasePath = payload.unifiedStorage ? "../_shared/data/attachments" : undefined;
+  const attachmentsBasePath =
+    sharedReportFiles && !payload.singleFile ? `../${joinPosixPath(SHARED_DIR, ATTACHMENTS_DIR)}` : undefined;
   const reportOptions: ReportOptions & { id: string } = {
     id,
     reportName,

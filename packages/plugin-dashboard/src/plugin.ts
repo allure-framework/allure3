@@ -33,7 +33,7 @@ export class DashboardPlugin implements Plugin {
       ...this.options,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
-      sharedAssetsFiles: context.sharedAssetsFiles,
+      sharedReportFiles: context.sharedReportFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,

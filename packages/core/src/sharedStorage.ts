@@ -1,70 +1,88 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { basename, dirname, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { link, mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
-import type { ReportFiles } from "@allurereport/plugin-api";
+import { type ReportFiles, SHARED_DIR } from "@allurereport/plugin-api";
 
 import { resolvePathUnderOutputRoot } from "./utils/safeOutputPath.js";
 
-export const SHARED_DIR = "_shared";
-
-const writeSharedFile = async (
-  output: string,
-  createdDirs: Map<string, Promise<string | undefined>>,
-  key: string,
-  data: Buffer,
-): Promise<string> => {
-  const relativePath = joinPosix(SHARED_DIR, key);
-  const targetPath = resolvePathUnderOutputRoot(output, relativePath);
-  const targetDirPath = dirname(targetPath);
-
-  let createdDir = createdDirs.get(targetDirPath);
-
-  if (!createdDir) {
-    createdDir = mkdir(targetDirPath, { recursive: true });
-    createdDirs.set(targetDirPath, createdDir);
-  }
-
-  await createdDir;
-  await writeFile(targetPath, data);
-
-  return targetPath;
+type SharedFile = {
+  path: string;
+  contentHash: string;
 };
 
 export class SharedReportFiles implements ReportFiles {
   readonly #output: string;
-  readonly #written = new Map<string, Promise<string>>();
+  readonly #writtenByKey = new Map<string, Promise<SharedFile>>();
+  readonly #writtenByContentHash = new Map<string, Promise<SharedFile>>();
   readonly #createdDirs = new Map<string, Promise<string | undefined>>();
 
   constructor(output: string) {
     this.#output = resolve(output);
   }
 
-  addFile = async (path: string, data: Buffer): Promise<string> => {
-    if (!this.#written.has(path)) {
-      this.#written.set(path, writeSharedFile(this.#output, this.#createdDirs, path, data));
+  addFile = async (key: string, data: Buffer): Promise<string> => {
+    const contentHash = createHash("sha256").update(data).digest("hex");
+    const alreadyWritten = this.#writtenByKey.get(key);
+
+    if (alreadyWritten) {
+      const existing = await alreadyWritten;
+
+      if (existing.contentHash !== contentHash) {
+        throw new Error(
+          `Two different contents are written to the same shared report file: ${joinPosix(SHARED_DIR, key)}`,
+        );
+      }
+
+      return existing.path;
     }
 
-    return this.#written.get(path)!;
+    const sameContent = this.#writtenByContentHash.get(contentHash);
+    const written = this.#write(key, data, contentHash, sameContent);
+
+    this.#writtenByKey.set(key, written);
+
+    if (!sameContent) {
+      this.#writtenByContentHash.set(contentHash, written);
+    }
+
+    return (await written).path;
   };
-}
 
-export class SharedAssetsReportFiles implements ReportFiles {
-  readonly #output: string;
-  readonly #written = new Map<string, Promise<string>>();
-  readonly #createdDirs = new Map<string, Promise<string | undefined>>();
+  #write = async (
+    key: string,
+    data: Buffer,
+    contentHash: string,
+    sameContent: Promise<SharedFile> | undefined,
+  ): Promise<SharedFile> => {
+    const targetPath = resolvePathUnderOutputRoot(this.#output, joinPosix(SHARED_DIR, key));
 
-  constructor(output: string) {
-    this.#output = resolve(output);
-  }
+    await this.#createDir(dirname(targetPath));
 
-  addFile = async (path: string, data: Buffer): Promise<string> => {
-    const fileName = basename(path);
+    if (sameContent) {
+      const { path: existingPath } = await sameContent;
 
-    if (!this.#written.has(fileName)) {
-      this.#written.set(fileName, writeSharedFile(this.#output, this.#createdDirs, fileName, data));
+      try {
+        await link(existingPath, targetPath);
+
+        return { path: targetPath, contentHash };
+      } catch {}
     }
 
-    return this.#written.get(fileName)!;
+    await writeFile(targetPath, data);
+
+    return { path: targetPath, contentHash };
+  };
+
+  #createDir = async (dirPath: string): Promise<void> => {
+    let createdDir = this.#createdDirs.get(dirPath);
+
+    if (!createdDir) {
+      createdDir = mkdir(dirPath, { recursive: true });
+      this.#createdDirs.set(dirPath, createdDir);
+    }
+
+    await createdDir;
   };
 }

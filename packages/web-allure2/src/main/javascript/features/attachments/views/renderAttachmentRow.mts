@@ -4,6 +4,7 @@ import translate from "../../../helpers/t.mts";
 import b from "../../../shared/bem/index.mts";
 import { createElement } from "../../../shared/dom.mts";
 import { createIconElement } from "../../../shared/icon/index.mts";
+import { attachmentSourceUrl } from "../attachmentUrl.mts";
 import { AttachmentPreviewView } from "../model/attachmentPreviewView.mts";
 import attachmentType from "../model/attachmentType.mts";
 
@@ -64,7 +65,7 @@ export const createAttachmentRow = (
             className: "attachment-row__control attachment-row__link",
             children: createElement("div", {
               attrs: {
-                "data-download": `data/attachments/${source}`,
+                "data-download": attachmentSourceUrl(source),
                 "data-download-target": "_blank",
                 "data-download-type": type,
                 "data-tooltip": translate("testResult.execution.downloadAttachment.tooltip"),

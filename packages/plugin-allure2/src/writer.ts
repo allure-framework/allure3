@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { joinPosixPath } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import { ATTACHMENTS_DIR, type ReportFiles, type ResultFile } from "@allurereport/plugin-api";
 
 import type { Allure2TestResult } from "./model.js";
 
@@ -124,7 +124,7 @@ export class ReportFileDataWriter implements Allure2DataWriter {
 
     const target = this.sharedReportFiles ?? this.reportFiles;
 
-    await target.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
+    await target.addFile(joinPosixPath(ATTACHMENTS_DIR, source), contentBuffer);
   }
 
   async writeTestCase(test: Allure2TestResult): Promise<void> {

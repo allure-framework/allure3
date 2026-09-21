@@ -9,8 +9,15 @@ import {
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
+  joinPosixPath,
 } from "@allurereport/core-api";
-import { type AllureStore, type ReportOptions, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
+import {
+  SHARED_DIR,
+  type AllureStore,
+  type ReportOptions,
+  type PluginContext,
+  type ReportFiles,
+} from "@allurereport/plugin-api";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -95,7 +102,7 @@ export const generateStaticFiles = async (
   payload: DashboardOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
-    sharedAssetsFiles?: ReportFiles;
+    sharedReportFiles?: ReportFiles;
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
@@ -107,7 +114,7 @@ export const generateStaticFiles = async (
     logo = "",
     theme = "light",
     reportFiles,
-    sharedAssetsFiles,
+    sharedReportFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
@@ -117,8 +124,9 @@ export const generateStaticFiles = async (
   const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const assetsTarget = sharedAssetsFiles ?? reportFiles;
-  const assetsPrefix = sharedAssetsFiles ? "../_shared/" : "";
+  const sharedAssetsDir = sharedReportFiles ? "dashboard" : undefined;
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsDir ? `../${joinPosixPath(SHARED_DIR, sharedAssetsDir)}/` : "";
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -136,7 +144,7 @@ export const generateStaticFiles = async (
       }
     }
 
-    await copyReportStaticAssets(staticAssets, assetsTarget);
+    await copyReportStaticAssets(staticAssets, assetsTarget, sharedAssetsDir);
   } else {
     const mainJs = manifest["main.js"];
     const mainCss = manifest["main.css"];

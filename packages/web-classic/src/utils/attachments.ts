@@ -1,16 +1,10 @@
-import { fetchReportAttachment } from "@allurereport/web-commons";
+import { fetchFromUrl } from "@allurereport/web-commons";
 
 export interface Attachments {
   id?: string;
   ext?: string;
   contentType?: string;
 }
-
-const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
-  const fileName = `${id || "-"}${ext || ""}`;
-
-  return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
-};
 
 export const fetchAttachment = async (id: string, ext: string, contentType: string) => {
   if (!id && !ext) {

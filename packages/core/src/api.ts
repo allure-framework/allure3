@@ -19,7 +19,6 @@ export interface FullConfig
   allowedEnvironments?: Config["allowedEnvironments"];
   reportFiles: ReportFiles;
   sharedReportFiles?: ReportFiles;
-  sharedAssetsFiles?: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
   realTime?: any;

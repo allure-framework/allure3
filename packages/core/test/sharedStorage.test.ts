@@ -1,10 +1,10 @@
-import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { SharedAssetsReportFiles, SharedReportFiles } from "../src/sharedStorage.js";
+import { SharedReportFiles } from "../src/sharedStorage.js";
 
 describe("SharedReportFiles", () => {
   let outDir: string;
@@ -21,136 +21,74 @@ describe("SharedReportFiles", () => {
     }
   });
 
-  describe("path-based deduplication", () => {
-    it("returns the same path when writing the same path twice", async () => {
-      const path1 = await shared.addFile("data/attachments/abc.json", Buffer.from("content1"));
-      const path2 = await shared.addFile("data/attachments/abc.json", Buffer.from("content2"));
+  describe("keys", () => {
+    it("writes a file once when the same key and content are added twice", async () => {
+      const first = await shared.addFile("data/attachments/abc.json", Buffer.from("content"));
+      const second = await shared.addFile("data/attachments/abc.json", Buffer.from("content"));
 
-      expect(path1).toBe(path2);
+      expect(first).toBe(second);
     });
 
-    it("creates separate files for different paths", async () => {
-      await shared.addFile("a.txt", Buffer.from("content"));
-      await shared.addFile("b.txt", Buffer.from("content"));
+    it("fails instead of silently overwriting a key with different content", async () => {
+      await shared.addFile("awesome/main.js", Buffer.from("first"));
 
-      const aExists = await stat(resolve(outDir, "_shared", "a.txt")).then(
-        () => true,
-        () => false,
-      );
-      const bExists = await stat(resolve(outDir, "_shared", "b.txt")).then(
-        () => true,
-        () => false,
-      );
-
-      expect(aExists).toBe(true);
-      expect(bExists).toBe(true);
-    });
-  });
-
-  describe("preserves directory structure", () => {
-    it("preserves nested path under _shared/", async () => {
-      const data = Buffer.from("attachment content");
-      const resultPath = await shared.addFile("data/attachments/foo.png", data);
-
-      expect(resultPath).toBe(resolve(outDir, "_shared", "data", "attachments", "foo.png"));
-
-      const written = await readFile(resultPath, "utf-8");
-      expect(written).toBe("attachment content");
+      await expect(shared.addFile("awesome/main.js", Buffer.from("second"))).rejects.toThrow("_shared/awesome/main.js");
     });
 
-    it("writes flat files directly in _shared/", async () => {
-      const resultPath = await shared.addFile("test.txt", Buffer.from("flat"));
+    it("keeps files with the same name in different directories apart", async () => {
+      const awesome = await shared.addFile("awesome/main.js", Buffer.from("awesome"));
+      const classic = await shared.addFile("classic/main.js", Buffer.from("classic"));
 
-      expect(resultPath).toBe(resolve(outDir, "_shared", "test.txt"));
+      expect(awesome).toBe(resolve(outDir, "_shared", "awesome", "main.js"));
+      expect(classic).toBe(resolve(outDir, "_shared", "classic", "main.js"));
+      expect(await readFile(awesome, "utf-8")).toBe("awesome");
+      expect(await readFile(classic, "utf-8")).toBe("classic");
+    });
+
+    it("returns an absolute path under the shared directory", async () => {
+      const filePath = await shared.addFile("test.txt", Buffer.from("data"));
+
+      expect(isAbsolute(filePath)).toBe(true);
+      expect(filePath).toBe(resolve(outDir, "_shared", "test.txt"));
     });
   });
 
-  describe("concurrent writes", () => {
-    it("handles simultaneous writes of the same path without errors", async () => {
-      const results = await Promise.all(
+  describe("content deduplication", () => {
+    it("stores identical content of different keys as a single file on disk", async () => {
+      const first = await shared.addFile("data/attachments/one.png", Buffer.from("same bytes"));
+      const second = await shared.addFile("data/attachments/two.png", Buffer.from("same bytes"));
+
+      expect(first).not.toBe(second);
+      expect(await readFile(second, "utf-8")).toBe("same bytes");
+      expect((await stat(first)).ino).toBe((await stat(second)).ino);
+    });
+
+    it("keeps different content in different files", async () => {
+      const first = await shared.addFile("one.txt", Buffer.from("one"));
+      const second = await shared.addFile("two.txt", Buffer.from("two"));
+
+      expect((await stat(first)).ino).not.toBe((await stat(second)).ino);
+      expect(await readFile(first, "utf-8")).toBe("one");
+      expect(await readFile(second, "utf-8")).toBe("two");
+    });
+
+    it("deduplicates content added concurrently", async () => {
+      const paths = await Promise.all(
+        Array.from({ length: 10 }, (_, index) => shared.addFile(`file${index}.txt`, Buffer.from("same bytes"))),
+      );
+      const inodes = await Promise.all(paths.map(async (path) => (await stat(path)).ino));
+
+      expect(new Set(paths).size).toBe(10);
+      expect(new Set(inodes).size).toBe(1);
+    });
+
+    it("writes a key added concurrently only once", async () => {
+      const paths = await Promise.all(
         Array.from({ length: 10 }, () => shared.addFile("same.txt", Buffer.from("data"))),
       );
 
-      const unique = new Set(results);
-      expect(unique.size).toBe(1);
+      expect(new Set(paths).size).toBe(1);
+      expect(await readFile(paths[0], "utf-8")).toBe("data");
     });
-
-    it("handles simultaneous writes of different paths correctly", async () => {
-      const results = await Promise.all(
-        Array.from({ length: 5 }, (_, i) => shared.addFile(`file${i}.txt`, Buffer.from(`content-${i}`))),
-      );
-
-      const unique = new Set(results);
-      expect(unique.size).toBe(5);
-    });
-  });
-
-  describe("file written to disk", () => {
-    it("writes the correct content", async () => {
-      const content = "hello world";
-      const resultPath = await shared.addFile("greeting.txt", Buffer.from(content));
-
-      const written = await readFile(resultPath, "utf-8");
-      expect(written).toBe(content);
-    });
-  });
-
-  describe("returned path", () => {
-    it("returns an absolute path", async () => {
-      const resultPath = await shared.addFile("test.txt", Buffer.from("data"));
-
-      expect(isAbsolute(resultPath)).toBe(true);
-    });
-
-    it("returns a path under _shared/", async () => {
-      const resultPath = await shared.addFile("test.txt", Buffer.from("data"));
-
-      expect(resultPath.startsWith(resolve(outDir, "_shared"))).toBe(true);
-    });
-  });
-});
-
-describe("SharedAssetsReportFiles", () => {
-  let outDir: string;
-  let assets: SharedAssetsReportFiles;
-
-  beforeEach(async () => {
-    outDir = await mkdtemp(join(tmpdir(), "allure-assets-test-"));
-    assets = new SharedAssetsReportFiles(outDir);
-  });
-
-  afterEach(async () => {
-    if (outDir) {
-      await rm(outDir, { recursive: true, force: true });
-    }
-  });
-
-  it("strips directory and keeps only filename", async () => {
-    const resultPath = await assets.addFile("some/nested/style.css", Buffer.from("body{}"));
-
-    expect(resultPath).toBe(resolve(outDir, "_shared", "style.css"));
-  });
-
-  it("deduplicates by filename across different directories", async () => {
-    const path1 = await assets.addFile("dir1/app.js", Buffer.from("code1"));
-    const path2 = await assets.addFile("dir2/app.js", Buffer.from("code2"));
-
-    expect(path1).toBe(path2);
-  });
-
-  it("writes to _shared/ flat directory", async () => {
-    await assets.addFile("main.js", Buffer.from("console.log()"));
-    await assets.addFile("style.css", Buffer.from("body{}"));
-
-    const files = await readdir(join(outDir, "_shared"));
-    expect(files).toContain("main.js");
-    expect(files).toContain("style.css");
-  });
-
-  it("writes correct content", async () => {
-    const resultPath = await assets.addFile("font.woff2", Buffer.from("font-data"));
-
-    const written = await readFile(resultPath, "utf-8");
-    expect(written).toBe("font-data");
   });
 });

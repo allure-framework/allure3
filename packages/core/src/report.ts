@@ -28,6 +28,7 @@ import {
   type PluginSummary,
   type ReportFiles,
   type ResultFile,
+  SHARED_DIR,
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
@@ -51,7 +52,6 @@ import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryD
 import { DefaultPluginState, PluginFiles, TrackedReportFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
-import { SHARED_DIR } from "./sharedStorage.js";
 import { DefaultAllureStore } from "./store/store.js";
 import {
   ARTIFACTS_MANIFEST_FILENAME,
@@ -153,7 +153,6 @@ export class AllureReport {
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #sharedReportFiles: ReportFiles | undefined;
-  readonly #sharedAssetsFiles: ReportFiles | undefined;
   readonly #realtimeChannel: RealtimeChannel;
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
@@ -195,7 +194,6 @@ export class AllureReport {
       resolutions,
       reportFiles,
       sharedReportFiles,
-      sharedAssetsFiles,
       realTime,
       historyPath,
       historyBaseUrl,
@@ -288,11 +286,6 @@ export class AllureReport {
     this.#reportFiles = reportFiles;
     this.#sharedReportFiles = sharedReportFiles
       ? new TrackedReportFiles(sharedReportFiles, (key, filepath) => {
-          this.#sharedFiles[key] = filepath;
-        })
-      : undefined;
-    this.#sharedAssetsFiles = sharedAssetsFiles
-      ? new TrackedReportFiles(sharedAssetsFiles, (key, filepath) => {
           this.#sharedFiles[key] = filepath;
         })
       : undefined;
@@ -458,7 +451,7 @@ export class AllureReport {
           }),
         );
 
-        if (uploadResult.indexHref) {
+        if (uploadResult.indexHref && report.pluginId !== SHARED_DIR) {
           linksByPluginId[report.pluginId] = uploadResult.indexHref;
         }
       }
@@ -1449,8 +1442,6 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         sharedReportFiles: this.#sharedReportFiles,
-        sharedAssetsFiles: this.#sharedAssetsFiles,
-        unifiedStorage: !!this.#sharedReportFiles,
         reportUrl: this.reportUrl,
         realTime: !!this.#realTime,
         output: this.#output,
