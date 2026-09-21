@@ -86,7 +86,7 @@ export class Allure2Plugin implements Plugin {
           categories,
           retries,
           history,
-          legacyHistory: value.historyId ? legacyHistory[value.historyId] : undefined,
+          legacyHistory: value.retryHash ? legacyHistory[value.retryHash] : undefined,
         },
         value,
       );

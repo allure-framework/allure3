@@ -556,14 +556,14 @@ describe("generateResolutionCategories", () => {
     const tests = [
       {
         ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
-        historyId: "history-1",
+        retryHash: "history-1",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
-        historyId: "history-2",
+        retryHash: "history-2",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
