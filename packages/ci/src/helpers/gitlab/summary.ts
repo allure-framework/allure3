@@ -22,7 +22,6 @@ export const renderGitlabReportSummary = (summary: ReportContext, reportUrl: URL
     ...summary,
     reports: summary.reports.map((report) => ({ ...report, href: reportHref(report, reportUrl) })),
   };
-  const markdown = renderReportSummaryMarkdown(context, { includeArtifacts: false });
 
-  return `${markdown}\n${reportUrl.href}\n`;
+  return renderReportSummaryMarkdown(context, { includeArtifacts: false });
 };

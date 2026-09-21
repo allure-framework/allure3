@@ -175,21 +175,6 @@ describe("upsertGitlabJobNote", () => {
     const body = requestBody(calls[1].body);
     expect(body).toContain("**Reports:** Awesome");
     expect(body).not.toContain("javascript:");
-    expect(body).toContain("https://reports.example/run/index.html");
-  });
-
-  it("retains the primary report URL when there are no plugin links", async () => {
-    mockEnv(mergeRequestEnv());
-    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
-
-    await upsertGitlabJobNote({
-      token: apiToken,
-      summary: { ...summary, reports: [] },
-      reportUrl: "https://reports.example/run/index.html",
-    });
-
-    expect(requestBody(calls[1].body)).toContain("| All tests | 1s |");
-    expect(requestBody(calls[1].body)).toContain("https://reports.example/run/index.html");
   });
 
   it("rejects an oversized rendered summary before network I/O", async () => {
