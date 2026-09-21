@@ -592,6 +592,7 @@ __metadata:
   resolution: "@allurereport/web-allure2@workspace:packages/web-allure2"
   dependencies:
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
     "@playwright/test": "npm:^1.62.1"
     "@types/d3-array": "npm:^3.2.2"
     "@types/d3-axis": "npm:^3.0.6"
@@ -606,7 +607,6 @@ __metadata:
     "@types/node": "npm:^24.12.2"
     allure-js-commons: "npm:^3"
     allure-playwright: "npm:^3.10.2"
-    ansi-to-html: "npm:^0.7.2"
     autoprefixer: "npm:^10.5.0"
     axe-core: "npm:^4.11.4"
     d3-array: "npm:^3.2.4"
