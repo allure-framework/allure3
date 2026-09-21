@@ -61,7 +61,7 @@ const err = (msg: string, context: BaseContext) => {
 };
 
 export class GitlabGenerateCommand extends Command {
-  static paths = [["gitlab", "generate"]];
+  static paths = [["gitlab"]];
 
   static usage = Command.Usage({
     category: "Integrations",
@@ -70,7 +70,7 @@ export class GitlabGenerateCommand extends Command {
       "This command generates a report from the provided Allure Results directories. When api access token is configured, " +
       "integration will post summary as comment for merge request pipelines and attempt to lookup history file from previously executed job ." +
       "This integration is designed to be executed from within GitLab CI job.",
-    examples: [["gitlab generate ./allure-results", "Generate a report from the ./allure-results directory"]],
+    examples: [["gitlab ./allure-results", "Generate a report from the ./allure-results directory"]],
   });
 
   resultsDir = Option.Rest({

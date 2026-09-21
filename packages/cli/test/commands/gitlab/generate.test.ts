@@ -71,7 +71,7 @@ const summary = {
   retryTests: 0,
 };
 const runCommand = (argv: string[] = [], stdout = new PassThrough(), stderr = new PassThrough()) =>
-  run(GitlabGenerateCommand, ["gitlab", "generate", ...argv], { stdout, stderr });
+  run(GitlabGenerateCommand, ["gitlab", ...argv], { stdout, stderr });
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -88,7 +88,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("gitlab generate command", () => {
+describe("gitlab command", () => {
   it.each([
     { name: "CLI token precedence", cliToken: " cli-token ", envToken: "env-token", expected: "cli-token" },
     { name: "environment token", cliToken: undefined, envToken: " env-token ", expected: "env-token" },
