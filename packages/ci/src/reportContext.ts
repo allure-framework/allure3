@@ -14,8 +14,11 @@ const SUMMARY_FILENAME = "summary.json";
 const TEST_STATUSES = ["failed", "broken", "passed", "skipped", "unknown"] as const satisfies TestStatus[];
 
 type UnknownRecord = Record<string, unknown>;
-type PluginSummaryLike = PluginSummary & {
+type PluginSummaryLike = Omit<PluginSummary, "duration" | "name" | "stats" | "status"> & {
+  duration?: unknown;
   name?: unknown;
+  stats?: unknown;
+  status?: unknown;
 };
 
 export type ReportContextStatusStats = Record<(typeof TEST_STATUSES)[number], number> & {
@@ -118,6 +121,9 @@ const isRecord = (value: unknown): value is UnknownRecord =>
 const isTestStatus = (value: unknown): value is TestStatus =>
   typeof value === "string" && TEST_STATUSES.includes(value as TestStatus);
 
+const getFiniteNumber = (value: unknown, fallback = 0): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
 const normalizePath = (filePath: string): string => filePath.split(sep).join("/");
 
 const readOptionalJson = async (filePath: string, onError?: (message: string) => void): Promise<unknown> => {
@@ -141,17 +147,46 @@ const getReportName = (summary: Pick<PluginSummaryLike, "name">): string => {
   return "Allure Report";
 };
 
+const hasPluginSummarySignal = (value: UnknownRecord): boolean =>
+  typeof value.name === "string" ||
+  typeof value.plugin === "string" ||
+  typeof value.href === "string" ||
+  typeof value.remoteHref === "string" ||
+  isRecord(value.stats);
+
 const isPluginSummary = (value: unknown): value is PluginSummaryLike => {
-  if (!isRecord(value) || !isRecord(value.stats)) {
+  if (!isRecord(value) || !hasPluginSummarySignal(value)) {
     return false;
   }
 
-  return typeof value.duration === "number" && isTestStatus(value.status);
+  return true;
 };
 
-const normalizePluginSummary = (summary: PluginSummaryLike): PluginSummary => ({
+const normalizePluginSummaryStats = (summary: PluginSummaryLike): PluginSummary["stats"] => {
+  const rawStats = isRecord(summary.stats) ? summary.stats : {};
+  const stats = {
+    ...rawStats,
+    failed: getFiniteNumber(rawStats.failed),
+    broken: getFiniteNumber(rawStats.broken),
+    passed: getFiniteNumber(rawStats.passed),
+    skipped: getFiniteNumber(rawStats.skipped),
+    unknown: getFiniteNumber(rawStats.unknown),
+  } as PluginSummary["stats"];
+
+  stats.total = getFiniteNumber(
+    rawStats.total,
+    TEST_STATUSES.reduce((acc, status) => acc + getFiniteNumber(stats[status]), 0),
+  );
+
+  return stats;
+};
+
+const normalizePluginSummary = <T extends PluginSummaryLike>(summary: T): T & PluginSummary => ({
   ...summary,
   name: getReportName(summary),
+  stats: normalizePluginSummaryStats(summary),
+  status: isTestStatus(summary.status) ? summary.status : "passed",
+  duration: getFiniteNumber(summary.duration),
 });
 
 const getReportPath = (reportDir: string, summaryFile: string): string =>
@@ -390,7 +425,9 @@ const createEnvironmentContext = (
 const createReport = (summary: PluginSummary): ReportContextTestReport => normalizePluginSummary(summary);
 
 const sortReports = (reports: ReportContextTestReport[]): ReportContextTestReport[] =>
-  reports.toSorted((left, right) => getReportName(left).localeCompare(getReportName(right)));
+  reports
+    .map((report) => normalizePluginSummary(report))
+    .toSorted((left, right) => left.name.localeCompare(right.name));
 
 const getResolutionStats = (summaries: PluginSummary[]): ReportContextResolutionStats => {
   const stats = emptyResolutionStats();

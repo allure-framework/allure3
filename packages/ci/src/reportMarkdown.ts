@@ -41,7 +41,7 @@ type ReportLink = {
 export type RenderReportSummaryMarkdownOptions = {
   title?: string;
   includeArtifacts?: boolean;
-  getFlagHref?: (flag: keyof ReportContextFlagStats, row: ReportSummaryMarkdownRow) => string | undefined;
+  getReportFilterHref?: (filter: keyof ReportContextFlagStats, row: ReportSummaryMarkdownRow) => string | undefined;
 };
 
 const escapeHtml = (value: string): string =>
@@ -159,7 +159,7 @@ const formatFlag = (
   }
 
   const label = String(value);
-  const href = options.getFlagHref?.(flag, row);
+  const href = options.getReportFilterHref?.(flag, row);
 
   return href ? link(label, href) : label;
 };

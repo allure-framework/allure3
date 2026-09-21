@@ -152,7 +152,7 @@ describe("report markdown", () => {
     expect(markdown).toContain('**Reports:** <a href="https://example.org/smoke">Awesome</a>');
   });
 
-  it("can render flag counters as platform-provided links", () => {
+  it("can render flag counters as report filter links", () => {
     const markdown = renderReportSummaryMarkdown(
       context({
         reports: [
@@ -184,20 +184,34 @@ describe("report markdown", () => {
         },
       }),
       {
-        getFlagHref: (flag, row) => {
-          if (flag === "flaky") {
+        getReportFilterHref: (filter, row) => {
+          if (filter === "flaky") {
             return "javascript:alert(1)";
           }
 
-          return `https://example.org/${row.kind}/${flag}?scope=${encodeURIComponent(row.name)}`;
+          const href = row.kind === "report" ? row.report?.remoteHref : "https://example.org/awesome";
+
+          if (!href) {
+            return undefined;
+          }
+
+          const url = new URL(href);
+
+          if (filter === "new") {
+            url.searchParams.set("transition", "new");
+          } else {
+            url.searchParams.set(filter, "true");
+          }
+
+          return url.toString();
         },
       },
     );
 
-    expect(markdown).toContain('<a href="https://example.org/total/new?scope=All%20tests">1</a>');
-    expect(markdown).toContain('<a href="https://example.org/total/retry?scope=All%20tests">1</a>');
-    expect(markdown).toContain('<a href="https://example.org/report/new?scope=Smoke%20report">1</a>');
-    expect(markdown).toContain('<a href="https://example.org/report/retry?scope=Smoke%20report">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/awesome?transition=new">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/awesome?retry=true">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/smoke?transition=new">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/smoke?retry=true">1</a>');
     expect(markdown).toContain(" | 1 | ");
     expect(markdown).not.toContain("javascript:alert");
   });
