@@ -2,7 +2,7 @@ import { story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { upsertGitlabJobNote } from "../../../src/helpers/gitlab/comments.js";
-import type { GitlabReportSummary } from "../../../src/helpers/gitlab/types.js";
+import type { ReportContext, ReportContextTestReport } from "../../../src/reportContext.js";
 import { gitlabEnv, jsonResponse, mockEnv, stubRequest } from "./test-utils.js";
 
 vi.mock("../../../src/utils.js", () => ({
@@ -10,13 +10,25 @@ vi.mock("../../../src/utils.js", () => ({
 }));
 
 const apiToken = "supplied-token";
-const summary: GitlabReportSummary = {
+const report: ReportContextTestReport = {
   name: "Tests | <smoke>",
+  plugin: "Awesome",
+  href: "awesome/",
+  reportPath: "",
+  status: "failed",
   duration: 1000,
   stats: { total: 9, passed: 4, failed: 1, broken: 2, skipped: 1, unknown: 1 },
-  newTests: 2,
-  flakyTests: 1,
-  retryTests: 3,
+};
+const summary: ReportContext = {
+  reports: [report],
+  totals: {
+    duration: 1000,
+    stats: { total: 9, passed: 4, failed: 1, broken: 2, skipped: 1, unknown: 1 },
+    flags: { new: 2, flaky: 1, retry: 3 },
+    resolutions: { issues: 0, muted: 0, accepted: 0 },
+  },
+  environments: [],
+  artifacts: [{ name: "private dump", path: "/tmp/private/dump.zip" }],
 };
 
 const mergeRequestEnv = (overrides: Record<string, string> = {}) =>
@@ -46,7 +58,7 @@ afterEach(() => {
 });
 
 describe("upsertGitlabJobNote", () => {
-  it("creates an owned MR note containing only the report URL when no matching note exists", async () => {
+  it("creates an owned MR note containing the shared summary and report links", async () => {
     mockEnv(mergeRequestEnv());
     const { calls } = stubRequest((call) => {
       if (call.method === "GET" && call.url === notesPath(1)) {
@@ -69,7 +81,129 @@ describe("upsertGitlabJobNote", () => {
       "POST https://gitlab.example.com/api/v4/projects/1/merge_requests/7/notes",
     ]);
     const body = requestBody(calls[1].body);
-    expect(body).toBe("<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\nhttps://reports.example/run/index.html");
+    expect(body).toMatch(/^<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\n# Allure Report Summary\n/);
+    expect(body).toContain("| Scope | Duration | Stats | New | Flaky | Retry |");
+    expect(body).toContain("| All tests | 1s |");
+    expect(body).toContain("| 2 | 1 | 3 |");
+    expect(body).toContain('<a href="https://reports.example/run/index.html">Awesome</a>');
+    expect(body).not.toContain("Artifacts used");
+    expect(body).not.toContain("/tmp/private");
+  });
+
+  it.each([
+    { name: "flattened report", overrides: { reportPath: "" }, href: "https://reports.example/run/index.html" },
+    {
+      name: "nested report",
+      overrides: { reportPath: "reports/smoke #1", href: "stale/" },
+      href: "https://reports.example/run/reports/smoke%20%231/index.html",
+    },
+    {
+      name: "in-memory relative link",
+      overrides: { reportPath: undefined, href: "awesome/index.html" },
+      href: "https://reports.example/run/awesome/index.html",
+    },
+    {
+      name: "absolute report link",
+      overrides: { href: "https://external.example/report.html" },
+      href: "https://external.example/report.html",
+    },
+    {
+      name: "published report",
+      overrides: { remoteHref: "https://allure.example/published", href: "https://external.example/report.html" },
+      href: "https://allure.example/published",
+    },
+  ])("resolves the $name without mutating the shared context", async ({ overrides, href }) => {
+    mockEnv(mergeRequestEnv());
+    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+    const input = { ...summary, reports: [{ ...report, ...overrides }] };
+    const original = structuredClone(input);
+
+    await upsertGitlabJobNote({ token: apiToken, summary: input, reportUrl: "https://reports.example/run/index.html" });
+
+    expect(requestBody(calls[1].body)).toContain(`<a href="${href}">Awesome</a>`);
+    expect(input).toEqual(original);
+  });
+
+  it("renders environments, resolutions and filtered reports with escaped values and working links", async () => {
+    mockEnv(mergeRequestEnv());
+    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+    await upsertGitlabJobNote({
+      token: apiToken,
+      reportUrl: "https://reports.example/run/index.html",
+      summary: {
+        ...summary,
+        totals: { ...summary.totals, resolutions: { issues: 1, muted: 0, accepted: 0 } },
+        environments: [{ name: "Linux | <smoke>", ...summary.totals }],
+        reports: [
+          { ...report, reportPath: "awesome" },
+          {
+            ...report,
+            name: "Failed | <tests>",
+            filtered: true,
+            reportPath: "failed",
+            newTests: ["a"],
+            flakyTests: [],
+            retryTests: ["a"],
+          },
+          { ...report, plugin: "TestOps", remoteHref: "https://testops.example/launch/1" },
+        ],
+      },
+    });
+
+    const body = requestBody(calls[1].body);
+    expect(body).toContain("| Stats | Resolutions | New | Flaky | Retry |");
+    expect(body).toContain("Issues: 1");
+    expect(body).toContain("| Linux &#124; &lt;smoke&gt; | 1s |");
+    expect(body).toContain("**Filtered Reports**");
+    expect(body).toContain("| Failed &#124; &lt;tests&gt; | 1s |");
+    expect(body).toContain("| 1 | 0 | 1 |");
+    expect(body).toContain('<a href="https://reports.example/run/awesome/index.html">Awesome</a>');
+    expect(body).toContain('<a href="https://reports.example/run/failed/index.html">Awesome</a>');
+    expect(body).toContain('**TestOps:** <a href="https://testops.example/launch/1">TestOps</a>');
+  });
+
+  it.each(["href", "remoteHref"] as const)("does not turn an unsafe %s into a clickable link", async (field) => {
+    mockEnv(mergeRequestEnv());
+    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+
+    await upsertGitlabJobNote({
+      token: apiToken,
+      summary: { ...summary, reports: [{ ...report, [field]: "javascript:alert(1)" }] },
+      reportUrl: "https://reports.example/run/index.html",
+    });
+
+    const body = requestBody(calls[1].body);
+    expect(body).toContain("**Reports:** Awesome");
+    expect(body).not.toContain("javascript:");
+    expect(body).toContain("https://reports.example/run/index.html");
+  });
+
+  it("retains the primary report URL when there are no plugin links", async () => {
+    mockEnv(mergeRequestEnv());
+    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+
+    await upsertGitlabJobNote({
+      token: apiToken,
+      summary: { ...summary, reports: [] },
+      reportUrl: "https://reports.example/run/index.html",
+    });
+
+    expect(requestBody(calls[1].body)).toContain("| All tests | 1s |");
+    expect(requestBody(calls[1].body)).toContain("https://reports.example/run/index.html");
+  });
+
+  it("rejects an oversized rendered summary before network I/O", async () => {
+    mockEnv(mergeRequestEnv());
+    const { calls } = stubFetch(() => jsonResponse({ ok: true }));
+
+    await expect(
+      upsertGitlabJobNote({
+        token: apiToken,
+        reportUrl: "https://reports.example/run/index.html",
+        summary: { ...summary, environments: [{ name: "x".repeat(60_001), ...summary.totals }] },
+      }),
+    ).rejects.toThrow("comment too large");
+    expect(calls).toHaveLength(0);
   });
 
   it("posts with the supplied token", async () => {
@@ -85,14 +219,14 @@ describe("upsertGitlabJobNote", () => {
     expect(calls.map((call) => call.headers["private-token"])).toEqual(["explicit-token", "explicit-token"]);
   });
 
-  it("updates the newest owned note for an older logical run and keeps unrelated notes untouched", async () => {
+  it("updates the newest owned note with the summary and keeps unrelated notes untouched", async () => {
     mockEnv(mergeRequestEnv());
     const { calls } = stubRequest((call) => {
       if (call.method === "GET") {
         return notesResponse([
           { id: 1, body: "<!-- allure -->\nlegacy publisher note" },
           { id: 2, body: noteBody("98", "980", "older") },
-          { id: 3, body: noteBody("99", "990", "newest older") },
+          { id: 3, body: noteBody("99", "990", "https://reports.example/old/index.html") },
           { id: 4, body: noteBody("99", "991", "different job", "bGludA==") },
         ]);
       }
@@ -112,9 +246,11 @@ describe("upsertGitlabJobNote", () => {
       `GET ${notesPath(1)}`,
       "PUT https://gitlab.example.com/api/v4/projects/1/merge_requests/7/notes/3",
     ]);
-    expect(requestBody(calls[1].body)).toBe(
-      "<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\nhttps://reports.example/run/index.html",
-    );
+    const body = requestBody(calls[1].body);
+    expect(body).toMatch(/^<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\n# Allure Report Summary\n/);
+    expect(body).toContain("| All tests | 1s |");
+    expect(body).toContain("https://reports.example/run/index.html");
+    expect(body).not.toContain("https://reports.example/old/");
   });
 
   it("keeps the exact-job ownership identity stable across runs within the MR", async () => {
@@ -172,9 +308,8 @@ describe("upsertGitlabJobNote", () => {
     const { calls } = stubRequest((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
 
     await upsertGitlabJobNote({ token: apiToken, summary, reportUrl: "https://reports.example/run/index.html" });
-    expect(requestBody(calls[1].body)).toBe(
-      "<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\nhttps://reports.example/run/index.html",
-    );
+    expect(requestBody(calls[1].body)).toContain("https://reports.example/run/index.html");
+    expect(requestBody(calls[1].body)).toContain("# Allure Report Summary");
   });
 
   it("encodes marker delimiters, newlines and Unicode in job names without losing rolling ownership", async () => {

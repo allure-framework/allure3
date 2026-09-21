@@ -1,6 +1,7 @@
 import { gitlab } from "../../detectors/gitlab.js";
+import type { ReportContext } from "../../reportContext.js";
 import { createGitlabClient, type GitlabClient } from "./client.js";
-import type { GitlabReportSummary } from "./types.js";
+import { renderGitlabReportSummary } from "./summary.js";
 
 const MARKER_VERSION = "v1";
 const MAX_NOTE_SCAN_PAGES = 5;
@@ -151,7 +152,7 @@ const selectNewestOwnedNote = (notes: { note: GitlabNote; marker: ParsedMarker }
 
 export const upsertGitlabJobNote = async (options: {
   token: string;
-  summary: GitlabReportSummary;
+  summary: ReportContext;
   reportUrl: string;
 }): Promise<void> => {
   const iid = gitlab.pullRequest?.id;
@@ -177,7 +178,7 @@ export const upsertGitlabJobNote = async (options: {
     throw new Error("invalid report URL");
   }
 
-  const body = `${ownershipMarker(current)}\n${reportUrl.href}`;
+  const body = `${ownershipMarker(current)}\n${renderGitlabReportSummary(options.summary, reportUrl)}`;
 
   if (body.length > MAX_COMMENT_LENGTH) {
     throw new Error("comment too large");

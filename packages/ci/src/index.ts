@@ -5,4 +5,3 @@ export { detect } from "./detect.js";
 export { isLocalCiDescriptor } from "./detectors/local.js";
 export { restoreGitlabHistory, upsertGitlabJobNote } from "./helpers/gitlab/index.js";
 export type { GitlabCiDescriptor } from "./detectors/gitlab.js";
-export type { GitlabReportSummary } from "./helpers/gitlab/index.js";
