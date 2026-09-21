@@ -30,6 +30,7 @@ export type UploadReportPayload = {
   files: Record<string, string> | Record<string, string>[];
   onProgress?: (uploadedFilesDelta?: number) => void;
   uploadBatchMaxBytes?: number;
+  signal?: AbortSignal;
 };
 
 export type UploadReportFilePayload = {

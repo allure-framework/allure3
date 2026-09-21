@@ -160,6 +160,7 @@
     "retries": "재시도",
     "environments": "환경",
     "error": "오류",
+    "success": "성공",
     "goToStep": "단계로 이동",
     "showLess": "덜 보기",
     "showMore": "더 보기",
@@ -175,7 +176,9 @@
     "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "브레드크럼",
+    "breadcrumbs-hidden": "숨겨진 브레드크럼 항목 표시"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

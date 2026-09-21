@@ -160,6 +160,7 @@
     "retries": "Reintentos",
     "environments": "Entornos",
     "error": "Error",
+    "success": "Éxito",
     "goToStep": "Ir al paso",
     "showLess": "Mostrar menos",
     "showMore": "Mostrar más",
@@ -175,7 +176,9 @@
     "pwTracePopupBlockedHint": "Permite las ventanas emergentes y vuelve a intentarlo.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con código de salida {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Migas de pan",
+    "breadcrumbs-hidden": "Mostrar migas de pan ocultas"
   },
   "controls": {
     "newTabAttachment": "Abrir adjunto en nueva pestaña",

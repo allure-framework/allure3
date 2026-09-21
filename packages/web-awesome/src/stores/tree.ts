@@ -190,3 +190,48 @@ export const filteredTree = computed(() => {
 export const noTestsFound = computed(
   () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
 );
+
+export type TreeBreadcrumb = {
+  nodeId: string;
+  name: string;
+};
+
+const findBreadcrumbs = (
+  tree: RecursiveTree,
+  leafNodeId: string,
+  path: TreeBreadcrumb[],
+): TreeBreadcrumb[] | undefined => {
+  if (tree.leaves.some((leaf) => leaf.nodeId === leafNodeId)) {
+    return path;
+  }
+
+  for (const subTree of tree.trees) {
+    const found = findBreadcrumbs(subTree, leafNodeId, [...path, { nodeId: subTree.nodeId, name: subTree.name }]);
+
+    if (found) {
+      return found;
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * Path of the test result through the tree the user is looking at, filters and search included,
+ * so every segment points to a node that's actually there.
+ */
+export const getTreeBreadcrumbs = (testResultId?: string): TreeBreadcrumb[] => {
+  if (!testResultId) {
+    return [];
+  }
+
+  for (const tree of Object.values(filteredTree.value)) {
+    const path = findBreadcrumbs(tree, testResultId, []);
+
+    if (path) {
+      return path;
+    }
+  }
+
+  return [];
+};

@@ -128,6 +128,9 @@ const createRealtimeSubscriber = () => {
         listeners.globalErrors = listeners.globalErrors.filter((candidate) => candidate !== listener);
       };
     }),
+    onProcessGlobalAttachment: vi.fn(() => () => {}),
+    onProcessGlobalError: vi.fn(() => () => {}),
+    onProcessGlobalsReset: vi.fn(() => () => {}),
     onGlobalExitCode: vi.fn((listener: (payload: ExitCode) => RealtimeListenerResult) => {
       listeners.globalExitCodes.push(listener);
 

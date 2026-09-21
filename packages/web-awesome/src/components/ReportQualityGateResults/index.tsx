@@ -1,5 +1,6 @@
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { Loadable, SvgIcon, Text, Tree, allureIcons } from "@allurereport/web-components";
+import clsx from "clsx";
 import { useMemo, useState } from "preact/hooks";
 import type { ReportQualityGateValidationResult, ReportTree, ReportTreeGroup } from "types";
 
@@ -81,13 +82,29 @@ const QualityGateTestResultsTree = ({ tree }: { tree: ReportTree }) => {
   );
 };
 
+// failed rules always come first, the original order is kept within both groups
+const sortFailuresFirst = (results: ReportQualityGateValidationResult[]) =>
+  [...results].sort((a, b) => Number(Boolean(a.success)) - Number(Boolean(b.success)));
+
 const QualityGateResultsList = ({ results }: { results: ReportQualityGateValidationResult[] }) => {
+  const { t } = useI18n("ui");
+  const sortedResults = useMemo(() => sortFailuresFirst(results), [results]);
+
   return (
     <ul className={styles["report-quality-gate-results-list"]} data-testid={"quality-gate-results-section-env-content"}>
-      {results.map((result) => (
-        <li key={result.rule} data-testid="quality-gate-result">
+      {sortedResults.map((result) => (
+        <li key={result.rule} data-testid="quality-gate-result" data-success={String(Boolean(result.success))}>
           <div className={styles["report-quality-gate-result"]}>
-            <SvgIcon id={allureIcons.solidXCircle} className={styles["report-quality-gate-result-icon"]} />
+            <SvgIcon
+              id={result.success ? allureIcons.solidCheckCircle : allureIcons.solidXCircle}
+              className={clsx(
+                styles["report-quality-gate-result-icon"],
+                styles[
+                  result.success ? "report-quality-gate-result-icon-passed" : "report-quality-gate-result-icon-failed"
+                ],
+              )}
+              data-testid={result.success ? "quality-gate-result-passed-icon" : "quality-gate-result-failed-icon"}
+            />
             <div className={styles["report-quality-gate-result-content"]}>
               <Text tag="p" size="l" type="ui" bold data-testid="quality-gate-result-rule">
                 {result.rule}
@@ -95,6 +112,8 @@ const QualityGateResultsList = ({ results }: { results: ReportQualityGateValidat
               <TrError
                 className={styles["report-quality-gate-result-error"]}
                 message={result.message}
+                status={result.success ? "passed" : "failed"}
+                title={result.success ? t("success") : undefined}
                 data-testid="quality-gate-result-message"
               />
               {result.testResultsTree && <QualityGateTestResultsTree tree={result.testResultsTree} />}

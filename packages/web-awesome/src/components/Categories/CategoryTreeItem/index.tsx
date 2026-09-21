@@ -10,6 +10,7 @@ import { LabelTreeItem } from "@/components/Categories/LabelTreeItem";
 import { MessageTreeItem } from "@/components/Categories/MessageTreeItem";
 import { SeverityTreeItem } from "@/components/Categories/SeverityTreeItem";
 import { reportStatsStore } from "@/stores";
+import { isCategoryNodeOpened, isCategoryNodeOpenedByDefault } from "@/stores/categories";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
@@ -21,8 +22,6 @@ type CategoryTreeItemProps = CategoryNodeProps & {
   order?: number;
   depth?: number;
 };
-
-const getDefaultOpened = (node?: CategoryNode) => (node?.type === "category" ? Boolean(node.expand) : true);
 
 const getSubtreeExpandableIds = (rootId: string, store: TestCategories) => {
   const result: string[] = [];
@@ -46,22 +45,13 @@ const getSubtreeExpandableIds = (rootId: string, store: TestCategories) => {
   return result;
 };
 
-const getNodeOpenedState = (nodeId: string, store: TestCategories) => {
-  const node = store.nodes[nodeId];
-  const defaultOpened = getDefaultOpened(node);
-  return collapsedTrees.value.has(nodeId) ? !defaultOpened : defaultOpened;
-};
-
 export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, order, depth = 0 }) => {
   const node: CategoryNode = store.nodes[nodeId];
   const trId = currentTrId.value;
   const { t: tTransitions } = useI18n("transitions");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tEmpty } = useI18n("empty");
-  const hasSavedState = collapsedTrees.value.has(nodeId);
-  const defaultOpened = getDefaultOpened(node);
-  const [isOpened, setIsOpen] = useState<boolean>(hasSavedState ? !defaultOpened : defaultOpened);
-  const [subtreeVersion, setSubtreeVersion] = useState(0);
+  const isOpened = isCategoryNodeOpened(nodeId, store);
   const [lastSubtreeToggle, setLastSubtreeToggle] = useState<"first" | "all" | "none" | null>(null);
 
   if (!node) {
@@ -73,15 +63,14 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
     ? (node.childrenIds ?? []).every((childId) => store.nodes[childId]?.type === "tr")
     : false;
   const expandableNodeIds = hasChildren ? getSubtreeExpandableIds(nodeId, store) : [];
-  const isSubtreeCollapsedAll = !getNodeOpenedState(nodeId, store);
+  const isSubtreeCollapsedAll = !isCategoryNodeOpened(nodeId, store);
   const isSubtreeFirstLevelOnly =
-    getNodeOpenedState(nodeId, store) &&
-    expandableNodeIds.filter((id) => id !== nodeId).every((id) => !getNodeOpenedState(id, store));
+    isCategoryNodeOpened(nodeId, store) &&
+    expandableNodeIds.filter((id) => id !== nodeId).every((id) => !isCategoryNodeOpened(id, store));
   const isSubtreeExpandedAll =
-    getNodeOpenedState(nodeId, store) && expandableNodeIds.every((id) => getNodeOpenedState(id, store));
+    isCategoryNodeOpened(nodeId, store) && expandableNodeIds.every((id) => isCategoryNodeOpened(id, store));
 
   const onClick = () => {
-    setIsOpen(!isOpened);
     toggleTree(nodeId);
     setLastSubtreeToggle(null);
   };
@@ -91,7 +80,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
 
     expandableNodeIds.forEach((id) => {
       const currentNode = store.nodes[id];
-      const isDefaultOpened = getDefaultOpened(currentNode);
+      const isDefaultOpened = isCategoryNodeOpenedByDefault(currentNode);
       const isRoot = id === nodeId;
       let shouldBeOpened = false;
 
@@ -118,14 +107,11 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
     if (hasOnlyLeafResults) {
       if (isSubtreeCollapsedAll) {
         setSubtreeState("all");
-        setIsOpen(true);
         setLastSubtreeToggle("all");
       } else {
         setSubtreeState("none");
-        setIsOpen(false);
         setLastSubtreeToggle("none");
       }
-      setSubtreeVersion((value: number) => value + 1);
       return;
     }
     let nextState: "first" | "all" | "none" = "first";
@@ -139,9 +125,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
       nextState = "all";
     }
     setSubtreeState(nextState);
-    setIsOpen(nextState !== "none");
     setLastSubtreeToggle(nextState);
-    setSubtreeVersion((value: number) => value + 1);
   };
 
   const subtreeToggleIcon = (() => {
@@ -168,7 +152,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
   ) : null;
 
   const renderChildren = () => (
-    <div className={styles["tree-children"]} key={subtreeVersion}>
+    <div className={styles["tree-children"]}>
       {(node.childrenIds ?? []).map((cid: string, index: number) => (
         <div key={cid} className={styles["tree-content"]} data-tree-content>
           <CategoryTreeItem key={cid} nodeId={cid} store={store} order={index} depth={depth + 1} />

@@ -160,6 +160,7 @@
     "retries": "Réessais",
     "environments": "Environnements",
     "error": "Erreur",
+    "success": "Succès",
     "goToStep": "Aller à l'étape",
     "showLess": "Montrer moins",
     "showMore": "Montrer plus",
@@ -175,7 +176,9 @@
     "pwTracePopupBlockedHint": "Autorisez les pop-ups et réessayez.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, avec le code de sortie {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, avec le code de sortie {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Fil d’Ariane",
+    "breadcrumbs-hidden": "Afficher les éléments masqués du fil d’Ariane"
   },
   "controls": {
     "newTabAttachment": "Ouvrir dans un nouvel onglet",
