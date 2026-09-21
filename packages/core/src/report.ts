@@ -1344,7 +1344,7 @@ export class AllureReport {
           try {
             const html = await readFile(indexPath, "utf-8");
 
-            await writeFile(indexPath, html.replaceAll("../_shared/", "_shared/"), "utf-8");
+            await writeFile(indexPath, html.replaceAll(`../${SHARED_DIR}/`, `${SHARED_DIR}/`), "utf-8");
           } catch {}
         }
       }

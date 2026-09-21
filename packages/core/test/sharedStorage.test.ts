@@ -32,15 +32,15 @@ describe("SharedReportFiles", () => {
     it("fails instead of silently overwriting a key with different content", async () => {
       await shared.addFile("awesome/main.js", Buffer.from("first"));
 
-      await expect(shared.addFile("awesome/main.js", Buffer.from("second"))).rejects.toThrow("_shared/awesome/main.js");
+      await expect(shared.addFile("awesome/main.js", Buffer.from("second"))).rejects.toThrow("shared/awesome/main.js");
     });
 
     it("keeps files with the same name in different directories apart", async () => {
       const awesome = await shared.addFile("awesome/main.js", Buffer.from("awesome"));
       const classic = await shared.addFile("classic/main.js", Buffer.from("classic"));
 
-      expect(awesome).toBe(resolve(outDir, "_shared", "awesome", "main.js"));
-      expect(classic).toBe(resolve(outDir, "_shared", "classic", "main.js"));
+      expect(awesome).toBe(resolve(outDir, "shared", "awesome", "main.js"));
+      expect(classic).toBe(resolve(outDir, "shared", "classic", "main.js"));
       expect(await readFile(awesome, "utf-8")).toBe("awesome");
       expect(await readFile(classic, "utf-8")).toBe("classic");
     });
@@ -49,7 +49,7 @@ describe("SharedReportFiles", () => {
       const filePath = await shared.addFile("test.txt", Buffer.from("data"));
 
       expect(isAbsolute(filePath)).toBe(true);
-      expect(filePath).toBe(resolve(outDir, "_shared", "test.txt"));
+      expect(filePath).toBe(resolve(outDir, "shared", "test.txt"));
     });
   });
 
