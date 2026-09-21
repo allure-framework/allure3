@@ -75,6 +75,8 @@ const runCommand = (argv: string[] = [], stdout = new PassThrough(), stderr = ne
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
   vi.stubEnv("GITLAB_TOKEN", undefined);
   vi.mocked(detect).mockReturnValue(gitlabCi);
   vi.mocked(existsSync).mockReturnValue(true);
@@ -86,6 +88,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.restoreAllMocks();
 });
 
 describe("gitlab command", () => {
@@ -109,13 +112,34 @@ describe("gitlab command", () => {
     }
   });
 
+  it("skips GitLab artifact history when a Service token is configured", async () => {
+    const config = { ...baseConfig, allureService: { accessToken: "service-token" } };
+    vi.mocked(readConfig).mockResolvedValueOnce(config as never);
+
+    await expect(runCommand(["--gitlab-token", "gitlab-token"])).resolves.toBe(0);
+
+    expect(restoreGitlabHistory).not.toHaveBeenCalled();
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ config, collectSummary: true }));
+    expect(upsertGitlabJobNote).toHaveBeenCalledOnce();
+  });
+
+  it.each([undefined, ""])("restores artifact history when the Service token is %j", async (accessToken) => {
+    const config = { ...baseConfig, allureService: { accessToken } };
+    vi.mocked(readConfig).mockResolvedValueOnce(config as never);
+
+    await expect(runCommand()).resolves.toBe(0);
+
+    expect(restoreGitlabHistory).toHaveBeenCalledWith({ token: undefined, historyPath: "history.jsonl" });
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ config }));
+  });
+
   it("includes the default output folder in historyBaseUrl, then restores, generates and posts in order", async () => {
     const stdout = new PassThrough();
     const stderr = new PassThrough();
 
     await expect(runCommand(["--gitlab-token", "token-from-cli", "./results"], stdout, stderr)).resolves.toBe(0);
 
-    expect(stderr.read()).toBeNull();
+    expect(console.error).not.toHaveBeenCalled();
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: undefined,
@@ -134,7 +158,7 @@ describe("gitlab command", () => {
       reportUrl: "https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
       summary,
     });
-    expect(stdout.read()?.toString()).toContain(
+    expect(console.log).toHaveBeenCalledWith(
       "GitLab report URL: https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
     );
     expect(vi.mocked(restoreGitlabHistory).mock.invocationCallOrder[0]).toBeLessThan(
@@ -219,7 +243,7 @@ describe("gitlab command", () => {
     expect(upsertGitlabJobNote).toHaveBeenCalledWith(
       expect.objectContaining({ reportUrl: "https://reports.example.test/runs/7/index.html" }),
     );
-    expect(stdout.read()?.toString()).toContain("https://reports.example.test/runs/7/index.html");
+    expect(console.log).toHaveBeenCalledWith("GitLab report URL: https://reports.example.test/runs/7/index.html");
   });
 
   it("generates report with failure to fetch history", async () => {
@@ -229,11 +253,12 @@ describe("gitlab command", () => {
 
     await expect(runCommand(["--gitlab-token", "token"], stdout, stderr)).resolves.toBe(0);
 
-    const output = stdout.read()?.toString() ?? "";
-    expect((stderr.read()?.toString() ?? "").split("artifact download failed\n")).toHaveLength(2);
+    expect(console.error).toHaveBeenCalledOnce();
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("artifact download failed"));
+    expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining("artifact download failed"));
     expect(generate).toHaveBeenCalledOnce();
     expect(upsertGitlabJobNote).toHaveBeenCalledOnce();
-    expect(output).toContain("GitLab report URL:");
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("GitLab report URL:"));
   });
 
   it.each([
@@ -321,7 +346,7 @@ describe("gitlab command", () => {
     await expect(runCommand([], stdout)).resolves.toBe(0);
 
     expect(generate).toHaveBeenCalledOnce();
-    expect(stdout.read()?.toString() ?? "").not.toContain("GitLab report URL:");
+    expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining("GitLab report URL:"));
     expect(upsertGitlabJobNote).not.toHaveBeenCalled();
   });
 
@@ -332,7 +357,7 @@ describe("gitlab command", () => {
     await expect(runCommand([], stdout)).resolves.toBe(0);
 
     expect(generate).toHaveBeenCalledOnce();
-    expect(stdout.read()?.toString()).toContain("GitLab report URL:");
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("GitLab report URL:"));
     expect(upsertGitlabJobNote).not.toHaveBeenCalled();
   });
 

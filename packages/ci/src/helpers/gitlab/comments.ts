@@ -116,9 +116,9 @@ const readOwnedNotes = async (
       }
     }
 
-    const nextPageHeader = headers.get("x-next-page");
+    const nextPageHeader = headers["x-next-page"];
 
-    if (nextPageHeader === null) {
+    if (typeof nextPageHeader !== "string") {
       throw new Error("incomplete note scan");
     }
 

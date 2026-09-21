@@ -1,13 +1,18 @@
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+
 import { gitlab, type GitlabCiDescriptor } from "../../detectors/gitlab.js";
 
 const REQUEST_TIMEOUT_MS = 10_000;
-const MAX_ARTIFACT_REDIRECTS = 5;
 
 export type GitlabClient = {
   // ci is the typed non-secret GitLab detector; no token property.
   ci: GitlabCiDescriptor;
   query<T>(query: string, variables: Record<string, unknown>): Promise<T>;
-  requestJson<T>(method: "GET" | "POST" | "PUT", path: string, body?: unknown): Promise<{ data: T; headers: Headers }>;
+  requestJson<T>(
+    method: "GET" | "POST" | "PUT",
+    path: string,
+    body?: unknown,
+  ): Promise<{ data: T; headers: AxiosResponse["headers"] }>;
   downloadArtifact(jobId: string, artifactPath: string): Promise<Uint8Array>;
 };
 
@@ -78,26 +83,6 @@ const invalidNumericMetadata = (ci: GitlabCiDescriptor): string[] => {
   return invalid;
 };
 
-const bodyCancel = (response: Response) => {
-  void response.body?.cancel().catch(() => undefined);
-};
-
-const requestWithTimeout = async <T>(
-  url: URL,
-  init: RequestInit,
-  consume: (response: Response) => Promise<T>,
-): Promise<T> => {
-  const response = await fetch(url, {
-    ...init,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    redirect: "manual",
-  });
-
-  return consume(response);
-};
-
-const isRedirect = (response: Response): boolean => response.status >= 300 && response.status < 400;
-
 const encodeArtifactPathSegment = (segment: string): string => {
   if (segment === ".") {
     return "%2E";
@@ -151,145 +136,71 @@ export const createGitlabClient = (options?: { token?: string }): GitlabClient =
   }
 
   const apiOrigin = restApiUrl.origin;
-  const authHeaders = (): Record<string, string> => (token ? { "private-token": token } : {});
+  const requestOptions: AxiosRequestConfig = {
+    headers: token ? { "private-token": token } : {},
+    // Artifact downloads may redirect to object storage outside GitLab.
+    sensitiveHeaders: ["private-token"],
+    timeout: REQUEST_TIMEOUT_MS,
+  };
 
   return {
     ci,
 
     async query<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-      assertTrustedApiUrl(graphqlApiUrl, apiOrigin);
-      return requestWithTimeout(
-        graphqlApiUrl,
-        {
-          method: "POST",
-          headers: {
-            ...authHeaders(),
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({ query, variables }),
-        },
-        async (response) => {
-          if (isRedirect(response)) {
-            bodyCancel(response);
-            throw new Error("GitLab GraphQL request redirected");
-          }
+      const { data: envelope } = await axios.request<GraphqlEnvelope<T>>({
+        ...requestOptions,
+        url: graphqlApiUrl.href,
+        method: "POST",
+        data: { query, variables },
+      });
 
-          if (!response.ok) {
-            bodyCancel(response);
-            throw new Error("GitLab GraphQL request failed");
-          }
+      if (!envelope || typeof envelope !== "object") {
+        throw new Error("GitLab GraphQL response was invalid");
+      }
 
-          const envelope = (await response.json()) as GraphqlEnvelope<T>;
+      if (envelope.errors) {
+        throw new Error("GitLab GraphQL response contained errors");
+      }
 
-          if (!envelope || typeof envelope !== "object") {
-            throw new Error("GitLab GraphQL response was invalid");
-          }
+      if (!Object.hasOwn(envelope, "data")) {
+        throw new Error("GitLab GraphQL response omitted data");
+      }
 
-          if (envelope.errors) {
-            throw new Error("GitLab GraphQL response contained errors");
-          }
-
-          if (!Object.hasOwn(envelope, "data")) {
-            throw new Error("GitLab GraphQL response omitted data");
-          }
-
-          return envelope.data as T;
-        },
-      );
+      return envelope.data as T;
     },
 
     async requestJson<T>(
       method: "GET" | "POST" | "PUT",
       path: string,
       body?: unknown,
-    ): Promise<{ data: T; headers: Headers }> {
+    ): Promise<{ data: T; headers: AxiosResponse["headers"] }> {
       const url = buildRestUrl(restApiUrl, path);
       assertTrustedApiUrl(url, apiOrigin);
-      return requestWithTimeout(
-        url,
-        {
-          method,
-          headers: {
-            ...authHeaders(),
-            ...(body === undefined ? {} : { "content-type": "application/json" }),
-          },
-          body: body === undefined ? undefined : JSON.stringify(body),
-        },
-        async (response) => {
-          if (isRedirect(response)) {
-            bodyCancel(response);
-            throw new Error("GitLab API request redirected");
-          }
+      const { data, headers } = await axios.request<T>({
+        ...requestOptions,
+        url: url.href,
+        method,
+        data: body,
+      });
 
-          if (!response.ok) {
-            bodyCancel(response);
-            throw new Error("GitLab API request failed");
-          }
-
-          return {
-            data: (await response.json()) as T,
-            headers: response.headers,
-          };
-        },
-      );
+      return { data, headers };
     },
 
     async downloadArtifact(jobId: string, artifactPath: string): Promise<Uint8Array> {
-      let url = buildRestUrl(
+      const url = buildRestUrl(
         restApiUrl,
         `/projects/${encodeURIComponent(ci.projectId)}/jobs/${encodeURIComponent(jobId)}/artifacts/${encodeArtifactPath(
           artifactPath,
         )}`,
       );
-      let redirects = 0;
+      const { data } = await axios.request<Uint8Array>({
+        ...requestOptions,
+        url: url.href,
+        method: "GET",
+        responseType: "arraybuffer",
+      });
 
-      while (true) {
-        const sameOrigin = url.origin === apiOrigin;
-        const result = await requestWithTimeout(
-          url,
-          {
-            method: "GET",
-            headers: sameOrigin ? authHeaders() : {},
-          },
-          async (response): Promise<{ type: "redirect"; location: string } | { type: "bytes"; bytes: Uint8Array }> => {
-            if (isRedirect(response)) {
-              const location = response.headers.get("location");
-              bodyCancel(response);
-
-              if (!location) {
-                throw new Error("GitLab artifact redirect missing location");
-              }
-
-              return { type: "redirect", location };
-            }
-
-            if (!response.ok) {
-              bodyCancel(response);
-              throw new Error("GitLab artifact request failed");
-            }
-
-            return { type: "bytes", bytes: new Uint8Array(await response.arrayBuffer()) };
-          },
-        );
-
-        if (result.type === "redirect") {
-          if (redirects >= MAX_ARTIFACT_REDIRECTS) {
-            throw new Error("GitLab artifact request had too many redirects");
-          }
-
-          const redirectUrl = new URL(result.location, url);
-
-          if (url.protocol === "https:" && redirectUrl.protocol === "http:") {
-            throw new Error("GitLab artifact redirect downgraded HTTPS");
-          }
-
-          url = redirectUrl;
-          redirects += 1;
-          continue;
-        }
-
-        return result.bytes;
-      }
+      return data;
     },
   };
 };

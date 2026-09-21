@@ -5,29 +5,29 @@ import { cwd as processCwd } from "node:process";
 import { restoreGitlabHistory, upsertGitlabJobNote, detect, GitlabCiDescriptor } from "@allurereport/ci";
 import { readConfig } from "@allurereport/core";
 import { CiDescriptor, CiType } from "@allurereport/core-api";
-import { BaseContext, Command, Option } from "clipanion";
+import { Command, Option } from "clipanion";
 
 import { generate } from "../commons/generate.js";
 
-const defaultHistoryLimit = 100;
+const DEFAULT_HISTORY_LIMIT = 100;
 const isDecimalString = (value: string): boolean => /^[0-9]+$/.test(value);
 
 const parseHistoryLimit = (value: unknown): number | undefined => {
   if (typeof value === "string") {
     if (!isDecimalString(value)) {
-      return defaultHistoryLimit;
+      return DEFAULT_HISTORY_LIMIT;
     }
 
     const parsed = Number(value);
 
-    return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ? parsed : defaultHistoryLimit;
+    return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ? parsed : DEFAULT_HISTORY_LIMIT;
   }
 
   if (typeof value === "number") {
-    return Number.isFinite(value) && Number.isInteger(value) && value >= 0 ? value : defaultHistoryLimit;
+    return Number.isFinite(value) && Number.isInteger(value) && value >= 0 ? value : DEFAULT_HISTORY_LIMIT;
   }
 
-  return defaultHistoryLimit;
+  return DEFAULT_HISTORY_LIMIT;
 };
 
 const reportBaseUrl = (historyBaseUrl: string | undefined, output: string): string => {
@@ -50,14 +50,6 @@ const reportBaseUrl = (historyBaseUrl: string | undefined, output: string): stri
   }
 
   return historyBaseUrl || `${gitlab.jobArtifactsUrlBase}/${output}`;
-};
-
-const log = (msg: string, context: BaseContext) => {
-  context.stdout.write(msg + "\n");
-};
-
-const err = (msg: string, context: BaseContext) => {
-  context.stderr.write(msg + "\n");
 };
 
 export class GitlabGenerateCommand extends Command {
@@ -129,18 +121,23 @@ export class GitlabGenerateCommand extends Command {
       try {
         await operation();
       } catch (error) {
-        err(`${errPrefix}: ${error instanceof Error ? error.message : String(error)}`, this.context);
+        // eslint-disable-next-line no-console
+        console.error(`${errPrefix}: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
 
-    log("Generating allure report", this.context);
-    log("  fetching previous run history", this.context);
-    await runGitlabOperation("  history fetch failed", () =>
-      restoreGitlabHistory({
-        token,
-        historyPath,
-      }),
-    );
+    // eslint-disable-next-line no-console
+    console.log("Generating allure report");
+    if (!config.allureService?.accessToken) {
+      // eslint-disable-next-line no-console
+      console.log("  fetching previous run history");
+      await runGitlabOperation("  history fetch failed", () =>
+        restoreGitlabHistory({
+          token,
+          historyPath,
+        }),
+      );
+    }
 
     const result = await generate({
       cwd,
@@ -155,12 +152,15 @@ export class GitlabGenerateCommand extends Command {
     }
 
     const reportUrl = `${config.historyBaseUrl}/index.html`;
-    log(`GitLab report URL: ${reportUrl}`, this.context);
+    // eslint-disable-next-line no-console
+    console.log(`GitLab report URL: ${reportUrl}`);
 
     if (result.summary && existsSync(join(config.output, "index.html"))) {
-      log("Posting report summary comment", this.context);
+      // eslint-disable-next-line no-console
+      console.log("Posting report summary comment");
       if (!token) {
-        log("  no API token provided, skipping", this.context);
+        // eslint-disable-next-line no-console
+        console.log("  no API token provided, skipping");
         return;
       }
 
