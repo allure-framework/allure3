@@ -157,6 +157,7 @@ export const validateConfig = (config: Config) => {
     "historyPath",
     "historyBaseUrl",
     "historyLimit",
+    "flakyDetection",
     "resolutions",
     "plugins",
     "defaultLabels",
@@ -300,6 +301,22 @@ const resolveConfigEnvironments = (config: Config) => {
   };
 };
 
+const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
+  if (config === undefined) {
+    return;
+  }
+
+  const { historyDepth, overrideFunction } = config;
+
+  if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < 0)) {
+    throw new Error("flakyDetection.historyDepth must be a non-negative integer");
+  }
+
+  if (overrideFunction !== undefined && typeof overrideFunction !== "function") {
+    throw new TypeError("flakyDetection.overrideFunction must be a function");
+  }
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
@@ -308,6 +325,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   }
 
   validateResolutionsConfig(config.resolutions);
+  validateFlakyDetectionConfig(config.flakyDetection);
 
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 
@@ -373,6 +391,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     environments,
     appendHistory,
     historyLimit,
+    flakyDetection: config.flakyDetection,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     historyBaseUrl,
     dump,
