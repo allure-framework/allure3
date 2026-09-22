@@ -14,7 +14,7 @@
     "total": "Total",
     "flaky": "Flaky tests",
     "retries": "Retried tests",
-    "retriesStatusChange": "Status changes on retry",
+    "retriesStatusChange": "Changed on retry",
     "new": "New tests"
   },
   "tabs": {

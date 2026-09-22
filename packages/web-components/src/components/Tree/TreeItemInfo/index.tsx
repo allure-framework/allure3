@@ -45,7 +45,7 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
           <SvgIcon data-testid="tree-leaf-flaky" id={allureIcons.lineIconBomb2} />
         </TooltipWrapper>
       )}
-      {Boolean(retriesCount) && !retriesStatusChange && (
+      {Boolean(retriesCount) && (
         <TooltipWrapper data-testid="tree-leaf-retries-tooltip" tooltipText={tooltips?.retries}>
           <TreeItemRetries retriesCount={retriesCount} />
         </TooltipWrapper>

@@ -14,7 +14,7 @@
     "total": "Wszystkie",
     "flaky": "Niestabilne testy",
     "retries": "Powtórzone testy",
-    "retriesStatusChange": "Zmiany statusu przy ponowieniach",
+    "retriesStatusChange": "Zmieniono przy ponowieniu",
     "new": "Nowe testy"
   },
   "tabs": {

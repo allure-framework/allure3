@@ -14,7 +14,7 @@
     "total": "Gesamt",
     "flaky": "Instabile Tests",
     "retries": "Wiederholte Tests",
-    "retriesStatusChange": "Statusänderungen bei Wiederholungen",
+    "retriesStatusChange": "Bei Wiederholung geändert",
     "new": "Neue Tests"
   },
   "tabs": {

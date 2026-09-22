@@ -14,7 +14,7 @@
     "total": "Cəmi",
     "flaky": "Qeyri-sabit testlər",
     "retries": "Təkrar testlər",
-    "retriesStatusChange": "Təkrar cəhd zamanı status dəyişiklikləri",
+    "retriesStatusChange": "Təkrar cəhddə dəyişdi",
     "new": "Yeni testlər"
   },
   "tabs": {

@@ -14,7 +14,7 @@
     "total": "合計",
     "flaky": "不安定なテスト",
     "retries": "再実行テスト",
-    "retriesStatusChange": "再試行時のステータス変更",
+    "retriesStatusChange": "再試行で変更",
     "new": "新しいテスト"
   },
   "tabs": {

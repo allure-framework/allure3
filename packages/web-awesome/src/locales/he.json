@@ -14,7 +14,7 @@
     "total": "סה\"כ",
     "flaky": "בדיקות לא יציבות",
     "retries": "בדיקות חוזרות",
-    "retriesStatusChange": "שינויי סטטוס בניסיונות חוזרים",
+    "retriesStatusChange": "השתנה בניסיון חוזר",
     "new": "בדיקות חדשות"
   },
   "tabs": {
