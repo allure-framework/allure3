@@ -14,7 +14,7 @@
     "total": "Total",
     "flaky": "Testes instáveis",
     "retries": "Testes repetidos",
-    "retriesStatusChange": "Mudanças de status nas tentativas",
+    "retriesStatusChange": "Mudou na nova tentativa",
     "new": "Testes novos"
   },
   "tabs": {

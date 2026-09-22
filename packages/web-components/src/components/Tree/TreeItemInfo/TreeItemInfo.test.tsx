@@ -14,10 +14,10 @@ describe("TreeItemInfo", () => {
     expect(screen.queryByTestId("tree-leaf-resolution-issue")).not.toBeNull();
   });
 
-  it("shows status change marker instead of retry count for changed retries", () => {
+  it("shows status change marker alongside retry count for changed retries", () => {
     const { rerender } = render(<TreeItemInfo retriesCount={2} retriesStatusChange />);
 
-    expect(screen.queryByTestId("tree-leaf-retries")).toBeNull();
+    expect(screen.queryByTestId("tree-leaf-retries")).not.toBeNull();
     expect(screen.queryByTestId("tree-leaf-retries-status-change")).not.toBeNull();
 
     rerender(<TreeItemInfo retriesCount={2} retriesStatusChange={false} />);

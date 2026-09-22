@@ -14,7 +14,7 @@
     "total": "Toplam",
     "flaky": "İstikrarsız Testler",
     "retries": "Yinelenen Testler",
-    "retriesStatusChange": "Yeniden denemelerde durum değişiklikleri",
+    "retriesStatusChange": "Yeniden denemede değişti",
     "new": "Yeni Testler"
   },
   "tabs": {

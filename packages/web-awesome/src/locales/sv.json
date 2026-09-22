@@ -14,7 +14,7 @@
     "total": "Totalt",
     "flaky": "Ostadiga tester",
     "retries": "Omtagna tester",
-    "retriesStatusChange": "Statusändringar vid omkörningar",
+    "retriesStatusChange": "Ändrat vid nytt försök",
     "new": "Nya tester"
   },
   "tabs": {

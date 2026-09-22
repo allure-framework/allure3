@@ -14,7 +14,7 @@
     "total": "總計",
     "flaky": "不穩定的測試",
     "retries": "重跑測試",
-    "retriesStatusChange": "重試時的狀態變更",
+    "retriesStatusChange": "重試時已變更",
     "new": "新的測試"
   },
   "tabs": {

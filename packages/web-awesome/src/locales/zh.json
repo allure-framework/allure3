@@ -14,7 +14,7 @@
     "total": "总计",
     "flaky": "不稳定的测试",
     "retries": "重跑测试",
-    "retriesStatusChange": "重试时的状态变化",
+    "retriesStatusChange": "重试时已变更",
     "new": "新的测试"
   },
   "tabs": {

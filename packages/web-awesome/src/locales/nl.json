@@ -14,7 +14,7 @@
     "total": "Totaal",
     "flaky": "Onstabiele tests",
     "retries": "Herhaalde tests",
-    "retriesStatusChange": "Statuswijzigingen bij nieuwe pogingen",
+    "retriesStatusChange": "Gewijzigd bij nieuwe poging",
     "new": "Nieuwe tests"
   },
   "tabs": {

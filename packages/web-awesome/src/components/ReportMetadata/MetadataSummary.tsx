@@ -82,7 +82,12 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
 
   const metaDataTests = metadataTestsTypes
     .map((type) => {
+      if (type === "retriesStatusChange" && !stats[type]) {
+        return null;
+      }
+
       const props = { title: testSummary(type), count: stats[type] || emptyMetadataCount, type: type };
+      const isFilterableMetadataType = type !== "retriesStatusChange";
 
       return (
         <div key={type}>
@@ -90,8 +95,8 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
             data-testid={`metadata-item-${type}`}
             props={props}
             renderComponent={MetadataWithIcon}
-            onClick={() => applyMetadataFilter(type)}
-            active={isMetadataFilterActive(type)}
+            onClick={isFilterableMetadataType ? () => applyMetadataFilter(type) : undefined}
+            active={isFilterableMetadataType && isMetadataFilterActive(type)}
           />
         </div>
       );
