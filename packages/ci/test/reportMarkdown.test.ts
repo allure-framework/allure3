@@ -82,15 +82,15 @@ describe("report markdown", () => {
           },
         ],
         artifacts: [
-          { name: "linux dump", path: "allure-results-linux.zip" },
-          { name: "runtime attachment", path: "logs/stage.log" },
+          { name: "allure-results-linux.zip", path: "allure-results-linux.zip" },
+          { name: "stage.log", path: "logs/stage.log" },
         ],
       }),
     );
 
     expect(markdown).toBe(`# Allure Report Summary
 
-| &nbsp;&nbsp;&nbsp;&nbsp; | Scope | Duration | Stats | Resolutions | New | Flaky | Retry |
+| &nbsp;&nbsp;&nbsp;&nbsp; | Environment | Duration | Stats | Resolutions | New | Flaky | Retry |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | <img src="https://allurecharts.qameta.workers.dev/pie?passed=128900&failed=39&broken=25&skipped=16&unknown=9&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | All tests | 2m 21s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;128900<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;39<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;25<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;16<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;9 | Issues: 2<br>Muted: 1<br>Accepted: 1 | 128 | 0 | 1 |
 | <img src="https://allurecharts.qameta.workers.dev/pie?passed=63950&failed=30&broken=10&skipped=7&unknown=3&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Chrome on Ubuntu | 1m 10s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;63950<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;30<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;10<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;7<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;3 |  | 60 | 0 | 1 |
@@ -103,10 +103,8 @@ describe("report markdown", () => {
 <details>
 <summary>Artifacts used (2)</summary>
 
-| Name | Path |
-| --- | --- |
-| linux dump | allure-results-linux.zip |
-| runtime attachment | logs/stage.log |
+- <code>allure-results-linux.zip</code>
+- <code>logs/stage.log</code>
 
 </details>
 `);
@@ -256,6 +254,6 @@ describe("report markdown", () => {
     expect(markdown).toContain("Ubuntu &#124; &lt;script&gt;");
     expect(markdown).toContain("**Reports:** A | &lt;script&gt;");
     expect(markdown).not.toContain("javascript:alert");
-    expect(markdown).toContain("| a &#124; b | &lt;path&gt; |");
+    expect(markdown).toContain("- <code>a | b</code> &mdash; <code>&lt;path&gt;</code>");
   });
 });

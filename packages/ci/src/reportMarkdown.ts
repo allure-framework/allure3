@@ -50,6 +50,8 @@ const escapeHtml = (value: string): string =>
 const tableCell = (value: string | number): string =>
   escapeHtml(String(value)).replaceAll("|", "&#124;").replaceAll("\n", "<br>");
 
+const inlineCode = (value: string): string => `<code>${escapeHtml(value)}</code>`;
+
 const isSafeHref = (href: string): boolean => {
   try {
     const url = new URL(href);
@@ -171,7 +173,7 @@ const renderTable = (
 ): string => {
   const headers = [
     "&nbsp;&nbsp;&nbsp;&nbsp;",
-    "Scope",
+    "Environment",
     "Duration",
     "Stats",
     ...(includeResolutions ? ["Resolutions"] : []),
@@ -286,18 +288,17 @@ const renderArtifacts = (artifacts: ReportContextArtifact[]): string | undefined
     return undefined;
   }
 
-  const rows = artifacts.map(({ name, path }) => `| ${tableCell(name)} | ${tableCell(path)} |`);
+  const rows = artifacts.map(({ name, path }) => {
+    const normalizedPath = path.replaceAll("\\", "/");
+    const isDuplicateName = name === path || normalizedPath.endsWith(`/${name}`);
+    const label = isDuplicateName ? inlineCode(path) : `${inlineCode(name)} &mdash; ${inlineCode(path)}`;
 
-  return [
-    `<details>`,
-    `<summary>Artifacts used (${artifacts.length})</summary>`,
-    "",
-    "| Name | Path |",
-    "| --- | --- |",
-    ...rows,
-    "",
-    "</details>",
-  ].join("\n");
+    return `- ${label}`;
+  });
+
+  return [`<details>`, `<summary>Artifacts used (${artifacts.length})</summary>`, "", ...rows, "", "</details>"].join(
+    "\n",
+  );
 };
 
 export const renderReportSummaryMarkdown = (
