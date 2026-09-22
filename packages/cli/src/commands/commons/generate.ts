@@ -8,8 +8,17 @@ import { red } from "yoctocolors";
 import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
+import { collectReportSummary } from "./summary.js";
 
-export const generate = async (params: { cwd: string; config: FullConfig; resultsDir?: string[]; dump?: string[] }) => {
+export type GenerateResult = { summary?: Awaited<ReturnType<typeof collectReportSummary>> };
+
+export const generate = async (params: {
+  cwd: string;
+  config: FullConfig;
+  resultsDir?: string[];
+  dump?: string[];
+  collectSummary?: boolean;
+}): Promise<GenerateResult | undefined> => {
   const dumpFiles: string[] = params?.dump?.length ? await findFilesByGlobs(params.cwd, params.dump) : [];
   const cliPatterns = params.resultsDir ?? [];
   const resolvedPatterns = resolveResultsPatterns(cliPatterns, params.config.resultsDir);
@@ -36,7 +45,20 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
       await allureReport.readDirectory(dir);
     }
 
+    const result: GenerateResult | undefined = params.collectSummary ? {} : undefined;
+
+    if (params.collectSummary) {
+      try {
+        result!.summary = await collectReportSummary(allureReport.store, params.config.name);
+      } catch {
+        // eslint-disable-next-line no-console
+        console.warn("GitLab summary snapshot skipped: summary collection failed");
+      }
+    }
+
     await allureReport.done();
+
+    return result;
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
