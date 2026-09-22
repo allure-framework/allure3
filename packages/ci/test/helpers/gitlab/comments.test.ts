@@ -114,7 +114,7 @@ describe("upsertGitlabJobNote", () => {
     },
   ])("resolves the $name without mutating the shared context", async ({ overrides, href }) => {
     mockEnv(mergeRequestEnv());
-    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+    const { calls } = stubRequest((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
     const input = { ...summary, reports: [{ ...report, ...overrides }] };
     const original = structuredClone(input);
 
@@ -126,7 +126,7 @@ describe("upsertGitlabJobNote", () => {
 
   it("renders environments, resolutions and filtered reports with escaped values and working links", async () => {
     mockEnv(mergeRequestEnv());
-    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+    const { calls } = stubRequest((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
     await upsertGitlabJobNote({
       token: apiToken,
       reportUrl: "https://reports.example/run/index.html",
@@ -164,7 +164,7 @@ describe("upsertGitlabJobNote", () => {
 
   it.each(["href", "remoteHref"] as const)("does not turn an unsafe %s into a clickable link", async (field) => {
     mockEnv(mergeRequestEnv());
-    const { calls } = stubFetch((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
+    const { calls } = stubRequest((call) => (call.method === "GET" ? notesResponse([]) : jsonResponse({ id: 10 })));
 
     await upsertGitlabJobNote({
       token: apiToken,
@@ -179,7 +179,7 @@ describe("upsertGitlabJobNote", () => {
 
   it("rejects an oversized rendered summary before network I/O", async () => {
     mockEnv(mergeRequestEnv());
-    const { calls } = stubFetch(() => jsonResponse({ ok: true }));
+    const { calls } = stubRequest(() => jsonResponse({ ok: true }));
 
     await expect(
       upsertGitlabJobNote({
