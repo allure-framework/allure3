@@ -2,7 +2,13 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { PassThrough } from "node:stream";
 
-import { type GitlabCiDescriptor, detect, restoreGitlabHistory, upsertGitlabJobNote } from "@allurereport/ci";
+import {
+  type GitlabCiDescriptor,
+  type ReportContext,
+  detect,
+  restoreGitlabHistory,
+  upsertGitlabJobNote,
+} from "@allurereport/ci";
 import { readConfig } from "@allurereport/core";
 import { CiType } from "@allurereport/core-api";
 import { run } from "clipanion";
@@ -62,13 +68,17 @@ const baseConfig = {
   historyBaseUrl: "https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report",
   open: false,
 };
-const summary = {
-  name: "Allure Report",
-  duration: 42,
-  stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
-  newTests: 1,
-  flakyTests: 0,
-  retryTests: 0,
+const summary: ReportContext = {
+  reports: [],
+  testResults: { byId: { one: { id: "one", name: "test", status: "passed", duration: 42 } } },
+  totals: {
+    duration: 42,
+    stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+    flags: { new: 1, flaky: 0, retry: 0 },
+    resolutions: { issues: 0, muted: 0, accepted: 0 },
+  },
+  environments: [],
+  artifacts: [],
 };
 const runCommand = (argv: string[] = [], stdout = new PassThrough(), stderr = new PassThrough()) =>
   run(GitlabGenerateCommand, ["gitlab", ...argv], { stdout, stderr });

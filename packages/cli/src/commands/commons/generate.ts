@@ -1,5 +1,6 @@
 import { exit } from "node:process";
 
+import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
@@ -8,9 +9,8 @@ import { red } from "yoctocolors";
 import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
-import { collectReportSummary } from "./summary.js";
 
-export type GenerateResult = { summary?: Awaited<ReturnType<typeof collectReportSummary>> };
+export type GenerateResult = { summary?: ReportContext };
 
 export const generate = async (params: {
   cwd: string;
@@ -45,18 +45,29 @@ export const generate = async (params: {
       await allureReport.readDirectory(dir);
     }
 
-    const result: GenerateResult | undefined = params.collectSummary ? {} : undefined;
+    await allureReport.done();
 
-    if (params.collectSummary) {
-      try {
-        result!.summary = await collectReportSummary(allureReport.store, params.config.name);
-      } catch {
-        // eslint-disable-next-line no-console
-        console.warn("GitLab summary snapshot skipped: summary collection failed");
-      }
+    if (!params.collectSummary) {
+      return;
     }
 
-    await allureReport.done();
+    const result: GenerateResult = {};
+
+    try {
+      const summary = await createReportContext(params.config.output, {
+        // eslint-disable-next-line no-console
+        onError: (message) => console.warn(message),
+      });
+
+      if (!summary.testResults && summary.reports.length === 0) {
+        throw new Error("no report context data found");
+      }
+
+      result.summary = summary;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(`Report summary skipped: ${error instanceof Error ? error.message : String(error)}`);
+    }
 
     return result;
   } catch (error) {
