@@ -202,6 +202,32 @@ const reportHref = (report: ReportContextTestReport): string | undefined => repo
 
 const reportLabel = (report: ReportContextTestReport): string => report.plugin ?? report.name;
 
+const isAwesomeReport = (report: ReportContextTestReport | undefined): report is ReportContextTestReport =>
+  report?.pluginId?.toLowerCase() === "awesome" || report?.plugin?.toLowerCase() === "awesome";
+
+const appendReportFilter = (href: string, filter: keyof ReportContextFlagStats): string => {
+  const hashIndex = href.indexOf("#");
+  const base = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? "" : href.slice(hashIndex);
+  const separator = base.includes("?") ? "&" : "?";
+  const query = filter === "new" ? "transition=new" : `${filter}=true`;
+
+  return `${base}${separator}${query}${hash}`;
+};
+
+const createDefaultReportFilterHref = (
+  reports: ReportContextTestReport[],
+): RenderReportSummaryMarkdownOptions["getReportFilterHref"] => {
+  const defaultReport = reports.find(isAwesomeReport);
+
+  return (filter, row) => {
+    const report = isAwesomeReport(row.report) ? row.report : defaultReport;
+    const href = report ? reportHref(report) : undefined;
+
+    return href ? appendReportFilter(href, filter) : undefined;
+  };
+};
+
 const reportLinkKind = (report: ReportContextTestReport): ReportLink["kind"] =>
   report.plugin?.toLowerCase() === "testops" ? "testops" : "report";
 
@@ -308,6 +334,10 @@ export const renderReportSummaryMarkdown = (
   const { title = "Allure Report Summary", includeArtifacts = true } = options;
   const regularReports = context.reports.filter((report) => report.filtered !== true);
   const filteredReports = context.reports.filter((report) => report.filtered === true);
+  const renderOptions = {
+    ...options,
+    getReportFilterHref: options.getReportFilterHref ?? createDefaultReportFilterHref(regularReports),
+  };
   const aggregateRows: ReportSummaryMarkdownRow[] = [
     {
       kind: "total",
@@ -328,9 +358,9 @@ export const renderReportSummaryMarkdown = (
   const includeResolutions = hasResolutions(context.totals.resolutions);
   const sections = [
     `# ${escapeHtml(title)}`,
-    renderTable(aggregateRows, includeResolutions, options),
+    renderTable(aggregateRows, includeResolutions, renderOptions),
     ...renderReportLinks(regularReports),
-    renderFilteredReports(filteredReports, options),
+    renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,
   ].filter((section): section is string => Boolean(section));
 

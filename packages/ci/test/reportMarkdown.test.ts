@@ -92,9 +92,9 @@ describe("report markdown", () => {
 
 | &nbsp;&nbsp;&nbsp;&nbsp; | Environment | Duration | Stats | Resolutions | New | Flaky | Retry |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| <img src="https://allurecharts.qameta.workers.dev/pie?passed=128900&failed=39&broken=25&skipped=16&unknown=9&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | All tests | 2m 21s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;128900<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;39<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;25<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;16<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;9 | Issues: 2<br>Muted: 1<br>Accepted: 1 | 128 | 0 | 1 |
-| <img src="https://allurecharts.qameta.workers.dev/pie?passed=63950&failed=30&broken=10&skipped=7&unknown=3&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Chrome on Ubuntu | 1m 10s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;63950<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;30<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;10<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;7<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;3 |  | 60 | 0 | 1 |
-| <img src="https://allurecharts.qameta.workers.dev/pie?passed=64950&failed=9&broken=15&skipped=9&unknown=6&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Firefox on Windows | 1m 11s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;64950<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;9<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;15<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;9<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;6 |  | 68 | 0 | 0 |
+| <img src="https://allurecharts.qameta.workers.dev/pie?passed=128900&failed=39&broken=25&skipped=16&unknown=9&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | All tests | 2m 21s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;128900<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;39<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;25<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;16<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;9 | Issues: 2<br>Muted: 1<br>Accepted: 1 | <a href="https://example.org/awesome?transition=new">128</a> | 0 | <a href="https://example.org/awesome?retry=true">1</a> |
+| <img src="https://allurecharts.qameta.workers.dev/pie?passed=63950&failed=30&broken=10&skipped=7&unknown=3&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Chrome on Ubuntu | 1m 10s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;63950<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;30<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;10<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;7<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;3 |  | <a href="https://example.org/awesome?transition=new">60</a> | 0 | <a href="https://example.org/awesome?retry=true">1</a> |
+| <img src="https://allurecharts.qameta.workers.dev/pie?passed=64950&failed=9&broken=15&skipped=9&unknown=6&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Firefox on Windows | 1m 11s | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;64950<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;9<br><img alt="Broken tests" src="https://allurecharts.qameta.workers.dev/dot?type=broken&size=8" width="8" height="8" />&#8288;&nbsp;15<br><img alt="Skipped tests" src="https://allurecharts.qameta.workers.dev/dot?type=skipped&size=8" width="8" height="8" />&#8288;&nbsp;9<br><img alt="Unknown tests" src="https://allurecharts.qameta.workers.dev/dot?type=unknown&size=8" width="8" height="8" />&#8288;&nbsp;6 |  | <a href="https://example.org/awesome?transition=new">68</a> | 0 | 0 |
 
 **Reports:** <a href="https://example.org/awesome">Awesome</a>, <a href="https://example.org/classic">Classic</a>
 
@@ -145,7 +145,7 @@ describe("report markdown", () => {
     expect(markdown).toContain('**Reports:** <a href="https://example.org/all">Awesome</a>');
     expect(markdown).toContain("**Filtered Reports**");
     expect(markdown).toContain(
-      `| <img src="https://allurecharts.qameta.workers.dev/pie?passed=1&failed=1&broken=0&skipped=0&unknown=0&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Smoke report | 20ms | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;1<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;1 | 1 | 0 | 0 |`,
+      `| <img src="https://allurecharts.qameta.workers.dev/pie?passed=1&failed=1&broken=0&skipped=0&unknown=0&size=32" width="28px" height="28px" />&nbsp;&nbsp;&nbsp;&nbsp; | Smoke report | 20ms | <img alt="Passed tests" src="https://allurecharts.qameta.workers.dev/dot?type=passed&size=8" width="8" height="8" />&#8288;&nbsp;1<br><img alt="Failed tests" src="https://allurecharts.qameta.workers.dev/dot?type=failed&size=8" width="8" height="8" />&#8288;&nbsp;1 | <a href="https://example.org/smoke?transition=new">1</a> | 0 | 0 |`,
     );
     expect(markdown).toContain('**Reports:** <a href="https://example.org/smoke">Awesome</a>');
   });
@@ -212,6 +212,82 @@ describe("report markdown", () => {
     expect(markdown).toContain('<a href="https://example.org/smoke?retry=true">1</a>');
     expect(markdown).toContain(" | 1 | ");
     expect(markdown).not.toContain("javascript:alert");
+  });
+
+  it("uses the Awesome report href for default flag counter links", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Classic report",
+            plugin: "Classic",
+            remoteHref: "https://example.org/classic",
+            stats: { total: 10, passed: 10 },
+            status: "passed",
+            duration: 10,
+          },
+          {
+            name: "Awesome report",
+            pluginId: "awesome",
+            plugin: "Awesome",
+            remoteHref: "https://example.org/awesome?view=compact#results",
+            stats: { total: 10, passed: 10 },
+            status: "passed",
+            duration: 10,
+          },
+          {
+            name: "Smoke report",
+            plugin: "Awesome",
+            remoteHref: "https://example.org/smoke",
+            stats: { total: 2, passed: 1, failed: 1 },
+            status: "failed",
+            duration: 20,
+            filtered: true,
+            newTests: ["1"],
+            retryTests: ["2"],
+          },
+        ],
+        totals: {
+          stats: { total: 10, passed: 10, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+          flags: { new: 1, flaky: 0, retry: 1 },
+          resolutions: { issues: 0, muted: 0, accepted: 0 },
+          duration: 10,
+        },
+      }),
+    );
+
+    expect(markdown).toContain('<a href="https://example.org/awesome?view=compact&amp;transition=new#results">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/awesome?view=compact&amp;retry=true#results">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/smoke?transition=new">1</a>');
+    expect(markdown).toContain('<a href="https://example.org/smoke?retry=true">1</a>');
+    expect(markdown).not.toContain("https://example.org/classic?transition=new");
+  });
+
+  it("keeps flag counters as text when there is no known filterable report", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Classic report",
+            plugin: "Classic",
+            remoteHref: "https://example.org/classic",
+            stats: { total: 10, passed: 10 },
+            status: "passed",
+            duration: 10,
+          },
+        ],
+        totals: {
+          stats: { total: 10, passed: 10, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+          flags: { new: 1, flaky: 0, retry: 1 },
+          resolutions: { issues: 0, muted: 0, accepted: 0 },
+          duration: 10,
+        },
+      }),
+    );
+
+    expect(markdown).toContain(" | 1 | 0 | 1 |");
+    expect(markdown).not.toContain("https://example.org/classic?transition=new");
+    expect(markdown).not.toContain("https://example.org/classic?retry=true");
   });
 
   it("does not render a pie chart for empty statistics", () => {
