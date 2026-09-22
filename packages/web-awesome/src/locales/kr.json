@@ -14,7 +14,7 @@
     "total": "총계",
     "flaky": "불안정한 테스트들",
     "retries": "재시도 테스트",
-    "retriesStatusChange": "재시도 중 상태 변경",
+    "retriesStatusChange": "재시도 시 변경됨",
     "new": "새로운 테스트들"
   },
   "tabs": {
