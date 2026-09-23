@@ -672,6 +672,41 @@ test.describe("Generic Attachments", () => {
     await expect(downloadLink).toHaveAttribute("href", /^data\/attachments\//);
   });
 
+  for (const mode of [REPORT_MODES.SINGLE_FILE, REPORT_MODES.DIRECTORY] as const) {
+    test(`downloads generic ZIP attachments as non-empty archives (${mode})`, async ({ page }) => {
+      await openCaseFromTree(page, {
+        fixture: attachmentsFixture.name,
+        mode,
+        tab: "suites",
+        caseName: attachmentsFixture.caseName,
+      });
+
+      const zipRow = attachmentRow(page, attachmentsFixture.attachments.zip);
+      await expect(zipRow).toBeVisible();
+      await expect(zipRow).toHaveAttribute("data-type", "application/zip");
+      await zipRow.click();
+
+      const preview = previewContainerFor(zipRow);
+      const downloadLink = preview.locator(".link[download]");
+      await expect(downloadLink).toBeVisible();
+      await expect(downloadLink).toHaveAttribute("download", attachmentsFixture.attachments.zip);
+
+      const [download] = await Promise.all([page.waitForEvent("download"), downloadLink.click()]);
+      expect(download.suggestedFilename()).toBe(attachmentsFixture.attachments.zip);
+
+      const downloadStream = await download.createReadStream();
+      expect(downloadStream).toBeTruthy();
+
+      const chunks: Buffer[] = [];
+      for await (const chunk of downloadStream!) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const content = Buffer.concat(chunks);
+      expect(content.length).toBeGreaterThan(0);
+      expect(content.subarray(0, 2).toString("utf8")).toBe("PK");
+    });
+  }
+
   test("renders svg attachments even when the server returns a generic MIME type", async ({ page }) => {
     await page.route(/\/data\/attachments\/.*\.svg(?:\?.*)?$/, async (route) => {
       await route.fulfill({
