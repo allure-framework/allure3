@@ -135,7 +135,7 @@
     "@types/prismjs": "^1.26.5",
     "@types/sortablejs": "^1.15.9",
     "@vitest/runner": "^2.1.9",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3.10.2",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",

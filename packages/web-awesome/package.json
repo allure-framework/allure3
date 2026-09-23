@@ -53,7 +53,7 @@
     "@types/node": "^20",
     "@types/prismjs": "^1.26.5",
     "@vitest/runner": "^3.2.4",
-    "@vitest/snapshot": "^3.2.4",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
