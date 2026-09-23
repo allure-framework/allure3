@@ -134,7 +134,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
-  readonly #isFlaky: (tr: TestResult, history: HistoryTestResult[]) => boolean | Promise<boolean>;
+  readonly #isFlaky: (tr: TestResult, history: HistoryTestResult[]) => boolean;
   readonly #resolutionsConfig: ResolutionsConfig | undefined;
   readonly #resolutionIssues: Map<string, ResolutionIssue> = new Map();
   readonly #testResultIdsByResolutionIssueId: Map<string, Set<string>> = new Map();
@@ -927,7 +927,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       testResult.transition = getStatusTransition(testResult, trHistory);
     }
 
-    testResult.flaky = await this.#isFlaky(testResult, trHistory ?? []);
+    testResult.flaky = this.#isFlaky(testResult, trHistory ?? []);
 
     this.#classifyResolution(testResult);
 

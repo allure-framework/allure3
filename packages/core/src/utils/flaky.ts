@@ -73,19 +73,6 @@ const isFlakyByWeightedTransitions = (
 export const createFlakyDetector = ({
   historyDepth = DEFAULT_HISTORY_DEPTH,
   includePassedTests = false,
-  overrideFunction,
-}: FlakyDetectionConfig = {}): ((tr: TestResult, history: HistoryTestResult[]) => boolean | Promise<boolean>) => {
-  if (overrideFunction === undefined) {
-    return (tr, history) => tr.flaky || isFlakyByWeightedTransitions(tr, history, historyDepth, includePassedTests);
-  }
-
-  return async (tr, history) => {
-    const result = await overrideFunction(tr, history);
-
-    if (typeof result !== "boolean") {
-      throw new TypeError("flakyDetection.overrideFunction must return a boolean");
-    }
-
-    return result;
-  };
+}: FlakyDetectionConfig = {}): ((tr: TestResult, history: HistoryTestResult[]) => boolean) => {
+  return (tr, history) => tr.flaky || isFlakyByWeightedTransitions(tr, history, historyDepth, includePassedTests);
 };

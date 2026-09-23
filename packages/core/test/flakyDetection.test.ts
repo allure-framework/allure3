@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import type { HistoryDataPoint, HistoryTestResult, TestStatus } from "@allurereport/core-api";
 import { type Config, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -260,19 +260,6 @@ describe("flaky detection configuration", () => {
   );
 
   it.each([
-    { includePassedTests: false, overrideFunction: () => true, expected: true },
-    { includePassedTests: true, overrideFunction: () => false, expected: false },
-  ])("lets the override replace includePassedTests=$includePassedTests", async ({ expected, ...flakyDetection }) => {
-    const report = await createReport(flakyDetection, ["failed", "passed"]);
-
-    await report.store.visitTestResult({ ...rawResult, status: "passed" }, { readerId });
-
-    const [result] = await report.store.allTestResults();
-
-    expect(result.flaky).toBe(expected);
-  });
-
-  it.each([
     { historyDepth: undefined, expected: false },
     { historyDepth: 5, expected: false },
     { historyDepth: 6, expected: true },
@@ -339,84 +326,6 @@ describe("flaky detection configuration", () => {
     },
   );
 
-  it.each([false, true])("lets the override veto flakiness with explicit=%s", async (explicit) => {
-    const report = await createReport({ overrideFunction: async () => false }, ["passed", "failed"]);
-
-    await report.store.visitTestResult({ ...rawResult, flaky: explicit }, { readerId });
-
-    const [result] = await report.store.allTestResults();
-
-    expect(result.flaky).toBe(false);
-  });
-
-  it.each([0, 1])("passes full history to the override despite historyDepth=%s", async (historyDepth) => {
-    let receivedResult: TestResult | undefined;
-    let receivedHistory: HistoryTestResult[] | undefined;
-    const report = await createReport(
-      {
-        historyDepth,
-        overrideFunction: async (result, history) => {
-          receivedResult = { ...result };
-          receivedHistory = history;
-          return history.length === 6 && history[5].status === "failed";
-        },
-      },
-      ["passed", "passed", "passed", "passed", "passed", "failed"],
-    );
-
-    await report.store.visitTestResult(rawResult, { readerId });
-
-    const [result] = await report.store.allTestResults();
-
-    expect(result.flaky).toBe(true);
-    expect(receivedResult).toMatchObject({
-      id: md5("current-result"),
-      name: "example test",
-      status: "failed",
-      flaky: false,
-      environment: "default",
-      transition: "regressed",
-      labels: [{ name: "owner", value: "example-team" }],
-      sourceMetadata: { readerId },
-    });
-    expect(receivedHistory?.map(({ id }) => id)).toEqual([
-      "historical-result-0",
-      "historical-result-1",
-      "historical-result-2",
-      "historical-result-3",
-      "historical-result-4",
-      "historical-result-5",
-    ]);
-  });
-
-  it.each([{ statuses: undefined }, { statuses: [] }] satisfies { statuses?: TestStatus[] }[])(
-    "runs the override when history is $statuses",
-    async ({ statuses }) => {
-      const report = await createReport(
-        {
-          overrideFunction: (result, history) => result.status === "passed" && history.length === 0,
-        },
-        statuses,
-      );
-
-      await report.store.visitTestResult({ ...rawResult, status: "passed" }, { readerId });
-
-      const [result] = await report.store.allTestResults();
-
-      expect(result.flaky).toBe(true);
-    },
-  );
-
-  it.each([undefined, null, "true", 1, Promise.resolve("true")])(
-    "rejects a non-boolean override result: %s",
-    async (value) => {
-      const report = await createReport({ overrideFunction: () => value as unknown as boolean });
-
-      await expect(report.store.visitTestResult(rawResult, { readerId })).rejects.toThrow(/must return a boolean/);
-      await expect(report.store.allTestResults()).resolves.toEqual([]);
-    },
-  );
-
   it.each([
     { includePassedTests: null },
     { includePassedTests: 0 },
@@ -441,11 +350,5 @@ describe("flaky detection configuration", () => {
     await expect(resolveConfig({ flakyDetection: { historyDepth } }, { plugins: {} })).rejects.toThrow(
       /historyDepth.*non-negative integer/,
     );
-  });
-
-  it("rejects an override that is not a function when resolving config", async () => {
-    await expect(
-      resolveConfig({ flakyDetection: { overrideFunction: true as unknown as () => boolean } }, { plugins: {} }),
-    ).rejects.toThrow(/overrideFunction.*function/);
   });
 });
