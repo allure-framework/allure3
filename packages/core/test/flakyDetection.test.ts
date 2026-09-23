@@ -44,11 +44,16 @@ afterEach(async () => {
   }
 });
 
-const createReport = async (flakyDetection?: Config["flakyDetection"], statuses?: TestStatus[]) => {
+type HistoricalResult = Pick<HistoryTestResult, "status" | "environment"> & Partial<Pick<HistoryTestResult, "id">>;
+
+const createReport = async (
+  flakyDetection?: Config["flakyDetection"],
+  statuses?: (TestStatus | HistoricalResult)[],
+) => {
   const historyPath = statuses === undefined ? undefined : join(directory, "history.jsonl");
 
   if (historyPath && statuses) {
-    const points: HistoryDataPoint[] = statuses.map((status, index) => ({
+    const points: HistoryDataPoint[] = statuses.map((result, index) => ({
       uuid: `launch-${index}`,
       name: "previous launch",
       timestamp: statuses.length - index,
@@ -59,8 +64,8 @@ const createReport = async (flakyDetection?: Config["flakyDetection"], statuses?
         [historyId]: {
           id: `historical-result-${index}`,
           name: "example test",
-          status,
           url: "",
+          ...(typeof result === "string" ? { status: result, environment: "default" } : result),
         },
       },
     }));
@@ -91,6 +96,121 @@ const createReport = async (flakyDetection?: Config["flakyDetection"], statuses?
   return report;
 };
 
+describe("weighted transition detection", () => {
+  const statusBySymbol: Record<string, TestStatus> = {
+    P: "passed",
+    F: "failed",
+    B: "broken",
+    S: "skipped",
+    U: "unknown",
+  };
+
+  // Sequences are oldest first, including the current execution as the last symbol.
+  it.each([
+    { sequence: "F", expected: false },
+    { sequence: "PF", expected: false },
+    { sequence: "FPF", expected: true },
+    { sequence: "PPPPPF", expected: false },
+    { sequence: "PFPPPF", expected: false },
+    { sequence: "PPPFPF", expected: true },
+    { sequence: "PFFPPF", expected: true },
+    { sequence: "PFPFPF", expected: true },
+    { sequence: "FPFFFF", expected: false },
+    { sequence: "FFFFPF", expected: false },
+    { sequence: "FPFP", expected: false },
+    { sequence: "FPFS", expected: false },
+    { sequence: "FPFU", expected: false },
+    { sequence: "BPB", expected: true },
+    { sequence: "BPF", expected: true },
+    { sequence: "FPB", expected: true },
+    { sequence: "FBFBFB", expected: false },
+  ])("classifies $sequence as flaky=$expected", async ({ sequence, expected }) => {
+    const statuses = [...sequence].map((symbol) => statusBySymbol[symbol]);
+    const report = await createReport(undefined, statuses.slice(0, -1).reverse());
+
+    await report.store.visitTestResult({ ...rawResult, status: statuses[statuses.length - 1] }, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(expected);
+  });
+
+  it.each(["skipped", "unknown"] as const)(
+    "ignores %s outcomes without consuming history depth or transition weight",
+    async (ignoredStatus) => {
+      const report = await createReport({ historyDepth: 2 }, [ignoredStatus, "passed", ignoredStatus, "failed"]);
+
+      await report.store.visitTestResult(rawResult, { readerId });
+
+      const [result] = await report.store.allTestResults();
+
+      expect(result.flaky).toBe(true);
+    },
+  );
+
+  it.each([
+    {
+      name: "a pass in another environment",
+      history: [
+        { status: "passed", environment: "other" },
+        { status: "failed", environment: "default" },
+      ],
+    },
+    {
+      name: "a failure in another environment",
+      history: [
+        { status: "passed", environment: "default" },
+        { status: "failed", environment: "other" },
+      ],
+    },
+    {
+      name: "a pass without an environment",
+      history: [{ status: "passed" }, { status: "failed", environment: "default" }],
+    },
+    {
+      name: "a failure without an environment",
+      history: [{ status: "passed", environment: "default" }, { status: "failed" }],
+    },
+  ] satisfies { name: string; history: HistoricalResult[] }[])("excludes $name", async ({ history }) => {
+    const report = await createReport(undefined, history);
+
+    await report.store.visitTestResult(rawResult, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(false);
+  });
+
+  it("filters other environments before applying history depth", async () => {
+    const report = await createReport({ historyDepth: 2 }, [
+      { status: "failed", environment: "other" },
+      { status: "passed", environment: "other" },
+      "passed",
+      "failed",
+    ]);
+
+    await report.store.visitTestResult(rawResult, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(true);
+  });
+
+  it("does not count a copy of the current execution against history depth", async () => {
+    const report = await createReport({ historyDepth: 2 }, [
+      { id: md5("current-result"), status: "failed", environment: "default" },
+      "passed",
+      "failed",
+    ]);
+
+    await report.store.visitTestResult(rawResult, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(true);
+  });
+});
+
 describe("flaky detection configuration", () => {
   it.each([
     { historyDepth: undefined, expected: false },
@@ -98,7 +218,7 @@ describe("flaky detection configuration", () => {
     { historyDepth: 6, expected: true },
     { historyDepth: 10, expected: true },
   ])("uses historyDepth=$historyDepth for the built-in algorithm", async ({ historyDepth, expected }) => {
-    const report = await createReport({ historyDepth }, ["passed", "passed", "passed", "passed", "passed", "failed"]);
+    const report = await createReport({ historyDepth }, ["passed", "failed", "failed", "failed", "failed", "passed"]);
 
     await report.store.visitTestResult(rawResult, { readerId });
 
@@ -134,7 +254,7 @@ describe("flaky detection configuration", () => {
     { statuses: ["passed", "failed"], status: "failed", explicit: false, expected: true },
     { statuses: ["passed", "failed"], status: "broken", explicit: false, expected: true },
     { statuses: ["passed", "failed"], status: "passed", explicit: false, expected: false },
-    { statuses: ["passed", "broken"], status: "failed", explicit: false, expected: false },
+    { statuses: ["passed", "broken"], status: "failed", explicit: false, expected: true },
     {
       statuses: ["passed", "passed", "passed", "passed", "passed", "failed"],
       status: "failed",
@@ -144,7 +264,7 @@ describe("flaky detection configuration", () => {
     { statuses: undefined, status: "passed", explicit: true, expected: true },
     { statuses: undefined, status: "failed", explicit: false, expected: false },
   ] satisfies { statuses?: TestStatus[]; status: TestStatus; explicit: boolean; expected: boolean }[])(
-    "preserves default detection for status=$status, history=$statuses, explicit=$explicit",
+    "uses weighted default detection for status=$status, history=$statuses, explicit=$explicit",
     async ({ statuses, status, explicit, expected }) => {
       const report = await createReport(undefined, statuses);
 
