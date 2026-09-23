@@ -976,7 +976,7 @@ const RAW_RUNTIME_STATE =
           ["sass-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:16.0.1"],\
           ["split.js", "npm:1.6.5"],\
           ["style-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:4.0.0"],\
-          ["terser-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.3.14"],\
+          ["terser-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.6.1"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vite", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:8.1.3"],\
           ["vitest", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:4.1.8"],\
@@ -23691,13 +23691,6 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["npm:5.3.14", {\
-        "packageLocation": "./.yarn/cache/terser-webpack-plugin-npm-5.3.14-e4f2e3cd89-5b7290f7ed.zip/node_modules/terser-webpack-plugin/",\
-        "packageDependencies": [\
-          ["terser-webpack-plugin", "npm:5.3.14"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
       ["npm:5.6.1", {\
         "packageLocation": "./.yarn/cache/terser-webpack-plugin-npm-5.6.1-99b4e245a0-75e5ebb675.zip/node_modules/terser-webpack-plugin/",\
         "packageDependencies": [\
@@ -23995,31 +23988,66 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.3.14", {\
-        "packageLocation": "./.yarn/__virtual__/terser-webpack-plugin-virtual-0a93cae943/0/cache/terser-webpack-plugin-npm-5.3.14-e4f2e3cd89-5b7290f7ed.zip/node_modules/terser-webpack-plugin/",\
+      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.6.1", {\
+        "packageLocation": "./.yarn/__virtual__/terser-webpack-plugin-virtual-3c75a877d7/0/cache/terser-webpack-plugin-npm-5.6.1-99b4e245a0-75e5ebb675.zip/node_modules/terser-webpack-plugin/",\
         "packageDependencies": [\
           ["@jridgewell/trace-mapping", "npm:0.3.25"],\
+          ["@minify-html/node", null],\
           ["@swc/core", null],\
+          ["@swc/css", null],\
+          ["@swc/html", null],\
+          ["@types/clean-css", null],\
+          ["@types/cssnano", null],\
+          ["@types/csso", null],\
           ["@types/esbuild", null],\
+          ["@types/html-minifier-terser", null],\
+          ["@types/lightningcss", null],\
+          ["@types/minify-html__node", null],\
+          ["@types/postcss", null],\
           ["@types/swc__core", null],\
+          ["@types/swc__css", null],\
+          ["@types/swc__html", null],\
           ["@types/uglify-js", null],\
           ["@types/webpack", null],\
+          ["clean-css", null],\
+          ["cssnano", null],\
+          ["csso", null],\
           ["esbuild", null],\
+          ["html-minifier-terser", null],\
           ["jest-worker", "npm:27.5.1"],\
+          ["lightningcss", null],\
+          ["postcss", "npm:8.5.28"],\
           ["schema-utils", "npm:4.3.0"],\
-          ["serialize-javascript", "npm:7.0.5"],\
           ["terser", "npm:5.37.0"],\
-          ["terser-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.3.14"],\
+          ["terser-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.6.1"],\
           ["uglify-js", null],\
           ["webpack", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.107.2"]\
         ],\
         "packagePeers": [\
+          "@minify-html/node",\
           "@swc/core",\
+          "@swc/css",\
+          "@swc/html",\
+          "@types/clean-css",\
+          "@types/cssnano",\
+          "@types/csso",\
           "@types/esbuild",\
+          "@types/html-minifier-terser",\
+          "@types/lightningcss",\
+          "@types/minify-html__node",\
+          "@types/postcss",\
           "@types/swc__core",\
+          "@types/swc__css",\
+          "@types/swc__html",\
           "@types/uglify-js",\
           "@types/webpack",\
+          "clean-css",\
+          "cssnano",\
+          "csso",\
           "esbuild",\
+          "html-minifier-terser",\
+          "lightningcss",\
+          "postcss",\
           "uglify-js",\
           "webpack"\
         ],\
