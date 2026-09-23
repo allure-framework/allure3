@@ -25,8 +25,8 @@ import { KnownError } from "@allurereport/service";
 
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { stopProcessTree } from "../../utils/process.js";
 import { createLiveIngestionFailureHandler } from "./liveIngestionFailure.js";
+import { PosixSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -162,6 +162,22 @@ export const runTests = async (params: {
 
   await allureResultsWatch.initialScan();
 
+  if (process.platform === "win32") {
+    throw new Error("Windows is not currently supported.");
+  }
+
+  const SupervisorClass = PosixSupervisor;
+
+  const supervisor = new SupervisorClass(command, {
+    arguments: commandArgs,
+    workingDirectory: cwd,
+    environmentVariables,
+    stdio: logs,
+    silent,
+    encoding: "utf-8",
+    stopTimeout: 30_000,
+  });
+
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
@@ -176,13 +192,7 @@ export const runTests = async (params: {
     }
   }
 
-  const testProcess = runProcess({
-    command,
-    commandArgs,
-    cwd,
-    environmentVariables,
-    logs,
-  });
+  supervisor.start();
 
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
@@ -227,45 +237,17 @@ export const runTests = async (params: {
 
       qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
 
-      try {
-        await stopProcessTree(testProcess.pid!);
-      } catch (err) {
-        if ((err as Error).message.includes("kill ESRCH")) {
-          return;
-        }
-
-        throw err;
-      }
+      await supervisor.stop();
     });
   }
 
-  if (logs === "pipe") {
-    testProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
-      testProcessStdout += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stdout.write(data);
-    });
-    testProcess.stderr?.setEncoding("utf8").on?.("data", async (data: string) => {
-      testProcessStderr += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stderr.write(data);
-    });
-  }
-
-  const outcome = await Promise.race([terminationOf(testProcess), failureHandler.failed]);
+  const outcome = await Promise.race([supervisor.exitCode, failureHandler.failed]);
   if (outcome instanceof ExpressionError) {
-    await stopProcessTree(testProcess.pid!).catch((error) =>
+    await supervisor.stop().catch((error) =>
       logError("Failed to stop the test process after an expression failure", error),
     );
   }
+
   const code = outcome instanceof ExpressionError ? null : outcome;
   const afterProcess = Date.now();
 
