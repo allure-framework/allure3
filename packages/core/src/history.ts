@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { WriteStream } from "node:fs";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -248,17 +249,15 @@ export class AllureLocalHistory implements AllureHistory {
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
     const openedStreams: (Readable | Writable)[] = [];
 
+    let dst: WriteStream | undefined;
+
     try {
-      if (limit === 0 && historyExists) {
-        await historyFile.truncate(0);
+      if (limit === 0) {
+        if (historyExists) await historyFile.truncate(0);
         return;
       }
 
-      if (limit === 0 && !historyExists) {
-        return;
-      }
-
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
+      dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
       openedStreams.push(dst);
 

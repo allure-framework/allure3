@@ -17,7 +17,7 @@ import type {
   HistoryDataPoint,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig } from "@allurereport/core-api";
+import { normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -80,6 +80,7 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
+const DEFAULT_UPLOAD_CONCURRENCY = 10;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
 const ROOT_INTEGRATION_FILENAMES = new Set([
@@ -215,6 +216,7 @@ export class AllureReport {
       const allureServiceClientConfig = {
         ...allureService,
         accessToken: allureServiceAccessToken,
+        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1) ?? DEFAULT_UPLOAD_CONCURRENCY,
       };
 
       this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")

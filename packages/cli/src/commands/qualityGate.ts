@@ -2,7 +2,13 @@ import * as console from "node:console";
 import { realpath } from "node:fs/promises";
 import process, { exit, cwd as processCwd } from "node:process";
 
-import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import {
+  AllureReport,
+  QualityGateState,
+  filterFailedQualityGateResults,
+  readConfig,
+  stringifyQualityGateResults,
+} from "@allurereport/core";
 import { type TestResult } from "@allurereport/core-api";
 import { Command, Option } from "clipanion";
 import * as typanion from "typanion";
@@ -196,7 +202,7 @@ export class QualityGateCommand extends Command {
 
     validated = true;
 
-    if (validationResults.results.length === 0) {
+    if (filterFailedQualityGateResults(validationResults.results).length === 0) {
       exit(0);
       return;
     }

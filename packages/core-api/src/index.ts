@@ -10,7 +10,7 @@ export * from "./metrics.js";
 export type * from "./model.js";
 export type * from "./testCase.js";
 export type * from "./testPlan.js";
-export type * from "./config.js";
+export * from "./config.js";
 export * from "./static.js";
 export * from "./categories.js";
 

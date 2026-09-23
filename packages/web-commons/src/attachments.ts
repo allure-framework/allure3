@@ -284,6 +284,7 @@ export const attachmentType = (type?: string): AttachmentType | null => {
     case "image/jpeg":
     case "image/jpg":
     case "image/png":
+    case "image/webp":
     case "image/*":
       return "image";
     case "text/xml":

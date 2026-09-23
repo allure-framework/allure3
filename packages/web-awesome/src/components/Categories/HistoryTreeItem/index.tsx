@@ -1,4 +1,5 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
+import { copyToClipboard } from "@allurereport/web-commons";
 import { IconButton, TooltipWrapper, TreeHeader, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
@@ -6,7 +7,6 @@ import type { FC } from "preact/compat";
 
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores/locale";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 

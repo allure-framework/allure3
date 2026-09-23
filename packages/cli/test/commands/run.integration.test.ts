@@ -1212,7 +1212,12 @@ const readHistoryEntries = async (historyPath: string, timeoutMs = 10_000) => {
 };
 
 const terminate = async (child: ReturnType<typeof spawn>) => {
+  const closed = new Promise<void>((resolvePromise) => {
+    child.once("close", () => resolvePromise());
+  });
+
   if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+    await Promise.race([closed, new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 5_000).unref())]);
     return;
   }
 
@@ -1230,6 +1235,8 @@ const terminate = async (child: ReturnType<typeof spawn>) => {
     await stopProcessTree(child.pid, { signal: "SIGKILL" });
     await exited;
   }
+
+  await Promise.race([closed, new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 5_000).unref())]);
 };
 
 /**

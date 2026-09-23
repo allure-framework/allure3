@@ -160,6 +160,7 @@
     "retries": "重试",
     "environments": "环境",
     "error": "错误",
+    "success": "成功",
     "goToStep": "跳转到步骤",
     "showLess": "显示更少",
     "showMore": "显示更多",
@@ -175,7 +176,9 @@
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "面包屑导航",
+    "breadcrumbs-hidden": "显示隐藏的面包屑导航项"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",

@@ -27,6 +27,29 @@ export const convertToSummaryCheckResult = (check: AllureCheckResult): SummaryCh
   status: check.status,
 });
 
+export const calculateRunDuration = (testResults: Pick<TestResult, "start" | "stop" | "duration">[]): number => {
+  let start = Infinity;
+  let stop = -Infinity;
+
+  for (const { start: trStart, stop: trStop } of testResults) {
+    if (
+      typeof trStart === "number" &&
+      Number.isFinite(trStart) &&
+      typeof trStop === "number" &&
+      Number.isFinite(trStop)
+    ) {
+      start = Math.min(start, trStart);
+      stop = Math.max(stop, trStop);
+    }
+  }
+
+  if (Number.isFinite(start) && Number.isFinite(stop)) {
+    return Math.max(0, stop - start);
+  }
+
+  return testResults.reduce((acc, { duration = 0 }) => acc + duration, 0);
+};
+
 export const createPluginSummary = async (params: {
   filter?: (testResult: TestResult) => boolean;
   name: string;
@@ -39,25 +62,27 @@ export const createPluginSummary = async (params: {
   const { name, filter, plugin, store, history, meta } = params;
   const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
+  const currentIds = new Set(allTrs.map(({ id }) => id));
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
   const retryFlags = await Promise.all(allTrs.map(async (tr) => (await store.retriesByTr(tr)).length > 0));
   const retryTrs = allTrs.filter((_, index) => retryFlags[index]);
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-  const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
+  const duration = calculateRunDuration(allTrs);
   const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
   const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
   return {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
-    newTests: newTrs.map(({ id }) => id),
+    newTests: newTrs.filter(({ id }) => currentIds.has(id)).map(({ id }) => id),
     flakyTests: flakyTrs.map(({ id }) => id),
     retryTests: retryTrs.map(({ id }) => id),
     checks: allChecks.map(convertToSummaryCheckResult),
     name,
     duration,
     createdAt,
+    ...(filter ? { filtered: true } : {}),
     plugin,
     meta,
   };
