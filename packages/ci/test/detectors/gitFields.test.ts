@@ -365,11 +365,11 @@ describe("CI descriptor git fields", () => {
     });
   });
 
-  it("maps GitLab branch pipeline branch", () => {
+  it("maps GitLab branch pipeline ref", () => {
     mockEnv({
       CI_PROJECT_PATH: "myorg/myrepo",
       CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
-      CI_COMMIT_BRANCH: "feature/foo",
+      CI_COMMIT_BRANCH: "ignored-by-gitlab-integration",
       CI_COMMIT_REF_NAME: "feature/foo",
     });
 
@@ -377,7 +377,7 @@ describe("CI descriptor git fields", () => {
     expect(gitlab.jobRunBranch).toBe("feature/foo");
   });
 
-  it("does not map GitLab tag pipelines as branch git fields", () => {
+  it("maps GitLab tag pipeline refs for artifact discovery", () => {
     mockEnv({
       CI_PROJECT_PATH: "myorg/myrepo",
       CI_PROJECT_URL: "https://gitlab.com/myorg/myrepo",
@@ -385,8 +385,8 @@ describe("CI descriptor git fields", () => {
       CI_COMMIT_TAG: "v1.0.0",
     });
 
-    expect(gitlab.sourceBranch).toBeUndefined();
-    expect(gitlab.jobRunBranch).toBe("");
+    expect(gitlab.sourceBranch).toBe("v1.0.0");
+    expect(gitlab.jobRunBranch).toBe("v1.0.0");
   });
 
   it("maps Jenkins github repository and pull request", () => {

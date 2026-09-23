@@ -58,6 +58,7 @@ __metadata:
     "@vitest/snapshot": "npm:^2.1.8"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
+    axios: "npm:^1.20.0"
     glob: "npm:^13.0.6"
     rimraf: "npm:^6"
     typescript: "npm:^5"

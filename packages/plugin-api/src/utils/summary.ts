@@ -62,6 +62,7 @@ export const createPluginSummary = async (params: {
   const { name, filter, plugin, store, history, meta } = params;
   const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
+  const currentIds = new Set(allTrs.map(({ id }) => id));
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
   const retryFlags = await Promise.all(allTrs.map(async (tr) => (await store.retriesByTr(tr)).length > 0));
@@ -74,7 +75,7 @@ export const createPluginSummary = async (params: {
   return {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
-    newTests: newTrs.map(({ id }) => id),
+    newTests: newTrs.filter(({ id }) => currentIds.has(id)).map(({ id }) => id),
     flakyTests: flakyTrs.map(({ id }) => id),
     retryTests: retryTrs.map(({ id }) => id),
     checks: allChecks.map(convertToSummaryCheckResult),
