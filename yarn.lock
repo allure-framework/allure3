@@ -862,7 +862,7 @@ __metadata:
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.10.2"
+    allure-js-commons: "npm:^3.12.2"
     allure-vitest: "npm:^3"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
@@ -8741,7 +8741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.10.2, allure-js-commons@npm:^3.10.2":
+"allure-js-commons@npm:3.10.2":
   version: 3.10.2
   resolution: "allure-js-commons@npm:3.10.2"
   dependencies:
@@ -8780,6 +8780,20 @@ __metadata:
     allure-playwright:
       optional: true
   checksum: 10/213d98d8fddea9d7cf7f399815a52fd08fcfc434809cbd76519e27c9c5ac726e6ae4839e3385d9c85ae679ff377570a7ca15e419e2124744c26076466aaedd31
+  languageName: node
+  linkType: hard
+
+"allure-js-commons@npm:^3.12.2":
+  version: 3.12.2
+  resolution: "allure-js-commons@npm:3.12.2"
+  dependencies:
+    md5: "npm:^2.3.0"
+  peerDependencies:
+    allure-playwright: 3.12.2
+  peerDependenciesMeta:
+    allure-playwright:
+      optional: true
+  checksum: 10/28cc7e6dbdb654376305dc8c1779a791b12c2e4f4b82aab8935315a3ac6a31618b40ff7661373a10cad00f98ddc3781c15273b391a983ebdee78c104f125db63
   languageName: node
   linkType: hard
 
