@@ -74,6 +74,7 @@ export interface Allure2TestResult {
   name: string;
   fullName?: string;
   testId?: string;
+  retryHash?: string;
   time: Allure2Time;
   description?: string;
   descriptionHtml?: string;

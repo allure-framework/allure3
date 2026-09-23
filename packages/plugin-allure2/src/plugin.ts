@@ -79,6 +79,7 @@ export class Allure2Plugin implements Plugin {
       const fixtures = related.fixturesByTrId.get(value.id) ?? [];
       const retries = related.retriesByTrId.get(value.id) ?? [];
       const history = related.historyByTrId.get(value.id) ?? [];
+      const canonicalLegacyHistory = value.retryHash ? legacyHistory[value.retryHash] : undefined;
       const allure2TestResult = convertTestResult(
         {
           attachmentMap,
@@ -86,7 +87,7 @@ export class Allure2Plugin implements Plugin {
           categories,
           retries,
           history,
-          legacyHistory: value.retryHash ? legacyHistory[value.retryHash] : undefined,
+          legacyHistory: canonicalLegacyHistory,
         },
         value,
       );

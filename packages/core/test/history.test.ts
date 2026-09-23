@@ -348,6 +348,46 @@ describe("AllureLocalHistory", () => {
       await checkHistoryFile(["New entry"]);
     });
 
+    it("should preserve legacy history keys byte-for-byte while appending canonical entries", async () => {
+      const legacyEntry: HistoryDataPoint = {
+        ...entry,
+        name: "Legacy entry",
+        testResults: {
+          legacy: {
+            id: "historical-result",
+            name: "historical test",
+            status: "passed",
+            url: "",
+          },
+        },
+      };
+      const legacyLine = `${JSON.stringify(legacyEntry)}\n`;
+
+      await writeFile(historyPath, legacyLine, "utf8");
+
+      const history = new AllureLocalHistory({ historyPath });
+
+      await history.appendHistory({
+        ...entry,
+        name: "Canonical entry",
+        testResults: {
+          canonical: {
+            id: "current-result",
+            name: "current test",
+            status: "passed",
+            url: "",
+          },
+        },
+      });
+
+      const [persistedLegacyLine, persistedCanonicalLine] = (await readFile(historyPath, "utf8")).split("\n");
+      expect(`${persistedLegacyLine}\n`).toBe(legacyLine);
+      expect(JSON.parse(persistedCanonicalLine)).toMatchObject({
+        name: "Canonical entry",
+        testResults: { canonical: { id: "current-result" } },
+      });
+    });
+
     describe("existing file", () => {
       beforeEach(async () => {
         await writeFile(historyPath, "", { encoding: "utf-8", flag: "wx" });

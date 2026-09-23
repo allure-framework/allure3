@@ -89,6 +89,9 @@ export const testFixtureResultRawToState = (
 };
 
 export const testResultRawToState = (stateData: StateData, raw: RawTestResult, context: ReaderContext): TestResult => {
+  const allureId = raw.labels
+    ?.find((label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value?.trim())
+    ?.value?.trim();
   const labels = convertLabels(raw.labels);
   const hostId = findByLabelName(labels, "host");
   const threadId = findByLabelName(labels, "thread");
@@ -97,8 +100,8 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const error = convertRawError(raw);
   const errors = convertTestErrors(raw);
   const testCaseHash = calculateTestCaseHash(raw.testId, raw.fullName);
-  const parametersHash = calculateParametersHash(raw.parameters);
-  const testCase = processTestCase(stateData, raw, labels, testCaseHash);
+  const parametersHash = calculateParametersHash(parameters);
+  const testCase = processTestCase({ stateData, raw, allureId, testCaseHash });
 
   return {
     id: md5(raw.uuid || randomUUID()),
@@ -109,7 +112,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     fullName: raw.fullName,
     testCaseHash,
     parametersHash,
-    retryHash: calculateRetryHash(testCaseHash, parametersHash),
+    retryHash: calculateRetryHash({ testCaseHash, parametersHash }),
 
     status: raw.status ?? defaultStatus,
     error: errors?.[0] ?? error,
@@ -140,17 +143,24 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     sourceMetadata: {
       readerId: context.readerId,
       metadata: context.metadata ?? {},
+      legacyHistoryId: raw.historyId?.length ? raw.historyId : undefined,
+      reportedFlaky: raw.flaky ?? false,
     },
     titlePath: raw.titlePath ?? [],
   };
 };
 
-const processTestCase = (
-  { testCases }: StateData,
-  raw: RawTestResult,
-  labels: TestLabel[],
-  testCaseHash: string | undefined,
-): TestCase | undefined => {
+const processTestCase = ({
+  stateData: { testCases },
+  raw,
+  allureId,
+  testCaseHash,
+}: {
+  stateData: StateData;
+  raw: RawTestResult;
+  allureId: string | undefined;
+  testCaseHash: string | undefined;
+}): TestCase | undefined => {
   if (testCaseHash) {
     const maybeTestCase = testCases.get(testCaseHash);
 
@@ -160,7 +170,7 @@ const processTestCase = (
 
     const testCase: TestCase = {
       id: testCaseHash,
-      allureId: labels.find((label) => label.name === "ALLURE_ID" && label.value)?.value,
+      allureId,
       externalId: raw.testId,
       name: raw.testCaseName ?? raw.name ?? UNKNOWN_PARAMETER_VALUE,
       fullName: raw.fullName,
@@ -347,7 +357,7 @@ const convertStep = (
 const convertParameters = (parameters: RawTestParameter[] | undefined): TestParameter[] =>
   parameters
     ?.filter(notNull)
-    ?.filter((p) => p.name)
+    ?.filter((p) => typeof p.name === "string" && p.name.length > 0)
     ?.map(convertParameter) ?? [];
 
 const convertParameter = (param: RawTestParameter): TestParameter => ({

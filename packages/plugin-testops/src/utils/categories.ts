@@ -1,5 +1,11 @@
 import type { CategoryDefinition, CategoryGroupSelector, TestResult } from "@allurereport/core-api";
-import { EMPTY_VALUE, extractErrorMatchingData, findLastByLabelName, matchCategory } from "@allurereport/core-api";
+import {
+  EMPTY_VALUE,
+  calculateRetryHash,
+  extractErrorMatchingData,
+  findLastByLabelName,
+  matchCategory,
+} from "@allurereport/core-api";
 
 import type { TestResultWithCategories, UploadCategory } from "../model.js";
 
@@ -65,6 +71,8 @@ const buildGrouping = (
     name?: string;
     error?: TestResult["error"];
     retryHash?: string;
+    testCaseHash?: TestResult["testCaseHash"];
+    parametersHash: TestResult["parametersHash"];
   },
   category: CategoryDefinition,
 ): UploadCategory["grouping"] => {
@@ -81,7 +89,8 @@ const buildGrouping = (
   }
 
   if (category.groupEnvironments) {
-    const historyValue = tr.retryHash ?? tr.id ?? EMPTY_VALUE;
+    const historyValue =
+      calculateRetryHash({ testCaseHash: tr.testCaseHash, parametersHash: tr.parametersHash }) ?? tr.id ?? EMPTY_VALUE;
     const historyName = tr.name?.trim() ? tr.name : historyValue;
 
     grouping.push({

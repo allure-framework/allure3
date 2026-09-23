@@ -97,9 +97,17 @@ const generateChartData = async (props: {
     return statistic;
   };
 
-  const storeData: AllureChartsStoreData = await Promise.all([getHistoryDataPoints(), getTrs(), getStatistic()]).then(
-    ([historyDataPoints, testResults, statistic]) => ({ historyDataPoints, testResults, statistic }),
-  );
+  const storeData: AllureChartsStoreData = await Promise.all([
+    getHistoryDataPoints(),
+    getTrs(),
+    getStatistic(),
+    store.allTestResults({ includeRetries: true }),
+  ]).then(([historyDataPoints, testResults, statistic, allTestResults]) => ({
+    historyDataPoints,
+    testResults,
+    statistic,
+    allTestResults,
+  }));
 
   for (const chartOption of chartsOptions) {
     const chartId = generateUuid();

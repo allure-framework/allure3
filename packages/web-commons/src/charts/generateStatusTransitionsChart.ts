@@ -5,8 +5,12 @@ import {
   type StatusTransitionsChartData,
   type StatusTransitionsChartOptions,
 } from "@allurereport/charts-api";
-import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatusTransition } from "@allurereport/core-api";
-import { htrsByTr } from "@allurereport/core-api";
+import {
+  createHistoryTestResultLookup,
+  type HistoryTestResult,
+  type TestResult,
+  type TestStatusTransition,
+} from "@allurereport/core-api";
 
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
@@ -74,6 +78,7 @@ export const generateStatusTransitionsChart = (props: {
   const { options, storeData } = props;
   const { limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const { historyDataPoints, testResults } = storeData;
+  const lookupHistoryTestResult = createHistoryTestResultLookup(storeData.allTestResults ?? testResults);
 
   const limitedHdps = limitHistoryDataPoints(historyDataPoints, limit).sort(
     // Sort by timestamp ascending, so earliest first and latest last
@@ -131,11 +136,17 @@ export const generateStatusTransitionsChart = (props: {
 
     data.push(newDataItem);
 
-    const cTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
+    const cTrs: (TestResult | HistoryTestResult)[] = Object.values(trs).filter((tr) => {
+      const selected = lookupHistoryTestResult<TestResult | HistoryTestResult>({ testResults: trs }, tr);
+      return !selected || selected === tr;
+    });
 
     for (const cTr of cTrs) {
       // Compare only to latest history point, as we don't know the previous history
-      const htrs = htrsByTr(hpsPriorToCurrent as HistoryDataPoint[], cTr);
+      const htrs = hpsPriorToCurrent.flatMap((historyDataPoint) => {
+        const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
+        return historicalTestResult ? [historicalTestResult] : [];
+      });
 
       const transition = getStatusTransition(cTr, htrs);
 

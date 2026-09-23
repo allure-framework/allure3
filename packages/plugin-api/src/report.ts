@@ -94,9 +94,6 @@ export type ReportTestResult = Omit<
   | "steps"
   | "categories"
   | "environment"
-  | "testCaseHash"
-  | "parametersHash"
-  | "environmentHash"
 > & {
   isRetry: boolean;
   setup: ReportFixtureResult[];

@@ -487,11 +487,12 @@ type AgentTestManifestLineInput = Omit<AgentTestManifestLine, "retry_hash"> & {
 };
 
 const normalizeAgentTestManifestLine = (input: AgentTestManifestLineInput): AgentTestManifestLine => {
-  const { history_id: legacyHistoryId, ...test } = input;
+  const { history_id: legacyHistoryId, retry_hash: retryHash, ...test } = input;
+  const canonicalRetryHash = "retry_hash" in input ? (retryHash ?? null) : (legacyHistoryId ?? null);
 
   return {
     ...test,
-    retry_hash: "retry_hash" in input ? (input.retry_hash ?? null) : (legacyHistoryId ?? null),
+    retry_hash: canonicalRetryHash,
   };
 };
 

@@ -40,6 +40,8 @@ const mkTr = (overrides: Partial<UploadCategoryTr> = {}): UploadCategoryTr => ({
   flaky: false,
   transition: undefined,
   environment: undefined,
+  testCaseHash: undefined,
+  parametersHash: "",
   error: undefined,
   ...overrides,
 });
@@ -191,7 +193,9 @@ describe("toUploadCategory", () => {
     const tr = mkTr({
       id: "tr-id-1",
       name: "My failed test",
-      retryHash: "hist-id-1",
+      retryHash: "case-id-1.params-id-1.environment-id",
+      testCaseHash: "case-id-1",
+      parametersHash: "params-id-1",
       environment: "stage",
     });
     const category = mkCategory({ groupEnvironments: true });
@@ -200,7 +204,7 @@ describe("toUploadCategory", () => {
       externalId: "product-errors",
       name: "Product errors",
       grouping: [
-        { key: "historyId", value: "hist-id-1", name: "My failed test" },
+        { key: "historyId", value: "case-id-1.params-id-1", name: "My failed test" },
         { key: "environment", value: "stage", name: "environment: stage" },
       ],
       hide: false,

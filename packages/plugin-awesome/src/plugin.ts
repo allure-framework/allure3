@@ -207,7 +207,13 @@ export class AwesomePlugin implements Plugin {
     await generateResolutionCategories(this.#writer!, convertedTrs);
     const hasGroupBy = groupBy.length > 0;
 
-    await generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId);
+    await generateTimeline(
+      this.#writer!,
+      allTrs,
+      this.options,
+      envIdByTrId,
+      new Map(environments.map(({ id, name }) => [id, name])),
+    );
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))

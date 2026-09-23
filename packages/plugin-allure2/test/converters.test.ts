@@ -58,7 +58,7 @@ describe("convertTestResult", () => {
     });
   });
 
-  it("does not expose retry identity under the legacy historyId name", () => {
+  it("serializes canonical retry identity without a legacy historyId alias", () => {
     const result = convertTestResult(
       {
         attachmentMap: new Map(),
@@ -70,6 +70,7 @@ describe("convertTestResult", () => {
       createTestResult({ retryHash: "retry-hash" }),
     );
 
+    expect(result.retryHash).toBe("retry-hash");
     expect(result).not.toHaveProperty("historyId");
   });
 

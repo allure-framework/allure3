@@ -12,19 +12,23 @@ import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 class AllureTestHistory implements AllureHistory {
+  readonly appended: HistoryDataPoint[] = [];
+
   constructor(readonly history: HistoryDataPoint[]) {}
 
   async readHistory(): Promise<HistoryDataPoint[]> {
     return this.history;
   }
 
-  async appendHistory(): Promise<void> {}
+  async appendHistory(history: HistoryDataPoint): Promise<void> {
+    this.appended.push(history);
+  }
 }
 
 const readerId = "store.test.ts";
@@ -34,6 +38,10 @@ beforeEach(async () => {
   await feature("report-engine");
   await story("store");
   await label("coverage", "report-engine");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("test results", () => {
@@ -491,7 +499,7 @@ describe("test results", () => {
     expect(blockingFailed).toEqual([]);
   });
 
-  it("should keep dumped resolution when restore rules no longer match", async () => {
+  it("should clear dumped resolution when restore rules no longer match", async () => {
     const source = new DefaultAllureStore({
       resolutionsConfig: {
         rules: [
@@ -524,14 +532,12 @@ describe("test results", () => {
     const [tr] = await target.allTestResults();
     const blockingFailed = await target.blockingFailedTestResults();
 
-    expect(tr).toMatchObject({
-      resolution: "muted",
-      resolutionComment: "noise",
-    });
-    expect(blockingFailed).toEqual([]);
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+    expect(blockingFailed).toEqual([tr]);
   });
 
-  it("should preserve issue on restore when no new rule matches", async () => {
+  it("should clear stale issue associations when no current rule matches", async () => {
     const source = new DefaultAllureStore({
       resolutionsConfig: {
         links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
@@ -565,15 +571,9 @@ describe("test results", () => {
 
     const [tr] = await target.allTestResults();
 
-    expect(tr).toMatchObject({
-      resolution: "issue",
-      resolutionComment: "tracked forever",
-    });
-    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
-      id: "SHOP-KEEP",
-      type: "jira",
-      comment: "tracked forever",
-    });
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toBeUndefined();
   });
 
   it("should overwrite dumped resolution when restore rules match a new resolution", async () => {
@@ -757,7 +757,7 @@ describe("test results", () => {
     await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });
 
-  it("should restore resolution issue associations from the dump index", async () => {
+  it("should ignore stale resolution issue associations from the dump index", async () => {
     const resolutionsConfig = {
       links: { jira: { urlTemplate: "https://example.org/%s" } },
       rules: [
@@ -778,20 +778,8 @@ describe("test results", () => {
     await target.restoreState(dump);
     const [restored] = await target.allTestResults();
 
-    expect(restored.resolution).toBe("issue");
-    await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toEqual({
-      id: "SHOP-1",
-      type: "jira",
-    });
-    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([restored]);
-
-    await target.restoreState({
-      ...dump,
-      testResults: { [restored.id]: { ...restored, status: "passed", resolution: undefined } },
-      resolutionIssues: {},
-      indexTestResultByResolutionIssue: {},
-    });
-
+    expect(restored.resolution).toBeUndefined();
+    expect(restored.resolutionComment).toBeUndefined();
     await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toBeUndefined();
     await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
   });
@@ -1186,7 +1174,7 @@ describe("test results", () => {
     );
     expect(fooResult).toEqual(
       expect.objectContaining({
-        environment: "Foo",
+        environment: "foo",
         retryHash: expect.any(String),
       }),
     );
@@ -1194,12 +1182,22 @@ describe("test results", () => {
     const defaultParametersHash = calculateParametersHash(defaultResult!.parameters);
     const fooParametersHash = calculateParametersHash(fooResult!.parameters);
 
-    expect(defaultResult!.retryHash).toEqual(calculateRetryHash(defaultResult!.testCaseHash, defaultParametersHash));
+    expect(defaultResult!.retryHash).toEqual(
+      calculateRetryHash({ testCaseHash: defaultResult!.testCaseHash, parametersHash: defaultParametersHash }),
+    );
     expect(fooResult!.retryHash).toEqual(
-      calculateRetryHash(fooResult!.testCaseHash, fooParametersHash, calculateEnvironmentHash("foo")),
+      calculateRetryHash({
+        testCaseHash: fooResult!.testCaseHash,
+        parametersHash: fooParametersHash,
+        environmentHash: calculateEnvironmentHash("foo"),
+      }),
     );
     expect(fooResult!.retryHash).not.toEqual(
-      calculateRetryHash(fooResult!.testCaseHash, fooParametersHash, calculateEnvironmentHash("Foo")),
+      calculateRetryHash({
+        testCaseHash: fooResult!.testCaseHash,
+        parametersHash: fooParametersHash,
+        environmentHash: calculateEnvironmentHash("Foo"),
+      }),
     );
 
     const defaultRetries = defaultResult ? await store.retriesByTrId(defaultResult.id) : [];
@@ -2610,6 +2608,235 @@ describe("history", () => {
     ]);
   });
 
+  it("should read mixed legacy and canonical history without rewriting points", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const canonicalRetryHash = `${md5("test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const canonicalHistoryPoint: HistoryDataPoint = {
+      uuid: "hp2",
+      name: "Newer Allure Report",
+      timestamp: 456,
+      testResults: {
+        [canonicalRetryHash]: {
+          id: "newer-historical-result",
+          name: "newer historical test",
+          status: "failed",
+          url: "",
+        },
+        [legacyHistoryId]: {
+          id: "shadowed-legacy-result",
+          name: "legacy test shadowed by canonical identity",
+          status: "broken",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const testHistory = new AllureTestHistory([historyPoint, canonicalHistoryPoint]);
+    const store = new DefaultAllureStore({ history: testHistory });
+    const rawTestResult: RawTestResult = {
+      name: "current test",
+      testId: "test-case-id",
+      historyId: legacyHistoryId,
+    };
+    const originalHistoryPoint = structuredClone({
+      ...historyPoint,
+      testResults: {
+        ...historyPoint.testResults,
+        [legacyHistoryId]: {
+          ...historyPoint.testResults[legacyHistoryId],
+          retryHash: legacyHistoryId,
+        },
+      },
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(rawTestResult, { readerId });
+
+    const [testResult] = await store.allTestResults();
+    const history = await store.historyByTrId(testResult.id);
+    const storedHistoryPoints = await store.allHistoryDataPoints();
+    const storedLegacyHistoryPoint = storedHistoryPoints.find(({ uuid }) => uuid === "hp1")!;
+    expect(history).toEqual([
+      expect.objectContaining({
+        id: "newer-historical-result",
+        retryHash: testResult.retryHash,
+      }),
+      expect.objectContaining({
+        id: "historical-result",
+        retryHash: legacyHistoryId,
+      }),
+    ]);
+    expect(history).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: "shadowed-legacy-result" })]));
+    expect(testResult.sourceMetadata).toMatchObject({
+      legacyHistoryId,
+    });
+    expect(rawTestResult.historyId).toBe(legacyHistoryId);
+    expect(storedLegacyHistoryPoint).toEqual(originalHistoryPoint);
+    expect(await store.allNewTestResults()).toEqual([]);
+  });
+
+  it("should use a legacy history ID only for the default environment", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([historyPoint]),
+      environmentsConfig: {
+        qa: {
+          matcher: () => true,
+        },
+      },
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(
+      {
+        name: "current test",
+        testId: "test-case-id",
+        historyId: legacyHistoryId,
+      },
+      { readerId },
+    );
+
+    const [testResult] = await store.allTestResults();
+    const [storedHistoryPoint] = await store.allHistoryDataPoints();
+
+    expect(await store.historyByTrId(testResult.id)).toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(legacyHistoryId);
+    expect(storedHistoryPoint.testResults).not.toHaveProperty(testResult.retryHash!);
+  });
+
+  it("should silently skip an ambiguous legacy history ID", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const firstRetryHash = `${md5("first-test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const canonicalHistoryPoint: HistoryDataPoint = {
+      uuid: "hp2",
+      name: "Newer Allure Report",
+      timestamp: 456,
+      testResults: {
+        [firstRetryHash]: {
+          id: "canonical-historical-result",
+          name: "canonical historical test",
+          status: "failed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([historyPoint, canonicalHistoryPoint]),
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(
+      { name: "first current test", testId: "first-test-case-id", historyId: legacyHistoryId },
+      { readerId },
+    );
+    await store.visitTestResult(
+      { name: "second current test", testId: "second-test-case-id", historyId: legacyHistoryId },
+      { readerId },
+    );
+
+    const storedHistoryPoint = (await store.allHistoryDataPoints()).find(({ uuid }) => uuid === "hp1")!;
+
+    await expect(store.historyByTrId((await store.allTestResults())[0]!.id)).resolves.toEqual([
+      expect.objectContaining({ id: "canonical-historical-result", retryHash: firstRetryHash }),
+    ]);
+    await expect(store.historyByTrId((await store.allTestResults())[1]!.id)).resolves.toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(legacyHistoryId);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("should skip a legacy history ID that collides with a canonical retry hash", async () => {
+    const canonicalRetryHash = `${md5("canonical-test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [canonicalRetryHash]: {
+          id: "canonical-historical-result",
+          name: "canonical historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const store = new DefaultAllureStore({ history: new AllureTestHistory([historyPoint]) });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "canonical current test", testId: "canonical-test-case-id" }, { readerId });
+    await store.visitTestResult(
+      { name: "alias current test", testId: "alias-test-case-id", historyId: canonicalRetryHash },
+      { readerId },
+    );
+
+    const [canonicalResult, aliasResult] = await store.allTestResults();
+    const storedHistoryPoint = (await store.allHistoryDataPoints())[0];
+
+    expect(await store.historyByTrId(canonicalResult.id)).toEqual([
+      expect.objectContaining({ id: "canonical-historical-result" }),
+    ]);
+    expect(await store.historyByTrId(aliasResult.id)).toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(canonicalRetryHash);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it("should ignore fallback testCaseId when resolving history without a catalog", async () => {
     const testId = "new-test-id";
     const fallbackTestCaseId = "legacy-test-case-id";
@@ -2915,6 +3142,38 @@ describe("environments", () => {
     });
   });
 
+  it.each([
+    [
+      "forced default",
+      {
+        environment: "default",
+        environmentsConfig: {
+          qa: {
+            matcher: () => {
+              throw new Error("Forced environments must bypass matchers");
+            },
+          },
+        },
+      },
+    ],
+    ["configured default matcher", { environmentsConfig: { default: { matcher: () => true } } }],
+  ])("should preserve %s environment identities through restore", async (_name, options) => {
+    const source = new DefaultAllureStore(options);
+
+    await source.visitTestResult(
+      { name: "default environment test", testId: "default-environment-test" },
+      { readerId },
+    );
+
+    const beforeRestore = structuredClone(await source.allTestResults({ includeRetries: true }));
+    const target = new DefaultAllureStore(options);
+    await target.restoreState(JSON.parse(JSON.stringify(source.dumpState())));
+
+    expect(await target.allTestResults({ includeRetries: true })).toEqual(beforeRestore);
+    expect(beforeRestore[0]).toMatchObject({ environment: "default", environmentHash: undefined });
+    expect(beforeRestore[0].retryHash).toBe(`${md5("default-environment-test")}.${md5("")}`);
+  });
+
   it("should return all environments", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
@@ -2971,44 +3230,6 @@ describe("environments", () => {
     expect(await store.testResultsByEnvironment("  default  ")).toEqual([
       expect.objectContaining({
         name: rawTr2.name,
-      }),
-    ]);
-  });
-
-  it("should keep old unmatched runtime names readable through compatibility ids", async () => {
-    const dump = {
-      testResults: {
-        "compat-env-test": {
-          id: "compat-env-test",
-          name: "compat env test",
-          status: "passed",
-          environment: "foo/bar",
-        },
-      },
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["foo/bar"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {},
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      resolutionIssues: {},
-    };
-    const store = new DefaultAllureStore();
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    expect(await store.testResultsByEnvironmentId("foo/bar")).toEqual([
-      expect.objectContaining({
-        name: "compat env test",
-        environment: "foo/bar",
       }),
     ]);
   });
@@ -4160,61 +4381,128 @@ describe("dump state", () => {
     expect(restoredTestResult.environmentHash).toBeUndefined();
   });
 
-  it("should restore retries per environment without legacy latest-attempt index", async () => {
+  it.each([
+    {
+      name: "absent parameters",
+      parameters: undefined,
+    },
+    {
+      name: "invalid names, null values, and exclusions",
+      parameters: [
+        null,
+        { name: null, value: "ignored" },
+        { name: "", value: "ignored" },
+        { name: "missing", value: null },
+        { name: "excluded", value: "ignored", excluded: true },
+      ],
+    },
+    {
+      name: "hidden and masked raw values",
+      parameters: [
+        { name: "hidden", value: "hidden-value", hidden: true },
+        { name: "masked", value: "masked-value", masked: true },
+      ],
+    },
+    {
+      name: "duplicate and same-name parameters",
+      parameters: [
+        { name: "argument", value: "second" },
+        { name: "argument", value: "first" },
+        { name: "argument", value: "first" },
+      ],
+    },
+    {
+      name: "UTF-8 parameter ordering",
+      parameters: [
+        { name: "😀", value: "value" },
+        { name: "", value: "value" },
+      ],
+    },
+  ])("should preserve canonical hashes through dump restore for $name", async ({ parameters }) => {
+    const sourceStore = new DefaultAllureStore();
+
+    await sourceStore.visitTestResult(
+      {
+        name: "test result",
+        testId: "test-case-id",
+        parameters: parameters as RawTestResult["parameters"],
+        parametersHash: "adapter-parameters-hash",
+      },
+      { readerId },
+    );
+
+    const [sourceTestResult] = await sourceStore.allTestResults();
+    const dump = sourceStore.dumpState();
+    const [dumpedTestResult] = Object.values(dump.testResults);
+    const restoredStore = new DefaultAllureStore();
+
+    await restoredStore.restoreState(dump, {});
+
+    const [restoredTestResult] = await restoredStore.allTestResults();
+
+    expect(dumpedTestResult.parametersHash).toBe(sourceTestResult.parametersHash);
+    expect(dumpedTestResult.retryHash).toBe(sourceTestResult.retryHash);
+    expect(restoredTestResult.parametersHash).toBe(sourceTestResult.parametersHash);
+    expect(restoredTestResult.retryHash).toBe(sourceTestResult.retryHash);
+    expect(restoredTestResult.parametersHash).not.toBe("adapter-parameters-hash");
+  });
+
+  it("should rebuild retries per environment without a retry index", async () => {
     const dump = {
       testResults: {
         "tr-default-1": {
           id: "tr-default-1",
           name: "default old attempt",
+          fullName: "default test",
           status: "failed",
           isRetry: true,
-          historyId: "history-1",
-          testCase: { id: "tc-default" },
+          testCase: { id: "tc-default", externalId: "tc-default", fullName: "default test" },
           parameters: [],
           environment: "default",
         },
         "tr-default-2": {
           id: "tr-default-2",
           name: "default latest attempt",
+          fullName: "default test",
           status: "passed",
-          historyId: "history-1",
-          testCase: { id: "tc-default" },
+          testCase: { id: "tc-default", externalId: "tc-default", fullName: "default test" },
           parameters: [],
           environment: "default",
         },
         "tr-qa-1": {
           id: "tr-qa-1",
           name: "qa old attempt",
+          fullName: "qa test",
           status: "failed",
           isRetry: true,
-          historyId: "history-1",
-          testCase: { id: "tc-qa" },
+          testCase: { id: "tc-qa", externalId: "tc-qa", fullName: "qa test" },
           parameters: [],
-          environment: "QA",
+          environment: "qa",
         },
         "tr-qa-2": {
           id: "tr-qa-2",
           name: "qa latest attempt",
+          fullName: "qa test",
           status: "passed",
-          historyId: "history-1",
-          testCase: { id: "tc-qa" },
+          testCase: { id: "tc-qa", externalId: "tc-qa", fullName: "qa test" },
           parameters: [],
-          environment: "QA",
+          environment: "qa",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: [{ id: "qa", name: "QA" }],
+      environments: [
+        { id: "default", name: "default" },
+        { id: "qa", name: "QA" },
+      ],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
       checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["tr-default-2", "tr-default-1", "tr-qa-1", "tr-qa-2"],
-      },
+      indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
@@ -4257,7 +4545,7 @@ describe("dump state", () => {
             name: "qa history result",
             historyId: "history-1",
             status: "passed",
-            environment: "Old QA",
+            environment: "qa",
             labels: [],
             reportLinks: [],
             url: "",
@@ -4282,23 +4570,29 @@ describe("dump state", () => {
         "tr-qa-1": {
           id: "tr-qa-1",
           name: "qa old attempt",
+          fullName: "qa test",
           status: "failed",
           isRetry: true,
           historyId: "history-1",
           testCase: {
             id: "tc-1",
+            externalId: "tc-1",
+            fullName: "qa test",
           },
-          environment: "Old QA",
+          environment: "qa",
         },
         "tr-qa-2": {
           id: "tr-qa-2",
           name: "qa latest attempt",
+          fullName: "qa test",
           status: "passed",
           historyId: "history-1",
           testCase: {
             id: "tc-1",
+            externalId: "tc-1",
+            fullName: "qa test",
           },
-          environment: "Old QA",
+          environment: "qa",
         },
       },
       attachments: {},
@@ -4313,13 +4607,11 @@ describe("dump state", () => {
           rule: "maxFailures",
           success: false,
           message: "qa gate failure",
-          environment: "Old QA",
+          environment: "qa",
         },
       ],
       indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["tr-qa-1", "tr-qa-2"],
-      },
+      indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {
         "tc-1": ["tr-qa-1", "tr-qa-2"],
       },
@@ -4333,8 +4625,8 @@ describe("dump state", () => {
     await store.readHistory();
 
     expect(await store.testResultsByEnvironmentId("qa", { includeRetries: true })).toEqual([
-      expect.objectContaining({ id: "tr-qa-1", environment: "Old QA" }),
-      expect.objectContaining({ id: "tr-qa-2", environment: "Old QA" }),
+      expect.objectContaining({ id: "tr-qa-1", environment: "qa" }),
+      expect.objectContaining({ id: "tr-qa-2", environment: "qa" }),
     ]);
     expect(await store.envVariablesByEnvironmentId("qa")).toEqual({
       region: "eu",
@@ -4343,7 +4635,7 @@ describe("dump state", () => {
       qa: [
         expect.objectContaining({
           message: "qa gate failure",
-          environment: "Old QA",
+          environment: "qa",
         }),
       ],
     });
@@ -4358,7 +4650,7 @@ describe("dump state", () => {
       expect.objectContaining({
         testResults: {
           "history-1": expect.objectContaining({
-            environment: "Old QA",
+            environment: "qa",
           }),
         },
       }),
@@ -4376,60 +4668,6 @@ describe("dump state", () => {
           id: "qa",
           name: "New QA",
         }),
-      ]),
-    );
-  });
-
-  it("should keep previous name-shaped history separate when switching to explicit ids", async () => {
-    const store = new DefaultAllureStore({
-      environmentsConfig: {
-        staging_eu: {
-          name: "QA EU",
-          matcher: () => false,
-        },
-      },
-    });
-    const dump = {
-      testResults: {
-        "compat-tr-1": {
-          id: "compat-tr-1",
-          name: "compat env result",
-          status: "passed",
-          historyId: "history-1",
-          environment: "Staging EU",
-        },
-      },
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["Staging EU"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["compat-tr-1"],
-      },
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      resolutionIssues: {},
-    };
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    expect(await store.testResultsByEnvironmentId("staging_eu")).toEqual([]);
-    expect(await store.testResultsByEnvironmentId("Staging EU")).toEqual([
-      expect.objectContaining({
-        id: "compat-tr-1",
-      }),
-    ]);
-    expect(await store.allEnvironmentIdentities()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: "staging_eu", name: "QA EU" }),
-        expect.objectContaining({ id: "Staging EU", name: "Staging EU" }),
       ]),
     );
   });
@@ -4600,13 +4838,13 @@ describe("dump state", () => {
           id: "tr-1",
           name: "prod result",
           status: "passed",
-          environment: "Prod",
+          environment: "prod_env",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: [],
+      environments: [{ id: "qa_env", name: "QA" }],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
@@ -4727,7 +4965,7 @@ describe("dump state", () => {
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).resolves.toBeUndefined();
   });
 
-  it("should degrade invalid restored test result environment names for indexing only", async () => {
+  it("should exclude malformed restored environment ids from environment indexes", async () => {
     const dump = {
       testResults: {
         "invalid-env-result": {
@@ -4740,13 +4978,13 @@ describe("dump state", () => {
           id: "compat-env-result",
           name: "compat env result",
           status: "passed",
-          environment: "compatEnv",
+          environment: "compat_env",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: ["compatEnv"],
+      environments: [{ id: "compat_env", name: "compatEnv" }],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
@@ -4765,18 +5003,14 @@ describe("dump state", () => {
     await store.restoreState(dump as unknown as AllureStoreDump, {});
 
     const byDefault = await store.testResultsByEnvironment("default");
-    const byCompatEnv = await store.testResultsByEnvironmentId("compatEnv");
+    const byCompatEnv = await store.testResultsByEnvironmentId("compat_env");
     const allResults = await store.allTestResults();
 
-    expect(byDefault).toEqual([
-      expect.objectContaining({
-        id: "invalid-env-result",
-      }),
-    ]);
+    expect(byDefault).toEqual([]);
     expect(byCompatEnv).toEqual([
       expect.objectContaining({
         id: "compat-env-result",
-        environment: "compatEnv",
+        environment: "compat_env",
       }),
     ]);
     expect(allResults).toEqual(
@@ -4787,61 +5021,10 @@ describe("dump state", () => {
         }),
         expect.objectContaining({
           id: "compat-env-result",
-          environment: "compatEnv",
+          environment: "compat_env",
         }),
       ]),
     );
-  });
-
-  it("should degrade invalid restored quality gate result environment names to default", async () => {
-    const dump = {
-      testResults: {},
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["compatEnv"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [
-        {
-          rule: "maxFailures",
-          success: false,
-          message: "invalid env",
-          environment: "foo\nbar",
-        },
-        {
-          rule: "maxFailures",
-          success: false,
-          message: "compat env",
-          environment: "compatEnv",
-        },
-      ],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {},
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      resolutionIssues: {},
-    };
-
-    const store = new DefaultAllureStore();
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    const resultsByEnv = await store.qualityGateResultsByEnv();
-
-    expect(resultsByEnv.default).toEqual([
-      expect.objectContaining({
-        message: "invalid env",
-      }),
-    ]);
-    expect(resultsByEnv.compatEnv).toEqual([
-      expect.objectContaining({
-        message: "compat env",
-      }),
-    ]);
   });
 
   it("should not duplicate env indexing after repeated environment lookups", async () => {
@@ -4891,7 +5074,7 @@ describe("dump state", () => {
     expect(await store.testResultsByEnvironmentId("qa", { includeRetries: true })).toEqual([
       expect.objectContaining({
         id: trId,
-        environment: "QA",
+        environment: "qa",
       }),
     ]);
   });
@@ -4952,12 +5135,25 @@ describe("dump state", () => {
   });
 
   it("should not duplicate environment test results when restoring the same dump repeatedly", async () => {
-    const sourceStore = new DefaultAllureStore({ environment: "qa" });
+    const sourceStore = new DefaultAllureStore({
+      environment: "qa",
+      environmentsConfig: {
+        qa: {
+          name: "QA",
+          matcher: () => false,
+        },
+      },
+    });
     const rawTr: RawTestResult = {
       name: "restored env test",
+      fullName: "suite restored env test",
       status: "passed",
-      testId: "restored-env-test",
-      historyId: "restored-env-test",
+      testCase: {
+        id: "restored-env-test",
+        externalId: "restored-env-test",
+        fullName: "suite restored env test",
+      },
+      environment: "qa",
     };
 
     await sourceStore.visitTestResult(rawTr, { readerId });
@@ -4970,7 +5166,7 @@ describe("dump state", () => {
 
     const restoredResults = await targetStore.testResultsByEnvironmentId("qa", { includeHidden: true });
 
-    expect(restoredResults.map(({ name }) => name)).toEqual(["restored env test"]);
+    expect(restoredResults).toEqual([expect.objectContaining({ name: "restored env test", environment: "qa" })]);
   });
 
   it("should merge two dumps with no envs", async () => {

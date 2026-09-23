@@ -147,6 +147,86 @@ describe("generateStatusAgePyramid", () => {
     expect(currentPoint.unknown).toBe(0);
   });
 
+  it("should select explicit legacy history ids without rekeying history, while canonical ids win per point", () => {
+    const canonicalRetryHash = "canonical-retry-hash";
+    const legacyRetryHash = "legacy-retry-hash";
+    const historyDataPoint = createHistoryDataPoint({
+      testResults: {
+        [canonicalRetryHash]: createHistoryTestResult({
+          id: "canonical-history-result",
+          retryHash: canonicalRetryHash,
+          status: "broken",
+        }),
+        [legacyRetryHash]: createHistoryTestResult({
+          id: "legacy-history-result",
+          retryHash: legacyRetryHash,
+          status: "failed",
+        }),
+      },
+    });
+    const historyBeforeGeneration = structuredClone(historyDataPoint);
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
+      storeData: createStoreData({
+        historyDataPoints: [historyDataPoint],
+        testResults: [
+          createTestResult({
+            id: "current-result",
+            retryHash: canonicalRetryHash,
+            status: "failed",
+            sourceMetadata: {
+              readerId: "",
+              metadata: {},
+              legacyHistoryId: legacyRetryHash,
+            },
+            stop: 2000,
+          }),
+        ],
+      }),
+    });
+
+    const historyPoint = result.data.find(({ id }) => id === historyDataPoint.uuid)!;
+    const currentPoint = result.data.find(({ id }) => id === "current")!;
+
+    expect(historyPoint).toMatchObject({ failed: 0, broken: 1 });
+    expect(currentPoint).toMatchObject({ failed: 1, broken: 0 });
+    expect(historyDataPoint).toEqual(historyBeforeGeneration);
+  });
+
+  it("should select a legacy-only historical record for a default-environment result", () => {
+    const canonicalRetryHash = "canonical-retry-hash";
+    const legacyRetryHash = "legacy-retry-hash";
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
+      storeData: createStoreData({
+        historyDataPoints: [
+          createHistoryDataPoint({
+            testResults: {
+              [legacyRetryHash]: createHistoryTestResult({
+                retryHash: legacyRetryHash,
+                status: "failed",
+              }),
+            },
+          }),
+        ],
+        testResults: [
+          createTestResult({
+            retryHash: canonicalRetryHash,
+            status: "failed",
+            sourceMetadata: {
+              readerId: "",
+              metadata: {},
+              legacyHistoryId: legacyRetryHash,
+            },
+            stop: 2000,
+          }),
+        ],
+      }),
+    });
+
+    expect(result.data.find(({ id }) => id === "hdp-1")).toMatchObject({ failed: 1 });
+  });
+
   it("should not count passed tests", () => {
     const retryHash1 = "hid-1";
     const storeData = createStoreData({

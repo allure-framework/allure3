@@ -42,7 +42,7 @@ export interface HistoryDataPoint {
 export type HistoryTestResultUrlResolver = (historyUrl: string, pluginId: string, historicalResultId: string) => string;
 
 /**
- * Provides ability to load and update report history
+ * Provides ability to read immutable historical points and append a new report.
  */
 export interface AllureHistory {
   readHistory(params?: { repo?: string; branch?: string }): Promise<HistoryDataPoint[]>;

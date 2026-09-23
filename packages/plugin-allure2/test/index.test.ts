@@ -166,14 +166,66 @@ describe("Allure2Plugin", () => {
     expect(index).not.toContain("window.allureReportData");
   });
 
-  it("should restore legacy history by retry hash", async () => {
+  it("should prefer legacy history stored by canonical retry hash", async () => {
     const { context, files } = createContext();
     const plugin = new Allure2Plugin({ reportLanguage: "en" });
-    const testResult = createTestResult({ retryHash: "retry-hash" });
+    const testResult = createTestResult({
+      retryHash: "retry-hash",
+      sourceMetadata: {
+        readerId: "test",
+        metadata: {},
+        legacyHistoryId: "legacy-history-id",
+      },
+    });
     const metadataByKey = vi.fn(async (key: string) =>
       key === "allure2_history"
         ? {
             "retry-hash": {
+              statistic: { failed: 1, total: 1 },
+              items: [{ uid: "canonical", status: "failed", time: { duration: 10 } }],
+            },
+            "legacy-history-id": {
+              statistic: { broken: 1, total: 1 },
+              items: [{ uid: "legacy", status: "broken", time: { duration: 20 } }],
+            },
+          }
+        : undefined,
+    ) as unknown as AllureStore["metadataByKey"];
+    const store = createStore({
+      metadataByKey,
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+    });
+
+    await plugin.done(context, store);
+
+    const generatedTestResult = JSON.parse(files.get(`data/test-cases/${testResult.id}.json`)!.toString());
+
+    expect(generatedTestResult.retryHash).toBe("retry-hash");
+    expect(generatedTestResult).not.toHaveProperty("historyId");
+    expect(generatedTestResult.extra.history.items).toEqual([
+      {
+        uid: "canonical",
+        status: "failed",
+        time: { duration: 10 },
+      },
+    ]);
+  });
+
+  it("should ignore legacy source history IDs", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+    const testResult = createTestResult({
+      retryHash: "retry-hash",
+      sourceMetadata: {
+        readerId: "test",
+        metadata: {},
+        legacyHistoryId: "legacy-history-id",
+      },
+    });
+    const metadataByKey = vi.fn(async (key: string) =>
+      key === "allure2_history"
+        ? {
+            "legacy-history-id": {
               statistic: { failed: 1, total: 1 },
               items: [{ uid: "previous", status: "failed", time: { duration: 10 } }],
             },
@@ -189,12 +241,6 @@ describe("Allure2Plugin", () => {
 
     const generatedTestResult = JSON.parse(files.get(`data/test-cases/${testResult.id}.json`)!.toString());
 
-    expect(generatedTestResult.extra.history.items).toEqual([
-      {
-        uid: "previous",
-        status: "failed",
-        time: { duration: 10 },
-      },
-    ]);
+    expect(generatedTestResult.extra.history.items).toEqual([]);
   });
 });

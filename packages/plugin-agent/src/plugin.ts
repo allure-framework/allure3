@@ -3141,11 +3141,11 @@ const buildRunAndTestFindings = (params: {
           severity: "warning",
           category: "metadata",
           checkName: "history-id-collision",
-          message: "Multiple visible tests shared the same history ID in this environment.",
+          message: "Multiple visible tests shared the same retry hash in this environment.",
           explanation:
             "The output had to suffix the markdown file name because the logical test key was not unique within the environment.",
           evidencePaths: [entry.relativePath],
-          remediationHint: "Ensure the test metadata produces unique history IDs for distinct logical tests.",
+          remediationHint: "Ensure the test metadata produces unique retry hashes for distinct logical tests.",
           confidence: 0.85,
         }),
       );

@@ -111,7 +111,8 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
   "history-id-collision": {
     category: "repair-test-metadata",
     title: "Repair logical test identity",
-    guidance: "Use stable, unique history IDs so distinct logical tests do not collapse into one file.",
+    guidance:
+      "Retry hashes are computed automatically. When retryHash is absent, the agent uses the test-result ID for the filename, not the legacy historyId; do not set hashes manually.",
   },
   "expected-step-containing-missing": {
     category: "add-meaningful-steps",

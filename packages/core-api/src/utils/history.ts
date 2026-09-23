@@ -1,5 +1,6 @@
 import type { HistoryDataPoint, HistoryTestResult } from "../history.js";
 import type { TestResult } from "../model.js";
+import { DEFAULT_ENVIRONMENT } from "./environment.js";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -41,6 +42,99 @@ const normalizeHistoryMetrics = (metrics: unknown): Record<string, number> => {
     string,
     number
   >;
+};
+
+const isDefaultEnvironment = (result: TestResult | HistoryTestResult): boolean =>
+  result.environment === undefined || result.environment === DEFAULT_ENVIRONMENT;
+
+/**
+ * Selects canonical history first in each point without modifying historical data.
+ * Supply all current results, including retries, so conflicting legacy claims are
+ * rejected even when a consumer later filters by category or environment.
+ *
+ * @deprecated Only the explicit legacy-ID fallback is temporary compatibility
+ * for https://github.com/allure-framework/allure3/pull/903.
+ */
+export const createHistoryTestResultLookup = (testResults: Iterable<TestResult | HistoryTestResult>) => {
+  const canonicalKeys = new Set<string>();
+  const retryHashByLegacyHistoryId = new Map<string, string | undefined>();
+
+  for (const result of testResults) {
+    if (!result.retryHash) {
+      continue;
+    }
+
+    canonicalKeys.add(result.retryHash);
+
+    const legacyId = "sourceMetadata" in result ? result.sourceMetadata?.legacyHistoryId : undefined;
+
+    if (!legacyId || !isDefaultEnvironment(result) || ("environmentHash" in result && result.environmentHash)) {
+      continue;
+    }
+
+    if (!retryHashByLegacyHistoryId.has(legacyId)) {
+      retryHashByLegacyHistoryId.set(legacyId, result.retryHash);
+    } else if (retryHashByLegacyHistoryId.get(legacyId) !== result.retryHash) {
+      retryHashByLegacyHistoryId.set(legacyId, undefined);
+    }
+  }
+
+  for (const [legacyId, retryHash] of retryHashByLegacyHistoryId) {
+    if (retryHash === undefined || (canonicalKeys.has(legacyId) && legacyId !== retryHash)) {
+      retryHashByLegacyHistoryId.set(legacyId, undefined);
+    }
+  }
+
+  // Charts also compare two historical records. Resolve their keys only through
+  // an explicit, unambiguous alias supplied by a current result.
+  const legacyByCanonical = new Map<string, string | undefined>();
+
+  for (const [legacyId, retryHash] of retryHashByLegacyHistoryId) {
+    if (!retryHash || legacyId === retryHash) {
+      continue;
+    }
+
+    legacyByCanonical.set(retryHash, legacyByCanonical.has(retryHash) ? undefined : legacyId);
+  }
+
+  return <T extends TestResult | HistoryTestResult>(
+    point: { testResults?: Record<string, T> },
+    result: TestResult | HistoryTestResult,
+  ): T | undefined => {
+    if (!result.retryHash) {
+      return undefined;
+    }
+
+    const historicalDefault = !("sourceMetadata" in result) && isDefaultEnvironment(result);
+    const retryHash = historicalDefault
+      ? (retryHashByLegacyHistoryId.get(result.retryHash) ?? result.retryHash)
+      : result.retryHash;
+    const canonical = Object.hasOwn(point.testResults ?? {}, retryHash) ? point.testResults?.[retryHash] : undefined;
+
+    if (canonical) {
+      return canonical;
+    }
+
+    const legacyId =
+      "sourceMetadata" in result
+        ? result.sourceMetadata?.legacyHistoryId
+        : historicalDefault
+          ? legacyByCanonical.get(retryHash)
+          : undefined;
+
+    if (
+      !legacyId ||
+      retryHashByLegacyHistoryId.get(legacyId) !== retryHash ||
+      !isDefaultEnvironment(result) ||
+      ("environmentHash" in result && result.environmentHash)
+    ) {
+      return undefined;
+    }
+
+    const legacy = Object.hasOwn(point.testResults ?? {}, legacyId) ? point.testResults?.[legacyId] : undefined;
+
+    return legacy && isDefaultEnvironment(legacy) ? legacy : undefined;
+  };
 };
 
 export const normalizeHistoryDataPoint = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => ({
@@ -117,9 +211,11 @@ export const selectHistoryTestResults = (
  * @returns The history test results array.
  */
 export const htrsByTr = (hdps: HistoryDataPoint[], tr: TestResult | HistoryTestResult): HistoryTestResult[] => {
-  if (!tr?.retryHash) {
-    return [];
-  }
+  const lookup = createHistoryTestResultLookup([tr]);
 
-  return selectHistoryTestResults(hdps, [tr.retryHash]);
+  return hdps.flatMap((point) => {
+    const result = lookup(point, tr);
+
+    return result ? [result] : [];
+  });
 };

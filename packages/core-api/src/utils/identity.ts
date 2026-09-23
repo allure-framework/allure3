@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 
+import { DEFAULT_ENVIRONMENT } from "./environment.js";
+
 export const UNKNOWN_PARAMETER_VALUE = "#___unknown_value___#";
 
+// FIXME: Reader, reader-api, and core-api duplicate parameter models; introduce a shared base model.
 export type IdentityParameter = {
   name?: string | null;
   value?: string | null;
@@ -79,13 +82,19 @@ export const calculateParametersHash = (
 ): string => md5Utf8(stringifyIdentityParameters(parameters));
 
 export const calculateEnvironmentHash = (namedEnvironmentId: string | undefined): string | undefined =>
-  namedEnvironmentId === undefined ? undefined : md5Utf8(namedEnvironmentId);
+  namedEnvironmentId === undefined || namedEnvironmentId === DEFAULT_ENVIRONMENT
+    ? undefined
+    : md5Utf8(namedEnvironmentId);
 
-export const calculateRetryHash = (
-  testCaseHash: string | undefined,
-  parametersHash: string,
-  environmentHash?: string,
-): string | undefined => {
+export const calculateRetryHash = ({
+  testCaseHash,
+  parametersHash,
+  environmentHash,
+}: {
+  testCaseHash: string | undefined;
+  parametersHash: string;
+  environmentHash?: string;
+}): string | undefined => {
   if (!testCaseHash) {
     return undefined;
   }

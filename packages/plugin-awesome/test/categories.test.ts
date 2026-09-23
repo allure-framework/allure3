@@ -20,6 +20,8 @@ vi.mock("@allurereport/plugin-api", () => ({
 
 vi.mock("@allurereport/core-api", () => {
   const EMPTY_VALUE = "<Empty>";
+  const calculateRetryHash = ({ testCaseHash, parametersHash }: { testCaseHash?: string; parametersHash?: string }) =>
+    testCaseHash ? `${testCaseHash}.${parametersHash ?? ""}` : undefined;
 
   const findLastByLabelName = (labels: any[] | undefined, name: string) => {
     if (!Array.isArray(labels)) {
@@ -134,6 +136,7 @@ vi.mock("@allurereport/core-api", () => {
 
   return {
     EMPTY_VALUE,
+    calculateRetryHash,
     extractErrorMatchingData,
     findLastByLabelName,
     incrementStatistic,
@@ -402,7 +405,7 @@ describe("generateCategories", () => {
     expect(hasNoTransition).toBe(true);
   });
 
-  it("should default groupEnvironments=true when environmentCount>1 and groupBy has no environment; history level is added; leaves are env-labelled", async () => {
+  it("should group matching test cases across environments by their environment-neutral retry hash", async () => {
     const { writer, written } = mkWriter();
 
     const categories: CategoryDefinition[] = [
@@ -421,21 +424,25 @@ describe("generateCategories", () => {
         name: "Original",
         status: "failed" as any,
         environment: "prod",
-        retryHash: "H1",
+        retryHash: "case.params.environment-prod",
+        testCaseHash: "case",
+        parametersHash: "params",
       }),
       mkTest({
         id: "t2",
         name: "Original",
         status: "failed" as any,
         environment: "staging",
-        retryHash: "H1",
+        retryHash: "case.params.environment-staging",
+        testCaseHash: "case",
+        parametersHash: "params",
       }),
       mkTest({
         id: "t3",
         name: "Original",
         status: "failed" as any,
         environment: "   ",
-        retryHash: "H1",
+        retryHash: "dynamic.environment-none",
       }),
     ];
 
@@ -453,7 +460,7 @@ describe("generateCategories", () => {
     const historyNodes = Object.values(store.nodes).filter(
       (node: any) => node.type === "history" && node.key === "retryHash",
     );
-    expect(historyNodes.length).toBeGreaterThan(0);
+    expect(historyNodes).toHaveLength(2);
 
     expect(store.nodes.t1.name).toBe("environment: prod");
     expect(store.nodes.t2.name).toBe("environment: staging");

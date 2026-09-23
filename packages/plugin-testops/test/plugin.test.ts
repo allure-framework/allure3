@@ -996,7 +996,9 @@ describe("testops plugin", () => {
         const failedTr = {
           ...fixtures.testResults[0],
           status: "failed" as const,
-          retryHash: "history-123",
+          testCaseHash: "case-hash",
+          parametersHash: "parameters-hash",
+          retryHash: "case-hash.parameters-hash.stage-hash",
           name: "broken test name",
           environment: "stage",
           error: { message: "boom" },
@@ -1018,7 +1020,7 @@ describe("testops plugin", () => {
           { key: "environment", value: "stage", name: "environment: stage" },
           { key: "severity", value: "critical", name: "severity: critical" },
           { key: "message", value: "boom", name: "message: boom" },
-          { key: "historyId", value: "history-123", name: "broken test name" },
+          { key: "historyId", value: "case-hash.parameters-hash", name: "broken test name" },
         ]);
       });
 

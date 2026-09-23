@@ -4,7 +4,13 @@ import type {
   StabilityDistributionChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
-import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import {
+  createHistoryTestResultLookup,
+  type HistoryDataPoint,
+  type HistoryTestResult,
+  type TestResult,
+  type TestStatus,
+} from "@allurereport/core-api";
 
 import { createHashStorage, createMapWithDefault } from "./utils.js";
 
@@ -162,11 +168,15 @@ export const getStabilityScore = (
  * so the sequence never has gaps between runs.
  * Only includes passed, failed, broken.
  */
-const getStatusSequence = (historyDataPoints: HistoryDataPoint[], tr: TestResult): TestStatus[] => {
+const getStatusSequence = (
+  historyDataPoints: HistoryDataPoint[],
+  tr: TestResult,
+  lookupHistoryTestResult: ReturnType<typeof createHistoryTestResultLookup>,
+): TestStatus[] => {
   let block: TestStatus[] = [];
 
   for (const hdp of historyDataPoints) {
-    const htr = hdp.testResults[tr.retryHash!];
+    const htr = lookupHistoryTestResult(hdp, tr);
 
     if (!htr) {
       // Gap: test was not in this run — keep only statuses after this point
@@ -201,6 +211,7 @@ export const generateStabilityDistributionChart = (props: {
     groupValues = [],
   } = options;
   const { testResults, historyDataPoints } = storeData;
+  const lookupHistoryTestResult = createHistoryTestResultLookup(storeData.allTestResults ?? testResults);
 
   // Nst <= Nss
   const effectiveStabilizationPeriod = Math.min(stabilizationPeriod, limit);
@@ -249,7 +260,7 @@ export const generateStabilityDistributionChart = (props: {
       continue;
     }
 
-    const statusSequence = getStatusSequence(limitedHistoryDataPoints, tr);
+    const statusSequence = getStatusSequence(limitedHistoryDataPoints, tr, lookupHistoryTestResult);
     const stabilityScore = getStabilityScore(statusSequence, limit, effectiveStabilizationPeriod);
 
     if (stabilityScore === undefined) {

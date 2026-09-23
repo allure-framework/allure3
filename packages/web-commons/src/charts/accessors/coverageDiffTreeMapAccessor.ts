@@ -1,5 +1,11 @@
 import type { TreeMapDataAccessor, TreeMapNode } from "@allurereport/charts-api";
-import type { HistoryTestResult, TestResult, TreeGroup, TreeLeaf } from "@allurereport/core-api";
+import {
+  createHistoryTestResultLookup,
+  type HistoryTestResult,
+  type TestResult,
+  type TreeGroup,
+  type TreeLeaf,
+} from "@allurereport/core-api";
 import { createTreeByLabels, md5 } from "@allurereport/plugin-api";
 
 import { isChildrenLeavesOnly } from "../chart-utils.js";
@@ -76,13 +82,10 @@ const getNewTestResults = (trs: TestResult[], closestHtrs: Record<string, Histor
 };
 
 const getRemovedTestResults = (
-  trs: TestResult[],
-  closestHtrs: Record<string, HistoryTestResult>,
+  historyTestResults: HistoryTestResult[],
+  matchedHistoryTestResults: Set<HistoryTestResult>,
 ): HistoryTestResult[] => {
-  const historyPointTestResultsAsArray = Object.values(closestHtrs);
-  const testResultsAsDictionary: Record<string, TestResult> = Object.fromEntries(trs.map((tr) => [tr.retryHash, tr]));
-
-  return historyPointTestResultsAsArray.filter((htr) => !testResultsAsDictionary[htr.retryHash!]);
+  return historyTestResults.filter((htr) => !matchedHistoryTestResults.has(htr));
 };
 
 const getEnabledTestResults = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TestResult[] => {
@@ -137,9 +140,11 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
 const createCoverageDiffTreeMap = (
   trs: TestResult[],
   closestHtrs: Record<string, HistoryTestResult>,
+  historyTestResults: HistoryTestResult[] = [],
+  matchedHistoryTestResults: Set<HistoryTestResult> = new Set(),
 ): ExtendedTreeMapNode => {
   const newTrs = getNewTestResults(trs, closestHtrs);
-  const removedHtrs = getRemovedTestResults(trs, closestHtrs);
+  const removedHtrs = getRemovedTestResults(historyTestResults, matchedHistoryTestResults);
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
   const disabledTrs = getDisabledTestResults(trs, closestHtrs);
 
@@ -252,7 +257,8 @@ const createCoverageDiffTreeMap = (
 };
 
 export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<ExtendedTreeMapNode> = {
-  getTreeMap: ({ testResults, historyDataPoints }) => {
+  getTreeMap: ({ testResults, historyDataPoints, allTestResults }) => {
+    const lookupHistoryTestResult = createHistoryTestResultLookup(allTestResults ?? testResults);
     const testsWithBehaviorLabels = filterTestsWithBehaviorLabels(testResults);
 
     // Check that historyDataPoints is not empty
@@ -262,12 +268,33 @@ export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<ExtendedTreeMapNod
     }
 
     const closestHdp = historyDataPoints[0];
-    const closestHtrs = closestHdp.testResults;
-    const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
-    const closestHtrsWithBehaviorLabelsById = Object.fromEntries(
-      closestHtrsWithBehaviorLabels.map((htr) => [htr.retryHash, htr]),
+    const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHdp.testResults)).filter(
+      (tr) => {
+        const selected = lookupHistoryTestResult(closestHdp, tr);
+        return !selected || selected === tr;
+      },
     );
+    const selectedHtrsByCurrentRetryHash: Record<string, HistoryTestResult> = {};
+    const matchedHistoryTestResults = new Set<HistoryTestResult>();
 
-    return createCoverageDiffTreeMap(testsWithBehaviorLabels, closestHtrsWithBehaviorLabelsById);
+    for (const testResult of testsWithBehaviorLabels) {
+      if (!testResult.retryHash) {
+        continue;
+      }
+
+      const historicalTestResult = lookupHistoryTestResult(closestHdp, testResult);
+
+      if (historicalTestResult) {
+        selectedHtrsByCurrentRetryHash[testResult.retryHash] = historicalTestResult;
+        matchedHistoryTestResults.add(historicalTestResult);
+      }
+    }
+
+    return createCoverageDiffTreeMap(
+      testsWithBehaviorLabels,
+      selectedHtrsByCurrentRetryHash,
+      closestHtrsWithBehaviorLabels,
+      matchedHistoryTestResults,
+    );
   },
 };

@@ -10,6 +10,7 @@ import type {
 import {
   EMPTY_VALUE,
   buildEnvironmentSortOrder,
+  calculateRetryHash,
   compareChildNodes,
   extractErrorMatchingData,
   findLastByLabelName,
@@ -33,6 +34,9 @@ const emptyStat = (): Statistic => ({
 const msgKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
 
 const envKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
+const environmentNeutralRetryHash = (testResult: ReportTestResult) =>
+  calculateRetryHash({ testCaseHash: testResult.testCaseHash, parametersHash: testResult.parametersHash }) ??
+  testResult.id;
 
 const formatEmptyValue = (key: string) => {
   if (key === "message") {
@@ -163,7 +167,7 @@ const buildGroupLevels = (
   const groupEnvironments = computeGroupEnvironments(category, environmentCount, isSingleEnvironmentSelected);
 
   if (groupEnvironments) {
-    const testKeyValue = testResult.retryHash ?? testResult.id;
+    const testKeyValue = environmentNeutralRetryHash(testResult);
     const testDisplayName = testResult.name ?? testKeyValue;
 
     levels.push({

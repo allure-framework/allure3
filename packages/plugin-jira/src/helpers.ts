@@ -1,4 +1,4 @@
-import { DEFAULT_ENVIRONMENT, type TestParameter, type TestResult } from "@allurereport/core-api";
+import { DEFAULT_ENVIRONMENT, calculateRetryHash, type TestParameter, type TestResult } from "@allurereport/core-api";
 
 import { type ForgePluginTestResult } from "./types.js";
 
@@ -66,7 +66,10 @@ const filterOutDefaultEnvironment = (env?: string): string | undefined => {
   return env;
 };
 
-export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] => {
+export const prepareTestResults = (
+  trs: TestResult[],
+  environmentNames: ReadonlyMap<string, string> = new Map(),
+): ForgePluginTestResult[] => {
   const trMap = new Map<string, ForgePluginTestResult>();
 
   for (const tr of trs) {
@@ -76,7 +79,7 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
       continue;
     }
 
-    const trId = tr.retryHash ?? tr.id;
+    const trId = calculateRetryHash({ testCaseHash: tr.testCaseHash, parametersHash: tr.parametersHash }) ?? tr.id;
 
     if (!trMap.has(trId)) {
       trMap.set(trId, {
@@ -91,7 +94,12 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
     const storedTr = trMap.get(trId)!;
 
     // aggregate evironment-specific entries of same test
-    storedTr.entries.push({ status: tr.status, env: filterOutDefaultEnvironment(tr.environment), date: tr.stop! });
+    const environmentId = filterOutDefaultEnvironment(tr.environment);
+    storedTr.entries.push({
+      status: tr.status,
+      env: environmentId ? (environmentNames.get(environmentId) ?? environmentId) : undefined,
+      date: tr.stop!,
+    });
     storedTr.keyParams.push(...tr.parameters);
   }
 

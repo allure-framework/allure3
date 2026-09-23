@@ -1,4 +1,10 @@
-import type { FlakyDetectionConfig, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import {
+  DEFAULT_ENVIRONMENT,
+  type FlakyDetectionConfig,
+  type HistoryTestResult,
+  type TestResult,
+  type TestStatus,
+} from "@allurereport/core-api";
 
 const DEFAULT_HISTORY_DEPTH = 5;
 const TRANSITION_HALF_LIFE = 2;
@@ -45,7 +51,7 @@ const isFlakyByWeightedTransitions = (
 
     if (
       result.id === tr.id ||
-      result.environment !== tr.environment ||
+      (result.environment ?? DEFAULT_ENVIRONMENT) !== (tr.environment ?? DEFAULT_ENVIRONMENT) ||
       (result.status !== "passed" && !badStatuses.includes(result.status))
     ) {
       continue;
@@ -74,5 +80,5 @@ export const createFlakyDetector = ({
   historyDepth = DEFAULT_HISTORY_DEPTH,
   includePassedTests = false,
 }: FlakyDetectionConfig = {}): ((tr: TestResult, history: HistoryTestResult[]) => boolean) => {
-  return (tr, history) => tr.flaky || isFlakyByWeightedTransitions(tr, history, historyDepth, includePassedTests);
+  return (tr, history) => isFlakyByWeightedTransitions(tr, history, historyDepth, includePassedTests);
 };

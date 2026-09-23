@@ -181,6 +181,41 @@ describe("testResultRawToState", () => {
     expect(result.labels).toContainEqual({ name: "ALLURE_ID", value: "-1" });
   });
 
+  it.each(["ALLURE_ID", "AS_ID"])("selects the first nonempty original %s before expanding tags", async (labelName) => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        testId: "test-case-id",
+        parameters: [{ name: "argument", value: "value" }],
+        labels: [
+          { name: "tag", value: "@allure.id:from-tag" },
+          { name: "ALLURE_ID", value: "  " },
+          { name: "AS_ID" },
+          { name: labelName, value: " 123 " },
+          { name: "ALLURE_ID", value: "456" },
+        ],
+      },
+      { readerId },
+    );
+
+    expect(result.testCase?.allureId).toBe("123");
+    expect(result.testCaseHash).toBe("97a2c529ed683cc603ce988040c657f8");
+    expect(result.parametersHash).toBe("310bf7d9fc9765b03f3a78f1816f40a8");
+    expect(result.retryHash).toBe("97a2c529ed683cc603ce988040c657f8.310bf7d9fc9765b03f3a78f1816f40a8");
+    expect(result.labels).toContainEqual({ name: "ALLURE_ID", value: "from-tag" });
+  });
+
+  it("keeps tag shorthand separate from explicit external ID selection", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      { testId: "test-case-id", labels: [{ name: "tag", value: "@allure.id:from-tag" }] },
+      { readerId },
+    );
+
+    expect(result.testCase?.allureId).toBeUndefined();
+    expect(result.labels).toContainEqual({ name: "ALLURE_ID", value: "from-tag" });
+  });
+
   it("should include parameters in canonical hashes", async () => {
     const testId = "a test id";
     const parameters = [
@@ -249,6 +284,25 @@ describe("testResultRawToState", () => {
     });
   });
 
+  it("rejects missing, empty, and non-string parameter names without changing accepted values or flags", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        parameters: [
+          { name: null, value: "null name" },
+          { name: "", value: "empty name" },
+          { name: 1 as unknown as string, value: "numeric name" },
+          { name: "kept", value: null, hidden: true, masked: true, excluded: true },
+        ],
+      },
+      { readerId },
+    );
+
+    expect(result.parameters).toEqual([
+      { name: "kept", value: "#___unknown_value___#", hidden: true, masked: true, excluded: true },
+    ]);
+  });
+
   it("should ignore adapter-provided history and parameter hashes", async () => {
     const result = await functionUnderTest(
       emptyStateData,
@@ -264,6 +318,7 @@ describe("testResultRawToState", () => {
     expect(result.parametersHash).toBe("310bf7d9fc9765b03f3a78f1816f40a8");
     expect(result.retryHash).toBe("97a2c529ed683cc603ce988040c657f8.310bf7d9fc9765b03f3a78f1816f40a8");
     expect(result).not.toHaveProperty("historyId");
+    expect(result.sourceMetadata.legacyHistoryId).toBe("adapter-history-id");
   });
 
   it("should detect attachment link content type based on file extension if specified", async () => {

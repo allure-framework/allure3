@@ -26,6 +26,7 @@ export const generateTimeline = async (
   trs: TestResult[],
   options: AwesomeOptions,
   environmentIdByTrId: Map<string, string>,
+  environmentNameById: Map<string, string> = new Map(),
 ) => {
   const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
   const { minDuration = DEFAULT_MIN_DURATION } = timeline;
@@ -62,7 +63,7 @@ export const generateTimeline = async (
       host,
       thread,
       environment: environmentIdByTrId.get(test.id) ?? test.environment,
-      environmentName: test.environment,
+      environmentName: environmentNameById.get(test.environment ?? "") ?? test.environment,
       start: test.start,
       duration,
     });

@@ -547,6 +547,8 @@ export type ChartOptions =
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
   testResults: TestResult[];
+  /** Unfiltered current results, including retries, for legacy alias ownership. */
+  allTestResults?: TestResult[];
   statistic: Statistic;
 }
 

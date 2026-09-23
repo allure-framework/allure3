@@ -288,6 +288,7 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     name: test.name,
     fullName: test.fullName,
     testId: test.testCase?.id,
+    retryHash: test.retryHash,
     time: {
       start: test.start,
       stop: test.stop,

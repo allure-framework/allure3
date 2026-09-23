@@ -172,7 +172,15 @@ export type UploadFixturesResultsDto = {
 
 export type TestResultWithCategories = Pick<
   TestResult,
-  "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
+  | "status"
+  | "labels"
+  | "error"
+  | "flaky"
+  | "duration"
+  | "transition"
+  | "environment"
+  | "testCaseHash"
+  | "parametersHash"
 > & {
   categories?: {
     id?: string;

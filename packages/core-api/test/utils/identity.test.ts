@@ -23,7 +23,7 @@ describe("canonical test identity", () => {
 
     expect(testCaseHash).toBe("97a2c529ed683cc603ce988040c657f8");
     expect(parametersHash).toBe("310bf7d9fc9765b03f3a78f1816f40a8");
-    expect(calculateRetryHash(testCaseHash, parametersHash)).toBe(
+    expect(calculateRetryHash({ testCaseHash, parametersHash })).toBe(
       "97a2c529ed683cc603ce988040c657f8.310bf7d9fc9765b03f3a78f1816f40a8",
     );
   });
@@ -40,7 +40,7 @@ describe("canonical test identity", () => {
     const parametersHash = calculateParametersHash([]);
 
     expect(calculateTestCaseHash(undefined, undefined)).toBeUndefined();
-    expect(calculateRetryHash(undefined, parametersHash)).toBeUndefined();
+    expect(calculateRetryHash({ testCaseHash: undefined, parametersHash })).toBeUndefined();
   });
 
   it("normalizes, sorts, and deduplicates parameter pairs", () => {
@@ -84,7 +84,8 @@ describe("canonical test identity", () => {
     const environmentHash = calculateEnvironmentHash("qa");
 
     expect(calculateEnvironmentHash(undefined)).toBeUndefined();
-    expect(calculateRetryHash(testCaseHash, parametersHash)).toHaveLength(65);
-    expect(calculateRetryHash(testCaseHash, parametersHash, environmentHash)).toHaveLength(98);
+    expect(calculateEnvironmentHash("default")).toBeUndefined();
+    expect(calculateRetryHash({ testCaseHash, parametersHash })).toHaveLength(65);
+    expect(calculateRetryHash({ testCaseHash, parametersHash, environmentHash })).toHaveLength(98);
   });
 });

@@ -14,6 +14,7 @@ import type { FC } from "preact/compat";
 import { GroupTreeItem } from "@/components/Categories/GroupTreeItem";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { useI18n } from "@/stores";
+import { environmentNameById } from "@/stores/env";
 
 import * as styles from "./styles.scss";
 
@@ -68,7 +69,12 @@ export const LabelTreeItem: FC<LabelTreeItemProps> = ({
     flaky: "no-flaky",
   };
   const emptyValueLabel = node.key ? tEmpty(emptyKeyByGroup[node.key] ?? "no-value") : tEmpty("no-value");
-  const value = node.value === "<Empty>" ? emptyValueLabel : (node.value ?? "");
+  const value =
+    node.value === "<Empty>"
+      ? emptyValueLabel
+      : node.key === "environment"
+        ? environmentNameById(node.value ?? "")
+        : (node.value ?? "");
   const isStatusGroup = node.key === "status";
   const isTransitionGroup = node.key === "transition";
   const isFlakyGroup = node.key === "flaky";
