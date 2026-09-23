@@ -308,8 +308,8 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
 
   const { historyDepth, includePassedTests } = config;
 
-  if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < 0)) {
-    throw new Error("flakyDetection.historyDepth must be a non-negative integer");
+  if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {
+    throw new Error("flakyDetection.historyDepth must be an integer greater than or equal to -1");
   }
 
   if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {

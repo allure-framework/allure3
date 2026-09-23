@@ -161,10 +161,15 @@ describe("weighted transition detection", () => {
     expect(result.flaky).toBe(expected);
   });
 
-  it.each(["skipped", "unknown"] as const)(
-    "ignores %s outcomes without consuming history depth or transition weight",
-    async (ignoredStatus) => {
-      const report = await createReport({ historyDepth: 2 }, [ignoredStatus, "passed", ignoredStatus, "failed"]);
+  it.each([
+    { ignoredStatus: "skipped", historyDepth: 0 },
+    { ignoredStatus: "skipped", historyDepth: 2 },
+    { ignoredStatus: "unknown", historyDepth: 0 },
+    { ignoredStatus: "unknown", historyDepth: 2 },
+  ] as const)(
+    "ignores $ignoredStatus without consuming depth or weight (historyDepth=$historyDepth)",
+    async ({ ignoredStatus, historyDepth }) => {
+      const report = await createReport({ historyDepth }, [ignoredStatus, "passed", ignoredStatus, "failed"]);
 
       await report.store.visitTestResult(rawResult, { readerId });
 
@@ -207,8 +212,8 @@ describe("weighted transition detection", () => {
     expect(result.flaky).toBe(false);
   });
 
-  it("filters other environments before applying history depth", async () => {
-    const report = await createReport({ historyDepth: 2 }, [
+  it.each([0, 2])("filters other environments with historyDepth=%s", async (historyDepth) => {
+    const report = await createReport({ historyDepth }, [
       { status: "failed", environment: "other" },
       { status: "passed", environment: "other" },
       "passed",
@@ -222,8 +227,8 @@ describe("weighted transition detection", () => {
     expect(result.flaky).toBe(true);
   });
 
-  it("does not count a copy of the current execution against history depth", async () => {
-    const report = await createReport({ historyDepth: 2 }, [
+  it.each([0, 2])("excludes a copy of the current execution with historyDepth=%s", async (historyDepth) => {
+    const report = await createReport({ historyDepth }, [
       { id: md5("current-result"), status: "failed", environment: "default" },
       "passed",
       "failed",
@@ -242,7 +247,8 @@ describe("flaky detection configuration", () => {
     { includePassedTests: undefined, historyDepth: undefined, expected: false },
     { includePassedTests: false, historyDepth: undefined, expected: false },
     { includePassedTests: true, historyDepth: undefined, expected: true },
-    { includePassedTests: true, historyDepth: 0, expected: false },
+    { includePassedTests: true, historyDepth: -1, expected: false },
+    { includePassedTests: true, historyDepth: 0, expected: true },
     { includePassedTests: true, historyDepth: 1, expected: false },
     { includePassedTests: true, historyDepth: 2, expected: true },
   ])(
@@ -261,6 +267,7 @@ describe("flaky detection configuration", () => {
 
   it.each([
     { historyDepth: undefined, expected: false },
+    { historyDepth: 0, expected: true },
     { historyDepth: 5, expected: false },
     { historyDepth: 6, expected: true },
     { historyDepth: 10, expected: true },
@@ -275,7 +282,24 @@ describe("flaky detection configuration", () => {
     expect(result.transition).toBe("regressed");
   });
 
-  it.each([0, 1])("excludes older failures with historyDepth=%s", async (historyDepth) => {
+  it("uses the full available window when historyDepth is zero", async () => {
+    const report = await createReport({ historyDepth: 0 }, [
+      "passed",
+      "failed",
+      "failed",
+      "failed",
+      "failed",
+      "failed",
+    ]);
+
+    await report.store.visitTestResult(rawResult, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(false);
+  });
+
+  it.each([-1, 1])("does not infer flakiness with historyDepth=%s", async (historyDepth) => {
     const report = await createReport({ historyDepth }, ["passed", "failed"]);
 
     await report.store.visitTestResult(rawResult, { readerId });
@@ -287,8 +311,8 @@ describe("flaky detection configuration", () => {
     await expect(report.store.historyByTr(result)).resolves.toHaveLength(2);
   });
 
-  it("preserves the integration flag when historyDepth is zero", async () => {
-    const report = await createReport({ historyDepth: 0 }, ["passed", "failed"]);
+  it.each([-1, 0])("preserves the integration flag with historyDepth=%s", async (historyDepth) => {
+    const report = await createReport({ historyDepth }, ["failed", "failed"]);
 
     await report.store.visitTestResult({ ...rawResult, flaky: true }, { readerId });
 
@@ -346,9 +370,12 @@ describe("flaky detection configuration", () => {
     },
   );
 
-  it.each([-1, 1.5, NaN, Infinity])("rejects invalid historyDepth=%s when resolving config", async (historyDepth) => {
-    await expect(resolveConfig({ flakyDetection: { historyDepth } }, { plugins: {} })).rejects.toThrow(
-      /historyDepth.*non-negative integer/,
-    );
-  });
+  it.each([-2, -0.5, 1.5, NaN, Infinity, -Infinity])(
+    "rejects invalid historyDepth=%s when resolving config",
+    async (historyDepth) => {
+      await expect(resolveConfig({ flakyDetection: { historyDepth } }, { plugins: {} })).rejects.toThrow(
+        /historyDepth.*integer/,
+      );
+    },
+  );
 });

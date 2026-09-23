@@ -6,7 +6,8 @@ export type FlakyDetectionConfig = {
    * Counts passed, failed, and broken results in the current environment; skipped,
    * unknown, and other environments do not consume the limit.
    * The current execution is scored separately and is not counted against this limit.
-   * Must be a non-negative integer. Defaults to 5; 0 disables history-based inference.
+   * Must be an integer greater than or equal to -1. Defaults to 5.
+   * 0 uses all available comparable history; -1 disables history-based inference.
    */
   historyDepth?: number;
   /**

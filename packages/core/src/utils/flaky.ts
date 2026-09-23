@@ -15,7 +15,7 @@ const badStatuses: TestStatus[] = ["failed", "broken"];
  *
  * @param tr Current execution used as the newest outcome in the score.
  * @param history Previous executions of the test, ordered newest first.
- * @param historyDepth Maximum number of comparable historical executions to use.
+ * @param historyDepth Maximum comparable historical executions; 0 uses all, -1 disables inference.
  * @param includePassedTests Whether to also evaluate currently passed results.
  * @returns Whether the evidence-adjusted transition score reaches the threshold.
  * @see https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/flapping.html
@@ -29,7 +29,7 @@ const isFlakyByWeightedTransitions = (
   const currentPassed = tr.status === "passed";
   const isEligibleStatus = badStatuses.includes(tr.status) || (includePassedTests && currentPassed);
 
-  if (historyDepth === 0 || !isEligibleStatus) {
+  if (historyDepth === -1 || !isEligibleStatus) {
     return false;
   }
 
@@ -39,7 +39,7 @@ const isFlakyByWeightedTransitions = (
   let totalWeight = 0;
 
   for (const result of history) {
-    if (comparisons >= historyDepth) {
+    if (historyDepth !== 0 && comparisons >= historyDepth) {
       break;
     }
 
