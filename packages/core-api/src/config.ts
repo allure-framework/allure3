@@ -14,6 +14,12 @@ export type FlakyDetectionConfig = {
    */
   historyDepth?: number;
   /**
+   * Also infer flakiness from history for currently passed tests. Defaults to false.
+   * Currently skipped and unknown tests remain ineligible for history-based inference.
+   * Ignored if overrideFunction is set.
+   */
+  includePassedTests?: boolean;
+  /**
    * Replaces the built-in decision, including the integration's flaky flag.
    * Receives all loaded history for the test, newest first, or [] when unavailable.
    * May return a boolean or a promise resolving to a boolean.

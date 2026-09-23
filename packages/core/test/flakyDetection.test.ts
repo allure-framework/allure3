@@ -118,8 +118,8 @@ describe("weighted transition detection", () => {
     { sequence: "FPFFFF", expected: false },
     { sequence: "FFFFPF", expected: false },
     { sequence: "FPFP", expected: false },
-    { sequence: "FPFS", expected: false },
-    { sequence: "FPFU", expected: false },
+    { sequence: "PFPFPS", expected: false },
+    { sequence: "PFPFPU", expected: false },
     { sequence: "BPB", expected: true },
     { sequence: "BPF", expected: true },
     { sequence: "FPB", expected: true },
@@ -127,6 +127,32 @@ describe("weighted transition detection", () => {
   ])("classifies $sequence as flaky=$expected", async ({ sequence, expected }) => {
     const statuses = [...sequence].map((symbol) => statusBySymbol[symbol]);
     const report = await createReport(undefined, statuses.slice(0, -1).reverse());
+
+    await report.store.visitTestResult({ ...rawResult, status: statuses[statuses.length - 1] }, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(expected);
+  });
+
+  it.each([
+    { sequence: "P", expected: false },
+    { sequence: "FP", expected: false },
+    { sequence: "PFP", expected: true },
+    { sequence: "PBP", expected: true },
+    { sequence: "FPFP", expected: true },
+    { sequence: "PPPPPP", expected: false },
+    { sequence: "FPFFFP", expected: false },
+    { sequence: "FFFPFP", expected: true },
+    { sequence: "FPPFFP", expected: true },
+    { sequence: "PPPPFP", expected: false },
+    { sequence: "FPF", expected: true },
+    { sequence: "FPB", expected: true },
+    { sequence: "PFPFPS", expected: false },
+    { sequence: "PFPFPU", expected: false },
+  ])("classifies $sequence as flaky=$expected when passed tests are included", async ({ sequence, expected }) => {
+    const statuses = [...sequence].map((symbol) => statusBySymbol[symbol]);
+    const report = await createReport({ includePassedTests: true }, statuses.slice(0, -1).reverse());
 
     await report.store.visitTestResult({ ...rawResult, status: statuses[statuses.length - 1] }, { readerId });
 
@@ -212,6 +238,40 @@ describe("weighted transition detection", () => {
 });
 
 describe("flaky detection configuration", () => {
+  it.each([
+    { includePassedTests: undefined, historyDepth: undefined, expected: false },
+    { includePassedTests: false, historyDepth: undefined, expected: false },
+    { includePassedTests: true, historyDepth: undefined, expected: true },
+    { includePassedTests: true, historyDepth: 0, expected: false },
+    { includePassedTests: true, historyDepth: 1, expected: false },
+    { includePassedTests: true, historyDepth: 2, expected: true },
+  ])(
+    "evaluates passed tests with includePassedTests=$includePassedTests and historyDepth=$historyDepth",
+    async ({ includePassedTests, historyDepth, expected }) => {
+      const report = await createReport({ includePassedTests, historyDepth }, ["failed", "passed"]);
+
+      await report.store.visitTestResult({ ...rawResult, status: "passed" }, { readerId });
+
+      const [result] = await report.store.allTestResults();
+
+      expect(result.status).toBe("passed");
+      expect(result.flaky).toBe(expected);
+    },
+  );
+
+  it.each([
+    { includePassedTests: false, overrideFunction: () => true, expected: true },
+    { includePassedTests: true, overrideFunction: () => false, expected: false },
+  ])("lets the override replace includePassedTests=$includePassedTests", async ({ expected, ...flakyDetection }) => {
+    const report = await createReport(flakyDetection, ["failed", "passed"]);
+
+    await report.store.visitTestResult({ ...rawResult, status: "passed" }, { readerId });
+
+    const [result] = await report.store.allTestResults();
+
+    expect(result.flaky).toBe(expected);
+  });
+
   it.each([
     { historyDepth: undefined, expected: false },
     { historyDepth: 5, expected: false },
@@ -354,6 +414,26 @@ describe("flaky detection configuration", () => {
 
       await expect(report.store.visitTestResult(rawResult, { readerId })).rejects.toThrow(/must return a boolean/);
       await expect(report.store.allTestResults()).resolves.toEqual([]);
+    },
+  );
+
+  it.each([
+    { includePassedTests: null },
+    { includePassedTests: 0 },
+    { includePassedTests: 1 },
+    { includePassedTests: "false" },
+    { includePassedTests: "true" },
+    { includePassedTests: {} },
+    { includePassedTests: [] },
+  ])(
+    "rejects non-boolean includePassedTests=$includePassedTests when resolving config",
+    async ({ includePassedTests }) => {
+      await expect(
+        resolveConfig(
+          { flakyDetection: { includePassedTests: includePassedTests as unknown as boolean } },
+          { plugins: {} },
+        ),
+      ).rejects.toThrow(/includePassedTests.*boolean/);
     },
   );
 

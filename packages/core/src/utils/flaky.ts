@@ -13,18 +13,27 @@ const badStatuses: TestStatus[] = ["failed", "broken"];
  * This variant uses exponential decay and a stability prior in the denominator
  * to avoid overestimating instability from short histories.
  *
- * @param tr Current execution; history inference only applies to failed/broken results.
+ * @param tr Current execution used as the newest outcome in the score.
  * @param history Previous executions of the test, ordered newest first.
  * @param historyDepth Maximum number of comparable historical executions to use.
+ * @param includePassedTests Whether to also evaluate currently passed results.
  * @returns Whether the evidence-adjusted transition score reaches the threshold.
  * @see https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/flapping.html
  */
-const isFlakyByWeightedTransitions = (tr: TestResult, history: HistoryTestResult[], historyDepth: number) => {
-  if (historyDepth === 0 || !badStatuses.includes(tr.status)) {
+const isFlakyByWeightedTransitions = (
+  tr: TestResult,
+  history: HistoryTestResult[],
+  historyDepth: number,
+  includePassedTests: boolean,
+) => {
+  const currentPassed = tr.status === "passed";
+  const isEligibleStatus = badStatuses.includes(tr.status) || (includePassedTests && currentPassed);
+
+  if (historyDepth === 0 || !isEligibleStatus) {
     return false;
   }
 
-  let previousPassed = false;
+  let previousPassed = currentPassed;
   let comparisons = 0;
   let weightedTransitions = 0;
   let totalWeight = 0;
@@ -63,10 +72,11 @@ const isFlakyByWeightedTransitions = (tr: TestResult, history: HistoryTestResult
 
 export const createFlakyDetector = ({
   historyDepth = DEFAULT_HISTORY_DEPTH,
+  includePassedTests = false,
   overrideFunction,
 }: FlakyDetectionConfig = {}): ((tr: TestResult, history: HistoryTestResult[]) => boolean | Promise<boolean>) => {
   if (overrideFunction === undefined) {
-    return (tr, history) => tr.flaky || isFlakyByWeightedTransitions(tr, history, historyDepth);
+    return (tr, history) => tr.flaky || isFlakyByWeightedTransitions(tr, history, historyDepth, includePassedTests);
   }
 
   return async (tr, history) => {
