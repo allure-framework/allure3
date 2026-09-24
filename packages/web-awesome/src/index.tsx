@@ -61,7 +61,11 @@ window.__allureLiveReload = async () => {
     return;
   }
 
-  await Promise.all([fetchTestResult(testResultId, { force: true }), fetchTestResultNav(currentEnvironment.value)]);
+  await Promise.all([
+    fetchTestResult(testResultId, { force: true }),
+    fetchTestResultNav(currentEnvironment.value),
+    fetchEnvTreesData([currentEnvironment.value], { force: true }),
+  ]);
 };
 
 const App = () => {
