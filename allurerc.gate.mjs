@@ -1,4 +1,8 @@
 import { defineConfig } from "allure";
+import { env } from "node:process";
+
+const { ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
 
 export default defineConfig({
   name: "Allure Report 3",
@@ -11,4 +15,22 @@ export default defineConfig({
       },
     },
   },
+  ...(requireNewTests
+    ? {
+        qualityGate: {
+          rules: [
+            {
+              newTests: true,
+            },
+          ],
+        },
+      }
+    : {}),
+  ...(requireNewTests && ALLURE_SERVICE_ACCESS_TOKEN
+    ? {
+        allureService: {
+          accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
+        },
+      }
+    : {}),
 });

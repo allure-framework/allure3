@@ -158,6 +158,29 @@ export const minTestsCountRule: QualityGateRule<number> = {
   },
 };
 
+export const newTestsRule: QualityGateRule<boolean, number> = {
+  rule: "newTests",
+  message: ({ actual, expected }) =>
+    expected
+      ? `No new tests were found; expected at least one new test`
+      : `The number of new tests ${bold(String(actual))} does not match the expected policy`,
+  successMessage: ({ actual }) => `New tests were found: ${bold(String(actual))}`,
+  validate: async ({ trs, expected, state }) => {
+    const previous = numberStateValue(state.getResult());
+    const newTrs = trs.filter((tr) => tr.transition === "new");
+    const testResults = newTrs.map((tr) => tr.id);
+    const actual = previous + newTrs.length;
+
+    state.setResult(actual, testResults);
+
+    return {
+      success: !expected || actual > 0,
+      actual,
+      testResults,
+    };
+  },
+};
+
 export const successRateRule: QualityGateRule<number> = {
   rule: "successRate",
   message: ({ actual, expected }) =>
@@ -337,6 +360,7 @@ export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
 export const qualityGateDefaultRules = [
   maxFailuresRule,
   minTestsCountRule,
+  newTestsRule,
   successRateRule,
   maxDurationRule,
   allTestsContainEnvRule,
