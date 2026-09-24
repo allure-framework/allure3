@@ -98,10 +98,7 @@ describe("summary utils", () => {
       testResult({ id: "t2", name: "two", status: "broken", duration: 20, stop: 250, flaky: true }),
       testResult({ id: "t3", name: "three", status: "passed", duration: 5, stop: 0 }),
     ];
-    const newTrs = [
-      testResult({ id: "n1", name: "new", status: "passed", duration: 7 }),
-      testResult({ id: "n2", name: "new-2", status: "failed", duration: 9 }),
-    ];
+    const newTrs = allTrs.slice(0, 2);
     const stats = { total: 3, resolutions: { issues: 1, muted: 1, accepted: 1 } } as any;
     const historyReadHistory = vi.fn().mockResolvedValue([{ branch: "main" }]);
     const history = { readHistory: historyReadHistory } as unknown as AllureHistory;
@@ -129,7 +126,7 @@ describe("summary utils", () => {
     expect(summary).toEqual({
       stats,
       status: getWorstStatus(allTrs.map(({ status }) => status)),
-      newTests: ["n1", "n2"],
+      newTests: ["t1", "t2"],
       flakyTests: ["t2"],
       retryTests: ["t1"],
       checks: [{ name: "lint", status: "passed" }],
@@ -163,6 +160,33 @@ describe("summary utils", () => {
 
   it("calculateRunDuration sums durations when test results have no time bounds", () => {
     expect(calculateRunDuration([testResult({ duration: 100 }), testResult({ duration: 90 })])).toEqual(190);
+  });
+
+  it("excludes retry attempts and results outside the report filter from new test IDs", async () => {
+    const current = testResult({ id: "current" });
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([current, testResult({ id: "existing" })]),
+      allNewTestResults: vi
+        .fn()
+        .mockResolvedValue([
+          testResult({ id: "retry", status: "failed", isRetry: true }),
+          current,
+          testResult({ id: "excluded", status: "skipped" }),
+        ]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 2, passed: 2 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+    };
+    const summary = await createPluginSummary({
+      name: "Passed tests",
+      plugin: "awesome",
+      store: store as any,
+      filter: (tr) => tr.status === "passed",
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.newTests).toEqual(["current"]);
   });
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
