@@ -41,6 +41,9 @@
     "lint:fix": "run-s format lint:code:fix",
     "lint:code:fix": "oxlint --import-plugin --config .oxlintrc.json --fix src/main/javascript scripts tests/e2e playwright.config.mts"
   },
+  "dependencies": {
+    "@allurereport/web-commons": "workspace:*"
+  },
   "devDependencies": {
     "@allurereport/core-api": "workspace:*",
     "@playwright/test": "^1.62.1",
@@ -57,7 +60,6 @@
     "@types/node": "^24.12.2",
     "allure-js-commons": "^3",
     "allure-playwright": "^3.10.2",
-    "ansi-to-html": "^0.7.2",
     "autoprefixer": "^10.5.0",
     "axe-core": "^4.11.4",
     "d3-array": "^3.2.4",
