@@ -46,9 +46,28 @@ export default defineConfig({
 
 The plugin accepts the following options:
 
-| Option               | Description                                      | Type                                     | Default |
-|----------------------|--------------------------------------------------|------------------------------------------|---------|
-| `allSteps`           | Include all steps in the report                  | `boolean`                                | `false` |
-| `withTrace`          | Include step trace in the report                 | `boolean`                                | `false` |
-| `groupBy`            | Group tests by given label                       | `suites \| features \| packages \| none` | `none`  |
-| `qualityGateResults` | Include quality gate validation results in logs  | `boolean`                                | `true`  |
+| Option               | Description                                           | Type                                                | Default                         |
+|----------------------|-------------------------------------------------------|-----------------------------------------------------|---------------------------------|
+| `allSteps`           | Include all steps in the report                       | `boolean`                                           | `false`                         |
+| `withTrace`          | Include step trace in the report                      | `boolean`                                           | `false`                         |
+| `groupBy`            | Group tests by given label                            | `suite \| feature \| package \| suites \| features \| packages \| none` | `suite`                         |
+| `qualityGateResults` | Include quality gate validation results in logs       | `boolean`                                           | `true`                          |
+| `qualityGateFilter`  | Select quality gate validation results shown in logs  | `(result: QualityGateValidationResult) => boolean`  | `({ success }) => !success`     |
+
+To show both successful and failed quality gate checks, configure the filter to include every result:
+
+```js
+export default {
+  plugins: {
+    log: {
+      options: {
+        qualityGateFilter: () => true,
+      },
+    },
+  },
+};
+```
+
+For `allure log`, use the `--all-quality-gate-results` flag to include successful quality gate checks. The command
+constructs its own log plugin configuration for that run, so plugin configuration from the Allure config file is not
+applied to `allure log`.
