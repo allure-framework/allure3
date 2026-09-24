@@ -26,15 +26,38 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, createDictionary<string[]>());
 };
 
+/**
+ * Turns an existing property into one that is computed on every read.
+ *
+ * `JSON.stringify` and spreads read it like a plain property, in its original position, so the
+ * serialised output is unchanged; nothing is kept between reads. Assigning to it stores the
+ * value as a plain property again.
+ */
+export const lazyProperty = <T extends object, K extends keyof T>(target: T, key: K, compute: () => T[K]) => {
+  Object.defineProperty(target, key, {
+    enumerable: true,
+    configurable: true,
+    get: compute,
+    set(value: T[K]) {
+      Object.defineProperty(target, key, { value, enumerable: true, configurable: true, writable: true });
+    },
+  });
+};
+
 export const convertTestResult = (
   tr: TestResult,
   options: {
     hideLabels?: readonly (string | RegExp)[];
+    /**
+     * Convert steps when they are read rather than up front, so a report with millions of steps
+     * doesn't hold a converted copy of every step tree while it is being generated.
+     */
+    lazySteps?: boolean;
   } = {},
 ): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
-
-  return {
+  const convertSteps = () => (tr.steps ?? []).map(convertTestStepResult);
+  const result: ReportTestResult = {
     id: tr.id,
     name: tr.name,
     start: tr.start,
@@ -53,7 +76,7 @@ export const convertTestResult = (
     groupedLabels: mapLabelsByName(labels),
     parameters: redactParameters(tr.parameters),
     links: tr.links,
-    steps: (tr.steps ?? []).map(convertTestStepResult),
+    steps: options.lazySteps ? [] : convertSteps(),
     error: tr.error,
     testCase: tr.testCase,
     retryHash: tr.retryHash,
@@ -68,6 +91,12 @@ export const convertTestResult = (
     transition: tr.transition,
     titlePath: tr.titlePath || [],
   };
+
+  if (options.lazySteps) {
+    lazyProperty(result, "steps", convertSteps);
+  }
+
+  return result;
 };
 
 export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {

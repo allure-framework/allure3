@@ -1221,6 +1221,8 @@ export class AllureReport {
       }
       // closing it after realtime update settles, to prevent future reads
       this.#executionStage = "done";
+      // every result has been read by now
+      this.#store.releaseIngestStringPool();
 
       // just dump state when dump is set and generate nothing
       if (this.#dump) {
