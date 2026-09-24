@@ -179,4 +179,21 @@ describe("App", () => {
     expect(fetchEnvTreesDataMock).not.toHaveBeenCalled();
     expect(fetchEnvStatsMock).not.toHaveBeenCalled();
   });
+
+  it("should force-refresh open test result data and the current environment tree on live reload", async () => {
+    const { navigateToPlainTestResult } = await import("@/stores/router");
+
+    await selectEnvironment("env-1");
+
+    await act(async () => {
+      navigateToPlainTestResult({ testResultId: "tr-1" });
+    });
+    vi.clearAllMocks();
+
+    await window.__allureLiveReload?.();
+
+    expect(fetchTestResultMock).toHaveBeenCalledWith("tr-1", { force: true });
+    expect(fetchTestResultNavMock).toHaveBeenCalledWith("env-1");
+    expect(fetchEnvTreesDataMock).toHaveBeenCalledWith(["env-1"], { force: true });
+  });
 });
