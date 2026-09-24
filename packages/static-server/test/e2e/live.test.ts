@@ -75,6 +75,24 @@ test("reloads the page when a file changes", async ({ page }) => {
   test.expect(actualContent).toEqual(fixtures.json.content);
 });
 
+test("lets the page handle live reload without a full reload", async ({ page }) => {
+  server = await serve({ port, servePath, live: true });
+
+  await page.goto(url);
+  await page.evaluate(() => {
+    (window as Window & { __allureLiveReload?: () => void }).__allureLiveReload = () => {
+      document.body.dataset.liveReload = "handled";
+    };
+  });
+
+  await writeFile(sampleFilePath, JSON.stringify(fixtures.json), "utf8");
+  await page.waitForFunction(() => document.body.dataset.liveReload === "handled");
+
+  const actualContent = await page.$("#content").then((el) => el?.textContent());
+
+  test.expect(actualContent).not.toEqual(fixtures.json.content);
+});
+
 test("reloads the page manually even when live reload is disabled", async ({ page }) => {
   server = await serve({ port, servePath, live: false });
 

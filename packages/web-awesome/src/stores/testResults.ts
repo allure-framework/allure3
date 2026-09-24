@@ -40,10 +40,10 @@ export const fetchTestResultNav = async (env?: string) => {
   }
 };
 
-export const fetchTestResult = async (testResultId: string) => {
+export const fetchTestResult = async (testResultId: string, options?: { force?: boolean }) => {
   const trData = testResultStore.peek().data;
 
-  if (!testResultId || (trData && testResultId in trData)) {
+  if (!testResultId || (!options?.force && trData && testResultId in trData)) {
     return;
   }
 

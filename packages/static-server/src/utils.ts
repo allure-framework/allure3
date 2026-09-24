@@ -914,9 +914,16 @@ export const injectLiveReloadScript = (html: string) => {
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("${ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY}", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   `;
