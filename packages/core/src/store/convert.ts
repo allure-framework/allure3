@@ -44,7 +44,16 @@ export type StateData = {
   testCases: Map<string, TestCase>;
   attachments: Map<string, AttachmentLink>;
   visitAttachmentLink: (link: AttachmentLink) => void;
+  /**
+   * Returns a shared instance equal to the given string. Step names and parameters repeat across
+   * results, and each JSON.parse call yields its own copies, so sharing them saves heap.
+   */
+  deduplicateString?: DeduplicateString;
 };
+
+type DeduplicateString = <T>(value: T) => T;
+
+const noDeduplication: DeduplicateString = (value) => value;
 
 const convertRawError = (raw: RawError): TestError => ({
   message: raw.message,
@@ -61,7 +70,7 @@ const convertTestErrors = (raw: RawTestResult): TestResult["errors"] => {
 };
 
 export const testFixtureResultRawToState = (
-  stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
+  stateData: Pick<StateData, "attachments" | "visitAttachmentLink" | "deduplicateString">,
   raw: RawFixtureResult,
   context: ReaderContext,
 ): TestFixtureResult => {
@@ -93,11 +102,11 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const allureId = raw.labels
     ?.find((label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value?.trim())
     ?.value?.trim();
-  const labels = convertLabels(raw.labels);
+  const labels = convertLabels(raw.labels, stateData.deduplicateString);
   const hostId = findByLabelName(labels, "host");
   const threadId = findByLabelName(labels, "thread");
   const name = raw.name || "Unknown test";
-  const parameters = convertParameters(raw.parameters);
+  const parameters = convertParameters(raw.parameters, stateData.deduplicateString);
   const error = convertRawError(raw);
   const errors = convertTestErrors(raw);
   const testCaseHash = calculateTestCaseHash(raw.testId, raw.fullName);
@@ -317,19 +326,28 @@ const processTimings = ({
   return { start: undefined, stop: undefined, duration };
 };
 
-const convertLabels = (labels: RawTestLabel[] | undefined): TestLabel[] => {
-  return labels?.filter(notNull)?.map(convertLabel)?.flatMap(processTagLabels).map(normalizeAllureIdLabel) ?? [];
+const convertLabels = (
+  labels: RawTestLabel[] | undefined,
+  deduplicateString: DeduplicateString = noDeduplication,
+): TestLabel[] => {
+  return (
+    labels
+      ?.filter(notNull)
+      ?.map((label) => convertLabel(label, deduplicateString))
+      ?.flatMap(processTagLabels)
+      .map(normalizeAllureIdLabel) ?? []
+  );
 };
 
-const convertLabel = (label: RawTestLabel): TestLabel => {
+const convertLabel = (label: RawTestLabel, deduplicateString: DeduplicateString): TestLabel => {
   return {
-    name: label.name ?? UNKNOWN_PARAMETER_VALUE,
-    value: label.value,
+    name: deduplicateString(label.name ?? UNKNOWN_PARAMETER_VALUE),
+    value: deduplicateString(label.value),
   };
 };
 
 const convertSteps = (
-  stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
+  stateData: Pick<StateData, "attachments" | "visitAttachmentLink" | "deduplicateString">,
   steps: RawStep[] | undefined,
 ): { convertedSteps: TestStepResult[]; messages: Set<string> } => {
   const convertedStepData = steps?.filter(notNull)?.map((step) => convertStep(stateData, step)) ?? [];
@@ -347,10 +365,11 @@ const convertSteps = (
 };
 
 const convertStep = (
-  stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
+  stateData: Pick<StateData, "attachments" | "visitAttachmentLink" | "deduplicateString">,
   step: RawStep,
 ): { convertedStep: TestStepResult; messages?: Set<string> } => {
   if (step.type === "step") {
+    const deduplicateString = stateData.deduplicateString ?? noDeduplication;
     const { message } = step;
     const { convertedSteps: subSteps, messages } = convertSteps(stateData, step.steps);
     const hasSimilarErrorInSubSteps = !!message && messages.has(message);
@@ -361,14 +380,14 @@ const convertStep = (
     return {
       convertedStep: {
         stepId: md5(`${step.name}${step.start}`),
-        name: step.name ?? UNKNOWN_PARAMETER_VALUE,
+        name: deduplicateString(step.name ?? UNKNOWN_PARAMETER_VALUE),
         status: step.status ?? defaultStatus,
         steps: subSteps,
-        parameters: convertParameters(step.parameters),
+        parameters: convertParameters(step.parameters, deduplicateString),
         ...processTimings(step),
         type: "step",
-        message,
-        trace: step.trace,
+        message: deduplicateString(message),
+        trace: deduplicateString(step.trace),
         hasSimilarErrorInSubSteps,
       },
       messages,
@@ -381,15 +400,18 @@ const convertStep = (
   };
 };
 
-const convertParameters = (parameters: RawTestParameter[] | undefined): TestParameter[] =>
+const convertParameters = (
+  parameters: RawTestParameter[] | undefined,
+  deduplicateString: DeduplicateString = noDeduplication,
+): TestParameter[] =>
   parameters
     ?.filter(notNull)
     ?.filter((p) => typeof p.name === "string" && p.name.length > 0)
-    ?.map(convertParameter) ?? [];
+    ?.map((param) => convertParameter(param, deduplicateString)) ?? [];
 
-const convertParameter = (param: RawTestParameter): TestParameter => ({
-  name: param.name ?? UNKNOWN_PARAMETER_VALUE,
-  value: param.value ?? UNKNOWN_PARAMETER_VALUE,
+const convertParameter = (param: RawTestParameter, deduplicateString: DeduplicateString): TestParameter => ({
+  name: deduplicateString(param.name ?? UNKNOWN_PARAMETER_VALUE),
+  value: deduplicateString(param.value ?? UNKNOWN_PARAMETER_VALUE),
   hidden: param.hidden ?? false,
   excluded: param.excluded ?? false,
   masked: param.masked ?? false,

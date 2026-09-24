@@ -452,8 +452,9 @@ describe("generateTestResults", () => {
       resolveHistoryUrl,
     });
 
-    expect(resolveHistoryUrl).toHaveBeenCalledWith(item.url, "awesome", item.id);
+    // history is resolved when it is read, so read it before looking at the resolver's calls
     expect(converted.history[0].url).toBe("https://bucket.example/runs/42/awesome/index.html#old-result");
+    expect(resolveHistoryUrl).toHaveBeenCalledWith(item.url, "awesome", item.id);
     expect(item.url).toBe("https://bucket.example/runs/42/");
   });
 
