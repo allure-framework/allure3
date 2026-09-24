@@ -16,6 +16,7 @@ export {
   qualityGateDefaultRules,
   maxFailuresRule,
   minTestsCountRule,
+  newTestsRule,
   successRateRule,
   maxDurationRule,
   allTestsContainEnvRule,

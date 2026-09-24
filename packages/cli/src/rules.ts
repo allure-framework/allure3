@@ -2,6 +2,7 @@ export {
   qualityGateDefaultRules,
   maxFailuresRule,
   minTestsCountRule,
+  newTestsRule,
   successRateRule,
   metricMaxRule,
   metricMinRule,
