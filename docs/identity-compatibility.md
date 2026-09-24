@@ -10,14 +10,30 @@ Parameter hashing uses the stored, unredacted parameters, including hidden and
 masked values. Exact duplicate pairs collapse; excluded parameters do not
 participate.
 
+Canonical results always contain the identity fields. Missing components are
+stored explicitly as `null`:
+
+```text
+testCaseHash: string | null
+parametersHash: string
+environmentHash: string | null
+retryHash: string | null
+```
+
+Results sharing a `testCaseHash` also share the current-report `TestCase`.
+The first nonempty explicit `ALLURE_ID` or `AS_ID` is retained on that object;
+later missing or different values do not replace it.
+
 Results and new history points store environment **IDs**. Display names are
 presentation data from the current environment configuration. The reserved
-`default` ID contributes no environment hash. Environment matchers retain their
-existing label inputs.
+`default` ID contributes no environment hash. Environment matchers do not
+receive `ALLURE_ID` or `_fallbackTestCaseId`, so identity-migration labels cannot
+change the resolved environment or its hashes.
 
 Retries and history use environment-specific `retryHash`. Features explicitly
-grouping executions across environments (Awesome categories, TestOps categories,
-and Jira entries) use `testCaseHash + "." + parametersHash` instead.
+grouping executions across environments (Awesome categories and environment
+tabs, TestOps categories, and Jira entries) use
+`testCaseHash + "." + parametersHash` instead.
 
 ## Reading old history
 
@@ -31,6 +47,11 @@ Compatibility is a read operation, not a migration or rewrite:
    and no named environment, and historical entries with absent/default environment.
 4. Skip aliases claimed by different current retry hashes, or colliding with
    another current canonical key. Ambiguous aliases are ignored silently.
+
+This is an explicit compatibility exception to the canonical-model rule in
+section 18 of the identity specification: adapter-provided `historyId` remains
+ignored for canonical identity and retry grouping, but may be retained as a
+read-only secondary lookup key for the default environment.
 
 The old core history-ID algorithm is not restored. If no matching legacy value
 is supplied, history under a different old key is not recovered. No legacy key
@@ -55,6 +76,9 @@ Dump generation and restoration support the **same-version** workflow. Dumps
 retain explicit source compatibility metadata, but derived identity indexes are
 rebuilt rather than trusted. Restored resolutions are reclassified using the
 current configuration. Older-version dump conversion is not part of this bridge.
+If restored input nevertheless contains a top-level legacy `historyId`, it is
+preserved as extra input data while canonical identity fields are recalculated;
+it is not part of the public `TestResult` model.
 
 Generated report data uses canonical identity fields:
 

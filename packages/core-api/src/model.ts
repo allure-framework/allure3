@@ -60,9 +60,9 @@ export interface TestResult {
   environment?: string;
 
   fullName?: string;
-  testCaseHash?: string;
+  testCaseHash: string | null;
   parametersHash: string;
-  environmentHash?: string;
+  environmentHash: string | null;
 
   description?: string;
   descriptionHtml?: string;
@@ -83,7 +83,7 @@ export interface TestResult {
 
   transition?: TestStatusTransition;
 
-  retryHash?: string;
+  retryHash: string | null;
   isRetry: boolean;
 
   hostId?: string;

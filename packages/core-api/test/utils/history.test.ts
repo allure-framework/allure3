@@ -161,7 +161,7 @@ describe("history utils", () => {
     });
 
     it("never assigns history to a dynamic result without a canonical identity", () => {
-      const result = current("unused", "legacy", { retryHash: undefined });
+      const result = current("unused", "legacy", { retryHash: null });
       expect(createHistoryTestResultLookup([result])(point({ legacy: historical("legacy") }), result)).toBeUndefined();
     });
 

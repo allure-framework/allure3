@@ -34,10 +34,10 @@ export const md5Utf8 = (value: string): string => createHash("md5").update(value
 export const calculateTestCaseHash = (
   testCaseId: string | null | undefined,
   fullName: string | null | undefined,
-): string | undefined => {
+): string | null => {
   const identity = testCaseId?.length ? testCaseId : fullName?.length ? fullName : undefined;
 
-  return identity === undefined ? undefined : md5Utf8(identity);
+  return identity === undefined ? null : md5Utf8(identity);
 };
 
 const compareIdentityParameters = (
@@ -81,22 +81,20 @@ export const calculateParametersHash = (
   parameters: readonly (IdentityParameter | null | undefined)[] | null | undefined,
 ): string => md5Utf8(stringifyIdentityParameters(parameters));
 
-export const calculateEnvironmentHash = (namedEnvironmentId: string | undefined): string | undefined =>
-  namedEnvironmentId === undefined || namedEnvironmentId === DEFAULT_ENVIRONMENT
-    ? undefined
-    : md5Utf8(namedEnvironmentId);
+export const calculateEnvironmentHash = (namedEnvironmentId: string | null | undefined): string | null =>
+  namedEnvironmentId == null || namedEnvironmentId === DEFAULT_ENVIRONMENT ? null : md5Utf8(namedEnvironmentId);
 
 export const calculateRetryHash = ({
   testCaseHash,
   parametersHash,
   environmentHash,
 }: {
-  testCaseHash: string | undefined;
+  testCaseHash: string | null | undefined;
   parametersHash: string;
-  environmentHash?: string;
-}): string | undefined => {
+  environmentHash?: string | null;
+}): string | null => {
   if (!testCaseHash) {
-    return undefined;
+    return null;
   }
 
   return environmentHash ? `${testCaseHash}.${parametersHash}.${environmentHash}` : `${testCaseHash}.${parametersHash}`;

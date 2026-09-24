@@ -1,4 +1,9 @@
-import { type EnvironmentIdentity, type TestEnvGroup } from "@allurereport/core-api";
+import {
+  type EnvironmentIdentity,
+  type TestEnvGroup,
+  type TestResult,
+  calculateRetryHash,
+} from "@allurereport/core-api";
 import {
   environmentNameById as resolveEnvironmentNameById,
   errorMessageFromUnknown,
@@ -33,6 +38,13 @@ export const setCurrentEnvironment = (env: string) => {
 
 export const environmentNameById = (environmentId: string) =>
   resolveEnvironmentNameById(environmentsStore.peek().data, environmentId);
+
+export const testEnvGroupId = (testResult?: Pick<TestResult, "testCaseHash" | "parametersHash">) =>
+  testResult &&
+  calculateRetryHash({
+    testCaseHash: testResult.testCaseHash,
+    parametersHash: testResult.parametersHash,
+  });
 
 export const fetchEnvironments = async () => {
   environmentsStore.value = {

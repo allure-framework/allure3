@@ -90,12 +90,12 @@ describe("JiraPlugin", () => {
     const first = createJiraTestResult("Dynamic test", {
       id: "dynamic-dev",
       retryHash: "shared-retry.environment-dev",
-      testCaseHash: undefined,
+      testCaseHash: null,
     });
     const second = createJiraTestResult("Dynamic test", {
       id: "dynamic-prod",
       retryHash: "shared-retry.environment-prod",
-      testCaseHash: undefined,
+      testCaseHash: null,
     });
 
     expect(prepareTestResults([first, second]).map(({ id }) => id)).toEqual(["dynamic-dev", "dynamic-prod"]);

@@ -44,6 +44,7 @@ const documents: ReportSearchDocument[] = [
     nodeId: "tr-2",
     name: "submits checkout",
     fullName: "checkout.SubmitCheckoutTest.shouldSubmit",
+    retryHash: null,
     owner: "Jane Smith",
     labels: "feature:Checkout Checkout",
     tags: "regression",

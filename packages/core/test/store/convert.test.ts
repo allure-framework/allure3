@@ -126,9 +126,10 @@ describe("testResultRawToState", () => {
   it("should keep dynamic tests without stable or retry identity", async () => {
     const result = await functionUnderTest(emptyStateData, {}, { readerId });
     expect(result).toMatchObject({
-      testCaseHash: undefined,
+      testCaseHash: null,
       parametersHash: md5Utf8(""),
-      retryHash: undefined,
+      environmentHash: null,
+      retryHash: null,
     });
   });
 
@@ -214,6 +215,24 @@ describe("testResultRawToState", () => {
 
     expect(result.testCase?.allureId).toBeUndefined();
     expect(result.labels).toContainEqual({ name: "ALLURE_ID", value: "from-tag" });
+  });
+
+  it("keeps the first nonempty explicit Allure ID on a shared test case", async () => {
+    const first = await functionUnderTest(emptyStateData, { testId: "test-case-id" }, { readerId });
+    const second = await functionUnderTest(
+      emptyStateData,
+      { testId: "test-case-id", labels: [{ name: "AS_ID", value: "123" }] },
+      { readerId },
+    );
+    const third = await functionUnderTest(
+      emptyStateData,
+      { testId: "test-case-id", labels: [{ name: "ALLURE_ID", value: "456" }] },
+      { readerId },
+    );
+
+    expect(first.testCase).toBe(second.testCase);
+    expect(second.testCase).toBe(third.testCase);
+    expect(first.testCase?.allureId).toBe("123");
   });
 
   it("should include parameters in canonical hashes", async () => {

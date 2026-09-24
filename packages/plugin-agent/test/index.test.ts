@@ -521,7 +521,7 @@ describe("AgentPlugin", () => {
     });
     const withoutHistoryId = createTestResult({
       id: "tr-fallback",
-      retryHash: undefined,
+      retryHash: null,
       name: "fallback name",
       fullName: "suite fallback name",
     });

@@ -39,8 +39,8 @@ describe("canonical test identity", () => {
   it("does not create stable identity for a dynamic test", () => {
     const parametersHash = calculateParametersHash([]);
 
-    expect(calculateTestCaseHash(undefined, undefined)).toBeUndefined();
-    expect(calculateRetryHash({ testCaseHash: undefined, parametersHash })).toBeUndefined();
+    expect(calculateTestCaseHash(undefined, undefined)).toBeNull();
+    expect(calculateRetryHash({ testCaseHash: null, parametersHash })).toBeNull();
   });
 
   it("normalizes, sorts, and deduplicates parameter pairs", () => {
@@ -83,8 +83,8 @@ describe("canonical test identity", () => {
     const parametersHash = md5Utf8("");
     const environmentHash = calculateEnvironmentHash("qa");
 
-    expect(calculateEnvironmentHash(undefined)).toBeUndefined();
-    expect(calculateEnvironmentHash("default")).toBeUndefined();
+    expect(calculateEnvironmentHash(undefined)).toBeNull();
+    expect(calculateEnvironmentHash("default")).toBeNull();
     expect(calculateRetryHash({ testCaseHash, parametersHash })).toHaveLength(65);
     expect(calculateRetryHash({ testCaseHash, parametersHash, environmentHash })).toHaveLength(98);
   });

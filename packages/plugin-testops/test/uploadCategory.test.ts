@@ -40,7 +40,7 @@ const mkTr = (overrides: Partial<UploadCategoryTr> = {}): UploadCategoryTr => ({
   flaky: false,
   transition: undefined,
   environment: undefined,
-  testCaseHash: undefined,
+  testCaseHash: null,
   parametersHash: "",
   error: undefined,
   ...overrides,

@@ -148,14 +148,15 @@ const createCoverageDiffTreeMap = (
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
   const disabledTrs = getDisabledTestResults(trs, closestHtrs);
 
-  const newTestsById = new Map(newTrs.map((tr) => [tr.retryHash, tr]));
-  const deletedTestsById = new Map(removedHtrs.map((htr) => [htr.retryHash, htr]));
-  const enabledTestsById = new Map(enabledTrs.map((tr) => [tr.retryHash, tr]));
-  const disabledTestsById = new Map(disabledTrs.map((tr) => [tr.retryHash, tr]));
+  type RetryHash = TestResult["retryHash"] | HistoryTestResult["retryHash"];
+  const newTestsById = new Map<RetryHash, TestResult>(newTrs.map((tr) => [tr.retryHash, tr]));
+  const deletedTestsById = new Map<RetryHash, HistoryTestResult>(removedHtrs.map((htr) => [htr.retryHash, htr]));
+  const enabledTestsById = new Map<RetryHash, TestResult>(enabledTrs.map((tr) => [tr.retryHash, tr]));
+  const disabledTestsById = new Map<RetryHash, TestResult>(disabledTrs.map((tr) => [tr.retryHash, tr]));
 
   // Including into future tree current tests + removed historical tests to be able to reflect removed historical tests
   const allTests: (TestResult | HistoryTestResult)[] = [...trs, ...removedHtrs];
-  const getChangeType = (retryHash?: string): ChangeType => {
+  const getChangeType = (retryHash: RetryHash): ChangeType => {
     if (newTestsById.has(retryHash)) {
       return "new";
     }

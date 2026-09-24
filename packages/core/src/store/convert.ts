@@ -112,6 +112,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     fullName: raw.fullName,
     testCaseHash,
     parametersHash,
+    environmentHash: null,
     retryHash: calculateRetryHash({ testCaseHash, parametersHash }),
 
     status: raw.status ?? defaultStatus,
@@ -159,12 +160,16 @@ const processTestCase = ({
   stateData: StateData;
   raw: RawTestResult;
   allureId: string | undefined;
-  testCaseHash: string | undefined;
+  testCaseHash: string | null;
 }): TestCase | undefined => {
   if (testCaseHash) {
     const maybeTestCase = testCases.get(testCaseHash);
 
     if (maybeTestCase) {
+      if (!maybeTestCase.allureId && allureId) {
+        maybeTestCase.allureId = allureId;
+      }
+
       return maybeTestCase;
     }
 

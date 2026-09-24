@@ -70,7 +70,7 @@ const buildGrouping = (
     id?: string;
     name?: string;
     error?: TestResult["error"];
-    retryHash?: string;
+    retryHash?: TestResult["retryHash"];
     testCaseHash?: TestResult["testCaseHash"];
     parametersHash: TestResult["parametersHash"];
   },

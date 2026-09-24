@@ -200,7 +200,7 @@ export class AwesomePlugin implements Plugin {
       tests: convertedTrs,
       categories,
       environmentCount: environments.length,
-      environments: environments.map(({ name }) => name),
+      environments: environments.map(({ id }) => id),
       defaultEnvironment: "default",
       selectedEnvironmentCount: environments.length,
     });

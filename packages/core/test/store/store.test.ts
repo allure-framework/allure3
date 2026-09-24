@@ -3118,6 +3118,41 @@ describe("environments", () => {
     });
   });
 
+  it.each(["ALLURE_ID", "AS_ID", fallbackTestCaseIdLabelName])(
+    "should not match environments by the %s identity label",
+    async (labelName) => {
+      const store = new DefaultAllureStore({
+        environmentsConfig: {
+          qa: {
+            matcher: ({ labels }) =>
+              labels.some(({ name }) => name === "ALLURE_ID" || name === fallbackTestCaseIdLabelName),
+          },
+        },
+      });
+
+      await store.visitTestResult(
+        {
+          name: "identity label test",
+          testId: "identity-label-test",
+          labels: [{ name: labelName, value: "123" }],
+        },
+        { readerId },
+      );
+
+      const [result] = await store.allTestResults();
+
+      expect(result).toMatchObject({
+        environment: "default",
+        environmentHash: null,
+        retryHash: `${md5("identity-label-test")}.${md5("")}`,
+      });
+      expect(result.labels).toContainEqual({
+        name: labelName === "AS_ID" ? "ALLURE_ID" : labelName,
+        value: "123",
+      });
+    },
+  );
+
   it("should set default environment event when environments are not specified", async () => {
     const store = new DefaultAllureStore();
     const rawTr1: RawTestResult = {
@@ -3170,8 +3205,63 @@ describe("environments", () => {
     await target.restoreState(JSON.parse(JSON.stringify(source.dumpState())));
 
     expect(await target.allTestResults({ includeRetries: true })).toEqual(beforeRestore);
-    expect(beforeRestore[0]).toMatchObject({ environment: "default", environmentHash: undefined });
+    expect(beforeRestore[0]).toMatchObject({ environment: "default", environmentHash: null });
     expect(beforeRestore[0].retryHash).toBe(`${md5("default-environment-test")}.${md5("")}`);
+  });
+
+  it("should rebuild environment indexes from the final restored results", async () => {
+    const environmentsConfig = {
+      foo: { matcher: () => false },
+      bar: { matcher: () => false },
+    };
+    const createDump = async (environment: "foo" | "bar") => {
+      const store = new DefaultAllureStore({ environment, environmentsConfig });
+
+      await store.visitTestResult(
+        { uuid: "shared-result-id", name: "restored test", testId: "restored-test" },
+        { readerId },
+      );
+
+      return JSON.parse(JSON.stringify(store.dumpState()));
+    };
+    const target = new DefaultAllureStore({ environmentsConfig });
+
+    await target.restoreState(await createDump("foo"));
+    await target.restoreState(await createDump("bar"));
+
+    const [result] = await target.allTestResults();
+
+    expect(result.environment).toBe("bar");
+    await expect(target.testResultsByEnvironmentId("foo")).resolves.toEqual([]);
+    await expect(target.testResultsByEnvironmentId("bar")).resolves.toEqual([result]);
+  });
+
+  it("should keep the first nonempty explicit Allure ID across restored dumps", async () => {
+    const createDump = async (allureId?: string) => {
+      const store = new DefaultAllureStore();
+
+      await store.visitTestResult(
+        {
+          uuid: `result-${allureId ?? "none"}`,
+          name: "restored test",
+          testId: "restored-test",
+          labels: allureId ? [{ name: "ALLURE_ID", value: allureId }] : [],
+        },
+        { readerId },
+      );
+
+      return JSON.parse(JSON.stringify(store.dumpState()));
+    };
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(await createDump());
+    await target.restoreState(await createDump("123"));
+    await target.restoreState(await createDump("456"));
+
+    await expect(target.allTestCases()).resolves.toEqual([
+      expect.objectContaining({ id: md5("restored-test"), allureId: "123" }),
+    ]);
+    expect((await target.allTestResults()).every(({ testCase }) => testCase?.allureId === "123")).toBe(true);
   });
 
   it("should return all environments", async () => {
@@ -3310,6 +3400,61 @@ describe("environments", () => {
         default: tr3.id,
       },
     });
+  });
+
+  it("should keep parameter variants in separate environment-neutral groups", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const testResult = (parameter: string, environment: "default" | "foo"): RawTestResult => ({
+      name: "parameterized test",
+      fullName: "parameterized test",
+      status: "passed",
+      testId: "parameterized-test",
+      parameters: [{ name: "browser", value: parameter }],
+      labels: environment === "foo" ? [{ name: "env", value: "foo" }] : [],
+    });
+
+    await store.visitTestResult(testResult("chrome", "default"), { readerId });
+    await store.visitTestResult(testResult("chrome", "foo"), { readerId });
+    await store.visitTestResult(testResult("firefox", "default"), { readerId });
+    await store.visitTestResult(testResult("firefox", "foo"), { readerId });
+
+    const results = await store.allTestResults({ includeRetries: true });
+    const resultByParameterAndEnvironment = new Map(
+      results.map((result) => [`${result.parameters[0]?.value}-${result.environment ?? "default"}`, result]),
+    );
+    const groups = await store.allTestEnvGroups();
+
+    expect(groups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: calculateRetryHash({
+            testCaseHash: resultByParameterAndEnvironment.get("chrome-default")?.testCaseHash,
+            parametersHash: calculateParametersHash([{ name: "browser", value: "chrome" }]),
+          }),
+          testResultsByEnv: {
+            default: resultByParameterAndEnvironment.get("chrome-default")?.id,
+            foo: resultByParameterAndEnvironment.get("chrome-foo")?.id,
+          },
+        }),
+        expect.objectContaining({
+          id: calculateRetryHash({
+            testCaseHash: resultByParameterAndEnvironment.get("firefox-default")?.testCaseHash,
+            parametersHash: calculateParametersHash([{ name: "browser", value: "firefox" }]),
+          }),
+          testResultsByEnv: {
+            default: resultByParameterAndEnvironment.get("firefox-default")?.id,
+            foo: resultByParameterAndEnvironment.get("firefox-foo")?.id,
+          },
+        }),
+      ]),
+    );
+    expect(groups).toHaveLength(2);
   });
 });
 
@@ -4309,11 +4454,34 @@ describe("dump state", () => {
     const testResults = await store.allTestResults();
 
     expect(testResults).toHaveLength(1);
-    expect(testResults[0].id).toBe("test-result-id");
+    expect(testResults[0] as TestResult & { historyId: string }).toMatchObject({
+      id: "test-result-id",
+      historyId: "history-1",
+      testCaseHash: null,
+      parametersHash: md5(""),
+      environmentHash: null,
+      retryHash: null,
+    });
 
     const testResultsByTestCase = await store.testResultsByTcId("test-case-1");
 
     expect(testResultsByTestCase).toBeDefined();
+  });
+
+  it("should serialize absent canonical identity components as null", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ uuid: "dynamic-result", name: "dynamic result" }, { readerId });
+
+    const [result] = await store.allTestResults();
+    const serialized = JSON.parse(JSON.stringify(store.dumpState())).testResults[result.id];
+
+    expect(serialized).toMatchObject({
+      testCaseHash: null,
+      parametersHash: md5(""),
+      environmentHash: null,
+      retryHash: null,
+    });
   });
 
   it("should dump and restore index properties with actual data", async () => {
@@ -4378,7 +4546,7 @@ describe("dump state", () => {
       parametersHash,
       retryHash: `${testCaseHash}.${parametersHash}`,
     });
-    expect(restoredTestResult.environmentHash).toBeUndefined();
+    expect(restoredTestResult.environmentHash).toBeNull();
   });
 
   it.each([

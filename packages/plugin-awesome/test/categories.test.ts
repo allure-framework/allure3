@@ -119,9 +119,28 @@ vi.mock("@allurereport/core-api", () => {
     return orderMap;
   };
 
-  const compareChildNodes = (leftNodeId: string, rightNodeId: string, nodesById: any) => {
+  const compareChildNodes = (
+    leftNodeId: string,
+    rightNodeId: string,
+    nodesById: any,
+    environmentOrderMap?: Map<string, number>,
+  ) => {
     const leftNode = nodesById[leftNodeId];
     const rightNode = nodesById[rightNodeId];
+
+    if (
+      leftNode?.type === "tr" &&
+      rightNode?.type === "tr" &&
+      leftNode.key === "environment" &&
+      rightNode.key === "environment"
+    ) {
+      const leftRank = environmentOrderMap?.get(leftNode.value) ?? 1000;
+      const rightRank = environmentOrderMap?.get(rightNode.value) ?? 1000;
+
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+    }
 
     const leftName = leftNode?.name ?? "";
     const rightName = rightNode?.name ?? "";
@@ -193,7 +212,7 @@ const mkTest = (partial: Partial<ReportTestResult> = {}): ReportTestResult =>
     transition: undefined,
     tooltips: undefined,
     environment: "prod",
-    retryHash: undefined,
+    retryHash: null,
     error: { message: "boom", trace: "stack" },
     groupedLabels: {},
     ...partial,
@@ -465,6 +484,52 @@ describe("generateCategories", () => {
     expect(store.nodes.t1.name).toBe("environment: prod");
     expect(store.nodes.t2.name).toBe("environment: staging");
     expect(store.nodes.t3.name).toBe("environment: No environment");
+  });
+
+  it("should sort category environments by stable ids", async () => {
+    const { writer, written } = mkWriter();
+    const categories: CategoryDefinition[] = [
+      mkCategory({
+        name: "Failed",
+        matchers: [{ statuses: ["failed"] }],
+        groupBy: [],
+        groupByMessage: false,
+        index: 0,
+      }),
+    ];
+    const tests: ReportTestResult[] = [
+      mkTest({
+        id: "qa",
+        name: "QA Display Name",
+        status: "failed" as any,
+        environment: "qa-id",
+        testCaseHash: "case",
+        parametersHash: "params",
+      }),
+      mkTest({
+        id: "staging",
+        name: "Staging Display Name",
+        status: "failed" as any,
+        environment: "staging-id",
+        testCaseHash: "case",
+        parametersHash: "params",
+      }),
+    ];
+
+    await generateCategories(writer, {
+      tests,
+      categories,
+      environmentCount: 2,
+      environments: ["staging-id", "qa-id"],
+      defaultEnvironment: "default",
+      selectedEnvironmentCount: 2,
+    });
+
+    const store = written[0].data as any;
+    const category = store.nodes["cat:h(Failed)"];
+    const history = store.nodes[category.childrenIds[0]];
+
+    expect(history.childrenIds).toEqual(["staging", "qa"]);
   });
 
   it("should ignore groupEnvironments when a single env is selected; no history level is added; leaf name stays original", async () => {
