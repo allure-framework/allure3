@@ -52,35 +52,29 @@ export const useTooltip = <
   }, [triggerRefProp, tooltipRefProp]);
 
   useEffect(() => {
-    const updatePosition = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        computePosition(triggerRef.current, tooltipRef.current, {
-          placement,
-          middleware: [offset(6), flip(), shift({ padding: 5 })],
-        }).then(({ x, y }) => {
-          if (tooltipRef.current) {
-            Object.assign(tooltipRef.current.style, {
-              "left": `${x}px`,
-              "top": `${y}px`,
-              "position": "absolute",
-              "z-index": 100,
-            });
-          }
-        });
-      }
-    };
-
-    const cleanup = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        autoUpdate(triggerRef.current, tooltipRef.current, updatePosition);
-      }
-    };
-
-    if (isVisible) {
-      updatePosition();
+    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+      return;
     }
 
-    return cleanup();
+    const trigger = triggerRef.current;
+    const tooltip = tooltipRef.current;
+    const updatePosition = () => {
+      computePosition(trigger, tooltip, {
+        placement,
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
+      }).then(({ x, y }) => {
+        Object.assign(tooltip.style, {
+          "left": `${x}px`,
+          "top": `${y}px`,
+          "position": "absolute",
+          "z-index": 100,
+        });
+      });
+    };
+
+    updatePosition();
+
+    return autoUpdate(trigger, tooltip, updatePosition);
   }, [isVisible, placement]);
 };
 
@@ -105,34 +99,32 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
 
   useEffect(() => {
     setCurrentText(tooltipText);
-    const updatePosition = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        computePosition(triggerRef.current, tooltipRef.current, {
-          placement,
-          middleware: [offset(6), flip(), shift({ padding: 5 })],
-        }).then(({ x, y }) => {
-          if (tooltipRef.current) {
-            Object.assign(tooltipRef.current.style, {
-              "left": `${x}px`,
-              "top": `${y}px`,
-              "position": "absolute",
-              "z-index": 100,
-            });
-          }
-        });
-      }
-    };
+  }, [tooltipText]);
 
-    const cleanup = () =>
-      triggerRef.current && tooltipRef.current
-        ? autoUpdate(triggerRef.current, tooltipRef.current, updatePosition)
-        : () => {};
-
-    if (isVisible) {
-      updatePosition();
+  useEffect(() => {
+    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+      return;
     }
 
-    return cleanup();
+    const trigger = triggerRef.current;
+    const tooltip = tooltipRef.current;
+    const updatePosition = () => {
+      computePosition(trigger, tooltip, {
+        placement,
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
+      }).then(({ x, y }) => {
+        Object.assign(tooltip.style, {
+          "left": `${x}px`,
+          "top": `${y}px`,
+          "position": "absolute",
+          "z-index": 100,
+        });
+      });
+    };
+
+    updatePosition();
+
+    return autoUpdate(trigger, tooltip, updatePosition);
   }, [isVisible, placement, tooltipText]);
 
   const onMouseEnter = () => {

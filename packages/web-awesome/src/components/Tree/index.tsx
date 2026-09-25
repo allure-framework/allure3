@@ -33,6 +33,7 @@ const treeNavigateTo = (testResultId: string) => {
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
+  const { t: tControls } = useI18n("controls");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tooltip } = useI18n("transitions");
   const trId = currentTrId.value;
@@ -124,6 +125,7 @@ export const TreeList = () => {
           );
         }
 
+        const showMoreLabel = tControls("showMore");
         const treeLocalizer = createTreeLocalizer(localizers);
 
         // render single tree for single environment
@@ -146,6 +148,7 @@ export const TreeList = () => {
                 statusFilter={currentTreeStatus}
                 routeId={trId}
                 focusedId={focusedId}
+                showMoreLabel={showMoreLabel}
                 root
               />
             </div>
@@ -168,6 +171,7 @@ export const TreeList = () => {
                 statusFilter={currentTreeStatus}
                 routeId={trId}
                 focusedId={focusedId}
+                showMoreLabel={showMoreLabel}
                 root
               />
             </div>
@@ -229,6 +233,7 @@ export const TreeList = () => {
                         tree={treeLocalizer(value)}
                         routeId={trId}
                         focusedId={focusedId}
+                        showMoreLabel={showMoreLabel}
                         focusIdPrefix={`${key}:`}
                         root
                       />
