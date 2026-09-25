@@ -845,6 +845,31 @@ describe("AllureReport.restoreState (dump zip)", () => {
     }
   });
 
+  it("preserves metadata through dump and restore", async () => {
+    const dumpPath = join(tmpdir(), `allure-metadata-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const environment = [{ name: "browser", values: ["chrome"] }];
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await report.start();
+    await report.store.visitMetadata({ allure_environment: environment });
+    await report.done();
+
+    const restoredReport = new AllureReport(config);
+
+    await restoredReport.restoreState([zipPath]);
+
+    expect(await restoredReport.store.metadataByKey("allure_environment")).toEqual(environment);
+  });
+
   it("keeps ingest order across multiple dumps when resolving which retry attempt is primary", async () => {
     const makeTr = (id: string, status: "passed" | "failed", testCaseId: string) => ({
       id,

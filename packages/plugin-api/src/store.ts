@@ -102,6 +102,7 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
+  metadata?: Record<string, any>;
   resolutionIssues: Record<string, ResolutionIssue>;
   qualityGateResults: QualityGateValidationResult[];
   metrics?: MetricSample[];
@@ -126,6 +127,7 @@ export enum AllureStoreDumpFiles {
   CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
+  Metadata = "metadata.json",
   ResolutionIssues = "resolution-issues.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
   IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
