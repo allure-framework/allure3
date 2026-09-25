@@ -157,7 +157,6 @@ const searchFilterPredicate = (env: string) => {
   }
 
   const matchingNodeIds = searchNodeIds(searchIndex, query);
-
   return (leaf: { nodeId: string }) => matchingNodeIds.has(leaf.nodeId);
 };
 
