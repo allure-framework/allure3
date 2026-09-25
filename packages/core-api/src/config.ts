@@ -1,5 +1,22 @@
 export type DefaultLabelsConfig = Record<string, string | string[]>;
 
+export type FlakyDetectionConfig = {
+  /**
+   * Maximum number of comparable historical executions used by the built-in algorithm.
+   * Counts passed, failed, and broken results in the current environment; skipped,
+   * unknown, and other environments do not consume the limit.
+   * The current execution is scored separately and is not counted against this limit.
+   * Must be an integer greater than or equal to -1. Defaults to 5.
+   * 0 uses all available comparable history; -1 disables history-based inference.
+   */
+  historyDepth?: number;
+  /**
+   * Also infer flakiness from history for currently passed tests. Defaults to false.
+   * Currently skipped and unknown tests remain ineligible for history-based inference.
+   */
+  includePassedTests?: boolean;
+};
+
 export const parseIntegerConfigValue = (value: unknown, minValue?: number): number | undefined => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return undefined;

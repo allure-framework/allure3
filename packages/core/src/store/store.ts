@@ -13,6 +13,7 @@ import {
   type EnvironmentIdentity,
   type EnvironmentDescriptor,
   type EnvironmentsConfig,
+  type FlakyDetectionConfig,
   type GlobalAttachmentLink,
   type HistoryDataPoint,
   type HistoryTestResult,
@@ -69,7 +70,7 @@ import {
   resolveStoredEnvironmentIdentity,
   validateAllowedEnvironmentId,
 } from "../utils/environment.js";
-import { isFlaky } from "../utils/flaky.js";
+import { createFlakyDetector } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { calculateParametersHash, calculateRetryHash, RetrySubstore } from "./retrySubstore.js";
@@ -133,6 +134,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
+  readonly #isFlaky: (tr: TestResult, history: HistoryTestResult[]) => boolean;
   readonly #resolutionsConfig: ResolutionsConfig | undefined;
   readonly #resolutionIssues: Map<string, ResolutionIssue> = new Map();
   readonly #testResultIdsByResolutionIssueId: Map<string, Set<string>> = new Map();
@@ -174,6 +176,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   constructor(params?: {
     history?: AllureHistory;
+    flakyDetection?: FlakyDetectionConfig;
     resolutionsConfig?: ResolutionsConfig;
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
@@ -186,6 +189,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }) {
     const {
       history,
+      flakyDetection,
       resolutionsConfig,
       realtimeDispatcher,
       realtimeSubscriber,
@@ -236,6 +240,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
     this.#history = history;
+    this.#isFlaky = createFlakyDetector(flakyDetection);
     this.#resolutionsConfig = resolutionsConfig;
     this.#performance = performance;
 
@@ -920,8 +925,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     if (trHistory !== undefined) {
       testResult.transition = getStatusTransition(testResult, trHistory);
-      testResult.flaky = isFlaky(testResult, trHistory);
     }
+
+    testResult.flaky = this.#isFlaky(testResult, trHistory ?? []);
 
     this.#classifyResolution(testResult);
 
