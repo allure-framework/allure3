@@ -78,8 +78,8 @@ export const setTreeOpened = (id: string, shouldBeOpened: boolean, openedByDefau
   setTreeStoredState(id, shouldBeOpened, openedByDefault);
 };
 
-export const fetchEnvTreesData = async (envs: string[]) => {
-  const envsToFetch = envs.filter((env) => !treeStore.peek().data?.[env]);
+export const fetchEnvTreesData = async (envs: string[], options?: { force?: boolean }) => {
+  const envsToFetch = options?.force ? envs : envs.filter((env) => !treeStore.peek().data?.[env]);
 
   // all envs have already been fetched
   if (envsToFetch.length === 0) {

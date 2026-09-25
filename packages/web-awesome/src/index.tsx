@@ -53,6 +53,21 @@ const removeInitialLoader = () => {
   document.getElementById("allure-app-loader")?.remove();
 };
 
+window.__allureLiveReload = async () => {
+  const testResultId = currentTrId.value;
+
+  if (!isTestResultRoute.value || !testResultId) {
+    window.location.reload();
+    return;
+  }
+
+  await Promise.all([
+    fetchTestResult(testResultId, { force: true }),
+    fetchTestResultNav(currentEnvironment.value),
+    fetchEnvTreesData([currentEnvironment.value], { force: true }),
+  ]);
+};
+
 const App = () => {
   const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
