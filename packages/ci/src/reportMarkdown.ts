@@ -22,12 +22,14 @@ const STATUS_LABELS: Record<(typeof STATUS_ORDER)[number], string> = {
 const STATUS_ICON_BASE_URL = "https://allurecharts.qameta.workers.dev/dot";
 const STATUS_PIE_BASE_URL = "https://allurecharts.qameta.workers.dev/pie";
 
-type SummaryRow = {
+export type ReportSummaryMarkdownRow = {
+  kind: "total" | "environment" | "report";
   name: string;
   duration: number;
   stats: ReportContextStatusStats;
   flags: ReportContextFlagStats;
   resolutions?: ReportContextResolutionStats;
+  report?: ReportContextTestReport;
 };
 
 type ReportLink = {
@@ -39,6 +41,7 @@ type ReportLink = {
 export type RenderReportSummaryMarkdownOptions = {
   title?: string;
   includeArtifacts?: boolean;
+  getReportFilterHref?: (filter: keyof ReportContextFlagStats, row: ReportSummaryMarkdownRow) => string | undefined;
 };
 
 const escapeHtml = (value: string): string =>
@@ -46,6 +49,8 @@ const escapeHtml = (value: string): string =>
 
 const tableCell = (value: string | number): string =>
   escapeHtml(String(value)).replaceAll("|", "&#124;").replaceAll("\n", "<br>");
+
+const inlineCode = (value: string): string => `<code>${escapeHtml(value)}</code>`;
 
 const isSafeHref = (href: string): boolean => {
   try {
@@ -144,12 +149,31 @@ const formatResolutions = (resolutions?: ReportContextResolutionStats): string =
 const hasResolutions = (resolutions: ReportContextResolutionStats): boolean =>
   resolutions.issues > 0 || resolutions.muted > 0 || resolutions.accepted > 0;
 
-const formatFlag = (value: number): string => (value > 0 ? String(value) : "0");
+const formatFlag = (
+  flag: keyof ReportContextFlagStats,
+  row: ReportSummaryMarkdownRow,
+  options: RenderReportSummaryMarkdownOptions,
+): string => {
+  const value = row.flags[flag];
 
-const renderTable = (rows: SummaryRow[], includeResolutions: boolean): string => {
+  if (value <= 0) {
+    return "0";
+  }
+
+  const label = String(value);
+  const href = options.getReportFilterHref?.(flag, row);
+
+  return href ? link(label, href) : label;
+};
+
+const renderTable = (
+  rows: ReportSummaryMarkdownRow[],
+  includeResolutions: boolean,
+  options: RenderReportSummaryMarkdownOptions,
+): string => {
   const headers = [
     "&nbsp;&nbsp;&nbsp;&nbsp;",
-    "Scope",
+    "Environment",
     "Duration",
     "Stats",
     ...(includeResolutions ? ["Resolutions"] : []),
@@ -165,9 +189,9 @@ const renderTable = (rows: SummaryRow[], includeResolutions: boolean): string =>
       tableCell(formatDuration(row.duration)),
       formatStats(row.stats),
       ...(includeResolutions ? [formatResolutions(row.resolutions)] : []),
-      tableCell(formatFlag(row.flags.new)),
-      tableCell(formatFlag(row.flags.flaky)),
-      tableCell(formatFlag(row.flags.retry)),
+      formatFlag("new", row, options),
+      formatFlag("flaky", row, options),
+      formatFlag("retry", row, options),
     ].join(" | "),
   );
 
@@ -177,6 +201,32 @@ const renderTable = (rows: SummaryRow[], includeResolutions: boolean): string =>
 const reportHref = (report: ReportContextTestReport): string | undefined => report.remoteHref ?? report.href;
 
 const reportLabel = (report: ReportContextTestReport): string => report.plugin ?? report.name;
+
+const isAwesomeReport = (report: ReportContextTestReport | undefined): report is ReportContextTestReport =>
+  report?.pluginId?.toLowerCase() === "awesome" || report?.plugin?.toLowerCase() === "awesome";
+
+const appendReportFilter = (href: string, filter: keyof ReportContextFlagStats): string => {
+  const hashIndex = href.indexOf("#");
+  const base = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? "" : href.slice(hashIndex);
+  const separator = base.includes("?") ? "&" : "?";
+  const query = filter === "new" ? "transition=new" : `${filter}=true`;
+
+  return `${base}${separator}${query}${hash}`;
+};
+
+const createDefaultReportFilterHref = (
+  reports: ReportContextTestReport[],
+): RenderReportSummaryMarkdownOptions["getReportFilterHref"] => {
+  const defaultReport = reports.find(isAwesomeReport);
+
+  return (filter, row) => {
+    const report = isAwesomeReport(row.report) ? row.report : defaultReport;
+    const href = report ? reportHref(report) : undefined;
+
+    return href ? appendReportFilter(href, filter) : undefined;
+  };
+};
 
 const reportLinkKind = (report: ReportContextTestReport): ReportLink["kind"] =>
   report.plugin?.toLowerCase() === "testops" ? "testops" : "report";
@@ -235,13 +285,18 @@ const pluginSummaryToResolutions = (report: ReportContextTestReport): ReportCont
   accepted: report.stats.resolutions?.accepted ?? 0,
 });
 
-const renderFilteredReports = (reports: ReportContextTestReport[]): string | undefined => {
+const renderFilteredReports = (
+  reports: ReportContextTestReport[],
+  options: RenderReportSummaryMarkdownOptions,
+): string | undefined => {
   const rows = reports.map((report) => ({
+    kind: "report" as const,
     name: report.name,
     duration: report.duration,
     stats: pluginSummaryToStatusStats(report),
     flags: pluginSummaryToFlags(report),
     resolutions: pluginSummaryToResolutions(report),
+    report,
   }));
 
   if (!rows.length) {
@@ -251,7 +306,7 @@ const renderFilteredReports = (reports: ReportContextTestReport[]): string | und
   const includeResolutions = rows.some(({ resolutions }) => resolutions && hasResolutions(resolutions));
   const links = renderReportLinks(reports);
 
-  return ["**Filtered Reports**", renderTable(rows, includeResolutions), ...links].join("\n\n");
+  return ["**Filtered Reports**", renderTable(rows, includeResolutions, options), ...links].join("\n\n");
 };
 
 const renderArtifacts = (artifacts: ReportContextArtifact[]): string | undefined => {
@@ -259,18 +314,17 @@ const renderArtifacts = (artifacts: ReportContextArtifact[]): string | undefined
     return undefined;
   }
 
-  const rows = artifacts.map(({ name, path }) => `| ${tableCell(name)} | ${tableCell(path)} |`);
+  const rows = artifacts.map(({ name, path }) => {
+    const normalizedPath = path.replaceAll("\\", "/");
+    const isDuplicateName = name === path || normalizedPath.endsWith(`/${name}`);
+    const label = isDuplicateName ? inlineCode(path) : `${inlineCode(name)} &mdash; ${inlineCode(path)}`;
 
-  return [
-    `<details>`,
-    `<summary>Artifacts used (${artifacts.length})</summary>`,
-    "",
-    "| Name | Path |",
-    "| --- | --- |",
-    ...rows,
-    "",
-    "</details>",
-  ].join("\n");
+    return `- ${label}`;
+  });
+
+  return [`<details>`, `<summary>Artifacts used (${artifacts.length})</summary>`, "", ...rows, "", "</details>"].join(
+    "\n",
+  );
 };
 
 export const renderReportSummaryMarkdown = (
@@ -280,8 +334,13 @@ export const renderReportSummaryMarkdown = (
   const { title = "Allure Report Summary", includeArtifacts = true } = options;
   const regularReports = context.reports.filter((report) => report.filtered !== true);
   const filteredReports = context.reports.filter((report) => report.filtered === true);
-  const aggregateRows: SummaryRow[] = [
+  const renderOptions = {
+    ...options,
+    getReportFilterHref: options.getReportFilterHref ?? createDefaultReportFilterHref(regularReports),
+  };
+  const aggregateRows: ReportSummaryMarkdownRow[] = [
     {
+      kind: "total",
       name: "All tests",
       duration: context.totals.duration,
       stats: context.totals.stats,
@@ -289,6 +348,7 @@ export const renderReportSummaryMarkdown = (
       resolutions: context.totals.resolutions,
     },
     ...context.environments.map((environment) => ({
+      kind: "environment" as const,
       name: environment.name,
       duration: environment.duration,
       stats: environment.stats,
@@ -298,9 +358,9 @@ export const renderReportSummaryMarkdown = (
   const includeResolutions = hasResolutions(context.totals.resolutions);
   const sections = [
     `# ${escapeHtml(title)}`,
-    renderTable(aggregateRows, includeResolutions),
+    renderTable(aggregateRows, includeResolutions, renderOptions),
     ...renderReportLinks(regularReports),
-    renderFilteredReports(filteredReports),
+    renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,
   ].filter((section): section is string => Boolean(section));
 
