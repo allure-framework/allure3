@@ -11,9 +11,9 @@ import {
 } from "@allurereport/web-commons";
 import cx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 
-import { IconButton } from "@/components/Button";
+import { Button, IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
 import { TreeItem } from "@/components/Tree/TreeItem";
 
@@ -38,7 +38,26 @@ interface TreeProps {
   focusIdPrefix?: string;
   /** When set, must match keyboard navigation open state (e.g. awesome `isTreeOpened`). */
   isGroupOpened?: (scopedNodeId: string, openedByDefault: boolean) => boolean;
+  showMoreLabel?: string;
 }
+
+const PAGE_SIZE = 30;
+
+const subtreeContainsFocus = (
+  tree: RecursiveTree,
+  focusedId: string,
+  toScopedId: (nodeId: string) => string,
+): boolean => {
+  if (toScopedId(tree.nodeId) === focusedId) {
+    return true;
+  }
+
+  if (tree.leaves.some((leaf) => toScopedId(leaf.nodeId) === focusedId || leaf.nodeId === focusedId)) {
+    return true;
+  }
+
+  return tree.trees.some((subTree) => subtreeContainsFocus(subTree, focusedId, toScopedId));
+};
 
 const isFailedOrBrokenNode = (statistic?: Statistic) =>
   statistic === undefined || Boolean(statistic?.failed || statistic?.broken);
@@ -72,6 +91,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   focusIdPrefix,
   isGroupOpened,
   navigateTo,
+  showMoreLabel = "Show more",
 }) => {
   const rootNodeId = tree.nodeId as string;
   const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
@@ -129,6 +149,24 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     });
   };
 
+  const totalChildren = tree.trees.length + tree.leaves.length;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const focusChildIndex = focusedId
+    ? tree.trees.findIndex((subTree) => subtreeContainsFocus(subTree, focusedId, toScopedId))
+    : -1;
+  const focusedLeafIndex =
+    focusChildIndex < 0 && focusedId
+      ? tree.leaves.findIndex((leaf) => toScopedId(leaf.nodeId) === focusedId || leaf.nodeId === focusedId)
+      : -1;
+  const focusedIndex =
+    focusChildIndex >= 0 ? focusChildIndex : focusedLeafIndex >= 0 ? tree.trees.length + focusedLeafIndex : -1;
+
+  useLayoutEffect(() => {
+    if (focusedIndex >= visibleCount) {
+      setVisibleCount(focusedIndex + 1);
+    }
+  }, [focusedIndex, visibleCount]);
+
   const toggleSubtree = (event: MouseEvent) => {
     event.stopPropagation();
     const nextState = getNextSubtreeToggleState({
@@ -148,7 +186,11 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     return null;
   }
 
-  const renderedSubtrees = tree.trees.map((subTree) => (
+  const visibleTreeCount = Math.min(tree.trees.length, visibleCount);
+  const visibleTrees = tree.trees.slice(0, visibleTreeCount);
+  const visibleLeaves = tree.leaves.slice(0, Math.max(0, visibleCount - tree.trees.length));
+
+  const renderedSubtrees = visibleTrees.map((subTree) => (
     <Tree
       key={subTree.nodeId}
       name={subTree.name}
@@ -163,10 +205,11 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       focusIdPrefix={focusIdPrefix}
       isGroupOpened={isGroupOpened}
       navigateTo={navigateTo}
+      showMoreLabel={showMoreLabel}
     />
   ));
 
-  const renderedLeaves = tree.leaves.map((leaf) => (
+  const renderedLeaves = visibleLeaves.map((leaf) => (
     <TreeItem
       data-testid="tree-leaf"
       key={leaf.nodeId}
@@ -203,6 +246,17 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     <div data-testid="tree-content" className={contentClassName}>
       {renderedSubtrees}
       {renderedLeaves}
+      {visibleCount < totalChildren && (
+        <div className={styles["tree-show-more"]} data-testid="tree-show-more">
+          <Button
+            type="button"
+            style="outline"
+            size="s"
+            text={showMoreLabel}
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+          />
+        </div>
+      )}
     </div>
   ) : null;
 
