@@ -44,6 +44,7 @@ export const convertTestResult = (tr: TestResult): ReportTestResult => {
     links: tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
+    errors: tr.errors,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
     setup: [],

@@ -48,6 +48,18 @@ describe("convertTestResult", () => {
     expect(result.retryHash).toBe("retry-hash");
   });
 
+  it("keeps multiple test errors on convert", () => {
+    const result = convertTestResult(
+      createTestResult({
+        error: { message: "first assertion" },
+        errors: [{ message: "first assertion" }, { message: "second assertion" }],
+      }),
+    );
+
+    expect(result.error).toEqual({ message: "first assertion" });
+    expect(result.errors).toEqual([{ message: "first assertion" }, { message: "second assertion" }]);
+  });
+
   it("keeps known resolution fields on convert", () => {
     const result = convertTestResult(
       createTestResult({
