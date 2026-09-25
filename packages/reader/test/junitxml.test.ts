@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -586,8 +586,9 @@ describe("junit xml reader", () => {
         onTestFinished(() => rm(dir, { recursive: true, force: true }));
         const absolutePath = join(dir, "absolute.json");
         const reportPath = join(dir, "report.xml");
-        const stdout = `before\n[[ATTACHMENT|./relative.txt]]\n[[ATTACHMENT|${absolutePath}]]\nafter`;
-        await writeFile(join(dir, "relative.txt"), "relative attachment");
+        const stdout = `before\n[[ATTACHMENT|./attachments/relative.txt]]\n[[ATTACHMENT|${absolutePath}]]\nafter`;
+        await mkdir(join(dir, "attachments"));
+        await writeFile(join(dir, "attachments", "relative.txt"), "relative attachment");
         await writeFile(absolutePath, '{"message":"absolute attachment"}');
         await writeFile(
           reportPath,
@@ -626,7 +627,7 @@ describe("junit xml reader", () => {
       });
 
       it("should warn about unreadable attachments", async ({ onTestFinished }) => {
-        const path = join(tmpdir(), randomUUID(), "missing.txt");
+        const path = join(randomUUID(), "missing.txt");
         const stdout = `before\n[[ATTACHMENT|${path}]]\nafter`;
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         onTestFinished(() => warn.mockRestore());
@@ -649,6 +650,68 @@ describe("junit xml reader", () => {
           status: "passed",
           steps: [{ type: "attachment", name: "System output", originalFileName: attachment.getOriginalFileName() }],
         });
+      });
+
+      it("should reject invalid attachment paths", async ({ onTestFinished }) => {
+        const dir = await mkdtemp(join(tmpdir(), "allure-junit-"));
+        onTestFinished(() => rm(dir, { recursive: true, force: true }));
+        const reportDir = join(dir, "report");
+        const siblingDir = join(dir, "report-other");
+        await mkdir(reportDir);
+        await mkdir(siblingDir);
+        await mkdir(join(reportDir, "attachments"));
+        await writeFile(join(siblingDir, "secret.txt"), "private data");
+        await writeFile(join(reportDir, "valid.txt"), "valid attachment");
+        const paths = [join(siblingDir, "secret.txt"), "../report-other/secret.txt", ".", "attachments"];
+        const stdout = [...paths, "valid.txt"].map((path) => `[[ATTACHMENT|${path}]]`).join("\n");
+        const reportPath = join(reportDir, "report.xml");
+        await writeFile(
+          reportPath,
+          `<testsuite><testcase name="test"><system-out><![CDATA[${stdout}]]></system-out></testcase></testsuite>`,
+        );
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+        const visitor = mockVisitor();
+
+        expect(await junitXml.read(visitor, new PathResultFile(reportPath))).toBe(true);
+        const files = visitor.visitAttachmentFile.mock.calls.map(([file]) => file);
+        expect(await Promise.all(files.map((file) => file.asUtf8String()))).toEqual([stdout, "valid attachment"]);
+        expect(visitor.visitTestResult.mock.calls[0][0].steps).toHaveLength(2);
+        expect(warn).toHaveBeenCalledTimes(paths.length);
+        for (const path of paths) {
+          expect(warn).toHaveBeenCalledWith(expect.stringContaining(path), expect.any(Error));
+        }
+      });
+
+      it("should reject symbolic link attachments", async ({ onTestFinished }) => {
+        const dir = await mkdtemp(join(tmpdir(), "allure-junit-"));
+        onTestFinished(() => rm(dir, { recursive: true, force: true }));
+        const reportDir = join(dir, "report");
+        await mkdir(reportDir);
+        await writeFile(join(dir, "secret.txt"), "private data");
+        await writeFile(join(reportDir, "inside.txt"), "inside data");
+        await symlink(join(dir, "secret.txt"), join(reportDir, "external-link.txt"), "file");
+        await symlink(join(reportDir, "inside.txt"), join(reportDir, "internal-link.txt"), "file");
+        await symlink(dir, join(reportDir, "linked-dir"), "junction");
+        const paths = ["external-link.txt", "internal-link.txt", "linked-dir/secret.txt"];
+        const stdout = paths.map((path) => `[[ATTACHMENT|${path}]]`).join("\n");
+        const reportPath = join(reportDir, "report.xml");
+        await writeFile(
+          reportPath,
+          `<testsuite><testcase name="test"><system-out><![CDATA[${stdout}]]></system-out></testcase></testsuite>`,
+        );
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+        const visitor = mockVisitor();
+
+        expect(await junitXml.read(visitor, new PathResultFile(reportPath))).toBe(true);
+        const files = visitor.visitAttachmentFile.mock.calls.map(([file]) => file);
+        expect(await Promise.all(files.map((file) => file.asUtf8String()))).toEqual([stdout]);
+        expect(visitor.visitTestResult.mock.calls[0][0].steps).toHaveLength(1);
+        expect(warn).toHaveBeenCalledTimes(paths.length);
+        for (const path of paths) {
+          expect(warn).toHaveBeenCalledWith(expect.stringContaining(path), expect.any(Error));
+        }
       });
 
       it("should ignore a missing system-out", async () => {
