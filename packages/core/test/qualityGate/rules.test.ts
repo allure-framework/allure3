@@ -591,6 +591,15 @@ describe("default rules success messages", () => {
   ])("should provide a success message for the %# default rule", (rule, payload, expectedMessage) => {
     expect(stripAnsi(rule.successMessage?.(payload as any) ?? "")).toBe(expectedMessage);
   });
+
+  it("should round fractional success rate values in messages", () => {
+    const payload = { actual: 0.782608695652174, expected: 0.95 };
+
+    expect(stripAnsi(successRateRule.message(payload))).toBe("Success rate 0.783 is less, than expected 0.95");
+    expect(stripAnsi(successRateRule.successMessage?.(payload) ?? "")).toBe(
+      "Success rate 0.783 is not less, than expected 0.95",
+    );
+  });
 });
 
 describe("metric quality gate rules", () => {
