@@ -136,8 +136,12 @@ export const getReportStaticAsset = (assets: ReportStaticAssets, fileName: strin
   return content;
 };
 
-export const copyReportStaticAssets = async (assets: ReportStaticAssets, reportFiles: ReportFiles): Promise<void> => {
+export const copyReportStaticAssets = async (
+  assets: ReportStaticAssets,
+  reportFiles: ReportFiles,
+  keyPrefix?: string,
+): Promise<void> => {
   for (const [fileName, content] of assets.files) {
-    await reportFiles.addFile(fileName, content);
+    await reportFiles.addFile(keyPrefix ? posix.join(keyPrefix, fileName) : fileName, content);
   }
 };

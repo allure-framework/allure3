@@ -3,13 +3,20 @@ import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
 import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
-import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import {
+  type Config,
+  type Plugin,
+  type PluginConstructorContext,
+  type PluginDescriptor,
+  SHARED_DIR,
+} from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
+import { SharedReportFiles } from "./sharedStorage.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -81,6 +88,10 @@ export const assertValidPluginId = (id: string): void => {
 
   if (/[/\\]/.test(id)) {
     throw new Error(`Invalid plugin id ${JSON.stringify(id)}: must not contain path separators`);
+  }
+
+  if (id === SHARED_DIR) {
+    throw new Error(`Invalid plugin id ${JSON.stringify(id)}: the name is reserved for unified storage`);
   }
 
   if (isWindows()) {
@@ -173,6 +184,7 @@ export const validateConfig = (config: Config) => {
     "globalAttachments",
     "resultsDir",
     "dump",
+    "unifiedStorage",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -396,6 +408,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     historyBaseUrl,
     dump,
     reportFiles: new FileSystemReportFiles(output),
+    sharedReportFiles: config.unifiedStorage ? new SharedReportFiles(output) : undefined,
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,

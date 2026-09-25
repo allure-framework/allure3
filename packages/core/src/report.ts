@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -28,6 +28,7 @@ import {
   type PluginSummary,
   type ReportFiles,
   type ResultFile,
+  SHARED_DIR,
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
@@ -48,7 +49,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "./history.js";
-import { DefaultPluginState, PluginFiles } from "./plugin.js";
+import { DefaultPluginState, PluginFiles, TrackedReportFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -151,6 +152,7 @@ export class AllureReport {
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
+  readonly #sharedReportFiles: ReportFiles | undefined;
   readonly #realtimeChannel: RealtimeChannel;
   readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
@@ -176,6 +178,7 @@ export class AllureReport {
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
+  #sharedFiles: Record<string, string> = {};
   #published = false;
   #endGeneratePerfSpan?: () => void;
 
@@ -190,6 +193,7 @@ export class AllureReport {
       plugins = [],
       resolutions,
       reportFiles,
+      sharedReportFiles,
       realTime,
       historyPath,
       historyBaseUrl,
@@ -286,6 +290,11 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
+    this.#sharedReportFiles = sharedReportFiles
+      ? new TrackedReportFiles(sharedReportFiles, (key, filepath) => {
+          this.#sharedFiles[key] = filepath;
+        })
+      : undefined;
     this.#output = output;
   }
 
@@ -391,6 +400,14 @@ export class AllureReport {
       return;
     }
 
+    if (Object.keys(this.#sharedFiles).length > 0) {
+      reportsToPublish.push({
+        pluginId: SHARED_DIR,
+        publish: true,
+        files: { ...this.#sharedFiles },
+      });
+    }
+
     const client = this.#allureServiceClient;
     const linksByPluginId: Record<string, string> = {};
     const summariesSnapshot = this.#cloneSummariesByPluginId();
@@ -440,7 +457,7 @@ export class AllureReport {
           }),
         );
 
-        if (uploadResult.indexHref) {
+        if (uploadResult.indexHref && report.pluginId !== SHARED_DIR) {
           linksByPluginId[report.pluginId] = uploadResult.indexHref;
         }
       }
@@ -1211,7 +1228,7 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       this.#summaryPath = await measurePerf(PERF_METRIC_NAMES.summaryGenerate, async () =>
-        generateSummary(this.#output, summaries),
+        generateSummary(this.#output, summaries, this.reportName),
       );
     } else {
       this.#summaryPath = undefined;
@@ -1300,8 +1317,9 @@ export class AllureReport {
         return;
       }
 
+      const pluginDirectoryNames = outputDirFiles.filter((name) => name !== SHARED_DIR);
       const outputEntries = await Promise.all(
-        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+        pluginDirectoryNames.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
       );
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
       const shouldFlattenOutput = outputDirectoryEntries.length === 1;
@@ -1319,21 +1337,31 @@ export class AllureReport {
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
       if (shouldFlattenOutput) {
-        const reportPath = join(this.#output, outputDirectoryEntries[0].file);
-        const reportContent = await readdir(reportPath);
+        const pluginDirPath = join(this.#output, outputDirectoryEntries[0].file);
+        const reportContent = await readdir(pluginDirPath);
 
         for (const entry of reportContent) {
           if (ROOT_INTEGRATION_FILENAMES.has(entry)) {
             continue;
           }
 
-          const currentFilePath = join(reportPath, entry);
+          const currentFilePath = join(pluginDirPath, entry);
           const newFilePath = resolve(dirname(currentFilePath), "..", entry);
 
           await rename(currentFilePath, newFilePath);
         }
 
-        await rm(reportPath, { recursive: true });
+        await rm(pluginDirPath, { recursive: true });
+
+        if (this.#sharedReportFiles) {
+          const indexPath = join(this.#output, "index.html");
+
+          try {
+            const html = await readFile(indexPath, "utf-8");
+
+            await writeFile(indexPath, html.replaceAll(`../${SHARED_DIR}/`, `${SHARED_DIR}/`), "utf-8");
+          } catch {}
+        }
       }
 
       await this.#finishArtifactsManifest();
@@ -1428,6 +1456,7 @@ export class AllureReport {
         hideLabels: this.#hideLabels,
         state: pluginState,
         reportFiles: pluginFiles,
+        sharedReportFiles: this.#sharedReportFiles,
         reportUrl: this.reportUrl,
         realTime: !!this.#realTime,
         output: this.#output,

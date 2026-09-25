@@ -46,6 +46,25 @@ export class PluginFiles implements ReportFiles {
   };
 }
 
+export class TrackedReportFiles implements ReportFiles {
+  readonly #parent: ReportFiles;
+
+  constructor(
+    parent: ReportFiles,
+    readonly callback: (key: string, path: string) => void | Promise<void>,
+  ) {
+    this.#parent = parent;
+  }
+
+  addFile = async (key: string, data: Buffer): Promise<string> => {
+    const filepath = await this.#parent.addFile(key, data);
+
+    await this.callback(key, filepath);
+
+    return filepath;
+  };
+}
+
 export class InMemoryReportFiles implements ReportFiles {
   #state: Record<string, Buffer> = {};
 

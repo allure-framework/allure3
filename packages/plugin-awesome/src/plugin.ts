@@ -296,6 +296,7 @@ export class AwesomePlugin implements Plugin {
       id: context.id,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
+      sharedReportFiles: context.sharedReportFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
       ci: context.ci,
@@ -314,7 +315,7 @@ export class AwesomePlugin implements Plugin {
       return;
     }
 
-    this.#writer = new ReportFileDataWriter(context.reportFiles);
+    this.#writer = new ReportFileDataWriter(context.reportFiles, context.sharedReportFiles);
 
     await Promise.resolve();
   };
