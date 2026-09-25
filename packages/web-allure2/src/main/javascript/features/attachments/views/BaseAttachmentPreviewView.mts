@@ -1,4 +1,4 @@
-import { fetchReportText, reportDataUrl } from "../../../core/services/reportData.mts";
+import { fetchReportBlob, fetchReportText, reportDataUrl } from "../../../core/services/reportData.mts";
 import { mountAsyncView } from "../../../core/view/asyncMount.mts";
 import { defineMountableElement } from "../../../core/view/elementView.mts";
 import { attachMountable, destroyMountable } from "../../../core/view/mountables.mts";
@@ -67,8 +67,8 @@ export const loadAttachmentText = (options: AttachmentPreviewOptions) =>
 export const loadAttachmentSourceUrl = (options: AttachmentPreviewOptions) =>
   reportDataUrl(attachmentUrl(options.attachment), options.attachment.type);
 
-const createDownloadLink = (attachment: Attachment, sourceUrl?: string | null) =>
-  createElement("a", {
+const createDownloadLink = (attachment: Attachment, sourceUrl?: string | null) => {
+  const link = createElement("a", {
     attrs: {
       download: attachment.name || "",
       href: sourceUrl || undefined,
@@ -76,6 +76,29 @@ const createDownloadLink = (attachment: Attachment, sourceUrl?: string | null) =
     className: "link",
     text: translate("component.attachment.download"),
   });
+
+  link.addEventListener("click", async (event) => {
+    event.preventDefault();
+
+    const blob = await fetchReportBlob(sourceUrl || attachmentUrl(attachment), {
+      contentType: attachment.type,
+    });
+    const blobUrl = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+
+    downloadLink.href = blobUrl;
+    downloadLink.download = attachment.name || attachment.source;
+    try {
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+    } finally {
+      downloadLink.remove();
+      URL.revokeObjectURL(blobUrl);
+    }
+  });
+
+  return link;
+};
 
 export const createDownloadAction = (attachment: Attachment, sourceUrl?: string | null) => {
   const downloadAction = createDiv("attachment-preview__download");
