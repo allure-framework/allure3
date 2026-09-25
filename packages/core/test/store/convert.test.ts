@@ -382,3 +382,74 @@ describe("testResultRawToState", () => {
     });
   });
 });
+
+describe("testResultRawToState string deduplication", () => {
+  const raw = {
+    uuid: "uuid-1",
+    name: "test",
+    fullName: "suite.test",
+    labels: [{ name: "suite", value: "suite" }],
+    parameters: [{ name: "browser", value: "chrome" }],
+    steps: [
+      {
+        type: "step" as const,
+        name: "open page",
+        status: "failed" as const,
+        message: "boom",
+        trace: "at line 1",
+        parameters: [{ name: "request", value: "GET /index.html" }],
+        steps: [{ type: "step" as const, name: "nested", parameters: [{ name: "n", value: "1" }] }],
+      },
+    ],
+  };
+  const stateData = (deduplicateString?: StateData["deduplicateString"]): StateData => ({
+    testCases: new Map(),
+    attachments: new Map(),
+    visitAttachmentLink: () => {},
+    deduplicateString,
+  });
+
+  it("should produce the same result with and without a deduplicateString function", () => {
+    const deduplicated = testResultRawToState(
+      stateData((value) => value),
+      raw,
+      { readerId },
+    );
+    const plain = testResultRawToState(stateData(), raw, { readerId });
+
+    expect({ ...deduplicated, id: "", sourceMetadata: undefined }).toEqual({
+      ...plain,
+      id: "",
+      sourceMetadata: undefined,
+    });
+  });
+
+  it("should pass step names, step parameters, labels and test parameters through the deduplicateString function", () => {
+    const seen: unknown[] = [];
+
+    testResultRawToState(
+      stateData((value) => {
+        seen.push(value);
+        return value;
+      }),
+      raw,
+      { readerId },
+    );
+
+    expect(seen).toEqual(
+      expect.arrayContaining([
+        "open page",
+        "nested",
+        "request",
+        "GET /index.html",
+        "n",
+        "1",
+        "boom",
+        "at line 1",
+        "suite",
+        "browser",
+        "chrome",
+      ]),
+    );
+  });
+});
