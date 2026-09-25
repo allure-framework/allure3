@@ -13,6 +13,7 @@
 .tree-section {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 4px;
   transition: background-color 300ms;
   cursor: pointer;
@@ -62,7 +63,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 24px;
-  flex-grow: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .tree-subtree-toggle {
@@ -86,6 +88,9 @@
   display: flex;
   justify-content: space-between;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 6px 8px 6px 6px;
   border: 0;
   transition: background-color 300ms;
@@ -110,6 +115,8 @@
   display: flex;
   align-items: flex-start;
   margin-right: auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -121,9 +128,12 @@
 
 .tree-content:not(.root) {
   display: block;
+  min-width: 0;
+  max-width: 100%;
   padding-left: 24px;
   margin-bottom: 12px;
   border-top: 1px solid var(--color-border-subtle);
+  box-sizing: border-box;
 }
 
 .tree-item-icon {

@@ -78,13 +78,20 @@ const metricActual = (metrics: MetricSample[], key: string, value: number): Metr
   };
 };
 
+const formatQualityGateNumber = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
+};
+
 const formatMetricValue = (value: number, unit?: string) => {
   if (!Number.isFinite(value)) {
     return "n/a";
   }
 
-  const finiteValue = value as number;
-  const formatted = Number.isInteger(finiteValue) ? String(finiteValue) : String(Number(finiteValue.toFixed(3)));
+  const formatted = formatQualityGateNumber(value);
 
   return unit ? `${formatted} ${unit}` : formatted;
 };
@@ -161,9 +168,9 @@ export const minTestsCountRule: QualityGateRule<number> = {
 export const successRateRule: QualityGateRule<number> = {
   rule: "successRate",
   message: ({ actual, expected }) =>
-    `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
+    `Success rate ${bold(formatQualityGateNumber(actual))} is less, than expected ${bold(formatQualityGateNumber(expected))}`,
   successMessage: ({ actual, expected }) =>
-    `Success rate ${bold(String(actual))} is not less, than expected ${bold(String(expected))}`,
+    `Success rate ${bold(formatQualityGateNumber(actual))} is not less, than expected ${bold(formatQualityGateNumber(expected))}`,
   validate: async ({ trs, expected, state }) => {
     const previous = successRateStateValue(state.getResult());
     const eligibleTrs = trs.filter(filterIncludedInSuccessRate);
