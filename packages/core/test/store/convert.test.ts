@@ -233,6 +233,57 @@ describe("testResultRawToState", () => {
     expect(first.testCase).toBe(second.testCase);
     expect(second.testCase).toBe(third.testCase);
     expect(first.testCase?.allureId).toBe("123");
+    expect(first.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8("test-case-id"));
+    expect(second.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8("ALLURE_ID=123"));
+    expect(third.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8("ALLURE_ID=456"));
+  });
+
+  it.each([
+    {
+      name: "preserved whitespace",
+      labels: [{ name: "ALLURE_ID", value: " 123 " }],
+      expectedIdentity: "ALLURE_ID= 123 ",
+    },
+    {
+      name: "blank ID before a valid ID",
+      labels: [
+        { name: "ALLURE_ID", value: "" },
+        { name: "ALLURE_ID", value: "123" },
+      ],
+      expectedIdentity: "test-case-id",
+    },
+    {
+      name: "-1 sentinel before a valid ID",
+      labels: [
+        { name: "ALLURE_ID", value: "-1" },
+        { name: "AS_ID", value: "123" },
+      ],
+      expectedIdentity: "ALLURE_ID=123",
+    },
+  ])("preserves the legacy raw-label selection for $name", async ({ labels, expectedIdentity }) => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        testId: "test-case-id",
+        labels,
+      },
+      { readerId },
+    );
+
+    expect(result.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8(expectedIdentity));
+  });
+
+  it("preserves per-result legacy identity when canonical test cases are interned from different fields", async () => {
+    const first = await functionUnderTest(emptyStateData, { fullName: "shared-identity" }, { readerId });
+    const second = await functionUnderTest(
+      emptyStateData,
+      { testId: "shared-identity", fullName: "different-full-name" },
+      { readerId },
+    );
+
+    expect(first.testCase).toBe(second.testCase);
+    expect(first.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8("shared-identity"));
+    expect(second.sourceMetadata.legacyTestCaseHash).toBe(md5Utf8("shared-identity"));
   });
 
   it("should include parameters in canonical hashes", async () => {

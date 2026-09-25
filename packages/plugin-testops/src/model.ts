@@ -172,24 +172,18 @@ export type UploadFixturesResultsDto = {
 
 export type TestResultWithCategories = Pick<
   TestResult,
-  | "status"
-  | "labels"
-  | "error"
-  | "flaky"
-  | "duration"
-  | "transition"
-  | "environment"
-  | "testCaseHash"
-  | "parametersHash"
-> & {
-  categories?: {
-    id?: string;
-    name: string;
-    grouping?: UploadCategoryGrouping[];
-    hide?: boolean;
-    expand?: boolean;
-  }[];
-};
+  "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
+> &
+  Partial<Pick<TestResult, "id" | "name" | "testCase" | "fullName" | "parameters" | "sourceMetadata">> & {
+    historyId?: string;
+    categories?: {
+      id?: string;
+      name: string;
+      grouping?: UploadCategoryGrouping[];
+      hide?: boolean;
+      expand?: boolean;
+    }[];
+  };
 
 export interface TestOpsPluginTestResult extends TestResult {
   category?: UploadCategory & { id?: number };

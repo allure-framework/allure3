@@ -89,6 +89,7 @@ export const testFixtureResultRawToState = (
 };
 
 export const testResultRawToState = (stateData: StateData, raw: RawTestResult, context: ReaderContext): TestResult => {
+  const legacyTestCaseHash = calculateLegacyTestCaseHash(raw);
   const allureId = raw.labels
     ?.find((label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value?.trim())
     ?.value?.trim();
@@ -146,9 +147,30 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
       metadata: context.metadata ?? {},
       legacyHistoryId: raw.historyId?.length ? raw.historyId : undefined,
       reportedFlaky: raw.flaky ?? false,
+      legacyTestCaseHash,
     },
     titlePath: raw.titlePath ?? [],
   };
+};
+
+const calculateLegacyTestCaseHash = (raw: RawTestResult): string | undefined => {
+  const maybeAllureId = raw.labels?.find(
+    (label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value !== "-1",
+  )?.value;
+
+  if (maybeAllureId) {
+    return md5(`ALLURE_ID=${maybeAllureId}`);
+  }
+
+  if (raw.testId) {
+    return md5(raw.testId);
+  }
+
+  if (raw.fullName) {
+    return md5(raw.fullName);
+  }
+
+  return undefined;
 };
 
 const processTestCase = ({

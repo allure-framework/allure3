@@ -39,6 +39,15 @@ export interface SourceMetadata {
    * candidates change.
    */
   reportedFlaky?: boolean;
+  /**
+   * Per-result test-case hash produced by the identity algorithm that preceded
+   * canonical retry hashes. Used only to build the temporary TestOps
+   * compatibility `historyId`.
+   *
+   * @deprecated Remove when TestOps accepts canonical `retryHash` directly.
+   * See https://github.com/allure-framework/allure3/pull/903.
+   */
+  legacyTestCaseHash?: string;
 }
 
 export interface TestError {

@@ -16,7 +16,6 @@ type CategoryOverrides = Partial<CategoryDefinition>;
 type UploadCategoryTr = TestResultWithCategories & {
   id?: string;
   name?: string;
-  retryHash?: string;
 };
 
 const matcherFailed: Matcher = { statuses: ["failed"] };
@@ -40,8 +39,6 @@ const mkTr = (overrides: Partial<UploadCategoryTr> = {}): UploadCategoryTr => ({
   flaky: false,
   transition: undefined,
   environment: undefined,
-  testCaseHash: null,
-  parametersHash: "",
   error: undefined,
   ...overrides,
 });
@@ -193,9 +190,13 @@ describe("toUploadCategory", () => {
     const tr = mkTr({
       id: "tr-id-1",
       name: "My failed test",
-      retryHash: "case-id-1.params-id-1.environment-id",
-      testCaseHash: "case-id-1",
-      parametersHash: "params-id-1",
+      testCase: { externalId: "test-id" } as UploadCategoryTr["testCase"],
+      parameters: [],
+      sourceMetadata: {
+        readerId: "test",
+        metadata: {},
+        legacyTestCaseHash: "361dc45aacd2d2a1961554d12a2d666b",
+      },
       environment: "stage",
     });
     const category = mkCategory({ groupEnvironments: true });
@@ -204,7 +205,11 @@ describe("toUploadCategory", () => {
       externalId: "product-errors",
       name: "Product errors",
       grouping: [
-        { key: "historyId", value: "case-id-1.params-id-1", name: "My failed test" },
+        {
+          key: "historyId",
+          value: "361dc45aacd2d2a1961554d12a2d666b.d41d8cd98f00b204e9800998ecf8427e",
+          name: "My failed test",
+        },
         { key: "environment", value: "stage", name: "environment: stage" },
       ],
       hide: false,
