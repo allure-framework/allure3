@@ -3,9 +3,11 @@
 }
 
 .tr-metadata-wrapper {
+  border: var(--section-frame, 0 none);
+  border-radius: var(--section-radius, 0);
+  padding-inline: var(--section-padding-inline, 0);
   border-bottom: 1px solid var(--color-border-default);
-  padding-top: 8px;
-  padding-bottom: 12px;
+  padding-block: var(--section-padding-block, 8px 12px);
 }
 
 .pw-trace {

@@ -27,6 +27,11 @@
 }
 
 .test-results {
+  border: var(--section-frame, 0 none);
+  margin-block-start: var(--section-gap, 0);
+  border-radius: var(--section-radius, 0);
+  padding-inline: var(--section-padding-inline, 0);
+  margin-inline: var(--section-gutter, 0);
   min-height: 320px;
   padding-bottom: 64px;
   padding-top: 12px;
