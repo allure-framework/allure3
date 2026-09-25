@@ -38,7 +38,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
