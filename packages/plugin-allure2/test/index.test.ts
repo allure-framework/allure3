@@ -1,4 +1,4 @@
-import type { GlobalAttachmentLink } from "@allurereport/core-api";
+import type { GlobalAttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -43,7 +43,28 @@ const attachmentFile = {
   getContentLength: vi.fn().mockReturnValue(10),
 } as unknown as ResultFile;
 
-const createStore = (): AllureStore =>
+const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
+  ({
+    id: "test-result",
+    name: "test",
+    status: "passed",
+    parametersHash: "parameters-hash",
+    flaky: false,
+    muted: false,
+    known: false,
+    isRetry: false,
+    labels: [],
+    parameters: [],
+    links: [],
+    steps: [],
+    sourceMetadata: {
+      readerId: "test",
+      metadata: {},
+    },
+    ...overrides,
+  }) as TestResult;
+
+const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
   ({
     allAttachments: vi.fn().mockResolvedValue([presentAttachment, missingAttachment]),
     attachmentContentById: vi.fn(async (id: string) => (id === presentAttachment.id ? attachmentFile : undefined)),
@@ -65,6 +86,7 @@ const createStore = (): AllureStore =>
       retriesByTrId: new Map(),
     }),
     allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+    ...overrides,
   }) as unknown as AllureStore;
 
 const createContext = () => {
@@ -142,5 +164,83 @@ describe("Allure2Plugin", () => {
     expect(index).toContain("window.reportData = window.reportData || {};");
     expect(index).toContain('d("widgets/globals.json"');
     expect(index).not.toContain("window.allureReportData");
+  });
+
+  it("should prefer legacy history stored by canonical retry hash", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+    const testResult = createTestResult({
+      retryHash: "retry-hash",
+      sourceMetadata: {
+        readerId: "test",
+        metadata: {},
+        legacyHistoryId: "legacy-history-id",
+      },
+    });
+    const metadataByKey = vi.fn(async (key: string) =>
+      key === "allure2_history"
+        ? {
+            "retry-hash": {
+              statistic: { failed: 1, total: 1 },
+              items: [{ uid: "canonical", status: "failed", time: { duration: 10 } }],
+            },
+            "legacy-history-id": {
+              statistic: { broken: 1, total: 1 },
+              items: [{ uid: "legacy", status: "broken", time: { duration: 20 } }],
+            },
+          }
+        : undefined,
+    ) as unknown as AllureStore["metadataByKey"];
+    const store = createStore({
+      metadataByKey,
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+    });
+
+    await plugin.done(context, store);
+
+    const generatedTestResult = JSON.parse(files.get(`data/test-cases/${testResult.id}.json`)!.toString());
+
+    expect(generatedTestResult.retryHash).toBe("retry-hash");
+    expect(generatedTestResult).not.toHaveProperty("historyId");
+    expect(generatedTestResult.extra.history.items).toEqual([
+      {
+        uid: "canonical",
+        status: "failed",
+        time: { duration: 10 },
+      },
+    ]);
+  });
+
+  it("should ignore legacy source history IDs", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+    const testResult = createTestResult({
+      retryHash: "retry-hash",
+      sourceMetadata: {
+        readerId: "test",
+        metadata: {},
+        legacyHistoryId: "legacy-history-id",
+      },
+    });
+    const metadataByKey = vi.fn(async (key: string) =>
+      key === "allure2_history"
+        ? {
+            "legacy-history-id": {
+              statistic: { failed: 1, total: 1 },
+              items: [{ uid: "previous", status: "failed", time: { duration: 10 } }],
+            },
+          }
+        : undefined,
+    ) as unknown as AllureStore["metadataByKey"];
+    const store = createStore({
+      metadataByKey,
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+    });
+
+    await plugin.done(context, store);
+
+    const generatedTestResult = JSON.parse(files.get(`data/test-cases/${testResult.id}.json`)!.toString());
+
+    expect(generatedTestResult.extra.history.items).toEqual([]);
   });
 });

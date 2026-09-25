@@ -8,6 +8,7 @@ import type {
 } from "../model.js";
 import type { TestOpsPluginTestResult } from "../model.js";
 import { toUploadAttachmentDto } from "./attachments.js";
+import { calculateLegacyHistoryId } from "./legacyHistory.js";
 import { validateExecutableName } from "./validation.js";
 
 export const normalizeTestStepsResults = (steps: TestStepResult[] | undefined): TestStepResult[] | undefined => {
@@ -101,7 +102,7 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
 
   return {
     uuid: tr.id,
-    historyId: tr.historyId,
+    historyId: calculateLegacyHistoryId(tr),
     testCaseId: tr.testCase?.externalId,
     name: tr.name,
     fullName: tr.fullName,

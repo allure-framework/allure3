@@ -106,7 +106,7 @@ export interface AllureStoreDump {
   qualityGateResults: QualityGateValidationResult[];
   metrics?: MetricSample[];
   indexAttachmentByTestResult: Record<string, string[]>;
-  indexTestResultByHistoryId: Record<string, string[]>;
+  indexTestResultByRetryHash: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
   indexTestResultByResolutionIssue: Record<string, string[]>;
   indexAttachmentByFixture: Record<string, string[]>;
@@ -128,7 +128,7 @@ export enum AllureStoreDumpFiles {
   ReportVariables = "report-variables.json",
   ResolutionIssues = "resolution-issues.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
-  IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
+  IndexTestResultsByRetryHash = "index-test-results-by-retry-hash.json",
   IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
   IndexTestResultsByResolutionIssue = "index-test-results-by-resolution-issue.json",
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",

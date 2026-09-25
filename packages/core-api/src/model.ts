@@ -25,6 +25,29 @@ export interface AllureCheckResult {
 export interface SourceMetadata {
   readerId: string;
   metadata: { [key: string]: any };
+  /**
+   * An explicitly supplied legacy ID used only for read-only history lookup.
+   * Preserved in same-version dumps; never used to calculate canonical identity.
+   *
+   * @deprecated Remove with the legacy history compatibility bridge introduced in
+   * https://github.com/allure-framework/allure3/pull/903.
+   */
+  legacyHistoryId?: string;
+  /**
+   * The flaky flag supplied by the integration before history-based inference.
+   * Kept separately so derived flaky state can be recomputed when history
+   * candidates change.
+   */
+  reportedFlaky?: boolean;
+  /**
+   * Per-result test-case hash produced by the identity algorithm that preceded
+   * canonical retry hashes. Used only to build the temporary TestOps
+   * compatibility `historyId`.
+   *
+   * @deprecated Remove when TestOps accepts canonical `retryHash` directly.
+   * See https://github.com/allure-framework/allure3/pull/903.
+   */
+  legacyTestCaseHash?: string;
 }
 
 export interface TestError {
@@ -46,7 +69,9 @@ export interface TestResult {
   environment?: string;
 
   fullName?: string;
-  historyId?: string;
+  testCaseHash: string | null;
+  parametersHash: string;
+  environmentHash: string | null;
 
   description?: string;
   descriptionHtml?: string;
@@ -67,7 +92,7 @@ export interface TestResult {
 
   transition?: TestStatusTransition;
 
-  retryHash?: string;
+  retryHash: string | null;
   isRetry: boolean;
 
   hostId?: string;

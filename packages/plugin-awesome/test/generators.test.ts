@@ -556,14 +556,14 @@ describe("generateResolutionCategories", () => {
     const tests = [
       {
         ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
-        historyId: "history-1",
+        retryHash: "history-1",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
-        historyId: "history-2",
+        retryHash: "history-2",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
@@ -739,7 +739,7 @@ describe("generateSearchIndex", () => {
     };
     const visibleTest = {
       id: "tr-visible",
-      historyId: "history-visible",
+      retryHash: "history-visible",
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       status: "failed",
@@ -786,7 +786,7 @@ describe("generateSearchIndex", () => {
       nodeId: "tr-visible",
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
-      historyId: "history-visible",
+      retryHash: "history-visible",
       labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
       owner: "Igor Martynov",
       tags: "smoke",

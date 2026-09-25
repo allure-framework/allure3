@@ -1,33 +1,6 @@
-import type { TestParameter, TestResult } from "@allurereport/core-api";
-
-import { md5 } from "../utils/crypto.js";
+import type { TestResult } from "@allurereport/core-api";
 
 const NO_RETRIES: TestResult[] = [];
-
-const compareByNameThenValue = (first: TestParameter, second: TestParameter) =>
-  first.name.localeCompare(second.name) || first.value.localeCompare(second.value);
-
-const stringifyRetryParameters = (parameters: TestParameter[] = []): string =>
-  parameters
-    .filter((parameter) => !parameter.excluded)
-    .sort(compareByNameThenValue)
-    .map((parameter) => `${parameter.name}:${parameter.value}`)
-    .join(",");
-
-export const calculateParametersHash = (parameters: TestParameter[] = []): string =>
-  md5(stringifyRetryParameters(parameters));
-
-export const calculateRetryHash = (
-  testCaseId: string | undefined,
-  parametersHash: string,
-  environmentId: string | undefined,
-): string | undefined => {
-  if (!testCaseId) {
-    return undefined;
-  }
-
-  return md5(`${testCaseId}:${parametersHash}:${environmentId ?? "default"}`);
-};
 
 export class RetrySubstore {
   readonly #testResultsByRetryHash = new Map<string, TestResult[]>();

@@ -4,6 +4,7 @@ import { story } from "allure-js-commons";
 import axios from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { prepareTestResults } from "../src/helpers.js";
 import type { JiraPluginOptions } from "../src/plugin.js";
 import { JiraPlugin } from "../src/plugin.js";
 
@@ -23,6 +24,7 @@ const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => {
     allGlobalErrors: vi.fn().mockResolvedValue([]),
     globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
     allEnvironments: vi.fn().mockResolvedValue([]),
+    allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
     retriesByTr: vi.fn().mockResolvedValue([]),
   };
   return { ...defaultStore, ...partialStore } as AllureStore;
@@ -48,7 +50,9 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     id: "test-1",
     name: "Test 1",
     status: "passed",
-    historyId: "hist-1",
+    retryHash: "hist-1",
+    testCaseHash: "case-1",
+    parametersHash: "params-1",
     stop: Date.now(),
     links: [],
     parameters: [],
@@ -62,7 +66,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     ...overrides,
   }) as TestResult;
 
-const createJiraTestResult = (name = "Test with Jira link"): TestResult =>
+const createJiraTestResult = (name = "Test with Jira link", overrides: Partial<TestResult> = {}): TestResult =>
   createTestResult({
     name,
     links: [
@@ -72,6 +76,7 @@ const createJiraTestResult = (name = "Test with Jira link"): TestResult =>
         type: "issue",
       },
     ],
+    ...overrides,
   });
 
 const setupAxiosSpy = () => {
@@ -81,6 +86,21 @@ const setupAxiosSpy = () => {
 };
 
 describe("JiraPlugin", () => {
+  it("uses each dynamic result id instead of its environment-qualified retry hash", () => {
+    const first = createJiraTestResult("Dynamic test", {
+      id: "dynamic-dev",
+      retryHash: "shared-retry.environment-dev",
+      testCaseHash: null,
+    });
+    const second = createJiraTestResult("Dynamic test", {
+      id: "dynamic-prod",
+      retryHash: "shared-retry.environment-prod",
+      testCaseHash: null,
+    });
+
+    expect(prepareTestResults([first, second]).map(({ id }) => id)).toEqual(["dynamic-dev", "dynamic-prod"]);
+  });
+
   describe("Options validation", () => {
     it("should throw error if token is not provided", async () => {
       const plugin = new JiraPlugin({ ...defaultOptions, token: undefined, uploadReport: true });
@@ -135,7 +155,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-1",
+                id: "case-1.params-1",
                 name: "Test 1",
                 issue: expect.objectContaining({
                   url: "https://company.atlassian.net/browse/PROJ-123",
@@ -152,7 +172,7 @@ describe("JiraPlugin", () => {
     it("should include parameters that have same values across different environments", async () => {
       const testResult1 = createJiraTestResult("Test with same params");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-same";
+      testResult1.retryHash = "case-1.params-1.environment-dev";
       testResult1.environment = "dev";
       testResult1.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -161,7 +181,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Test with same params");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-same";
+      testResult2.retryHash = "case-1.params-1.environment-prod";
       testResult2.environment = "prod";
       testResult2.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -185,7 +205,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-same",
+                id: "case-1.params-1",
                 keyParams: [
                   { name: "browser", value: "chrome" },
                   { name: "version", value: "1.0" },
@@ -204,7 +224,7 @@ describe("JiraPlugin", () => {
     it("should exclude parameters that have different values across environments", async () => {
       const testResult1 = createJiraTestResult("Test with different params");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-diff";
+      testResult1.retryHash = "hist-diff";
       testResult1.environment = "dev";
       testResult1.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -213,7 +233,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Test with different params");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-diff";
+      testResult2.retryHash = "hist-diff";
       testResult2.environment = "prod";
       testResult2.parameters = [
         { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
@@ -237,7 +257,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-diff",
+                id: "case-1.params-1",
                 keyParams: [{ name: "browser", value: "chrome" }],
                 entries: expect.arrayContaining([
                   expect.objectContaining({ env: "dev" }),
@@ -287,7 +307,7 @@ describe("JiraPlugin", () => {
     it("should handle multiple test entries with mixed parameter scenarios", async () => {
       const testResult1 = createJiraTestResult("Complex test");
       testResult1.id = "test-1";
-      testResult1.historyId = "hist-complex";
+      testResult1.retryHash = "hist-complex";
       testResult1.environment = "env1";
       testResult1.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -297,7 +317,7 @@ describe("JiraPlugin", () => {
 
       const testResult2 = createJiraTestResult("Complex test");
       testResult2.id = "test-2";
-      testResult2.historyId = "hist-complex";
+      testResult2.retryHash = "hist-complex";
       testResult2.environment = "env2";
       testResult2.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -307,7 +327,7 @@ describe("JiraPlugin", () => {
 
       const testResult3 = createJiraTestResult("Complex test");
       testResult3.id = "test-3";
-      testResult3.historyId = "hist-complex";
+      testResult3.retryHash = "hist-complex";
       testResult3.environment = "env3";
       testResult3.parameters = [
         { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
@@ -331,7 +351,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-complex",
+                id: "case-1.params-1",
                 keyParams: expect.arrayContaining([{ name: "common", value: "shared" }]),
                 entries: [
                   expect.objectContaining({ env: "env1" }),
@@ -366,7 +386,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-1",
+                id: "case-1.params-1",
                 keyParams: [],
               }),
             ],
@@ -390,7 +410,7 @@ describe("JiraPlugin", () => {
           id: "test-2",
           name: "Test without Jira link",
           status: "failed",
-          historyId: "hist-2",
+          retryHash: "hist-2",
           links: [
             {
               name: "GitHub Issue",
@@ -402,7 +422,7 @@ describe("JiraPlugin", () => {
         createTestResult({
           id: "test-3",
           name: "Test with invalid Jira URL",
-          historyId: "hist-3",
+          retryHash: "hist-3",
           links: [
             {
               name: "Invalid Jira",
@@ -439,7 +459,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-1",
+                id: "case-1.params-1",
                 name: "Test with Jira link",
                 issue: expect.objectContaining({
                   url: "https://company.atlassian.net/browse/PROJ-123",
@@ -454,6 +474,43 @@ describe("JiraPlugin", () => {
   });
 
   describe("Report upload", () => {
+    it("uses environment IDs for statistics and configured names for display", async () => {
+      const result = createJiraTestResult("Linux test", { environment: "linux" });
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([result]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([
+          { id: "default", name: "default" },
+          { id: "linux", name: "Chrome" },
+        ]),
+        testsStatistic: vi.fn(async (filter) => ({
+          total: !filter || filter(result) ? 1 : 0,
+          passed: !filter || filter(result) ? 1 : 0,
+        })),
+      });
+      const post = vi.spyOn(axios, "post").mockResolvedValue({ data: {} });
+      const plugin = new JiraPlugin({ ...defaultOptions, issue: "PROJ-123", uploadReport: true, uploadResults: true });
+      await plugin.done(defaultPluginContext, mockStore);
+      expect(post).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          operation: "upload-report",
+          payload: expect.objectContaining({
+            report: expect.objectContaining({ statisticByEnv: { Chrome: { total: 1, passed: 1 } } }),
+          }),
+        }),
+      );
+      expect(post).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          operation: "upload-results",
+          payload: expect.objectContaining({
+            results: [expect.objectContaining({ entries: [expect.objectContaining({ env: "Chrome" })] })],
+          }),
+        }),
+      );
+      expect(result.environment).toBe("linux");
+    });
+
     it("should successfully upload report", async () => {
       const mockTestResults = [createTestResult()];
 
@@ -634,7 +691,7 @@ describe("JiraPlugin", () => {
           payload: expect.objectContaining({
             results: [
               expect.objectContaining({
-                id: "hist-1",
+                id: "case-1.params-1",
                 name: "Test 1",
               }),
             ],

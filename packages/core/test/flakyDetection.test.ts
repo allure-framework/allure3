@@ -182,6 +182,7 @@ describe("weighted transition detection", () => {
   it.each([
     {
       name: "a pass in another environment",
+      expected: false,
       history: [
         { status: "passed", environment: "other" },
         { status: "failed", environment: "default" },
@@ -189,6 +190,7 @@ describe("weighted transition detection", () => {
     },
     {
       name: "a failure in another environment",
+      expected: false,
       history: [
         { status: "passed", environment: "default" },
         { status: "failed", environment: "other" },
@@ -196,21 +198,26 @@ describe("weighted transition detection", () => {
     },
     {
       name: "a pass without an environment",
+      expected: true,
       history: [{ status: "passed" }, { status: "failed", environment: "default" }],
     },
     {
       name: "a failure without an environment",
+      expected: true,
       history: [{ status: "passed", environment: "default" }, { status: "failed" }],
     },
-  ] satisfies { name: string; history: HistoricalResult[] }[])("excludes $name", async ({ history }) => {
-    const report = await createReport(undefined, history);
+  ] satisfies { name: string; expected: boolean; history: HistoricalResult[] }[])(
+    "handles $name as flaky=$expected",
+    async ({ history, expected }) => {
+      const report = await createReport(undefined, history);
 
-    await report.store.visitTestResult(rawResult, { readerId });
+      await report.store.visitTestResult(rawResult, { readerId });
 
-    const [result] = await report.store.allTestResults();
+      const [result] = await report.store.allTestResults();
 
-    expect(result.flaky).toBe(false);
-  });
+      expect(result.flaky).toBe(expected);
+    },
+  );
 
   it.each([0, 2])("filters other environments with historyDepth=%s", async (historyDepth) => {
     const report = await createReport({ historyDepth }, [

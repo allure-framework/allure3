@@ -10,7 +10,7 @@ const DEFAULT_MIN_DURATION = 1;
 
 type TimelineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "isRetry" | "environment" | "start" | "duration" | "historyId"
+  "id" | "name" | "status" | "isRetry" | "environment" | "start" | "duration" | "retryHash"
 > & {
   environmentName?: string;
   host: string;
@@ -26,6 +26,7 @@ export const generateTimeline = async (
   trs: TestResult[],
   options: AwesomeOptions,
   environmentIdByTrId: Map<string, string>,
+  environmentNameById: Map<string, string> = new Map(),
 ) => {
   const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
   const { minDuration = DEFAULT_MIN_DURATION } = timeline;
@@ -55,14 +56,14 @@ export const generateTimeline = async (
 
     result.push({
       id: test.id,
-      historyId: test.historyId,
+      retryHash: test.retryHash,
       name: test.name,
       status: test.status,
       isRetry: test.isRetry,
       host,
       thread,
       environment: environmentIdByTrId.get(test.id) ?? test.environment,
-      environmentName: test.environment,
+      environmentName: environmentNameById.get(test.environment ?? "") ?? test.environment,
       start: test.start,
       duration,
     });

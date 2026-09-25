@@ -4,7 +4,7 @@ import type {
   StatusAgePyramidChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
-import type { HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import { createHistoryTestResultLookup, type TestStatus } from "@allurereport/core-api";
 
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
@@ -33,9 +33,8 @@ export const generateStatusAgePyramid = (props: {
   const { options, storeData } = props;
   const { limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const { historyDataPoints, testResults } = storeData;
-
+  const lookupHistoryTestResult = createHistoryTestResultLookup(storeData.allTestResults ?? testResults);
   const currentReportTimestamp = testResults.reduce((acc, testResult) => Math.max(acc, testResult.stop ?? 0), 0);
-
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit).sort(
     // Sort by timestamp ascending, so earliest first and latest last
     (a, b) => a.timestamp - b.timestamp,
@@ -56,83 +55,60 @@ export const generateStatusAgePyramid = (props: {
     };
   }
 
-  const currTrIds = new Set(testResults.map((tr) => tr.historyId ?? tr.id));
+  const data: DataItem[] = limitedHistoryPoints.map((historyDataPoint, index) => {
+    const stats = createEmptyStats();
 
-  const hdps = limitedHistoryPoints.map((datapoint) => ({
-    ...datapoint,
-    testResults: Object.values(datapoint.testResults).reduce(
-      (acc, testResult) => {
-        if (!testResult.historyId) {
-          return acc;
-        }
+    for (const testResult of testResults) {
+      const historicalTestResult = lookupHistoryTestResult(historyDataPoint, testResult);
 
-        const isInCurrentRun = currTrIds.has(testResult.historyId);
+      if (!historicalTestResult) {
+        continue;
+      }
 
-        // Skip all tests that are not in the current run
-        if (isInCurrentRun) {
-          acc[testResult.historyId] = testResult;
-        }
-
-        return acc;
-      },
-      {} as Record<string, HistoryTestResult>,
-    ),
-  }));
-
-  const dataPoints = [
-    ...hdps.map((hdp) => ({
-      ...hdp,
-      ...createEmptyStats(),
-    })),
-    {
-      testResults: testResults.reduce(
-        (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
-          return acc;
-        },
-        {} as Record<string, TestResult>,
-      ),
-      uuid: "current",
-      timestamp: currentReportTimestamp,
-      ...createEmptyStats(),
-    },
-  ];
-
-  dataPoints.forEach((dp, index, dps) => {
-    const { testResults: trs } = dp;
-    const historyAfter = dps.slice(index, dps.length - 1);
-
-    const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
-
-    for (const cTr of currentTrs) {
-      const currentTrStatus = cTr.status;
+      const currentTrStatus = historicalTestResult.status;
 
       // Skip non-FBSU status tests
       if (!isFBSUStatus(currentTrStatus)) {
         continue;
       }
 
-      const historyAfterTrsStatuses: (TestStatus | undefined)[] = historyAfter.map(
-        (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
-      );
+      const historyAfterTrsStatuses: (TestStatus | undefined)[] = limitedHistoryPoints
+        .slice(index)
+        .map((historyAfterPoint) => lookupHistoryTestResult(historyAfterPoint, testResult)?.status);
 
       // If the test status changed in a later run, skip it
       if (historyAfterTrsStatuses.some((status) => status !== currentTrStatus)) {
         continue;
       }
 
-      dp[currentTrStatus]++;
+      stats[currentTrStatus]++;
     }
-  });
 
-  const data: DataItem[] = dataPoints.map(({ uuid, timestamp, ...stats }) => ({
-    id: uuid,
-    timestamp,
-    failed: stats.failed ?? 0,
-    broken: stats.broken ?? 0,
-    skipped: stats.skipped ?? 0,
-    unknown: stats.unknown ?? 0,
-  }));
+    return {
+      id: historyDataPoint.uuid,
+      timestamp: historyDataPoint.timestamp,
+      failed: stats.failed,
+      broken: stats.broken,
+      skipped: stats.skipped,
+      unknown: stats.unknown,
+    };
+  });
+  const currentStats = createEmptyStats();
+
+  for (const testResult of testResults) {
+    if (isFBSUStatus(testResult.status)) {
+      currentStats[testResult.status]++;
+    }
+  }
+
+  data.push({
+    id: "current",
+    timestamp: currentReportTimestamp,
+    failed: currentStats.failed,
+    broken: currentStats.broken,
+    skipped: currentStats.skipped,
+    unknown: currentStats.unknown,
+  });
 
   return {
     type: ChartType.StatusAgePyramid,

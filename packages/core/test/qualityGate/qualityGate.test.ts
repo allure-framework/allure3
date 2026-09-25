@@ -12,12 +12,12 @@ import {
 } from "../../src/qualityGate/qualityGate.js";
 import { minTestsCountRule } from "../../src/qualityGate/rules.js";
 
-const createTestResult = (id: string, status: TestStatus, historyId?: string, isRetry = false) =>
+const createTestResult = (id: string, status: TestStatus, retryHash?: string, isRetry = false) =>
   ({
     id,
     name: `Test ${id}`,
     status,
-    historyId,
+    retryHash,
     isRetry,
   }) as TestResult;
 // default rule messages are highlighted with ANSI codes whenever the terminal supports colors

@@ -16,7 +16,7 @@ const SEARCH_FIELDS: (keyof ReportSearchDocument)[] = [
   "categories",
   "parameters",
   "statusMessage",
-  "historyId",
+  "retryHash",
 ];
 
 const STORE_FIELDS: (keyof ReportSearchDocument)[] = ["nodeId", "name"];
@@ -40,7 +40,7 @@ export const createSearchIndex = (documents: ReportSearchDocument[]) => {
         categories: 1,
         parameters: 1,
         statusMessage: 0.75,
-        historyId: 0.5,
+        retryHash: 0.5,
       },
     },
   });
