@@ -1,5 +1,7 @@
-import * as console from "node:console";
+import console from "node:console";
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { basename, dirname, extname, resolve } from "node:path";
 
 import type {
   RawTestAttachment,
@@ -8,7 +10,7 @@ import type {
   ResultsReader,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import { BufferResultFile } from "@allurereport/reader-api";
+import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 
 import { ensureString } from "../utils.js";
@@ -60,7 +62,8 @@ export const junitXml: ResultsReader = {
         return false;
       }
 
-      return await parseRootElement(visitor, parsed);
+      const reportDir = dirname(data instanceof PathResultFile ? data.path : originalFileName);
+      return await parseRootElement(visitor, parsed, reportDir);
     } catch (e) {
       console.error("error parsing", originalFileName, e);
       return false;
@@ -70,7 +73,11 @@ export const junitXml: ResultsReader = {
   readerId: () => readerId,
 };
 
-const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any>): Promise<boolean> => {
+const parseRootElement = async (
+  visitor: ResultsVisitor,
+  xml: Record<string, any>,
+  reportDir: string,
+): Promise<boolean> => {
   const { testsuite: testSuite } = xml;
 
   if (isEmptyElement(testSuite)) {
@@ -99,7 +106,7 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
     }
 
     for (const testSuitesArrayElement of testSuitesArray) {
-      await parseTestSuite(visitor, testSuitesArrayElement, true);
+      await parseTestSuite(visitor, testSuitesArrayElement, true, reportDir);
     }
     return true;
   }
@@ -108,11 +115,16 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
     return false;
   }
 
-  await parseTestSuite(visitor, testSuite, false);
+  await parseTestSuite(visitor, testSuite, false, reportDir);
   return true;
 };
 
-const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>, isAggregated: boolean) => {
+const parseTestSuite = async (
+  visitor: ResultsVisitor,
+  testSuite: Record<string, any>,
+  isAggregated: boolean,
+  reportDir: string,
+) => {
   const { name, package: packageAttribute, testcase } = testSuite;
 
   if (!isStringAnyRecordArray(testcase)) {
@@ -125,6 +137,7 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
       { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
       testcaseElement,
       isAggregated,
+      reportDir,
     );
   }
 };
@@ -134,6 +147,7 @@ const parseTestCase = async (
   { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
   testCase: Record<string, any>,
   isAggregated: boolean,
+  reportDir: string,
 ) => {
   const {
     name: nameAttribute,
@@ -161,7 +175,7 @@ const parseTestCase = async (
       status,
       message,
       trace,
-      steps: await parseAttachments(visitor, systemOut, systemErr),
+      steps: await parseAttachments(visitor, reportDir, systemOut, systemErr),
       labels: convertLabels({ suitePackage, suiteName, className, isAggregated }),
     },
     { readerId },
@@ -170,7 +184,7 @@ const parseTestCase = async (
 
 const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
-const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string, systemErr?: string) => {
+const parseAttachments = async (visitor: ResultsVisitor, reportDir: string, systemOut?: string, systemErr?: string) => {
   const attachments: RawTestAttachment[] = [];
 
   if (systemOut) {
@@ -179,6 +193,22 @@ const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string, sys
 
   if (systemErr) {
     attachments.push(await visitPlainTextAttachment(visitor, STDERR_ATTACHMENT_NAME, systemErr));
+  }
+
+  for (const [, path] of systemOut?.matchAll(/\[\[ATTACHMENT\|([^\r\n]*?)\]\]/g) ?? []) {
+    try {
+      const content = await readFile(resolve(reportDir, path));
+      const file = new BufferResultFile(content, `${randomUUID()}${extname(path)}`);
+      await visitor.visitAttachmentFile(file, { readerId });
+      attachments.push({
+        type: "attachment",
+        name: basename(path),
+        contentType: file.getContentType(),
+        originalFileName: file.getOriginalFileName(),
+      });
+    } catch (error) {
+      console.warn(`Unable to read JUnit attachment "${path}":`, error);
+    }
   }
 
   return attachments;

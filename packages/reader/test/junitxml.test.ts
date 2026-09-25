@@ -1,8 +1,13 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
+import console from "node:console";
 import { randomUUID } from "node:crypto";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
+import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { junitXml } from "../src/index.js";
 import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
@@ -573,6 +578,76 @@ describe("junit xml reader", () => {
               originalFileName: attachment.getOriginalFileName(),
             },
           ],
+        });
+      });
+
+      it("should read relative and absolute file attachments", async ({ onTestFinished }) => {
+        const dir = await mkdtemp(join(tmpdir(), "allure-junit-"));
+        onTestFinished(() => rm(dir, { recursive: true, force: true }));
+        const absolutePath = join(dir, "absolute.json");
+        const reportPath = join(dir, "report.xml");
+        const stdout = `before\n[[ATTACHMENT|./relative.txt]]\n[[ATTACHMENT|${absolutePath}]]\nafter`;
+        await writeFile(join(dir, "relative.txt"), "relative attachment");
+        await writeFile(absolutePath, '{"message":"absolute attachment"}');
+        await writeFile(
+          reportPath,
+          `<testsuite><testcase name="test"><system-out><![CDATA[${stdout}]]></system-out></testcase></testsuite>`,
+        );
+        const visitor = mockVisitor();
+
+        expect(await junitXml.read(visitor, new PathResultFile(reportPath))).toBe(true);
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const files = visitor.visitAttachmentFile.mock.calls.map(([file]) => file);
+        expect(await Promise.all(files.map((file) => file.asUtf8String()))).toEqual([
+          stdout,
+          "relative attachment",
+          '{"message":"absolute attachment"}',
+        ]);
+        expect(visitor.visitTestResult.mock.calls[0][0].steps).toEqual([
+          {
+            type: "attachment",
+            name: "System output",
+            contentType: "text/plain",
+            originalFileName: files[0].getOriginalFileName(),
+          },
+          {
+            type: "attachment",
+            name: "relative.txt",
+            contentType: "text/plain",
+            originalFileName: files[1].getOriginalFileName(),
+          },
+          {
+            type: "attachment",
+            name: "absolute.json",
+            contentType: "application/json",
+            originalFileName: files[2].getOriginalFileName(),
+          },
+        ]);
+      });
+
+      it("should warn about unreadable attachments", async ({ onTestFinished }) => {
+        const path = join(tmpdir(), randomUUID(), "missing.txt");
+        const stdout = `before\n[[ATTACHMENT|${path}]]\nafter`;
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+        const report = new BufferResultFile(
+          Buffer.from(
+            `<testsuite><testcase name="test"><system-out><![CDATA[${stdout}]]></system-out></testcase></testsuite>`,
+          ),
+          randomTestsuiteFileName(),
+        );
+        const visitor = mockVisitor();
+
+        expect(await junitXml.read(visitor, report)).toBe(true);
+        expect(warn).toHaveBeenCalledExactlyOnceWith(expect.stringContaining(path), expect.any(Error));
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        expect(await attachment.asUtf8String()).toBe(stdout);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "test",
+          status: "passed",
+          steps: [{ type: "attachment", name: "System output", originalFileName: attachment.getOriginalFileName() }],
         });
       });
 
