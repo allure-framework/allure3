@@ -14,6 +14,7 @@
     "total": "Gesamt",
     "flaky": "Instabile Tests",
     "retries": "Wiederholte Tests",
+    "retriesStatusChange": "Bei Wiederholung geändert",
     "new": "Neue Tests"
   },
   "tabs": {
@@ -461,6 +462,7 @@
       "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
       "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist",
       "retries": "{{count}} Wiederholungen",
+      "retriesStatusChange": "Status nach erneutem Versuch geändert",
       "flaky": "Inkonsistent über mehrere Läufe",
       "resolution": {
         "issue": "Linked to an issue",

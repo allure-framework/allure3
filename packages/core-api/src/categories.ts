@@ -143,6 +143,7 @@ export type CategoryNodeItem = {
   value?: string;
   historyId?: string;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   transition?: TestStatusTransition;
   tooltips?: Record<string, string>;
   statistic?: Statistic;

@@ -14,6 +14,7 @@
     "total": "Cəmi",
     "flaky": "Qeyri-sabit testlər",
     "retries": "Təkrar testlər",
+    "retriesStatusChange": "Təkrar cəhddə dəyişdi",
     "new": "Yeni testlər"
   },
   "tabs": {
@@ -461,6 +462,7 @@
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
+      "retriesStatusChange": "Yenidən cəhd etdikdən sonra status dəyişib",
       "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
       "resolution": {
         "issue": "Linked to an issue",

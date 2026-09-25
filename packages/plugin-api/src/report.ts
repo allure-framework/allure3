@@ -102,6 +102,7 @@ export type ReportTestResult = Omit<
   history: HistoryTestResult[];
   retries?: TestResult[];
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: ReportBreadcrumbItem[];
@@ -127,6 +128,7 @@ export type ReportTreeLeaf = Pick<
   | "transition"
   | "retry"
   | "retriesCount"
+  | "retriesStatusChange"
   | "resolution"
 > & {
   nodeId: string;
@@ -177,6 +179,7 @@ export type ReportResolutionTestResult = Pick<
   | "transition"
   | "retry"
   | "retriesCount"
+  | "retriesStatusChange"
   | "resolution"
   | "tooltips"
 > & {

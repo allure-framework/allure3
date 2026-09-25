@@ -14,6 +14,7 @@
     "total": "Total",
     "flaky": "Flaky tests",
     "retries": "Retried tests",
+    "retriesStatusChange": "Changed on retry",
     "new": "New tests"
   },
   "tabs": {
@@ -522,6 +523,7 @@
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
+      "retriesStatusChange": "Status changed across retry attempts",
       "flaky": "Inconsistent across runs",
       "resolution": {
         "issue": "Linked to an issue",

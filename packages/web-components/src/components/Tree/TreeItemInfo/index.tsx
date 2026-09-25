@@ -13,6 +13,7 @@ import styles from "./styles.scss";
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   flaky?: boolean;
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
@@ -29,6 +30,7 @@ const resolutionToIcon: Record<ResolutionCategory, string> = {
 export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   duration,
   retriesCount,
+  retriesStatusChange,
   flaky,
   resolution,
   transition,
@@ -46,6 +48,14 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
       {Boolean(retriesCount) && (
         <TooltipWrapper data-testid="tree-leaf-retries-tooltip" tooltipText={tooltips?.retries}>
           <TreeItemRetries retriesCount={retriesCount} />
+        </TooltipWrapper>
+      )}
+      {retriesStatusChange && (
+        <TooltipWrapper
+          data-testid="tree-leaf-retries-status-change-tooltip"
+          tooltipText={tooltips?.retriesStatusChange}
+        >
+          <SvgIcon data-testid="tree-leaf-retries-status-change" id={allureIcons.lineArrowsSwitchVertical1} />
         </TooltipWrapper>
       )}
       {resolution && (

@@ -14,6 +14,7 @@
     "total": "Toplam",
     "flaky": "İstikrarsız Testler",
     "retries": "Yinelenen Testler",
+    "retriesStatusChange": "Yeniden denemede değişti",
     "new": "Yeni Testler"
   },
   "tabs": {
@@ -461,6 +462,7 @@
       "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
       "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\"",
       "retries": "{{count}} yeniden deneme",
+      "retriesStatusChange": "Yeniden deneme sonrası durum değişikliği",
       "flaky": "Çalıştırmalar arasında tutarsız",
       "resolution": {
         "issue": "Linked to an issue",

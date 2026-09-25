@@ -109,6 +109,7 @@ describe("components > ResolutionCategories", () => {
               duration: 123,
               flaky: false,
               retry: false,
+              retriesStatusChange: true,
               resolution: "issue",
             },
           ],
@@ -134,6 +135,7 @@ describe("components > ResolutionCategories", () => {
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("nodeId");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("retry");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("fullName");
+    expect(treeItemMock.mock.calls[0]?.[0]).toMatchObject({ retriesStatusChange: true });
 
     fireEvent.click(screen.getByRole("button", { name: /BUG-1/i }));
 

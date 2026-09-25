@@ -1,5 +1,6 @@
 import {
   incrementStatistic,
+  hasRetriesStatusChange,
   type EnvironmentItem,
   type Statistic,
   type TestResult,
@@ -73,8 +74,14 @@ const statisticByTestResults = async (
 
     incrementStatistic(statistic, testResult.status);
 
-    if ((related.retriesByTrId.get(testResult.id)?.length ?? 0) > 0) {
+    const retries = related.retriesByTrId.get(testResult.id) ?? [];
+
+    if (retries.length > 0) {
       statistic.retries = (statistic.retries ?? 0) + 1;
+    }
+
+    if (hasRetriesStatusChange(testResult, retries)) {
+      statistic.retriesStatusChange = (statistic.retriesStatusChange ?? 0) + 1;
     }
 
     if (testResult.flaky) {

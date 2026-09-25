@@ -2,7 +2,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import type { TestStatus } from "../../src/model.js";
-import { getWorstStatus, statusToPriority } from "../../src/utils/status.js";
+import { getWorstStatus, hasRetriesStatusChange, statusToPriority } from "../../src/utils/status.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -45,4 +45,32 @@ describe("getWorstStatus", () => {
 
     expect(result).toBeUndefined();
   });
+});
+
+describe("hasRetriesStatusChange", () => {
+  const significantStatuses = ["passed", "failed", "broken"] as const satisfies readonly TestStatus[];
+
+  it.each([
+    ...significantStatuses.flatMap((currentStatus) =>
+      significantStatuses.map(
+        (retryStatus) =>
+          [currentStatus, [retryStatus], retryStatus !== currentStatus] satisfies [TestStatus, TestStatus[], boolean],
+      ),
+    ),
+    ["passed", ["unknown", "skipped"], false],
+    ["unknown", ["passed", "failed"], false],
+    ["passed", [], false],
+    ["passed", ["unknown", "failed", "passed"], true],
+    ["passed", ["failed", "passed", "broken", "failed"], true],
+  ] satisfies [TestStatus, TestStatus[], boolean][])(
+    "detects change for current status %s and retry statuses %j: %s",
+    (currentStatus, retryStatuses, expected) => {
+      expect(
+        hasRetriesStatusChange(
+          { status: currentStatus },
+          retryStatuses.map((status) => ({ status })),
+        ),
+      ).toBe(expected);
+    },
+  );
 });

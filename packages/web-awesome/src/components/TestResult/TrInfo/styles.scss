@@ -55,7 +55,8 @@
   align-items: center;
 }
 
-.test-result-info-flaky {
+.test-result-info-flaky,
+.test-result-info-mark {
   display: flex;
   align-items: center;
   gap: 2px;

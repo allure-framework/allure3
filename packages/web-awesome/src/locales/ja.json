@@ -14,6 +14,7 @@
     "total": "合計",
     "flaky": "不安定なテスト",
     "retries": "再実行テスト",
+    "retriesStatusChange": "再試行で変更",
     "new": "新しいテスト"
   },
   "tabs": {
@@ -461,6 +462,7 @@
       "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
       "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった",
       "retries": "{{count}} 回の再試行",
+      "retriesStatusChange": "再試行後にステータスが変更されました",
       "flaky": "実行ごとに結果が不安定",
       "resolution": {
         "issue": "Linked to an issue",
