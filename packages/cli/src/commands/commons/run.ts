@@ -194,8 +194,6 @@ export const runTests = async (params: {
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
   let fastFailTriggered = false;
-  let testProcessStdout = "";
-  let testProcessStderr = "";
 
   if (withQualityGate) {
     qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
@@ -266,8 +264,8 @@ export const runTests = async (params: {
 
   return {
     code,
-    stdout: testProcessStdout,
-    stderr: testProcessStderr,
+    stdout: await supervisor.stdout,
+    stderr: await supervisor.stderr,
     qualityGateResults,
     fastFailed: fastFailTriggered,
   };
