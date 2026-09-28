@@ -26,7 +26,7 @@ import { red } from "yoctocolors";
 
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { PosixSupervisor } from "../../utils/supervisor/index.js";
+import { PosixProcessSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -154,15 +154,13 @@ export const runTests = async (params: {
     throw new Error("Windows is not currently supported.");
   }
 
-  const SupervisorClass = PosixSupervisor;
-
-  const supervisor = new SupervisorClass(command, {
+  const supervisor = new PosixProcessSupervisor(command, {
     arguments: commandArgs,
     workingDirectory: cwd,
     environmentVariables,
     stdio: logs,
     silent,
-    encoding: "utf-8",
+    outputEncoding: "utf-8",
     stopTimeout: 30_000,
   });
 
