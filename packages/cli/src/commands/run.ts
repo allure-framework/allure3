@@ -1,6 +1,6 @@
 import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
-import process, { exit } from "node:process";
+import process from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import Awesome from "@allurereport/plugin-awesome";
@@ -152,8 +152,7 @@ export class RunCommand extends Command {
         silent: this.silent,
       });
 
-      exit(exitCode ?? -1);
-      return;
+      return exitCode ?? -1;
     }
 
     const environmentOptions = {
@@ -234,7 +233,7 @@ export class RunCommand extends Command {
         open: true,
       });
     } else {
-      exit(globalExitCode.actual ?? globalExitCode.original);
+      return globalExitCode.actual ?? globalExitCode.original;
     }
   }
 }
