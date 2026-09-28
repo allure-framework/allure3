@@ -1,12 +1,12 @@
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
-import { ProcessSupervisor } from "./model.js";
 import type { JobMonitor, SupervisedCommandOptions } from "./model.js";
+import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
 
 const MONITOR_INTERVAL_MS = 100;
 
-export class PosixSupervisor extends ProcessSupervisor {
+export class PosixProcessSupervisor extends ProcessSupervisorBase {
   protected shell: boolean = false;
   protected detached: boolean = true;
 
