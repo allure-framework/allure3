@@ -12,7 +12,18 @@ import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 import { applyVerbosity } from "../../src/utils/verbosity.js";
 
-const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted(() => {
+const {
+  exitMock,
+  processStream,
+  nameWatcherMock,
+  globWatcherMock,
+  supervisorConstructorMock,
+  supervisorStartMock,
+  supervisorStopMock,
+  supervisorExitCodeMock,
+  supervisorStdoutMock,
+  supervisorStderrMock,
+} = vi.hoisted(() => {
   const exitMock = vi.fn();
   const processStream = {
     setEncoding: vi.fn().mockReturnThis(),
@@ -28,6 +39,12 @@ const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted
     processStream,
     nameWatcherMock: vi.fn(() => watcher()),
     globWatcherMock: vi.fn(() => watcher()),
+    supervisorConstructorMock: vi.fn(),
+    supervisorStartMock: vi.fn(),
+    supervisorStopMock: vi.fn().mockResolvedValue(undefined),
+    supervisorExitCodeMock: vi.fn(),
+    supervisorStdoutMock: vi.fn(),
+    supervisorStderrMock: vi.fn(),
   };
 });
 
@@ -109,6 +126,29 @@ vi.mock("../../src/utils/index.js", async (importOriginal) => ({
   })),
   terminationOf: vi.fn().mockResolvedValue(0),
 }));
+vi.mock("../../src/utils/supervisor/index.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/utils/supervisor/index.js")>()),
+  PosixProcessSupervisor: class {
+    constructor(command: string, options: unknown) {
+      supervisorConstructorMock(command, options);
+    }
+
+    get exitCode(): Promise<number | null> {
+      return supervisorExitCodeMock();
+    }
+
+    get stdout(): Promise<string> {
+      return supervisorStdoutMock();
+    }
+
+    get stderr(): Promise<string> {
+      return supervisorStderrMock();
+    }
+
+    start = supervisorStartMock;
+    stop = supervisorStopMock;
+  },
+}));
 vi.mock("../../src/utils/logs.js", () => ({
   logError: vi.fn(),
 }));
@@ -165,8 +205,6 @@ describe("run command", () => {
   });
 
   it("should treat a path-like executable as the nested command", async () => {
-    const { runProcess } = await import("../../src/utils/index.js");
-
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
@@ -180,17 +218,15 @@ describe("run command", () => {
 
     await command.execute();
 
-    expect(runProcess).toHaveBeenCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledWith(
+      "./script.sh",
       expect.objectContaining({
-        command: "./script.sh",
-        commandArgs: ["--flag"],
+        arguments: ["--flag"],
       }),
     );
   });
 
   it("should accept --results-dir and still run the nested command", async () => {
-    const { runProcess } = await import("../../src/utils/index.js");
-
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
@@ -201,10 +237,10 @@ describe("run command", () => {
     await run(RunCommand, ["run", "--results-dir", "./custom/**/allure-results", "--", "npm", "test"]);
 
     expect(readConfig).toHaveBeenCalled();
-    expect(runProcess).toHaveBeenCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledWith(
+      "npm",
       expect.objectContaining({
-        command: "npm",
-        commandArgs: ["test"],
+        arguments: ["test"],
       }),
     );
     expect(globWatcherMock).toHaveBeenCalledWith(
@@ -282,8 +318,8 @@ describe("run command", () => {
 
   it("should pass hideLabels override to readConfig and apply normalized value to default awesome plugin", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess } = await import("../../src/utils/index.js");
 
+    supervisorExitCodeMock.mockResolvedValueOnce(0);
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
@@ -291,7 +327,7 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--hide-labels", "owner", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--hide-labels", "owner", "--", "npm", "test"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
@@ -313,20 +349,22 @@ describe("run command", () => {
         ]),
       }),
     );
-    expect(runProcess).toHaveBeenCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledWith(
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_CLI_ACTIVE_COMMAND: "run",
         },
       }),
     );
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should pass hideLabels override to readConfig and keep normalized value on report config", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const awesomePlugin = new AwesomePlugin({});
 
+    supervisorExitCodeMock.mockResolvedValueOnce(0);
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
@@ -341,7 +379,16 @@ describe("run command", () => {
       ],
     });
 
-    await run(RunCommand, ["run", "--hide-labels", "owner", "--hide-labels", "tag", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, [
+      "run",
+      "--hide-labels",
+      "owner",
+      "--hide-labels",
+      "tag",
+      "--",
+      "npm",
+      "test",
+    ]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
@@ -363,12 +410,13 @@ describe("run command", () => {
         ]),
       }),
     );
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should keep config dump when run --dump is omitted", async () => {
     const { AllureReportMock } = await import("../utils.js");
 
+    supervisorExitCodeMock.mockResolvedValueOnce(0);
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
@@ -376,18 +424,19 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--", "npm", "test"]);
 
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
         dump: "./snapshots/stage_1",
       }),
     );
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should prefer run --dump over config dump", async () => {
     const { AllureReportMock } = await import("../utils.js");
+    supervisorExitCodeMock.mockResolvedValueOnce(0);
 
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
@@ -396,14 +445,14 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--dump", "./snapshots/from-cli", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--dump", "./snapshots/from-cli", "--", "npm", "test"]);
 
     expect(AllureReportMock).toHaveBeenCalledWith(
       expect.objectContaining({
         dump: "./snapshots/from-cli",
       }),
     );
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should evaluate a configured quality gate when writing a dump", async () => {
@@ -415,6 +464,7 @@ describe("run command", () => {
         },
       ],
     };
+    supervisorExitCodeMock.mockResolvedValueOnce(0);
 
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
@@ -451,7 +501,6 @@ describe("run command", () => {
 
   it("should keep configured quality gate when rerun is enabled", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess } = await import("../../src/utils/index.js");
     const qualityGate = {
       rules: [],
     };
@@ -463,7 +512,7 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--rerun", "2", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--rerun", "2", "--", "npm", "test"]);
 
     expect(console.warn).not.toHaveBeenCalled();
     expect(AllureReportMock).toHaveBeenCalledWith(
@@ -473,25 +522,25 @@ describe("run command", () => {
     );
     expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
     expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
-    expect(runProcess).toHaveBeenCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledWith(
+      "npm",
       expect.objectContaining({
-        command: "npm",
-        commandArgs: ["test"],
+        arguments: ["test"],
       }),
     );
-    expect(exitMock).toHaveBeenCalledWith(0);
-    expect(exitMock).not.toHaveBeenCalledWith(-1);
+
     expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Completed with exit code 0/u));
     expect(console.info).toHaveBeenCalledWith(
       expect.stringMatching(
         /\[AllureRerun\]:.*No blocking failures or failed Quality Gate-related tests remain; no further reruns are needed/u,
       ),
     );
+    expect(supervisorStartMock).toHaveBeenCalledOnce();
+    expect(exitCode).toEqual(0);
   });
 
   it("should reset process globals before a rerun", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
     const failed = {
       id: "failed-result",
       name: "failed test",
@@ -509,24 +558,12 @@ describe("run command", () => {
       failedTestResults: vi.fn().mockResolvedValue([]).mockResolvedValueOnce([failed]),
       allTestResults: vi.fn().mockResolvedValue([]),
     };
-    processStream.on
-      .mockImplementationOnce((_event, listener) => {
-        listener("first stdout");
-        return processStream;
-      })
-      .mockImplementationOnce((_event, listener) => {
-        listener("first stderr");
-        return processStream;
-      })
-      .mockImplementationOnce((_event, listener) => {
-        listener("second stdout");
-        return processStream;
-      })
-      .mockImplementationOnce((_event, listener) => {
-        listener("");
-        return processStream;
-      });
-    vi.mocked(terminationOf).mockResolvedValueOnce(1).mockResolvedValueOnce(0);
+    supervisorStdoutMock.mockReturnValueOnce("first stdout");
+    supervisorStdoutMock.mockReturnValueOnce("second stdout");
+    supervisorStderrMock.mockReturnValueOnce("first stderr");
+    supervisorStderrMock.mockReturnValueOnce("");
+    supervisorExitCodeMock.mockReturnValueOnce(1);
+    supervisorExitCodeMock.mockReturnValueOnce(0);
 
     await executeAllureRun({
       allureReport: new AllureReportMock() as never,
@@ -539,7 +576,7 @@ describe("run command", () => {
       maxRerun: 1,
     });
 
-    expect(runProcess).toHaveBeenCalledTimes(2);
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalAttachment).toHaveBeenCalledTimes(3);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalError).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalsReset).toHaveBeenCalledTimes(1);
@@ -590,7 +627,6 @@ describe("run command", () => {
 
   it("should publish captured process logs as process globals", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { terminationOf } = await import("../../src/utils/index.js");
 
     processStream.on
       .mockImplementationOnce((_event, listener) => {
@@ -601,7 +637,9 @@ describe("run command", () => {
         listener("stderr");
         return processStream;
       });
-    vi.mocked(terminationOf).mockResolvedValueOnce(1);
+    supervisorExitCodeMock.mockResolvedValueOnce(1);
+    supervisorStdoutMock.mockResolvedValue("stdout");
+    supervisorStderrMock.mockResolvedValue("stderr");
 
     await executeAllureRun({
       allureReport: new AllureReportMock() as never,
@@ -614,6 +652,21 @@ describe("run command", () => {
     });
 
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalAttachment).toHaveBeenCalledTimes(2);
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalAttachment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        buffer: Buffer.from("stderr", "utf-8"),
+        contentType: "text/plain",
+      }),
+      expect.stringMatching(/\.stderr\.txt$/),
+    );
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalAttachment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        buffer: Buffer.from("stdout", "utf-8"),
+        contentType: "text/plain",
+      }),
+      expect.stringMatching(/\.stdout\.txt$/),
+    );
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalError).toHaveBeenCalledOnce();
     expect(AllureReportMock.prototype.realtimeDispatcher.sendProcessGlobalError).toHaveBeenCalledWith({
       message: "Test process has failed",
       trace: "stderr",
@@ -670,7 +723,7 @@ describe("run command", () => {
       plugins: [],
     });
 
-    await run(RunCommand, ["run", "--rerun", "0", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--rerun", "0", "--", "npm", "test"]);
 
     expect(console.warn).not.toHaveBeenCalledWith(
       "Quality gate doesn't work with rerun; skipping quality gate validation.",
@@ -682,12 +735,11 @@ describe("run command", () => {
     );
     expect(AllureReportMock.prototype.realtimeSubscriber.onTestResults).toHaveBeenCalled();
     expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should rerun blocking failures and tests related to failed Quality Gate rules after a completed run", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess } = await import("../../src/utils/index.js");
     const { writeFile } = await import("node:fs/promises");
     const blockingFailure = {
       id: "blocking-failure",
@@ -739,9 +791,10 @@ describe("run command", () => {
       maxRerun: 1,
     });
 
-    expect(runProcess).toHaveBeenCalledTimes(2);
-    expect(runProcess).toHaveBeenNthCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
+    expect(supervisorConstructorMock).toHaveBeenNthCalledWith(
       2,
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "0",
@@ -749,6 +802,7 @@ describe("run command", () => {
         },
       }),
     );
+
     expect(writeFile).toHaveBeenCalledWith(
       testPlanPath,
       JSON.stringify({
@@ -764,8 +818,6 @@ describe("run command", () => {
 
   it("should restart the full process after Quality Gate fast-fail even when related tests exist", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
-    const { stopProcessTree } = await import("../../src/utils/process.js");
     const { mkdtemp, writeFile } = await import("node:fs/promises");
     const unsubscribe = vi.fn();
     let resolveOnTestResults!: (callback: (ids: string[]) => Promise<void>) => void;
@@ -820,7 +872,7 @@ describe("run command", () => {
       .fn()
       .mockResolvedValueOnce({ results: [passedResult, firstResult], fastFailed: true })
       .mockResolvedValueOnce({ results: [recoveredResult], fastFailed: false });
-    vi.mocked(terminationOf).mockReturnValueOnce(testProcessTermination).mockResolvedValueOnce(0);
+    vi.mocked(supervisorExitCodeMock).mockReturnValueOnce(testProcessTermination).mockResolvedValueOnce(0);
 
     const commandPromise = executeAllureRun({
       allureReport: new AllureReportMock() as never,
@@ -830,6 +882,7 @@ describe("run command", () => {
       withQualityGate: true,
       maxRerun: 1,
     });
+
     const onTestResults = await onTestResultsReady;
 
     await onTestResults(["tr-1"]);
@@ -837,9 +890,10 @@ describe("run command", () => {
     await commandPromise;
 
     expect(AllureReportMock.prototype.validate).toHaveBeenCalledTimes(2);
-    expect(runProcess).toHaveBeenCalledTimes(2);
-    expect(runProcess).toHaveBeenNthCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
+    expect(supervisorConstructorMock).toHaveBeenNthCalledWith(
       2,
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "0",
@@ -858,7 +912,7 @@ describe("run command", () => {
       ),
     );
     expect(unsubscribe).toHaveBeenCalledTimes(2);
-    expect(stopProcessTree).toHaveBeenCalledTimes(1);
+    expect(supervisorStopMock).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([
       recoveredResult,
@@ -867,7 +921,6 @@ describe("run command", () => {
 
   it("should restart the full test process when a fast-failing Quality Gate has no related tests", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
     const { mkdtemp, writeFile } = await import("node:fs/promises");
     let resolveOnTestResults!: (callback: (ids: string[]) => Promise<void>) => void;
     const onTestResultsReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
@@ -902,7 +955,7 @@ describe("run command", () => {
       .fn()
       .mockResolvedValueOnce({ results: [fastFailResult], fastFailed: true })
       .mockResolvedValueOnce({ results: [fastFailResult], fastFailed: false });
-    vi.mocked(terminationOf).mockReturnValueOnce(testProcessTermination).mockResolvedValueOnce(0);
+    vi.mocked(supervisorExitCodeMock).mockReturnValueOnce(testProcessTermination).mockResolvedValueOnce(0);
 
     const commandPromise = executeAllureRun({
       allureReport: new AllureReportMock() as never,
@@ -918,9 +971,10 @@ describe("run command", () => {
     finishTestProcess(1);
     await commandPromise;
 
-    expect(runProcess).toHaveBeenCalledTimes(2);
-    expect(runProcess).toHaveBeenNthCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(2);
+    expect(supervisorConstructorMock).toHaveBeenNthCalledWith(
       2,
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "0",
@@ -941,7 +995,6 @@ describe("run command", () => {
 
   it("should use the shared rerun budget for repeated full Quality Gate restarts", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
     type TestResultsCallback = (ids: string[]) => Promise<void>;
     type ProcessFinisher = (code: number | null) => void;
     const callbacks: TestResultsCallback[] = [];
@@ -1000,7 +1053,7 @@ describe("run command", () => {
       results: [fastFailResult],
       fastFailed: true,
     });
-    vi.mocked(terminationOf).mockImplementation(
+    vi.mocked(supervisorExitCodeMock).mockImplementation(
       () =>
         new Promise<number | null>((resolve) => {
           const waiter = processFinisherWaiters.shift();
@@ -1031,17 +1084,19 @@ describe("run command", () => {
 
     await commandPromise;
 
-    expect(runProcess).toHaveBeenCalledTimes(3);
-    expect(runProcess).toHaveBeenNthCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(3);
+    expect(supervisorConstructorMock).toHaveBeenNthCalledWith(
       2,
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "0",
         },
       }),
     );
-    expect(runProcess).toHaveBeenNthCalledWith(
+    expect(supervisorConstructorMock).toHaveBeenNthCalledWith(
       3,
+      "npm",
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "1",
@@ -1053,7 +1108,6 @@ describe("run command", () => {
 
   it("should not restart after Quality Gate fast-fail when the rerun budget is zero", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
     let resolveOnTestResults!: (callback: (ids: string[]) => Promise<void>) => void;
     const onTestResultsReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
       resolveOnTestResults = resolve;
@@ -1087,7 +1141,7 @@ describe("run command", () => {
       results: [fastFailResult],
       fastFailed: true,
     });
-    vi.mocked(terminationOf).mockReturnValueOnce(testProcessTermination);
+    vi.mocked(supervisorExitCodeMock).mockReturnValueOnce(testProcessTermination);
 
     const commandPromise = executeAllureRun({
       allureReport: new AllureReportMock() as never,
@@ -1103,7 +1157,7 @@ describe("run command", () => {
     finishTestProcess(1);
     await commandPromise;
 
-    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([fastFailResult]);
     expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Running: npm test/u));
     expect(console.info).toHaveBeenCalledWith(
@@ -1113,15 +1167,12 @@ describe("run command", () => {
   });
 
   it("should preserve raw child exit code when only muted failures remain", async () => {
-    const { runProcess, terminationOf } = await import("../../src/utils/index.js");
-
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
       open: false,
       plugins: [],
     });
-    vi.mocked(runProcess).mockClear();
-    vi.mocked(terminationOf).mockResolvedValueOnce(7);
+    supervisorExitCodeMock.mockResolvedValueOnce(7);
 
     const { AllureReportMock } = await import("../utils.js");
     const mutedFailure = {
@@ -1138,14 +1189,14 @@ describe("run command", () => {
       allTestResults: vi.fn().mockResolvedValue([]),
     };
 
-    await run(RunCommand, ["run", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--", "npm", "test"]);
 
-    expect(runProcess).toHaveBeenCalledTimes(1);
+    expect(supervisorConstructorMock).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalExitCode).toHaveBeenCalledWith({
       original: 7,
       actual: 0,
     });
-    expect(exitMock).toHaveBeenCalledWith(0);
+    expect(exitCode).toEqual(0);
   });
 
   it("should bypass nested allure wrappers and execute the child command directly", async () => {
@@ -1154,7 +1205,7 @@ describe("run command", () => {
 
     process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV] = "agent";
 
-    await run(RunCommand, ["run", "--silent", "--", "npm", "test"]);
+    const exitCode = await run(RunCommand, ["run", "--silent", "--", "npm", "test"]);
 
     expect(runProcess).toHaveBeenCalledWith({
       command: "npm",
@@ -1164,8 +1215,8 @@ describe("run command", () => {
     });
     expect(readConfig).not.toHaveBeenCalled();
     expect(AllureReportMock).not.toHaveBeenCalled();
-    expect(exitMock).toHaveBeenCalledWith(0);
     expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
+    expect(exitCode).toEqual(0);
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
   });
