@@ -1,27 +1,28 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { clearTreeFiltersMock, hasActiveTreeFiltersMock, treeQuickFiltersMock } = vi.hoisted(() => ({
+const { clearTreeFiltersMock, hasActiveTreeFiltersMock, setTreeFilterMock, treeQuickFiltersMock } = vi.hoisted(() => ({
   clearTreeFiltersMock: vi.fn(),
   hasActiveTreeFiltersMock: { value: false },
+  setTreeFilterMock: vi.fn(),
   treeQuickFiltersMock: { value: [] as unknown[] },
 }));
 
 vi.mock("@/stores/treeFilters/store", () => ({
   clearTreeFilters: clearTreeFiltersMock,
   hasActiveTreeFilters: hasActiveTreeFiltersMock,
-  setTreeFilter: vi.fn(),
+  setTreeFilter: setTreeFilterMock,
   treeQuickFilters: treeQuickFiltersMock,
 }));
 
 vi.mock("@/stores/treeFilters/utils", () => ({
   isCategoryFilter: () => false,
-  isFlakyFilter: () => false,
+  isFlakyFilter: (filter: { id?: string }) => filter.id === "flaky",
   isResolutionFilter: () => false,
-  isRetryFilter: () => false,
+  isRetryFilter: (filter: { id?: string }) => filter.id === "retry",
   isSeverityFilter: () => false,
   isTagFilter: () => false,
-  isTransitionFilter: () => false,
+  isTransitionFilter: (filter: { id?: string }) => filter.id === "transition",
 }));
 
 vi.mock("@/stores/locale", () => ({
@@ -30,12 +31,8 @@ vi.mock("@/stores/locale", () => ({
   }),
 }));
 
-vi.mock("@/components/ReportFilters/RetryFlaky", () => ({
-  RetryFlakyFilter: () => null,
-}));
-
 vi.mock("@/components/ReportFilters/TransitionFilter", () => ({
-  TransitionFilter: () => null,
+  TransitionFilter: () => <div data-testid="transition-filter" />,
 }));
 
 vi.mock("@/components/ReportFilters/SeverityFilter", () => ({
@@ -71,6 +68,7 @@ import { ReportFilters } from "@/components/ReportFilters";
 describe("components > ReportFilters", () => {
   beforeEach(() => {
     clearTreeFiltersMock.mockReset();
+    setTreeFilterMock.mockReset();
     hasActiveTreeFiltersMock.value = false;
     treeQuickFiltersMock.value = [];
   });
@@ -97,5 +95,15 @@ describe("components > ReportFilters", () => {
     fireEvent.click(screen.getByRole("button", { name: "clear-filters" }));
 
     expect(clearTreeFiltersMock).toHaveBeenCalledOnce();
+  });
+
+  it("should hide retry and flaky quick filters", () => {
+    treeQuickFiltersMock.value = [{ id: "retry" }, { id: "flaky" }, { id: "transition" }];
+
+    render(<ReportFilters />);
+
+    expect(screen.queryByTestId("retry-filter")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("flaky-filter")).not.toBeInTheDocument();
+    expect(screen.getByTestId("transition-filter")).toBeInTheDocument();
   });
 });

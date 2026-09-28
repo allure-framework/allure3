@@ -384,9 +384,24 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
 };
 
 export const treeStatus = computed<ReportStatus>(() => urlStatusFilter.value ?? "total");
+export const treeRetry = computed(() => urlRetryFilter.value);
+export const treeFlaky = computed(() => urlFlakyFilter.value);
+export const treeTransitions = computed(() => urlTransitionFilter.value);
 
 export const setTreeStatus = (status: ReportStatus) => {
   setStatusFilter(status === "total" ? undefined : status);
+};
+
+export const setTreeRetry = (retry: boolean) => {
+  setRetryFilter(retry);
+};
+
+export const setTreeFlaky = (flaky: boolean) => {
+  setFlakyFilter(flaky);
+};
+
+export const setTreeTransitions = (transitions: TestStatusTransition[]) => {
+  setTransitionFilter(transitions);
 };
 
 export const clearTreeFilters = () => {
