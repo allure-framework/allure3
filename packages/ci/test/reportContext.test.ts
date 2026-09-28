@@ -265,6 +265,59 @@ describe("report context", () => {
     ]);
   });
 
+  it("should normalize incomplete plugin summaries without failing", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure-report-context-incomplete-summary-"));
+    const unnamedDir = join(output, "unnamed");
+    const withoutStatsDir = join(output, "without-stats");
+
+    await mkdir(unnamedDir, { recursive: true });
+    await mkdir(withoutStatsDir, { recursive: true });
+    await writeJson(join(unnamedDir, "summary.json"), {
+      ...createSummary(),
+      name: undefined,
+    });
+    await writeJson(join(withoutStatsDir, "summary.json"), {
+      name: "Report without stats",
+      status: "passed",
+      duration: 12,
+      remoteHref: "https://example.org/without-stats",
+    });
+
+    const contextFromFiles = await createReportContext(output);
+    const contextFromData = createReportContextFromData({
+      summaries: [
+        {
+          ...createSummary({ name: "Named report" }),
+        },
+        {
+          ...createSummary(),
+          name: undefined,
+        } as unknown as PluginSummary,
+        {
+          name: "Report without stats",
+          status: "passed",
+          duration: 12,
+          remoteHref: "https://example.org/without-stats",
+        } as unknown as PluginSummary,
+      ],
+    });
+
+    expect(contextFromFiles.reports.map(({ name }) => name)).toEqual(["Allure Report", "Report without stats"]);
+    expect(contextFromFiles.reports[1].stats).toEqual({
+      failed: 0,
+      broken: 0,
+      passed: 0,
+      skipped: 0,
+      unknown: 0,
+      total: 0,
+    });
+    expect(contextFromData.reports.map(({ name }) => name)).toEqual([
+      "Allure Report",
+      "Named report",
+      "Report without stats",
+    ]);
+  });
+
   it("should ignore missing or malformed optional files without failing", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure-report-context-malformed-"));
     const errors: string[] = [];
