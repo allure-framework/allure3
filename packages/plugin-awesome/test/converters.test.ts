@@ -35,7 +35,63 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
   } as TestResult;
 };
 
+const createStepTree = (): TestResult["steps"] => [
+  {
+    stepId: "outer",
+    name: "outer step",
+    status: "passed",
+    type: "step",
+    hasSimilarErrorInSubSteps: false,
+    parameters: [
+      { name: "body", value: "large value", hidden: false, excluded: false, masked: false },
+      { name: "password", value: "secret", hidden: false, excluded: false, masked: true },
+    ],
+    steps: [
+      {
+        stepId: "inner",
+        name: "inner step",
+        status: "failed",
+        type: "step",
+        message: "boom",
+        hasSimilarErrorInSubSteps: false,
+        parameters: [],
+        steps: [],
+      },
+    ],
+  },
+];
+
 describe("convertTestResult", () => {
+  it("should serialise lazily converted steps exactly like eagerly converted ones", () => {
+    const tr = createTestResult({ steps: createStepTree() });
+
+    const eager = convertTestResult(tr);
+    const lazy = convertTestResult(tr, { lazySteps: true });
+
+    expect(JSON.stringify(lazy)).toBe(JSON.stringify(eager));
+    expect(Object.keys(lazy)).toEqual(Object.keys(eager));
+    expect(lazy.steps).toEqual(eager.steps);
+  });
+
+  it("should not keep lazily converted steps between reads", () => {
+    const lazy = convertTestResult(createTestResult({ steps: createStepTree() }), { lazySteps: true });
+
+    expect(lazy.steps).not.toBe(lazy.steps);
+    expect(JSON.stringify(lazy.steps)).toContain("<masked>");
+    expect(JSON.stringify(lazy.steps)).not.toContain("secret");
+  });
+
+  it("should store an assigned value in place of lazily converted steps", () => {
+    const lazy = convertTestResult(createTestResult({ steps: createStepTree() }), { lazySteps: true });
+    const keys = Object.keys(lazy);
+
+    lazy.steps = [];
+
+    expect(lazy.steps).toBe(lazy.steps);
+    expect(lazy.steps).toEqual([]);
+    expect(Object.keys(lazy)).toEqual(keys);
+  });
+
   it("keeps identifiers used by test result copy actions", () => {
     const result = convertTestResult(
       createTestResult({

@@ -69,7 +69,7 @@ import {
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
-import { convertFixtureResult, convertTestResult } from "./converters.js";
+import { convertFixtureResult, convertTestResult, lazyProperty } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
@@ -167,29 +167,36 @@ export const generateTestResults = async (
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
   },
 ) => {
-  let convertedTrs: ReportTestResult[] = [];
+  const convertedTrs: ReportTestResult[] = [];
   const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
 
+  // Steps, fixtures and history are the bulk of every test result, and all of them are written
+  // to the test's own file only. They are computed when read (see lazyProperty), so the whole
+  // set of converted results can stay alive for the widgets without a second copy of every
+  // step tree.
   for (const tr of trs) {
-    const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
-      .sort(nullsLast(compareBy("start", ordinal())))
-      .map(convertFixtureResult);
+    const trFixtures = [...(related.fixturesByTrId.get(tr.id) ?? [])].sort(nullsLast(compareBy("start", ordinal())));
+    const trHistory = related.historyByTrId.get(tr.id) ?? [];
+    const convertFixtures = (type: ReportFixtureResult["type"]) =>
+      trFixtures.filter((f) => f.type === type).map(convertFixtureResult);
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
+      lazySteps: true,
     });
     const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
-    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
-      ...item,
-      url: options.resolveHistoryUrl?.(item.url, options.pluginId, item.id) ?? "",
-    }));
+    lazyProperty(convertedTr, "history", () =>
+      trHistory.map((item) => ({
+        ...item,
+        url: options.resolveHistoryUrl?.(item.url, options.pluginId, item.id) ?? "",
+      })),
+    );
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
     convertedTr.isRetry = tr.isRetry;
-    convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
-    convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
+    lazyProperty(convertedTr, "setup", () => convertFixtures("before"));
+    lazyProperty(convertedTr, "teardown", () => convertFixtures("after"));
     // FIXME: the type is correct, but typescript still shows an error
     // @ts-ignore
     convertedTr.attachments = (related.attachmentsByTrId.get(tr.id) ?? []).map((attachment) => ({
@@ -202,10 +209,10 @@ export const generateTestResults = async (
     convertedTrs.push(convertedTr);
   }
 
-  convertedTrs = convertedTrs.sort(nullsLast(compareBy("start", ordinal()))).map((tr, idx) => ({
-    ...tr,
-    order: idx + 1,
-  }));
+  // assigned in place: a spread would read, and so keep, every lazy property
+  convertedTrs.sort(nullsLast(compareBy("start", ordinal()))).forEach((tr, idx) => {
+    tr.order = idx + 1;
+  });
 
   return convertedTrs;
 };
