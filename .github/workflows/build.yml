@@ -5,6 +5,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - labeled
+      - unlabeled
+      - edited
 
 permissions:
   contents: read
@@ -75,6 +83,9 @@ jobs:
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Test Project
+        env:
+          ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
+          ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         uses: actions/upload-artifact@v7
