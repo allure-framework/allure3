@@ -1,6 +1,7 @@
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { logError } from "../logs.js";
 import type { JobMonitor, SupervisedCommandOptions } from "./model.js";
 import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
 
@@ -25,13 +26,14 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
         while (true) {
           try {
+            // Check if the process group is alive.
             process.kill(-pid, 0);
           } catch (error) {
             const { code } = error as NodeJS.ErrnoException;
 
             if (code === "ESRCH") {
               // The group does not exist: all processes of the group have finished.
-              // The exit code/signal is defined by the root process.
+              // The root process will define the exit code (or signal).
               return undefined;
             }
 
@@ -40,12 +42,14 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
             }
 
             // EPERM: the group exists but cannot be signalled.
+            // This is fine, continue the polling.
           }
 
           await delay(MONITOR_INTERVAL_MS);
         }
       },
       dispose: () => {
+        // Use the default Node.js SIGINT handler from now on.
         process.off("SIGINT", this.#onSigint);
       },
     };
@@ -53,13 +57,16 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
   override start(): void {
     super.start();
+
+    // Override the default Node.js SIGINT handler to gracefully stop the test process
+    // on CTRL+C.
     process.on("SIGINT", this.#onSigint);
   }
 
   protected requestRootStop() {
     // Does not throw if the process already finished.
     // Returns `false` instead (which is ignored).
-    // Completion will still wait for the process group.
+    // Completion (monitor.wait) will still wait for the process group to finish.
     this.process.kill("SIGINT");
   }
 
@@ -73,6 +80,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     }
 
     try {
+      // Unconditionally terminate the process group.
       process.kill(-pid, "SIGKILL");
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
@@ -80,6 +88,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
       }
 
       // The process group completed concurrently.
+      // This is fine, we can continue normally.
     }
   }
 
@@ -95,10 +104,11 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     // which terminates Allure.
     process.off("SIGINT", this.#onSigint);
 
-    void this.terminate().then(
-      () => process.exit(130),
-      () => process.exit(130),
-    );
+    // The second SIGINT terminates the test process group.
+    // Allure has a chance to complete the report generation.
+    void this.terminate().catch((error) => {
+      logError("Unable to terminate the test process group.", error);
+    });
   };
 
   private sendSigintToGroup() {
