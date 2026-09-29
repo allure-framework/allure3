@@ -48,6 +48,15 @@ const notesResponse = (notes: unknown, nextPage = "") =>
 
 const requestBody = (body: unknown) => (body as { body: string }).body;
 
+const withReportLinks = (counts: [number, number, number], reportUrl: string) => {
+  const filters = ["transition=new", "flaky=true", "retry=true"];
+  const cells = counts.map((count, index) =>
+    count === 0 ? count : `<a href="${reportUrl}?${filters[index]}">${count}</a>`,
+  );
+
+  return `| ${cells.join(" | ")} |`;
+};
+
 beforeEach(async () => {
   await story("gitlab comments");
   vi.restoreAllMocks();
@@ -82,9 +91,9 @@ describe("upsertGitlabJobNote", () => {
     ]);
     const body = requestBody(calls[1].body);
     expect(body).toMatch(/^<!-- allure-gitlab-summary:v1:dGVzdHM=:100:1000 -->\n# Allure Report Summary\n/);
-    expect(body).toContain("| Scope | Duration | Stats | New | Flaky | Retry |");
+    expect(body).toContain("| Environment | Duration | Stats | New | Flaky | Retry |");
     expect(body).toContain("| All tests | 1s |");
-    expect(body).toContain("| 2 | 1 | 3 |");
+    expect(body).toContain(withReportLinks([2, 1, 3], "https://reports.example/run/index.html"));
     expect(body).toContain('<a href="https://reports.example/run/index.html">Awesome</a>');
     expect(body).not.toContain("Artifacts used");
     expect(body).not.toContain("/tmp/private");
@@ -151,12 +160,12 @@ describe("upsertGitlabJobNote", () => {
     });
 
     const body = requestBody(calls[1].body);
-    expect(body).toContain("| Stats | Resolutions | New | Flaky | Retry |");
+    expect(body).toContain("| Environment | Duration | Stats | New | Flaky | Retry |");
     expect(body).toContain("Issues: 1");
     expect(body).toContain("| Linux &#124; &lt;smoke&gt; | 1s |");
     expect(body).toContain("**Filtered Reports**");
     expect(body).toContain("| Failed &#124; &lt;tests&gt; | 1s |");
-    expect(body).toContain("| 1 | 0 | 1 |");
+    expect(body).toContain(withReportLinks([1, 0, 1], "https://reports.example/run/failed/index.html"));
     expect(body).toContain('<a href="https://reports.example/run/awesome/index.html">Awesome</a>');
     expect(body).toContain('<a href="https://reports.example/run/failed/index.html">Awesome</a>');
     expect(body).toContain('**TestOps:** <a href="https://testops.example/launch/1">TestOps</a>');
