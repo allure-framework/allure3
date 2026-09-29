@@ -30,7 +30,15 @@ import {
   type ResultFile,
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
+import {
+  allure1,
+  allure2,
+  attachments,
+  cucumberjson,
+  cucumberMessages,
+  junitXml,
+  readXcResultBundle,
+} from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
@@ -186,7 +194,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, cucumberMessages, junitXml, attachments],
       plugins = [],
       resolutions,
       reportFiles,
