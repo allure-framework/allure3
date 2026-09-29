@@ -64,7 +64,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     process.on("SIGINT", this.#onSigint);
 
     // Override the default Node.js SIGTERM handler to ensure the test process termination.
-    process.on("SIGTERM", this.#onSigterm);
+    process.once("SIGTERM", this.#onSigterm);
   }
 
   protected requestRootStop() {
@@ -116,12 +116,6 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
   };
 
   readonly #onSigterm = () => {
-    // Removing the handler so the second SIGTERM will use the default Node.js handler,
-    // which terminates Allure.
-    process.off("SIGTERM", this.#onSigterm);
-
-    // Terminate the process group and pass SIGTERM through (which will most likely
-    // terminate Allure).
     void this.terminate()
       .catch((error) => logError("Unable to terminate the test process group.", error))
       .finally(() => process.kill(process.pid, "SIGTERM"));
