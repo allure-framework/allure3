@@ -1,6 +1,12 @@
 import type { AttachmentLink, GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
-import { createBaseUrlScript, createScriptTag, createStylesLinkTag } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import {
+  createBaseUrlScript,
+  createScriptTag,
+  createStylesLinkTag,
+  joinPosixPath,
+  stringifyForInlineScript,
+} from "@allurereport/core-api";
+import { ATTACHMENTS_DIR, SHARED_DIR, type ReportFiles, type ResultFile } from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
@@ -87,6 +93,9 @@ const template = `<!DOCTYPE html>
 
 const compiledTemplate = Handlebars.compile(template);
 
+const createAttachmentsBasePathScript = (basePath: string) =>
+  `<script>window.allureAttachmentsBasePath = ${stringifyForInlineScript(basePath)};</script>`;
+
 const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
   const reportFilesDeclaration = reportFiles
     .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
@@ -118,30 +127,50 @@ export const readTemplateManifest = async (): Promise<TemplateManifest> => {
   return manifest;
 };
 
+const SINGLE_FILE_SIZE_WARNING_THRESHOLD = 50 * 1024 * 1024;
+
 export const generateStaticFiles = async (payload: {
   allureVersion: string;
   reportName: string;
   reportLanguage: string;
   singleFile: boolean;
   reportFiles: ReportFiles;
+  sharedReportFiles?: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    reportFiles,
+    sharedReportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+  } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
   const mainJs = manifest["main.js"];
   const mainCss = manifest["main.css"];
   const headTags: string[] = [];
   const bodyTags: string[] = [];
+  const sharedAssetsDir = sharedReportFiles ? "allure2" : undefined;
+  const assetsTarget = sharedReportFiles ?? reportFiles;
+  const assetsPrefix = sharedAssetsDir ? `../${joinPosixPath(SHARED_DIR, sharedAssetsDir)}/` : "";
 
   if (!singleFile) {
     if (mainCss) {
-      headTags.push(createStylesLinkTag(mainCss));
+      headTags.push(createStylesLinkTag(`${assetsPrefix}${mainCss}`));
     }
 
-    bodyTags.push(createScriptTag(mainJs));
-    await copyReportStaticAssets(staticAssets, reportFiles);
+    bodyTags.push(createScriptTag(`${assetsPrefix}${mainJs}`));
+
+    if (sharedReportFiles) {
+      headTags.push(createAttachmentsBasePathScript(`../${joinPosixPath(SHARED_DIR, ATTACHMENTS_DIR)}`));
+    }
+
+    await copyReportStaticAssets(staticAssets, assetsTarget, sharedAssetsDir);
   } else {
     if (mainCss) {
       const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
@@ -167,7 +196,21 @@ export const generateStaticFiles = async (payload: {
       singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    const htmlBuffer = Buffer.from(html, "utf8");
+
+    if (singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
+      const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);
+      const thresholdMb = SINGLE_FILE_SIZE_WARNING_THRESHOLD / (1024 * 1024);
+
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Warning: the generated single-file report is ${sizeMb} MB. ` +
+          `Reports larger than ${thresholdMb} MB may be slow to open in a browser. ` +
+          `Consider using multi-file mode instead.`,
+      );
+    }
+
+    await reportFiles.addFile("index.html", htmlBuffer);
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console

@@ -7,6 +7,7 @@ import { defineMountableElement } from "../../../core/view/elementView.mts";
 import { attachMountable, destroyMountable } from "../../../core/view/mountables.mts";
 import translate from "../../../helpers/t.mts";
 import { createElement } from "../../../shared/dom.mts";
+import { attachmentSourceUrl } from "../attachmentUrl.mts";
 import { createAttachmentSourceUrlPreview, type AttachmentPreviewComponent } from "./BaseAttachmentPreviewView.mts";
 
 type ScreenDiffPayload = import("../../../types/report.mts").ScreenDiffPayload;
@@ -34,7 +35,7 @@ const findImage = (data: ScreenDiffTestResultData | undefined, name: string) => 
   if (attachments.length) {
     const matchedImage = attachments.find((attachment) => attachment.name === name);
     if (matchedImage) {
-      return `data/attachments/${matchedImage.source}`;
+      return attachmentSourceUrl(matchedImage.source);
     }
   }
 
