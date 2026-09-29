@@ -780,6 +780,7 @@ export class AllureReport {
       attachments,
       environments,
       reportVariables,
+      metadata = {},
       checkResults = {},
       globalAttachmentIds = [],
       globalErrors = [],
@@ -801,6 +802,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.Metadata, metadata],
       [AllureStoreDumpFiles.ResolutionIssues, resolutionIssues],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
@@ -987,6 +989,7 @@ export class AllureReport {
               const checkResultsEntry = await optionalEntryData(AllureStoreDumpFiles.CheckResults);
               const environmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Environments);
               const reportVariablesEntry = await requiredEntryData(AllureStoreDumpFiles.ReportVariables);
+              const metadataEntry = await optionalEntryData(AllureStoreDumpFiles.Metadata);
               const globalAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalAttachments);
               const globalErrorsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalErrors);
               const indexAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
@@ -1014,6 +1017,7 @@ export class AllureReport {
                   case AllureStoreDumpFiles.Fixtures:
                   case AllureStoreDumpFiles.Environments:
                   case AllureStoreDumpFiles.ReportVariables:
+                  case AllureStoreDumpFiles.Metadata:
                   case AllureStoreDumpFiles.ResolutionIssues:
                   case AllureStoreDumpFiles.GlobalAttachments:
                   case AllureStoreDumpFiles.GlobalErrors:
@@ -1045,6 +1049,7 @@ export class AllureReport {
                 checkResults: checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : [],
                 environments: JSON.parse(environmentsEntry.toString("utf8")),
                 reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
+                metadata: metadataEntry ? JSON.parse(metadataEntry.toString("utf8")) : {},
                 globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
                 globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
                 indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
