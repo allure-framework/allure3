@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2",
+    "@vitest/snapshot": "^5",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
