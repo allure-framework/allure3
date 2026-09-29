@@ -25,6 +25,9 @@ export abstract class ProcessSupervisorBase {
   #stopPromise: Promise<void> | undefined;
   #terminationPromise: Promise<void> | undefined;
 
+  #started: boolean = false;
+  #completed: boolean = false;
+
   constructor(
     command: string,
     {
@@ -57,6 +60,14 @@ export abstract class ProcessSupervisorBase {
     }
 
     return this.#process;
+  }
+
+  get started(): boolean {
+    return this.#started;
+  }
+
+  get completed(): boolean {
+    return this.#completed;
   }
 
   get stdout(): Promise<string> {
@@ -121,6 +132,7 @@ export abstract class ProcessSupervisorBase {
     }
 
     this.#process = target;
+    this.#started = true;
 
     this.#completionPromise = this.observeRootProcess(target).then(async ({ error, spawned, code, signal }) => {
       const errors: unknown[] = [];
@@ -156,6 +168,8 @@ export abstract class ProcessSupervisorBase {
       if (errors.length > 1) {
         throw new AggregateError(errors, "Multiple errors occurred while waiting for the process completion.");
       }
+
+      this.#completed = true;
 
       return { code, signal };
     });
