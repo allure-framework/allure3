@@ -11,7 +11,9 @@ export class GenerateCommand extends Command {
 
   static usage = Command.Usage({
     description: "Generates the report in the specified directory.",
-    details: "This command generates a report from the provided Allure Results directories.",
+    details:
+      "This command generates a report from the provided Allure Results directories. " +
+      "When a quality gate is configured, the command validates the loaded results and finishes writing the report or dump before returning its status.",
     examples: [
       ["generate ./allure-results", "Generate a report from the ./allure-results directory"],
       [
@@ -100,12 +102,16 @@ export class GenerateCommand extends Command {
       resolutions: { knownIssuesPath: this.knownIssues },
     });
 
-    await generate({
+    const result = await generate({
       dump: this.dump,
       resultsDir: this.resultsDir,
       cwd,
       config,
     });
+
+    if (!result) {
+      return;
+    }
 
     if (config.open) {
       await serve({
@@ -114,5 +120,7 @@ export class GenerateCommand extends Command {
         open: true,
       });
     }
+
+    return result.exitCode;
   }
 }

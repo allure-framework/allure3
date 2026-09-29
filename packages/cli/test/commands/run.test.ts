@@ -391,6 +391,49 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
+  it("should evaluate a configured quality gate when writing a dump", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const qualityGate = {
+      rules: [
+        {
+          maxFailures: 0,
+        },
+      ],
+    };
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      dump: "./snapshots/with-quality-gate",
+      qualityGate,
+      plugins: [],
+    });
+    AllureReportMock.prototype.validate.mockResolvedValueOnce({
+      results: [
+        {
+          success: true,
+          expected: 0,
+          actual: 0,
+          rule: "maxFailures",
+          message: "No failed tests",
+          testResults: [],
+        },
+      ],
+    });
+
+    await run(RunCommand, ["run", "--", "npm", "test"]);
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dump: "./snapshots/with-quality-gate",
+        qualityGate,
+      }),
+    );
+    expect(AllureReportMock.prototype.validate).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
+
   it("should run with rerun and skip configured quality gate without failing early", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess } = await import("../../src/utils/index.js");

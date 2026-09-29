@@ -2,7 +2,7 @@ import { exit } from "node:process";
 
 import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
-import { AllureReport } from "@allurereport/core";
+import { AllureReport, filterFailedQualityGateResults, stringifyQualityGateResults } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { red } from "yoctocolors";
 
@@ -10,7 +10,10 @@ import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
 
-export type GenerateResult = { summary?: ReportContext };
+export type GenerateResult = {
+  summary?: ReportContext;
+  exitCode: 0 | 1;
+};
 
 export const generate = async (params: {
   cwd: string;
@@ -45,13 +48,32 @@ export const generate = async (params: {
       await allureReport.readDirectory(dir);
     }
 
+    let exitCode: GenerateResult["exitCode"] = 0;
+
+    if (allureReport.hasQualityGate) {
+      const trs = await allureReport.store.allTestResults({ includeRetries: false });
+      const { results } = await allureReport.validate({
+        trs,
+        environment: params.config.environment,
+      });
+      const qualityGateMessage = stringifyQualityGateResults(results);
+
+      if (qualityGateMessage) {
+        // eslint-disable-next-line no-console
+        console.error(qualityGateMessage);
+      }
+
+      allureReport.realtimeDispatcher.sendQualityGateResults(results);
+      exitCode = filterFailedQualityGateResults(results).length > 0 ? 1 : 0;
+    }
+
     await allureReport.done();
 
     if (!params.collectSummary) {
-      return;
+      return { exitCode };
     }
 
-    const result: GenerateResult = {};
+    const result: GenerateResult = { exitCode };
 
     try {
       const summary = await createReportContext(params.config.output, {
