@@ -75,6 +75,7 @@ import {
 } from "../utils/environment.js";
 import { createFlakyDetector } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
+import { measurePerfAggregateSync, PERF_METRIC_NAMES } from "../utils/perf.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { RetrySubstore } from "./retrySubstore.js";
 
@@ -909,77 +910,93 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
    */
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
-    const testResult = testResultRawToState(
-      {
-        testCases: this.#testCases,
-        attachments: this.#attachments,
-        visitAttachmentLink: (link) => attachmentLinks.push(link),
-      },
-      raw,
-      context,
+    const testResult = measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultConvert, () =>
+      testResultRawToState(
+        {
+          testCases: this.#testCases,
+          attachments: this.#attachments,
+          visitAttachmentLink: (link) => attachmentLinks.push(link),
+        },
+        raw,
+        context,
+      ),
     );
-    const defaultLabelsNames = Object.keys(this.#defaultLabels);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultDefaultLabels, () => {
+      const defaultLabelsNames = Object.keys(this.#defaultLabels);
 
-    if (defaultLabelsNames.length) {
-      defaultLabelsNames.forEach((labelName) => {
-        if (!testResult.labels.find((label) => label.name === labelName)) {
-          const defaultLabelValue = this.#defaultLabels[labelName];
+      if (defaultLabelsNames.length) {
+        defaultLabelsNames.forEach((labelName) => {
+          if (!testResult.labels.find((label) => label.name === labelName)) {
+            const defaultLabelValue = this.#defaultLabels[labelName];
 
-          ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
-            testResult.labels.push({
-              name: labelName,
-              value: labelValue,
+            ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
+              testResult.labels.push({
+                name: labelName,
+                value: labelValue,
+              });
             });
-          });
-        }
-      });
-    }
-
-    const environmentMatcherLabels = testResult.labels.filter(
-      ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
-    );
-    const environmentMatch = this.#environment
-      ? undefined
-      : Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
-          matcher({ labels: environmentMatcherLabels }),
-        );
-    const namedEnvironmentIdentity =
-      this.#environment ??
-      (environmentMatch
-        ? {
-            id: environmentMatch[0],
-            name: environmentMatch[1].name ?? environmentMatch[0],
           }
-        : undefined);
-    const environmentIdentity = namedEnvironmentIdentity ?? DEFAULT_ENVIRONMENT_IDENTITY;
+        });
+      }
+    });
 
-    testResult.environment = environmentIdentity.id;
-    this.#addEnvironments([environmentIdentity]);
+    const environmentIdentity = measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultEnvironment, () => {
+      const environmentMatcherLabels = testResult.labels.filter(
+        ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
+      );
+      const environmentMatch = this.#environment
+        ? undefined
+        : Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
+            matcher({ labels: environmentMatcherLabels }),
+          );
+      const namedEnvironmentIdentity =
+        this.#environment ??
+        (environmentMatch
+          ? {
+              id: environmentMatch[0],
+              name: environmentMatch[1].name ?? environmentMatch[0],
+            }
+          : undefined);
+      const identity = namedEnvironmentIdentity ?? DEFAULT_ENVIRONMENT_IDENTITY;
 
-    testResult.environmentHash = calculateEnvironmentHash(environmentIdentity.id);
-    testResult.retryHash = calculateRetryHash({
-      testCaseHash: testResult.testCaseHash,
-      parametersHash: testResult.parametersHash,
-      environmentHash: testResult.environmentHash,
+      testResult.environment = identity.id;
+      this.#addEnvironments([identity]);
+
+      return identity;
+    });
+
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultRetry, () => {
+      testResult.environmentHash = calculateEnvironmentHash(environmentIdentity.id);
+      testResult.retryHash = calculateRetryHash({
+        testCaseHash: testResult.testCaseHash,
+        parametersHash: testResult.parametersHash,
+        environmentHash: testResult.environmentHash,
+      });
     });
 
     if (this.#history) {
-      const lookup = createHistoryTestResultLookup([testResult]);
+      measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultHistory, () => {
+        const lookup = createHistoryTestResultLookup([testResult]);
 
-      this.#applyHistoryFlags(testResult, this.#historyFor(testResult, lookup));
+        this.#applyHistoryFlags(testResult, this.#historyFor(testResult, lookup));
+      });
     }
 
-    this.#classifyResolution(testResult);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultResolution, () => {
+      this.#classifyResolution(testResult);
+    });
 
-    this.#testResults.set(testResult.id, testResult);
-    this.#historyLookup = undefined;
-    this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
-    this.#retrySubstore.recordIngestOrder(testResult.id);
-    this.#retrySubstore.upsert(testResult);
+    measurePerfAggregateSync(PERF_METRIC_NAMES.storeVisitTestResultIndexes, () => {
+      this.#testResults.set(testResult.id, testResult);
+      this.#historyLookup = undefined;
+      this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
+      this.#retrySubstore.recordIngestOrder(testResult.id);
+      this.#retrySubstore.upsert(testResult);
 
-    index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
-    index(this.indexTestResultByRetryHash, testResult.retryHash, testResult);
-    index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
+      index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
+      index(this.indexTestResultByRetryHash, testResult.retryHash, testResult);
+      index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
+    });
 
     this.#realtimeDispatcher?.sendTestResult(testResult.id);
   }
@@ -1005,31 +1022,37 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
-    const originalFileName = resultFile.getOriginalFileName();
-    const id = md5(originalFileName);
+    const { id, originalFileName } = measurePerfAggregateSync(
+      PERF_METRIC_NAMES.storeVisitAttachmentFileMetadata,
+      () => {
+        const originalFileName = resultFile.getOriginalFileName();
+        const id = md5(originalFileName);
 
-    this.#attachmentContents.set(id, resultFile);
+        this.#attachmentContents.set(id, resultFile);
+        const maybeLink = this.#attachments.get(id);
 
-    const maybeLink = this.#attachments.get(id);
+        if (maybeLink) {
+          const link = maybeLink as AttachmentLinkLinked;
 
-    if (maybeLink) {
-      const link = maybeLink as AttachmentLinkLinked;
+          link.missed = false;
+          link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
+          link.contentType = link.contentType ?? resultFile.getContentType();
+          link.contentLength = resultFile.getContentLength();
+        } else {
+          this.#attachments.set(id, {
+            used: false,
+            missed: false,
+            id,
+            originalFileName,
+            ext: resultFile.getExtension(),
+            contentType: resultFile.getContentType(),
+            contentLength: resultFile.getContentLength(),
+          });
+        }
 
-      link.missed = false;
-      link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
-      link.contentType = link.contentType ?? resultFile.getContentType();
-      link.contentLength = resultFile.getContentLength();
-    } else {
-      this.#attachments.set(id, {
-        used: false,
-        missed: false,
-        id,
-        originalFileName,
-        ext: resultFile.getExtension(),
-        contentType: resultFile.getContentType(),
-        contentLength: resultFile.getContentLength(),
-      });
-    }
+        return { id, originalFileName };
+      },
+    );
 
     for (const globalAttachmentId of [...this.#globalAttachmentIds, ...this.#processGlobalAttachmentIds]) {
       const globalAttachment = this.#attachments.get(globalAttachmentId);

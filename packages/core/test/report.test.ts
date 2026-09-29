@@ -1049,6 +1049,7 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const reader: ResultsReader = {
       read: vi.fn(async () => true),
+      readerId: () => "fixture",
     };
     const config = await resolveConfig({
       name: "Allure Report",
@@ -1077,8 +1078,18 @@ describe("report", () => {
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResultsFiles, value: 1 }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.generateReadResultsRealpath}.totalMs`,
+          value: expect.any(Number),
+        }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
+          value: expect.any(Number),
+        }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
         expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.generatePluginDone}p1`, value: expect.any(Number) }),
+        expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.generatePlugin}p1.generatedFiles`, value: 1 }),
       ]),
     );
   });
@@ -1090,6 +1101,7 @@ describe("report", () => {
     const resultsFile = join(await mkdtemp(join(tmpdir(), "allure3-perf-read-file-input-")), "result.json");
     const reader: ResultsReader = {
       read: vi.fn(async () => true),
+      readerId: () => "fixture",
     };
     const config = await resolveConfig({
       name: "Allure Report",
@@ -1110,7 +1122,13 @@ describe("report", () => {
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
     expect(metrics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults })]),
+      expect.arrayContaining([
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
+          value: expect.any(Number),
+        }),
+      ]),
     );
   });
 
