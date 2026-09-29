@@ -947,7 +947,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
-          ["@types/prismjs", "npm:1.26.5"],\
+          ["@types/prismjs", "npm:1.26.6"],\
           ["@vitest/runner", "npm:3.2.4"],\
           ["@vitest/snapshot", "npm:3.2.4"],\
           ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
@@ -1008,7 +1008,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-shape", "npm:3.1.8"],\
           ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
-          ["@types/prismjs", "npm:1.26.5"],\
+          ["@types/prismjs", "npm:1.26.6"],\
           ["@types/underscore", "npm:1.13.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
@@ -1150,7 +1150,7 @@ const RAW_RUNTIME_STATE =
           ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/md5", "npm:2.3.6"],\
           ["@types/node", "npm:20.19.41"],\
-          ["@types/prismjs", "npm:1.26.5"],\
+          ["@types/prismjs", "npm:1.26.6"],\
           ["@types/sortablejs", "npm:1.15.9"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
@@ -11787,10 +11787,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/prismjs", [\
-      ["npm:1.26.5", {\
-        "packageLocation": "./.yarn/cache/@types-prismjs-npm-1.26.5-5c39951991-617099479d.zip/node_modules/@types/prismjs/",\
+      ["npm:1.26.6", {\
+        "packageLocation": "./.yarn/cache/@types-prismjs-npm-1.26.6-dfccafb9f0-37c056eb7a.zip/node_modules/@types/prismjs/",\
         "packageDependencies": [\
-          ["@types/prismjs", "npm:1.26.5"]\
+          ["@types/prismjs", "npm:1.26.6"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -13604,7 +13604,7 @@ const RAW_RUNTIME_STATE =
       ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.1.0", {\
         "packageLocation": "./.yarn/__virtual__/babel-plugin-prismjs-virtual-ff80b67b82/0/cache/babel-plugin-prismjs-npm-2.1.0-487daf4f78-3536d5480d.zip/node_modules/babel-plugin-prismjs/",\
         "packageDependencies": [\
-          ["@types/prismjs", "npm:1.26.5"],\
+          ["@types/prismjs", "npm:1.26.6"],\
           ["babel-plugin-prismjs", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.1.0"],\
           ["prismjs", "npm:1.30.0"]\
         ],\

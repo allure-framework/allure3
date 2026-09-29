@@ -661,7 +661,7 @@ __metadata:
     "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
-    "@types/prismjs": "npm:^1.26.5"
+    "@types/prismjs": "npm:^1.26.6"
     "@vitest/runner": "npm:^3.2.4"
     "@vitest/snapshot": "npm:^3.2.4"
     allure-js-commons: "npm:^3"
@@ -720,7 +720,7 @@ __metadata:
     "@types/d3-shape": "npm:^3.1.8"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
-    "@types/prismjs": "npm:^1.26.5"
+    "@types/prismjs": "npm:^1.26.6"
     "@types/underscore": "npm:^1"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -858,7 +858,7 @@ __metadata:
     "@types/markdown-it": "npm:^14.1.2"
     "@types/md5": "npm:^2.3.6"
     "@types/node": "npm:^20"
-    "@types/prismjs": "npm:^1.26.5"
+    "@types/prismjs": "npm:^1.26.6"
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
@@ -7956,10 +7956,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prismjs@npm:^1.26.5":
-  version: 1.26.5
-  resolution: "@types/prismjs@npm:1.26.5"
-  checksum: 10/617099479db9550119d0f84272dc79d64b2cf3e0d7a17167fe740d55fdf0f155697d935409464392d164e62080c2c88d649cf4bc4fdd30a87127337536657277
+"@types/prismjs@npm:^1.26.6":
+  version: 1.26.6
+  resolution: "@types/prismjs@npm:1.26.6"
+  checksum: 10/37c056eb7a9130ef6548d7655af78ea575c8eaa9167ea2dd64d8719384b1af4a385ffe928aa4939da607ce276703a6787bdac8ecc79a373e2a73ddf6d75bc161
   languageName: node
   linkType: hard
 
