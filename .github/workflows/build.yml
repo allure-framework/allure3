@@ -13,6 +13,8 @@ on:
       - labeled
       - unlabeled
       - edited
+  merge_group:
+    branches: [main]
 
 permissions:
   contents: read
