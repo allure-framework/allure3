@@ -33,6 +33,8 @@ const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
   log: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
 }));
@@ -88,7 +90,6 @@ vi.mock("@allurereport/directory-watcher", () => ({
 }));
 vi.mock("../../src/utils/index.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../src/utils/index.js")>()),
-  logTests: vi.fn(),
   runProcess: vi.fn(() => ({
     pid: 123,
     stdout: processStream,
@@ -827,9 +828,13 @@ describe("run command", () => {
     expect(mkdtemp).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
     expect(AllureReportMock.prototype.store.testResultById).not.toHaveBeenCalledWith("tr-passed");
-    expect(console.log).toHaveBeenCalledWith("Quality Gate fast-fail triggered by maxFailures; stopping test process.");
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: maxFailures; stopping attempt 1\/2/u),
+    );
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*Attempt 2\/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process/u,
+      ),
     );
     expect(unsubscribe).toHaveBeenCalledTimes(2);
     expect(stopProcessTree).toHaveBeenCalledTimes(1);
@@ -903,11 +908,13 @@ describe("run command", () => {
     );
     expect(mkdtemp).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail triggered by minTestsCount; stopping test process.",
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: minTestsCount; stopping attempt 1\/2/u),
     );
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*Attempt 2\/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process/u,
+      ),
     );
   });
 

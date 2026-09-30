@@ -1,8 +1,9 @@
-import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
 import process, { exit } from "node:process";
 
+import { Logger } from "@allurereport/cli-commons";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
+import { formatDuration } from "@allurereport/core-api";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
@@ -19,6 +20,8 @@ import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 const missingRunCommandUsageError = () =>
   new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
+
+const runLogger = new Logger("AllureRun");
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -135,15 +138,15 @@ export class RunCommand extends Command {
     process.on("exit", (exitCode) => {
       const after = new Date().getTime();
 
-      console.log(`exit code ${exitCode} (${after - before}ms)`);
+      runLogger.info(`Completed with exit code ${exitCode} after ${formatDuration(after - before)}`);
     });
 
     const cwd = await realpath(this.cwd ?? process.cwd());
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
-    console.log(`${command} ${commandArgs.join(" ")}`);
-
     if (getActiveAllureCliCommand()) {
+      runLogger.info(`Running nested command: ${[command, ...commandArgs].join(" ")}`);
+
       const exitCode = await executeNestedAllureCommand({
         command,
         commandArgs,
@@ -182,7 +185,7 @@ export class RunCommand extends Command {
       await rm(config.output, { recursive: true });
     } catch (e) {
       if (!isFileNotFoundError(e)) {
-        console.error("could not clean output directory", e);
+        runLogger.error(`Could not clean output directory: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
     const allureReport = new AllureReport({

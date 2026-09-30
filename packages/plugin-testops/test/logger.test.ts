@@ -1,21 +1,20 @@
-import console from "node:console";
+import * as console from "node:console";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { Logger } = await import("../src/logger.js");
 
-describe("Logger", () => {
-  let info: any;
-  let debug: any;
-  let warn: any;
-  let error: any;
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  log: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+}));
 
+describe("Logger", () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
-    info = vi.spyOn(console, "info");
-    debug = vi.spyOn(console, "debug");
-    warn = vi.spyOn(console, "warn");
-    error = vi.spyOn(console, "error");
     vi.clearAllMocks();
   });
 
@@ -28,8 +27,8 @@ describe("Logger", () => {
 
     new Logger("TestOpsPlugin").info("Publishing report");
 
-    expect(info).toHaveBeenCalledWith(expect.stringContaining("[TestOpsPlugin]:"));
-    expect(info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining("[TestOpsPlugin]:"));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
   });
 
   it("should suppress logs below current level", () => {
@@ -37,7 +36,7 @@ describe("Logger", () => {
 
     new Logger("TestOpsPlugin").debug("Uploading test results");
 
-    expect(debug).not.toHaveBeenCalled();
+    expect(console.debug).not.toHaveBeenCalled();
   });
 
   it("should suppress logs in silent mode", () => {
@@ -45,8 +44,8 @@ describe("Logger", () => {
 
     new Logger("TestOpsPlugin").warn("Publishing report");
 
-    expect(warn).not.toHaveBeenCalled();
-    expect(error).not.toHaveBeenCalled();
+    expect(console.warn).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
   });
 
   it("should prefer the constructor log level over environment variables", () => {
@@ -55,7 +54,7 @@ describe("Logger", () => {
 
     new Logger("TestOpsPlugin", "info").info("Publishing report");
 
-    expect(info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Publishing report"));
   });
 
   it("should change the log level at runtime", () => {
@@ -65,7 +64,7 @@ describe("Logger", () => {
     logger.setLogLevel("debug");
     logger.debug("After change");
 
-    expect(debug).not.toHaveBeenCalledWith(expect.stringContaining("Before change"));
-    expect(debug).toHaveBeenCalledWith(expect.stringContaining("After change"));
+    expect(console.debug).not.toHaveBeenCalledWith(expect.stringContaining("Before change"));
+    expect(console.debug).toHaveBeenCalledWith(expect.stringContaining("After change"));
   });
 });

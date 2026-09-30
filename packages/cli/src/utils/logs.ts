@@ -23,7 +23,7 @@ export const readLogs = async () => {
     const logs = await readFile(logFilePath, "utf-8");
 
     return logs;
-  } catch (err) {
+  } catch {
     return "";
   }
 };
@@ -33,7 +33,14 @@ export const readLogs = async () => {
  * @param message The message to print to the console
  * @param error The error to write to the logs file
  */
-export const logError = async (message: string, error: Error) => {
+export const logError = async (
+  message: string,
+  error: Error,
+  log: (formattedMessage: string) => void = (formattedMessage) => {
+    // eslint-disable-next-line no-console
+    console.error(red(formattedMessage));
+  },
+) => {
   let logs = await readLogs();
 
   if (!logs) {
@@ -50,6 +57,5 @@ export const logError = async (message: string, error: Error) => {
 
   await writeFile(logFilePath, logs, "utf-8");
 
-  // eslint-disable-next-line no-console
-  console.error(red(`${message}. Check logs for more details: ${logFilePath}`));
+  log(`${message}. Check logs for more details: ${logFilePath}`);
 };
