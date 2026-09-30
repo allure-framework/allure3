@@ -216,7 +216,7 @@ describe("RetrySubstore", () => {
 
     it("returns no retries without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       rs.recordIngestOrder(tr.id);
       rs.upsert(tr);
@@ -255,7 +255,7 @@ describe("RetrySubstore", () => {
 
     it("does not index attempts without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       upsertInOrder(rs, tr);
 

@@ -556,14 +556,14 @@ describe("generateResolutionCategories", () => {
     const tests = [
       {
         ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
-        historyId: "history-1",
+        retryHash: "history-1",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
-        historyId: "history-2",
+        retryHash: "history-2",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
@@ -739,7 +739,7 @@ describe("generateSearchIndex", () => {
     };
     const visibleTest = {
       id: "tr-visible",
-      historyId: "history-visible",
+      retryHash: "history-visible",
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
       status: "failed",
@@ -765,6 +765,7 @@ describe("generateSearchIndex", () => {
       error: {
         message: "Assertion error: Expected 1 to be 2",
       },
+      errors: [{ message: "Assertion error: Expected 1 to be 2" }, { message: "Second soft assertion failed" }],
       categories: [{ name: "Product defects" }],
     } as ReportTestResult;
     const retryTest = {
@@ -785,13 +786,13 @@ describe("generateSearchIndex", () => {
       nodeId: "tr-visible",
       name: "visible test",
       fullName: "com.acme.VisibleTest.visible",
-      historyId: "history-visible",
+      retryHash: "history-visible",
       labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
       owner: "Igor Martynov",
       tags: "smoke",
       parameters: "browser:chromium browser chromium token",
       categories: "Product defects",
-      statusMessage: "Assertion error: Expected 1 to be 2",
+      statusMessage: "Assertion error: Expected 1 to be 2 Second soft assertion failed",
       links: "Issue 42 https://example.com/ISSUE-42 issue",
     });
     expect(documents[0]?.labels).not.toContain("ignored");

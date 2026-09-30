@@ -12,10 +12,10 @@ const icons: Record<string, string> = {
 };
 
 export const MetadataWithIcon: FunctionComponent<MetadataProps> = ({ type, count }) => (
-  <div data-testid="metadata-value" className={styles["metadata-with-icon"]}>
+  <span data-testid="metadata-value" className={styles["metadata-with-icon"]}>
     {type !== "all" && <SvgIcon className={styles["metadata-icon"]} id={icons[type]} size={"s"} />}
     <Text size={"m"} bold>
       {count}
     </Text>
-  </div>
+  </span>
 );

@@ -3,6 +3,7 @@ import type {
   CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
+  FlakyDetectionConfig,
   PerformanceConfig,
   ReportVariables,
   ResolutionsConfig,
@@ -20,6 +21,7 @@ export interface Config {
   historyPath?: string;
   historyBaseUrl?: string;
   historyLimit?: number;
+  flakyDetection?: FlakyDetectionConfig;
   resolutions?: ResolutionsConfig;
   defaultLabels?: DefaultLabelsConfig;
   /**

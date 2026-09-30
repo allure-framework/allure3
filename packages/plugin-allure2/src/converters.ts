@@ -287,8 +287,8 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     uid: test.id,
     name: test.name,
     fullName: test.fullName,
-    historyId: test.historyId,
     testId: test.testCase?.id,
+    retryHash: test.retryHash,
     time: {
       start: test.start,
       stop: test.stop,

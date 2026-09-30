@@ -13,7 +13,7 @@ import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrResolutionCategoriesView } from "@/components/TestResult/TrResolutionCategories";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
 import { TrTabs } from "@/components/TestResult/TrTabs";
-import { fetchTestEnvGroup } from "@/stores/env";
+import { fetchTestEnvGroup, testEnvGroupId } from "@/stores/env";
 import { focusTestResultPane } from "@/stores/keyboard";
 import { isSplitMode } from "@/stores/layout";
 import { getCurrentTestResultTab } from "@/stores/testResultTabs";
@@ -63,10 +63,10 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
   const split = isSplitMode.value;
 
   useEffect(() => {
-    const testCaseId = testResult?.testCase?.id;
+    const groupId = testEnvGroupId(testResult);
 
-    if (testCaseId) {
-      fetchTestEnvGroup(testCaseId);
+    if (groupId) {
+      fetchTestEnvGroup(groupId);
     }
   }, [testResult]);
 

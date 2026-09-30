@@ -268,7 +268,7 @@ describe("AgentPlugin", () => {
       params.testResult ??
       createTestResult({
         id: "tr-expectation",
-        historyId: "expectation-history",
+        retryHash: "expectation-history",
         fullName: "suite expected behavior",
       });
 
@@ -339,7 +339,7 @@ describe("AgentPlugin", () => {
     const realtime = createRealtimeSubscriber();
     const liveTest = createTestResult({
       id: "tr-live",
-      historyId: "live-history",
+      retryHash: "live-history",
       fullName: "suite live result",
     });
     let currentTests: TestResult[] = [];
@@ -512,16 +512,16 @@ describe("AgentPlugin", () => {
     expect(await readText(join(outputDir, "AGENTS.md"), "text/markdown")).toContain("# AGENTS Guide");
   });
 
-  it("should use historyId-based file names and fall back to the test result id", async () => {
+  it("should use retryHash-based file names and fall back to the test result id", async () => {
     const outputDir = join(tempDir, "stable-names");
     const withHistoryId = createTestResult({
       id: "tr-history",
-      historyId: "history-1",
+      retryHash: "history-1",
       fullName: "suite history based",
     });
     const withoutHistoryId = createTestResult({
       id: "tr-fallback",
-      historyId: undefined,
+      retryHash: null,
       name: "fallback name",
       fullName: "suite fallback name",
     });
@@ -543,7 +543,7 @@ describe("AgentPlugin", () => {
       id: "tr-readable",
       name: "should keep markdown readable (v1)",
       fullName: "test/index.test.ts#AgentPlugin should keep markdown readable (v1)",
-      historyId: "history.id#1",
+      retryHash: "history.id#1",
       titlePath: ["test", "index.test.ts", "AgentPlugin"],
     });
     const store = createStore({
@@ -559,7 +559,7 @@ describe("AgentPlugin", () => {
     expect(indexContent).toContain("test/index.test.ts#AgentPlugin should keep markdown readable (v1)");
     expect(testContent).toContain("Name: should keep markdown readable (v1)");
     expect(testContent).toContain("Full Name: test/index.test.ts#AgentPlugin should keep markdown readable (v1)");
-    expect(testContent).toContain("History ID: history.id#1");
+    expect(testContent).toContain("Retry hash: history.id#1");
     expect(testContent).not.toContain("\\.");
     expect(testContent).not.toContain("\\#");
     expect(testContent).not.toContain("\\(");
@@ -569,7 +569,7 @@ describe("AgentPlugin", () => {
     const outputDir = join(tempDir, "retries");
     const primary = createTestResult({
       id: "tr-primary",
-      historyId: "shared-history",
+      retryHash: "shared-history",
       name: "primary",
       fullName: "suite primary",
       status: "failed",
@@ -580,7 +580,7 @@ describe("AgentPlugin", () => {
     });
     const retry = createTestResult({
       id: "tr-retry",
-      historyId: "shared-history",
+      retryHash: "shared-history",
       name: "primary retry",
       fullName: "suite primary retry",
       isRetry: true,
@@ -592,7 +592,7 @@ describe("AgentPlugin", () => {
     });
     const sibling = createTestResult({
       id: "tr-sibling",
-      historyId: "shared-history",
+      retryHash: "shared-history",
       name: "sibling",
       fullName: "suite sibling",
       status: "passed",
@@ -822,7 +822,7 @@ describe("AgentPlugin", () => {
     ];
     const testResult = createTestResult({
       id: "tr-attachments",
-      historyId: "artifact-history",
+      retryHash: "artifact-history",
       fullName: "suite attachments",
       status: "failed",
       steps: testSteps,
@@ -871,7 +871,7 @@ describe("AgentPlugin", () => {
     const expectationsPath = join(tempDir, "expected.yaml");
     const matching = createTestResult({
       id: "tr-match",
-      historyId: "feature-a-history",
+      retryHash: "feature-a-history",
       name: "feature A should work",
       fullName: "feature A should work",
       duration: 180,
@@ -884,7 +884,7 @@ describe("AgentPlugin", () => {
     });
     const forbidden = createTestResult({
       id: "tr-forbidden",
-      historyId: "feature-b-history",
+      retryHash: "feature-b-history",
       name: "feature B should not run",
       fullName: "feature B should not run",
       duration: 35,
@@ -950,6 +950,7 @@ notes:
     }>(join(outputDir, "manifest", "run.json"));
     const testsManifest = await readJsonl<{
       full_name: string;
+      retry_hash: string | null;
       scope_match: "match" | "unexpected" | "forbidden" | "unknown";
     }>(join(outputDir, "manifest", "tests.jsonl"));
     const findingsManifest = await readJsonl<{
@@ -974,14 +975,17 @@ notes:
       expect.arrayContaining([
         expect.objectContaining({
           full_name: "feature A should work",
+          retry_hash: "feature-a-history",
           scope_match: "match",
         }),
         expect.objectContaining({
           full_name: "feature B should not run",
+          retry_hash: "feature-b-history",
           scope_match: "forbidden",
         }),
       ]),
     );
+    expect(testsManifest.every((test) => !("history_id" in test))).toBe(true);
     expect(findingsManifest).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1014,7 +1018,7 @@ notes:
     const outputDir = join(tempDir, "inline-expectations");
     const matching = createTestResult({
       id: "tr-inline",
-      historyId: "inline-history",
+      retryHash: "inline-history",
       name: "inline should be visible",
       fullName: "inline should be visible",
       labels: [
@@ -1140,7 +1144,7 @@ notes:
     const outputDir = join(tempDir, "metadata-only-expectations");
     const matching = createTestResult({
       id: "tr-metadata-only",
-      historyId: "metadata-only-history",
+      retryHash: "metadata-only-history",
       name: "metadata-only test",
       fullName: "metadata-only test",
     });
@@ -1191,7 +1195,7 @@ notes:
       environmentId: "web",
       testResult: createTestResult({
         id: "tr-parsed-config",
-        historyId: "parsed-config-history",
+        retryHash: "parsed-config-history",
         fullName: "suite expected behavior",
         labels: [
           {
@@ -1300,7 +1304,7 @@ notes:
       field: "expected.label_values",
       testResult: createTestResult({
         id: "tr-expected-label-pass",
-        historyId: "expected-label-pass-history",
+        retryHash: "expected-label-pass-history",
         fullName: "suite expected behavior",
         labels: [
           {
@@ -1371,7 +1375,7 @@ notes:
       checkName: "expected-label-missing",
       testResult: createTestResult({
         id: "tr-expected-label-fail",
-        historyId: "expected-label-fail-history",
+        retryHash: "expected-label-fail-history",
         fullName: "suite expected behavior",
         labels: [
           {
@@ -1438,7 +1442,7 @@ notes:
       field: "forbidden.label_values",
       testResult: createTestResult({
         id: "tr-forbidden-label-pass",
-        historyId: "forbidden-label-pass-history",
+        retryHash: "forbidden-label-pass-history",
         fullName: "suite expected behavior",
         labels: [
           {
@@ -1503,7 +1507,7 @@ notes:
       checkName: "forbidden-label-observed",
       testResult: createTestResult({
         id: "tr-forbidden-label-fail",
-        historyId: "forbidden-label-fail-history",
+        retryHash: "forbidden-label-fail-history",
         fullName: "suite expected behavior",
         labels: [
           {
@@ -1550,7 +1554,7 @@ notes:
       },
       testResult: createTestResult({
         id: "tr-evidence-step-text-pass",
-        historyId: "evidence-step-text-pass-history",
+        retryHash: "evidence-step-text-pass-history",
         fullName: "suite expected behavior",
         steps: [createMeaningfulStep()],
       }),
@@ -1564,7 +1568,7 @@ notes:
       },
       testResult: createTestResult({
         id: "tr-evidence-steps-pass",
-        historyId: "evidence-steps-pass-history",
+        retryHash: "evidence-steps-pass-history",
         fullName: "suite expected behavior",
         steps: [createMeaningfulStep()],
       }),
@@ -1671,7 +1675,7 @@ notes:
       },
       testResult: createTestResult({
         id: "tr-nested-step",
-        historyId: "nested-step-history",
+        retryHash: "nested-step-history",
         fullName: "suite expected behavior",
         steps: [nestedStep],
       }),
@@ -1850,7 +1854,7 @@ notes:
       allTestResults: vi.fn().mockResolvedValue([
         createTestResult({
           id: "tr-partial",
-          historyId: "partial-history",
+          retryHash: "partial-history",
           fullName: "suite partial runtime",
           duration: 45,
         }),
@@ -2038,7 +2042,7 @@ notes:
     });
     const testResult = createTestResult({
       id: "tr-clean",
-      historyId: "clean-history",
+      retryHash: "clean-history",
       fullName: "feature clean run",
       duration: 40,
       labels: [

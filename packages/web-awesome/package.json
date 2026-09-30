@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.18.0",
+  "version": "3.19.1",
   "private": true,
   "description": "The static files for Allure Awesome Report",
   "keywords": [
@@ -51,9 +51,9 @@
     "@types/d3-shape": "^3.1.8",
     "@types/md5": "^2.3.6",
     "@types/node": "^20",
-    "@types/prismjs": "^1.26.5",
+    "@types/prismjs": "^1.26.6",
     "@vitest/runner": "^3.2.4",
-    "@vitest/snapshot": "^3.2.4",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
@@ -80,7 +80,7 @@
     "sass-loader": "^16.0.1",
     "split.js": "^1.6.5",
     "style-loader": "^4.0.0",
-    "terser-webpack-plugin": "^5.3.14",
+    "terser-webpack-plugin": "^5.6.1",
     "typescript": "^5",
     "vite": "^8.0.9",
     "vitest": "^4.1.0",

@@ -4,8 +4,13 @@ import type {
   TestBaseGrowthDynamicsChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
-import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
-import { htrsByTr, statusesList } from "@allurereport/core-api";
+import {
+  createHistoryTestResultLookup,
+  statusesList,
+  type HistoryTestResult,
+  type TestResult,
+  type TestStatus,
+} from "@allurereport/core-api";
 
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
@@ -31,6 +36,7 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
   const { options, storeData } = props;
   const { limit = DEFAULT_CHART_HISTORY_LIMIT, statuses = DEFAULT_STATUSES } = options;
   const { historyDataPoints, testResults } = storeData;
+  const lookupHistoryTestResult = createHistoryTestResultLookup(storeData.allTestResults ?? testResults);
 
   const currentReportTimestamp = testResults.reduce((acc, testResult) => Math.max(acc, testResult.stop ?? 0), 0);
   const statusList = statuses.length > 0 ? statuses : DEFAULT_STATUSES;
@@ -65,7 +71,7 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.historyId ?? testResult.id] = testResult;
+          acc[testResult.retryHash ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,
@@ -83,7 +89,10 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
     const hpsPriorToCurrent = isFirst ? [earliestHdp] : dataPoints.slice(0, index);
     const hpsAfterCurrent = dataPoints.slice(index + 1);
 
-    const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
+    const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs).filter((tr) => {
+      const selected = lookupHistoryTestResult<TestResult | HistoryTestResult>({ testResults: trs }, tr);
+      return !selected || selected === tr;
+    });
 
     for (const cTr of currentTrs) {
       // Skip test results with statuses that are not in the status list from chart options
@@ -91,7 +100,10 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
         continue;
       }
 
-      const htrsPriortoCurr = htrsByTr(hpsPriorToCurrent as HistoryDataPoint[], cTr);
+      const htrsPriortoCurr = hpsPriorToCurrent.flatMap((historyDataPoint) => {
+        const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
+        return historicalTestResult ? [historicalTestResult] : [];
+      });
 
       // Test result is new, because it has no history
       if (htrsPriortoCurr.length === 0) {
@@ -102,7 +114,10 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
         continue;
       }
 
-      const htrsAfterCurrent = htrsByTr(hpsAfterCurrent as HistoryDataPoint[], cTr);
+      const htrsAfterCurrent = hpsAfterCurrent.flatMap((historyDataPoint) => {
+        const historicalTestResult = lookupHistoryTestResult<TestResult | HistoryTestResult>(historyDataPoint, cTr);
+        return historicalTestResult ? [historicalTestResult] : [];
+      });
 
       if (htrsAfterCurrent.length === 0) {
         stats[`removed:${cTr.status}`]++;

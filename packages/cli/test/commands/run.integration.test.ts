@@ -118,6 +118,7 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
 // every suite in this file drives the built CLI, and the build wipes `dist` first: it has to happen
 // once, before any of them starts, and never in parallel with a running CLI process
 beforeAll(async () => {
+  await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
   await runYarnCommand(["workspace", "allure", "build"]);
 }, 240_000);
 
@@ -334,7 +335,7 @@ export default config;
     const configSource = `
 export default {
   qualityGate: {
-    rules: [{ maxFailures: 0 }]
+    rules: [{ maxFailures: 0 }, { minTestsCount: 1 }]
   }
 };
 `.trimStart();
@@ -349,6 +350,8 @@ export default {
     };
     let stdout = "";
     let stderr = "";
+    let allStdout = "";
+    let allStderr = "";
     let disabledStdout = "";
     let disabledStderr = "";
 
@@ -359,7 +362,7 @@ export default {
       await attachment("log quality gate config", configSource, "text/plain");
     });
 
-    await step("run built log command with quality gate results enabled", async () => {
+    await step("run built log command with default quality gate results", async () => {
       const result = await runCommand(process.execPath, [
         cliPath,
         "log",
@@ -373,6 +376,22 @@ export default {
       stdout = stripAnsi(result.stdout);
       stderr = result.stderr;
       await attachCommandOutput("log with quality gates", result);
+    });
+
+    await step("run built log command with all quality gate results", async () => {
+      const result = await runCommand(
+        process.execPath,
+        [cliPath, "log", "--cwd", fixtureDir, "--config", configPath, "--all-quality-gate-results", resultsDir],
+        {
+          env: {
+            FORCE_COLOR: "1",
+          },
+        },
+      );
+
+      allStdout = result.stdout;
+      allStderr = result.stderr;
+      await attachCommandOutput("log with all quality gates", result);
     });
 
     await step("run built log command with quality gate results disabled", async () => {
@@ -392,7 +411,7 @@ export default {
       await attachCommandOutput("log without quality gates", result);
     });
 
-    await step("verify quality gates are printed after tests and can be disabled", async () => {
+    await step("verify default quality gate output prints only failures after tests", async () => {
       expect(stderr).toBe("");
       expect(stdout).toContain("Failed test");
       expect(stdout).toContain("Total tests: 1");
@@ -400,11 +419,34 @@ export default {
       expect(stdout).toContain("Quality gates");
       expect(stdout).toContain("⨯ maxFailures");
       expect(stdout).toContain("The number of failed tests 1 exceeds the allowed threshold value 0");
+      expect(stdout).toContain("Quality gates: 1 failed");
+      expect(stdout).not.toContain("✓ minTestsCount");
+      expect(stdout).not.toContain("The total number of tests 1 meets the expected threshold value 1");
       expect(stdout.indexOf("Tests: 1 failed")).toBeLessThan(stdout.indexOf("Quality gates"));
+    });
 
+    await step("verify all quality gate output includes successes after failures", async () => {
+      const allStdoutWithoutAnsi = stripAnsi(allStdout);
+
+      expect(allStderr).toBe("");
+      expect(allStdoutWithoutAnsi).toContain("Quality gates");
+      expect(allStdoutWithoutAnsi).toContain("⨯ maxFailures");
+      expect(allStdoutWithoutAnsi).toContain("The number of failed tests 1 exceeds the allowed threshold value 0");
+      expect(allStdoutWithoutAnsi).toContain("✓ minTestsCount");
+      expect(allStdoutWithoutAnsi).toContain("The total number of tests 1 meets the expected threshold value 1");
+      expect(allStdoutWithoutAnsi.indexOf("maxFailures")).toBeLessThan(allStdoutWithoutAnsi.indexOf("minTestsCount"));
+      expect(allStdoutWithoutAnsi).toContain("Quality gates: 1 passed | 1 failed");
+      expect(allStdout).toContain("\u001B[31m⨯\u001B[39m maxFailures");
+      expect(allStdout).toContain("\u001B[32m✓\u001B[39m minTestsCount");
+      expect(allStdout).toContain("\u001B[31mThe number of failed tests ");
+      expect(allStdout).toContain("\u001B[32mThe total number of tests ");
+    });
+
+    await step("verify disabled quality gate output hides the section", async () => {
       expect(disabledStdout).toContain("Tests: 1 failed");
       expect(disabledStdout).not.toContain("Quality gates");
       expect(disabledStdout).not.toContain("maxFailures");
+      expect(disabledStdout).not.toContain("minTestsCount");
       expect(disabledStderr).toBe("");
     });
   }, 240_000);
@@ -661,7 +703,7 @@ console.error("emitted newly added test diagnostic");
       const expectedResult = {
         ...baseResult,
         uuid: "agent-expect-test-uuid",
-        historyId: "agent-expect-test-history",
+        retryHash: "agent-expect-test-history",
         name: "reports the newly added test",
         fullName: expectedFullName,
         status: "passed",
@@ -826,7 +868,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureAResult = {
         ...baseResult,
         uuid: "feature-a-uuid",
-        historyId: "feature-a-history",
+        retryHash: "feature-a-history",
         name: "feature A",
         fullName: "suite feature A",
         status: "passed",
@@ -839,7 +881,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureBResult = {
         ...baseResult,
         uuid: "feature-b-uuid",
-        historyId: "feature-b-history",
+        retryHash: "feature-b-history",
         name: "feature B",
         fullName: "suite feature B",
         status: "passed",
@@ -937,7 +979,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await writeJsonl(join(previousManifestDir, "tests.jsonl"), [
         {
           environment_id: "default",
-          history_id: "feature-a-history",
+          retry_hash: "feature-a-history",
           test_result_id: "feature-a-tr",
           full_name: "suite feature A",
           package: "suite",
@@ -961,7 +1003,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         },
         {
           environment_id: "default",
-          history_id: "feature-b-history",
+          retry_hash: "feature-b-history",
           test_result_id: "feature-b-tr",
           full_name: "suite feature B",
           package: "suite",

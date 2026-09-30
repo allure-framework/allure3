@@ -175,8 +175,6 @@ export const isHotkeyScopeActive = (scope: "global" | "tree" | "testResult"): bo
 };
 
 const buildEnvSections = () => {
-  const envs = environmentsStore.value.data;
-
   return Object.entries(filteredTree.value)
     .map(([envId, tree]) => {
       const stats = statsByEnvStore.value.data[envId];
@@ -349,8 +347,8 @@ export const revealTreeNode = (nodeId: string) => {
   }
 };
 
-const expandAndFocusCurrentTest = () => {
-  const testResultId = currentTrId.peek();
+const expandAndFocusCurrentTest = (openedTestResultId?: string) => {
+  const testResultId = openedTestResultId ?? currentTrId.peek?.();
 
   if (!testResultId) {
     return;
@@ -366,6 +364,25 @@ const expandAndFocusCurrentTest = () => {
 
   revealTreeNode(testResultId);
 };
+
+let revealedTestResultId: string | undefined;
+
+effect(() => {
+  const testResultId = currentTrId.value;
+  const flat = flatTree.value;
+
+  if (!testResultId) {
+    revealedTestResultId = undefined;
+    return;
+  }
+
+  if (flat.length === 0 || revealedTestResultId === testResultId) {
+    return;
+  }
+
+  revealedTestResultId = testResultId;
+  expandAndFocusCurrentTest(testResultId);
+});
 
 let prevIsSplitMode = isSplitMode.peek();
 

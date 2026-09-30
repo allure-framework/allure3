@@ -58,6 +58,22 @@ describe("convertTestResult", () => {
     });
   });
 
+  it("serializes canonical retry identity without a legacy historyId alias", () => {
+    const result = convertTestResult(
+      {
+        attachmentMap: new Map(),
+        fixtures: [],
+        categories: [],
+        retries: [],
+        history: [],
+      },
+      createTestResult({ retryHash: "retry-hash" }),
+    );
+
+    expect(result.retryHash).toBe("retry-hash");
+    expect(result).not.toHaveProperty("historyId");
+  });
+
   it("should redact hidden and masked parameters", () => {
     const result = convertTestResult(
       {

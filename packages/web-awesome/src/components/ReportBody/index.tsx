@@ -8,6 +8,7 @@ import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
 
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
+import { CollapseAll } from "./CollapseAll";
 import { ReportContentProvider } from "./context";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
@@ -55,7 +56,10 @@ const Header = () => {
             }}
           />
         </ReportTabsList>
-        <SortBy />
+        <div className={styles.headerRowActions}>
+          <SortBy />
+          <CollapseAll />
+        </div>
       </div>
     </header>
   );

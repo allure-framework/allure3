@@ -156,7 +156,7 @@ export type ReportSearchDocument = {
   nodeId: string;
   name: string;
   fullName?: string;
-  historyId?: string;
+  retryHash?: string | null;
   labels?: string;
   owner?: string;
   tags?: string;

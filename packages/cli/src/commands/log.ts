@@ -60,6 +60,10 @@ export class LogCommand extends Command {
       "Print quality gate validation results after tests (default: true). Pass --no-quality-gate-results to hide them",
   });
 
+  allQualityGateResults = Option.Boolean("--all-quality-gate-results", false, {
+    description: "Include successful quality gate validation results in addition to failures",
+  });
+
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
@@ -68,6 +72,7 @@ export class LogCommand extends Command {
       withTrace: this.withTrace ?? false,
       groupBy: this.groupBy ?? "suite",
       qualityGateResults: this.qualityGateResults,
+      qualityGateFilter: this.allQualityGateResults ? () => true : undefined,
     } as LogPluginOptions;
     const config = await readConfig(cwd, this.config);
     const resolvedEnvironment = resolveCommandEnvironment(config, {});

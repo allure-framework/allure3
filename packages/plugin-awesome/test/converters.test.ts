@@ -19,7 +19,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
     duration: 1,
     flaky: false,
     muted: false,
-    known: false,
+    parametersHash: "parameters-hash",
     isRetry: false,
     labels: [],
     parameters: [],
@@ -46,6 +46,19 @@ describe("convertTestResult", () => {
 
     expect(result.testCase?.id).toBe("test-case-id");
     expect(result.retryHash).toBe("retry-hash");
+    expect(result).not.toHaveProperty("historyId");
+  });
+
+  it("keeps multiple test errors on convert", () => {
+    const result = convertTestResult(
+      createTestResult({
+        error: { message: "first assertion" },
+        errors: [{ message: "first assertion" }, { message: "second assertion" }],
+      }),
+    );
+
+    expect(result.error).toEqual({ message: "first assertion" });
+    expect(result.errors).toEqual([{ message: "first assertion" }, { message: "second assertion" }]);
   });
 
   it("keeps known resolution fields on convert", () => {

@@ -8,6 +8,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   getPerfMetricsResults,
+  incrementPerfCounter,
+  measurePerfAggregate,
+  measurePerfAggregateSync,
   measurePerf,
   PERF_METRICS_FILE,
   PERF_METRIC_NAMES,
@@ -39,6 +42,9 @@ describe("perf metrics", () => {
     const output = await tempDir();
 
     await measurePerf(PERF_METRIC_NAMES.generateTotal, async () => {});
+    await measurePerfAggregate("aggregate.sample", async () => {});
+    measurePerfAggregateSync("aggregate.sync.sample", () => {});
+    incrementPerfCounter("counter.sample");
 
     await expect(writePerfMetrics(output)).resolves.toBe(false);
     expect(existsSync(join(output, PERF_METRICS_FILE))).toBe(false);
@@ -76,6 +82,61 @@ describe("perf metrics", () => {
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.allureTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
+      ]),
+    );
+  });
+
+  it("records aggregate async timings as summary samples", async () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    await measurePerfAggregate("aggregate.sample", async () => {});
+    await measurePerfAggregate("aggregate.sample", async () => {});
+
+    expect(getPerfMetricsResults()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "aggregate.sample.totalMs", value: expect.any(Number) }),
+        expect.objectContaining({ key: "aggregate.sample.avgMs", value: expect.any(Number) }),
+      ]),
+    );
+  });
+
+  it("records aggregate sync timings as summary samples", () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    const value = measurePerfAggregateSync("aggregate.sync.sample", () => "result");
+
+    expect(value).toBe("result");
+    expect(getPerfMetricsResults()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "aggregate.sync.sample.totalMs", value: expect.any(Number) }),
+        expect.objectContaining({ key: "aggregate.sync.sample.avgMs", value: expect.any(Number) }),
+      ]),
+    );
+  });
+
+  it("records counters as metric samples", () => {
+    process.env.ALLURE_PERF_METRICS = "1";
+
+    incrementPerfCounter("counter.sample", 2, {
+      title: "Counter sample",
+      unit: "items",
+      group: "workload",
+      groupTitle: "Workload",
+      better: "neutral",
+    });
+    incrementPerfCounter("counter.sample", 3);
+
+    expect(getPerfMetricsResults()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "counter.sample",
+          value: 5,
+          title: "Counter sample",
+          unit: "items",
+          group: "workload",
+          groupTitle: "Workload",
+          better: "neutral",
+        }),
       ]),
     );
   });
