@@ -539,14 +539,22 @@ describe("generateTree", () => {
         ...mockTestResult("tr-clean", "clean test", "passed"),
         groupedLabels: {},
       } as ReportTestResult,
+      {
+        ...mockTestResult("tr-unresolved", "unresolved failure", "failed"),
+        groupedLabels: {},
+      } as ReportTestResult,
     ];
 
     await generateTree(writer, "tree.json", [], tests);
 
-    const tree = writtenWidgets.get("tree.json") as { leavesById: Record<string, { resolution?: string }> };
+    const tree = writtenWidgets.get("tree.json") as {
+      leavesById: Record<string, { resolution?: string; resolutionStatus?: string }>;
+    };
 
-    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue" });
+    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue", resolutionStatus: "issue" });
     expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
+    expect(tree.leavesById["tr-clean"]?.resolutionStatus).toBeUndefined();
+    expect(tree.leavesById["tr-unresolved"]).toMatchObject({ resolutionStatus: "none" });
   });
 });
 

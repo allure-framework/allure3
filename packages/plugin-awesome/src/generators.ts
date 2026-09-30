@@ -477,6 +477,7 @@ const leafFactory = ({
   groupedLabels,
   categories,
 }: ReportTestResult): ReportTreeLeaf => {
+  const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
   const leaf: ReportTreeLeaf = {
     nodeId: id,
     id: retryHash ?? id,
@@ -488,6 +489,7 @@ const leafFactory = ({
     retry,
     retriesCount,
     resolution,
+    resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
   };

@@ -1,4 +1,4 @@
-import { type Statistic, capitalize, statusesList } from "@allurereport/core-api";
+import { type Statistic, type TestStatus, capitalize, statusesList } from "@allurereport/core-api";
 import { computed } from "@preact/signals";
 import type { FunctionalComponent } from "preact";
 
@@ -21,6 +21,7 @@ import * as styles from "@/components/ReportMetadata/styles.scss";
 
 export interface MetadataSummaryProps {
   stats: Statistic;
+  statusCounts?: Partial<Record<TestStatus, number>>;
 }
 
 const metadataTestsTypes = ["flaky", "new", "retries"] as const as (keyof Statistic)[];
@@ -69,7 +70,7 @@ const isMetadataFilterActive = (type: keyof Statistic) => {
 
 const hasActiveMetadataFilter = () => treeFlaky.value || treeRetry.value || treeTransitions.value.includes("new");
 
-export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
+export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats, statusCounts }) => {
   const { t } = useI18n("statuses");
   const { t: testSummary } = useI18n("testSummary");
 
@@ -98,7 +99,7 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
     .filter(Boolean);
 
   const metadataStatuses = statusesList
-    .map((status) => ({ status, value: stats[status] }))
+    .map((status) => ({ status, value: statusCounts?.[status] ?? stats[status] }))
     .filter(({ value }) => value)
     .map(({ status, value }) => {
       const title = capitalize(t(status) ?? status ?? "");
