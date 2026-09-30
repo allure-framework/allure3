@@ -55,7 +55,7 @@ describe("success rate charts", () => {
         successRate: rate,
       });
       expect(tree.eligibleCount).toBe(eligible);
-      expect(tree.colorValue).toBe(rate / 100);
+      expect(tree.colorValue).toBe(eligible ? rate / 100 : undefined);
 
       const leaves: (typeof tree)[] = [];
       const visit = (node: typeof tree) => (node.children?.length ? node.children.forEach(visit) : leaves.push(node));
@@ -68,6 +68,21 @@ describe("success rate charts", () => {
   it("returns a finite empty pie and empty subtree", () => {
     expect(getPieChartValues({ total: 0 }).percentage).toBe(0);
     expect(createSuccessRateDistributionTreeMap([]).eligibleCount).toBe(0);
-    expect(createSuccessRateDistributionTreeMap([]).colorValue).toBe(0);
+    expect(createSuccessRateDistributionTreeMap([]).colorValue).toBeUndefined();
+  });
+  it("leaves all-skipped groups without a color and keeps them out of the parent rate", () => {
+    const skipped = testResults(["skipped", "skipped"]).map((result) => ({
+      ...result,
+      id: `skipped-${result.id}`,
+      labels: [
+        { name: "epic", value: "Product" },
+        { name: "feature", value: "Skipped only" },
+      ],
+    }));
+    const tree = createSuccessRateDistributionTreeMap([...testResults(["passed"]), ...skipped]);
+    const skippedGroup = tree.children?.[0].children?.find((node) => node.id === "Skipped only");
+
+    expect(skippedGroup?.colorValue).toBeUndefined();
+    expect(tree.colorValue).toBe(1);
   });
 });

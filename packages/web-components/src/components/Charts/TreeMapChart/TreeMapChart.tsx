@@ -32,6 +32,7 @@ export const TreeMapChart: FunctionalComponent<
   legendMaxValue = 1,
   formatLegend,
   colors,
+  noValueColor,
   legendDomain,
   parentSkipSize,
   tooltipRows,
@@ -73,7 +74,9 @@ export const TreeMapChart: FunctionalComponent<
         theme={CHART_THEME}
         motionConfig={CHART_MOTION_CONFIG}
         animate={!REDUCE_MOTION}
-        colors={(n) => colors(n.data.colorValue ?? 0)}
+        colors={(n) =>
+          n.data.colorValue === undefined && noValueColor ? noValueColor : colors(n.data.colorValue ?? 0)
+        }
         labelTextColor={labelColor}
         parentLabelTextColor={labelColor}
         borderColor={"var(--color-bg-primary)"}

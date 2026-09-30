@@ -39,7 +39,7 @@ export const TreeMapChartWidget: FunctionalComponent<
   const describeNode = (node: SuccessRateNode): SuccessRateNode => {
     const total = (node.passedTests ?? 0) + (node.failedTests ?? 0) + (node.otherTests ?? 0);
     const label = i18n("successRate", {
-      rate: total ? `${formatChartPercentage((node.colorValue ?? 0) * 100)}%` : "???",
+      rate: !total ? "???" : node.colorValue === undefined ? "N/A" : `${formatChartPercentage(node.colorValue * 100)}%`,
     });
 
     return {
@@ -58,6 +58,9 @@ export const TreeMapChartWidget: FunctionalComponent<
         {...restProps}
         isInteractive={chartType !== ChartType.SuccessRateDistribution}
         colors={chartType === ChartType.CoverageDiff ? coverageDiffColors : successRateDistributionColors}
+        noValueColor={
+          chartType === ChartType.SuccessRateDistribution ? "var(--color-status-skipped-chart-fill)" : undefined
+        }
         showLegend={false}
         labelColor={
           chartType === ChartType.CoverageDiff
