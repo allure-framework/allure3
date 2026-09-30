@@ -86,6 +86,13 @@ export class RetrySubstore {
     }
 
     const attempts = this.#testResultsByRetryHash.get(testResult.retryHash) ?? [];
+
+    // retryHash is a grouping key, not a retry flag. A retry group exists only
+    // when multiple attempts share the same retryHash.
+    if (attempts.length <= 1) {
+      return NO_RETRIES;
+    }
+
     const index = attempts.findIndex((attempt) => attempt.id === testResult.id);
 
     if (index === -1) {

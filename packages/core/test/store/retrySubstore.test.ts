@@ -225,6 +225,17 @@ describe("RetrySubstore", () => {
       expect(rs.retriesByTr(midRetry).map(({ id }) => id)).toEqual(["latest", "old"]);
     });
 
+    it("returns no retries for a single attempt with retryHash", () => {
+      const rs = new RetrySubstore();
+      const tr = makeTr("solo");
+
+      upsertInOrder(rs, tr);
+
+      expect(tr.retryHash).toBe("same-retry");
+      expect(rs.retriesByTr(tr)).toEqual([]);
+      expect(tr.isRetry).toBe(false);
+    });
+
     it("returns no retries without retryHash", () => {
       const rs = new RetrySubstore();
       const tr = { ...makeTr("solo"), retryHash: null };
