@@ -2,7 +2,6 @@ export { Attachment } from "./Attachment";
 export { AttachmentCode } from "./AttachmentCode";
 export { AttachmentTable } from "./AttachmentTable";
 export { HtmlPreview } from "./HtmlPreview";
-export { ScriptedHtmlPreview } from "./ScriptedHtmlPreview";
 export { MarkdownPreview } from "./MarkdownPreview";
 export { AttachmentImage } from "./AttachmentImage";
 export { AttachmentVideo } from "./AttachmentVideo";

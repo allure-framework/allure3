@@ -1,6 +1,6 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { AttachmentData, AttachmentType } from "@allurereport/web-commons";
-import { attachmentType, fetchAttachment, getReportOptions } from "@allurereport/web-commons";
+import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import { batch, useSignal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 import { useCallback, useEffect } from "preact/hooks";
@@ -19,7 +19,6 @@ import { HtmlPreview } from "./HtmlPreview";
 import { HttpAttachment } from "./HttpAttachment";
 import { MarkdownPreview } from "./MarkdownPreview";
 import type { AttachmentProps, I18nProp } from "./model";
-import { ScriptedHtmlPreview } from "./ScriptedHtmlPreview";
 
 import styles from "./styles.scss";
 
@@ -40,14 +39,9 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "archive": null,
 };
 
-const previewComponentFor = (componentType: AttachmentType) => {
-  if (componentType === "html") {
-    return getReportOptions<{ allowHtmlAttachmentScripts?: boolean }>()?.allowHtmlAttachmentScripts
-      ? ScriptedHtmlPreview
-      : HtmlPreview;
-  }
-
-  return componentType === "markdown" ? MarkdownPreview : undefined;
+const previewComponentsByAttachmentType: Record<string, any> = {
+  html: HtmlPreview,
+  markdown: MarkdownPreview,
 };
 
 const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown"]);
@@ -114,7 +108,7 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     );
   }
 
-  const CurrentPreviewComponent = previewComponentFor(componentType);
+  const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
   const CurrentComponent = componentsByAttachmentType[componentType];
   // @ts-expect-error TODO: add all translations for attachment types
   const typeI18n = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];

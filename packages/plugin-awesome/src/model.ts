@@ -23,7 +23,6 @@ export type AwesomeOptions = {
   appendTitlePath?: boolean;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
-  allowHtmlAttachmentScripts?: boolean;
 };
 
 export type TemplateManifest = Record<string, string>;

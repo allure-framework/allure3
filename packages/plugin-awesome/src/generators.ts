@@ -784,7 +784,6 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
-    allowHtmlAttachmentScripts,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -846,7 +845,6 @@ export const generateStaticFiles = async (
     defaultSection,
     stepTreeExpansion,
     defaultSortBy,
-    allowHtmlAttachmentScripts,
   };
 
   try {

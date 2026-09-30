@@ -7,14 +7,3 @@ export const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
 
   return Math.ceil(Math.max(bodyRectHeight, scrollHeight, offsetHeight));
 };
-
-export const isDarkTheme = (): boolean => {
-  const theme = typeof document !== "undefined" ? document.documentElement.getAttribute("data-theme") : null;
-  if (theme === "dark") {
-    return true;
-  }
-  if (theme === "light") {
-    return false;
-  }
-  return typeof window !== "undefined" && (window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
-};
