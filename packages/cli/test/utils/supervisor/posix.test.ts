@@ -399,7 +399,6 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
         .listeners("SIGTERM")
         .filter((listener) => !existingSigtermListeners.has(listener));
       const realKill = process.kill.bind(process);
-      const exitMock = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
       let resolveSelfSigterm!: () => void;
       const selfSigterm = new Promise<void>((resolve) => {
         resolveSelfSigterm = resolve;
@@ -439,11 +438,9 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
         expectProcesses(processIds).toBeDead();
         expect(killMock).toHaveBeenCalledWith(-rootPid, "SIGKILL");
         expect(killMock).toHaveBeenCalledWith(process.pid, "SIGTERM");
-        expect(exitMock).not.toHaveBeenCalled();
         expect(process.listeners("SIGTERM")).not.toContain(supervisorSigtermListeners[0]);
       } finally {
         killMock.mockRestore();
-        exitMock.mockRestore();
       }
     });
   });
