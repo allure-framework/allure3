@@ -77,25 +77,27 @@ const createDownloadLink = (attachment: Attachment, sourceUrl?: string | null) =
     text: translate("component.attachment.download"),
   });
 
-  link.addEventListener("click", async (event) => {
-    event.preventDefault();
+  if (sourceUrl?.startsWith("data:")) {
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
 
-    const blob = await fetchReportBlob(sourceUrl || attachmentUrl(attachment), {
-      contentType: attachment.type,
+      const blob = await fetchReportBlob(sourceUrl, {
+        contentType: attachment.type,
+      });
+      const blobUrl = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+
+      downloadLink.href = blobUrl;
+      downloadLink.download = attachment.name || attachment.source;
+      try {
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+      } finally {
+        downloadLink.remove();
+        URL.revokeObjectURL(blobUrl);
+      }
     });
-    const blobUrl = URL.createObjectURL(blob);
-    const downloadLink = document.createElement("a");
-
-    downloadLink.href = blobUrl;
-    downloadLink.download = attachment.name || attachment.source;
-    try {
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-    } finally {
-      downloadLink.remove();
-      URL.revokeObjectURL(blobUrl);
-    }
-  });
+  }
 
   return link;
 };

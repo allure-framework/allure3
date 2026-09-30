@@ -690,6 +690,10 @@ test.describe("Generic Attachments", () => {
       const downloadLink = preview.locator(".link[download]");
       await expect(downloadLink).toBeVisible();
       await expect(downloadLink).toHaveAttribute("download", attachmentsFixture.attachments.zip);
+      await expect(downloadLink).toHaveAttribute(
+        "href",
+        mode === REPORT_MODES.SINGLE_FILE ? /^data:application\/zip/ : /^data\/attachments\//,
+      );
 
       const [download] = await Promise.all([page.waitForEvent("download"), downloadLink.click()]);
       expect(download.suggestedFilename()).toBe(attachmentsFixture.attachments.zip);
