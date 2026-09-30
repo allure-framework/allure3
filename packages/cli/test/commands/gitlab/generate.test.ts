@@ -103,6 +103,33 @@ afterEach(() => {
 
 describe("gitlab command", () => {
   it.each([
+    { name: "by default", args: [] },
+    { name: "with --summary-comment", args: ["--summary-comment"] },
+  ])("posts the summary comment $name", async ({ args }) => {
+    await expect(runCommand([...args, "--gitlab-token", "token"])).resolves.toBe(0);
+
+    expect(upsertGitlabJobNote).toHaveBeenCalledExactlyOnceWith({
+      token: "token",
+      summary,
+      reportUrl: "https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
+    });
+  });
+
+  it("skips the summary comment when disabled without changing report generation or history restoration", async () => {
+    await expect(runCommand(["--no-summary-comment", "--gitlab-token", "token", "./results"])).resolves.toBe(0);
+
+    expect(restoreGitlabHistory).toHaveBeenCalledExactlyOnceWith({ token: "token", historyPath: "history.jsonl" });
+    expect(generate).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ collectSummary: true, resultsDir: ["./results"], config: baseConfig }),
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      "GitLab report URL: https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
+    );
+    expect(console.log).not.toHaveBeenCalledWith("Posting report summary comment");
+    expect(upsertGitlabJobNote).not.toHaveBeenCalled();
+  });
+
+  it.each([
     { name: "CLI token precedence", cliToken: " cli-token ", envToken: "env-token", expected: "cli-token" },
     { name: "environment token", cliToken: undefined, envToken: " env-token ", expected: "env-token" },
     { name: "blank CLI token", cliToken: " ", envToken: "env-token", expected: "env-token" },

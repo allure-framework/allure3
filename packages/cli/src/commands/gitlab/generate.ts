@@ -57,7 +57,7 @@ export class GitlabGenerateCommand extends Command {
 
   static usage = Command.Usage({
     category: "Integrations",
-    description: "Generate test report and post report summary in merge request comments",
+    description: "Generate test report and optionally post report summary in merge request comments",
     details:
       "This command generates a report from the provided Allure Results directories. When api access token is configured, " +
       "integration will post summary as comment for merge request pipelines and attempt to lookup history file from previously executed job ." +
@@ -98,6 +98,11 @@ export class GitlabGenerateCommand extends Command {
 
   historyBaseUrl = Option.String("--history-base-url", {
     description: "The public base URL of the generated report directory",
+  });
+
+  summaryComment = Option.Boolean("--summary-comment", true, {
+    description:
+      "Post a report summary comment in the merge request (default: true). Disable with --no-summary-comment",
   });
 
   gitlabToken = Option.String("--gitlab-token", {
@@ -155,7 +160,7 @@ export class GitlabGenerateCommand extends Command {
     // eslint-disable-next-line no-console
     console.log(`GitLab report URL: ${reportUrl}`);
 
-    if (result.summary && existsSync(join(config.output, "index.html"))) {
+    if (this.summaryComment && result.summary && existsSync(join(config.output, "index.html"))) {
       // eslint-disable-next-line no-console
       console.log("Posting report summary comment");
       if (!token) {
