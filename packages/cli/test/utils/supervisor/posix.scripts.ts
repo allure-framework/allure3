@@ -1,11 +1,13 @@
 export const nodeScripts = {
   descendant: `
-    import { stat, writeFile } from "node:fs/promises";
+    import { rename, stat, writeFile } from "node:fs/promises";
     import { setTimeout as delay } from "node:timers/promises";
 
     const [readyPath, releasePath] = process.argv.slice(2);
+    const temporaryReadyPath = readyPath + "." + process.pid + ".tmp";
 
-    await writeFile(readyPath, String(process.pid), "utf-8");
+    await writeFile(temporaryReadyPath, String(process.pid), "utf-8");
+    await rename(temporaryReadyPath, readyPath);
 
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {
@@ -50,7 +52,7 @@ export const nodeScripts = {
   `,
   threeLevelTree: `
     import { spawn } from "node:child_process";
-    import { readFile, writeFile } from "node:fs/promises";
+    import { readFile, rename, writeFile } from "node:fs/promises";
     import { join } from "node:path";
     import { setTimeout as delay } from "node:timers/promises";
     import { fileURLToPath } from "node:url";
@@ -60,9 +62,15 @@ export const nodeScripts = {
     const readyPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.pid\`);
     const sigintPath = (targetLevel) => join(readyDirectory, \`level-\${targetLevel}.sigint\`);
     const gracefulStopReleasePath = join(readyDirectory, "graceful-stop-release");
+    const writeProcessId = async (targetPath) => {
+      const temporaryPath = targetPath + "." + process.pid + ".tmp";
+
+      await writeFile(temporaryPath, String(process.pid), "utf-8");
+      await rename(temporaryPath, targetPath);
+    };
 
     process.once("SIGINT", async () => {
-      await writeFile(sigintPath(level), String(process.pid), "utf-8");
+      await writeProcessId(sigintPath(level));
 
       if (sigintMode === "exit") {
         process.exit(20 + level);
@@ -93,7 +101,7 @@ export const nodeScripts = {
       }
     }
 
-    await writeFile(readyPath(level), String(process.pid), "utf-8");
+    await writeProcessId(readyPath(level));
 
     if (sigintMode === "graceful-stop" && level > 0) {
       while (true) {
