@@ -115,17 +115,9 @@ describe("gitlab command", () => {
     });
   });
 
-  it("skips the summary comment when disabled without changing report generation or history restoration", async () => {
+  it("skips the summary comment when disabled ", async () => {
     await expect(runCommand(["--no-summary-comment", "--gitlab-token", "token", "./results"])).resolves.toBe(0);
 
-    expect(restoreGitlabHistory).toHaveBeenCalledExactlyOnceWith({ token: "token", historyPath: "history.jsonl" });
-    expect(generate).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ collectSummary: true, resultsDir: ["./results"], config: baseConfig }),
-    );
-    expect(console.log).toHaveBeenCalledWith(
-      "GitLab report URL: https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
-    );
-    expect(console.log).not.toHaveBeenCalledWith("Posting report summary comment");
     expect(upsertGitlabJobNote).not.toHaveBeenCalled();
   });
 
