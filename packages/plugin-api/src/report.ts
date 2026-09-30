@@ -56,6 +56,7 @@ export type ReportOptions = {
   runSummaryByEnv?: Record<string, ReportRunSummary>;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
+  allowHtmlAttachmentScripts?: boolean;
 };
 
 export type ReportFixtureResult = Omit<

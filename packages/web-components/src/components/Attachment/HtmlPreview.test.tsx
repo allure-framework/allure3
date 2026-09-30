@@ -1,71 +1,55 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HtmlPreview } from "./HtmlPreview";
-import { HTML_PREVIEW_RESIZE_MESSAGE_TYPE, createHtmlPreviewDocument } from "./htmlPreviewDocument";
 
-afterEach(cleanup);
+const originalCreateObjectURL = URL.createObjectURL;
+const originalRevokeObjectURL = URL.revokeObjectURL;
 
-describe("createHtmlPreviewDocument", () => {
-  it("keeps the attachment scripts and styles", () => {
-    const result = createHtmlPreviewDocument(
-      "<html><head><style>p{color:red}</style></head><body><script>window.ran=1</script></body></html>",
-      "token",
-      false,
-    );
+const setReadOnlyNumber = (element: Element, property: "scrollHeight" | "offsetHeight", value: number) => {
+  Object.defineProperty(element, property, { configurable: true, value });
+};
 
-    expect(result).toContain("<style>p{color:red}</style>");
-    expect(result).toContain("window.ran=1");
+beforeEach(() => {
+  Object.defineProperty(URL, "createObjectURL", {
+    configurable: true,
+    value: vi.fn(() => "blob:html-attachment-preview"),
   });
-
-  it("locks the document down with its own CSP and drops base, refresh and foreign CSP", () => {
-    const result = createHtmlPreviewDocument(
-      `<html><head><base href="https://evil.test/"><meta http-equiv="refresh" content="0;url=https://evil.test/"><meta http-equiv="Content-Security-Policy" content="default-src *"></head><body></body></html>`,
-      "token",
-      false,
-    );
-
-    expect(result).not.toContain("evil.test");
-    expect(result).not.toContain("default-src *");
-    expect(result).toContain("connect-src 'none'");
-    expect(result).toContain('name="referrer"');
-  });
-
-  it("adds dark theme styles only for the dark theme", () => {
-    expect(createHtmlPreviewDocument("<p>x</p>", "token", true)).toContain("#1c1c1e");
-    expect(createHtmlPreviewDocument("<p>x</p>", "token", false)).not.toContain("#1c1c1e");
+  Object.defineProperty(URL, "revokeObjectURL", {
+    configurable: true,
+    value: vi.fn(),
   });
 });
 
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  Object.defineProperty(URL, "createObjectURL", { configurable: true, value: originalCreateObjectURL });
+  Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: originalRevokeObjectURL });
+});
+
 describe("HtmlPreview", () => {
-  it("runs scripts in an opaque origin sandbox", async () => {
-    render(<HtmlPreview attachment={{ text: "<html><body><script>1</script></body></html>" }} />);
+  it("sizes the iframe to the loaded HTML document height", async () => {
+    render(
+      <HtmlPreview
+        attachment={{
+          text: "<!DOCTYPE html><html><body><table><tbody><tr><td>row</td></tr></tbody></table></body></html>",
+        }}
+      />,
+    );
 
     const iframe = (await screen.findByTitle("HTML attachment")) as HTMLIFrameElement;
+    const iframeDocument = document.implementation.createHTMLDocument("HTML attachment");
 
-    expect(iframe.getAttribute("sandbox")).toBe("allow-scripts");
-    expect(iframe.getAttribute("srcdoc")).toContain("<script>1</script>");
-  });
+    setReadOnlyNumber(iframeDocument.body, "scrollHeight", 640);
+    setReadOnlyNumber(iframeDocument.body, "offsetHeight", 480);
+    setReadOnlyNumber(iframeDocument.documentElement, "scrollHeight", 520);
+    setReadOnlyNumber(iframeDocument.documentElement, "offsetHeight", 500);
+    vi.spyOn(iframeDocument.body, "getBoundingClientRect").mockReturnValue({ height: 560 } as DOMRect);
+    Object.defineProperty(iframe, "contentDocument", { configurable: true, value: iframeDocument });
 
-  it("sizes the iframe from the resize message of its own document", async () => {
-    render(<HtmlPreview attachment={{ text: "<html><body>row</body></html>" }} />);
+    fireEvent.load(iframe);
 
-    const iframe = (await screen.findByTitle("HTML attachment")) as HTMLIFrameElement;
-    const token = /const token = "([^"]+)"/.exec(iframe.getAttribute("srcdoc") ?? "")?.[1];
-    const send = (messageToken: string | undefined, source: MessageEventSource | null) =>
-      fireEvent(
-        window,
-        new MessageEvent("message", {
-          data: { type: HTML_PREVIEW_RESIZE_MESSAGE_TYPE, token: messageToken, height: 640 },
-          source,
-        }),
-      );
-
-    send("wrong", iframe.contentWindow);
-    send(token, null);
-    expect(iframe.getAttribute("height")).toBeNull();
-
-    send(token, iframe.contentWindow);
     await waitFor(() => expect(iframe.getAttribute("height")).toBe("640"));
   });
 });

@@ -59,6 +59,7 @@ The plugin accepts the following options:
 | `appendTitlePath`| Special marker for `groupBy`. Forces a final grouping by `titlePath` after all label-based groups.                                                          | `boolean`                                                    | `false`                       |
 | `stepTreeExpansion` | Default expansion policy for step trees in test details. | `"collapsed" \| "expand_failed_only" \| "expanded"` | `"expand_failed_only"` |
 | `defaultSortBy` | Default sort order for the test tree. Accepted values: `order,asc`, `order,desc`, `duration,asc`, `duration,desc`, `name,asc`, `name,desc`, `status,asc`, `status,desc`. User's manual selection is preserved in `localStorage` and takes priority over this value. | `string` | `order,asc` |
+| `allowHtmlAttachmentScripts` | Run scripts of HTML attachments in the preview. The attachment is rendered in an isolated sandbox (opaque origin) with its own Content-Security-Policy: it cannot access the report, make network requests, open frames or submit forms. Without it, scripts are removed from the preview. | `boolean` | `false` |
 
 ### Default sort order
 
