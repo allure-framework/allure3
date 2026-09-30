@@ -69,8 +69,7 @@ export class RunCommand extends Command {
   });
 
   rerun = Option.String("--rerun", {
-    description:
-      "The number of reruns for failed tests. Quality gate validation is skipped when rerun is greater than 0 (default: 0)",
+    description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -177,12 +176,7 @@ export class RunCommand extends Command {
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withRerun = maxRerun > 0;
-    const withQualityGate = !!config.qualityGate && !withRerun;
-
-    if (config.qualityGate && withRerun) {
-      console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
-    }
+    const withQualityGate = !!config.qualityGate;
 
     try {
       await rm(config.output, { recursive: true });
