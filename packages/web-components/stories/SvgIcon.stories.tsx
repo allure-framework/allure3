@@ -15,7 +15,7 @@ const meta: Meta<typeof SvgIcon> = {
     },
     size: {
       control: { type: "select" },
-      options: ["xs", "s", "m"],
+      options: ["xs", "s", "m", "l", "xl"],
       description: "Size of the SVG icon.",
     },
     className: {
@@ -65,4 +65,14 @@ export const CustomClassName: Story = {
     size: "m",
     id: mockIconId,
   },
+};
+
+export const Sizes: Story = {
+  render: (args) => (
+    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+      {(["xs", "s", "m", "l", "xl"] as const).map((size) => (
+        <SvgIcon key={size} {...args} size={size} />
+      ))}
+    </div>
+  ),
 };

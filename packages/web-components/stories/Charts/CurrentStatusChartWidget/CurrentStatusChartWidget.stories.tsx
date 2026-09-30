@@ -106,6 +106,14 @@ export const AllStats: Story = {
   },
 };
 
+export const CustomMetricAndStatuses: Story = {
+  args: {
+    data: mockData,
+    metric: "failed",
+    statuses: ["passed", "failed"],
+  },
+};
+
 export const Empty: Story = {
   args: {
     data: {
