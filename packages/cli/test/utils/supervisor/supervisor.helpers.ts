@@ -14,9 +14,15 @@ type SupervisorFixtureCleanupOptions = {
   supervisor?: PosixProcessSupervisor;
 };
 
-export class SupervisorFixture {
-  readonly #processIds = new Set<number>();
+const ensureProcessId = (processId: number, description: string) => {
+  if (!Number.isSafeInteger(processId) || processId <= 0) {
+    throw new Error(`Invalid process ID ${processId} for ${description}`);
+  }
 
+  return processId;
+};
+
+export class SupervisorFixture {
   private constructor(readonly workingDirectory: string) {}
 
   static async create() {
@@ -52,9 +58,13 @@ export class SupervisorFixture {
 
   async readProcessId(relativePath: string, timeout = 2_000) {
     await this.waitForFile(relativePath, timeout);
-    const processId = Number(await readFile(this.resolvePath(relativePath), "utf-8"));
-    this.#processIds.add(processId);
-    return processId;
+    const contents = (await readFile(this.resolvePath(relativePath), "utf-8")).trim();
+
+    if (!/^[1-9]\d*$/.test(contents)) {
+      throw new Error(`Invalid process ID contents in ${relativePath}: ${JSON.stringify(contents)}`);
+    }
+
+    return ensureProcessId(Number(contents), relativePath);
   }
 
   async waitForFile(relativePath: string, timeout = 2_000) {
@@ -95,18 +105,6 @@ export class SupervisorFixture {
       await runCleanupStep(() => supervisor.terminate());
     }
 
-    for (const processId of this.#processIds) {
-      await runCleanupStep(() => {
-        try {
-          process.kill(processId, "SIGKILL");
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
-            throw error;
-          }
-        }
-      });
-    }
-
     await runCleanupStep(() => rm(this.workingDirectory, { recursive: true, force: true }));
 
     if (errors.length === 1) {
@@ -121,12 +119,16 @@ export class SupervisorFixture {
 
 export const expectProcesses = (processIds: readonly number[]) => ({
   toBeAlive: () => {
-    processIds.forEach((pid) => {
+    processIds.forEach((processId) => {
+      const pid = ensureProcessId(processId, "process liveness check");
+
       expect(() => process.kill(pid, 0), `Expected process PID=${pid} to be alive`).not.toThrow();
     });
   },
   toBeDead: () => {
-    processIds.forEach((pid) => {
+    processIds.forEach((processId) => {
+      const pid = ensureProcessId(processId, "process termination check");
+
       expect(() => process.kill(pid, 0), `Expected process PID=${pid} to be dead`).toThrow(
         expect.objectContaining({ code: "ESRCH" }),
       );
