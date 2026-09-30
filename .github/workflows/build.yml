@@ -143,7 +143,7 @@ jobs:
         run: yarn install --immutable --immutable-cache --check-cache
       - *uses-build-cache
       - *uses-build
-      - name: Generate report
+      - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"
         run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
