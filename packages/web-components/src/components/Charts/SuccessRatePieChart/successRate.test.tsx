@@ -4,6 +4,7 @@ import { attachment, step } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SuccessRatePieChart } from "./index";
+import { defaultSuccessRateI18n, formatAvailableSuccessRate } from "./successRate";
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -88,4 +89,17 @@ describe("success rate pie interaction", () => {
     expect(target.textContent).toBe(caption);
     expect(document.getElementById(target.getAttribute("aria-describedby")!)?.textContent).toContain(description);
   });
+});
+
+describe("success rate formatting", () => {
+  it.each([
+    { percentage: 0, eligibleCount: 0, expected: "N/A" },
+    { percentage: 0, eligibleCount: 1, expected: "0%" },
+    { percentage: 91.635, eligibleCount: 538, expected: "91.63%" },
+  ])(
+    "formats $percentage with $eligibleCount eligible results as $expected",
+    ({ percentage, eligibleCount, expected }) => {
+      expect(formatAvailableSuccessRate(percentage, eligibleCount, defaultSuccessRateI18n)).toBe(expected);
+    },
+  );
 });
