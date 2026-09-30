@@ -84,6 +84,10 @@ export const runTests = async (params: {
   logProcessExit?: boolean;
   resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
+  if (process.platform === "win32") {
+    throw new KnownError("Windows is not currently supported by allure run.");
+  }
+
   const {
     allureReport,
     cwd,
@@ -149,10 +153,6 @@ export const runTests = async (params: {
   });
 
   await allureResultsWatch.initialScan();
-
-  if (process.platform === "win32") {
-    throw new Error("Windows is not currently supported.");
-  }
 
   const supervisor = new PosixProcessSupervisor(command, {
     arguments: commandArgs,
