@@ -65,7 +65,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
-import { getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
+import { createResolutionIssue, getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -513,7 +513,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     testResult.resolutionComment = rule.comment;
 
     if (rule.resolution === "issue") {
-      this.#associateResolutionIssue({ ...rule.issue, comment: rule.comment }, testResult.id);
+      this.#associateResolutionIssue(createResolutionIssue(rule, this.#resolutionsConfig), testResult.id);
     }
   }
 
