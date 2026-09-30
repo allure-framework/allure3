@@ -1,6 +1,7 @@
-import { Loadable } from "@/components/Loadable";
 import { signal } from "@preact/signals";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
+import { Loadable } from "@/components/Loadable";
 
 type StoreSignalState<T> = {
   loading: boolean;

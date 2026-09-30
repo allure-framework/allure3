@@ -1,5 +1,6 @@
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
-import type { Meta, StoryObj } from "@storybook/react";
 
 // Mock icons
 const mockIconId = allureIcons.lineAlertsNotificationBox;

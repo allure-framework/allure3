@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Counter } from "@/components/Counter";
 
 const meta: Meta<typeof Counter> = {

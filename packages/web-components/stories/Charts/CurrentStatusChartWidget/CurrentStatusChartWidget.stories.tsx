@@ -1,6 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/preact";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 import type { ComponentProps } from "preact";
+
 import { CurrentStatusChartWidget } from "@/components/Charts/CurrentStatusChartWidget";
+
 // @ts-ignore this is fine
 import mockData from "./data.mock.json";
 

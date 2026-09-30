@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 import { useState } from "preact/hooks";
+
 import { SearchBox } from "@/components/SearchBox";
 
 const meta: Meta<typeof SearchBox> = {
@@ -15,6 +16,10 @@ const meta: Meta<typeof SearchBox> = {
       control: "text",
       description: "Current value of the search input.",
       defaultValue: "",
+    },
+    error: {
+      control: "text",
+      description: "Error message displayed under the input.",
     },
     changeDebounce: {
       control: "number",
@@ -104,6 +109,31 @@ export const DebouncedSearch: Story = {
           setValue(newValue);
           console.log("Debounced value:", newValue);
         }}
+      />
+    );
+  },
+};
+
+export const WithError: Story = {
+  render: (args) => {
+    const [value, setValue] = useState("[");
+
+    return <SearchBox {...args} value={value} onChange={setValue} error="Invalid regular expression" />;
+  },
+};
+
+export const WithSlots: Story = {
+  render: (args) => {
+    const [value, setValue] = useState("");
+
+    return (
+      <SearchBox
+        {...args}
+        value={value}
+        onChange={setValue}
+        placeholder="Search tests"
+        leadingSlot={<span aria-hidden>🔍</span>}
+        trailingSlot={<span aria-hidden>⌘K</span>}
       />
     );
   },
