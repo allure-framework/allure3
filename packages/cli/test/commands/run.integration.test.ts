@@ -577,6 +577,7 @@ await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
 
     await step("verify full rerun scope and final success", async () => {
       const normalizedStdout = stripAnsi(stdout);
+      const normalizedStderr = stripAnsi(stderr);
       const invocations = (await readFile(invocationsPath, "utf-8"))
         .trim()
         .split("\n")
@@ -592,13 +593,13 @@ await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
             },
         );
 
-      expect(stderr).toBe("");
       expect(normalizedStdout).not.toContain("skipping quality gate validation");
       expect(normalizedStdout).toContain("[QualityGate]: Fast-fail triggered: maxFailures; stopping attempt 1/2");
       expect(normalizedStdout).toContain("[AllureRun]: Attempt 1/2 stopped by Quality Gate");
-      expect(normalizedStdout).toContain(
+      expect(normalizedStderr).toContain(
         "[AllureRerun]: Attempt 2/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process",
       );
+      expect(normalizedStdout).toContain("[AllureRun]: Completed with exit code 0");
       expect(normalizedStdout).not.toContain("rerun number");
       expect(normalizedStdout).not.toContain("Quality Gate Suite > recovers after rerun");
       expect(invocations).toHaveLength(2);

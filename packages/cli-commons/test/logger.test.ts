@@ -68,6 +68,14 @@ describe("Logger", () => {
     expect(console.debug).toHaveBeenCalledWith(expect.stringContaining("Test plan path"));
   });
 
+  it("ignores the generic LOG_LEVEL environment variable", () => {
+    vi.stubEnv("LOG_LEVEL", "silent");
+
+    new Logger("AllureRun").info("Attempt started");
+
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Attempt started"));
+  });
+
   it("ignores unsupported environment log levels", () => {
     vi.stubEnv("ALLURE_LOG_LEVEL", "everything");
 
@@ -85,5 +93,20 @@ describe("Logger", () => {
 
     expect(console.debug).not.toHaveBeenCalledWith(expect.stringContaining("Before change"));
     expect(console.debug).toHaveBeenCalledWith(expect.stringContaining("After change"));
+  });
+
+  it("falls back to bounded inspection for circular objects", () => {
+    const message: Record<string, unknown> = {
+      name: "circular",
+    };
+
+    message.self = message;
+
+    expect(() => new Logger("AllureRun", "info").info(message)).not.toThrow();
+
+    const logged = vi.mocked(console.info).mock.calls[0]?.[0] as string;
+
+    expect(stripAnsi(logged)).toContain("name: 'circular'");
+    expect(stripAnsi(logged)).toContain("[Circular");
   });
 });

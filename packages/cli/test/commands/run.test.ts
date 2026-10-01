@@ -160,6 +160,7 @@ describe("run command", () => {
     command.commandToRun = [];
 
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
   });
 
   it("should treat a path-like executable as the nested command", async () => {
@@ -479,6 +480,12 @@ describe("run command", () => {
     );
     expect(exitMock).toHaveBeenCalledWith(0);
     expect(exitMock).not.toHaveBeenCalledWith(-1);
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Completed with exit code 0/u));
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*No blocking failures or failed Quality Gate-related tests remain; no further reruns are needed/u,
+      ),
+    );
   });
 
   it("should reset process globals before a rerun", async () => {
@@ -1157,6 +1164,7 @@ describe("run command", () => {
     expect(readConfig).not.toHaveBeenCalled();
     expect(AllureReportMock).not.toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(0);
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
   });

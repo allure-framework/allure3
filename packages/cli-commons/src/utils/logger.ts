@@ -25,10 +25,6 @@ export const getLogLevelFromEnv = (): LogLevel => {
     return env.ALLURE_LOG_LEVEL;
   }
 
-  if (isLogLevel(env.LOG_LEVEL)) {
-    return env.LOG_LEVEL;
-  }
-
   if (env.NODE_ENV === "development") {
     return "debug";
   }
@@ -36,8 +32,30 @@ export const getLogLevelFromEnv = (): LogLevel => {
   return "info";
 };
 
-const stringifyMessage = (message: LogMessage) =>
-  typeof message === "string" ? message : JSON.stringify(message, null, 2);
+const stringifyMessage = (message: LogMessage) => {
+  if (typeof message === "string") {
+    return message;
+  }
+
+  try {
+    const serialized = JSON.stringify(message, null, 2);
+
+    if (serialized !== undefined) {
+      return serialized;
+    }
+  } catch {}
+
+  try {
+    return inspectValue(message, {
+      colors: false,
+      depth: 4,
+      maxArrayLength: 50,
+      maxStringLength: 2_000,
+    });
+  } catch {
+    return "[Unable to format log message]";
+  }
+};
 
 export class Logger {
   readonly #prefix: string;
@@ -95,9 +113,5 @@ export class Logger {
     if (this.#isLogLevel("error")) {
       console.error(this.#format(message, red));
     }
-  }
-
-  inspect(value: unknown) {
-    this.debug(inspectValue(value, { colors: false, depth: null }));
   }
 }

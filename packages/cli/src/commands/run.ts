@@ -135,12 +135,6 @@ export class RunCommand extends Command {
 
     const before = new Date().getTime();
 
-    process.on("exit", (exitCode) => {
-      const after = new Date().getTime();
-
-      runLogger.info(`Completed with exit code ${exitCode} after ${formatDuration(after - before)}`);
-    });
-
     const cwd = await realpath(this.cwd ?? process.cwd());
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
@@ -223,6 +217,9 @@ export class RunCommand extends Command {
       maxRerun,
       resultsPatterns,
     });
+    const finalExitCode = globalExitCode.actual ?? globalExitCode.original;
+
+    runLogger.info(`Completed with exit code ${finalExitCode} after ${formatDuration(Date.now() - before)}`);
 
     if (config.open) {
       await serve({
@@ -231,7 +228,7 @@ export class RunCommand extends Command {
         open: true,
       });
     } else {
-      exit(globalExitCode.actual ?? globalExitCode.original);
+      exit(finalExitCode);
     }
   }
 }

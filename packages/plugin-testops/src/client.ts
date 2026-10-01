@@ -668,7 +668,6 @@ export class TestOpsClient {
         });
       } catch (error) {
         this.#logResultUploadFailure("attachments", testOpsResultId, error);
-        this.#logger.inspect(formData);
       }
     }
   }
