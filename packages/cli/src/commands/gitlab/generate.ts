@@ -161,7 +161,7 @@ export class GitlabGenerateCommand extends Command {
       if (!token) {
         // eslint-disable-next-line no-console
         console.log("  no API token provided, skipping");
-        return;
+        return result.exitCode;
       }
 
       const { summary } = result;
@@ -173,5 +173,7 @@ export class GitlabGenerateCommand extends Command {
         }),
       );
     }
+
+    return result.exitCode;
   }
 }

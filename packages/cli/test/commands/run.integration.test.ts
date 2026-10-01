@@ -34,6 +34,29 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
   });
 };
 
+const runCommandWithExitCode = async (command: string, args: string[], options: RunCommandOptions = {}) => {
+  try {
+    const result = await runCommand(command, args, options);
+
+    return {
+      ...result,
+      exitCode: 0,
+    };
+  } catch (error) {
+    const commandError = error as Error & {
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+    };
+
+    return {
+      stdout: commandError.stdout ?? "",
+      stderr: commandError.stderr ?? "",
+      exitCode: commandError.code ?? 1,
+    };
+  }
+};
+
 const pathExists = async (filePath: string) => {
   try {
     await stat(filePath);
@@ -318,6 +341,139 @@ export default config;
     await step("verify generated report uses TypeScript config", async () => {
       await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
       expect(stderr).toBe("");
+    });
+  }, 240_000);
+
+  it("stores per-environment quality gates in dumps without revalidating the combined report", async () => {
+    const fixtureDir = join(tempDir, "generate-quality-gate-dumps");
+    const linuxResultsDir = join(fixtureDir, "linux-results");
+    const windowsResultsDir = join(fixtureDir, "windows-results");
+    const linuxConfigPath = join(fixtureDir, "linux.mjs");
+    const windowsConfigPath = join(fixtureDir, "windows.mjs");
+    const finalConfigPath = join(fixtureDir, "final.mjs");
+    const linuxDump = join(fixtureDir, "linux-dump");
+    const windowsDump = join(fixtureDir, "windows-dump");
+    const outputDir = join(fixtureDir, "report");
+    const environmentsSource = `
+  environments: {
+    linux: { name: "Linux", matcher: () => false },
+    windows: { name: "Windows", matcher: () => false }
+  }`;
+    const environmentConfig = (environment: string, dump: string) =>
+      `
+export default {
+  name: "${environment} results",
+  environment: ${JSON.stringify(environment)},
+  dump: ${JSON.stringify(dump)},
+  qualityGate: {
+    rules: [{ maxFailures: 0 }]
+  },
+${environmentsSource}
+};
+`.trimStart();
+    const finalConfig = `
+export default {
+  name: "Combined report",
+  output: ${JSON.stringify(outputDir)},
+${environmentsSource}
+};
+`.trimStart();
+    const linuxResult = {
+      uuid: "linux-passed",
+      historyId: "linux-passed-history",
+      name: "Linux passed test",
+      fullName: "Quality Gate Suite > Linux passed test",
+      status: "passed",
+      start: 1,
+      stop: 2,
+    };
+    const windowsResult = {
+      uuid: "windows-failed",
+      historyId: "windows-failed-history",
+      name: "Windows failed test",
+      fullName: "Quality Gate Suite > Windows failed test",
+      status: "failed",
+      start: 1,
+      stop: 2,
+    };
+
+    await step("prepare per-environment result and config fixtures", async () => {
+      await mkdir(linuxResultsDir, { recursive: true });
+      await mkdir(windowsResultsDir, { recursive: true });
+      await writeJson(join(linuxResultsDir, "linux-result.json"), linuxResult);
+      await writeJson(join(windowsResultsDir, "windows-result.json"), windowsResult);
+      await writeFile(linuxConfigPath, environmentConfig("linux", linuxDump), "utf-8");
+      await writeFile(windowsConfigPath, environmentConfig("windows", windowsDump), "utf-8");
+      await writeFile(finalConfigPath, finalConfig, "utf-8");
+    });
+
+    await step("generate passing and failing environment dumps", async () => {
+      const linux = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        linuxConfigPath,
+        linuxResultsDir,
+      ]);
+      const windows = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        windowsConfigPath,
+        windowsResultsDir,
+      ]);
+
+      await attachCommandOutput("linux dump generation", linux);
+      await attachCommandOutput("windows dump generation", windows);
+
+      expect(linux.exitCode).toBe(0);
+      expect(windows.exitCode).toBe(1);
+      expect(stripAnsi(windows.stderr)).toContain("Quality Gate failed");
+      await expect(stat(`${linuxDump}.zip`)).resolves.toBeTruthy();
+      await expect(stat(`${windowsDump}.zip`)).resolves.toBeTruthy();
+    });
+
+    await step("combine dumps without an aggregate quality gate", async () => {
+      const combined = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        finalConfigPath,
+        "--dump",
+        `${linuxDump}.zip`,
+        "--dump",
+        `${windowsDump}.zip`,
+      ]);
+
+      await attachCommandOutput("combined report generation", combined);
+      expect(combined.exitCode).toBe(0);
+    });
+
+    await step("verify restored quality gates keep environment attribution", async () => {
+      const qualityGateWidget = JSON.parse(
+        await readFile(join(outputDir, "widgets", "quality-gate.json"), "utf-8"),
+      ) as Record<string, { success: boolean; environment?: string }[]>;
+
+      expect(Object.keys(qualityGateWidget).sort()).toEqual(["linux", "windows"]);
+      expect(qualityGateWidget.linux).toEqual([
+        expect.objectContaining({
+          success: true,
+          environment: "Linux",
+        }),
+      ]);
+      expect(qualityGateWidget.windows).toEqual([
+        expect.objectContaining({
+          success: false,
+          environment: "Windows",
+        }),
+      ]);
+      expect(Object.values(qualityGateWidget).flat()).toHaveLength(2);
     });
   }, 240_000);
 
