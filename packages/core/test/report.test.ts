@@ -7,7 +7,7 @@ import { setTimeout } from "node:timers/promises";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
-import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
@@ -1073,16 +1073,16 @@ describe("report", () => {
     await allureReport.done();
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
+    const readMock = reader.read as Mock<ResultsReader["read"]>;
+    const [, readData] = readMock.mock.calls[0]!;
 
+    expect(readData).toBeInstanceOf(PathResultFile);
+    expect((readData as PathResultFile).path).toBe(join(resultsDir, "result.json"));
     expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResultsFiles, value: 1 }),
-        expect.objectContaining({
-          key: `${PERF_METRIC_NAMES.generateReadResultsRealpath}.totalMs`,
-          value: expect.any(Number),
-        }),
         expect.objectContaining({
           key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
           value: expect.any(Number),

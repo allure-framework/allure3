@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -586,11 +586,7 @@ export class AllureReport {
           entries.map((dirent) =>
             limit(async () => {
               try {
-                const path = await measurePerfAggregate(PERF_METRIC_NAMES.generateReadResultsRealpath, () =>
-                  realpath(join(resultsDirPath, dirent.name)),
-                );
-
-                await this.readResult(new PathResultFile(path, dirent.name));
+                await this.readResult(new PathResultFile(join(resultsDirPath, dirent.name), dirent.name));
               } catch (e) {
                 console.error(`can't read result file ${dirent.name}`, e);
               }
