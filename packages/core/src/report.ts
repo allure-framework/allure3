@@ -146,10 +146,7 @@ const getExecutorReportUrl = (executor: unknown): string | undefined => {
   }
 
   try {
-    const navUrl = new URL(reportUrl);
-    navUrl.pathname = navUrl.pathname.endsWith("/") ? navUrl.pathname : `${navUrl.pathname}/`;
-
-    return navUrl.toString();
+    return new URL(reportUrl).toString();
   } catch {
     return undefined;
   }
