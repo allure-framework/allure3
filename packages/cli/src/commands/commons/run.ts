@@ -163,9 +163,15 @@ export const runTests = async (params: {
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
+  const commandLine = [command, ...commandArgs].join(" ");
+  const rerunsEnabled = attempt.total > 1;
 
   if (logProcessExit) {
-    runLogger.info(`Attempt ${attempt.current}/${attempt.total} started: ${[command, ...commandArgs].join(" ")}`);
+    if (rerunsEnabled) {
+      runLogger.info(`Attempt ${attempt.current}/${attempt.total} started: ${commandLine}`);
+    } else {
+      runLogger.info(`Running: ${commandLine}`);
+    }
   }
 
   const testProcess = runProcess({
@@ -215,10 +221,9 @@ export const runTests = async (params: {
 
       const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
       const failedRulesMessage = failedRules.length > 0 ? `: ${failedRules.join(", ")}` : "";
+      const stopTarget = rerunsEnabled ? `attempt ${attempt.current}/${attempt.total}` : "test process";
 
-      qualityGateLogger.info(
-        `Fast-fail triggered${failedRulesMessage}; stopping attempt ${attempt.current}/${attempt.total}`,
-      );
+      qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
 
       try {
         await stopProcessTree(testProcess.pid!);
@@ -256,7 +261,7 @@ export const runTests = async (params: {
   const code = await terminationOf(testProcess);
   const afterProcess = Date.now();
 
-  if (logProcessExit) {
+  if (logProcessExit && rerunsEnabled) {
     const duration = formatDuration(afterProcess - beforeProcess);
 
     if (fastFailTriggered) {

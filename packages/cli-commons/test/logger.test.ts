@@ -6,14 +6,25 @@ import { Logger } from "../src/utils/logger.js";
 
 const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
-vi.mock("node:console", async (importOriginal) => ({
-  ...(await importOriginal()),
-  log: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-}));
+vi.mock("node:console", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:console")>();
+  const methods = {
+    log: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  };
+
+  return {
+    ...actual,
+    ...methods,
+    default: {
+      ...actual.default,
+      ...methods,
+    },
+  };
+});
 
 describe("Logger", () => {
   beforeEach(() => {

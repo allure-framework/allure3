@@ -30,14 +30,25 @@ const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted
   };
 });
 
-vi.mock("node:console", async (importOriginal) => ({
-  ...(await importOriginal()),
-  log: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-}));
+vi.mock("node:console", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:console")>();
+  const methods = {
+    log: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  };
+
+  return {
+    ...actual,
+    ...methods,
+    default: {
+      ...actual.default,
+      ...methods,
+    },
+  };
+});
 vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: (...args: unknown[]) => exitMock(...args),
@@ -600,6 +611,8 @@ describe("run command", () => {
       trace: "stderr",
     });
     expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalAttachment).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Running: npm test/u));
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/\bAttempt \d/u));
   });
 
   it("should pass known issues override to readConfig", async () => {
@@ -1084,6 +1097,11 @@ describe("run command", () => {
 
     expect(runProcess).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([fastFailResult]);
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Running: npm test/u));
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: maxFailures; stopping test process/u),
+    );
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/\bAttempt \d/u));
   });
 
   it("should preserve raw child exit code when only muted failures remain", async () => {

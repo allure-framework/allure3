@@ -4,14 +4,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { Logger } = await import("../src/logger.js");
 
-vi.mock("node:console", async (importOriginal) => ({
-  ...(await importOriginal()),
-  log: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-}));
+vi.mock("node:console", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:console")>();
+  const methods = {
+    log: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  };
+
+  return {
+    ...actual,
+    ...methods,
+    default: {
+      ...actual.default,
+      ...methods,
+    },
+  };
+});
 
 describe("Logger", () => {
   beforeEach(() => {

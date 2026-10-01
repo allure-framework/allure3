@@ -1,4 +1,4 @@
-import * as console from "node:console";
+import console from "node:console";
 import { env } from "node:process";
 import { inspect as inspectValue } from "node:util";
 
