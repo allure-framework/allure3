@@ -26,7 +26,7 @@ import { red } from "yoctocolors";
 
 import { logTests, runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { stopProcessTree } from "../../utils/process.js";
+import { PosixProcessSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -84,6 +84,10 @@ export const runTests = async (params: {
   logProcessExit?: boolean;
   resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
+  if (process.platform === "win32") {
+    throw new KnownError("Windows is not currently supported by allure run.");
+  }
+
   const {
     allureReport,
     cwd,
@@ -150,23 +154,25 @@ export const runTests = async (params: {
 
   await allureResultsWatch.initialScan();
 
+  const supervisor = new PosixProcessSupervisor(command, {
+    arguments: commandArgs,
+    workingDirectory: cwd,
+    environmentVariables,
+    stdio: logs,
+    silent,
+    outputEncoding: "utf-8",
+    stopTimeout: 30_000,
+  });
+
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
-  const testProcess = runProcess({
-    command,
-    commandArgs,
-    cwd,
-    environmentVariables,
-    logs,
-  });
+  supervisor.start();
 
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
   let fastFailTriggered = false;
-  let testProcessStdout = "";
-  let testProcessStderr = "";
 
   if (withQualityGate) {
     qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
@@ -198,40 +204,11 @@ export const runTests = async (params: {
       qualityGateResults = results;
       qualityGateUnsub = undefined;
 
-      try {
-        await stopProcessTree(testProcess.pid!);
-      } catch (err) {
-        if ((err as Error).message.includes("kill ESRCH")) {
-          return;
-        }
-
-        throw err;
-      }
+      await supervisor.stop();
     });
   }
 
-  if (logs === "pipe") {
-    testProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
-      testProcessStdout += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stdout.write(data);
-    });
-    testProcess.stderr?.setEncoding("utf8").on?.("data", async (data: string) => {
-      testProcessStderr += data;
-
-      if (silent) {
-        return;
-      }
-
-      process.stderr.write(data);
-    });
-  }
-
-  const code = await terminationOf(testProcess);
+  const code = await supervisor.exitCode;
   const afterProcess = Date.now();
 
   if (logProcessExit) {
@@ -256,8 +233,8 @@ export const runTests = async (params: {
 
   return {
     code,
-    stdout: testProcessStdout,
-    stderr: testProcessStderr,
+    stdout: await supervisor.stdout,
+    stderr: await supervisor.stderr,
     qualityGateResults,
     fastFailed: fastFailTriggered,
   };
