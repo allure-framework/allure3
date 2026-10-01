@@ -77,12 +77,12 @@ the combined dataset and appends that invocation's validation results.
 Quality gate validation works with `allure run --rerun`. The rerun count is a shared restart budget: every failed-test
 rerun, focused Quality Gate rerun, or full Quality Gate rerun consumes one slot.
 
-When a Quality Gate fast-fails, Allure stops the current test process. If the failed Quality Gate results identify
-related tests, Allure creates a temporary test plan and restarts the test process with `ALLURE_TESTPLAN_PATH` pointing
-to that plan. Only the related tests are selected by integrations that support Allure test plans.
+When a Quality Gate fast-fails, Allure stops the current test process and restarts the full test command. The interrupted
+result set is incomplete, so related tests alone aren't sufficient to build the next execution scope.
 
-If no runnable test plan can be created from the related results, Allure restarts the full test process. Run-wide rules
-without related tests can therefore consume the entire rerun budget by repeatedly restarting the full process.
+When the test process completes, Allure creates a temporary test plan containing the current blocking failed and broken
+tests together with tests related to failed Quality Gate rules. The process restarts with `ALLURE_TESTPLAN_PATH` pointing
+to that plan. Rules without related tests don't trigger a focused rerun unless blocking failures are present.
 
 Use `--rerun=0` or omit `--rerun` to keep immediate fast-fail behavior without restarting the test process.
 

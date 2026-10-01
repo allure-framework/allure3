@@ -663,11 +663,88 @@ describe("run command", () => {
     expect(exitMock).toHaveBeenCalledWith(0);
   });
 
-  it("should rerun only tests related to failed Quality Gate results", async () => {
+  it("should rerun blocking failures and tests related to failed Quality Gate rules after a completed run", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess } = await import("../../src/utils/index.js");
+    const { writeFile } = await import("node:fs/promises");
+    const blockingFailure = {
+      id: "blocking-failure",
+      name: "failed test",
+      fullName: "suite > failed test",
+      status: "failed",
+      labels: [],
+    };
+    const relatedPassedTest = {
+      id: "related-passed",
+      name: "slow passed test",
+      fullName: "suite > slow passed test",
+      status: "passed",
+      labels: [],
+    };
+    const failedQualityGateResult = {
+      success: false,
+      expected: 100,
+      actual: 200,
+      rule: "maxDuration",
+      message: "Some tests are too slow",
+      testResults: [blockingFailure.id, relatedPassedTest.id],
+    };
+    const testPlanPath = resolve("/tmp/run", "0-testplan.json");
+
+    AllureReportMock.prototype.store = {
+      blockingFailedTestResults: vi.fn().mockResolvedValue([blockingFailure]),
+      failedTestResults: vi.fn().mockResolvedValue([blockingFailure]),
+      allTestResults: vi.fn().mockResolvedValue([blockingFailure, relatedPassedTest]),
+      testResultById: vi.fn(async (id: string) => {
+        if (id === blockingFailure.id) {
+          return blockingFailure;
+        }
+
+        return id === relatedPassedTest.id ? relatedPassedTest : undefined;
+      }),
+    };
+    AllureReportMock.prototype.validate = vi.fn().mockResolvedValue({
+      results: [failedQualityGateResult],
+      fastFailed: false,
+    });
+
+    await executeAllureRun({
+      allureReport: new AllureReportMock() as never,
+      cwd: "/cwd",
+      command: "npm",
+      commandArgs: ["test"],
+      withQualityGate: true,
+      maxRerun: 1,
+    });
+
+    expect(runProcess).toHaveBeenCalledTimes(2);
+    expect(runProcess).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        environmentVariables: {
+          ALLURE_RERUN: "0",
+          ALLURE_TESTPLAN_PATH: testPlanPath,
+        },
+      }),
+    );
+    expect(writeFile).toHaveBeenCalledWith(
+      testPlanPath,
+      JSON.stringify({
+        version: "1.0",
+        tests: [
+          { selector: blockingFailure.fullName, id: undefined },
+          { selector: relatedPassedTest.fullName, id: undefined },
+        ],
+      }),
+    );
+    expect(AllureReportMock.prototype.store.testResultById).toHaveBeenCalledTimes(2);
+  });
+
+  it("should restart the full process after Quality Gate fast-fail even when related tests exist", async () => {
     const { AllureReportMock } = await import("../utils.js");
     const { runProcess, terminationOf } = await import("../../src/utils/index.js");
     const { stopProcessTree } = await import("../../src/utils/process.js");
-    const { rm, writeFile } = await import("node:fs/promises");
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
     const unsubscribe = vi.fn();
     let resolveOnTestResults!: (callback: (ids: string[]) => Promise<void>) => void;
     const onTestResultsReady = new Promise<(ids: string[]) => Promise<void>>((resolve) => {
@@ -697,7 +774,6 @@ describe("run command", () => {
       actual: 0,
       testResults: [],
     };
-    const testPlanPath = resolve("/tmp/run", "0-testplan.json");
     const relatedTestResult = {
       id: "tr-1",
       name: "failed test",
@@ -745,21 +821,16 @@ describe("run command", () => {
       expect.objectContaining({
         environmentVariables: {
           ALLURE_RERUN: "0",
-          ALLURE_TESTPLAN_PATH: testPlanPath,
         },
       }),
     );
-    expect(writeFile).toHaveBeenCalledWith(
-      testPlanPath,
-      JSON.stringify({
-        version: "1.0",
-        tests: [{ selector: "suite > failed test", id: undefined }],
-      }),
-    );
-    expect(rm).toHaveBeenCalledWith("/tmp/run", { recursive: true, force: true });
+    expect(mkdtemp).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
     expect(AllureReportMock.prototype.store.testResultById).not.toHaveBeenCalledWith("tr-passed");
     expect(console.log).toHaveBeenCalledWith("Quality Gate fast-fail triggered by maxFailures; stopping test process.");
-    expect(console.log).toHaveBeenCalledWith("Quality Gate selected 1 related test for rerun.");
+    expect(console.log).toHaveBeenCalledWith(
+      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
+    );
     expect(unsubscribe).toHaveBeenCalledTimes(2);
     expect(stopProcessTree).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledTimes(1);
@@ -836,7 +907,7 @@ describe("run command", () => {
       "Quality Gate fast-fail triggered by minTestsCount; stopping test process.",
     );
     expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate found no runnable related tests; restarting full test process.",
+      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
     );
   });
 

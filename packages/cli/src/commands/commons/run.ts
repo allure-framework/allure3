@@ -398,29 +398,41 @@ export const executeAllureRun = async (params: {
     }
 
     for (let rerun = 0; rerun < maxRerun && testProcessResult; rerun++) {
-      const qualityGateFastFailed = testProcessResult.fastFailed;
-      const testResultsToRerun = qualityGateFastFailed
-        ? await relatedQualityGateTestResults(allureReport, testProcessResult.qualityGateResults)
-        : await allureReport.store.blockingFailedTestResults();
+      const fullRerun = testProcessResult.fastFailed;
+      let testResultsToRerun: TestResult[] = [];
 
-      if (!qualityGateFastFailed && testResultsToRerun.length === 0) {
-        console.log("no failed tests is detected.");
-        break;
+      if (!fullRerun) {
+        const blockingFailures = await allureReport.store.blockingFailedTestResults();
+        let relatedTestResults: TestResult[] = [];
+
+        if (withQualityGate) {
+          const currentTestResults = await allureReport.store.allTestResults({ includeRetries: false });
+          const { results } = await allureReport.validate({
+            trs: currentTestResults,
+            environment,
+          });
+
+          relatedTestResults = await relatedQualityGateTestResults(allureReport, results);
+        }
+
+        testResultsToRerun = [
+          ...new Map(
+            [...blockingFailures, ...relatedTestResults].map((testResult) => [testResult.id, testResult]),
+          ).values(),
+        ];
+
+        if (testResultsToRerun.length === 0) {
+          console.log("no failed tests is detected.");
+          break;
+        }
       }
 
       const testPlan = createTestPlan(testResultsToRerun);
-      const fullRerun = qualityGateFastFailed && testPlan.tests.length === 0;
 
       if (fullRerun) {
-        console.log("Quality Gate found no runnable related tests; restarting full test process.");
+        console.log("Quality Gate fast-fail interrupted the test process; restarting full test process.");
         console.log(`rerun number ${rerun} of all tests:`);
       } else {
-        if (qualityGateFastFailed) {
-          const testWord = testPlan.tests.length === 1 ? "test" : "tests";
-
-          console.log(`Quality Gate selected ${testPlan.tests.length} related ${testWord} for rerun.`);
-        }
-
         console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
         logTests(testResultsToRerun);
       }

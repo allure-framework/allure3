@@ -483,7 +483,7 @@ ${environmentsSource}
     });
   }, 240_000);
 
-  it("reruns tests related to a fast-failing Quality Gate through an Allure test plan", async () => {
+  it("restarts the full command after a fast-failing Quality Gate", async () => {
     const fixtureDir = join(tempDir, "quality-gate-rerun");
     const resultsDir = join(fixtureDir, "allure-results");
     const outputDir = join(fixtureDir, "allure-report");
@@ -507,7 +507,7 @@ const invocationsPath = ${JSON.stringify(invocationsPath)};
 const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
 const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
 const rerun = process.env.ALLURE_RERUN;
-const isRerun = testPlan !== undefined;
+const isRerun = rerun !== undefined;
 
 await appendFile(invocationsPath, JSON.stringify({ rerun, testPlanPath, testPlan }) + "\\n", "utf-8");
 await writeFile(
@@ -523,6 +523,22 @@ await writeFile(
   }),
   "utf-8"
 );
+
+if (isRerun) {
+  await writeFile(
+    join(resultsDir, "remaining-result.json"),
+    JSON.stringify({
+      uuid: "remaining-result",
+      historyId: "remaining-result",
+      name: "runs during the full rerun",
+      fullName: "Quality Gate Suite > runs during the full rerun",
+      status: "passed",
+      start: 5,
+      stop: 6
+    }),
+    "utf-8"
+  );
+}
 
 await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
 `.trimStart();
@@ -559,7 +575,7 @@ await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
       await attachCommandOutput("Quality Gate rerun", result);
     });
 
-    await step("verify focused rerun scope and final success", async () => {
+    await step("verify full rerun scope and final success", async () => {
       const invocations = (await readFile(invocationsPath, "utf-8"))
         .trim()
         .split("\n")
@@ -578,15 +594,109 @@ await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
       expect(stderr).toBe("");
       expect(stdout).not.toContain("skipping quality gate validation");
       expect(stdout).toContain("Quality Gate fast-fail triggered by maxFailures; stopping test process.");
-      expect(stdout).toContain("Quality Gate selected 1 related test for rerun.");
+      expect(stdout).toContain("Quality Gate fast-fail interrupted the test process; restarting full test process.");
       expect(invocations).toHaveLength(2);
       expect(invocations[0]).toEqual({});
       expect(invocations[1]?.rerun).toBe("0");
+      expect(invocations[1]?.testPlanPath).toBeUndefined();
+      expect(invocations[1]?.testPlan).toBeUndefined();
+    });
+  }, 240_000);
+
+  it("reruns passed tests related to failed Quality Gate rules after a completed run", async () => {
+    const fixtureDir = join(tempDir, "quality-gate-related-rerun");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "allure-report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const invocationsPath = join(fixtureDir, "invocations.jsonl");
+    const configSource = `
+export default {
+  output: ${JSON.stringify(outputDir)},
+  qualityGate: {
+    rules: [{ maxDuration: 100 }]
+  }
+};
+`.trimStart();
+    const runnerSource = `
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const invocationsPath = ${JSON.stringify(invocationsPath)};
+const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
+const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
+const isRerun = testPlan !== undefined;
+
+await appendFile(invocationsPath, JSON.stringify({ testPlanPath, testPlan }) + "\\n", "utf-8");
+await writeFile(
+  join(resultsDir, isRerun ? "retry-result.json" : "initial-result.json"),
+  JSON.stringify({
+    uuid: isRerun ? "duration-retry" : "duration-initial",
+    historyId: "quality-gate-duration",
+    name: "becomes fast enough after rerun",
+    fullName: "Quality Gate Suite > becomes fast enough after rerun",
+    status: "passed",
+    start: isRerun ? 300 : 1,
+    stop: isRerun ? 350 : 201
+  }),
+  "utf-8"
+);
+
+await new Promise((resolve) => setTimeout(resolve, 2500));
+`.trimStart();
+    let stderr = "";
+
+    await step("prepare completed Quality Gate rerun fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(runnerPath, runnerSource, "utf-8");
+    });
+
+    await step("run built command with a non-fast Quality Gate", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "run",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--rerun",
+        "1",
+        "--results-dir",
+        resultsDir,
+        "--",
+        process.execPath,
+        runnerPath,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("completed Quality Gate rerun", result);
+    });
+
+    await step("verify related passed test uses a focused rerun", async () => {
+      const invocations = (await readFile(invocationsPath, "utf-8"))
+        .trim()
+        .split("\n")
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              testPlanPath?: string;
+              testPlan?: {
+                version: string;
+                tests: { selector?: string; id?: string }[];
+              };
+            },
+        );
+
+      expect(stderr).toBe("");
+      expect(invocations).toHaveLength(2);
+      expect(invocations[0]).toEqual({});
       expect(invocations[1]?.testPlanPath).toEqual(expect.any(String));
       expect(isAbsolute(invocations[1]!.testPlanPath!)).toBe(true);
       expect(invocations[1]?.testPlan).toEqual({
         version: "1.0",
-        tests: [{ selector: "Quality Gate Suite > recovers after rerun" }],
+        tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
       });
     });
   }, 240_000);
