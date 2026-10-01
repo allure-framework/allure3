@@ -524,6 +524,52 @@ describe("generateTestResults", () => {
       },
     });
   });
+
+  it("should distinguish retries with changed and unchanged significant statuses", async () => {
+    const changed = mockTestResult("tr-changed", "changed", "passed");
+    const unchanged = mockTestResult("tr-unchanged", "unchanged", "failed");
+    const { writer } = createWriter();
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        fixturesByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        historyByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        retriesByTrId: new Map([
+          ["tr-changed", [mockTestResult("retry-changed", "changed", "failed")]],
+          ["tr-unchanged", [mockTestResult("retry-unchanged", "unchanged", "failed")]],
+        ]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    const converted = await generateTestResults(writer, store, [changed, unchanged], { pluginId: "awesome" });
+
+    expect(converted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "tr-changed",
+          retry: true,
+          retriesCount: 1,
+          retriesStatusChange: true,
+        }),
+        expect.objectContaining({
+          id: "tr-unchanged",
+          retry: true,
+          retriesCount: 1,
+          retriesStatusChange: false,
+        }),
+      ]),
+    );
+  });
 });
 
 describe("generateTree", () => {
@@ -534,6 +580,7 @@ describe("generateTree", () => {
         ...mockTestResult("tr-issue", "issue test", "failed"),
         groupedLabels: {},
         resolution: "issue",
+        retriesStatusChange: true,
       } as ReportTestResult,
       {
         ...mockTestResult("tr-clean", "clean test", "passed"),
@@ -548,10 +595,14 @@ describe("generateTree", () => {
     await generateTree(writer, "tree.json", [], tests);
 
     const tree = writtenWidgets.get("tree.json") as {
-      leavesById: Record<string, { resolution?: string; resolutionStatus?: string }>;
+      leavesById: Record<string, { resolution?: string; resolutionStatus?: string; retriesStatusChange?: boolean }>;
     };
 
-    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue", resolutionStatus: "issue" });
+    expect(tree.leavesById["tr-issue"]).toMatchObject({
+      resolution: "issue",
+      resolutionStatus: "issue",
+      retriesStatusChange: true,
+    });
     expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
     expect(tree.leavesById["tr-clean"]?.resolutionStatus).toBeUndefined();
     expect(tree.leavesById["tr-unresolved"]).toMatchObject({ resolutionStatus: "none" });
@@ -568,6 +619,7 @@ describe("generateResolutionCategories", () => {
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
         resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+        retriesStatusChange: true,
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
@@ -606,7 +658,13 @@ describe("generateResolutionCategories", () => {
           comment: "Checkout discount is not applied",
           issue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
           testResults: [
-            expect.objectContaining({ nodeId: "tr-issue-1", id: "history-1", resolution: "issue", groupOrder: 1 }),
+            expect.objectContaining({
+              nodeId: "tr-issue-1",
+              id: "history-1",
+              resolution: "issue",
+              retriesStatusChange: true,
+              groupOrder: 1,
+            }),
             expect.objectContaining({ nodeId: "tr-issue-2", id: "history-2", resolution: "issue", groupOrder: 2 }),
           ],
         },
