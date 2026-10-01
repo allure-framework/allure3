@@ -431,6 +431,11 @@ describe("test results", () => {
     await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
       id: "SHOP-1",
       type: "jira",
+      link: {
+        name: "Jira SHOP-1",
+        url: "https://example.org/SHOP-1",
+        type: "jira",
+      },
     });
   });
 
@@ -462,6 +467,11 @@ describe("test results", () => {
     await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
       id: "SHOP-2",
       type: "jira",
+      link: {
+        name: "Jira SHOP-2",
+        url: "https://example.org/SHOP-2",
+        type: "jira",
+      },
     });
   });
 
@@ -618,6 +628,11 @@ describe("test results", () => {
       id: "SHOP-9",
       type: "jira",
       comment: "tracked",
+      link: {
+        name: "Jira SHOP-9",
+        url: "https://example.org/SHOP-9",
+        type: "jira",
+      },
     });
   });
 
@@ -752,7 +767,18 @@ describe("test results", () => {
     });
     expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
     expect(blockingFailed).toEqual([issueResult]);
-    expect(resolutionIssues).toEqual([{ id: "SHOP-1", type: "jira", comment: "Tracked defect" }]);
+    expect(resolutionIssues).toEqual([
+      {
+        id: "SHOP-1",
+        type: "jira",
+        comment: "Tracked defect",
+        link: {
+          name: "Jira SHOP-1",
+          url: "https://example.org/SHOP-1",
+          type: "jira",
+        },
+      },
+    ]);
     await expect(store.resolutionIssueByTestResultId(issueResult.id)).resolves.toEqual(resolutionIssues[0]);
     await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });
