@@ -94,20 +94,23 @@ describe("summary utils", () => {
         status: "failed",
         duration: 10,
         stop: 100,
+        retryHash: "retry-1",
       }),
       testResult({ id: "t2", name: "two", status: "broken", duration: 20, stop: 250, flaky: true }),
       testResult({ id: "t3", name: "three", status: "passed", duration: 5, stop: 0 }),
     ];
+    const allTrsWithRetries = [...allTrs, testResult({ id: "r1", retryHash: "retry-1", isRetry: true })];
     const newTrs = allTrs.slice(0, 2);
     const stats = { total: 3, resolutions: { issues: 1, muted: 1, accepted: 1 } } as any;
     const historyReadHistory = vi.fn().mockResolvedValue([{ branch: "main" }]);
     const history = { readHistory: historyReadHistory } as unknown as AllureHistory;
+    const retriesByTr = vi.fn().mockResolvedValue([]);
     const store = {
       allCheckResults: vi.fn().mockResolvedValue(allChecks),
-      allTestResults: vi.fn().mockResolvedValue(allTrs),
+      allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? allTrsWithRetries : allTrs)),
       allNewTestResults: vi.fn().mockResolvedValue(newTrs),
       testsStatistic: vi.fn().mockResolvedValue(stats),
-      retriesByTr: vi.fn((tr: TestResult) => Promise.resolve(tr.id === "t1" ? [{ id: "r1" } as TestResult] : [])),
+      retriesByTr,
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -120,9 +123,11 @@ describe("summary utils", () => {
 
     expect(store.allCheckResults).toHaveBeenCalledTimes(1);
     expect(store.allTestResults).toHaveBeenCalledWith({ filter });
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
     expect(historyReadHistory).toHaveBeenCalledWith({ branch: "" });
     expect(store.allNewTestResults).toHaveBeenCalledWith(filter, [{ branch: "main" }]);
     expect(store.testsStatistic).toHaveBeenCalledWith(filter);
+    expect(retriesByTr).not.toHaveBeenCalled();
     expect(summary).toEqual({
       stats,
       status: getWorstStatus(allTrs.map(({ status }) => status)),
@@ -163,10 +168,21 @@ describe("summary utils", () => {
   });
 
   it("excludes retry attempts and results outside the report filter from new test IDs", async () => {
-    const current = testResult({ id: "current" });
+    const current = testResult({ id: "current", retryHash: "retry-current" });
+    const existing = testResult({ id: "existing" });
     const store = {
       allCheckResults: vi.fn().mockResolvedValue([]),
-      allTestResults: vi.fn().mockResolvedValue([current, testResult({ id: "existing" })]),
+      allTestResults: vi.fn(({ includeRetries } = {}) =>
+        Promise.resolve(
+          includeRetries
+            ? [
+                current,
+                existing,
+                testResult({ id: "current-retry", status: "failed", retryHash: "retry-current", isRetry: true }),
+              ]
+            : [current, existing],
+        ),
+      ),
       allNewTestResults: vi
         .fn()
         .mockResolvedValue([
@@ -187,6 +203,7 @@ describe("summary utils", () => {
     });
 
     expect(summary.newTests).toEqual(["current"]);
+    expect(summary.retryTests).toEqual(["current"]);
   });
 
   it("createPluginSummary falls back to passed when status is empty", async () => {
@@ -209,5 +226,6 @@ describe("summary utils", () => {
     expect(summary.status).toBe("passed");
     expect(summary.filtered).toBeUndefined();
     expect(store.allNewTestResults).toHaveBeenCalledWith(undefined, []);
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
   });
 });

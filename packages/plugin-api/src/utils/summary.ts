@@ -62,11 +62,14 @@ export const createPluginSummary = async (params: {
   const { name, filter, plugin, store, history, meta } = params;
   const allChecks = await store.allCheckResults();
   const allTrs = await store.allTestResults({ filter });
+  const allTrsWithRetries = await store.allTestResults({ includeRetries: true });
   const currentIds = new Set(allTrs.map(({ id }) => id));
   const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
   const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
-  const retryFlags = await Promise.all(allTrs.map(async (tr) => (await store.retriesByTr(tr)).length > 0));
-  const retryTrs = allTrs.filter((_, index) => retryFlags[index]);
+  const retryHashesWithRetries = new Set(
+    allTrsWithRetries.flatMap((tr) => (tr.isRetry && tr.retryHash ? [tr.retryHash] : [])),
+  );
+  const retryTrs = allTrs.filter(({ retryHash }) => retryHash && retryHashesWithRetries.has(retryHash));
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
   const duration = calculateRunDuration(allTrs);
   const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
