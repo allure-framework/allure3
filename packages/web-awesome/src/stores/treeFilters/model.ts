@@ -1,4 +1,4 @@
-import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import type {
   ArrayField,
   BooleanField,
@@ -9,12 +9,14 @@ import type {
 } from "@allurereport/web-commons";
 import type { ReportTreeLeaf } from "types";
 
+import type { ResolutionFilterValue } from "./constants";
+
 export type Filters = {
   query?: string;
   status?: TestStatus;
   flaky?: boolean;
   retry?: boolean;
-  resolution?: ResolutionCategory[];
+  resolution?: ResolutionFilterValue[];
   transition?: TestStatusTransition[];
   tags?: string[];
   categories?: string[];

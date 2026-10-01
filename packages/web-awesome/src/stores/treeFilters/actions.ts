@@ -1,7 +1,7 @@
-import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { ReportFetchError, fetchReportJsonData, setParams } from "@allurereport/web-commons";
 
-import { PARAMS } from "./constants";
+import { PARAMS, type ResolutionFilterValue } from "./constants";
 import type { TreeFiltersData } from "./model";
 import { treeCategories, treeTags } from "./store";
 
@@ -65,7 +65,7 @@ export const setRetryFilter = (retry?: boolean) => {
   });
 };
 
-export const setResolutionFilter = (resolution: ResolutionCategory[]) => {
+export const setResolutionFilter = (resolution: ResolutionFilterValue[]) => {
   preserveTreeScrollPosition(() => {
     setParams({
       key: PARAMS.RESOLUTION,

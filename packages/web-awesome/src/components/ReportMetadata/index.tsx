@@ -12,8 +12,9 @@ import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { getReportEnvSectionId } from "@/stores/reportEnvSections";
-import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { collapsedTrees, toggleTree, treeStore } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
+import { getUnresolvedStatusCounts } from "@/utils/statuses";
 
 import * as styles from "./styles.scss";
 
@@ -139,6 +140,7 @@ export const ReportMetadata = () => {
   const { executor } = getReportOptions<ReportOptions>();
   const executorMetadata = getExecutorMetadata(executor);
   const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
+  const statusCounts = stats && getUnresolvedStatusCounts(stats, treeStore.value.data, envId);
 
   useEffect(() => {
     fetchVariables(envId);
@@ -146,7 +148,7 @@ export const ReportMetadata = () => {
 
   return (
     <div className={styles["report-metadata-wrapper"]}>
-      {stats && <MetadataSummary stats={stats} />}
+      {stats && <MetadataSummary stats={stats} statusCounts={statusCounts} />}
       <Loadable
         source={variables}
         transformData={(data) => data?.[envId ?? "default"] ?? {}}

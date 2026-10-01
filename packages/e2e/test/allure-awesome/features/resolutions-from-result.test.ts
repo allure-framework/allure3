@@ -132,6 +132,30 @@ test.describe("resolutions from result", () => {
     await expect(treePage.getLeafByTitle(plainFailedTestName)).not.toBeVisible();
   });
 
+  test("should filter failed tab to unresolved failures", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
+    await expect(treePage.metadataFailedLocator).toContainText("1");
+
+    await treePage.clickTreeTab("failed");
+    await expect(treePage.getLeafByTitle(plainFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(knownTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(mutedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(knownBrokenTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(mutedKnownTestName)).not.toBeVisible();
+  });
+
+  test("should filter tree by no resolution", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
+    await treePage.toggleNoResolutionFilter();
+    await expect(treePage.getLeafByTitle(plainFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(knownTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(mutedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(knownBrokenTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(mutedKnownTestName)).not.toBeVisible();
+  });
+
   test("should show accepted resolution icon for known broken leaf", async ({ page }) => {
     await page.goto(bootstrap.url);
 
