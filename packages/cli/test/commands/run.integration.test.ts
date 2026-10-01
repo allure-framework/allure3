@@ -15,6 +15,10 @@ const commandsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(commandsDir, "../../../..");
 const yarnRcPath = join(repoRoot, ".yarnrc.yml");
 const cliPath = join(repoRoot, "packages", "cli", "cli.js");
+const sharedBuildArtifacts = [
+  join(repoRoot, "packages", "cli", "dist", "index.js"),
+  join(repoRoot, "packages", "plugin-log", "dist", "index.js"),
+];
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
@@ -138,6 +142,7 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
 
 describe("run command integration", () => {
   let tempDir: string;
+  let sharedBuildModificationTimes: number[];
 
   beforeEach(async () => {
     await epic("coverage");
@@ -147,11 +152,12 @@ describe("run command integration", () => {
   });
 
   beforeAll(async () => {
+    // Workspace builds run before tests. Rebuilding here would clean shared dist files while other packages use them.
+    sharedBuildModificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
-
-    await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
-    await runYarnCommand(["workspace", "allure", "build"]);
-  }, 240_000);
+  });
 
   afterAll(async () => {
     await rm(tempDir, { recursive: true, force: true });
@@ -1419,4 +1425,12 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       ]);
     });
   }, 240_000);
+
+  it("does not rebuild shared workspace artifacts", async () => {
+    const modificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
+
+    expect(modificationTimes).toEqual(sharedBuildModificationTimes);
+  });
 });
