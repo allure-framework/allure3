@@ -1310,7 +1310,7 @@ describe("test results", () => {
     const otherRetries = other ? await store.retriesByTrId(other.id) : [];
 
     expect(latestRetries).toEqual([expect.objectContaining({ name: "other" })]);
-    expect(otherRetries).toEqual([]);
+    expect(otherRetries).toEqual([expect.objectContaining({ name: "latest" })]);
     expect(latest?.isRetry).toBe(false);
     expect(other?.isRetry).toBe(true);
   });
