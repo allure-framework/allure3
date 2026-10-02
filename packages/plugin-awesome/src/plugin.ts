@@ -3,6 +3,7 @@ import {
   type EnvironmentItem,
   type Statistic,
   type TestResult,
+  validateEnvironmentId,
   joinPosixPath,
 } from "@allurereport/core-api";
 import {
@@ -43,12 +44,11 @@ import {
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
-const statisticByTestResults = async (
-  store: AllureStore,
+const statisticByTestResults = (
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
-): Promise<Statistic> => {
+  trIdsWithRetries: ReadonlySet<string>,
+): Statistic => {
   const statistic: Statistic = { total: 0 };
-  const related = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
   const incrementResolution = (testResult: (typeof testResults)[number]) => {
     if (testResult.resolution === "issue") {
       statistic.resolutions ??= {};
@@ -73,7 +73,7 @@ const statisticByTestResults = async (
 
     incrementStatistic(statistic, testResult.status);
 
-    if ((related.retriesByTrId.get(testResult.id)?.length ?? 0) > 0) {
+    if (trIdsWithRetries.has(testResult.id)) {
       statistic.retries = (statistic.retries ?? 0) + 1;
     }
 
@@ -131,6 +131,7 @@ export class AwesomePlugin implements Plugin {
       executor,
       attachments,
       allTrs,
+      related,
       runSummary,
       statistics,
       environments,
@@ -143,12 +144,14 @@ export class AwesomePlugin implements Plugin {
       qualityGateResults,
     } = await measure("readData", async () => {
       const testResults = await store.allTestResults({ includeRetries: true, filter });
+      const relatedData = await store.relatedByTestResultIds(testResults.map(({ id }) => id));
 
       return {
         environmentItems: await store.metadataByKey<EnvironmentItem[]>("allure_environment"),
         executor: await store.metadataByKey<ReportExecutorInfo>("allure2_executor"),
         attachments: await store.allAttachments(),
         allTrs: testResults,
+        related: relatedData,
         runSummary: getRunSummary(testResults),
         statistics: await store.testsStatistic(filter),
         environments: await store.allEnvironmentIdentities(),
@@ -203,9 +206,17 @@ export class AwesomePlugin implements Plugin {
     const trsByEnvId = new Map<string, typeof allTrs>();
 
     await measure("stats", async () => {
+      const trIdsWithRetries = new Set<string>();
       const envStatistics = new Map<string, Statistic>();
-      const pieStatistics = await statisticByTestResults(store, allTrs.filter(isActiveStatisticTestResult));
       const pieEnvStatistics = new Map<string, Statistic>();
+
+      related.retriesByTrId.forEach((retries, trId) => {
+        if (retries.length > 0) {
+          trIdsWithRetries.add(trId);
+        }
+      });
+
+      const pieStatistics = statisticByTestResults(allTrs.filter(isActiveStatisticTestResult), trIdsWithRetries);
 
       for (const tr of allTrs) {
         const environmentId = envIdByTrId.get(tr.id);
@@ -227,8 +238,11 @@ export class AwesomePlugin implements Plugin {
         environments.map(async ({ id }) => {
           const envTrs = trsByEnvId.get(id) ?? [];
 
-          envStatistics.set(id, await statisticByTestResults(store, envTrs));
-          pieEnvStatistics.set(id, await statisticByTestResults(store, envTrs.filter(isActiveStatisticTestResult)));
+          envStatistics.set(id, statisticByTestResults(envTrs, trIdsWithRetries));
+          pieEnvStatistics.set(
+            id,
+            statisticByTestResults(envTrs.filter(isActiveStatisticTestResult), trIdsWithRetries),
+          );
         }),
       );
 
@@ -256,6 +270,7 @@ export class AwesomePlugin implements Plugin {
       generateTestResults(this.#writer!, store, allTrs, {
         pluginId: context.id,
         hideLabels,
+        related,
         resolveHistoryUrl: context.history?.resolveTestResultUrl,
       }),
     );
@@ -310,7 +325,15 @@ export class AwesomePlugin implements Plugin {
 
     await measure("environmentsOutput", async () => {
       for (const reportEnvironment of environments) {
-        const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeRetries: true });
+        const environmentIdValidation = validateEnvironmentId(reportEnvironment.id);
+
+        if (!environmentIdValidation.valid) {
+          throw new Error(
+            `Invalid environmentId ${JSON.stringify(reportEnvironment.id)}: ${environmentIdValidation.reason}`,
+          );
+        }
+
+        const envTrs = trsByEnvId.get(reportEnvironment.id) ?? [];
         const envConvertedTrs = envTrs
           .map((tr) => convertedTrsById.get(tr.id))
           .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));

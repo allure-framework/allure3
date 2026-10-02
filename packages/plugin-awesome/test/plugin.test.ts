@@ -52,6 +52,7 @@ const createRelatedByTestResultIdsMock = () =>
     attachmentsByTrId: new Map(trIds.map((trId) => [trId, []])),
     fixturesByTrId: new Map(trIds.map((trId) => [trId, []])),
     historyByTrId: new Map(trIds.map((trId) => [trId, undefined])),
+    resolutionIssuesByTrId: new Map(trIds.map((trId) => [trId, undefined])),
     retriesByTrId: new Map(trIds.map((trId) => [trId, []])),
   }));
 

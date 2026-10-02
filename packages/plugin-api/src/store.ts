@@ -26,6 +26,7 @@ export interface TestResultRelatedData {
   attachmentsByTrId: Map<string, AttachmentLink[]>;
   fixturesByTrId: Map<string, TestFixtureResult[]>;
   historyByTrId: Map<string, HistoryTestResult[] | undefined>;
+  resolutionIssuesByTrId?: Map<string, ResolutionIssue | undefined>;
   retriesByTrId: Map<string, TestResult[]>;
 }
 
