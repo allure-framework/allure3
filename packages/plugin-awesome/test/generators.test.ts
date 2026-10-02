@@ -566,6 +566,38 @@ describe("generateTree", () => {
     expect(tree.leavesById["tr-clean"]?.resolutionStatus).toBeUndefined();
     expect(tree.leavesById["tr-unresolved"]).toMatchObject({ resolutionStatus: "none" });
   });
+
+  it("should include non-empty redacted parameter values in tree leaves", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-parameterized", "parameterized test", "passed"),
+        groupedLabels: {},
+        parameters: [
+          { name: "visible", value: "value", hidden: false, masked: false, excluded: false },
+          { name: "empty", value: "", hidden: false, masked: false, excluded: false },
+          { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false },
+          { name: "internal", value: "hidden-value", hidden: true, masked: false, excluded: false },
+        ],
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-without-parameters", "plain test", "passed"),
+        groupedLabels: {},
+      } as ReportTestResult,
+    ];
+
+    await generateTree(writer, "tree.json", [], tests);
+
+    const tree = writtenWidgets.get("tree.json") as {
+      leavesById: Record<string, { parameters?: string[] }>;
+    };
+    const serializedTree = JSON.stringify(tree);
+
+    expect(tree.leavesById["tr-parameterized"]?.parameters).toEqual(["value", "<masked>"]);
+    expect(tree.leavesById["tr-without-parameters"]?.parameters).toBeUndefined();
+    expect(serializedTree).not.toContain("secret-token");
+    expect(serializedTree).not.toContain("hidden-value");
+  });
 });
 
 describe("generateResolutionCategories", () => {
