@@ -4,7 +4,7 @@ import { defineConfig, mergeConfig } from "vitest/config";
 const nonParallelFiles = ["./test/commands/run.integration.test.ts"];
 
 export default mergeConfig(
-  defaultVitestConfig({ globalLabels: [{ name: "module", value: "cli" }] }),
+  defaultVitestConfig({ include: [], globalLabels: [{ name: "module", value: "cli" }] }),
   defineConfig({
     test: {
       projects: [
