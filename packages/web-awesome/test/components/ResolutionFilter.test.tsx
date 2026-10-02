@@ -34,12 +34,12 @@ vi.mock("@/stores/locale", () => ({
 const resolutionGroup = (resolutions: string[] = []): AwesomeFilterGroupSimple => ({
   type: "group",
   logicalOperator: "AND",
-  fieldKey: "resolution",
+  fieldKey: "resolutionStatus",
   value: resolutions.map((resolution) => ({
     type: "field",
     logicalOperator: "OR",
     value: {
-      key: "resolution",
+      key: "resolutionStatus",
       value: resolution,
       type: "string",
       strict: true,
@@ -47,14 +47,19 @@ const resolutionGroup = (resolutions: string[] = []): AwesomeFilterGroupSimple =
   })),
 });
 
-const leaf = (id: string, resolution?: AwesomeTreeLeaf["resolution"]): AwesomeTreeLeaf => ({
+const leaf = (
+  id: string,
+  resolutionStatus?: AwesomeTreeLeaf["resolutionStatus"],
+  status: AwesomeTreeLeaf["status"] = "failed",
+): AwesomeTreeLeaf => ({
   id,
   nodeId: id,
   name: id,
-  status: "failed",
+  status,
   duration: 1,
   groupOrder: 1,
-  resolution,
+  resolutionStatus,
+  resolution: resolutionStatus === "none" ? undefined : resolutionStatus,
 });
 
 const tree = (leaves: AwesomeTreeLeaf[]): AwesomeTree =>
@@ -80,7 +85,13 @@ beforeEach(async () => {
     loading: false,
     error: undefined,
     data: {
-      "env-a": tree([leaf("issue-1", "issue"), leaf("issue-2", "issue"), leaf("muted-1", "muted"), leaf("plain-1")]),
+      "env-a": tree([
+        leaf("issue-1", "issue"),
+        leaf("issue-2", "issue"),
+        leaf("muted-1", "muted"),
+        leaf("plain-1", "none"),
+        leaf("passed-1", undefined, "passed"),
+      ]),
       "env-b": tree([leaf("accepted-1", "accepted"), leaf("muted-2", "muted")]),
     },
   };
@@ -99,6 +110,7 @@ describe("components > ReportFilters > ResolutionFilter", () => {
     expect(within(screen.getByTestId("issue-filter")).getByText("2")).toBeInTheDocument();
     expect(within(screen.getByTestId("muted-filter")).getByText("2")).toBeInTheDocument();
     expect(within(screen.getByTestId("accepted-filter")).getByText("1")).toBeInTheDocument();
+    expect(within(screen.getByTestId("none-filter")).getByText("1")).toBeInTheDocument();
   });
 
   it("limits counters to the selected environment", () => {
@@ -109,6 +121,7 @@ describe("components > ReportFilters > ResolutionFilter", () => {
     expect(within(screen.getByTestId("issue-filter")).getByText("0")).toBeInTheDocument();
     expect(within(screen.getByTestId("muted-filter")).getByText("1")).toBeInTheDocument();
     expect(within(screen.getByTestId("accepted-filter")).getByText("1")).toBeInTheDocument();
+    expect(within(screen.getByTestId("none-filter")).getByText("0")).toBeInTheDocument();
   });
 
   it("keeps counters independent from active resolution filters", () => {
@@ -118,5 +131,6 @@ describe("components > ReportFilters > ResolutionFilter", () => {
     expect(within(screen.getByTestId("issue-filter")).getByText("2")).toBeInTheDocument();
     expect(within(screen.getByTestId("muted-filter")).getByText("2")).toBeInTheDocument();
     expect(within(screen.getByTestId("accepted-filter")).getByText("1")).toBeInTheDocument();
+    expect(within(screen.getByTestId("none-filter")).getByText("1")).toBeInTheDocument();
   });
 });

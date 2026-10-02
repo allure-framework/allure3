@@ -42,8 +42,6 @@ const awesomeMetrics = Object.fromEntries(
 const readResultsMetricTitles = {
   xcresultCheck: "Check xcresult bundle",
   readdir: "Read results directory",
-  "realpath.totalMs": "Resolve result paths total",
-  "realpath.avgMs": "Resolve result path average",
 };
 
 const readResultsMetrics = Object.fromEntries(

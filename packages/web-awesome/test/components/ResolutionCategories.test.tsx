@@ -99,6 +99,11 @@ describe("components > ResolutionCategories", () => {
             id: "BUG-1",
             type: "jira",
             comment: "Checkout discount is not applied",
+            link: {
+              name: "Jira BUG-1",
+              url: "https://jira.example/browse/BUG-1",
+              type: "jira",
+            },
           },
           testResults: [
             {
@@ -124,7 +129,10 @@ describe("components > ResolutionCategories", () => {
 
     render(<ReportResolutionCategories />);
 
-    expect(screen.getByText("BUG-1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Jira BUG-1" })).toHaveAttribute(
+      "href",
+      "https://jira.example/browse/BUG-1",
+    );
     expect(screen.getByText("jira")).toBeInTheDocument();
     expect(screen.getByText("Checkout discount is not applied")).toBeInTheDocument();
     expect(screen.getByTestId("resolution-icon-issue-icon")).toBeInTheDocument();
@@ -143,6 +151,49 @@ describe("components > ResolutionCategories", () => {
     fireEvent.click(screen.getByRole("button", { name: /checkout fails/i }));
 
     expect(navigateToTestResultMock).toHaveBeenCalledWith({ testResultId: "tr-1" });
+  });
+
+  it("should keep non-link resolution category content toggleable", () => {
+    const resolutionCategoriesData: ReportResolutionCategoriesData = {
+      groups: [
+        {
+          id: "accepted:known-risk",
+          resolution: "accepted",
+          name: "known-risk",
+          comment: "Accepted risk",
+          testResults: [
+            {
+              nodeId: "tr-accepted",
+              id: "history-accepted",
+              name: "accepted failure",
+              status: "failed",
+              duration: 321,
+              flaky: false,
+              retry: false,
+              resolution: "accepted",
+            },
+          ],
+        },
+      ],
+    };
+
+    resolutionCategoriesStoreMock.value = {
+      loading: false,
+      error: undefined,
+      data: resolutionCategoriesData,
+    };
+
+    render(<ReportResolutionCategories />);
+
+    const contentToggle = screen.getByText("resolutions.accepted").closest("button");
+
+    expect(contentToggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /accepted failure/i })).toBeInTheDocument();
+
+    fireEvent.click(contentToggle!);
+
+    expect(contentToggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /accepted failure/i })).not.toBeInTheDocument();
   });
 
   it("should render resolution category tab content for a test result", () => {

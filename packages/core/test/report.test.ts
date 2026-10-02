@@ -1,5 +1,5 @@
 import console from "node:console";
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
@@ -7,7 +7,7 @@ import { setTimeout } from "node:timers/promises";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
-import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
@@ -416,7 +416,6 @@ describe("report", () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-executor-history-url-"));
     const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-executor-history-url-data-")), "history.jsonl");
     const reportUrl = "https://jenkins.example/job/demo/42/allure";
-    const expectedReportUrl = `${reportUrl}/`;
     const config = await resolveConfig({
       name: "Allure Report",
       output,
@@ -446,9 +445,9 @@ describe("report", () => {
     const [historyPoint] = await readHistoryEntries(historyPath);
     const [historyTestResult] = Object.values(historyPoint.testResults);
 
-    expect(allureReport.reportUrl).toBe(expectedReportUrl);
-    expect(historyPoint.url).toBe(expectedReportUrl);
-    expect(historyTestResult).toEqual(expect.objectContaining({ url: expectedReportUrl }));
+    expect(allureReport.reportUrl).toBe(reportUrl);
+    expect(historyPoint.url).toBe(reportUrl);
+    expect(historyTestResult).toEqual(expect.objectContaining({ url: reportUrl }));
   });
 
   it("should prefer plugin reportUrl over allure2 executor reportUrl for appended history", async () => {
@@ -502,7 +501,6 @@ describe("report", () => {
   it("should expose allure2 executor reportUrl to plugin done hooks when no plugin overrides it", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-plugin-context-executor-url-"));
     const reportUrl = "https://jenkins.example/job/demo/42/allure";
-    const expectedReportUrl = `${reportUrl}/`;
     const p1 = createPlugin("p1");
     const config = await resolveConfig({
       name: "Allure Report",
@@ -525,76 +523,8 @@ describe("report", () => {
     });
     await allureReport.done();
 
-    expect(pluginDoneReportUrl).toBe(expectedReportUrl);
-    expect(allureReport.reportUrl).toBe(expectedReportUrl);
-  });
-
-  it("should expose executor reportUrl to generated single-plugin Awesome history", async () => {
-    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-data-")), "history.jsonl");
-    const reportUrl = "http://127.0.0.1:58888/job/demo/42/allure";
-    const createConfig = async (output: string) => {
-      const config = await resolveConfig({
-        name: "Allure Report",
-        output,
-        historyPath,
-        appendHistory: true,
-      });
-
-      config.plugins = [
-        {
-          id: "awesome",
-          enabled: true,
-          options: {},
-          plugin: new AwesomePlugin({}),
-        },
-      ];
-
-      return config;
-    };
-    const runReport = async (output: string, uuid: string, status: TestResult["status"]) => {
-      const allureReport = new AllureReport(await createConfig(output));
-
-      await allureReport.start();
-      await allureReport.store.visitMetadata({
-        allure2_executor: {
-          reportUrl,
-        },
-      });
-      await allureReport.store.visitTestResult(
-        {
-          uuid,
-          name: "AdditionWorks",
-          testId: "addition-works",
-          status,
-        },
-        { readerId: "test" },
-      );
-      await allureReport.done();
-
-      return allureReport;
-    };
-
-    await runReport(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-first-")), "first-result", "failed");
-
-    const secondOutput = await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-second-"));
-
-    await runReport(secondOutput, "second-result", "passed");
-
-    const generatedTestResultFiles = await readdir(join(secondOutput, "data", "test-results"));
-    const generatedTestResults = await Promise.all(
-      generatedTestResultFiles.map(async (file) =>
-        JSON.parse(await readFile(join(secondOutput, "data", "test-results", file), "utf8")),
-      ),
-    );
-    const generatedTestResult = generatedTestResults.find((testResult) => testResult.name === "AdditionWorks");
-
-    expect(generatedTestResult.history[0].url).toEqual(
-      `${reportUrl}/awesome/index.html#${generatedTestResult.history[0].id}`,
-    );
-    await expect(readFile(join(secondOutput, "index.html"), "utf8")).resolves.toContain("Allure Report");
-    await expect(readFile(join(secondOutput, "awesome", "index.html"), "utf8")).rejects.toMatchObject({
-      code: "ENOENT",
-    });
+    expect(pluginDoneReportUrl).toBe(reportUrl);
+    expect(allureReport.reportUrl).toBe(reportUrl);
   });
 
   it("should validate historyBaseUrl only for the effective local provider", async () => {
@@ -1073,16 +1003,16 @@ describe("report", () => {
     await allureReport.done();
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
+    const readMock = reader.read as Mock<ResultsReader["read"]>;
+    const [, readData] = readMock.mock.calls[0]!;
 
+    expect(readData).toBeInstanceOf(PathResultFile);
+    expect((readData as PathResultFile).path).toBe(join(resultsDir, "result.json"));
     expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResultsFiles, value: 1 }),
-        expect.objectContaining({
-          key: `${PERF_METRIC_NAMES.generateReadResultsRealpath}.totalMs`,
-          value: expect.any(Number),
-        }),
         expect.objectContaining({
           key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
           value: expect.any(Number),

@@ -84,6 +84,7 @@ vi.mock("@/stores/envInfo", () => ({
 
 vi.mock("@/stores/tree", () => ({
   collapsedTrees: { value: new Set() },
+  treeStore: { value: { data: undefined } },
   toggleTree: vi.fn(),
 }));
 
@@ -216,6 +217,28 @@ describe("components > ReportMetadata", () => {
     expect(screen.getByTestId("metadata-item-new")).toHaveTextContent("New tests-");
     expect(screen.getByTestId("metadata-item-retries")).toHaveTextContent("Retried tests-");
     expect(screen.getByTestId("metadata-item-flaky")).toHaveTextContent("Flaky tests-");
+  });
+
+  it("should render summary statuses from unresolved status counts", () => {
+    render(
+      <MetadataSummary
+        stats={{
+          total: 12,
+          failed: 3,
+          broken: 2,
+          passed: 7,
+        }}
+        statusCounts={{
+          failed: 1,
+          broken: 0,
+          passed: 7,
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("metadata-item-failed")).toHaveTextContent("Failed1");
+    expect(screen.queryByTestId("metadata-item-broken")).not.toBeInTheDocument();
+    expect(screen.getByTestId("metadata-item-passed")).toHaveTextContent("Passed7");
   });
 
   it("should clear summary metadata filters when total is clicked", () => {

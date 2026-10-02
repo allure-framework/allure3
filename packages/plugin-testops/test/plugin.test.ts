@@ -1,4 +1,3 @@
-import console from "node:console";
 import { env } from "node:process";
 
 /* eslint max-lines: off */
@@ -9,6 +8,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Logger } from "../src/logger.js";
 import type { TestOpsPluginOptions } from "../src/model.js";
 import { TestOpsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils/options.js";
@@ -1292,32 +1292,36 @@ describe("testops plugin", () => {
     });
 
     it("should announce newly found test results before uploading them", async () => {
-      // the outer beforeEach stubs the log level to "silent", and Logger reads the level once at
-      // construction time — so a plugin built after re-stubbing to "verbose" is needed here.
-      vi.stubEnv("ALLURE_LOG_LEVEL", "verbose");
-
-      const loudPlugin = new TestOpsPlugin({} as TestOpsPluginOptions);
-
       // nothing to upload during start(), so the test results aren't marked as already uploaded
       AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
 
-      await loudPlugin.start({} as PluginContext, store);
+      await plugin.start({} as PluginContext, store);
 
-      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const verboseSpy = vi.spyOn(Logger.prototype, "verbose").mockImplementation(() => {});
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
-      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
-      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
-      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+      try {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 2));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-      await loudPlugin.update({} as PluginContext, store);
+        await plugin.update({} as PluginContext, store);
 
-      // eslint-disable-next-line no-control-regex
-      const plainCalls = consoleLogSpy.mock.calls.map(([message]) => String(message).replace(/\x1B\[\d+m/g, ""));
+        expect(
+          verboseSpy.mock.calls.some(([message]) => {
+            const announcement = String(message);
 
-      expect(plainCalls).toContainEqual(expect.stringContaining("Found 2 new test results, uploading"));
-
-      consoleLogSpy.mockRestore();
+            return (
+              announcement.includes("Found") &&
+              announcement.includes("2") &&
+              announcement.includes("new test results") &&
+              announcement.includes("uploading")
+            );
+          }),
+        ).toBe(true);
+      } finally {
+        verboseSpy.mockRestore();
+      }
     });
 
     it("should defer global errors and attachments until done in real-time mode", async () => {

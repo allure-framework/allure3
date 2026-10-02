@@ -509,6 +509,11 @@ describe("generateTestResults", () => {
         id: "BUG-1",
         type: "jira",
         comment: "BUG-1 still fails in checkout",
+        link: {
+          name: "Jira BUG-1",
+          url: "https://jira.example/browse/BUG-1",
+          type: "jira",
+        },
       }),
     } as unknown as AllureStore;
 
@@ -521,6 +526,11 @@ describe("generateTestResults", () => {
         id: "BUG-1",
         type: "jira",
         comment: "BUG-1 still fails in checkout",
+        link: {
+          name: "Jira BUG-1",
+          url: "https://jira.example/browse/BUG-1",
+          type: "jira",
+        },
       },
     });
   });
@@ -539,14 +549,22 @@ describe("generateTree", () => {
         ...mockTestResult("tr-clean", "clean test", "passed"),
         groupedLabels: {},
       } as ReportTestResult,
+      {
+        ...mockTestResult("tr-unresolved", "unresolved failure", "failed"),
+        groupedLabels: {},
+      } as ReportTestResult,
     ];
 
     await generateTree(writer, "tree.json", [], tests);
 
-    const tree = writtenWidgets.get("tree.json") as { leavesById: Record<string, { resolution?: string }> };
+    const tree = writtenWidgets.get("tree.json") as {
+      leavesById: Record<string, { resolution?: string; resolutionStatus?: string }>;
+    };
 
-    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue" });
+    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue", resolutionStatus: "issue" });
     expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
+    expect(tree.leavesById["tr-clean"]?.resolutionStatus).toBeUndefined();
+    expect(tree.leavesById["tr-unresolved"]).toMatchObject({ resolutionStatus: "none" });
   });
 });
 
@@ -559,14 +577,32 @@ describe("generateResolutionCategories", () => {
         retryHash: "history-1",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
-        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+        resolutionIssue: {
+          id: "BUG-1",
+          type: "jira",
+          comment: "Checkout discount is not applied",
+          link: {
+            name: "Jira BUG-1",
+            url: "https://jira.example/browse/BUG-1",
+            type: "jira",
+          },
+        },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
         retryHash: "history-2",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
-        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+        resolutionIssue: {
+          id: "BUG-1",
+          type: "jira",
+          comment: "Checkout discount is not applied",
+          link: {
+            name: "Jira BUG-1",
+            url: "https://jira.example/browse/BUG-1",
+            type: "jira",
+          },
+        },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-muted", "muted failure", "broken"),
@@ -596,7 +632,16 @@ describe("generateResolutionCategories", () => {
           resolution: "issue",
           name: "BUG-1",
           comment: "Checkout discount is not applied",
-          issue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+          issue: {
+            id: "BUG-1",
+            type: "jira",
+            comment: "Checkout discount is not applied",
+            link: {
+              name: "Jira BUG-1",
+              url: "https://jira.example/browse/BUG-1",
+              type: "jira",
+            },
+          },
           testResults: [
             expect.objectContaining({ nodeId: "tr-issue-1", id: "history-1", resolution: "issue", groupOrder: 1 }),
             expect.objectContaining({ nodeId: "tr-issue-2", id: "history-2", resolution: "issue", groupOrder: 2 }),
