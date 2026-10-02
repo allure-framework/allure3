@@ -74,10 +74,17 @@ the combined dataset and appends that invocation's validation results.
 
 ## Compatibility with rerun
 
-Quality gate validation doesn't work with `allure run --rerun` when the rerun count is greater than `0`.
-If `qualityGate` is configured and `--rerun` is enabled, Allure runs the test command and prints a warning that quality gate validation is skipped for that run.
+Quality gate validation works with `allure run --rerun`. The rerun count is a shared restart budget: every failed-test
+rerun, focused Quality Gate rerun, or full Quality Gate rerun consumes one slot.
 
-Use `--rerun=0` or remove `--rerun` when the quality gate should validate the run.
+When a Quality Gate fast-fails, Allure stops the current test process and restarts the full test command. The interrupted
+result set is incomplete, so related tests alone aren't sufficient to build the next execution scope.
+
+When the test process completes, Allure creates a temporary test plan containing the current blocking failed and broken
+tests together with tests related to failed Quality Gate rules. The process restarts with `ALLURE_TESTPLAN_PATH` pointing
+to that plan. Rules without related tests don't trigger a focused rerun unless blocking failures are present.
+
+Use `--rerun=0` or omit `--rerun` to keep immediate fast-fail behavior without restarting the test process.
 
 ## Generated artifacts
 

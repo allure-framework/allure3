@@ -11,7 +11,7 @@ import {
   filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { createTestPlan } from "@allurereport/core-api";
+import { createTestPlan, type TestResult } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -198,6 +198,11 @@ export const runTests = async (params: {
       qualityGateResults = results;
       qualityGateUnsub = undefined;
 
+      const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
+      const failedRulesMessage = failedRules.length > 0 ? ` by ${failedRules.join(", ")}` : "";
+
+      console.log(`Quality Gate fast-fail triggered${failedRulesMessage}; stopping test process.`);
+
       try {
         await stopProcessTree(testProcess.pid!);
       } catch (err) {
@@ -261,6 +266,18 @@ export const runTests = async (params: {
     qualityGateResults,
     fastFailed: fastFailTriggered,
   };
+};
+
+const relatedQualityGateTestResults = async (
+  allureReport: AllureReport,
+  qualityGateResults: QualityGateValidationResult[],
+): Promise<TestResult[]> => {
+  const testResultIds = new Set(
+    filterFailedQualityGateResults(qualityGateResults).flatMap(({ testResults }) => testResults),
+  );
+  const testResults = await Promise.all([...testResultIds].map((id) => allureReport.store.testResultById(id)));
+
+  return testResults.filter((testResult): testResult is TestResult => testResult !== undefined);
 };
 
 const publishProcessGlobals = (params: {
@@ -380,45 +397,78 @@ export const executeAllureRun = async (params: {
       });
     }
 
-    for (let rerun = 0; rerun < maxRerun && testProcessResult && !testProcessResult.fastFailed; rerun++) {
-      const failed = await allureReport.store.blockingFailedTestResults();
+    for (let rerun = 0; rerun < maxRerun && testProcessResult; rerun++) {
+      const fullRerun = testProcessResult.fastFailed;
+      let testResultsToRerun: TestResult[] = [];
 
-      if (failed.length === 0) {
-        console.log("no failed tests is detected.");
-        break;
+      if (!fullRerun) {
+        const blockingFailures = await allureReport.store.blockingFailedTestResults();
+        let relatedTestResults: TestResult[] = [];
+
+        if (withQualityGate) {
+          const currentTestResults = await allureReport.store.allTestResults({ includeRetries: false });
+          const { results } = await allureReport.validate({
+            trs: currentTestResults,
+            environment,
+          });
+
+          relatedTestResults = await relatedQualityGateTestResults(allureReport, results);
+        }
+
+        testResultsToRerun = [
+          ...new Map(
+            [...blockingFailures, ...relatedTestResults].map((testResult) => [testResult.id, testResult]),
+          ).values(),
+        ];
+
+        if (testResultsToRerun.length === 0) {
+          console.log("no failed tests is detected.");
+          break;
+        }
       }
 
-      const testPlan = createTestPlan(failed);
+      const testPlan = createTestPlan(testResultsToRerun);
 
-      console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
-      logTests(failed);
+      if (fullRerun) {
+        console.log("Quality Gate fast-fail interrupted the test process; restarting full test process.");
+        console.log(`rerun number ${rerun} of all tests:`);
+      } else {
+        console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
+        logTests(testResultsToRerun);
+      }
 
-      const tmpDir = await mkdtemp(join(tmpdir(), "allure-run-"));
-      const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
+      const tmpDir = fullRerun ? undefined : await mkdtemp(join(tmpdir(), "allure-run-"));
+      const testPlanPath = tmpDir ? resolve(tmpDir, `${rerun}-testplan.json`) : undefined;
 
-      await writeFile(testPlanPath, JSON.stringify(testPlan));
+      try {
+        if (testPlanPath) {
+          await writeFile(testPlanPath, JSON.stringify(testPlan));
+        }
 
-      allureReport.realtimeDispatcher.sendProcessGlobalsReset();
+        allureReport.realtimeDispatcher.sendProcessGlobalsReset();
 
-      testProcessResult = await runTests({
-        silent,
-        logs,
-        allureReport,
-        cwd,
-        command,
-        commandArgs,
-        environment,
-        environmentVariables: {
-          ...environmentVariables,
-          ALLURE_TESTPLAN_PATH: testPlanPath,
-          ALLURE_RERUN: `${rerun}`,
-        },
-        withQualityGate,
-        logProcessExit,
-        resultsPatterns,
-      });
-
-      await rm(tmpDir, { recursive: true });
+        testProcessResult = await runTests({
+          silent,
+          logs,
+          allureReport,
+          cwd,
+          command,
+          commandArgs,
+          environment,
+          environmentVariables: {
+            ...environmentVariables,
+            ...(testPlanPath ? { ALLURE_TESTPLAN_PATH: testPlanPath } : {}),
+            ALLURE_RERUN: `${rerun}`,
+          },
+          withQualityGate,
+          logProcessExit,
+          resultsPatterns,
+        });
+      } finally {
+        if (tmpDir) {
+          await rm(tmpDir, { recursive: true, force: true });
+        }
+      }
 
       const allFailuresAfterRerun = await allureReport.store.failedTestResults();
       const blockingFailuresAfterRerun = await allureReport.store.blockingFailedTestResults();
