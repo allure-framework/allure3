@@ -139,6 +139,7 @@ jobs:
         with:
           pattern: allure-results-*
           path: ./
+          merge-multiple: true
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
       - *uses-build-cache
