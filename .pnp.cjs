@@ -1168,7 +1168,7 @@ const RAW_RUNTIME_STATE =
           ["markdown-it", "npm:14.2.0"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.28"],\
-          ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0"],\
+          ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:17.0.0"],\
           ["preact", "npm:10.28.2"],\
           ["prismjs", "npm:1.30.0"],\
           ["react", [\
@@ -19772,19 +19772,19 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["postcss-import", [\
-      ["npm:16.1.0", {\
-        "packageLocation": "./.yarn/cache/postcss-import-npm-16.1.0-97f2f09176-a087724497.zip/node_modules/postcss-import/",\
+      ["npm:17.0.0", {\
+        "packageLocation": "./.yarn/cache/postcss-import-npm-17.0.0-843342a813-03f1b09a1d.zip/node_modules/postcss-import/",\
         "packageDependencies": [\
-          ["postcss-import", "npm:16.1.0"]\
+          ["postcss-import", "npm:17.0.0"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0", {\
-        "packageLocation": "./.yarn/__virtual__/postcss-import-virtual-522cfd6a5d/0/cache/postcss-import-npm-16.1.0-97f2f09176-a087724497.zip/node_modules/postcss-import/",\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:17.0.0", {\
+        "packageLocation": "./.yarn/__virtual__/postcss-import-virtual-528997a2df/0/cache/postcss-import-npm-17.0.0-843342a813-03f1b09a1d.zip/node_modules/postcss-import/",\
         "packageDependencies": [\
           ["@types/postcss", null],\
           ["postcss", "npm:8.5.28"],\
-          ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0"],\
+          ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:17.0.0"],\
           ["postcss-value-parser", "npm:4.2.0"],\
           ["read-cache", "npm:1.0.0"],\
           ["resolve", "patch:resolve@npm%3A1.22.10#optional!builtin<compat/resolve>::version=1.22.10&hash=c3c19d"]\

@@ -135,7 +135,7 @@
     "jsdom": "^26.0.0",
     "npm-run-all2": "^7.0.1",
     "postcss": "^8.5.10",
-    "postcss-import": "^16.1.0",
+    "postcss-import": "^17.0.0",
     "rimraf": "^6",
     "rollup": "^4.63.4",
     "rollup-plugin-copy": "^3.5.0",
