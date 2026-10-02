@@ -1,17 +1,17 @@
-import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
 
+import { Logger } from "@allurereport/cli-commons";
 import {
   AllureReport,
   QualityGateState,
   filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { createTestPlan, type TestResult } from "@allurereport/core-api";
+import { createTestPlan, formatDuration, type TestResult } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -22,9 +22,8 @@ import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
-import { red } from "yoctocolors";
 
-import { logTests, runProcess, terminationOf } from "../../utils/index.js";
+import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
 import { stopProcessTree } from "../../utils/process.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
@@ -38,6 +37,15 @@ export type TestProcessResult = {
 };
 
 export type RunLogsMode = "pipe" | "inherit" | "ignore";
+
+type RunAttempt = {
+  current: number;
+  total: number;
+};
+
+const runLogger = new Logger("AllureRun");
+const qualityGateLogger = new Logger("QualityGate");
+const rerunLogger = new Logger("AllureRerun");
 
 export const executeNestedAllureCommand = async (params: {
   command: string;
@@ -82,6 +90,7 @@ export const runTests = async (params: {
   silent?: boolean;
   logs?: RunLogsMode;
   logProcessExit?: boolean;
+  attempt?: RunAttempt;
   resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
   const {
@@ -95,6 +104,7 @@ export const runTests = async (params: {
     withQualityGate,
     silent,
     logProcessExit = true,
+    attempt = { current: 1, total: 1 },
     resultsPatterns = [],
   } = params;
   let testProcessStarted = false;
@@ -153,6 +163,17 @@ export const runTests = async (params: {
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
+  const commandLine = [command, ...commandArgs].join(" ");
+  const rerunsEnabled = attempt.total > 1;
+
+  if (logProcessExit) {
+    if (rerunsEnabled) {
+      runLogger.info(`Attempt ${attempt.current}/${attempt.total} started: ${commandLine}`);
+    } else {
+      runLogger.info(`Running: ${commandLine}`);
+    }
+  }
+
   const testProcess = runProcess({
     command,
     commandArgs,
@@ -199,9 +220,10 @@ export const runTests = async (params: {
       qualityGateUnsub = undefined;
 
       const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
-      const failedRulesMessage = failedRules.length > 0 ? ` by ${failedRules.join(", ")}` : "";
+      const failedRulesMessage = failedRules.length > 0 ? `: ${failedRules.join(", ")}` : "";
+      const stopTarget = rerunsEnabled ? `attempt ${attempt.current}/${attempt.total}` : "test process";
 
-      console.log(`Quality Gate fast-fail triggered${failedRulesMessage}; stopping test process.`);
+      qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
 
       try {
         await stopProcessTree(testProcess.pid!);
@@ -239,11 +261,15 @@ export const runTests = async (params: {
   const code = await terminationOf(testProcess);
   const afterProcess = Date.now();
 
-  if (logProcessExit) {
-    if (code !== null) {
-      console.log(`process finished with code ${code} (${afterProcess - beforeProcess}ms)`);
+  if (logProcessExit && rerunsEnabled) {
+    const duration = formatDuration(afterProcess - beforeProcess);
+
+    if (fastFailTriggered) {
+      runLogger.info(`Attempt ${attempt.current}/${attempt.total} stopped by Quality Gate after ${duration}`);
+    } else if (code !== null) {
+      runLogger.info(`Attempt ${attempt.current}/${attempt.total} finished with code ${code} after ${duration}`);
     } else {
-      console.log(`process terminated (${afterProcess - beforeProcess}ms)`);
+      runLogger.warn(`Attempt ${attempt.current}/${attempt.total} terminated after ${duration}`);
     }
   }
 
@@ -355,6 +381,8 @@ export const executeAllureRun = async (params: {
     logProcessExit = true,
     resultsPatterns = [],
   } = params;
+  const totalAttempts = maxRerun + 1;
+
   await allureReport.start();
 
   const globalExitCode: ExitCode = {
@@ -376,6 +404,10 @@ export const executeAllureRun = async (params: {
       environmentVariables,
       withQualityGate,
       logProcessExit,
+      attempt: {
+        current: 1,
+        total: totalAttempts,
+      },
       resultsPatterns,
     });
 
@@ -398,6 +430,10 @@ export const executeAllureRun = async (params: {
     }
 
     for (let rerun = 0; rerun < maxRerun && testProcessResult; rerun++) {
+      const nextAttempt: RunAttempt = {
+        current: rerun + 2,
+        total: totalAttempts,
+      };
       const fullRerun = testProcessResult.fastFailed;
       let testResultsToRerun: TestResult[] = [];
 
@@ -422,7 +458,9 @@ export const executeAllureRun = async (params: {
         ];
 
         if (testResultsToRerun.length === 0) {
-          console.log("no failed tests is detected.");
+          rerunLogger.info(
+            "No blocking failures or failed Quality Gate-related tests remain; no further reruns are needed",
+          );
           break;
         }
       }
@@ -430,11 +468,19 @@ export const executeAllureRun = async (params: {
       const testPlan = createTestPlan(testResultsToRerun);
 
       if (fullRerun) {
-        console.log("Quality Gate fast-fail interrupted the test process; restarting full test process.");
-        console.log(`rerun number ${rerun} of all tests:`);
+        rerunLogger.warn(
+          `Attempt ${nextAttempt.current}/${nextAttempt.total}: Quality Gate fast-fail interrupted the previous attempt; restarting full test process`,
+        );
       } else {
-        console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
-        logTests(testResultsToRerun);
+        const testWord = testPlan.tests.length === 1 ? "test" : "tests";
+
+        rerunLogger.info(
+          `Attempt ${nextAttempt.current}/${nextAttempt.total}: rerunning ${testPlan.tests.length} failed, broken, or Quality Gate-related ${testWord}`,
+        );
+
+        testResultsToRerun.forEach(({ fullName, status }) => {
+          rerunLogger.debug(`${fullName} (${status})`);
+        });
       }
 
       const tmpDir = fullRerun ? undefined : await mkdtemp(join(tmpdir(), "allure-run-"));
@@ -443,6 +489,7 @@ export const executeAllureRun = async (params: {
       try {
         if (testPlanPath) {
           await writeFile(testPlanPath, JSON.stringify(testPlan));
+          rerunLogger.debug(`Test plan: ${testPlanPath}`);
         }
 
         allureReport.realtimeDispatcher.sendProcessGlobalsReset();
@@ -462,6 +509,7 @@ export const executeAllureRun = async (params: {
           },
           withQualityGate,
           logProcessExit,
+          attempt: nextAttempt,
           resultsPatterns,
         });
       } finally {
@@ -486,8 +534,6 @@ export const executeAllureRun = async (params: {
           ) !== 0,
         testProcessResult,
       });
-
-      logTests(await allureReport.store.allTestResults());
     }
 
     const allFailuresAfterReruns = await allureReport.store.failedTestResults();
@@ -514,7 +560,7 @@ export const executeAllureRun = async (params: {
 
       // passed rules are only reported through the report, the terminal keeps showing failures
       if (qualityGateMessage) {
-        console.error(qualityGateMessage);
+        qualityGateLogger.error(qualityGateMessage);
       }
 
       allureReport.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
@@ -529,14 +575,15 @@ export const executeAllureRun = async (params: {
     globalExitCode.actual = 1;
 
     if (error instanceof KnownError) {
-      // eslint-disable-next-line no-console
-      console.error(red(error.message));
+      runLogger.error(error.message);
 
       allureReport.realtimeDispatcher.sendGlobalError({
         message: error.message,
       });
     } else {
-      await logError("Failed to run tests using Allure due to unexpected error", error as Error);
+      await logError("Failed to run tests using Allure due to unexpected error", error as Error, (message) =>
+        runLogger.error(message),
+      );
 
       allureReport.realtimeDispatcher.sendGlobalError({
         message: (error as Error).message,

@@ -71,6 +71,7 @@ __metadata:
   resolution: "@allurereport/cli-commons@workspace:packages/cli-commons"
   dependencies:
     "@types/lodash.debounce": "npm:^4.0.9"
+    "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -79,6 +80,7 @@ __metadata:
     tslib: "npm:^2.7.0"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
+    yoctocolors: "npm:^2.2.0"
   languageName: unknown
   linkType: soft
 
@@ -8843,6 +8845,7 @@ __metadata:
   dependencies:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/ci": "workspace:*"
+    "@allurereport/cli-commons": "workspace:*"
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/directory-watcher": "workspace:*"

@@ -30,12 +30,25 @@ const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted
   };
 });
 
-vi.mock("node:console", async (importOriginal) => ({
-  ...(await importOriginal()),
-  log: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-}));
+vi.mock("node:console", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:console")>();
+  const methods = {
+    log: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  };
+
+  return {
+    ...actual,
+    ...methods,
+    default: {
+      ...actual.default,
+      ...methods,
+    },
+  };
+});
 vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: (...args: unknown[]) => exitMock(...args),
@@ -88,7 +101,6 @@ vi.mock("@allurereport/directory-watcher", () => ({
 }));
 vi.mock("../../src/utils/index.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../src/utils/index.js")>()),
-  logTests: vi.fn(),
   runProcess: vi.fn(() => ({
     pid: 123,
     stdout: processStream,
@@ -148,6 +160,7 @@ describe("run command", () => {
     command.commandToRun = [];
 
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
   });
 
   it("should treat a path-like executable as the nested command", async () => {
@@ -467,6 +480,12 @@ describe("run command", () => {
     );
     expect(exitMock).toHaveBeenCalledWith(0);
     expect(exitMock).not.toHaveBeenCalledWith(-1);
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Completed with exit code 0/u));
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*No blocking failures or failed Quality Gate-related tests remain; no further reruns are needed/u,
+      ),
+    );
   });
 
   it("should reset process globals before a rerun", async () => {
@@ -599,6 +618,8 @@ describe("run command", () => {
       trace: "stderr",
     });
     expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalAttachment).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Running: npm test/u));
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/\bAttempt \d/u));
   });
 
   it("should pass known issues override to readConfig", async () => {
@@ -827,9 +848,13 @@ describe("run command", () => {
     expect(mkdtemp).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
     expect(AllureReportMock.prototype.store.testResultById).not.toHaveBeenCalledWith("tr-passed");
-    expect(console.log).toHaveBeenCalledWith("Quality Gate fast-fail triggered by maxFailures; stopping test process.");
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: maxFailures; stopping attempt 1\/2/u),
+    );
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*Attempt 2\/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process/u,
+      ),
     );
     expect(unsubscribe).toHaveBeenCalledTimes(2);
     expect(stopProcessTree).toHaveBeenCalledTimes(1);
@@ -903,11 +928,13 @@ describe("run command", () => {
     );
     expect(mkdtemp).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail triggered by minTestsCount; stopping test process.",
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: minTestsCount; stopping attempt 1\/2/u),
     );
-    expect(console.log).toHaveBeenCalledWith(
-      "Quality Gate fast-fail interrupted the test process; restarting full test process.",
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /\[AllureRerun\]:.*Attempt 2\/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process/u,
+      ),
     );
   });
 
@@ -1077,6 +1104,11 @@ describe("run command", () => {
 
     expect(runProcess).toHaveBeenCalledTimes(1);
     expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith([fastFailResult]);
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/\[AllureRun\]:.*Running: npm test/u));
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(/\[QualityGate\]:.*Fast-fail triggered: maxFailures; stopping test process/u),
+    );
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/\bAttempt \d/u));
   });
 
   it("should preserve raw child exit code when only muted failures remain", async () => {
@@ -1132,6 +1164,7 @@ describe("run command", () => {
     expect(readConfig).not.toHaveBeenCalled();
     expect(AllureReportMock).not.toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(0);
+    expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
   });
