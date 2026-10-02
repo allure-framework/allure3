@@ -35,18 +35,17 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
 
   return (
     <div className={styles["test-result-metadata"]}>
-      <MetadataButton
-        isOpened={isOpened}
-        setIsOpen={() => {
-          if (labelsId !== null) {
-            toggleTree(labelsId);
-          }
-        }}
-        counter={labels?.length}
-        title={t("labels")}
-      />
-
       <div className={styles["test-result-metadata-wrapper"]}>
+        <MetadataButton
+          isOpened={isOpened}
+          setIsOpen={() => {
+            if (labelsId !== null) {
+              toggleTree(labelsId);
+            }
+          }}
+          counter={labels?.length}
+          title={t("labels")}
+        />
         {isOpened && (
           <>
             <TrMetadataList groupedLabels={groupedLabelsVisible} />

@@ -2,6 +2,7 @@ import { LanguagePicker } from "@allurereport/web-components";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 
+import { ColorSchemePicker } from "@/components/ColorSchemePicker";
 import { FooterLogo } from "@/components/Footer/FooterLogo";
 import { FooterVersion } from "@/components/Footer/FooterVersion";
 import { currentLocale, setLocale } from "@/stores/locale";
@@ -17,6 +18,7 @@ export const Footer = ({ className }: FooterProps) => {
     <div className={clsx(styles.below, className)}>
       <FooterLogo />
       <div className={footerStyles["footer-controls"]}>
+        <ColorSchemePicker />
         <LanguagePicker locale={currentLocale.value} setLocale={setLocale} />
         <FooterVersion />
       </div>
