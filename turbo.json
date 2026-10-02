@@ -13,7 +13,8 @@
     },
     "test:e2e": {
       "dependsOn": ["build"],
-      "passThroughEnv": ["PLAYWRIGHT_*"]
+      "passThroughEnv": ["PLAYWRIGHT_*"],
+      "outputs": ["out/allure-results/**"]
     },
     "@allurereport/web-allure2#test:e2e": {
       "dependsOn": ["build", "allure#build"],
