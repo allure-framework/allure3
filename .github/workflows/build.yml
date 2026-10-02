@@ -72,13 +72,13 @@ jobs:
           ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
           ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
           TURBO_TELEMETRY_DISABLED: 1
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }}-unit -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: allure-results-${{ matrix.os }}-unit
-          path: ./allure-results-${{ matrix.os }}-unit.zip
+          path: ./allure-results-${{ matrix.os }}.zip
 
   e2e-test:
     needs: lint
@@ -106,13 +106,13 @@ jobs:
       - name: Run e2e tests
         env:
           TURBO_TELEMETRY_DISABLED: 1
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }}-e2e -- turbo test:e2e
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- turbo test:e2e
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: allure-results-${{ matrix.os }}-e2e
-          path: ./allure-results-${{ matrix.os }}-e2e.zip
+          path: ./allure-results-${{ matrix.os }}.zip
 
   report:
     needs: [lint, unit-test, e2e-test]
@@ -139,7 +139,6 @@ jobs:
         with:
           pattern: allure-results-*
           path: ./
-          merge-multiple: true
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
       - *uses-build-cache
@@ -147,13 +146,13 @@ jobs:
       - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"
-        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
+        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*/*.zip" --output=./allure-perf-report
       - name: Prepare report metrics
         run: |
           mkdir -p ./allure-perf-results
           cp ./allure-perf-report/*-perf.json ./allure-perf-results/
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" ./allure-perf-results --output=./allure-report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:
