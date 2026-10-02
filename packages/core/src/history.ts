@@ -103,14 +103,6 @@ export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
   return url.toString();
 };
 
-export const setHistoryDataPointUrl = (point: HistoryDataPoint, url: string): HistoryDataPoint => ({
-  ...point,
-  url,
-  testResults: Object.fromEntries(
-    Object.entries(point.testResults).map(([historyId, item]) => [historyId, { ...item, url }]),
-  ),
-});
-
 export const createHistory = (
   reportUuid: string,
   reportName: string = "Allure Report",
