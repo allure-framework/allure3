@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "allure-js-commons": "^3.13.0",
     "rimraf": "^6",
     "typescript": "^5"
   }

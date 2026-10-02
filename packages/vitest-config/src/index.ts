@@ -1,14 +1,11 @@
 import { env } from "node:process";
 
-import type { AllureVitestReporterConfig } from "allure-vitest/reporter";
+import { Label } from "allure-js-commons";
 import { defineConfig } from "vitest/config";
 
-export const defaultVitestConfig = (opts: {
-  include?: string[];
-  globalLabels?: AllureVitestReporterConfig["globalLabels"];
-  coverageFiles?: string[];
-}) =>
-  defineConfig({
+export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] }) => {
+  const labels = opts.globalLabels ?? [];
+  return defineConfig({
     test: {
       include: opts.include ?? ["./test/**/*.test.ts"],
       setupFiles: ["allure-vitest/setup"],
@@ -19,7 +16,7 @@ export const defaultVitestConfig = (opts: {
           "allure-vitest/reporter",
           {
             resultsDir: env.ALLURE_RESULTS_DIR ?? "./out/allure-results",
-            globalLabels: opts.globalLabels ?? [],
+            globalLabels: [{ name: "type", value: "vitest" }, ...labels],
             links: {
               issue: {
                 urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
@@ -39,3 +36,4 @@ export const defaultVitestConfig = (opts: {
       },
     },
   });
+};
