@@ -876,7 +876,7 @@ __metadata:
     markdown-it: "npm:^14.2.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
-    postcss-import: "npm:^16.1.0"
+    postcss-import: "npm:^17.0.0"
     preact: "npm:^10.28.2"
     prismjs: "npm:^1.30.0"
     react: "npm:@preact/compat@*"
@@ -14764,16 +14764,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-import@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "postcss-import@npm:16.1.0"
+"postcss-import@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "postcss-import@npm:17.0.0"
   dependencies:
     postcss-value-parser: "npm:^4.0.0"
     read-cache: "npm:^1.0.0"
     resolve: "npm:^1.1.7"
   peerDependencies:
     postcss: ^8.0.0
-  checksum: 10/a0877244976b8b8a930adfc8dff9f5f6c251d78649e67aa80e963d11821e6dbc8f8b16fa1d126e8725093d69c77486fc4a6861c823693c068c3192d4879e0b29
+  checksum: 10/03f1b09a1de0a2c837f79e791fbf4b7d193f752e55ec1d5f977c46cea5f5744519132eb978ce32f589a6b06672ae6b7c5f6e2e313fb42427cd4bfb5cb13cc364
   languageName: node
   linkType: hard
 
