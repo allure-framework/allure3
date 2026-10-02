@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "عرض نتائج الاختبارات الفاشلة أو المعطلة بدون حل"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "بدون حل"
     }
   },
   "sort-by": {
@@ -188,7 +190,9 @@
     "clipboardError": "لا يمكن نسخ القيمة إلى الحافظة. يبدو أن هذه الميزة غير مدعومة في متصفحك",
     "clipboardSuccess": "تم النسخ بنجاح",
     "collapse": "طي",
+    "collapseAll": "طي الكل",
     "expand": "توسيع",
+    "expandAll": "توسيع الكل",
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
     "openInNewTab": "فتح في علامة تبويب جديدة",

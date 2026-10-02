@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mislukte of gebroken testresultaten zonder resolutie weergeven"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Geen resolutie"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Kan waarde niet naar klembord kopiëren. Mogelijk wordt deze functie niet ondersteund door uw browser",
     "clipboardSuccess": "Succesvol gekopieerd",
     "collapse": "Samenvouwen",
+    "collapseAll": "Alles inklappen",
     "expand": "Uitvouwen",
+    "expandAll": "Alles uitklappen",
     "fullscreen": "Volledig scherm",
     "language": "Taal wijzigen",
     "openInNewTab": "Openen in een nieuw tabblad",

@@ -11,7 +11,7 @@ import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
-import { testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupId, testEnvGroupsStore } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
@@ -86,7 +86,11 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             </TrTab>
             <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
-              transformData={(groups) => groups?.[testResult?.testCase?.id]}
+              transformData={(groups) => {
+                const groupId = testEnvGroupId(testResult);
+
+                return groupId ? groups?.[groupId] : undefined;
+              }}
               renderData={(group) => {
                 const envsCount = getRealEnvsCount(group);
 

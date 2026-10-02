@@ -1,4 +1,4 @@
-import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { getParamValue, getParamValues } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { ReportStatus } from "types";
@@ -15,7 +15,7 @@ import {
   setTagsFilter,
   setTransitionFilter,
 } from "./actions";
-import { PARAMS } from "./constants";
+import { NO_RESOLUTION, PARAMS, type ResolutionFilterValue } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -69,7 +69,7 @@ const urlStatusFilter = computed<TestStatus | undefined>(() => {
 const urlFlakyFilter = computed(() => getParamValue(PARAMS.FLAKY) === "true");
 const urlRetryFilter = computed(() => getParamValue(PARAMS.RETRY) === "true");
 
-const EMPTY_RESOLUTIONS: ResolutionCategory[] = [];
+const EMPTY_RESOLUTIONS: ResolutionFilterValue[] = [];
 
 const urlResolutionFilter = computed(() => {
   const resolutions = getParamValues(PARAMS.RESOLUTION) ?? EMPTY_RESOLUTIONS;
@@ -137,16 +137,41 @@ const urlCategoriesFilter = computed<string[]>(() => {
   return categories.filter((category) => treeCategories.value.includes(category));
 });
 
-const treeStatusFilter = computed<AwesomeStringFieldFilter>(() => ({
-  type: "field",
-  logicalOperator: "AND",
-  value: {
-    key: "status",
-    value: urlStatusFilter.value,
-    type: "string",
-    strict: false,
-  },
-}));
+const treeStatusFilter = computed<AwesomeFilter>(() => {
+  const status = urlStatusFilter.value;
+  const statusFilter: AwesomeStringFieldFilter = {
+    type: "field",
+    logicalOperator: "AND",
+    value: {
+      key: "status",
+      value: status,
+      type: "string",
+      strict: false,
+    },
+  };
+
+  if ((status !== "failed" && status !== "broken") || urlResolutionFilter.value.length > 0) {
+    return statusFilter;
+  }
+
+  return {
+    type: "group",
+    logicalOperator: "AND",
+    value: [
+      statusFilter,
+      {
+        type: "field",
+        logicalOperator: "AND",
+        value: {
+          key: "resolutionStatus",
+          value: NO_RESOLUTION,
+          type: "string",
+          strict: true,
+        },
+      },
+    ],
+  };
+});
 
 export const treeQueryFilterValue = computed(() => urlQueryFilter.value);
 
@@ -179,12 +204,12 @@ const treeFlakyFilter = computed<AwesomeBooleanFieldFilter>(() => ({
 const treeResolutionFilter = computed<AwesomeFilterGroupSimple>(() => ({
   type: "group",
   logicalOperator: "AND",
-  fieldKey: "resolution",
+  fieldKey: "resolutionStatus",
   value: urlResolutionFilter.value.map((resolution) => ({
     type: "field",
     logicalOperator: "OR",
     value: {
-      key: "resolution",
+      key: "resolutionStatus",
       value: resolution,
       type: "string",
       strict: true,
@@ -355,11 +380,11 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
   }
 
   if (isResolutionFilter(filter)) {
-    const resolutions: ResolutionCategory[] = [];
+    const resolutions: ResolutionFilterValue[] = [];
 
     for (const v of filter.value) {
-      if (v.type === "field" && v.value.type === "string" && v.value.key === "resolution") {
-        resolutions.push(v.value.value as ResolutionCategory);
+      if (v.type === "field" && v.value.type === "string" && v.value.key === "resolutionStatus") {
+        resolutions.push(v.value.value as ResolutionFilterValue);
       }
     }
 
@@ -384,9 +409,24 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
 };
 
 export const treeStatus = computed<ReportStatus>(() => urlStatusFilter.value ?? "total");
+export const treeRetry = computed(() => urlRetryFilter.value);
+export const treeFlaky = computed(() => urlFlakyFilter.value);
+export const treeTransitions = computed(() => urlTransitionFilter.value);
 
 export const setTreeStatus = (status: ReportStatus) => {
   setStatusFilter(status === "total" ? undefined : status);
+};
+
+export const setTreeRetry = (retry: boolean) => {
+  setRetryFilter(retry);
+};
+
+export const setTreeFlaky = (flaky: boolean) => {
+  setFlakyFilter(flaky);
+};
+
+export const setTreeTransitions = (transitions: TestStatusTransition[]) => {
+  setTransitionFilter(transitions);
 };
 
 export const clearTreeFilters = () => {

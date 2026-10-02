@@ -17,7 +17,6 @@ import {
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
 import { ResolutionFilter } from "./ResolutionFilter";
-import { RetryFlakyFilter } from "./RetryFlaky";
 import { SeverityFilter } from "./SeverityFilter";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
@@ -29,7 +28,7 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
   const { value: field, type } = filter;
 
   if (isRetryFilter(filter) || isFlakyFilter(filter)) {
-    return <RetryFlakyFilter filter={filter} onChange={onChange} />;
+    return null;
   }
 
   if (isTransitionFilter(filter)) {

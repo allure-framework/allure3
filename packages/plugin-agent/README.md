@@ -23,7 +23,7 @@ When enabled, the plugin writes:
 
 - `index.md` with run summary, advisory findings, expected-scope overview, and links to every logical test
 - `manifest/test-events.jsonl` as the append-only live event stream while the run is active
-- one markdown file per logical test under `tests/<environment>/<historyId-or-trId>.md`
+- one markdown file per logical test under `tests/<environment>/<retryHash-or-trId>.md`
 - `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl` for machine-readable review
 - copied run logs and other artifacts under `artifacts/`
 - `AGENTS.md` with guidance for consuming the directory

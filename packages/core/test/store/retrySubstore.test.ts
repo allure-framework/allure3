@@ -204,19 +204,41 @@ describe("RetrySubstore", () => {
       expect(rs.retriesByTr(latestAttempt).map(({ id }) => id)).toEqual(["mid", "old"]);
     });
 
-    it("returns no retries for a non-latest attempt", () => {
+    it("returns sibling attempts for a non-latest attempt", () => {
       const rs = new RetrySubstore();
       const first = makeTr("first");
       const second = makeTr("second");
 
       upsertInOrder(rs, first, second);
 
-      expect(rs.retriesByTr(first)).toEqual([]);
+      expect(rs.retriesByTr(first).map(({ id }) => id)).toEqual(["second"]);
+    });
+
+    it("returns all sibling attempts latest-first for a middle attempt", () => {
+      const rs = new RetrySubstore();
+      const latestAttempt = { ...makeTr("latest"), start: 3000 };
+      const midRetry = { ...makeTr("mid"), start: 2000 };
+      const oldRetry = { ...makeTr("old"), start: 1000 };
+
+      upsertInOrder(rs, oldRetry, latestAttempt, midRetry);
+
+      expect(rs.retriesByTr(midRetry).map(({ id }) => id)).toEqual(["latest", "old"]);
+    });
+
+    it("returns no retries for a single attempt with retryHash", () => {
+      const rs = new RetrySubstore();
+      const tr = makeTr("solo");
+
+      upsertInOrder(rs, tr);
+
+      expect(tr.retryHash).toBe("same-retry");
+      expect(rs.retriesByTr(tr)).toEqual([]);
+      expect(tr.isRetry).toBe(false);
     });
 
     it("returns no retries without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       rs.recordIngestOrder(tr.id);
       rs.upsert(tr);
@@ -255,7 +277,7 @@ describe("RetrySubstore", () => {
 
     it("does not index attempts without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       upsertInOrder(rs, tr);
 

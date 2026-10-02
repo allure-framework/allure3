@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "הצג תוצאות בדיקה שנכשלו או נשברו ללא פתרון"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "ללא פתרון"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "לא ניתן להעתיק ללוח. ייתכן שהתכונה לא נתמכת בדפדפן שלך",
     "clipboardSuccess": "הועתק בהצלחה",
     "collapse": "כווץ",
+    "collapseAll": "כווץ הכל",
     "expand": "הרחב",
+    "expandAll": "הרחב הכל",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
     "openInNewTab": "פתח בכרטיסייה חדשה",

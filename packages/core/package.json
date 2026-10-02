@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.18.0",
+  "version": "3.20.0",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -58,7 +58,7 @@
     "@types/node": "^20",
     "@types/zip-stream": "^7.0.0",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",

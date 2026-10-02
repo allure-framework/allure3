@@ -43,7 +43,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 
 const HOVER_CLOSE_DELAY = 300;
 
-const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
+const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string | null }) => {
   const { fullName, testCaseId, retryHash } = props;
   const [copied, setCopied] = useState(false);
   const { t } = useI18n("ui");

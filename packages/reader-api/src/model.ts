@@ -38,6 +38,7 @@ export interface RawTestResult extends RawError {
   uuid?: string;
   name?: string;
   status?: RawTestStatus;
+  errors?: RawError[];
 
   fullName?: string;
   testId?: string;

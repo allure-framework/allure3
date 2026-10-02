@@ -30,8 +30,27 @@ const fixtures = {
       expected: 0,
       testResults: ["test-result-id"],
     },
+    {
+      success: true,
+      rule: "minTestsCount",
+      message: "The number of tests 2 exceeds the minimum threshold value 1",
+      actual: 2,
+      expected: 1,
+      testResults: ["test-result-id"],
+    },
+    {
+      success: true,
+      rule: "customRule",
+      message: "Custom rule has passed",
+      actual: 1,
+      expected: 1,
+      environment: "chrome",
+      testResults: ["test-result-id"],
+    },
   ] as QualityGateValidationResult[],
 };
+
+const failedQualityGateResults = fixtures.qualityGateResults.filter(({ success }) => !success);
 
 vi.mock("../src/utils.js", async () => {
   return {
@@ -78,7 +97,7 @@ describe("plugin", () => {
       total: fixtures.testResults.length,
       filtered: fixtures.testResults.length,
     });
-    expect(printQualityGateResults).toHaveBeenCalledWith(fixtures.qualityGateResults);
+    expect(printQualityGateResults).toHaveBeenCalledWith(failedQualityGateResults);
     expectQualityGateResultsAfterSummary();
   });
 
@@ -96,7 +115,7 @@ describe("plugin", () => {
       total: fixtures.testResults.length,
       filtered: fixtures.testResults.length,
     });
-    expect(printQualityGateResults).toHaveBeenCalledWith(fixtures.qualityGateResults);
+    expect(printQualityGateResults).toHaveBeenCalledWith(failedQualityGateResults);
   });
 
   it("prints only filtered tests when filter is provided", async () => {
@@ -113,7 +132,7 @@ describe("plugin", () => {
       total: fixtures.testResults.length,
       filtered: 1,
     });
-    expect(printQualityGateResults).toHaveBeenCalledWith(fixtures.qualityGateResults);
+    expect(printQualityGateResults).toHaveBeenCalledWith(failedQualityGateResults);
   });
 
   it("prints only filtered tests when filter is provided and tests are not groupped", async () => {
@@ -127,6 +146,55 @@ describe("plugin", () => {
 
     expect(printTest).toHaveBeenCalledTimes(1);
     expect(printSummary).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledWith([fixtures.testResults[1]], {
+      total: fixtures.testResults.length,
+      filtered: 1,
+    });
+    expect(printQualityGateResults).toHaveBeenCalledWith(failedQualityGateResults);
+  });
+
+  it("prints all quality gate results when qualityGateFilter accepts every result", async () => {
+    const store = createStore();
+    const plugin = new LogPlugin({
+      qualityGateFilter: () => true,
+    });
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printQualityGateResults).toHaveBeenCalledWith(fixtures.qualityGateResults);
+  });
+
+  it("prints only quality gate results selected by a custom status filter", async () => {
+    const store = createStore();
+    const plugin = new LogPlugin({
+      qualityGateFilter: ({ success }) => success,
+    });
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printQualityGateResults).toHaveBeenCalledWith(fixtures.qualityGateResults.slice(1));
+  });
+
+  it("prints only quality gate results selected by rule and environment", async () => {
+    const store = createStore();
+    const plugin = new LogPlugin({
+      qualityGateFilter: ({ environment, rule }) => environment === "chrome" && rule === "customRule",
+    });
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printQualityGateResults).toHaveBeenCalledWith([fixtures.qualityGateResults[2]]);
+  });
+
+  it("doesn't apply test result filter to quality gate results", async () => {
+    const store = createStore();
+    const plugin = new LogPlugin({
+      filter: (test) => test.status === "failed",
+      qualityGateFilter: () => true,
+    });
+
+    await plugin.done({} as PluginContext, store);
+
     expect(printSummary).toHaveBeenCalledWith([fixtures.testResults[1]], {
       total: fixtures.testResults.length,
       filtered: 1,

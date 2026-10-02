@@ -19,14 +19,14 @@ import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
-    .filter((tr) => tr.historyId)
+    .filter((tr) => tr.retryHash)
     .map(
       ({
         id,
         name,
         fullName,
         environment,
-        historyId,
+        retryHash,
         status,
         error: { message, trace } = {},
         start,
@@ -47,14 +47,14 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           duration,
           labels,
           url: remoteUrl,
-          historyId: historyId!,
+          retryHash: retryHash!,
           reportLinks: [],
         } as HistoryTestResult;
       },
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        acc[item.retryHash!] = item;
 
         return acc;
       },
@@ -234,7 +234,11 @@ export class AllureLocalHistory implements AllureHistory {
       }
     } finally {
       const closing = historyFile.close();
-      dst?.destroy();
+      // workaround for yarn PnP issue that cause EBADF on destroy call in tests
+      // https://github.com/yarnpkg/berry/pull/6919
+      if (historyFile.fd !== -1) {
+        dst?.destroy();
+      }
       await closing;
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too

@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "აჩვენე ჩავარდნილი ან დაზიანებული ტესტის შედეგები გადაწყვეტის გარეშე"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "გადაწყვეტის გარეშე"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "ბუფერში კოპირება ვერ მოხერხდა. შესაძლოა, ფუნქცია არ იყოს მხარდაჭერილი თქვენს ბრაუზერში",
     "clipboardSuccess": "წარმატებით დაკოპირდა",
     "collapse": "ჩაკეცვა",
+    "collapseAll": "ყველას ჩაკეცვა",
     "expand": "გახსნა",
+    "expandAll": "ყველას გაშლა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
     "openInNewTab": "გახსნა ახალ ჩანართში",

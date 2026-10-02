@@ -101,7 +101,8 @@ export class JiraPlugin implements Plugin {
       throw new Error(`[${this.#pluginName}] no test results found`);
     }
 
-    const testResults = prepareTestResults(allTestResults);
+    const environments = await store.allEnvironmentIdentities();
+    const testResults = prepareTestResults(allTestResults, new Map(environments.map(({ id, name }) => [id, name])));
 
     const payload = {
       results: testResults,
@@ -144,14 +145,14 @@ export class JiraPlugin implements Plugin {
 
   async #getStatisticByEnv(store: AllureStore) {
     const statisticByEnv: Record<string, Statistic> = {};
-    const envs = await store.allEnvironments();
+    const envs = await store.allEnvironmentIdentities();
 
-    for (const env of envs) {
-      if (env === DEFAULT_ENVIRONMENT) {
+    for (const { id, name } of envs) {
+      if (id === DEFAULT_ENVIRONMENT) {
         continue;
       }
 
-      statisticByEnv[env] = await store.testsStatistic((tr) => tr.environment === env);
+      statisticByEnv[name] = await store.testsStatistic((tr) => tr.environment === id);
     }
 
     return statisticByEnv;

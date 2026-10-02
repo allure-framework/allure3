@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Показати невдалі або зламані результати тестів без рішення"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Без рішення"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Помилка. Швидше за все ваш браузер не підтримує дану функціональність",
     "clipboardSuccess": "Значення успішно скопійовано",
     "collapse": "Згорнути",
+    "collapseAll": "Згорнути все",
     "expand": "Розгорнути",
+    "expandAll": "Розгорнути все",
     "fullscreen": "На весь екран",
     "language": "Змінити мову",
     "openInNewTab": "Відкрити в новій вкладці",

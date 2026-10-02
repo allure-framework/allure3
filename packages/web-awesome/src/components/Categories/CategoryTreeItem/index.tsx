@@ -11,6 +11,7 @@ import { MessageTreeItem } from "@/components/Categories/MessageTreeItem";
 import { SeverityTreeItem } from "@/components/Categories/SeverityTreeItem";
 import { reportStatsStore } from "@/stores";
 import { isCategoryNodeOpened, isCategoryNodeOpenedByDefault } from "@/stores/categories";
+import { environmentNameById } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
@@ -265,6 +266,8 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
     }
     if (node.value === "<Empty>") {
       envValue = tEmpty("no-environment");
+    } else if (isEnvLeaf && typeof node.value === "string") {
+      envValue = environmentNameById(node.value);
     }
     const displayName = isEnvLeaf ? `${tEnvironments("environment", { count: 1 })}: ${envValue}` : node.name;
     const leafTooltips =

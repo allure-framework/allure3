@@ -268,19 +268,22 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
   const categories = test.categories?.map((category: ReportCategory) => category.name);
+  const statusMessages = (test.errors?.length ? test.errors : test.error ? [test.error] : [])
+    .map((error) => error.message)
+    .filter(Boolean);
 
   return {
     id: test.id,
     nodeId: test.id,
     name: test.name,
     fullName: test.fullName,
-    historyId: test.historyId,
+    retryHash: test.retryHash,
     labels: joinSearchValues(labels),
     owner: joinSearchValues(test.groupedLabels.owner ?? []),
     tags: joinSearchValues(tags),
     parameters: joinSearchValues(parameters),
     categories: joinSearchValues(categories ?? []),
-    statusMessage: test.error?.message,
+    statusMessage: joinSearchValues(statusMessages),
     links: joinSearchValues(links),
   };
 };
@@ -470,13 +473,14 @@ const leafFactory = ({
   resolution,
   transition,
   tooltips,
-  historyId,
+  retryHash,
   groupedLabels,
   categories,
 }: ReportTestResult): ReportTreeLeaf => {
+  const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
   const leaf: ReportTreeLeaf = {
     nodeId: id,
-    id: historyId ?? id,
+    id: retryHash ?? id,
     name,
     status,
     duration,
@@ -485,6 +489,7 @@ const leafFactory = ({
     retry,
     retriesCount,
     resolution,
+    resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
   };
@@ -518,7 +523,7 @@ const getResolutionGroupName = (test: ReportTestResult): string => {
 
 const resolutionTestResultFactory = (test: ReportTestResult, index: number): ReportResolutionTestResult => ({
   nodeId: test.id,
-  id: test.historyId ?? test.id,
+  id: test.retryHash ?? test.id,
   name: test.name,
   status: test.status,
   duration: test.duration,

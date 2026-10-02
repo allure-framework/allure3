@@ -6,6 +6,7 @@ const messages: Record<string, string> = {
   noResults: "There are no test results.",
   noEligibleResults:
     "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+  notAvailable: "N/A",
   statusSlice: "{{count}} {{status}} ({{percent}}% of all tests)",
   slice: "{{count}} tests ({{percent}}% of all tests)",
   slice_one: "{{count}} test ({{percent}}% of all tests)",
@@ -27,6 +28,9 @@ export const formatChartPercentage = (percentage: number) => {
 
   return String(Math.floor(scaled + Number.EPSILON * Math.abs(scaled)) / 100);
 };
+
+export const formatAvailableSuccessRate = (percentage: number, eligibleCount: number, i18n: SuccessRateI18n): string =>
+  eligibleCount > 0 ? `${formatChartPercentage(percentage)}%` : i18n("notAvailable");
 
 export const successRateDescription = (total: number, eligibleCount: number, i18n: SuccessRateI18n) =>
   i18n(total === 0 ? "noResults" : eligibleCount === 0 ? "noEligibleResults" : "successRateDescription");

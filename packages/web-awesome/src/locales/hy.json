@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Ցույց տալ ձախողված կամ խափանված թեստերի արդյունքները առանց լուծման"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Առանց լուծման"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Սխալ. Հավանաբար ձեր զննարկիչը չի աջակցում այս գործառույթին",
     "clipboardSuccess": "Հաջողությամբ պատճենվեց",
     "collapse": "Կծկել",
+    "collapseAll": "Ծալել բոլորը",
     "expand": "Ընդլայնել",
+    "expandAll": "Բացել բոլորը",
     "fullscreen": "Լրիվ էկրան",
     "language": "Փոխել լեզուն",
     "openInNewTab": "Բացել նոր ներդիրում",

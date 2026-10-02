@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mostrar resultados de testes com falha ou quebrados sem resolução"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Sem resolução"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Erro. Parece que esta funcionalidade não é suportada pelo seu navegador",
     "clipboardSuccess": "Copiado com sucesso",
     "collapse": "Recolher",
+    "collapseAll": "Recolher tudo",
     "expand": "Expandir",
+    "expandAll": "Expandir tudo",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",

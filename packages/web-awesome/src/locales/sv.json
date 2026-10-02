@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Visa misslyckade eller trasiga testresultat utan lösning"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Ingen lösning"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som om den här funktionen inte stöds av din webbläsare",
     "clipboardSuccess": "Kopierat framgångsrikt",
     "collapse": "Minimera",
+    "collapseAll": "Fäll ihop alla",
     "expand": "Expandera",
+    "expandAll": "Expandera alla",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",

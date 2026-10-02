@@ -20,6 +20,8 @@ export interface AnsiToHtmlConfig {
 
 // eslint-disable-next-line no-control-regex
 const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
+const ansiEscape = "\u001B";
+const ansiControlSequencePattern = new RegExp(`${ansiEscape}\\[([0-9;]*)m`, "g");
 
 export const isAnsi = (text?: string): boolean => typeof text === "string" && new RegExp(ansiRegex).test(text);
 
@@ -119,8 +121,11 @@ const getXtermColorRgb = (colorIndex: number) => {
 
 const isValidColorPart = (value: number) => Number.isInteger(value) && value >= 0 && value <= 255;
 
+export const normalizeEscapedAnsiSequences = (text: string) =>
+  text.replace(/\\u001b(?=\[)/giu, ansiEscape).replace(/\\x1b(?=\[)/giu, ansiEscape);
+
 export const normalizeAnsiForegroundColors = (text: string) =>
-  text.replace(/\x1b\[([0-9;]*)m/g, (match, sequence: string) => {
+  text.replace(ansiControlSequencePattern, (match, sequence: string) => {
     const codes = sequence.length === 0 ? [0] : sequence.split(";").map(Number);
 
     if (codes.some((code) => !Number.isInteger(code))) {
@@ -164,8 +169,6 @@ export const normalizeAnsiForegroundColors = (text: string) =>
       }
 
       if (code === 48 && codes[index + 1] === 5 && isValidColorPart(codes[index + 2])) {
-        flushDisplayCodes();
-        fragments.push(`\x1b[48;5;${codes[index + 2]}m`);
         index += 3;
         continue;
       }
@@ -177,9 +180,12 @@ export const normalizeAnsiForegroundColors = (text: string) =>
         isValidColorPart(codes[index + 3]) &&
         isValidColorPart(codes[index + 4])
       ) {
-        flushDisplayCodes();
-        fragments.push(`\x1b[48;2;${codes[index + 2]};${codes[index + 3]};${codes[index + 4]}m`);
         index += 5;
+        continue;
+      }
+
+      if ((code >= 40 && code <= 47) || code === 49 || (code >= 100 && code <= 107)) {
+        index += 1;
         continue;
       }
 

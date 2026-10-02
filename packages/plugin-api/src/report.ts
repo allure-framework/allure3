@@ -139,6 +139,10 @@ export type ReportTreeLeaf = Pick<
    * Value of the test result's `severity` label. Absent when the test result has no severity label.
    */
   severity?: string;
+  /**
+   * Resolution filter bucket. Present for resolved test results and for unresolved failed/broken test results.
+   */
+  resolutionStatus?: ResolutionCategory | "none";
 };
 
 export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
@@ -156,7 +160,7 @@ export type ReportSearchDocument = {
   nodeId: string;
   name: string;
   fullName?: string;
-  historyId?: string;
+  retryHash?: string | null;
   labels?: string;
   owner?: string;
   tags?: string;

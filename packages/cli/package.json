@@ -1,6 +1,6 @@
 {
   "name": "allure",
-  "version": "3.18.0",
+  "version": "3.20.0",
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
@@ -34,6 +34,7 @@
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/ci": "workspace:*",
+    "@allurereport/cli-commons": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",
@@ -66,7 +67,7 @@
     "@types/node": "^20",
     "@types/prompts": "^2",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",

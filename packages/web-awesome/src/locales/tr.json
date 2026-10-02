@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Çözümü olmayan başarısız veya bozuk test sonuçlarını göster"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Çözüm yok"
     }
   },
   "sort-by": {
@@ -193,7 +195,9 @@
     "clipboardError": "Değer panoya kopyalanamıyor. Bu özellik tarayıcınız tarafından desteklenmiyor olabilir",
     "clipboardSuccess": "Başarıyla kopyalandı",
     "collapse": "Daralt",
+    "collapseAll": "Tümünü daralt",
     "expand": "Genişlet",
+    "expandAll": "Tümünü genişlet",
     "fullscreen": "Tam ekran",
     "language": "Dili değiştir",
     "openInNewTab": "Yeni sekmede aç",
