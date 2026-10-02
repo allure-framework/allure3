@@ -52,6 +52,7 @@ import type {
   ReportResolutionCategories,
   ReportResolutionGroup,
   ReportResolutionTestResult,
+  TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
   collapseTreeGroups,
@@ -164,11 +165,13 @@ export const generateTestResults = async (
   options: {
     pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
+    related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
   },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
-  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
+  const related = options.related ?? (await store.relatedByTestResultIds(trs.map(({ id }) => id)));
+  const resolutionIssuesByTrId = related.resolutionIssuesByTrId;
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
@@ -178,7 +181,6 @@ export const generateTestResults = async (
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
-    const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
       ...item,
@@ -197,7 +199,9 @@ export const generateTestResults = async (
       type: "attachment",
     }));
     convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
-    convertedTr.resolutionIssue = resolutionIssue;
+    convertedTr.resolutionIssue = resolutionIssuesByTrId
+      ? resolutionIssuesByTrId.get(tr.id)
+      : await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTrs.push(convertedTr);
   }
