@@ -1102,6 +1102,7 @@ describe("report", () => {
     const p1 = createPlugin("p1", true, { publish: true });
     const p2 = createPlugin("p2", true, { publish: false });
     const p3 = createPlugin("p3", true);
+    const reportUrl = "https://allure.example/reports/published";
     const config = await resolveConfig({
       name: "Allure Report",
     });
@@ -1116,6 +1117,10 @@ describe("report", () => {
     (p3.plugin.done as Mock).mockImplementation(async (context) => {
       await context.reportFiles.addFile("index.html", Buffer.from("p3"));
     });
+    p1.plugin.info.mockImplementation(async (context) => {
+      context.reportUrl = reportUrl;
+      return undefined;
+    });
 
     const allureReport = new AllureReport({
       ...config,
@@ -1123,6 +1128,10 @@ describe("report", () => {
     });
 
     await allureReport.start();
+    await allureReport.store.visitTestResult(
+      { uuid: "published-result", name: "Published test", testId: "published-test", status: "passed" },
+      { readerId: "test" },
+    );
     await allureReport.done();
 
     expect(AllureServiceClientMock.prototype.createReport).toBeCalledTimes(1);
@@ -1139,6 +1148,14 @@ describe("report", () => {
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledWith({
+      reportUuid: allureReport.reportUuid,
+      historyPoint: expect.objectContaining({ uuid: allureReport.reportUuid, url: reportUrl }),
+    });
+    const { historyPoint } = (AllureServiceClientMock.prototype.completeReport as Mock).mock.calls[0][0];
+    expect(Object.values(historyPoint.testResults)).toEqual([
+      expect.objectContaining({ name: "Published test", status: "passed", url: reportUrl }),
+    ]);
   });
 
   it("should skip publish in realtime mode", async () => {
