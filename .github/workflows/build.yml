@@ -35,16 +35,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
       - &uses-build-cache
-        name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+        name: Cache for Turbo
+        uses: rharkor/caching-for-turbo@v2.5.1
       - &uses-build
         name: Build the project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn turbo build --concurrency=90%
+        run: yarn turbo build
       - name: Lint Project
         run: yarn lint
       - name: Check formatting
