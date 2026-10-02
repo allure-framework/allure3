@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { PageLoader } from "@/components/PageLoader";
 
 const meta: Meta<typeof PageLoader> = {
