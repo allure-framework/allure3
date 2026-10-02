@@ -28,6 +28,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  redactParameters,
   severityLabelName,
 } from "@allurereport/core-api";
 import type {
@@ -476,8 +477,10 @@ const leafFactory = ({
   retryHash,
   groupedLabels,
   categories,
+  parameters,
 }: ReportTestResult): ReportTreeLeaf => {
   const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
+  const parameterValues = redactParameters(parameters).flatMap(({ value }) => (value ? [value] : []));
   const leaf: ReportTreeLeaf = {
     nodeId: id,
     id: retryHash ?? id,
@@ -493,6 +496,10 @@ const leafFactory = ({
     transition,
     tooltips,
   };
+
+  if (parameterValues.length) {
+    leaf.parameters = parameterValues;
+  }
 
   const severity = groupedLabels[severityLabelName]?.[0];
 

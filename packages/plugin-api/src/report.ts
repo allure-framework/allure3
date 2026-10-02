@@ -143,6 +143,10 @@ export type ReportTreeLeaf = Pick<
    * Resolution filter bucket. Present for resolved test results and for unresolved failed/broken test results.
    */
   resolutionStatus?: ResolutionCategory | "none";
+  /**
+   * Non-empty, redacted parameter values displayed next to the test name in report trees.
+   */
+  parameters?: string[];
 };
 
 export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

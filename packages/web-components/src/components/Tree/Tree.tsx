@@ -129,6 +129,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     [styles["tree-content"]]: true,
     [styles.root]: root,
   });
+  const treeClassName = cx(styles.tree, root && styles["tree-root"]);
 
   const toggleTreeHeader = () => {
     toggleTree(toScopedId(rootNodeId), defaultOpened);
@@ -223,6 +224,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       transition={leaf.transition}
       transitionTooltip={leaf.transitionTooltip}
       tooltips={leaf.tooltips}
+      parameters={leaf.parameters}
       flaky={leaf.flaky}
       marked={leaf.nodeId === routeId}
       focused={toScopedId(leaf.nodeId) === focusedId}
@@ -261,7 +263,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   ) : null;
 
   return (
-    <div className={styles.tree}>
+    <div className={treeClassName}>
       {canRenderHeader ? (
         <TreeHeader
           statusFilter={statusFilter}
