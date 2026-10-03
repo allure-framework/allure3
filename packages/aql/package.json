@@ -24,6 +24,7 @@
     "clean": "rimraf ./dist",
     "test": "vitest run",
     "test:unit": "yarn test --exclude tests/performance.test.ts",
+    "test:performance": "yarn test tests/performance.test.ts",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },

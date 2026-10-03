@@ -7,9 +7,15 @@
     },
     "test:unit": {
       "dependsOn": ["build"],
-      "env": ["ALLURE_RESULTS_DIR"],
+      "env": ["ALLURE_RESULTS_DIR", "ENABLE_TEST_COVERAGE"],
       "passThroughEnv": ["ALLURE_REQUIRE_NEW_TESTS", "ALLURE_SERVICE_ACCESS_TOKEN"],
       "outputs": ["coverage/blob/**", "out/allure-results/**"]
+    },
+    "test:performance": {
+      "dependsOn": ["build"],
+      "env": ["ALLURE_RESULTS_DIR"],
+      "passThroughEnv": ["ALLURE_REQUIRE_NEW_TESTS", "ALLURE_SERVICE_ACCESS_TOKEN"],
+      "outputs": ["out/allure-results/**"]
     },
     "test:e2e": {
       "dependsOn": ["build"],

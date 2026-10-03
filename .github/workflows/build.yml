@@ -54,7 +54,7 @@ jobs:
     needs: lint
     name: Unit Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
+    strategy: &strategy
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -68,7 +68,6 @@ jobs:
       - name: Run unit tests
         env:
           ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
-          ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
       - name: Upload test results
         uses: actions/upload-artifact@v7
@@ -77,14 +76,32 @@ jobs:
           name: allure-results-${{ matrix.os }}-unit
           path: ./allure-results-${{ matrix.os }}.zip
 
+  performance-test:
+    needs: lint
+    name: Performance Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy: *strategy
+    steps:
+      - uses: actions/checkout@v6
+      - *uses-node-setup
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - *uses-build-cache
+      - *uses-build
+      - name: Run performance tests
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- turbo test:performance
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-${{ matrix.os }}-performance
+          path: ./allure-results-${{ matrix.os }}.zip
+
   e2e-test:
     needs: lint
     name: E2E Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+    strategy: *strategy
     steps:
       - uses: actions/checkout@v6
       - *uses-node-setup
