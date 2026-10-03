@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/vitest-config",
-  "version": "3.18.0",
+  "version": "3.20.0",
   "private": true,
   "type": "module",
   "types": "dist/index.d.ts",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
-    "allure-js-commons": "^3.13.0",
+    "allure-js-commons": "^3",
     "rimraf": "^6",
     "typescript": "^5"
   }

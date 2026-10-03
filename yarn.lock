@@ -653,7 +653,7 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:4.1.8"
-    allure-js-commons: "npm:^3.13.0"
+    allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -8656,20 +8656,6 @@ __metadata:
     allure-playwright:
       optional: true
   checksum: 10/28cc7e6dbdb654376305dc8c1779a791b12c2e4f4b82aab8935315a3ac6a31618b40ff7661373a10cad00f98ddc3781c15273b391a983ebdee78c104f125db63
-  languageName: node
-  linkType: hard
-
-"allure-js-commons@npm:^3.13.0":
-  version: 3.13.0
-  resolution: "allure-js-commons@npm:3.13.0"
-  dependencies:
-    md5: "npm:^2.3.0"
-  peerDependencies:
-    allure-playwright: 3.13.0
-  peerDependenciesMeta:
-    allure-playwright:
-      optional: true
-  checksum: 10/05ce1c80128f4edd45b5f01202200443433da9959e631e599039bc2611c8b835e778181bbd71ade7a45f9af73a478d40dd2591a9d34588434361b5eff136c14f
   languageName: node
   linkType: hard
 
