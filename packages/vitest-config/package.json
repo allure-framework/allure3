@@ -1,0 +1,28 @@
+{
+  "name": "@allurereport/vitest-config",
+  "version": "3.20.0",
+  "private": true,
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "report:merge": "node dist/scripts/merge-blob-reports.js",
+    "report:summary": "vitest run --merge-reports .vitest/merged-blob"
+  },
+  "dependencies": {
+    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/runner": "4.1.8",
+    "allure-vitest": "^3",
+    "vitest": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "allure-js-commons": "^3",
+    "rimraf": "^6",
+    "typescript": "^5"
+  }
+}

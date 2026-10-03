@@ -1,20 +1,14 @@
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
-import { defineConfig } from "vitest/config";
+import { defaultVitestConfig } from "@allurereport/vitest-config";
+import { defineConfig, mergeConfig } from "vitest/config";
 
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "./src"),
+export default mergeConfig(
+  defaultVitestConfig({ globalLabels: [{ name: "module", value: "cli-commons" }] }),
+  defineConfig({
+    resolve: { alias: { "@": resolve(__dirname, "./src") } },
+    test: {
+      environment: "node",
     },
-  },
-  test: {
-    environment: "node",
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
-    reporters: ["default", ["allure-vitest/reporter", { resultsDir: "./out/allure-results" }]],
-  },
-});
+  }),
+);

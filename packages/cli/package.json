@@ -28,6 +28,7 @@
     "clean": "rimraf ./dist",
     "start": "node ./cli.js",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -62,10 +63,12 @@
     "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
+    "@allurereport/vitest-config": "workspace:*",
     "@types/adm-zip": "^0",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20",
     "@types/prompts": "^2",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",

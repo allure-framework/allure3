@@ -94,7 +94,7 @@ type ProcessRunInfo = {
   exitCodes: Promise<ProcessTreeExitCodes>;
 };
 
-const warmUpWindowsProcessEnumeration = async () => {
+const warmUpWindowsProcessEnumeration = async (timeout = 30_000) => {
   await new Promise<void>((resolve, reject) => {
     execFile(
       "powershell.exe",
@@ -110,7 +110,7 @@ const warmUpWindowsProcessEnumeration = async () => {
           }
         }`,
       ],
-      { encoding: "utf-8", timeout: 30_000 },
+      { encoding: "utf-8", timeout: timeout },
       (error) => {
         if (error) {
           reject(error);
@@ -261,8 +261,8 @@ describe("stopProcessTree", () => {
   // stopProcessTree on Windows calls powershell.exe so it might need more time to finish
   describe("on Windows", { skip: platform != "win32", timeout: 10_000 }, () => {
     beforeAll(async () => {
-      await warmUpWindowsProcessEnumeration();
-    }, 30_000);
+      await warmUpWindowsProcessEnumeration(30_000);
+    }, 60_000);
 
     it("should stop a tree of a single process", async () => {
       const {

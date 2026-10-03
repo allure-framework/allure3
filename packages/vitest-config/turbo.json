@@ -1,0 +1,16 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "report:merge": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/*/.vitest/blob/**"],
+      "outputs": [".vitest/merged-blob/**"]
+    },
+    "report:summary": {
+      "dependsOn": ["report:merge"],
+      "env": ["ENABLE_COVERAGE"],
+      "inputs": [".vitest/merged-blob/**"],
+      "outputs": [".vitest/coverage/**"]
+    }
+  }
+}

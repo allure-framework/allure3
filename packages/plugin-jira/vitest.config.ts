@@ -1,7 +1,6 @@
-import { createRequire } from "node:module";
 import { platform } from "node:os";
 
-import { defineConfig } from "vitest/config";
+import { defaultVitestConfig } from "@allurereport/vitest-config";
 
 const getOsLabel = () => {
   switch (platform()) {
@@ -16,27 +15,12 @@ const getOsLabel = () => {
   }
 };
 
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  test: {
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
-    reporters: [
-      "default",
-      [
-        "allure-vitest/reporter",
-        {
-          resultsDir: "./out/allure-results",
-          globalLabels: [
-            { name: "module", value: "plugin-jira" },
-            { name: "coverage", value: "plugin-jira" },
-            { name: "epic", value: "coverage" },
-            { name: "feature", value: "plugin-jira" },
-            { name: "os", value: getOsLabel() },
-          ],
-        },
-      ],
-    ],
-  },
+export default defaultVitestConfig({
+  globalLabels: [
+    { name: "module", value: "plugin-jira" },
+    { name: "coverage", value: "plugin-jira" },
+    { name: "epic", value: "coverage" },
+    { name: "feature", value: "plugin-jira" },
+    { name: "os", value: getOsLabel() },
+  ],
 });

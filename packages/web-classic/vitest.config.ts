@@ -1,18 +1,18 @@
-import { createRequire } from "node:module";
-import { defineConfig } from "vitest/config";
+import { defaultVitestConfig } from "@allurereport/vitest-config";
+import { defineConfig, mergeConfig } from "vitest/config";
 
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  test: {
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
-    reporters: [
-      "default",
-      [
-        "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-awesome" }] },
-      ],
-    ],
-  },
-});
+export default mergeConfig(
+  defaultVitestConfig({
+    globalLabels: [{ name: "module", value: "web-awesome" }],
+    coverageFiles: ["src/**/*.{ts,tsx,js}"],
+  }),
+  defineConfig({
+    oxc: {
+      jsx: { runtime: "automatic", importSource: "preact" },
+      // Also transform the legacy JavaScript views and their decorators instead of excluding them from coverage.
+      include: /\.[cm]?[jt]sx?$/,
+      exclude: /node_modules/,
+      decorator: { legacy: true },
+    },
+  }),
+);
