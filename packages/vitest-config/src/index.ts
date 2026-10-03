@@ -2,7 +2,7 @@ import { env } from "node:process";
 
 import { Label } from "allure-js-commons";
 import { defineConfig } from "vitest/config";
-const { ENABLE_COVERAGE } = env;
+const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
 
 export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] }) => {
   const labels = opts.globalLabels ?? [];
@@ -11,7 +11,7 @@ export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: L
       include: opts.include ?? ["./test/**/*.test.ts"],
       setupFiles: ["allure-vitest/setup"],
       reporters: [
-        "default",
+        GITHUB_ACTIONS === "true" ? "github-actions" : "default",
         "blob",
         [
           "allure-vitest/reporter",
