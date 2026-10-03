@@ -1,15 +1,18 @@
+import { env } from "node:process";
+
 import { defineConfig } from "vitest/config";
+
+const { ENABLE_COVERAGE } = env;
 
 export default defineConfig({
   test: {
-    // An empty list restores the default reporter; a no-op suppresses replayed test results.
     reporters: [{}],
     passWithNoTests: true,
     coverage: {
-      enabled: true,
+      enabled: ENABLE_COVERAGE === "true",
       provider: "istanbul",
-      reporter: ["html", "text-summary", "json-summary"],
-      reportsDirectory: "coverage/report",
+      reporter: ["text-summary", "lcov"],
+      reportsDirectory: ".vitest/coverage",
     },
   },
 });

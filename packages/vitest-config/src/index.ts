@@ -2,7 +2,7 @@ import { env } from "node:process";
 
 import { Label } from "allure-js-commons";
 import { defineConfig } from "vitest/config";
-const { ENABLE_TEST_COVERAGE } = env;
+const { ENABLE_COVERAGE } = env;
 
 export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] }) => {
   const labels = opts.globalLabels ?? [];
@@ -27,13 +27,12 @@ export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: L
           },
         ],
       ],
-      outputFile: { blob: "coverage/blob/report.json" },
+      outputFile: { blob: ".vitest/blob/report.json" },
       coverage: {
-        enabled: ENABLE_TEST_COVERAGE === "true",
+        enabled: ENABLE_COVERAGE === "true",
         provider: "istanbul",
         include: opts.coverageFiles ?? ["src/**/*.{ts,tsx}"],
-        // Render coverage only after the package blobs have been merged.
-        reporter: [],
+        reporter: ["text-summary"],
       },
     },
   });

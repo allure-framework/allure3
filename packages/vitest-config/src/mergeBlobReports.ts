@@ -20,7 +20,7 @@ export const mergeBlobReports = (rootDirectory: string, mergedDirectory: string)
       continue;
     }
 
-    const blobDirectory = join(directory, "coverage", "blob");
+    const blobDirectory = join(directory, ".vitest", "blob");
     const reports = existsSync(blobDirectory)
       ? readdirSync(blobDirectory, { withFileTypes: true }).filter(
           (file) => file.isFile() && file.name.endsWith(".json"),

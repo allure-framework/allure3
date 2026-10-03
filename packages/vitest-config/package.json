@@ -10,8 +10,8 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "coverage:merge": "node dist/scripts/merge-blob-reports.js",
-    "coverage:report": "vitest run --merge-reports coverage/merged-blob"
+    "report:merge": "node dist/scripts/merge-blob-reports.js",
+    "report:summary": "vitest run --merge-reports .vitest/merged-blob"
   },
   "dependencies": {
     "@vitest/coverage-istanbul": "^4.1.0",
