@@ -21,6 +21,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
 jobs:
   lint:
     name: Lint
@@ -66,7 +69,6 @@ jobs:
         env:
           ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
           ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
-          TURBO_TELEMETRY_DISABLED: 1
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
       - name: Upload test results
         uses: actions/upload-artifact@v7
@@ -99,8 +101,6 @@ jobs:
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Run e2e tests
-        env:
-          TURBO_TELEMETRY_DISABLED: 1
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- turbo test:e2e
       - name: Upload test results
         uses: actions/upload-artifact@v7
