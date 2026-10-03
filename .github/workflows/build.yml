@@ -69,7 +69,7 @@ jobs:
         env:
           ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- ${{ matrix.os == 'ubuntu-latest' && 'yarn coverage' || 'yarn test:unit' }}
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test:unit
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
