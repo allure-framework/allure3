@@ -21,7 +21,7 @@
     "format": "yarn format:write",
     "report": "yarn allure generate --config=./allurerc.mjs",
     "test": "yarn workspaces foreach -Avvp --exclude sandbox run test",
-    "test:unit": "turbo run test:unit --continue=dependencies-successful && turbo run report:summary",
+    "test:unit": "turbo run test:unit --continue=dependencies-successful --concurrency=60% && turbo run report:summary",
     "lint": "yarn workspaces foreach -Avvt run lint",
     "lint:fix": "yarn workspaces foreach -Avvt run lint:fix",
     "lint:type": "yarn oxlint --type-aware --import-plugin packages --quiet",
