@@ -91,7 +91,11 @@ jobs:
     needs: lint
     name: E2E Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy: *strategy
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
       - *uses-node-setup
@@ -107,12 +111,12 @@ jobs:
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Run e2e tests
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test:e2e
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn run test:e2e --shard=${{ matrix.shard }}/2
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: allure-results-${{ matrix.os }}-e2e
+          name: allure-results-${{ matrix.os }}-${{ matrix.shard }}-e2e
           path: ./allure-results-${{ matrix.os }}.zip
 
   coverage:
