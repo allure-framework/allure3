@@ -41,6 +41,7 @@
     "dev:ds": "storybook dev -p 6006",
     "lint": "oxlint --import-plugin src test features stories",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
@@ -84,6 +85,7 @@
   },
   "devDependencies": {
     "@allurereport/core-api": "workspace:*",
+    "@allurereport/vitest-config": "workspace:*",
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^8.0.2",
@@ -124,6 +126,7 @@
     "@types/node": "^20",
     "@types/prismjs": "^1.26.6",
     "@types/sortablejs": "^1.15.9",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3.12.2",

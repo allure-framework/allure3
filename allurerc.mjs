@@ -1,6 +1,7 @@
+import { env } from "node:process";
+
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
-import { env } from "node:process";
 
 const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 
@@ -12,23 +13,23 @@ const msMetric = (title, group) => ({
 });
 
 const awesomeMetricTitles = {
-  readData: "Read report data",
-  environmentMap: "Build environment map",
-  stats: "Generate statistics",
-  charts: "Generate charts",
-  convert: "Convert test results",
-  categories: "Generate categories",
-  timeline: "Generate timeline",
-  testCases: "Write test cases",
-  tree: "Generate tree",
-  nav: "Generate navigation",
-  searchIndex: "Generate search index",
-  testEnvGroups: "Write test environment groups",
-  environmentsOutput: "Write environment views",
-  attachments: "Write attachments",
-  globals: "Write globals",
-  singleFileReportFiles: "Collect single-file data",
-  staticFiles: "Write static files",
+  "readData": "Read report data",
+  "environmentMap": "Build environment map",
+  "stats": "Generate statistics",
+  "charts": "Generate charts",
+  "convert": "Convert test results",
+  "categories": "Generate categories",
+  "timeline": "Generate timeline",
+  "testCases": "Write test cases",
+  "tree": "Generate tree",
+  "nav": "Generate navigation",
+  "searchIndex": "Generate search index",
+  "testEnvGroups": "Write test environment groups",
+  "environmentsOutput": "Write environment views",
+  "attachments": "Write attachments",
+  "globals": "Write globals",
+  "singleFileReportFiles": "Collect single-file data",
+  "staticFiles": "Write static files",
   "summary.create": "Create plugin summary",
 };
 
@@ -81,7 +82,7 @@ const config = {
         singleFile: false,
         reportLanguage: "en",
         reportName: "Allure 3 Report",
-        groupBy: ["module", "parentSuite", "suite", "subSuite"],
+        groupBy: ["module", "type", "parentSuite", "suite", "subSuite"],
         timeline: {
           minDuration: 0,
         },

@@ -42,33 +42,6 @@ export const DEFAULT_REPORTS: ReportRequest[] = [
   { fixture: "globals-attachments", mode: REPORT_MODES.DIRECTORY },
 ];
 
-const resolveYarnCli = (): string => {
-  const environmentCli = process.env.npm_execpath;
-  if (environmentCli && /\.[cm]?js$/u.test(environmentCli) && fs.existsSync(environmentCli)) {
-    return environmentCli;
-  }
-
-  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")) as {
-    packageManager?: string;
-  };
-  const yarnVersion = packageJson.packageManager?.match(/^yarn@(.+)$/u)?.[1];
-  const configuredCli = yarnVersion ? path.join(repoRoot, ".yarn", "releases", `yarn-${yarnVersion}.cjs`) : undefined;
-
-  if (configuredCli && fs.existsSync(configuredCli)) {
-    return configuredCli;
-  }
-
-  throw new Error("Unable to locate the repository Yarn CLI");
-};
-
-const runYarn = (args: string[], env: NodeJS.ProcessEnv): void => {
-  execFileSync(process.execPath, [resolveYarnCli(), ...args], {
-    cwd: repoRoot,
-    env,
-    stdio: "inherit",
-  });
-};
-
 const ensureMode = (mode: string): ReportMode => {
   if (!Object.values(REPORT_MODES).includes(mode as ReportMode)) {
     throw new Error(`Unsupported report mode "${mode}"`);
@@ -141,11 +114,25 @@ export const prepareSingleReport = ({ fixture, mode }: ReportRequest): string =>
   const outputDir = getReportOutputDir({ fixture, mode: ensuredMode });
   fs.rmSync(outputDir, { force: true, recursive: true });
 
-  runYarn(["allure", "generate", inputDir, `--config=${configPath}`, `--output=${outputDir}`], {
-    ...process.env,
-    ALLURE2_E2E_SINGLE_FILE: String(ensuredMode === REPORT_MODES.SINGLE_FILE),
-    ALLURE_NO_ANALYTICS: "true",
-  });
+  execFileSync(
+    process.execPath,
+    [
+      path.join(repoRoot, "packages/cli/cli.js"),
+      "generate",
+      inputDir,
+      `--config=${configPath}`,
+      `--output=${outputDir}`,
+    ],
+    {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        ALLURE2_E2E_SINGLE_FILE: String(ensuredMode === REPORT_MODES.SINGLE_FILE),
+        ALLURE_NO_ANALYTICS: "true",
+      },
+      stdio: "inherit",
+    },
+  );
 
   return getReportIndexPath({ fixture, mode: ensuredMode });
 };
