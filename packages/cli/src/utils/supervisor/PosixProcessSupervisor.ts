@@ -8,10 +8,10 @@ import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
 const MONITOR_INTERVAL_MS = 100;
 
 export class PosixProcessSupervisor extends ProcessSupervisorBase {
-  protected shell: boolean = false;
-  protected detached: boolean = true;
+  protected readonly shell: boolean = false;
+  protected readonly detached: boolean = true;
 
-  protected monitor: JobMonitor;
+  protected readonly monitor: JobMonitor;
 
   #sigintReceived: boolean = false;
 
@@ -56,8 +56,8 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     };
   }
 
-  override start(): void {
-    super.start();
+  override async start() {
+    await super.start();
 
     // Override the default Node.js SIGINT handler to gracefully stop the test process
     // on CTRL+C.
@@ -67,14 +67,14 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     process.once("SIGTERM", this.#onSigterm);
   }
 
-  protected requestRootStop() {
+  protected override requestRootStop(_: AbortSignal) {
     // Does not throw if the process already finished.
     // Returns `false` instead (which is ignored).
     // Completion (monitor.wait) will still wait for the process group to finish.
     this.process.kill("SIGINT");
   }
 
-  protected requestTermination() {
+  protected override requestTermination() {
     const pid = this.process.pid;
 
     if (pid === undefined) {
