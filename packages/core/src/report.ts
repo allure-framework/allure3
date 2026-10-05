@@ -1501,7 +1501,7 @@ export class AllureReport {
         await consumer.call(this, plugin, pluginContext);
 
         // update reportUrl if it was mutated by consumer
-        if (pluginContext.reportUrl != null && pluginContext.reportUrl != this.reportUrl) {
+        if (pluginContext.reportUrl !== null && pluginContext.reportUrl !== this.reportUrl) {
           this.reportUrl = pluginContext.reportUrl;
         }
 
