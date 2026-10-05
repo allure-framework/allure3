@@ -45,6 +45,31 @@ afterEach(() => {
 });
 
 describe("test results", () => {
+  it("preserves index arrays, ingest order, empty attachment entries, and restored shared test cases", async () => {
+    const store = new DefaultAllureStore();
+    await store.visitTestResult({ uuid: "first", name: "first", testId: "shared", start: 1 }, { readerId });
+    const [first] = await store.allTestResults({ includeRetries: true });
+    const indexed = store.indexTestResultByTestCase.get(first.testCase!.id);
+    await store.visitTestResult({ uuid: "second", name: "second", testId: "shared", start: 2 }, { readerId });
+    const results = await store.allTestResults({ includeRetries: true });
+    expect(store.indexTestResultByTestCase.get(first.testCase!.id)).toBe(indexed);
+    expect(indexed?.map(({ name }) => name)).toEqual(["first", "second"]);
+    expect(store.indexTestResultByRetryHash.get(first.retryHash!)?.map(({ name }) => name)).toEqual([
+      "first",
+      "second",
+    ]);
+    expect(results[0].testCase).toBe(results[1].testCase);
+    const dump = store.dumpState();
+    expect(dump.indexAttachmentByTestResult).toEqual(Object.fromEntries(results.map(({ id }) => [id, []])));
+    const restored = new DefaultAllureStore();
+    await restored.restoreState(JSON.parse(JSON.stringify(dump)));
+    const restoredResults = await restored.allTestResults({ includeRetries: true });
+    expect(restoredResults[0].testCase).toBe(restoredResults[1].testCase);
+    expect(restored.dumpState().indexTestResultByTestCase).toEqual(dump.indexTestResultByTestCase);
+    expect(restored.dumpState().indexTestResultByRetryHash).toEqual(dump.indexTestResultByRetryHash);
+    await expect(restored.attachmentsByTrId(first.id)).resolves.toEqual([]);
+  });
+
   it("should return all test results", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {

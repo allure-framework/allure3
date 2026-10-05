@@ -49,6 +49,112 @@ describe("testResultRawToState", () => {
     });
   });
 
+  it("preserves label expansion order and skips null and sparse entries", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        labels: Array(1).concat([
+          null,
+          { name: "tag", value: "@allure.label.owner:team" },
+          { name: "tag", value: "@allure.id: 123 " },
+          { name: "AS_ID", value: " 456 " },
+          { name: "tag", value: "plain" },
+          { name: "", value: "skip" },
+          { value: "missing name" },
+        ]),
+      } as any,
+      { readerId },
+    );
+    expect(result.labels).toEqual([
+      { name: "owner", value: "team" },
+      { name: "ALLURE_ID", value: "123" },
+      { name: "ALLURE_ID", value: "456" },
+      { name: "tag", value: "plain" },
+      { name: "#___unknown_value___#", value: "missing name" },
+    ]);
+  });
+
+  it("preserves parameter and link ordering when skipping sparse and invalid entries", async () => {
+    const result = await functionUnderTest(
+      emptyStateData,
+      {
+        parameters: Array(1).concat([
+          null,
+          { name: "", value: "skip" },
+          { name: "first", value: "", hidden: true },
+          { name: "second", value: null, excluded: true, masked: true },
+        ]),
+        links: Array(1).concat([
+          null,
+          { url: "" },
+          { url: "https://example.org/first" },
+          { url: "https://example.org/second", name: "second" },
+        ]),
+      } as any,
+      { readerId },
+    );
+    expect(result.parameters).toEqual([
+      { name: "first", value: "", hidden: true, excluded: false, masked: false },
+      { name: "second", value: "#___unknown_value___#", hidden: false, excluded: true, masked: true },
+    ]);
+    expect(result.links).toEqual([
+      { url: "https://example.org/first", name: undefined, type: undefined },
+      { url: "https://example.org/second", name: "second", type: undefined },
+    ]);
+  });
+
+  it.each([{ testId: "тест-测试" }, { fullName: "тест-测试" }])(
+    "preserves canonical and legacy Unicode identity for %j",
+    async (raw) => {
+      const result = await functionUnderTest(emptyStateData, raw, { readerId });
+      expect(result.testCaseHash).toBe(md5Utf8("тест-测试"));
+      expect(result.sourceMetadata.legacyTestCaseHash).toBe(result.testCaseHash);
+    },
+  );
+
+  it("does not treat sibling messages as descendant errors and visits attachments depth-first", async () => {
+    const visitAttachmentLink = vi.fn<StateData["visitAttachmentLink"]>();
+    const result = await functionUnderTest(
+      { ...emptyStateData, visitAttachmentLink },
+      {
+        steps: [
+          null,
+          {
+            type: "step",
+            name: "parent",
+            message: "same",
+            steps: [
+              { type: "attachment", originalFileName: "first.txt" },
+              { type: "step", name: "child", message: "same" },
+            ],
+          },
+          {
+            type: "step",
+            name: "sibling",
+            message: "same",
+            steps: [{ type: "attachment", originalFileName: "second.txt" }],
+          },
+          { type: "attachment", originalFileName: "third.txt" },
+        ],
+      } as any,
+      { readerId },
+    );
+    expect(result.steps).toMatchObject([
+      {
+        name: "parent",
+        hasSimilarErrorInSubSteps: true,
+        steps: [{ type: "attachment" }, { name: "child", hasSimilarErrorInSubSteps: false }],
+      },
+      { name: "sibling", hasSimilarErrorInSubSteps: false },
+      { type: "attachment" },
+    ]);
+    expect(visitAttachmentLink.mock.calls.map(([link]) => link.originalFileName)).toEqual([
+      "first.txt",
+      "second.txt",
+      "third.txt",
+    ]);
+  });
+
   it("should set default status", async () => {
     const result = await functionUnderTest(emptyStateData, {}, { readerId });
     expect(result).toMatchObject({

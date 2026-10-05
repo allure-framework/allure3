@@ -81,11 +81,11 @@ import { RetrySubstore } from "./retrySubstore.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | null | undefined, ...items: T[]) => {
   if (key) {
-    if (!indexMap.has(key)) {
-      indexMap.set(key, []);
+    let current = indexMap.get(key);
+    if (!current) {
+      current = [];
+      indexMap.set(key, current);
     }
-
-    const current = indexMap.get(key)!;
 
     current.push(...items);
   }
