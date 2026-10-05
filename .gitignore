@@ -29,6 +29,7 @@ node_modules
 
 #Other
 .repo
+.vitest
 
 #Mac OS stuff
 **/.DS_Store

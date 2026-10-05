@@ -29,19 +29,23 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - &uses-node-setup
+        uses: actions/setup-node@v6
         with:
           node-version: "24.14.x"
           cache: "yarn"
-      - name: Install dependencies
+      - &uses-yarn-install
+        name: Install dependencies
         run: yarn install --immutable --immutable-cache --check-cache
-      - name: Cache build outputs
+      - &uses-build-cache
+        name: Cache build outputs
         id: build-cache
         uses: actions/cache@v5
         with:
           path: packages/*/dist
           key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build the project
+      - &uses-build
+        name: Build the project
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Lint Project
@@ -61,12 +65,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
-      - name: Install dependencies
-        run: yarn install --immutable --immutable-cache --check-cache
+      - *uses-node-setup
+      - *uses-yarn-install
+      - *uses-build-cache
+      - *uses-build
       - name: Install playwright for static server
         run: yarn workspace @allurereport/static-server playwright install chromium
       - name: Install playwright for e2e
@@ -75,16 +77,9 @@ jobs:
         run: yarn workspace @allurereport/web-allure2 playwright install chromium
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
-      - name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
       - name: Test Project
+        env:
+          ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         uses: actions/upload-artifact@v7
@@ -92,6 +87,46 @@ jobs:
         with:
           name: allure-results-${{ matrix.os }}
           path: ./allure-results-${{ matrix.os }}.zip
+      - name: Upload blob reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: vitest-blobs-${{ matrix.os }}
+          path: packages/*/.vitest/blob/*.json
+          include-hidden-files: true
+          if-no-files-found: error
+
+  coverage:
+    needs: [test]
+    name: Upload test coverage
+    runs-on: ubuntu-latest
+    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) }}
+    permissions:
+      contents: read
+      code-quality: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download vitest blob reports
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: vitest-blobs-*
+          path: ./
+      - *uses-node-setup
+      - *uses-yarn-install
+      - *uses-build-cache
+      - *uses-build
+      - name: Generate test coverage report
+        env:
+          VITEST_BLOB_PATTERN: vitest-blobs-*/*/.vitest/blob/*.json
+        run: yarn coverage
+      - name: Publish code coverage
+        uses: clearlyip/code-coverage-report-action@v7
+        with:
+          filename: packages/vitest-config/.vitest/coverage/cobertura-coverage.xml
+          badge: true
+          togglable-report: true
+          report-low-coverage-only: true
 
   report:
     needs: [lint, test]
@@ -113,49 +148,26 @@ jobs:
       ALLURE_LAUNCH_TAGS: "${{ secrets.ALLURE_LAUNCH_TAGS }}, ${{ github.event_name }}"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
-      - name: Download allure results from Ubuntu
+      - name: Download allure results
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          name: allure-results-ubuntu-latest
+          pattern: allure-results-*
           path: ./
-      - name: Download allure results from macOS
-        uses: actions/download-artifact@v6
-        continue-on-error: true
-        with:
-          name: allure-results-macos-latest
-          path: ./
-      - name: Download allure results from Windows
-        uses: actions/download-artifact@v8
-        continue-on-error: true
-        with:
-          name: allure-results-windows-latest
-          path: ./
-      - name: Install dependencies
-        run: yarn install --immutable --immutable-cache --check-cache
-      - name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - name: Build project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
+      - *uses-node-setup
+      - *uses-yarn-install
+      - *uses-build-cache
+      - *uses-build
       - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"
-        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
+        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*/*.zip" --output=./allure-perf-report
       - name: Prepare report metrics
         run: |
           mkdir -p ./allure-perf-results
           cp ./allure-perf-report/*-perf.json ./allure-perf-results/
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" ./allure-perf-results --output=./allure-report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*/*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
         if: ${{ !cancelled() }}
         uses: allure-framework/allure-action@v0

@@ -1,31 +1,21 @@
-import { createRequire } from "node:module";
-import { defineConfig } from "vitest/config";
-import { resolve } from "path";
+import { resolve } from "node:path";
+
+import { defaultVitestConfig } from "@allurereport/vitest-config";
 import { preact } from "@preact/preset-vite";
+import { defineConfig, mergeConfig } from "vitest/config";
 
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  plugins: [preact()],
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "./src"),
-    },
-  },
-  test: {
-    environment: "jsdom",
+export default mergeConfig(
+  defaultVitestConfig({
     include: ["./test/**/*.test.{ts,tsx}"],
-    globals: true,
-    setupFiles: [
-      require.resolve("allure-vitest/setup"),
-      "./vitest.setup.ts",
-    ],
-    reporters: [
-      "default",
-      [
-        "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-awesome" }] },
-      ],
-    ],
-  },
-});
+    globalLabels: [{ name: "module", value: "web-awesome" }],
+  }),
+  defineConfig({
+    plugins: [preact()],
+    resolve: { alias: { "@": resolve(__dirname, "./src") } },
+    test: {
+      environment: "jsdom",
+      globals: true,
+      setupFiles: ["./vitest.setup.ts"],
+    },
+  }),
+);
