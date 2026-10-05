@@ -121,13 +121,12 @@ jobs:
         env:
           VITEST_BLOB_PATTERN: vitest-blobs-*/*/.vitest/blob/*.json
         run: yarn coverage
-      - name: Upload coverage report
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+      - name: Publish code coverage
+        uses: clearlyip/code-coverage-report-action@v7
         with:
-          file: packages/vitest-config/.vitest/coverage/cobertura-coverage.xml
-          language: JavaScript
-          label: vitest
+          filename: packages/vitest-config/.vitest/coverage/cobertura-coverage.xml
+          badge: true
+          fail_on_negative_difference: true
 
   report:
     needs: [lint, test]
