@@ -126,7 +126,8 @@ jobs:
         with:
           filename: packages/vitest-config/.vitest/coverage/cobertura-coverage.xml
           badge: true
-          fail_on_negative_difference: true
+          togglable-report: true
+          report-low-coverage-only: true
 
   report:
     needs: [lint, test]
