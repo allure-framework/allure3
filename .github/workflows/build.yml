@@ -55,14 +55,45 @@ jobs:
       # - name: Type-aware lint
       #   run: yarn lint:type
 
-  test:
+  unit-test:
     needs: lint
-    name: Build on ${{ matrix.os }}
+    name: Unit Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    strategy:
+    strategy: &strategy
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - *uses-node-setup
+      - *uses-yarn-install
+      - *uses-build-cache
+      - *uses-build
+      - name: Run unit tests
+        env:
+          ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
+          ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test:unit
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-${{ matrix.os }}-unit
+          path: ./allure-results-${{ matrix.os }}.zip
+      - name: Upload blob reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: vitest-blobs-${{ matrix.os }}
+          path: packages/*/.vitest/blob/*.json
+          include-hidden-files: true
+          if-no-files-found: error
+
+  e2e-test:
+    needs: lint
+    name: E2E Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy: *strategy
     steps:
       - uses: actions/checkout@v6
       - *uses-node-setup
@@ -77,31 +108,20 @@ jobs:
         run: yarn workspace @allurereport/web-allure2 playwright install chromium
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
-      - name: Run tests
-        env:
-          ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
-          ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+      - name: Run e2e tests
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test:e2e
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: allure-results-${{ matrix.os }}
+          name: allure-results-${{ matrix.os }}-e2e
           path: ./allure-results-${{ matrix.os }}.zip
-      - name: Upload blob reports
-        uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() }}
-        with:
-          name: vitest-blobs-${{ matrix.os }}
-          path: packages/*/.vitest/blob/*.json
-          include-hidden-files: true
-          if-no-files-found: error
 
   coverage:
-    needs: [test]
+    needs: [unit-test]
     name: Upload test coverage
     runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) }}
+    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.unit-test.result) }}
     permissions:
       contents: read
       code-quality: write
@@ -130,10 +150,10 @@ jobs:
           report-low-coverage-only: true
 
   report:
-    needs: [lint, test]
+    needs: [lint, unit-test, e2e-test]
     name: Build report
     runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.unit-test.result) && contains(fromJSON('["success","failure"]'), needs.e2e-test.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     permissions:
       actions: read
       contents: write
