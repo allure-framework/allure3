@@ -1,6 +1,6 @@
 import { CiType } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { cleanup, render, screen } from "@testing-library/preact";
+import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import { h } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -141,6 +141,48 @@ describe("components > Header > CiInfo", () => {
     render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.jobRunUrl);
+  });
+
+  it("should open the link via window.open on a primary click to bypass host-page anchor interception", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        pullRequestUrl: fixtures.pullRequestUrl,
+      },
+    });
+
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+    render(<CiInfo />);
+
+    const link = screen.getByRole("link");
+    const event = fireEvent.click(link, { button: 0 });
+
+    expect(openSpy).toHaveBeenCalledWith(fixtures.pullRequestUrl, "_blank", "noopener,noreferrer");
+    // the default anchor navigation must be prevented, otherwise a host page that resolves
+    // `href` relative to its own origin (e.g. a sandboxed iframe) could still hijack it
+    expect(event).toBe(false);
+
+    openSpy.mockRestore();
+  });
+
+  it("should not hijack modified clicks (e.g. ctrl/cmd-click to open in a new tab)", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        pullRequestUrl: fixtures.pullRequestUrl,
+      },
+    });
+
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+    render(<CiInfo />);
+
+    const link = screen.getByRole("link");
+    const event = fireEvent.click(link, { button: 0, ctrlKey: true });
+
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(event).toBe(true);
+
+    openSpy.mockRestore();
   });
 
   it("should not render a clickable link when ci url has unsafe protocol", () => {

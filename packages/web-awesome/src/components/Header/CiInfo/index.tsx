@@ -66,8 +66,31 @@ export const CiInfo = ({ className }: CiInfoProps) => {
     );
   }
 
+  // Some host pages embed the report inside a sandboxed iframe and attach their own
+  // click handling to anchors (e.g. the Azure DevOps Marketplace "Publish Allure Report"
+  // extension tab). When that happens, the host can resolve this absolute, external
+  // `safeLink` relative to its own origin instead of navigating to it directly, which
+  // breaks links such as Azure DevOps pull request URLs. Opening the link explicitly via
+  // `window.open` on primary, unmodified clicks bypasses any such anchor-click
+  // interception while still leaving the native `href`/`target`/`rel` in place so
+  // modified clicks (new tab/window, copy link, etc.) keep working as expected.
+  const handleClick = (event: MouseEvent) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    event.preventDefault();
+    window.open(safeLink, "_blank", "noopener,noreferrer");
+  };
+
   return (
-    <a className={clsx(styles["ci-info"], className)} href={safeLink} target="_blank" rel="noopener noreferrer">
+    <a
+      className={clsx(styles["ci-info"], className)}
+      href={safeLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={handleClick}
+    >
       <CiIcon type={ci?.type} />
       <Text type="paragraph" size="m" bold>
         {ciLabel}
