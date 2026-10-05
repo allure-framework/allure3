@@ -3,6 +3,7 @@ import type { ChildProcess } from "node:child_process";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { logError } from "../logs.js";
 import type { JobMonitor, RootCompletion, ProcessCompletion, SupervisedCommandOptions } from "./model.js";
 
 const DEFAULT_STOP_TIMEOUT = 30_000;
@@ -96,7 +97,7 @@ export abstract class ProcessSupervisorBase {
     return this.completion.then(({ signal }) => signal);
   }
 
-  start() {
+  async start() {
     if (this.#process !== undefined) {
       throw new Error("The process has already been started.");
     }
@@ -195,7 +196,7 @@ export abstract class ProcessSupervisorBase {
   protected abstract readonly detached: boolean;
   protected abstract readonly monitor: JobMonitor;
 
-  protected abstract requestRootStop(): void | Promise<void>;
+  protected abstract requestRootStop(signal: AbortSignal): void | Promise<void>;
   protected abstract requestTermination(): void | Promise<void>;
 
   private resolveTargetEnvironment() {
@@ -255,9 +256,27 @@ export abstract class ProcessSupervisorBase {
 
   private async stopOnce() {
     const controller = new AbortController();
+    const { signal } = controller;
 
     const requestStopAndWait = async () => {
-      await this.requestRootStop();
+      try {
+        await this.requestRootStop(signal);
+      } catch (stopError) {
+        const normalizedStopError = stopError instanceof Error ? stopError : new Error(String(stopError));
+        void logError(
+          `Failed to request graceful stop: ${normalizedStopError.message} - terminating...`,
+          normalizedStopError,
+        ).catch(() => {});
+
+        try {
+          await this.terminate();
+        } catch (terminationError) {
+          throw new AggregateError([stopError, terminationError], "Both graceful stop and forced termination failed.");
+        }
+
+        return "completed" as const;
+      }
+
       await this.completion;
       return "completed" as const;
     };

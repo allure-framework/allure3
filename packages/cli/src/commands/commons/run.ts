@@ -25,7 +25,7 @@ import { KnownError } from "@allurereport/service";
 
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { PosixProcessSupervisor } from "../../utils/supervisor/index.js";
+import { PosixProcessSupervisor, WindowsProcessSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -93,10 +93,6 @@ export const runTests = async (params: {
   attempt?: RunAttempt;
   resultsPatterns?: readonly string[];
 }): Promise<TestProcessResult | null> => {
-  if (process.platform === "win32") {
-    throw new KnownError("Windows is not currently supported by allure run.");
-  }
-
   const {
     allureReport,
     cwd,
@@ -112,6 +108,13 @@ export const runTests = async (params: {
     resultsPatterns = [],
   } = params;
   let testProcessStarted = false;
+  let cleaningUp = false;
+  let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
+  let qualityGateResults: QualityGateValidationResult[] = [];
+  let fastFailTriggered = false;
+  let supervisor!: PosixProcessSupervisor | WindowsProcessSupervisor;
+  let code!: number | null;
+  const errors: unknown[] = [];
   const allureResultsWatchers: Map<string, Watcher> = new Map();
   const processWatcher = delayedFileProcessingWatcher(
     async (path) => {
@@ -122,145 +125,168 @@ export const runTests = async (params: {
       minProcessingDelay: 1_000,
     },
   );
-  const allureResultsWatch = attachResultsDirectoryWatchers({
-    cwd,
-    resultsPatterns,
-    onUpdate: async (newAllureResults, deletedAllureResults) => {
-      for (const delAr of deletedAllureResults) {
-        const watcher = allureResultsWatchers.get(delAr);
+  let allureResultsWatch: Watcher | undefined;
 
-        if (watcher) {
-          await watcher.abort();
+  try {
+    allureResultsWatch = attachResultsDirectoryWatchers({
+      cwd,
+      resultsPatterns,
+      onUpdate: async (newAllureResults, deletedAllureResults) => {
+        for (const delAr of deletedAllureResults) {
+          const watcher = allureResultsWatchers.get(delAr);
+
+          if (watcher) {
+            await watcher.abort();
+          }
+
+          allureResultsWatchers.delete(delAr);
         }
 
-        allureResultsWatchers.delete(delAr);
-      }
+        for (const newAr of newAllureResults) {
+          if (cleaningUp) {
+            break;
+          }
+          if (allureResultsWatchers.has(newAr)) {
+            continue;
+          }
 
-      for (const newAr of newAllureResults) {
-        if (allureResultsWatchers.has(newAr)) {
-          continue;
+          const watcher = newFilesInDirectoryWatcher(
+            newAr,
+            async (path) => {
+              await processWatcher.addFile(path);
+            },
+            {
+              // the initial scan is preformed before we start the test process.
+              // all the watchers created before the test process
+              // should ignore initial results.
+              ignoreInitial: !testProcessStarted,
+              indexDelay: 300,
+            },
+          );
+
+          allureResultsWatchers.set(newAr, watcher);
+
+          await watcher.initialScan();
         }
-
-        const watcher = newFilesInDirectoryWatcher(
-          newAr,
-          async (path) => {
-            await processWatcher.addFile(path);
-          },
-          {
-            // the initial scan is preformed before we start the test process.
-            // all the watchers created before the test process
-            // should ignore initial results.
-            ignoreInitial: !testProcessStarted,
-            indexDelay: 300,
-          },
-        );
-
-        allureResultsWatchers.set(newAr, watcher);
-
-        await watcher.initialScan();
-      }
-    },
-  });
-
-  await allureResultsWatch.initialScan();
-
-  const supervisor = new PosixProcessSupervisor(command, {
-    arguments: commandArgs,
-    workingDirectory: cwd,
-    environmentVariables,
-    stdio: logs,
-    silent,
-    outputEncoding: "utf-8",
-    stopTimeout: 30_000,
-  });
-
-  testProcessStarted = true;
-
-  const beforeProcess = Date.now();
-  const commandLine = [command, ...commandArgs].join(" ");
-  const rerunsEnabled = attempt.total > 1;
-
-  if (logProcessExit) {
-    if (rerunsEnabled) {
-      runLogger.info(`Attempt ${attempt.current}/${attempt.total} started: ${commandLine}`);
-    } else {
-      runLogger.info(`Running: ${commandLine}`);
-    }
-  }
-
-  supervisor.start();
-
-  const qualityGateState = new QualityGateState();
-  let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
-  let qualityGateResults: QualityGateValidationResult[] = [];
-  let fastFailTriggered = false;
-
-  if (withQualityGate) {
-    qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
-      if (fastFailTriggered) {
-        return;
-      }
-
-      const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
-      const filteredTrs = trs.filter((tr) => tr !== undefined);
-
-      if (!filteredTrs.length) {
-        return;
-      }
-
-      const { results, fastFailed } = await allureReport.validate({
-        trs: filteredTrs,
-        state: qualityGateState,
-        environment,
-      });
-
-      // process only fast-failed checks here
-      if (!fastFailed) {
-        return;
-      }
-
-      qualityGateUnsub?.();
-
-      fastFailTriggered = true;
-      qualityGateResults = results;
-      qualityGateUnsub = undefined;
-
-      const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
-      const failedRulesMessage = failedRules.length > 0 ? `: ${failedRules.join(", ")}` : "";
-      const stopTarget = rerunsEnabled ? `attempt ${attempt.current}/${attempt.total}` : "test process";
-
-      qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
-
-      await supervisor.stop();
+      },
     });
-  }
 
-  const code = await supervisor.exitCode;
-  const afterProcess = Date.now();
+    await allureResultsWatch.initialScan();
 
-  if (logProcessExit && rerunsEnabled) {
-    const duration = formatDuration(afterProcess - beforeProcess);
+    const ProcessSupervisor = process.platform === "win32" ? WindowsProcessSupervisor : PosixProcessSupervisor;
 
-    if (fastFailTriggered) {
-      runLogger.info(`Attempt ${attempt.current}/${attempt.total} stopped by Quality Gate after ${duration}`);
-    } else if (code !== null) {
-      runLogger.info(`Attempt ${attempt.current}/${attempt.total} finished with code ${code} after ${duration}`);
-    } else {
-      runLogger.warn(`Attempt ${attempt.current}/${attempt.total} terminated after ${duration}`);
+    supervisor = new ProcessSupervisor(command, {
+      arguments: commandArgs,
+      workingDirectory: cwd,
+      environmentVariables,
+      stdio: logs,
+      silent,
+      outputEncoding: "utf-8",
+      stopTimeout: 30_000,
+    });
+
+    testProcessStarted = true;
+
+    const beforeProcess = Date.now();
+    const commandLine = [command, ...commandArgs].join(" ");
+    const rerunsEnabled = attempt.total > 1;
+
+    if (logProcessExit) {
+      if (rerunsEnabled) {
+        runLogger.info(`Attempt ${attempt.current}/${attempt.total} started: ${commandLine}`);
+      } else {
+        runLogger.info(`Running: ${commandLine}`);
+      }
     }
+
+    supervisor.start();
+
+    const qualityGateState = new QualityGateState();
+
+    if (withQualityGate) {
+      qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+        if (fastFailTriggered) {
+          return;
+        }
+
+        const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
+        const filteredTrs = trs.filter((tr) => tr !== undefined);
+
+        if (!filteredTrs.length) {
+          return;
+        }
+
+        const { results, fastFailed } = await allureReport.validate({
+          trs: filteredTrs,
+          state: qualityGateState,
+          environment,
+        });
+
+        // process only fast-failed checks here
+        if (!fastFailed) {
+          return;
+        }
+
+        qualityGateUnsub?.();
+
+        fastFailTriggered = true;
+        qualityGateResults = results;
+        qualityGateUnsub = undefined;
+
+        const failedRules = filterFailedQualityGateResults(results).map(({ rule }) => rule);
+        const failedRulesMessage = failedRules.length > 0 ? `: ${failedRules.join(", ")}` : "";
+        const stopTarget = rerunsEnabled ? `attempt ${attempt.current}/${attempt.total}` : "test process";
+
+        qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
+
+        await supervisor.stop();
+      });
+    }
+
+    code = await supervisor.exitCode;
+    const afterProcess = Date.now();
+
+    if (logProcessExit && rerunsEnabled) {
+      const duration = formatDuration(afterProcess - beforeProcess);
+
+      if (fastFailTriggered) {
+        runLogger.info(`Attempt ${attempt.current}/${attempt.total} stopped by Quality Gate after ${duration}`);
+      } else if (code !== null) {
+        runLogger.info(`Attempt ${attempt.current}/${attempt.total} finished with code ${code} after ${duration}`);
+      } else {
+        runLogger.warn(`Attempt ${attempt.current}/${attempt.total} terminated after ${duration}`);
+      }
+    }
+  } catch (error) {
+    errors.push(error);
+  } finally {
+    cleaningUp = true;
+    const cleanup = async (action: () => unknown) => {
+      try {
+        await action();
+      } catch (error) {
+        errors.push(error);
+      }
+    };
+
+    // Stop discovery before draining directory watchers and queued result files.
+    await cleanup(() => allureResultsWatch?.abort());
+    for (const watcher of allureResultsWatchers.values()) {
+      await cleanup(() => watcher.abort());
+    }
+    allureResultsWatchers.clear();
+    await cleanup(() => processWatcher.abort());
+    await cleanup(() => qualityGateUnsub?.());
   }
 
-  await allureResultsWatch.abort();
-
-  for (const [ar, watcher] of allureResultsWatchers) {
-    await watcher.abort();
-
-    allureResultsWatchers.delete(ar);
+  if (errors.length) {
+    throw errors.length === 1
+      ? errors[0]
+      : new AggregateError(
+          errors,
+          `Multiple errors occurred during test execution or cleanup. First error: ${String(errors[0])}`,
+        );
   }
-
-  await processWatcher.abort();
-
-  qualityGateUnsub?.();
 
   return {
     code,
