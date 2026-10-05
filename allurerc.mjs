@@ -2,7 +2,9 @@ import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
+const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
 
 const msMetric = (title, group) => ({
   title,
@@ -125,14 +127,25 @@ const config = {
       },
     },
   },
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 0,
-      },
-    ],
-    use: [...qualityGateDefaultRules],
-  },
+  ...(qualityGateEnabled
+    ? {
+        qualityGate: {
+          rules: [
+            {
+              maxFailures: 0,
+            },
+            ...(requireNewTests
+              ? [
+                  {
+                    newTests: true,
+                  },
+                ]
+              : []),
+          ],
+          use: [...qualityGateDefaultRules],
+        },
+      }
+    : {}),
   resolutions: {
     rules: [
       {
