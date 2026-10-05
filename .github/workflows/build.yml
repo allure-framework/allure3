@@ -12,7 +12,6 @@ on:
       - ready_for_review
       - labeled
       - unlabeled
-      - edited
   merge_group:
     branches: [main]
     types: [checks_requested]
