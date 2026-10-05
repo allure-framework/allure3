@@ -12,7 +12,6 @@ on:
       - ready_for_review
       - labeled
       - unlabeled
-      - edited
 
 permissions:
   contents: read
