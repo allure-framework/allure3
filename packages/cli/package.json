@@ -24,7 +24,7 @@
     "./qualityGate": "./dist/qualityGate.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && tsc --project ./tsconfig.json && node ./scripts/copy-assets.mjs",
     "clean": "rimraf ./dist",
     "start": "node ./cli.js",
     "test": "vitest run",
