@@ -158,6 +158,14 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
+const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
+  }
+  return results;
+};
+
 export const generateTestResults = async (
   _writer: AwesomeDataWriter,
   store: AllureStore,
@@ -638,21 +646,20 @@ export const generateAttachmentsFiles = async (
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
+  const writtenAttachments = await mapConcurrently(attachmentLinks, async ({ id, ext, ...link }) => {
     if (link.missed) {
-      continue;
+      return;
     }
     const content = await contentFunction(id);
 
     if (!content) {
-      continue;
+      return;
     }
     const src = `${id}${ext}`;
     await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
+    return [id, src] as const;
+  });
+  return new Map(writtenAttachments.filter((attachment) => attachment !== undefined));
 };
 
 export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
@@ -695,18 +702,25 @@ export const generateGlobals = async (
     globals.exitCode = globalExitCode;
   }
 
-  for (const attachment of globalAttachments) {
+  const attachmentWrites = new Map<string, Promise<void>>();
+  const writtenAttachments = await mapConcurrently(globalAttachments, async (attachment) => {
     const src = `${attachment.id}${attachment.ext}`;
     const content = await contentFunction(attachment.id);
 
     if (!content) {
-      continue;
+      return;
     }
 
-    await writer.writeAttachment(src, content);
+    let write = attachmentWrites.get(src);
+    if (!write) {
+      write = writer.writeAttachment(src, content);
+      attachmentWrites.set(src, write);
+    }
+    await write;
 
-    globals.attachments.push(attachment);
-  }
+    return attachment;
+  });
+  globals.attachments = writtenAttachments.filter((attachment) => attachment !== undefined);
 
   Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
     const attachmentIds = new Set(globals.attachments.map(({ id }) => id));
