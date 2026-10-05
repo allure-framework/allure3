@@ -357,7 +357,7 @@ const RAW_RUNTIME_STATE =
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yaml", "npm:2.8.3"],\
+          ["yaml", "npm:2.9.1"],\
           ["yoctocolors", "npm:2.2.0"],\
           ["zip-stream", "npm:7.0.5"]\
         ],\
@@ -479,7 +479,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
-          ["yaml", "npm:2.8.3"]\
+          ["yaml", "npm:2.9.1"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -25426,10 +25426,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:2.8.3", {\
-        "packageLocation": "./.yarn/cache/yaml-npm-2.8.3-dfea86f9e0-ecad41d39d.zip/node_modules/yaml/",\
+      ["npm:2.9.1", {\
+        "packageLocation": "./.yarn/cache/yaml-npm-2.9.1-d61da744fe-123c5e56a2.zip/node_modules/yaml/",\
         "packageDependencies": [\
-          ["yaml", "npm:2.8.3"]\
+          ["yaml", "npm:2.9.1"]\
         ],\
         "linkType": "HARD"\
       }]\
