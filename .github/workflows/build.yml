@@ -12,6 +12,9 @@ on:
       - ready_for_review
       - labeled
       - unlabeled
+  merge_group:
+    branches: [main]
+    types: [checks_requested]
 
 permissions:
   contents: read
