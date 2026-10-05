@@ -1,4 +1,5 @@
 import { ArrowButton, Loadable, PageLoader } from "@allurereport/web-components";
+import { filesize } from "filesize";
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";
 
@@ -16,6 +17,10 @@ import {
 import * as styles from "./styles.scss";
 
 const formatValue = (value: number, unit?: string) => {
+  if (unit === "bytes") {
+    return filesize(value, { base: 2, round: 2 });
+  }
+
   const formatted = Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
 
   return unit ? `${formatted} ${unit}` : formatted;
