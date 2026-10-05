@@ -75,7 +75,7 @@
     "d3-transition": "^3.0.1",
     "lodash": "^4.18.1",
     "markdown-it": "^14.2.0",
-    "preact": "^10.28.2",
+    "preact": "^10.29.8",
     "prismjs": "^1.30.0",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
