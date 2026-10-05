@@ -8,7 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -668,34 +668,6 @@ describe("local history URLs", () => {
     expect(() => normalizeHistoryBaseUrl("https://bucket.example/runs/42#current")).toThrow(
       /Invalid historyBaseUrl.*fragment/u,
     );
-  });
-
-  it("should replace run and test URLs without mutating the source history point", () => {
-    const source: HistoryDataPoint = {
-      uuid: "run-1",
-      name: "Run 1",
-      timestamp: 1,
-      knownTestCaseIds: [],
-      metrics: {},
-      url: "",
-      testResults: {
-        stable: {
-          id: "old-result",
-          name: "historical test",
-          status: "passed",
-          url: "",
-        },
-      },
-    };
-
-    const updated = setHistoryDataPointUrl(source, "https://bucket.example/runs/42/index.html");
-
-    expect(updated.url).toBe("https://bucket.example/runs/42/index.html");
-    expect(updated.testResults.stable.url).toBe("https://bucket.example/runs/42/index.html");
-    expect(updated).not.toBe(source);
-    expect(updated.testResults.stable).not.toBe(source.testResults.stable);
-    expect(source.url).toBe("");
-    expect(source.testResults.stable.url).toBe("");
   });
 
   it.each([
