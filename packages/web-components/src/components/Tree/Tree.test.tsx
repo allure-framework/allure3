@@ -9,12 +9,13 @@ afterEach(() => {
   cleanup();
 });
 
-const leaf = (id: string) => ({
+const leaf = (id: string, parameters?: string[]) => ({
   id,
   nodeId: id,
   name: id,
   status: "failed" as const,
   groupOrder: 0,
+  parameters,
 });
 
 const suite = (nodeId: string, leaves: ReturnType<typeof leaf>[], trees: RecursiveTree[] = []): RecursiveTree =>
@@ -81,5 +82,11 @@ describe("Tree", () => {
     expect(screen.getByText("child")).toBeTruthy();
     expect(document.getElementById("hidden-leaf")).toBeNull();
     expect(screen.queryByTestId("tree-show-more")).toBeNull();
+  });
+
+  it("passes leaf parameter values to tree items", () => {
+    renderSuite(suite("suite", [leaf("parameterized-test", ["one", "two"])]));
+
+    expect(screen.getByTestId("tree-leaf-parameters").textContent).toBe("one,two");
   });
 });
