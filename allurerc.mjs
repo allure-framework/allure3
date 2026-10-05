@@ -84,7 +84,7 @@ const config = {
         singleFile: false,
         reportLanguage: "en",
         reportName: "Allure 3 Report",
-        groupBy: ["module", "parentSuite", "suite", "subSuite"],
+        groupBy: ["type", "module", "parentSuite", "suite", "subSuite"],
         timeline: {
           minDuration: 0,
         },

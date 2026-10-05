@@ -13,7 +13,10 @@ export default defineConfig({
       "allure-playwright",
       {
         resultsDir: "build/allure-results",
-        globalLabels: [{ name: "module", value: "web-allure2" }],
+        globalLabels: [
+          { name: "module", value: "web-allure2" },
+          { name: "type", value: "playwright" },
+        ],
       },
     ],
   ],

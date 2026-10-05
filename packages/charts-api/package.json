@@ -32,14 +32,17 @@
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {
+    "@allurereport/vitest-config": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "tslib": "^2.7.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }
