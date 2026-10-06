@@ -44,7 +44,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
         silent: true,
       });
 
-      supervisor.start();
+      await supervisor.start();
 
       expect(supervisor.started).toBe(true);
       expect(supervisor.completed).toBe(false);
@@ -80,7 +80,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
       await fixture.writeScript("descendant.mjs", nodeScripts.descendant);
       await fixture.writeScript("root.mjs", nodeScripts.rootWithDescendant);
 
-      supervisor.start();
+      await supervisor.start();
 
       const [rootExitCode, rootSignal] = await once(supervisor.process, "close");
 
@@ -124,7 +124,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
 
@@ -156,7 +156,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -195,7 +195,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -228,7 +228,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -261,7 +261,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -302,7 +302,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -344,7 +344,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
@@ -391,7 +391,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () =>
 
       await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
 
-      supervisor.start();
+      await supervisor.start();
 
       const rootPid = supervisor.process.pid!;
       const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
