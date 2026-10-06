@@ -339,3 +339,4 @@ You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a 
 
 - [GitHub Actions](https://github.com/marketplace/actions/allure-report-official)
 - [Azure DevOps](https://marketplace.visualstudio.com/items?itemName=qameta.allure-azure-pipelines)
+- [GitLab CI/CD](https://gitlab.com/explore/catalog/allure-team/allure-report-publisher)

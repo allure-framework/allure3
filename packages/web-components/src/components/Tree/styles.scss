@@ -6,6 +6,10 @@
   }
 }
 
+.tree-root {
+  container: allure-tree / inline-size;
+}
+
 .tree-list {
   min-height: 128px;
 }
@@ -115,13 +119,31 @@
   }
 }
 
+.item-text {
+  display: flex;
+  align-items: flex-start;
+  flex: 1 1 0;
+  min-width: 0;
+  gap: 4px;
+}
+
 .item-title {
   display: flex;
   align-items: flex-start;
-  margin-right: auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.item-parameters {
+  flex: 1 1 10ch;
+  min-width: 2ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-s);
 }
 
 .test-count {
@@ -300,4 +322,10 @@
   outline: none;
   background: var(--color-control-bg);
   box-shadow: inset 3px 0 0 var(--color-intent-primary-bg);
+}
+
+@container allure-tree (max-width: 360px) {
+  .item-parameters {
+    display: none;
+  }
 }

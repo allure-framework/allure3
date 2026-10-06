@@ -1,7 +1,11 @@
-import { StatusLabel } from "@/components/StatusLabel";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 
-const meta: Meta<typeof StatusLabel> = {
+import { StatusLabel } from "@/components/StatusLabel";
+import type { StatusLabelProps } from "@/components/StatusLabel";
+
+type StatusLabelStoryProps = StatusLabelProps & { label: string };
+
+const meta: Meta<StatusLabelStoryProps> = {
   title: "Commons/StatusLabel",
   component: StatusLabel,
   argTypes: {
@@ -21,7 +25,7 @@ const meta: Meta<typeof StatusLabel> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof StatusLabel>;
+type Story = StoryObj<StatusLabelStoryProps>;
 
 export const Default: Story = {
   render: ({ label, ...args }) => {

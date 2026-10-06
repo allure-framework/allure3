@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { resolveConfig, type PluginInstance } from "@allurereport/core";
-import type { TestResult } from "@allurereport/core-api";
+import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { createPluginSummary } from "@allurereport/plugin-api";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -121,7 +121,16 @@ describe("generated report summary", () => {
       }
       const history = (await readFile(config.historyPath!, "utf8")).trim().split("\n");
       expect(history).toHaveLength(1);
-      expect(Object.keys(JSON.parse(history[0]).testResults)).toHaveLength(2);
+      const historyPoint: HistoryDataPoint = JSON.parse(history[0]);
+      const expectedHistoryUrl =
+        layout === "flattened"
+          ? "https://example.test/allure-report/index.html"
+          : "https://example.test/allure-report/";
+      expect(historyPoint.url).toBe(expectedHistoryUrl);
+      expect(Object.values(historyPoint.testResults)).toEqual([
+        expect.objectContaining({ url: expectedHistoryUrl }),
+        expect.objectContaining({ url: expectedHistoryUrl }),
+      ]);
     },
   );
 

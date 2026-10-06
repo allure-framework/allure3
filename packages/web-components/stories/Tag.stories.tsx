@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/preact";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Tag } from "@/components/Tag";
 
 const meta: Meta<typeof Tag> = {
@@ -20,6 +21,7 @@ const meta: Meta<typeof Tag> = {
         "successful-light",
         "failed-light",
         "warning-light",
+        "secondary",
       ],
     },
   },
@@ -52,6 +54,10 @@ export const LightweightSkins: Story = {
       <Tag skin="warning-light">Warning Light</Tag>
     </div>
   ),
+};
+
+export const Secondary: Story = {
+  render: () => <Tag skin="secondary">Secondary</Tag>,
 };
 
 export const AllVariants: Story = {
