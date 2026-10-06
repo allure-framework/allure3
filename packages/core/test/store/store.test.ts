@@ -5573,6 +5573,9 @@ describe("relatedByTestResultIds", () => {
     expect(related.attachmentsByTrId.get(latestResultId)).toEqual(await store.attachmentsByTrId(latestResultId));
     expect(related.fixturesByTrId.get(latestResultId)).toEqual(await store.fixturesByTrId(latestResultId));
     expect(related.historyByTrId.get(latestResultId)).toEqual(await store.historyByTrId(latestResultId));
+    expect(related.resolutionIssuesByTrId.get(latestResultId)).toEqual(
+      await store.resolutionIssueByTestResultId(latestResultId),
+    );
     expect(related.retriesByTrId.get(latestResultId)).toEqual(await store.retriesByTrId(latestResultId));
     expect(related.retriesByTrId.get(latestResultId)).toEqual([
       expect.objectContaining({
