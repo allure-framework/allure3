@@ -57,7 +57,7 @@
     "zip-stream": "^7.0.5"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
     "@types/zip-stream": "^7.0.0",
     "@vitest/coverage-istanbul": "^4.1.0",

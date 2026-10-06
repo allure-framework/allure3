@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@allurereport/reader-api": "workspace:*",
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",

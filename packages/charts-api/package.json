@@ -32,7 +32,7 @@
     "d3-shape": "^3.2.0"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^20",

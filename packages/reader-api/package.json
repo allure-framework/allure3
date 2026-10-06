@@ -33,7 +33,7 @@
     "mime-types": "^3.0.2"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "^4.1.0",

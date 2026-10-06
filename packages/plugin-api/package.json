@@ -34,7 +34,7 @@
     "tar-stream": "3.1.7"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
     "@types/tar-stream": "^3.1.4",
     "@vitest/coverage-istanbul": "^4.1.0",

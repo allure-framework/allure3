@@ -1,5 +1,5 @@
 {
-  "name": "@allurereport/vitest-config",
+  "name": "@allurereport/test-config",
   "version": "3.20.0",
   "private": true,
   "type": "module",
