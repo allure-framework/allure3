@@ -199,7 +199,7 @@ export const runTests = async (params: {
       }
     }
 
-    supervisor.start();
+    await supervisor.start();
 
     const qualityGateState = new QualityGateState();
 
