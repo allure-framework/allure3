@@ -29,6 +29,7 @@ const documents: ReportSearchDocument[] = [
     id: "tr-1",
     nodeId: "tr-1",
     name: "renders request form",
+    titlePath: "tests forms request.spec.ts renders request form",
     fullName: "forms.RequestWithDatesFormTest.shouldRender",
     retryHash: "history-request-form",
     owner: "Igor Martynov",
@@ -43,6 +44,7 @@ const documents: ReportSearchDocument[] = [
     id: "tr-2",
     nodeId: "tr-2",
     name: "submits checkout",
+    titlePath: "tests checkout submit.spec.ts submits checkout",
     fullName: "checkout.SubmitCheckoutTest.shouldSubmit",
     retryHash: null,
     owner: "Jane Smith",
@@ -65,6 +67,7 @@ describe("stores > search", () => {
   });
 
   it.each<SearchFindCase>([
+    ["request.spec.ts", ["tr-1"]],
     ["RequestWithDatesFormTest", ["tr-1"]],
     ["history-request-form", ["tr-1"]],
     ["Igor Martynov", ["tr-1"]],
@@ -74,8 +77,34 @@ describe("stores > search", () => {
     ["Product defects", ["tr-1"]],
     ["Date format assertion", ["tr-1"]],
     ["PAYMENTS-932", ["tr-2"]],
+    ["PAYMENTS-93", ["tr-2"]],
   ])("should find tests by %s", (query, expectedNodeIds) => {
     const searchIndex = createSearchIndex(documents);
+
+    expect(searchNodeIds(searchIndex, query)).toEqual(new Set(expectedNodeIds));
+  });
+
+  it.each<SearchFindCase>([
+    ["Device Sheet", ["issue-964"]],
+    ["equal", ["issue-964"]],
+    ["Two", ["issue-964"]],
+    ["One", ["issue-964"]],
+    ["Three", ["issue-964"]],
+    ["jira-819", ["issue-964"]],
+    ["819", ["issue-964"]],
+    ["jira-8129", []],
+  ])("should match issue #964 expectation for %s", (query, expectedNodeIds) => {
+    const searchIndex = createSearchIndex([
+      {
+        id: "issue-964",
+        nodeId: "issue-964",
+        name: "this test fails",
+        titlePath: "tests device-sheet.spec.ts Device Sheet this test fails",
+        labels: "parentSuite:One One suite:Two Two subSuite:Three Three",
+        statusMessage: "1 should equal 4",
+        links: "JIRA-819 JIRA-819",
+      },
+    ]);
 
     expect(searchNodeIds(searchIndex, query)).toEqual(new Set(expectedNodeIds));
   });
@@ -87,6 +116,8 @@ describe("stores > search", () => {
     ["no-match query", documents, "does-not-exist", []],
     ["prefix query", documents, "subm", ["tr-2"]],
     ["fuzzy query", documents, "chekout", ["tr-2"]],
+    ["structured token typo", documents, "PAYMENTS-931", []],
+    ["numeric token typo", documents, "931", []],
     ["case-insensitive query", documents, "igor martynov", ["tr-1"]],
   ])("should support %s", (_caseName, sourceDocuments, query, expectedNodeIds) => {
     const searchIndex = createSearchIndex(sourceDocuments);

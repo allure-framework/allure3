@@ -8,6 +8,7 @@ import type { StoreSignalState } from "@/stores/types";
 const SEARCH_FIELDS: (keyof ReportSearchDocument)[] = [
   "id",
   "name",
+  "titlePath",
   "fullName",
   "owner",
   "tags",
@@ -21,6 +22,8 @@ const SEARCH_FIELDS: (keyof ReportSearchDocument)[] = [
 
 const STORE_FIELDS: (keyof ReportSearchDocument)[] = ["nodeId", "name"];
 
+const isFuzzySearchTerm = (term: string) => /^\p{L}+$/u.test(term) && term.length > 3;
+
 export const createSearchIndex = (documents: ReportSearchDocument[]) => {
   const searchIndex = new MiniSearch<ReportSearchDocument>({
     fields: SEARCH_FIELDS,
@@ -28,10 +31,11 @@ export const createSearchIndex = (documents: ReportSearchDocument[]) => {
     searchOptions: {
       combineWith: "AND",
       prefix: true,
-      fuzzy: (term) => (term.length > 3 ? 0.2 : false),
+      fuzzy: (term) => (isFuzzySearchTerm(term) ? 0.2 : false),
       maxFuzzy: 2,
       boost: {
         name: 4,
+        titlePath: 3,
         fullName: 3,
         owner: 3,
         tags: 2,
