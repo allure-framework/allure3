@@ -97,7 +97,7 @@ export const generateDurationsChart = (props: {
   const { options, storeData } = props;
   const { groupBy = BY_NONE, title } = options;
 
-  const { testResults } = storeData;
+  const testResults = storeData.allTestResults ?? storeData.testResults;
 
   const enrichedTrs = enrichAndFilterTrs(testResults, groupBy);
   const durations = getDurations(enrichedTrs);

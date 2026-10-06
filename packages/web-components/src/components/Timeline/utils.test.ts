@@ -4,7 +4,7 @@ import type { TimelineChartData } from "./types";
 import { toTimelineData } from "./utils";
 
 describe("toTimelineData", () => {
-  it("groups retry attempts by their canonical retryHash", () => {
+  it("keeps retry attempts with the same canonical retryHash as separate timeline segments", () => {
     const timelineData: TimelineChartData = [
       {
         id: "old-attempt",
@@ -37,8 +37,16 @@ describe("toTimelineData", () => {
     expect(groups).toHaveLength(1);
     expect(groups[0].segments).toEqual([
       expect.objectContaining({
-        id: "retry-hash",
+        id: "old-attempt",
         label: "old attempt",
+        testResultId: "old-attempt",
+        isRetry: true,
+      }),
+      expect.objectContaining({
+        id: "latest-attempt",
+        label: "latest attempt",
+        testResultId: "latest-attempt",
+        isRetry: false,
       }),
     ]);
   });
