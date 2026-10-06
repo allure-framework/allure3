@@ -16,6 +16,7 @@ import {
   isString,
   ensureString,
 } from "@allurereport/reader-api";
+import { KnownError } from "@allurereport/service";
 
 import { logError } from "../../logs.js";
 import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion } from "../model.js";
@@ -128,6 +129,8 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #pendingRequests = new Map<string, PendingRequest>();
 
+  #sigintReceived: boolean = false;
+
   constructor(command: string, options: SupervisedCommandOptions) {
     const pipeName = `ps-supervisor-${randomUUID()}`;
     const pipePath = `\\\\.\\pipe\\${pipeName}`;
@@ -155,6 +158,9 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       },
       dispose: () => {
         this.#disposeControl();
+
+        // Use the default Node.js SIGINT handler from now on.
+        process.off("SIGINT", this.#onSigint);
       },
     };
 
@@ -178,6 +184,8 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     if (this.#server) {
       throw new Error("The controller has already been started.");
     }
+
+    process.on("SIGINT", this.#onSigint);
 
     this.#server = createServer((socket) => {
       if (this.#control || this.#failed) {
@@ -223,11 +231,18 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     });
 
     this.#server.on("error", (error) => this.#fail(error));
+
     try {
       await new Promise<void>((resolve, reject) => {
         this.#server!.once("error", reject);
         this.#server!.listen(this.#pipePath, resolve);
       });
+
+      // Cancellation while the pipe was being opened must not launch a wrapper.
+      if (this.#failed) {
+        this.#disposeControl();
+        throw this.#failure;
+      }
 
       // Base startup creates the child and completion promise synchronously.
       const startup = super.start();
@@ -243,6 +258,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
           }
         });
       }
+
       await startup;
       await this.#waitForStartReport();
     } catch (error) {
@@ -250,6 +266,33 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       throw error;
     }
   }
+
+  readonly #onSigint = () => {
+    if (!this.#started) {
+      // The target may not exist yet and cannot reliably receive this interrupt.
+      // Abort startup without depending on the control connection being ready.
+      this.#fail(new KnownError("Allure run startup cancelled by Ctrl+C."));
+      return;
+    }
+
+    if (!this.#sigintReceived) {
+      // SIGINT is delivered to all processes that share the same console.
+      // We're ignoring the first SIGINT at the Allure level,
+      // allowing the target process to handle it.
+      this.#sigintReceived = true;
+      return;
+    }
+
+    // Removing the handler so the third SIGINT will use the default Node.js handler,
+    // which terminates Allure.
+    process.off("SIGINT", this.#onSigint);
+
+    // The second SIGINT terminates the entire job.
+    // Allure has a chance to complete the report generation.
+    void this.terminate().catch((error) => {
+      this.#fail(error);
+    });
+  };
 
   #handleCompletedMessage(message: ShallowKnown<CompletedEvent>) {
     const exitCode = ensureInt(message.rootExitCode);
@@ -367,6 +410,8 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     this.#rejectStartedPromise(error);
     this.#rejectJobCompletion(error);
     this.#disposeControl();
+
+    process.off("SIGINT", this.#onSigint);
 
     for (const pendingRequest of this.#pendingRequests.values()) {
       pendingRequest.reject(error instanceof Error ? error : new Error(String(error)));
