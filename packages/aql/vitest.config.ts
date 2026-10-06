@@ -6,13 +6,6 @@ import { defineConfig, mergeConfig } from "vitest/config";
 export default mergeConfig(
   defaultVitestConfig({
     include: ["./tests/**/*.test.ts"],
-    globalLabels: [
-      { name: "module", value: "aql" },
-      { name: "layer", value: "unit" },
-      { name: "coverage", value: "aql" },
-      { name: "epic", value: "coverage" },
-      { name: "feature", value: "aql" },
-    ],
   }),
   defineConfig({
     test: {

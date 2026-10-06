@@ -1,3 +1,3 @@
 import { defaultVitestConfig } from "@allurereport/vitest-config";
 
-export default defaultVitestConfig({ globalLabels: [{ name: "module", value: "plugin-testops" }] });
+export default defaultVitestConfig();
