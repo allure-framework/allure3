@@ -3,7 +3,6 @@ import { defineConfig, mergeConfig } from "vitest/config";
 
 export default mergeConfig(
   defaultVitestConfig({
-    globalLabels: [{ name: "module", value: "web-awesome" }],
     coverageFiles: ["src/**/*.{ts,tsx,js}"],
   }),
   defineConfig({

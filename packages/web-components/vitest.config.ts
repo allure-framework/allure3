@@ -6,12 +6,6 @@ import { defineConfig, mergeConfig } from "vitest/config";
 export default mergeConfig(
   defaultVitestConfig({
     include: ["./src/**/*.test.tsx", "./src/**/*.test.ts"],
-    globalLabels: [
-      { name: "module", value: "web-components" },
-      { name: "coverage", value: "ui-components" },
-      { name: "epic", value: "coverage" },
-      { name: "feature", value: "ui-components" },
-    ],
   }),
   defineConfig({
     test: {

@@ -7,7 +7,6 @@ import { defineConfig, mergeConfig } from "vitest/config";
 export default mergeConfig(
   defaultVitestConfig({
     include: ["./test/**/*.test.{ts,tsx}"],
-    globalLabels: [{ name: "module", value: "web-awesome" }],
   }),
   defineConfig({
     plugins: [preact()],

@@ -1,13 +1,33 @@
 import { randomUUID } from "node:crypto";
-import { env } from "node:process";
+import { basename } from "node:path";
+import { cwd, env } from "node:process";
 
 import { Label } from "allure-js-commons";
 import { type TestUserConfig, defineConfig } from "vitest/config";
 const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
+const epicByPackagePrefix = new Map([
+  ["core", "core"],
+  ["cli", "cli"],
+  ["plugin", "plugins"],
+  ["web", "web"],
+  ["reader", "reader"],
+]);
 
-export const defaultVitestConfig = (opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] }) => {
+export const defaultVitestConfig = (
+  opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] } = {},
+) => {
   const ci = GITHUB_ACTIONS === "true";
-  const labels = opts.globalLabels ?? [];
+  const packageName = basename(cwd());
+  const epic = epicByPackagePrefix.get(packageName.split("-")[0]) ?? packageName;
+  const customLabels = opts.globalLabels ?? [];
+  const labels: Label[] = [
+    ...[
+      { name: "module", value: packageName },
+      { name: "epic", value: epic },
+      { name: "feature", value: packageName },
+    ].filter(({ name }) => !customLabels.some((label) => label.name === name)),
+    ...customLabels,
+  ];
   const reporters: TestUserConfig["reporters"] = [
     ci ? "minimal" : "default",
     ["blob", { outputFile: `.vitest/blob/report-${randomUUID()}.json` }],
