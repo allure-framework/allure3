@@ -47,7 +47,7 @@ const scriptPath = fileURLToPath(new URL("./supervisor.ps1", import.meta.url));
 const getPowerShellPath = () => {
   const systemRoot = process.env.SystemRoot || process.env.windir;
   if (!systemRoot) {
-    throw new Error("The 'SystemRoot' environment variable is not defined.");
+    throw new KnownError("The 'SystemRoot' environment variable is not defined.");
   }
 
   return path.join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
@@ -444,7 +444,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       return await Promise.race([
         this.#startedPromise,
         delay(START_TIMEOUT, undefined, { signal }).then(() => {
-          throw new Error("Timed out waiting for the process to start.");
+          throw new KnownError("Timed out waiting for the process to start.");
         }),
       ]);
     } finally {
@@ -521,7 +521,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       await Promise.race([
         response,
         delay(REQUEST_RESPONSE_TIMEOUT, undefined, { signal }).then(() => {
-          throw new Error(`Timed out waiting for the terminate request to complete.`);
+          throw new KnownError(`Timed out waiting for the terminate request to complete.`);
         }),
       ]);
     } catch (error) {
