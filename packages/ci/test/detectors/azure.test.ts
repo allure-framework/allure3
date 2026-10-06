@@ -362,6 +362,24 @@ describe("azure", () => {
       expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/457");
     });
 
+    it("should remove Azure repository URL user info from TfsGit pull request URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "TfsGit";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://user@dev.azure.com/organization/project/_git/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTID") {
+          return "458";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/458");
+    });
+
     it("should return the correct pull request URL for TfsVersionControl", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "BUILD_REPOSITORY_PROVIDER") {
