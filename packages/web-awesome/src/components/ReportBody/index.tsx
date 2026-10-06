@@ -72,7 +72,7 @@ const Header = () => {
 
 const Body = () => {
   return (
-    <div className={styles.body}>
+    <div className={styles.body} data-tree-body>
       <TreeList />
     </div>
   );
