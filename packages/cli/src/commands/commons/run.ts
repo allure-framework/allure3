@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import process from "node:process";
 
 import { Logger } from "@allurereport/cli-commons";
 import {
@@ -25,7 +24,7 @@ import { KnownError } from "@allurereport/service";
 
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { PosixProcessSupervisor, WindowsProcessSupervisor } from "../../utils/supervisor/index.js";
+import { ProcessSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
 export type TestProcessResult = {
@@ -111,7 +110,7 @@ export const runTests = async (params: {
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
   let fastFailTriggered = false;
-  let supervisor!: PosixProcessSupervisor | WindowsProcessSupervisor;
+  let supervisor!: ProcessSupervisor;
   let code!: number | null;
   const errors: unknown[] = [];
   const allureResultsWatchers: Map<string, Watcher> = new Map();
@@ -168,8 +167,6 @@ export const runTests = async (params: {
     });
 
     await allureResultsWatch.initialScan();
-
-    const ProcessSupervisor = process.platform === "win32" ? WindowsProcessSupervisor : PosixProcessSupervisor;
 
     supervisor = new ProcessSupervisor(command, {
       arguments: commandArgs,
