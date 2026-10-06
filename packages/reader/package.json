@@ -33,7 +33,7 @@
     "fast-xml-parser": "^5.11.1"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/archiver": "^6.0.3",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "^4.1.0",

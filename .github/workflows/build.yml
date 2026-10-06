@@ -123,7 +123,7 @@ jobs:
       - name: Publish code coverage
         uses: clearlyip/code-coverage-report-action@v7
         with:
-          filename: packages/vitest-config/.vitest/coverage/cobertura-coverage.xml
+          filename: packages/test-config/.vitest/coverage/cobertura-coverage.xml
           badge: true
           togglable-report: true
           report-low-coverage-only: true

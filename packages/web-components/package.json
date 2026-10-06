@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@allurereport/core-api": "workspace:*",
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^8.0.2",

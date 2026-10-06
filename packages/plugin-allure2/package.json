@@ -36,7 +36,7 @@
     "handlebars": "^4.7.9"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-allure2": "workspace:*",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "^4.1.0",

@@ -1,4 +1,4 @@
-import { defaultVitestConfig } from "@allurereport/vitest-config";
+import { defaultVitestConfig } from "@allurereport/test-config";
 import { defineConfig, mergeConfig } from "vitest/config";
 
 const nonParallelFiles = ["./test/commands/run.integration.test.ts"];

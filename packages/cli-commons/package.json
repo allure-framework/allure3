@@ -31,7 +31,7 @@
     "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "^4.1.0",

@@ -40,7 +40,7 @@
     "markdown-it": "^14.2.0"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/markdown-it": "^14.1.2",

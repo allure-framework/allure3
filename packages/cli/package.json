@@ -63,7 +63,7 @@
     "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/adm-zip": "^0",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20",

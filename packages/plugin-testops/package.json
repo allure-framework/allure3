@@ -47,7 +47,7 @@
     "yoctocolors": "^2"
   },
   "devDependencies": {
-    "@allurereport/vitest-config": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/lodash-es": "^4",
     "@types/node": "^20",

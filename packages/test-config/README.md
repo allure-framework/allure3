@@ -1,11 +1,11 @@
-# Shared Vitest configuration
+# Shared test configuration
 
-This private workspace provides the default unit-test configuration and merges coverage from unit test execution runs.
+This private workspace provides shared test configuration. It currently includes the default Vitest unit-test configuration and merges coverage from unit test execution runs.
 
 ## Package configuration
 
 ```ts
-import { defaultVitestConfig } from "@allurereport/vitest-config";
+import { defaultVitestConfig } from "@allurereport/test-config";
 
 export default defaultVitestConfig();
 ```

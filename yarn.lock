@@ -16,7 +16,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/aql@workspace:packages/aql"
   dependencies:
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -36,7 +36,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^20"
@@ -58,7 +58,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2.1.8"
@@ -77,7 +77,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/cli-commons@workspace:packages/cli-commons"
   dependencies:
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/lodash.debounce": "npm:^4.0.9"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -97,7 +97,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/core-api@workspace:packages/core-api"
   dependencies:
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -136,7 +136,7 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@types/zip-stream": "npm:^7.0.0"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -163,7 +163,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/directory-watcher@workspace:packages/directory-watcher"
   dependencies:
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -207,7 +207,7 @@ __metadata:
   resolution: "@allurereport/git@workspace:packages/git"
   dependencies:
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -243,7 +243,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -262,7 +262,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-allure2": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -281,7 +281,7 @@ __metadata:
   resolution: "@allurereport/plugin-api@workspace:packages/plugin-api"
   dependencies:
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@types/tar-stream": "npm:^3.1.4"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -303,7 +303,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -329,7 +329,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -354,7 +354,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -373,7 +373,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -396,7 +396,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@faker-js/faker": "npm:^10.5.0"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -416,7 +416,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -436,7 +436,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -456,7 +456,7 @@ __metadata:
   dependencies:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -475,7 +475,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -498,7 +498,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20"
@@ -524,7 +524,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2"
@@ -542,7 +542,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -565,7 +565,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/archiver": "npm:^6.0.3"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -586,7 +586,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
     "@vitest/runner": "npm:^2.1.8"
@@ -606,7 +606,7 @@ __metadata:
   resolution: "@allurereport/static-server@workspace:packages/static-server"
   dependencies:
     "@allurereport/directory-watcher": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@playwright/test": "npm:^1.62.1"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -631,7 +631,7 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-summary": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -645,9 +645,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/vitest-config@workspace:*, @allurereport/vitest-config@workspace:packages/vitest-config":
+"@allurereport/test-config@workspace:*, @allurereport/test-config@workspace:packages/test-config":
   version: 0.0.0-use.local
-  resolution: "@allurereport/vitest-config@workspace:packages/vitest-config"
+  resolution: "@allurereport/test-config@workspace:packages/test-config"
   dependencies:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "npm:^4.1.0"
@@ -717,7 +717,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -783,7 +783,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -844,7 +844,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@preact/signals": "npm:^2.6.1"
     "@preact/signals-core": "npm:^1.12.2"
     "@types/d3-interpolate": "npm:^3.0.4"
@@ -874,7 +874,7 @@ __metadata:
   dependencies:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.27.4"
     "@babel/plugin-transform-react-jsx": "npm:^7.27.1"
@@ -985,7 +985,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -8665,7 +8665,7 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@allurereport/vitest-config": "workspace:*"
+    "@allurereport/test-config": "workspace:*"
     "@types/adm-zip": "npm:^0"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20"
