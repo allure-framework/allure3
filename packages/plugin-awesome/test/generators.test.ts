@@ -434,6 +434,7 @@ describe("generateTestResults", () => {
         attachmentsByTrId: new Map([["tr-1", []]]),
         fixturesByTrId: new Map([["tr-1", []]]),
         historyByTrId: new Map([["tr-1", history]]),
+        resolutionIssuesByTrId: new Map([["tr-1", undefined]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
       resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
@@ -485,6 +486,7 @@ describe("generateTestResults", () => {
           ],
         ]),
         historyByTrId: new Map([["tr-1", []]]),
+        resolutionIssuesByTrId: new Map([["tr-1", undefined]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
       resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
@@ -503,27 +505,31 @@ describe("generateTestResults", () => {
       resolutionComment: "BUG-1 still fails in checkout",
     } satisfies TestResult;
     const { writer } = createWriter();
+    const resolutionIssue = {
+      id: "BUG-1",
+      type: "jira",
+      comment: "BUG-1 still fails in checkout",
+      link: {
+        name: "Jira BUG-1",
+        url: "https://jira.example/browse/BUG-1",
+        type: "jira",
+      },
+    };
+    const resolutionIssueByTestResultId = vi.fn().mockResolvedValue(undefined);
     const store = {
       relatedByTestResultIds: vi.fn().mockResolvedValue({
         attachmentsByTrId: new Map([["tr-1", []]]),
         fixturesByTrId: new Map([["tr-1", []]]),
         historyByTrId: new Map([["tr-1", []]]),
+        resolutionIssuesByTrId: new Map([["tr-1", resolutionIssue]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
-      resolutionIssueByTestResultId: vi.fn().mockResolvedValue({
-        id: "BUG-1",
-        type: "jira",
-        comment: "BUG-1 still fails in checkout",
-        link: {
-          name: "Jira BUG-1",
-          url: "https://jira.example/browse/BUG-1",
-          type: "jira",
-        },
-      }),
+      resolutionIssueByTestResultId,
     } as unknown as AllureStore;
 
     const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
 
+    expect(resolutionIssueByTestResultId).not.toHaveBeenCalled();
     expect(converted).toMatchObject({
       resolution: "issue",
       resolutionComment: "BUG-1 still fails in checkout",
@@ -538,6 +544,33 @@ describe("generateTestResults", () => {
         },
       },
     });
+  });
+
+  it("should fall back to per-result resolution issue lookup when related data does not include batch issues", async () => {
+    const testResult = {
+      ...mockTestResult("tr-1", "failed test", "failed"),
+      resolution: "issue",
+    } satisfies TestResult;
+    const { writer } = createWriter();
+    const resolutionIssue = {
+      id: "BUG-1",
+      type: "jira",
+    };
+    const resolutionIssueByTestResultId = vi.fn().mockResolvedValue(resolutionIssue);
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId,
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
+
+    expect(resolutionIssueByTestResultId).toHaveBeenCalledWith("tr-1");
+    expect(converted.resolutionIssue).toEqual(resolutionIssue);
   });
 });
 
