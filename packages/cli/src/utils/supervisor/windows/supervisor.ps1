@@ -104,6 +104,20 @@ namespace JobSupervisor
 
     internal static class Native
     {
+        // Console control events
+        internal const uint CTRL_C_EVENT = 0;
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal delegate bool ConsoleCtrlHandler(uint controlType);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SetConsoleCtrlHandler(
+            ConsoleCtrlHandler handler,
+            [MarshalAs(UnmanagedType.Bool)] bool add
+        );
+
         // Job objects and completion ports
         internal const uint KILL_ON_JOB_CLOSE = 0x2000;
         internal const int JobObjectBasicAccountingInformation = 1;
@@ -457,7 +471,11 @@ namespace JobSupervisor
         private uint rootPid;
         private string workerPath, tempDirectory;
 
+        // Keep the native callback rooted, including during cleanup or a failed removal.
+        private static readonly Native.ConsoleCtrlHandler ctrlHandler = HandleConsoleControl;
+
         // Lifecycle state
+        private bool ctrlHandlerRegistered;
         private bool terminateSeen, launched, terminationSucceeded;
         private bool stopSeen, stopPending, stopSucceeded, jobEmpty;
 
@@ -1503,6 +1521,27 @@ namespace JobSupervisor
             }
         }
 
+        private static bool HandleConsoleControl(uint controlType)
+        {
+            // The Node.js part owns escalation.
+            // The target receives the original console event automatically.
+            // The PowerShell part should simply ignore the CTRL+C event.
+            return controlType == Native.CTRL_C_EVENT;
+        }
+
+        private void UnregisterConsoleCtrlHandler()
+        {
+            if (ctrlHandlerRegistered)
+            {
+                if (!Native.SetConsoleCtrlHandler(ctrlHandler, false))
+                {
+                    throw Win32("SetConsoleCtrlHandler(remove)");
+                }
+
+                ctrlHandlerRegistered = false;
+            }
+        }
+
         private int Execute(
             string pipeName,
             string worker,
@@ -1514,6 +1553,13 @@ namespace JobSupervisor
             workerPath = worker;
             try
             {
+                if (!Native.SetConsoleCtrlHandler(ctrlHandler, true))
+                {
+                    throw Win32("SetConsoleCtrlHandler(add)");
+                }
+
+                ctrlHandlerRegistered = true;
+
                 pipe = new NamedPipeClientStream(
                     ".",
                     pipeName,
@@ -1647,60 +1693,67 @@ namespace JobSupervisor
 
         public void Dispose()
         {
-            stopping.Cancel();
-
-            if (pipe != null)
+            try
             {
-                pipe.Dispose();
-            }
+                stopping.Cancel();
 
-            // Closing the sole owning handle is the final safety net on every failure path.
-            if (job != IntPtr.Zero)
-            {
-                Native.CloseHandle(job);
-                job = IntPtr.Zero;
-            }
-
-            if (port != IntPtr.Zero)
-            {
-                Native.PostQueuedCompletionStatus(port, 0, Native.StopKey, IntPtr.Zero);
-            }
-
-            if (reader != null)
-            {
-                reader.Join(1000);
-            }
-
-            if (monitor != null)
-            {
-                monitor.Join(1000);
-            }
-
-            // Give an interrupted RM call a bounded chance to end its session after job cleanup.
-            if (shutdown != null)
-            {
-                shutdown.Join(1000);
-            }
-
-            if (root != IntPtr.Zero)
-            {
-                Native.CloseHandle(root);
-            }
-
-            if (port != IntPtr.Zero)
-            {
-                Native.CloseHandle(port);
-            }
-
-            if (tempDirectory != null)
-            {
-                try
+                if (pipe != null)
                 {
-                    Directory.Delete(tempDirectory, true);
+                    pipe.Dispose();
                 }
-                catch
+
+                // Closing the sole owning handle is the final safety net on every failure path.
+                if (job != IntPtr.Zero)
                 {
+                    Native.CloseHandle(job);
+                    job = IntPtr.Zero;
                 }
+
+                if (port != IntPtr.Zero)
+                {
+                    Native.PostQueuedCompletionStatus(port, 0, Native.StopKey, IntPtr.Zero);
+                }
+
+                if (reader != null)
+                {
+                    reader.Join(1000);
+                }
+
+                if (monitor != null)
+                {
+                    monitor.Join(1000);
+                }
+
+                // Give an interrupted RM call a bounded chance to end its session after job cleanup.
+                if (shutdown != null)
+                {
+                    shutdown.Join(1000);
+                }
+
+                if (root != IntPtr.Zero)
+                {
+                    Native.CloseHandle(root);
+                }
+
+                if (port != IntPtr.Zero)
+                {
+                    Native.CloseHandle(port);
+                }
+
+                if (tempDirectory != null)
+                {
+                    try
+                    {
+                        Directory.Delete(tempDirectory, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            finally
+            {
+                UnregisterConsoleCtrlHandler();
             }
         }
     }
