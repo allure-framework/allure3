@@ -434,6 +434,7 @@ namespace JobSupervisor
     public sealed class Supervisor : IDisposable
     {
         public const int MaxMessageBytes = 1048576;
+        public const string CMD_UNQUOTED = @"#$*+-./:?@\_";
 
         // Communication and event delivery
         // The script uses JavaScriptSerializer because the newer System.Text.Json is not available in PowerShell 5.1.
@@ -671,6 +672,158 @@ namespace JobSupervisor
             return result.Append('\\', slashes * 2).Append('"').ToString();
         }
 
+        // Adapted from Rust's std::sys::windows::args source code.
+        // See https://github.com/rust-lang/rust/blob/ea137335b78829b4514bf1b4c16302f74fab8581/library/std/src/sys/args/windows.rs#L219
+        private static void AppendBatArg(StringBuilder commandLine, string argument, bool quote)
+        {
+            if (commandLine == null)
+            {
+                throw new ArgumentNullException("commandLine");
+            }
+
+            if (argument == null)
+            {
+                throw new ArgumentNullException("argument");
+            }
+
+            if (argument.IndexOf('\0') >= 0)
+            {
+                throw new ArgumentException("Batch arguments cannot contain null characters.", "argument");
+            }
+
+            if (argument.Length == 0 || argument[argument.Length - 1] == '\\')
+            {
+                quote = true;
+            }
+
+            foreach (char c in argument)
+            {
+                bool asciiNeedsQuoting =
+                    IsAscii(c) && !(IsAsciiAlphanumeric(c) || CMD_UNQUOTED.IndexOf(c) >= 0);
+                if (asciiNeedsQuoting || IsControl(c))
+                {
+                    quote = true;
+                }
+            }
+
+            if (quote)
+            {
+                commandLine.Append('"');
+            }
+
+            int backslashes = 0;
+            foreach (char c in argument)
+            {
+                if (c == '\\')
+                {
+                    backslashes += 1;
+                }
+                else
+                {
+                    if (c == '"')
+                    {
+                        commandLine
+                            .Append('\\', backslashes)
+                            .Append('"');
+                    }
+                    else if (c == '%')
+                    {
+                        commandLine.Append("%%cd:~,");
+                    }
+
+                    backslashes = 0;
+                }
+
+                commandLine.Append(c);
+            }
+
+            if (quote)
+            {
+                commandLine
+                    .Append('\\', backslashes)
+                    .Append('"');
+            }
+        }
+
+        // Adapted from Rust's std::sys::windows::args source code.
+        // See https://github.com/rust-lang/rust/blob/ea137335b78829b4514bf1b4c16302f74fab8581/library/std/src/sys/args/windows.rs#L292.
+        private static string MakeBatCommandLine(
+            string cmdExePath,
+            string scriptPath,
+            string[] arguments,
+            bool forceQuotes
+        )
+        {
+            if (scriptPath == null)
+            {
+                throw new ArgumentNullException("scriptPath");
+            }
+
+            if (arguments == null)
+            {
+                throw new ArgumentNullException("arguments");
+            }
+
+            if (scriptPath.Length == 0)
+            {
+                throw new ArgumentException(
+                    "The script path cannot be empty.",
+                    "scriptPath"
+                );
+            }
+
+            if (scriptPath.IndexOf('"') >= 0 || scriptPath[scriptPath.Length - 1] == '\\')
+            {
+                throw new ArgumentException(
+                    "The script path cannot contain quotes or end with a backslash.",
+                    "scriptPath"
+                );
+            }
+
+            StringBuilder commandLine = new StringBuilder(QuoteNative(cmdExePath))
+                .Append(" /e:ON /v:OFF /d /c \"")
+                .Append('"')
+                .Append(
+                    scriptPath[scriptPath.Length - 1] == '\0'
+                        ? scriptPath.Substring(0, scriptPath.Length - 1)
+                        : scriptPath
+                )
+                .Append('"');
+
+            foreach (string argument in arguments)
+            {
+                if (argument.IndexOf('\r') >= 0 || argument.IndexOf('\n') >= 0)
+                {
+                    throw new ArgumentException(
+                        "Batch file arguments cannot contain carriage return or newline characters.",
+                        "arguments"
+                    );
+                }
+
+                commandLine.Append(' ');
+                AppendBatArg(commandLine, argument, forceQuotes);
+            }
+
+            commandLine.Append('"');
+
+            return commandLine.ToString();
+        }
+
+        private static bool IsAscii(char c)
+        {
+            return c >= '\x00' && c <= '\x7F';
+        }
+
+        private static bool IsAsciiAlphanumeric(char c)
+        {
+            return c >='0' && c <='9' || c >='A' && c <='Z' || c >='a' && c <='z';
+        }
+
+        private static bool IsControl(char c)
+        {
+            return c >= '\x00' && c <= '\x1F' || c >= '\x7F' && c <= '\u009F';
+        }
+
         private static IntPtr StandardHandle(int id, bool input)
         {
             bool success = false;
@@ -736,7 +889,8 @@ namespace JobSupervisor
 
         private uint Launch(CommandInfo command, string[] arguments, string cwd)
         {
-            bool powershell;
+            bool powershell = false;
+            bool batch = false;
             string resolved;
 
             ApplicationInfo applicationInfo = command as ApplicationInfo;
@@ -747,7 +901,7 @@ namespace JobSupervisor
                 resolved = applicationInfo.Path;
                 string resolvedExtension = Path.GetExtension(resolved);
 
-                powershell = resolvedExtension.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
+                batch = resolvedExtension.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
                     || resolvedExtension.Equals(".bat", StringComparison.OrdinalIgnoreCase);
             }
             else if (scriptInfo != null)
@@ -770,7 +924,15 @@ namespace JobSupervisor
 
             string application = resolved;
             string commandLine;
-            if (scriptInfo != null)
+            if (batch)
+            {
+                application = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.System),
+                    "cmd.exe"
+                );
+                commandLine = MakeBatCommandLine(application, resolved, arguments, false);
+            }
+            else if (scriptInfo != null)
             {
                 application = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.System),
