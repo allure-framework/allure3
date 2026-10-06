@@ -11,6 +11,11 @@ import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 import { DefaultAllureStore } from "../src/store/store.js";
 
+const mocks = vi.hoisted(() => ({ getTestFlakiness: vi.fn() }));
+vi.mock("@allurereport/core-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@allurereport/core-api")>()),
+  getTestFlakiness: mocks.getTestFlakiness,
+}));
 const testId = "test";
 const retryHash = calculateRetryHash({ testCaseHash: md5Utf8(testId), parametersHash: md5Utf8("") })!;
 const legacyId = "legacy-test";
@@ -19,9 +24,7 @@ const point = (timestamp: number, key: string, status: "passed" | "failed"): His
   uuid: `run-${timestamp}`,
   name: `Run ${timestamp}`,
   timestamp,
-  testResults: {
-    [key]: { id: `result-${timestamp}`, name: "test", retryHash: key, status, url: "" },
-  },
+  testResults: { [key]: { id: `result-${timestamp}`, name: "test", retryHash: key, status, url: "" } },
   knownTestCaseIds: [],
   metrics: {},
   url: "",
@@ -33,93 +36,148 @@ const storeWithHistory = (points: HistoryDataPoint[]) =>
   new DefaultAllureStore({
     history: { readHistory: async () => points, appendHistory: async () => {} },
   });
-
 beforeEach(async () => {
   await epic("coverage");
   await feature("history");
   await story("explicit history flag updates");
+  mocks.getTestFlakiness.mockReset().mockReturnValue(true);
 });
 
 describe("history flags", () => {
   it.each([
     { name: "mixed canonical and legacy", points: mixedHistory },
     { name: "legacy-only", points: legacyHistory },
-  ])("calculates flaky from all available $name history", async ({ points }) => {
+  ])("resolves $name history for inference and transitions", async ({ points }) => {
     const original = structuredClone(points);
     const store = storeWithHistory(points);
-
     await store.readHistory();
+
     await store.visitTestResult(rawResult, context);
-
     const [result] = await store.allTestResults();
+    const history = await store.historyByTrId(result.id);
 
     expect(result.flaky).toBe(true);
     expect(result.transition).toBe("regressed");
-    expect(await store.historyByTrId(result.id)).toHaveLength(points.length);
-
-    // Queries do not update flags as a side effect.
-    await store.testsStatistic();
-    await store.failedTestResults();
-    await store.testResultsByLabel("owner");
-    expect(result.flaky).toBe(true);
-    expect(result.transition).toBe("regressed");
-
-    store.updateHistoryFlags();
-
-    expect(result.flaky).toBe(true);
-    expect((await store.testsStatistic()).flaky).toBe(1);
-    expect(store.dumpState().testResults[result.id].flaky).toBe(true);
+    expect(history).toHaveLength(2);
+    expect(mocks.getTestFlakiness).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: result.id }),
+      [expect.objectContaining({ id: "result-2" }), expect.objectContaining({ id: "result-1" })],
+      { historyDepth: undefined, stabilizationPeriod: undefined },
+    );
     expect(points).toEqual(original);
   });
+  it.each(["ingestion", "refresh"])(
+    "preserves missing entries during %s without changing transitions",
+    async (mode) => {
+      const missing = { ...point(2, retryHash, "passed"), testResults: {} };
+      const points = [point(1, retryHash, "failed"), missing, point(3, retryHash, "passed")];
+      const store = storeWithHistory(points);
+      await store.readHistory();
+      if (mode === "refresh") {
+        await store.visitTestResult(rawResult, context);
+      }
+      mocks.getTestFlakiness.mockClear();
 
-  it("recomputes a previous snapshot when a later result makes its legacy alias ambiguous", async () => {
+      if (mode === "ingestion") {
+        await store.visitTestResult(rawResult, context);
+      } else {
+        store.updateHistoryFlags();
+      }
+      const [result] = await store.allTestResults();
+      const history = await store.historyByTrId(result.id);
+
+      expect(mocks.getTestFlakiness).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: result.id }),
+        [expect.objectContaining({ id: "result-3" }), undefined, expect.objectContaining({ id: "result-1" })],
+        { historyDepth: undefined, stabilizationPeriod: undefined },
+      );
+      expect(result.transition).toBe("regressed");
+      expect(history).toHaveLength(2);
+    },
+  );
+  it.each([
+    { name: "statistics", query: (store: DefaultAllureStore) => store.testsStatistic() },
+    { name: "failures", query: (store: DefaultAllureStore) => store.failedTestResults() },
+    { name: "labels", query: (store: DefaultAllureStore) => store.testResultsByLabel("owner") },
+  ])("keeps flag recomputation out of $name queries", async ({ query }) => {
     const store = storeWithHistory(mixedHistory);
-
     await store.readHistory();
     await store.visitTestResult(rawResult, context);
-    store.updateHistoryFlags();
+    mocks.getTestFlakiness.mockClear().mockReturnValue(false);
 
+    await query(store);
     const [result] = await store.allTestResults();
 
     expect(result.flaky).toBe(true);
+    expect(result.transition).toBe("regressed");
+    expect(mocks.getTestFlakiness).not.toHaveBeenCalled();
+  });
+  it("preserves ambiguity protection when refreshing a stored result", async () => {
+    const store = storeWithHistory(mixedHistory);
+    await store.readHistory();
+    await store.visitTestResult(rawResult, context);
+    const [initial] = await store.allTestResults();
     await store.visitTestResult({ ...rawResult, uuid: "other", testId: "other" }, context);
-
-    expect(await store.historyByTrId(result.id)).toEqual([expect.objectContaining({ retryHash })]);
-    expect(result.flaky).toBe(true);
+    mocks.getTestFlakiness.mockClear().mockReturnValue(false);
 
     store.updateHistoryFlags();
+    const result = (await store.allTestResults()).find((entry) => entry.id === initial.id)!;
+    const history = await store.historyByTrId(result.id);
 
+    expect(history).toEqual([expect.objectContaining({ retryHash })]);
+    expect(mocks.getTestFlakiness).toHaveBeenCalledWith(
+      expect.objectContaining({ id: result.id }),
+      [expect.objectContaining({ id: "result-2" }), undefined],
+      { historyDepth: undefined, stabilizationPeriod: undefined },
+    );
     expect(result.flaky).toBe(false);
     expect(result.transition).toBe("regressed");
     expect(store.dumpState().testResults[result.id].flaky).toBe(false);
   });
-
-  it("recalculates directly stored flaky after a JSON dump round trip", async () => {
+  it("recomputes inferred flags after a JSON dump round trip", async () => {
     const store = storeWithHistory(legacyHistory);
-
     await store.readHistory();
     await store.visitTestResult(rawResult, context);
-    store.updateHistoryFlags();
-
     const dump = JSON.parse(JSON.stringify(store.dumpState()));
     const restored = storeWithHistory([point(4, retryHash, "failed")]);
-
     await restored.readHistory();
     await restored.restoreState(dump);
+    mocks.getTestFlakiness.mockClear().mockReturnValue(false);
 
+    restored.updateHistoryFlags();
     const [result] = await restored.allTestResults();
 
-    expect(result.flaky).toBe(true);
-    restored.updateHistoryFlags();
     expect(result.flaky).toBe(false);
+    expect(mocks.getTestFlakiness).toHaveBeenCalled();
   });
-
-  it("preserves incoming flaky when no history source is configured", async () => {
-    const store = new DefaultAllureStore();
+  it.each([
+    { assessment: "stable", value: false },
+    { assessment: "unassessed", value: undefined },
+  ])("keeps explicitly reported flaky tests marked with $assessment history", async ({ value }) => {
+    const store = storeWithHistory(legacyHistory);
+    await store.readHistory();
+    mocks.getTestFlakiness.mockReturnValue(value);
 
     await store.visitTestResult({ ...rawResult, flaky: true }, context);
-    store.updateHistoryFlags();
+    const [result] = await store.allTestResults();
 
+    expect(result.flaky).toBe(true);
+    expect(store.dumpState().testResults[result.id].flaky).toBe(true);
+  });
+  it("does not suppress inference with explicitly reported false", async () => {
+    const store = storeWithHistory(legacyHistory);
+    await store.readHistory();
+
+    await store.visitTestResult({ ...rawResult, flaky: false }, context);
+    const [result] = await store.allTestResults();
+
+    expect(result.flaky).toBe(true);
+  });
+  it("preserves incoming flaky without a history source", async () => {
+    const store = new DefaultAllureStore();
+    await store.visitTestResult({ ...rawResult, flaky: true }, context);
+
+    store.updateHistoryFlags();
     const [result] = await store.allTestResults();
 
     expect(result.flaky).toBe(true);
@@ -129,15 +187,12 @@ describe("history flags", () => {
 
 describe("report lifecycle", () => {
   const directories: string[] = [];
-
   afterEach(async () => {
     await Promise.all(directories.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
   });
-
-  it.each([true, false])("updates event subscribers and final snapshots with realtime=%s", async (realTime) => {
+  it.each([true, false])("publishes final inferred flags with realtime=%s", async (realTime) => {
     const directory = await mkdtemp(join(tmpdir(), "allure-history-flags-"));
     directories.push(directory);
-
     const historyPath = join(directory, "history.jsonl");
     const originalHistory = mixedHistory.map((entry) => `${JSON.stringify(entry)}\n`).join("");
     const snapshots: boolean[][] = [];
@@ -160,9 +215,7 @@ describe("report lifecycle", () => {
         await pluginContext.reportFiles.addFile("results.json", Buffer.from(JSON.stringify(finalResults)));
       },
     };
-
     await writeFile(historyPath, originalHistory, "utf8");
-
     const config = await resolveConfig(
       { name: "History flags", output: join(directory, "report"), historyPath },
       { plugins: {} },
@@ -172,34 +225,25 @@ describe("report lifecycle", () => {
       realTime,
       plugins: [{ id: "test", enabled: true, options: {}, plugin }],
     });
-
     await report.start();
-
-    try {
-      await report.store.visitTestResult(rawResult, context);
-      await vi.waitFor(() => expect(eventSnapshots).toContainEqual([true]));
-
-      if (realTime) {
-        await vi.waitFor(() => expect(snapshots).toContainEqual([true]));
+    await report.store.visitTestResult(rawResult, context);
+    mocks.getTestFlakiness.mockReturnValue(false);
+    await report.store.visitTestResult({ ...rawResult, uuid: "other", testId: "other" }, context);
+    await vi.waitFor(() => {
+      if (!eventSnapshots.some((snapshot) => snapshot.length === 2)) {
+        throw new Error("Waiting for result events");
       }
+    });
 
-      await report.store.visitTestResult({ ...rawResult, uuid: "other", testId: "other" }, context);
-      await vi.waitFor(() => expect(eventSnapshots).toContainEqual([false, false]));
-
-      if (realTime) {
-        await vi.waitFor(() => expect(snapshots).toContainEqual([false, false]));
-      } else {
-        expect(snapshots).toEqual([]);
-      }
-    } finally {
-      await report.done();
-    }
-
-    expect(finalResults.map((result) => result.flaky)).toEqual([false, false]);
-
+    await report.done();
     const contents = await readFile(historyPath, "utf8");
     const latestPoint = JSON.parse(contents.trim().split("\n").at(-1)!);
 
+    expect(finalResults.map((result) => result.flaky)).toEqual([false, false]);
+    expect(eventSnapshots).toContainEqual([false, false]);
+    if (realTime) {
+      expect(snapshots).toContainEqual([false, false]);
+    }
     expect(contents.startsWith(originalHistory)).toBe(true);
     expect(Object.keys(latestPoint.testResults).sort()).toEqual(finalResults.map((result) => result.retryHash!).sort());
     expect(latestPoint.testResults).not.toHaveProperty(legacyId);

@@ -135,7 +135,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
   readonly #history: AllureHistory | undefined;
-  readonly #detectFlaky: (tr: TestResult, history: HistoryTestResult[]) => boolean;
+  readonly #detectFlaky: (tr: TestResult, history: (HistoryTestResult | undefined)[]) => boolean;
   readonly #resolutionsConfig: ResolutionsConfig | undefined;
   readonly #resolutionIssues: Map<string, ResolutionIssue> = new Map();
   readonly #testResultIdsByResolutionIssueId: Map<string, Set<string>> = new Map();
@@ -697,17 +697,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return (this.#historyLookup ??= createHistoryTestResultLookup(this.#testResults.values()));
   }
 
-  #historyFor(result: TestResult, lookup: ReturnType<typeof createHistoryTestResultLookup>): HistoryTestResult[] {
-    return this.#historyPoints.flatMap((point) => {
-      const historicalResult = lookup(point, result);
-
-      return historicalResult ? [historicalResult] : [];
-    });
+  #historyFor(
+    result: TestResult,
+    lookup: ReturnType<typeof createHistoryTestResultLookup>,
+  ): (HistoryTestResult | undefined)[] {
+    return this.#historyPoints.map((point) => lookup(point, result));
   }
 
-  #applyHistoryFlags(result: TestResult, history: HistoryTestResult[]): void {
+  #applyHistoryFlags(result: TestResult, history: (HistoryTestResult | undefined)[]): void {
     result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(result, history);
-    result.transition = getStatusTransition(result, history);
+    const resolvedHistory = history.filter((entry): entry is HistoryTestResult => entry !== undefined);
+    result.transition = getStatusTransition(result, resolvedHistory);
   }
 
   /**
