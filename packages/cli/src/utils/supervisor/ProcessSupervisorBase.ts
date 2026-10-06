@@ -3,6 +3,8 @@ import type { ChildProcess } from "node:child_process";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { KnownError } from "@allurereport/service";
+
 import { logError } from "../logs.js";
 import type { JobMonitor, RootCompletion, ProcessCompletion, SupervisedCommandOptions } from "./model.js";
 
@@ -42,7 +44,7 @@ export abstract class ProcessSupervisorBase {
     }: SupervisedCommandOptions,
   ) {
     if (!Number.isFinite(stopTimeout) || stopTimeout <= 0 || stopTimeout > 2_147_483_647) {
-      throw new Error(`Invalid stop timeout ${stopTimeout}.`);
+      throw new KnownError(`Invalid stop timeout ${stopTimeout}.`);
     }
 
     this.#command = command;
