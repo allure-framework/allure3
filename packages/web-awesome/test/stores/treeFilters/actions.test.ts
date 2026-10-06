@@ -30,6 +30,7 @@ import { ReportFetchError } from "@allurereport/web-commons";
 import {
   clearTreeFilterParams,
   fetchTreeFiltersData,
+  setQueryFilter,
   setSeverityFilter,
 } from "../../../src/stores/treeFilters/actions.js";
 import { clearTreeFilters } from "../../../src/stores/treeFilters/store.js";
@@ -49,6 +50,55 @@ describe("stores > treeFilters > actions", () => {
     treeCategories.value = [];
     treeFiltersResetNonce.value = 0;
     vi.restoreAllMocks();
+  });
+
+  describe("tree body height while filtering", () => {
+    const mountTree = (scrollTop: number) => {
+      document.body.innerHTML = `
+        <div data-tree-scroll-container>
+          <section>
+            <header data-tree-sticky-header></header>
+            <div data-tree-body></div>
+          </section>
+        </div>
+      `;
+
+      const container = document.querySelector("[data-tree-scroll-container]") as HTMLElement;
+      const section = document.querySelector("section") as HTMLElement;
+      const body = document.querySelector("[data-tree-body]") as HTMLElement;
+      const containerTop = 0;
+      const sectionTopInContent = 300;
+      const headerHeight = 60;
+
+      Object.defineProperty(container, "clientHeight", { value: 500 });
+      container.scrollTop = scrollTop;
+      container.getBoundingClientRect = () => ({ top: containerTop }) as DOMRect;
+      section.getBoundingClientRect = () => ({ top: containerTop + sectionTopInContent - scrollTop }) as DOMRect;
+      body.getBoundingClientRect = () =>
+        ({ top: containerTop + sectionTopInContent + headerHeight - scrollTop }) as DOMRect;
+
+      return body;
+    };
+
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
+
+    it("should keep the body tall enough to hold the scroll position once the header is scrolled away", () => {
+      const body = mountTree(800);
+
+      setQueryFilter("abc");
+
+      expect(body.style.minHeight).toBe("940px");
+    });
+
+    it("should not touch the body height while the header is still visible", () => {
+      const body = mountTree(100);
+
+      setQueryFilter("abc");
+
+      expect(body.style.minHeight).toBe("");
+    });
   });
 
   it("should fall back to empty filters on 404 without logging an error", async () => {
