@@ -110,7 +110,6 @@ export const runTests = async (params: {
   } = params;
   const failureHandler = createLiveIngestionFailureHandler();
   let testProcessStarted = false;
-  let cleaningUp = false;
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
   let fastFailTriggered = false;
@@ -145,9 +144,6 @@ export const runTests = async (params: {
         }
 
         for (const newAr of newAllureResults) {
-          if (cleaningUp) {
-            break;
-          }
           if (allureResultsWatchers.has(newAr)) {
             continue;
           }
@@ -269,7 +265,6 @@ export const runTests = async (params: {
   } catch (error) {
     errors.push(error);
   } finally {
-    cleaningUp = true;
     const cleanup = async (action: () => unknown) => {
       try {
         await action();
