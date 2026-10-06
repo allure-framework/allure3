@@ -147,6 +147,26 @@ vi.mock("../../src/utils/supervisor/index.js", async (importOriginal) => ({
     start = supervisorStartMock;
     stop = supervisorStopMock;
   },
+  WindowsProcessSupervisor: class {
+    constructor(command: string, options: unknown) {
+      supervisorConstructorMock(command, options);
+    }
+
+    get exitCode(): Promise<number | null> {
+      return supervisorExitCodeMock();
+    }
+
+    get stdout(): Promise<string> {
+      return supervisorStdoutMock();
+    }
+
+    get stderr(): Promise<string> {
+      return supervisorStderrMock();
+    }
+
+    start = supervisorStartMock;
+    stop = supervisorStopMock;
+  },
 }));
 vi.mock("../../src/utils/logs.js", () => ({
   logError: vi.fn(),
@@ -164,6 +184,12 @@ beforeEach(async () => {
   await story("run");
   await label("coverage", "cli-run");
   vi.clearAllMocks();
+  supervisorConstructorMock.mockReset();
+  supervisorStartMock.mockReset().mockResolvedValue(undefined);
+  supervisorStopMock.mockReset().mockResolvedValue(undefined);
+  supervisorExitCodeMock.mockReset().mockResolvedValue(0);
+  supervisorStdoutMock.mockReset().mockResolvedValue("");
+  supervisorStderrMock.mockReset().mockResolvedValue("");
   delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
 
   const { AllureReportMock } = await import("../utils.js");
@@ -593,7 +619,6 @@ describe("run command", () => {
 
   it("should remove the temporary test plan when a rerun process fails unexpectedly", async () => {
     const { AllureReportMock } = await import("../utils.js");
-    const { terminationOf } = await import("../../src/utils/index.js");
     const { rm } = await import("node:fs/promises");
     const failed = {
       id: "failed-result",
@@ -608,9 +633,6 @@ describe("run command", () => {
       failedTestResults: vi.fn().mockResolvedValue([failed]),
       allTestResults: vi.fn().mockResolvedValue([]),
     };
-    vi.mocked(terminationOf)
-      .mockResolvedValueOnce(1)
-      .mockRejectedValueOnce(new Error("rerun process failed unexpectedly"));
 
     await executeAllureRun({
       allureReport: new AllureReportMock() as never,
