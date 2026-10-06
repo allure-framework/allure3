@@ -306,10 +306,14 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
     return;
   }
 
-  const { historyDepth, includePassedTests } = config;
+  const { historyDepth, includePassedTests, stabilizationPeriod } = config;
 
   if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {
     throw new Error("flakyDetection.historyDepth must be an integer greater than or equal to -1");
+  }
+
+  if (stabilizationPeriod !== undefined && (!Number.isInteger(stabilizationPeriod) || stabilizationPeriod < 1)) {
+    throw new Error("flakyDetection.stabilizationPeriod must be a positive integer");
   }
 
   if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {

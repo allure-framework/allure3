@@ -38,6 +38,40 @@ beforeEach(async () => {
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 });
 
+describe("flaky detection configuration", () => {
+  it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
+    const input = { flakyDetection: { stabilizationPeriod } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection?.stabilizationPeriod).toBe(stabilizationPeriod);
+  });
+  it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects stabilizationPeriod=%s",
+    async (stabilizationPeriod) => {
+      const input = { flakyDetection: { stabilizationPeriod } };
+
+      const resolution = resolveConfig(input, { plugins: {} });
+
+      await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+    },
+  );
+  it.each([-2, 1.5, Number.NaN, Number.POSITIVE_INFINITY])("rejects historyDepth=%s", async (historyDepth) => {
+    const input = { flakyDetection: { historyDepth } };
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it("rejects a non-boolean includePassedTests", async () => {
+    const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.includePassedTests");
+  });
+});
+
 describe("findConfig", () => {
   let fixturesDir: string;
 
