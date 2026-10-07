@@ -8,6 +8,10 @@ export type SupervisedCommandOptions = {
   stopTimeout?: number;
 };
 
+export type ProcessStartupInfo = {
+  pid: number;
+};
+
 export type ProcessCompletion = {
   code: number | null;
   signal: NodeJS.Signals | null;
