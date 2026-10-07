@@ -25,7 +25,7 @@ export const uniq = (values: string[]): string[] => [...new Set(values.map((valu
 /**
  * Escape characters that would break a Jira wiki markup link
  */
-export const escapeWikiLinkText = (text: string): string => text.replace(/[[\]|]/g, "\\$&");
+export const escapeWikiLinkText = (text: string): string => text.replace(/[\\[\]|]/g, "\\$&");
 
 /**
  * Jira key of a Test is taken from the tms link name (same as in Allure 2),

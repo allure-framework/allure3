@@ -131,14 +131,14 @@ describe("XrayPlugin", () => {
 
   it("queries and comments each Test Execution once and escapes the report name", async () => {
     await new XrayPlugin({ ...options, executions: ["XT-6", " XT-6 ", "XT-7"] }).done(
-      { ...context, reportName: "Report [nightly | main]" },
+      { ...context, reportName: "Report [nightly | main] \\" },
       store([tr("passed", "XT-1")]),
     );
 
     expect(http.get).toHaveBeenCalledTimes(2);
     expect(http.post).toHaveBeenCalledTimes(2);
     expect(http.post).toHaveBeenCalledWith("api/2/issue/XT-7/comment", {
-      body: "Execution updated from report [Report \\[nightly \\| main\\]|https://reports/1]",
+      body: "Execution updated from report [Report \\[nightly \\| main\\] \\\\|https://reports/1]",
     });
   });
 
