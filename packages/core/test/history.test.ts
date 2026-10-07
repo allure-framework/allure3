@@ -631,6 +631,39 @@ describe("AllureLocalHistory", () => {
 });
 
 describe("createHistory", () => {
+  it("should store earlier attempt statuses in history retries", async () => {
+    const retries = [
+      { id: "retry-1", status: "broken" },
+      { id: "retry-0", status: "failed" },
+    ] as TestResult[];
+
+    const testResults = [
+      {
+        id: "latest-result-id",
+        name: "latest result",
+        retryHash: "retry-hash",
+        status: "passed",
+        start: 300,
+        stop: 400,
+        duration: 100,
+        labels: [],
+        retries,
+      },
+      {
+        id: "single-result-id",
+        name: "single result",
+        retryHash: "single-retry-hash",
+        status: "passed",
+        labels: [],
+      },
+    ] as unknown as TestResult[];
+
+    const history = createHistory("report-id", "Report", [], testResults, "https://example.com/report");
+
+    expect(history.testResults["retry-hash"].retries).toEqual(["failed", "broken"]);
+    expect(history.testResults["single-retry-hash"].retries).toEqual([]);
+  });
+
   it("should set nested history test result url from remote url", () => {
     const remoteUrl = "https://service.allurereport.org/report/1";
     const testCases = [{ id: "test-case-id" }] as TestCase[];
@@ -641,7 +674,7 @@ describe("createHistory", () => {
         retryHash: "retry-hash",
         status: "passed",
         labels: [],
-      } as TestResult,
+      } as unknown as TestResult,
     ];
 
     const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
