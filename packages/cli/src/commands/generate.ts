@@ -4,6 +4,7 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { generate } from "./commons/generate.js";
 
 export class GenerateCommand extends Command {
@@ -125,8 +126,7 @@ export class GenerateCommand extends Command {
 
     if (config.open) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        host: config.host,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

@@ -16,6 +16,7 @@ import {
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
 import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 const missingRunCommandUsageError = () =>
@@ -229,8 +230,7 @@ export class RunCommand extends Command {
 
     if (config.open) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        host: config.host,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

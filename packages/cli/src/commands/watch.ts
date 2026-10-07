@@ -15,6 +15,7 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 
 import { resolveResultsPatterns } from "../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { boundedTerminationSignal, notifySignals, waitForAbort } from "../utils/signals.js";
 import { allureResultsDirectoriesGlobWatcher } from "./commons/resultsDiscovery.js";
 
@@ -122,8 +123,7 @@ export class WatchCommand extends Command {
     // FIXME: do we need to start the server when there's no servable reports in the config?
     const server = await serve({
       servePath: config.output,
-      port: this.port ? parseInt(this.port, 10) : undefined,
-      host: config.host,
+      ...serverOptionsFromConfig(config),
       live: false,
       open: false,
     });
