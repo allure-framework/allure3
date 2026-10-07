@@ -300,4 +300,23 @@ describe("convertTestResult ideaLinks", () => {
   it("should skip idea link without testClass label", () => {
     expect(convertTestResult(createTestResult(), { ideaLinks: {} }).links).toEqual([]);
   });
+
+  it("should accept true as default options", () => {
+    expect(convertTestResult(createTestResult({ labels }), { ideaLinks: true }).links[0].url).toBe(
+      "http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java",
+    );
+  });
+
+  it("should point nested classes to the outer class file and accept a dotted extension", () => {
+    const { links } = convertTestResult(
+      createTestResult({ labels: [{ name: "testClass", value: "org.example.FooTest$Inner" }] }),
+      { ideaLinks: { fileExtension: ".kt" } },
+    );
+
+    expect(links[0].url).toBe("http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.kt");
+  });
+
+  it("should not add idea link when ideaLinks is false", () => {
+    expect(convertTestResult(createTestResult({ labels }), { ideaLinks: false }).links).toEqual([]);
+  });
 });

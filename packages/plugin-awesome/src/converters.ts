@@ -12,34 +12,24 @@ import {
 import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
+import type { IdeaLinksOptions } from "./model.js";
+
 const md = new MarkdownIt();
 const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
 
-export type IdeaLinksOptions = {
-  port?: number;
-  fileExtension?: string;
-};
-
-export const ideaLinkType = "idea";
-
-const createIdeaLink = (
-  labels: TestLabel[],
-  { port = 63342, fileExtension = "java" }: IdeaLinksOptions,
-): TestLink[] => {
-  const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value;
+const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinksOptions): TestLink[] => {
+  const { port = 63342, fileExtension = "java" } = options === true ? {} : options || {};
+  // nested classes (`Outer$Inner`) live in the file of the outer class
+  const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value?.split("$")[0];
 
   if (!testClass) {
     return [];
   }
 
-  const file = `${testClass.replaceAll(".", "/")}.${fileExtension}`;
+  const file = `${testClass.replaceAll(".", "/")}.${fileExtension.replace(/^\./, "")}`;
 
   return [
-    {
-      name: "Open in IDEA",
-      type: ideaLinkType,
-      url: `http://localhost:${port}/api/file?file=${encodeURIComponent(file)}`,
-    },
+    { name: "Open in IDEA", type: "idea", url: `http://localhost:${port}/api/file?file=${encodeURIComponent(file)}` },
   ];
 };
 
@@ -59,7 +49,7 @@ export const convertTestResult = (
   tr: TestResult,
   options: {
     hideLabels?: readonly (string | RegExp)[];
-    ideaLinks?: IdeaLinksOptions;
+    ideaLinks?: boolean | IdeaLinksOptions;
   } = {},
 ): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
