@@ -2,7 +2,7 @@ import * as console from "node:console";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Logger } from "../src/utils/logger.js";
+import { Logger, setGlobalLogLevel } from "../src/utils/logger.js";
 
 const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
@@ -32,6 +32,7 @@ describe("Logger", () => {
   });
 
   afterEach(() => {
+    setGlobalLogLevel(undefined);
     vi.unstubAllEnvs();
   });
 
@@ -93,6 +94,37 @@ describe("Logger", () => {
 
     expect(console.debug).not.toHaveBeenCalledWith(expect.stringContaining("Before change"));
     expect(console.debug).toHaveBeenCalledWith(expect.stringContaining("After change"));
+  });
+
+  it("applies the global log level to loggers created before it was set", () => {
+    const logger = new Logger("AllureRun");
+
+    setGlobalLogLevel("error");
+    logger.info("Hidden");
+    logger.error("Shown");
+
+    expect(console.info).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Shown"));
+  });
+
+  it("lets the global log level win over ALLURE_LOG_LEVEL", () => {
+    vi.stubEnv("ALLURE_LOG_LEVEL", "debug");
+    setGlobalLogLevel("verbose");
+
+    new Logger("AllureRun").verbose("Details");
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Details"));
+
+    setGlobalLogLevel("error");
+    new Logger("AllureRun").debug("Hidden");
+    expect(console.debug).not.toHaveBeenCalled();
+  });
+
+  it("keeps an explicit logger level over the global one", () => {
+    setGlobalLogLevel("error");
+
+    new Logger("AllureRun", "info").info("Explicit");
+
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Explicit"));
   });
 
   it("falls back to bounded inspection for circular objects", () => {

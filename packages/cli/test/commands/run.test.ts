@@ -5,11 +5,12 @@ import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { executeAllureRun } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";
 import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
+import { applyVerbosity } from "../../src/utils/verbosity.js";
 
 const { exitMock, processStream, nameWatcherMock, globWatcherMock } = vi.hoisted(() => {
   const exitMock = vi.fn();
@@ -1167,5 +1168,51 @@ describe("run command", () => {
     expect(console.info).not.toHaveBeenCalledWith(expect.stringMatching(/Completed with exit code/u));
 
     delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
+  });
+
+  describe("verbosity flags", () => {
+    afterEach(() => applyVerbosity("normal"));
+
+    const createCommand = (ignoreLogs = false, silent = false) => {
+      const command = new RunCommand();
+
+      command.ignoreLogs = ignoreLogs;
+      command.silent = silent;
+
+      return command;
+    };
+
+    it("should treat --quiet as --silent for the nested test process", () => {
+      applyVerbosity("quiet");
+
+      const command = createCommand();
+
+      expect(command.silentOutput).toBe(true);
+      expect(command.logs).toBe("pipe");
+    });
+
+    it("should keep ignoring logs under --quiet when --ignore-logs is set", () => {
+      applyVerbosity("quiet");
+
+      const command = createCommand(true);
+
+      expect(command.silentOutput).toBe(true);
+      expect(command.logs).toBe("ignore");
+    });
+
+    it("should not change process output under --verbose", () => {
+      applyVerbosity("verbose");
+
+      const command = createCommand();
+
+      expect(command.silentOutput).toBe(false);
+      expect(command.logs).toBe("pipe");
+    });
+
+    it("should still honor an explicit --silent under --verbose", () => {
+      applyVerbosity("verbose");
+
+      expect(createCommand(false, true).silentOutput).toBe(true);
+    });
   });
 });

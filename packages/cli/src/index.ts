@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import process, { argv } from "node:process";
 
-import { Builtins, Cli } from "clipanion";
+import { Builtins, Cli, UsageError } from "clipanion";
 
 import {
   AgentCommand,
@@ -34,8 +34,9 @@ import {
   WatchCommand,
   isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
+import { applyVerbosity, extractVerbosityFlags } from "./utils/verbosity.js";
 
-const [node, app, ...args] = argv;
+const [node, app, ...rawArgs] = argv;
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -76,6 +77,18 @@ cli.register(ResultsUnpackCommand);
 cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
+let args = rawArgs;
+
+try {
+  const extracted = extractVerbosityFlags(rawArgs);
+
+  args = extracted.args;
+  applyVerbosity(extracted.verbosity);
+} catch (error) {
+  console.error(error instanceof UsageError ? error.message : error);
+  process.exit(1);
+}
+
 void cli
   .run(args)
   .then((exitCode) => {
