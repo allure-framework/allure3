@@ -1,11 +1,11 @@
-import type { MetricLine, MetricsInput } from "./model.js";
+import { statusesList } from "@allurereport/core-api";
 
-const STATUSES = ["failed", "broken", "passed", "skipped", "unknown"] as const;
+import type { MetricLine, MetricsInput } from "./model.js";
 
 const finiteOrZero = (value: number | undefined): number => (Number.isFinite(value) ? (value as number) : 0);
 
 const collectStatusMetrics = (input: MetricsInput): MetricLine[] =>
-  STATUSES.map((status) => ({
+  statusesList.map((status) => ({
     name: "launch_status",
     key: status,
     value: finiteOrZero(input.statistic[status]),

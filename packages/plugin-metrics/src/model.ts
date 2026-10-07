@@ -1,4 +1,4 @@
-import type { MetricSample } from "@allurereport/core-api";
+import type { MetricSample, Statistic } from "@allurereport/core-api";
 
 /**
  * Single exported metric, the same shape as `MetricLine` in Allure 2: `name` is the measurement
@@ -69,11 +69,13 @@ export type MetricsPluginOptions = {
   performanceMetrics?: boolean;
   /** Fail the report generation when pushing fails. By default only a warning is printed */
   failOnPushError?: boolean;
+  /** Timeout of a single push request in milliseconds. Default: 10000 */
+  pushTimeout?: number;
 };
 
 export type MetricsInput = {
   /** Statistic of the current run, retries are not included */
-  statistic: Partial<Record<"failed" | "broken" | "passed" | "skipped" | "unknown", number>>;
+  statistic: Partial<Statistic>;
   /** Test results of the current run without retries */
   testResults: ReadonlyArray<{
     start?: number;

@@ -38,6 +38,19 @@ describe("renderPrometheus", () => {
     expect(renderLabels(undefined)).toBe("");
   });
 
+  it("sums up values of keys that collapse into the same metric name", () => {
+    expect(
+      renderPrometheus([
+        { name: "launch_problems", key: "Timeouts!", value: 2 },
+        { name: "launch_problems", key: "Timeouts?", value: 3 },
+      ]),
+    ).toBe("launch_problems_timeouts_ 5\n");
+  });
+
+  it("sanitizes label names given as an object", () => {
+    expect(renderLabels({ "my-label": "a", "1st": "b" })).toBe('{my_label="a",_1st="b"}');
+  });
+
   it("sanitizes characters Prometheus does not accept in metric names", () => {
     expect(renderPrometheus([{ name: "launch_problems", key: "Timeouts (slow) / 5xx", value: 1 }])).toBe(
       "launch_problems_timeouts__slow____5xx 1\n",

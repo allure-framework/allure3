@@ -25,6 +25,7 @@ const tr = (overrides: Partial<TestResult>): TestResult =>
     name: "t",
     status: "passed",
     labels: [],
+    isRetry: false,
     start: 100,
     stop: 200,
     duration: 100,
@@ -56,7 +57,7 @@ const createStore = (results: TestResult[], retries: TestResult[] = [], metrics:
     allTestResults: vi
       .fn()
       .mockImplementation(async (options?: { includeRetries?: boolean }) =>
-        options?.includeRetries ? [...results, ...retries] : results,
+        options?.includeRetries ? [...results, ...retries.map((r) => ({ ...r, isRetry: true }))] : results,
       ),
     allMetrics: vi.fn().mockResolvedValue(metrics),
   }) as unknown as AllureStore;
@@ -171,6 +172,22 @@ describe("MetricsPlugin", () => {
 
       expect(addFile).toHaveBeenCalled();
       expect(warn).toHaveBeenCalledWith(expect.stringContaining("ECONNREFUSED"));
+    });
+
+    it("reports every failed push and passes a timeout signal to fetch", async () => {
+      const fetchMock = vi.fn().mockRejectedValue(new Error("down"));
+      vi.stubGlobal("fetch", fetchMock);
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { context } = createContext();
+
+      await new MetricsPlugin({
+        prometheus: { pushgateway: { url: "http://pg:9091" } },
+        influxdb: { push: { url: "http://influx:8086", db: "allure" } },
+        pushTimeout: 500,
+      }).done(context, createStore([tr({})]));
+
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls.every(([, init]) => init.signal instanceof AbortSignal)).toBe(true);
     });
 
     it("rethrows a push failure with failOnPushError", async () => {

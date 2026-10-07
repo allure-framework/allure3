@@ -1,6 +1,9 @@
 import type { InfluxDbPushOptions, PrometheusPushgatewayOptions } from "./model.js";
+import { redactUrl } from "./utils.js";
 
 type Fetch = typeof fetch;
+
+export const DEFAULT_PUSH_TIMEOUT = 10_000;
 
 const ensureOk = async (response: Response, target: string): Promise<void> => {
   if (response.ok) {
@@ -9,7 +12,9 @@ const ensureOk = async (response: Response, target: string): Promise<void> => {
 
   const details = await response.text().catch(() => "");
 
-  throw new Error(`Failed to push metrics to ${target}: ${response.status} ${response.statusText} ${details}`.trim());
+  throw new Error(
+    `Failed to push metrics to ${redactUrl(target)}: ${response.status} ${response.statusText} ${details}`.trim(),
+  );
 };
 
 export const pushgatewayUrl = ({ url, job = "allure", grouping = {} }: PrometheusPushgatewayOptions): string => {
@@ -25,6 +30,7 @@ export const pushToPushgateway = async (
   body: string,
   env: NodeJS.ProcessEnv = process.env,
   doFetch: Fetch = fetch,
+  timeout: number = DEFAULT_PUSH_TIMEOUT,
 ): Promise<void> => {
   const authorization = options.authorization ?? (options.authorizationEnv ? env[options.authorizationEnv] : undefined);
   const target = pushgatewayUrl(options);
@@ -36,6 +42,7 @@ export const pushToPushgateway = async (
       ...(authorization ? { Authorization: authorization } : {}),
     },
     body,
+    signal: AbortSignal.timeout(timeout),
   });
 
   await ensureOk(response, target);
@@ -66,6 +73,7 @@ export const pushToInfluxDb = async (
   body: string,
   env: NodeJS.ProcessEnv = process.env,
   doFetch: Fetch = fetch,
+  timeout: number = DEFAULT_PUSH_TIMEOUT,
 ): Promise<void> => {
   const token = options.token ?? (options.tokenEnv ? env[options.tokenEnv] : undefined);
   const target = influxDbWriteUrl(options);
@@ -76,6 +84,7 @@ export const pushToInfluxDb = async (
       ...(token ? { Authorization: `Token ${token}` } : {}),
     },
     body,
+    signal: AbortSignal.timeout(timeout),
   });
 
   await ensureOk(response, target);

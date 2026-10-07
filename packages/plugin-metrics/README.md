@@ -56,6 +56,7 @@ If neither `prometheus` nor `influxdb` is set, both exports are enabled with the
 | `influxdb`           | InfluxDB export. `true` enables it with the defaults                                                         | `boolean \| InfluxDbOptions`   | both enabled when nothing is set |
 | `performanceMetrics` | Also export the averaged per-run performance metrics (`launch_metric_<key>`). Not part of Allure 2            | `boolean`                    | `false` |
 | `failOnPushError`    | Fail the report generation when a push fails. Otherwise only a warning is printed                            | `boolean`                    | `false` |
+| `pushTimeout`        | Timeout of a single push request, in milliseconds                                                            | `number`                     | `10000` |
 
 ### `prometheus`
 
@@ -111,7 +112,7 @@ Retries are not counted in any metric except `launch_retries`.
 | `launch_retries_run`              | Number of tests that were run                                                                    |
 | `launch_metric_<key>`             | Averaged performance metric (`performanceMetrics` only)                                          |
 
-Keys are lower-cased and whitespaces are replaced with underscores. Characters Prometheus does not accept in metric names are additionally replaced with `_` in the Prometheus file.
+Keys are lower-cased and whitespaces are replaced with underscores. Characters Prometheus does not accept in metric names are additionally replaced with `_` in the Prometheus file. If several keys end up with the same metric name after that (for example categories `Timeouts!` and `Timeouts?`), their values are summed, because Prometheus rejects duplicated series. Label names given as an object are sanitized the same way.
 
 > Unlike in Allure 2, a test belongs to a single category: the first one whose matchers it satisfies.
 

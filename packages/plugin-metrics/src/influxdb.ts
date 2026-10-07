@@ -1,5 +1,5 @@
 import type { MetricLine } from "./model.js";
-import { normalize } from "./prometheus.js";
+import { normalize } from "./utils.js";
 
 const escapeKey = (value: string): string => value.replace(/[,= ]/g, (char) => `\\${char}`);
 

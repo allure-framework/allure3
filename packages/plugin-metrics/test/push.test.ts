@@ -2,6 +2,7 @@ import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { influxDbWriteUrl, pushToInfluxDb, pushToPushgateway, pushgatewayUrl } from "../src/push.js";
+import { redactUrl } from "../src/utils.js";
 
 beforeEach(async () => {
   await story("push");
@@ -31,6 +32,7 @@ describe("pushgateway", () => {
       method: "PUT",
       headers: { "Content-Type": "text/plain; version=0.0.4", "Authorization": "Basic abc" },
       body: "body\n",
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -39,6 +41,21 @@ describe("pushgateway", () => {
 
     await expect(pushToPushgateway({ url: "http://pg:9091" }, "x", {}, doFetch)).rejects.toThrow(
       /500 Server Error nope/,
+    );
+  });
+});
+
+describe("redactUrl", () => {
+  it("removes credentials from a url", () => {
+    expect(redactUrl("http://user:secret@pg:9091/metrics/job/allure")).toBe("http://pg:9091/metrics/job/allure");
+    expect(redactUrl("not a url")).toBe("not a url");
+  });
+
+  it("does not leak credentials into push errors", async () => {
+    const doFetch = vi.fn().mockResolvedValue(new Response("nope", { status: 401, statusText: "Unauthorized" }));
+
+    await expect(pushToPushgateway({ url: "http://user:secret@pg:9091" }, "x", {}, doFetch)).rejects.not.toThrow(
+      /secret/,
     );
   });
 });
@@ -71,6 +88,7 @@ describe("influxdb", () => {
       method: "POST",
       headers: { "Content-Type": "text/plain; charset=utf-8", "Authorization": "Token t0k" },
       body: "line\n",
+      signal: expect.any(AbortSignal),
     });
   });
 });

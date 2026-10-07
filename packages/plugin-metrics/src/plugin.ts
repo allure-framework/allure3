@@ -30,6 +30,7 @@ export class MetricsPlugin implements Plugin {
       influxdb: influxdbOption,
       performanceMetrics,
       failOnPushError,
+      pushTimeout,
     } = this.options;
     // when nothing is configured explicitly, both exports are enabled the same way they were in Allure 2
     const noneConfigured = prometheusOption === undefined && influxdbOption === undefined;
@@ -40,34 +41,24 @@ export class MetricsPlugin implements Plugin {
       return;
     }
 
-    const [statistic, testResults, allResults, performance] = await Promise.all([
+    const [statistic, allResults, performance] = await Promise.all([
       store.testsStatistic(),
-      store.allTestResults(),
       store.allTestResults({ includeRetries: true }),
       performanceMetrics ? store.allMetrics() : Promise.resolve(undefined),
     ]);
+    const testResults = allResults.filter((tr) => !tr.isRetry);
     const categories = context.categories ?? [];
     const lines = collectMetrics({
       statistic,
-      testResults: testResults.map((tr) => ({
-        start: tr.start,
-        stop: tr.stop,
-        duration: tr.duration,
-        categories: categories.length
-          ? [matchCategory(categories, extractErrorMatchingData(tr))].filter((category) => category !== undefined)
-          : [],
-      })),
+      testResults: testResults.map((tr) => {
+        const category = categories.length ? matchCategory(categories, extractErrorMatchingData(tr)) : undefined;
+
+        return { start: tr.start, stop: tr.stop, duration: tr.duration, categories: category ? [category] : [] };
+      }),
       retries: allResults.length - testResults.length,
       performanceMetrics: performance,
     });
-    const pushErrors: Error[] = [];
-    const push = async (task: () => Promise<void>) => {
-      try {
-        await task();
-      } catch (err) {
-        pushErrors.push(err as Error);
-      }
-    };
+    const pushes: (() => Promise<void>)[] = [];
 
     if (prometheus) {
       const body = renderPrometheus(lines, prometheus.labels ?? labelsFromEnv());
@@ -75,7 +66,7 @@ export class MetricsPlugin implements Plugin {
       await this.#write(context, prometheus.fileName ?? DEFAULT_PROMETHEUS_FILE, body);
 
       if (prometheus.pushgateway) {
-        await push(() => pushToPushgateway(prometheus.pushgateway!, body));
+        pushes.push(() => pushToPushgateway(prometheus.pushgateway!, body, process.env, fetch, pushTimeout));
       }
     }
 
@@ -85,9 +76,13 @@ export class MetricsPlugin implements Plugin {
       await this.#write(context, influxdb.fileName ?? DEFAULT_INFLUXDB_FILE, body);
 
       if (influxdb.push) {
-        await push(() => pushToInfluxDb(influxdb.push!, body));
+        pushes.push(() => pushToInfluxDb(influxdb.push!, body, process.env, fetch, pushTimeout));
       }
     }
+
+    const pushErrors = (await Promise.allSettled(pushes.map((push) => push()))).flatMap((result) =>
+      result.status === "rejected" ? [result.reason as Error] : [],
+    );
 
     for (const err of pushErrors) {
       if (failOnPushError) {
