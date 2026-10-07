@@ -74,11 +74,11 @@ export abstract class ProcessSupervisorBase {
   }
 
   get stdout(): Promise<string> {
-    return this.completion.then(() => this.#stdout);
+    return this.completion.catch(() => {}).then(() => this.#stdout);
   }
 
   get stderr(): Promise<string> {
-    return this.completion.then(() => this.#stderr);
+    return this.completion.catch(() => {}).then(() => this.#stderr);
   }
 
   get completion() {
