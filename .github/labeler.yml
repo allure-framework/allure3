@@ -23,6 +23,7 @@
           - "packages/plugin-dashboard/**"
           - "packages/plugin-jira/**"
           - "packages/plugin-log/**"
+          - "packages/plugin-mail/**"
           - "packages/plugin-progress/**"
           - "packages/plugin-server-reload/**"
           - "packages/plugin-slack/**"
