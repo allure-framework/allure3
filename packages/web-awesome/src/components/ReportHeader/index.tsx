@@ -1,6 +1,6 @@
 import { formatDuration } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
+import { Heading, Loadable, Text } from "@allurereport/web-components";
 import type { ReportOptions } from "types";
 
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";

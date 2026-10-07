@@ -1,5 +1,5 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
-import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
+import { getCurrentUrl, goTo } from "@allurereport/web-commons";
 
 import {
   NO_SEVERITY,
@@ -17,10 +17,6 @@ import type {
   AwesomeFilterGroupSimple,
   Filters,
 } from "./model";
-
-export const truncateArrayFieldValues = (values: string[]): string[] => {
-  return values.slice(0, MAX_ARRAY_FIELD_VALUES);
-};
 
 export const getTagsFilterUrl = (tags: string[]): string => {
   const url = new URL(getCurrentUrl());
