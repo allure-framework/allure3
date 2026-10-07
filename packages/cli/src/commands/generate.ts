@@ -15,6 +15,10 @@ export class GenerateCommand extends Command {
       "This command generates a report from the provided Allure Results directories. " +
       "When a quality gate is configured, the command validates the loaded results and finishes writing the report or dump before returning its status.",
     examples: [
+      [
+        "generate ./allure-results --open --host 0.0.0.0",
+        "Generate a report and serve it on all network interfaces after generation",
+      ],
       ["generate ./allure-results", "Generate a report from the ./allure-results directory"],
       [
         "generate ./allure-results --output custom-report",
@@ -70,6 +74,11 @@ export class GenerateCommand extends Command {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
   });
 
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
+  });
+
   historyLimit = Option.String("--history-limit", {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
@@ -96,6 +105,7 @@ export class GenerateCommand extends Command {
       output: this.output,
       open: this.open,
       port: this.port,
+      host: this.host,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
       ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
@@ -116,6 +126,7 @@ export class GenerateCommand extends Command {
     if (config.open) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
+        host: config.host,
         servePath: config.output,
         open: true,
       });

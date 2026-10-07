@@ -264,6 +264,13 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow host", () => {
+    expect(validateConfig({ host: "127.0.0.1" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should return array of unsupported fields if the config contains them", () => {
     // @ts-ignore
     expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
@@ -388,6 +395,24 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture);
 
     expect(resolved.name).toEqual(fixture.name);
+  });
+
+  it("should have no host by default", async () => {
+    const resolved = await resolveConfig({});
+
+    expect(resolved.host).toBeUndefined();
+  });
+
+  it("should return host from the config", async () => {
+    const resolved = await resolveConfig({ host: "0.0.0.0" });
+
+    expect(resolved.host).toBe("0.0.0.0");
+  });
+
+  it("should prefer host override over the config value", async () => {
+    const resolved = await resolveConfig({ host: "0.0.0.0" }, { host: "127.0.0.1" });
+
+    expect(resolved.host).toBe("127.0.0.1");
   });
 
   it("should return provided environment name", async () => {

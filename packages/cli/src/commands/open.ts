@@ -24,6 +24,10 @@ export class OpenCommand extends Command {
       ["open ./allure-results", "Generate and serve the report based on given test results directory"],
       ["open --port 8080 ./allure-report", "Serve the report on port 8080"],
       [
+        "open --host 0.0.0.0 ./allure-report",
+        "Serve the report on all network interfaces, so it is reachable remotely",
+      ],
+      [
         "open ./packages/*/allure-results",
         "Generate and serve the report from all Allure result directories matching the pattern",
       ],
@@ -46,6 +50,11 @@ export class OpenCommand extends Command {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
   });
 
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
+  });
+
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
@@ -60,6 +69,7 @@ export class OpenCommand extends Command {
 
     const config = await readConfig(cwd, this.config, {
       port: this.port,
+      host: this.host,
     });
     const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
     const resolvedPatterns = resolveResultsPatterns(this.resultsDir, config.resultsDir);
@@ -67,6 +77,7 @@ export class OpenCommand extends Command {
     if (await this.reportExists(servePath)) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
+        host: config.host,
         servePath,
         open: true,
       });
@@ -74,6 +85,7 @@ export class OpenCommand extends Command {
       const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
+        host: this.host,
         output: tmpDir,
         hideLabels,
       });
@@ -97,6 +109,7 @@ export class OpenCommand extends Command {
 
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
+        host: config.host,
         servePath: config.output,
         open: true,
       });

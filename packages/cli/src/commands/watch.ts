@@ -31,6 +31,10 @@ export class WatchCommand extends Command {
     examples: [
       ["watch ./allure-results", "Watch for changes in the ./allure-results directory"],
       [
+        "watch ./allure-results --host 127.0.0.1",
+        "Watch for changes in the ./allure-results directory and serve the report on the 127.0.0.1 interface only",
+      ],
+      [
         "watch ./allure-results --port 8080",
         "Watch for changes in the ./allure-results directory and serve the report on port 8080",
       ],
@@ -73,6 +77,11 @@ export class WatchCommand extends Command {
     description: "The port to serve the reports on (default: random port)",
   });
 
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
+  });
+
   preserve = Option.Boolean("--preserve", {
     description: "Don't clear terminal output on the data refresh",
   });
@@ -97,6 +106,7 @@ export class WatchCommand extends Command {
       name: this.reportName,
       open: this.open,
       port: this.port,
+      host: this.host,
     });
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
     const useDynamicNameDiscovery = resultsPatterns.length === 0;
@@ -113,6 +123,7 @@ export class WatchCommand extends Command {
     const server = await serve({
       servePath: config.output,
       port: this.port ? parseInt(this.port, 10) : undefined,
+      host: config.host,
       live: false,
       open: false,
     });

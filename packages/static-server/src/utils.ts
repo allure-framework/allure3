@@ -907,6 +907,19 @@ export const TYPES_BY_EXTENSION: Record<string, string> = Object.fromEntries(
 
 export const identity = <T>(value?: T) => value;
 
+const WILDCARD_HOSTS = new Set(["0.0.0.0", "::", "[::]"]);
+
+/**
+ * Builds the URL the server is reachable at from the machine it runs on.
+ * No host or a wildcard host (`0.0.0.0`, `::`) means "all interfaces", so `localhost` is used for the link
+ */
+export const resolveServerUrl = (host: string | undefined, port: number) => {
+  const linkHost = !host || WILDCARD_HOSTS.has(host) ? "localhost" : host;
+  const wrappedHost = linkHost.includes(":") && !linkHost.startsWith("[") ? `[${linkHost}]` : linkHost;
+
+  return `http://${wrappedHost}:${port}`;
+};
+
 export const injectLiveReloadScript = (html: string) => {
   const liveReloadScript = `
     <script>
