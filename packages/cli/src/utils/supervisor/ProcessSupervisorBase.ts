@@ -6,7 +6,13 @@ import { setTimeout as delay } from "node:timers/promises";
 import { KnownError } from "@allurereport/service";
 
 import { logError } from "../logs.js";
-import type { JobMonitor, RootCompletion, ProcessCompletion, SupervisedCommandOptions } from "./model.js";
+import type {
+  JobMonitor,
+  ProcessStartupInfo,
+  RootCompletion,
+  ProcessCompletion,
+  SupervisedCommandOptions,
+} from "./model.js";
 
 const DEFAULT_STOP_TIMEOUT = 30_000;
 
@@ -67,6 +73,19 @@ export abstract class ProcessSupervisorBase {
 
   get started(): boolean {
     return this.#started;
+  }
+
+  get startupInfo(): ProcessStartupInfo {
+    if (!this.started) {
+      throw new Error("The process has not been started.");
+    }
+
+    const info = this.getStartupInfo();
+    if (info === undefined) {
+      throw new Error("The process startup information is unavailable.");
+    }
+
+    return info;
   }
 
   get completed(): boolean {
@@ -200,6 +219,7 @@ export abstract class ProcessSupervisorBase {
 
   protected abstract requestRootStop(signal: AbortSignal): void | Promise<void>;
   protected abstract requestTermination(): void | Promise<void>;
+  protected abstract getStartupInfo(): ProcessStartupInfo | undefined;
 
   private resolveTargetEnvironment() {
     const configuredEnvironment = {
