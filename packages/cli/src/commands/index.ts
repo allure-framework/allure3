@@ -20,3 +20,4 @@ export * from "./dashboard.js";
 export * from "./results/index.js";
 export * from "./jira/index.js";
 export * from "./gitlab/index.js";
+export * from "./migrate.js";

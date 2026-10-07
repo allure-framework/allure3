@@ -23,6 +23,7 @@ import {
   HistoryCommand,
   JiraClearCommand,
   LogCommand,
+  MigrateCommand,
   OpenCommand,
   QualityGateCommand,
   ResultsPackCommand,
@@ -34,6 +35,7 @@ import {
   WatchCommand,
   isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
+import { ALLURE2_MIGRATE_REMINDER, getAllure2Hint } from "./utils/allure2Hints.js";
 
 const [node, app, ...args] = argv;
 
@@ -64,6 +66,7 @@ cli.register(GenerateCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
 cli.register(LogCommand);
+cli.register(MigrateCommand);
 cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
@@ -76,11 +79,27 @@ cli.register(ResultsUnpackCommand);
 cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
+const printAllure2Hint = () => {
+  try {
+    cli.process(args);
+  } catch (error) {
+    const hint = getAllure2Hint(args, error instanceof Error ? error.message : String(error));
+
+    if (hint) {
+      console.error(`\nComing from Allure 2? ${hint}\n${ALLURE2_MIGRATE_REMINDER}`);
+    }
+  }
+};
+
 void cli
   .run(args)
   .then((exitCode) => {
     if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
       process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
+    }
+
+    if (exitCode !== 0) {
+      printAllure2Hint();
     }
 
     process.exitCode = exitCode;
