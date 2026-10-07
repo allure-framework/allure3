@@ -1,6 +1,7 @@
 import {
   type TestFixtureResult,
   type TestLabel,
+  type TestLink,
   type TestResult,
   type TestStepResult,
   createDictionary,
@@ -13,6 +14,34 @@ import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
 const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
+
+export type IdeaLinksOptions = {
+  port?: number;
+  fileExtension?: string;
+};
+
+export const ideaLinkType = "idea";
+
+const createIdeaLink = (
+  labels: TestLabel[],
+  { port = 63342, fileExtension = "java" }: IdeaLinksOptions,
+): TestLink[] => {
+  const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value;
+
+  if (!testClass) {
+    return [];
+  }
+
+  const file = `${testClass.replaceAll(".", "/")}.${fileExtension}`;
+
+  return [
+    {
+      name: "Open in IDEA",
+      type: ideaLinkType,
+      url: `http://localhost:${port}/api/file?file=${encodeURIComponent(file)}`,
+    },
+  ];
+};
 
 const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   return labels.reduce<Record<string, string[]>>((acc, { name, value }: TestLabel) => {
@@ -30,6 +59,7 @@ export const convertTestResult = (
   tr: TestResult,
   options: {
     hideLabels?: readonly (string | RegExp)[];
+    ideaLinks?: IdeaLinksOptions;
   } = {},
 ): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
@@ -55,7 +85,7 @@ export const convertTestResult = (
     labels,
     groupedLabels: mapLabelsByName(labels),
     parameters: redactParameters(tr.parameters),
-    links: tr.links,
+    links: options.ideaLinks ? [...tr.links, ...createIdeaLink(tr.labels, options.ideaLinks)] : tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
     errors: tr.errors,

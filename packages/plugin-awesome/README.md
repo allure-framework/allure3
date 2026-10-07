@@ -59,6 +59,7 @@ The plugin accepts the following options:
 | `appendTitlePath`| Special marker for `groupBy`. Forces a final grouping by `titlePath` after all label-based groups.                                                          | `boolean`                                                    | `false`                       |
 | `stepTreeExpansion` | Default expansion policy for step trees in test details. | `"collapsed" \| "expand_failed_only" \| "expanded"` | `"expand_failed_only"` |
 | `defaultSortBy` | Default sort order for the test tree. Accepted values: `order,asc`, `order,desc`, `duration,asc`, `duration,desc`, `name,asc`, `name,desc`, `status,asc`, `status,desc`. User's manual selection is preserved in `localStorage` and takes priority over this value. | `string` | `order,asc` |
+| `ideaLinks` | Adds an "Open in IDEA" link to tests that have a `testClass` label, pointing to the IntelliJ IDEA built-in server (`http://localhost:<port>/api/file?file=<path>`). Pass `true` for defaults or `{ port, fileExtension }` (defaults: `63342`, `java`). | `boolean \| { port?: number; fileExtension?: string }` | `false` |
 
 ### Default sort order
 

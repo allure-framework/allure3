@@ -266,3 +266,38 @@ describe("convertTestResult", () => {
     expect(serialized).not.toContain("nested-hidden");
   });
 });
+
+describe("convertTestResult ideaLinks", () => {
+  const labels = [{ name: "testClass", value: "org.example.FooTest" }];
+
+  it("should not add idea link by default", () => {
+    expect(convertTestResult(createTestResult({ labels })).links).toEqual([]);
+  });
+
+  it("should add idea link built from testClass label", () => {
+    const { links } = convertTestResult(createTestResult({ labels }), { ideaLinks: {} });
+
+    expect(links).toEqual([
+      {
+        name: "Open in IDEA",
+        type: "idea",
+        url: "http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java",
+      },
+    ]);
+  });
+
+  it("should respect custom port and extension and keep existing links", () => {
+    const existing = { url: "https://example.org" };
+    const { links } = convertTestResult(createTestResult({ labels, links: [existing] }), {
+      ideaLinks: { port: 1234, fileExtension: "kt" },
+    });
+
+    expect(links).toHaveLength(2);
+    expect(links[0]).toBe(existing);
+    expect(links[1].url).toBe("http://localhost:1234/api/file?file=org%2Fexample%2FFooTest.kt");
+  });
+
+  it("should skip idea link without testClass label", () => {
+    expect(convertTestResult(createTestResult(), { ideaLinks: {} }).links).toEqual([]);
+  });
+});

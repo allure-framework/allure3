@@ -270,6 +270,7 @@ export class AwesomePlugin implements Plugin {
       generateTestResults(this.#writer!, store, allTrs, {
         pluginId: context.id,
         hideLabels,
+        ideaLinks: this.options.ideaLinks === true ? {} : this.options.ideaLinks || undefined,
         related,
         resolveHistoryUrl: context.history?.resolveTestResultUrl,
       }),
