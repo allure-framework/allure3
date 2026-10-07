@@ -53,7 +53,7 @@ export default defineConfig({
 ## How it works
 
 1. Add a `tms` link with the Jira key of the Xray Test to your test cases (for example in Java: `@TmsLink("XT-1")`).
-   The key is taken from the link name, or from its url when the name is empty.
+   The key is taken from the link name when it looks like a Jira key, otherwise from the first key found in the link URL.
 2. Results of all tests with the same key are merged: `FAIL` beats `PASS`, `PASS` beats `TODO`.
 3. For every test run with that key in the listed Test Executions the status is updated (when it differs).
 4. Unless disabled, a comment with the link to the report is added to each Test Execution. It is added only when the report url is known.
@@ -144,7 +144,7 @@ or the matching environment variable, for example `ALLURE_XRAY_STATUS_SKIPPED=FA
 
 ### Comment with the report link
 
-After the update, the plugin adds a comment with the report link to every listed Test Execution. The comment is posted on every report generation and isn't deduplicated. It requires the report URL (for example when the report is published), so it is skipped otherwise. Set `comment: false` or `ALLURE_XRAY_COMMENT=false` to turn it off.
+After the update, the plugin adds a comment with the report link to every listed Test Execution. The comment is posted on every report generation and isn't deduplicated. It requires the report URL (for example when the report is published) and at least one test linked to Xray, so it is skipped otherwise. Set `comment: false` or `ALLURE_XRAY_COMMENT=false` to turn it off.
 
 ## Troubleshooting
 

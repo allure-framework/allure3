@@ -41,6 +41,8 @@ describe("helpers", () => {
   it("takes the Test key from tms link name, falling back to url", () => {
     expect(getTestKey({ type: "tms", name: "XT-1", url: "https://x/y" })).toBe("XT-1");
     expect(getTestKey({ type: "tms", url: "https://jira/browse/XT-2" })).toBe("XT-2");
+    expect(getTestKey({ type: "tms", name: "Open in Jira", url: "https://jira/browse/XT-4" })).toBe("XT-4");
+    expect(getTestKey({ type: "tms", name: "Open in Jira", url: "https://jira/" })).toBeUndefined();
     expect(getTestKey({ type: "issue", name: "XT-3", url: "https://jira/browse/XT-3" })).toBeUndefined();
   });
 
@@ -111,10 +113,33 @@ describe("XrayPlugin", () => {
   });
 
   it("does not comment when disabled or when the report url is unknown", async () => {
-    await new XrayPlugin({ ...options, comment: false }).done(context, store([]));
-    await new XrayPlugin(options).done({ ...context, reportUrl: undefined }, store([]));
+    const results = store([tr("passed", "XT-1")]);
 
+    await new XrayPlugin({ ...options, comment: false }).done(context, results);
+    await new XrayPlugin(options).done({ ...context, reportUrl: undefined }, results);
+
+    expect(http.get).toHaveBeenCalledTimes(2);
     expect(http.post).not.toHaveBeenCalled();
+  });
+
+  it("does not call Jira when no test is linked to Xray", async () => {
+    await new XrayPlugin(options).done(context, store([tr("passed")]));
+
+    expect(http.get).not.toHaveBeenCalled();
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  it("queries and comments each Test Execution once and escapes the report name", async () => {
+    await new XrayPlugin({ ...options, executions: ["XT-6", " XT-6 ", "XT-7"] }).done(
+      { ...context, reportName: "Report [nightly | main]" },
+      store([tr("passed", "XT-1")]),
+    );
+
+    expect(http.get).toHaveBeenCalledTimes(2);
+    expect(http.post).toHaveBeenCalledTimes(2);
+    expect(http.post).toHaveBeenCalledWith("api/2/issue/XT-7/comment", {
+      body: "Execution updated from report [Report \\[nightly \\| main\\]|https://reports/1]",
+    });
   });
 
   it("keeps going and reports to stderr when Xray requests fail", async () => {

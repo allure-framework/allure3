@@ -2,7 +2,15 @@ import type { TestStatus } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 
 import { XrayClient, formatXrayError } from "./client.js";
-import { DEFAULT_STATUSES, XRAY_STATUSES, collectStatuses, isXrayStatus, splitList } from "./helpers.js";
+import {
+  DEFAULT_STATUSES,
+  XRAY_STATUSES,
+  collectStatuses,
+  escapeWikiLinkText,
+  isXrayStatus,
+  splitList,
+  uniq,
+} from "./helpers.js";
 import type { XrayStatus, XrayTestRun } from "./types.js";
 
 export type { XrayStatus } from "./types.js";
@@ -77,7 +85,7 @@ export class XrayPlugin implements Plugin {
       username: options.username || process.env.ALLURE_XRAY_USERNAME,
       password: options.password || process.env.ALLURE_XRAY_PASSWORD,
       token: options.token || process.env.ALLURE_XRAY_TOKEN,
-      executions: options.executions ?? splitList(process.env.ALLURE_XRAY_EXECUTIONS ?? ""),
+      executions: options.executions ? uniq(options.executions) : splitList(process.env.ALLURE_XRAY_EXECUTIONS ?? ""),
       comment: options.comment ?? !["false", "0"].includes(process.env.ALLURE_XRAY_COMMENT ?? ""),
       statuses,
     };
@@ -99,6 +107,14 @@ export class XrayPlugin implements Plugin {
     return new XrayClient({ endpoint, username, password, token });
   }
 
+  async #attempt(description: string, action: () => Promise<void>) {
+    try {
+      await action();
+    } catch (error) {
+      console.error(`[${this.#pluginName}] failed to ${description}: ${formatXrayError(error)}`);
+    }
+  }
+
   async done(context: PluginContext, store: AllureStore) {
     const opts = this.#pluginOptions;
 
@@ -109,27 +125,24 @@ export class XrayPlugin implements Plugin {
     const client = this.#createClient(opts);
     const wanted = collectStatuses(await store.allTestResults(), opts.statuses);
 
+    if (wanted.size === 0) {
+      return;
+    }
+
     const testRunsByKey = new Map<string, XrayTestRun[]>();
     for (const execution of opts.executions) {
-      try {
+      await this.#attempt(`read test runs of ${execution}`, async () => {
         for (const run of await client.getTestRuns(execution)) {
           testRunsByKey.set(run.key, [...(testRunsByKey.get(run.key) ?? []), run]);
         }
-      } catch (error) {
-        console.error(`[${this.#pluginName}] failed to read test runs of ${execution}: ${formatXrayError(error)}`);
-      }
+      });
     }
 
     for (const [key, status] of wanted) {
       for (const run of testRunsByKey.get(key) ?? []) {
-        if (run.status === status) {
-          continue;
-        }
-        try {
-          await client.updateTestRunStatus(run.id, status);
-        } catch (error) {
-          console.error(
-            `[${this.#pluginName}] failed to update test run ${key} (id: ${run.id}) to ${status}: ${formatXrayError(error)}`,
+        if (run.status !== status) {
+          await this.#attempt(`update test run ${key} (id: ${run.id}) to ${status}`, () =>
+            client.updateTestRunStatus(run.id, status),
           );
         }
       }
@@ -139,15 +152,9 @@ export class XrayPlugin implements Plugin {
       return;
     }
 
+    const comment = `Execution updated from report [${escapeWikiLinkText(context.reportName)}|${context.reportUrl}]`;
     for (const execution of opts.executions) {
-      try {
-        await client.addComment(
-          execution,
-          `Execution updated from report [${context.reportName}|${context.reportUrl}]`,
-        );
-      } catch (error) {
-        console.error(`[${this.#pluginName}] failed to comment on ${execution}: ${formatXrayError(error)}`);
-      }
+      await this.#attempt(`comment on ${execution}`, () => client.addComment(execution, comment));
     }
   }
 }

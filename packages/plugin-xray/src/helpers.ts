@@ -13,25 +13,30 @@ export const DEFAULT_STATUSES: Readonly<Record<TestStatus, XrayStatus>> = {
 };
 
 const ISSUE_KEY_PATTERN = /[A-Z][A-Z0-9_]*-\d+/;
+const EXACT_ISSUE_KEY_PATTERN = new RegExp(`^${ISSUE_KEY_PATTERN.source}$`);
 
 export const isXrayStatus = (value: string): value is XrayStatus =>
   (XRAY_STATUSES as readonly string[]).includes(value);
 
-export const splitList = (value: string): string[] =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+export const splitList = (value: string): string[] => uniq(value.split(","));
+
+export const uniq = (values: string[]): string[] => [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+
+/**
+ * Escape characters that would break a Jira wiki markup link
+ */
+export const escapeWikiLinkText = (text: string): string => text.replace(/[[\]|]/g, "\\$&");
 
 /**
  * Jira key of a Test is taken from the tms link name (same as in Allure 2),
- * falling back to the last segment of the link url
+ * falling back to the key found in the link url when the name is not a key
  */
 export const getTestKey = (link: TestLink): string | undefined => {
   if (link.type !== "tms") {
     return undefined;
   }
-  return link.name?.trim() || link.url.match(ISSUE_KEY_PATTERN)?.[0];
+  const name = link.name?.trim();
+  return name && EXACT_ISSUE_KEY_PATTERN.test(name) ? name : link.url.match(ISSUE_KEY_PATTERN)?.[0];
 };
 
 /**
