@@ -111,11 +111,11 @@ export abstract class ProcessSupervisorBase {
   }
 
   get exitCode(): Promise<number | null> {
-    return this.completion.then(({ code }) => code);
+    return this.completion.catch((result) => result).then(({ code }) => code);
   }
 
   get signal(): Promise<NodeJS.Signals | null> {
-    return this.completion.then(({ signal }) => signal);
+    return this.completion.catch((result) => result).then(({ signal }) => signal);
   }
 
   async start() {
