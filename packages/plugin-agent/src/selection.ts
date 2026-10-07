@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import type { TestLabel, TestPlan, TestPlanTest } from "@allurereport/core-api";
 
 import { AgentUsageError } from "./errors.js";
+import { matchesLabelFilters } from "./filters.js";
 import {
   loadAgentOutput,
   planAgentEnrichmentReview,
@@ -43,9 +44,6 @@ const isAgentRerunPreset = (value: string): value is AgentRerunPreset =>
   AGENT_RERUN_PRESETS.includes(value as AgentRerunPreset);
 
 const readAllureId = (labels: TestLabel[]) => labels.find((label) => label.name === ALLURE_ID_LABEL)?.value;
-
-const matchesLabelFilters = (labels: TestLabel[], filters: AgentLabelFilter[]) =>
-  filters.every((filter) => labels.some((label) => label.name === filter.name && label.value === filter.value));
 
 const buildTestPlan = (tests: AgentTestManifestLine[]): TestPlan => {
   const seenSelectors = new Set<string>();
