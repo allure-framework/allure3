@@ -65,41 +65,10 @@ export const clearBehaviorsFilters = () => {
   };
 };
 
-export const setBehaviorsQuery = (query: string) => {
-  behaviorsFiltersStore.value = {
-    ...behaviorsFiltersStore.value,
-    query,
-  };
-};
-
 export const setBehaviorsStatus = (status: ReportStatus) => {
   behaviorsFiltersStore.value = {
     ...behaviorsFiltersStore.value,
     status,
-  };
-};
-
-export const setBehaviorsSortBy = (sortBy: TreeSortBy) => {
-  behaviorsFiltersStore.value = {
-    ...behaviorsFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setBehaviorsDirection = (direction: TreeDirection) => {
-  behaviorsFiltersStore.value = {
-    ...behaviorsFiltersStore.value,
-    direction,
-  };
-};
-
-export const setBehaviorsFilter = (filterKey: TreeFilters, value: boolean) => {
-  behaviorsFiltersStore.value = {
-    ...behaviorsFiltersStore.value,
-    filter: {
-      ...behaviorsFiltersStore.value.filter,
-      [filterKey]: value,
-    },
   };
 };
 

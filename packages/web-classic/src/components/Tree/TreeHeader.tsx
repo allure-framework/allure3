@@ -5,7 +5,6 @@ import { type FunctionComponent } from "preact";
 
 import { ArrowButton } from "@/components/ArrowButton";
 import { statsStore } from "@/stores";
-import { route } from "@/stores/router";
 import { treeFiltersStore } from "@/stores/tree";
 
 import * as styles from "./styles.scss";

@@ -65,41 +65,10 @@ export const clearPackagesFilters = () => {
   };
 };
 
-export const setPackagesQuery = (query: string) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    query,
-  };
-};
-
 export const setPackagesStatus = (status: ReportStatus) => {
   packagesFiltersStore.value = {
     ...packagesFiltersStore.value,
     status,
-  };
-};
-
-export const setPackagesSortBy = (sortBy: TreeSortBy) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setPackagesDirection = (direction: TreeDirection) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    direction,
-  };
-};
-
-export const setPackagesFilter = (filterKey: TreeFilters, value: boolean) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    filter: {
-      ...packagesFiltersStore.value.filter,
-      [filterKey]: value,
-    },
   };
 };
 
