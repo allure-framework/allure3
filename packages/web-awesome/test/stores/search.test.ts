@@ -118,6 +118,7 @@ describe("stores > search", () => {
     ["fuzzy query", documents, "chekout", ["tr-2"]],
     ["structured token typo", documents, "PAYMENTS-931", []],
     ["numeric token typo", documents, "931", []],
+    ["hyphenated tokenized query", documents, "request-form", ["tr-1"]],
     ["case-insensitive query", documents, "igor martynov", ["tr-1"]],
   ])("should support %s", (_caseName, sourceDocuments, query, expectedNodeIds) => {
     const searchIndex = createSearchIndex(sourceDocuments);
