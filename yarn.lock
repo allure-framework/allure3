@@ -117,6 +117,7 @@ __metadata:
     "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/plugin-jira": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
+    "@allurereport/plugin-metrics": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
@@ -392,6 +393,22 @@ __metadata:
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
     yoctocolors: "npm:^2.2.0"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/plugin-metrics@workspace:*, @allurereport/plugin-metrics@workspace:packages/plugin-metrics":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/plugin-metrics@workspace:packages/plugin-metrics"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@types/node": "npm:^20"
+    "@vitest/runner": "npm:^2"
+    allure-js-commons: "npm:^3"
+    allure-vitest: "npm:^3"
+    rimraf: "npm:^6"
+    typescript: "npm:^5"
+    vitest: "npm:^4.1.0"
   languageName: unknown
   linkType: soft
 
@@ -8551,6 +8568,7 @@ __metadata:
     "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/plugin-jira": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
+    "@allurereport/plugin-metrics": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"

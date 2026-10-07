@@ -47,6 +47,7 @@
     "@allurereport/plugin-dashboard": "workspace:*",
     "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
+    "@allurereport/plugin-metrics": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-server-reload": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
