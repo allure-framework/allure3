@@ -11,6 +11,7 @@ import { red } from "yoctocolors";
 
 import { findFilesByGlobs } from "./../utils/fileSystem.js";
 import { resolveResultsPatterns } from "./../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "./../utils/serverOptions.js";
 import { notifySignals, waitForAbort } from "./../utils/signals.js";
 import { generate } from "./commons/generate.js";
 
@@ -76,8 +77,7 @@ export class OpenCommand extends Command {
 
     if (await this.reportExists(servePath)) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        host: config.host,
+        ...serverOptionsFromConfig(config),
         servePath,
         open: true,
       });
@@ -108,8 +108,7 @@ export class OpenCommand extends Command {
       });
 
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        host: config.host,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

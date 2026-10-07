@@ -12,6 +12,7 @@ import {
   TYPES_BY_EXTENSION,
   identity,
   injectLiveReloadScript,
+  normalizeHost,
   resolveServerUrl,
   resolveUrlPathnameUnderServeRoot,
 } from "./utils.js";
@@ -96,7 +97,8 @@ export const serve = async (options?: {
   servePath?: string;
   open?: boolean;
 }): Promise<AllureStaticServer> => {
-  const { port, host, live = false, servePath, open = false } = options ?? {};
+  const { port, live = false, servePath, open = false } = options ?? {};
+  const host = normalizeHost(options?.host);
   const pathToServe = servePath ? resolve(cwd(), servePath) : cwd();
   const clients = new Set<ServerResponse>();
   const server = createServer(async (req, res) => {

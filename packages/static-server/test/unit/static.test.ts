@@ -37,6 +37,12 @@ it("binds to the provided host and reports it in the url", async () => {
   expect(res.status).toBe(200);
 });
 
+it("accepts an IPv6 host in brackets", async () => {
+  server = await serve({ port, host: "[::1]", servePath });
+
+  expect(server.url).toBe(`http://[::1]:${port}`);
+});
+
 it("uses localhost in the url when no host is provided", async () => {
   server = await serve({ port, servePath });
 

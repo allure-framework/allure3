@@ -6,9 +6,7 @@ const OPTION_HINTS: Record<string, string> = {
   "--clean":
     "`allure generate` doesn't clean the output directory. Remove it yourself (e.g. `rm -rf allure-report`) " +
     "or use `allure run`, which recreates the output directory on every launch.",
-  "--verbose":
-    "There is no verbose mode in Allure 3. `allure run` has `--silent` and `--ignore-logs` for the opposite.",
-  "-v": "There is no verbose mode in Allure 3. Use `allure --version` to print the version.",
+  "--verbose": "There is no verbose mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "--quiet": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "-q": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "--profile": "Profiles are gone. Use a single allurerc file and pass it with `--config`.",
