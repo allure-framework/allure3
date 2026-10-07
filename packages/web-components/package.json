@@ -47,7 +47,7 @@
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
-    "@floating-ui/dom": "^1.7.4",
+    "@floating-ui/dom": "^1.8.0",
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/funnel": "^0.99.0",
