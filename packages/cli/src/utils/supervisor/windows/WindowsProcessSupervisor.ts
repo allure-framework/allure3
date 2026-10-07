@@ -19,7 +19,7 @@ import {
 import { KnownError } from "@allurereport/service";
 
 import { logError } from "../../logs.js";
-import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion } from "../model.js";
+import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion, ProcessStartupInfo } from "../model.js";
 import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
 import { SupervisorOperationError } from "./error.js";
 import type {
@@ -116,6 +116,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
   #failure: unknown;
 
   #started: boolean = false;
+  #startupInfo: ProcessStartupInfo | undefined;
   #startedPromise: Promise<number>;
   #resolveStartedPromise!: (value: number) => void;
   #rejectStartedPromise!: (reason: unknown) => void;
@@ -314,6 +315,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     } else {
       this.#started = true;
       this.#resolveStartedPromise(rootPid);
+      this.#startupInfo = { pid: rootPid };
     }
   }
 
@@ -467,6 +469,10 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       throw error;
     }
     return control;
+  }
+
+  protected override getStartupInfo(): ProcessStartupInfo | undefined {
+    return this.#startupInfo;
   }
 
   protected override async requestRootStop(signal: AbortSignal) {

@@ -67,6 +67,15 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     process.once("SIGTERM", this.#onSigterm);
   }
 
+  protected override getStartupInfo() {
+    const pid = this.process.pid;
+    if (pid === undefined) {
+      return undefined;
+    }
+
+    return { pid };
+  }
+
   protected override requestRootStop(_: AbortSignal) {
     // Does not throw if the process already finished.
     // Returns `false` instead (which is ignored).
