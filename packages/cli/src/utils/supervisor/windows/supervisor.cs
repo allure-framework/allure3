@@ -1077,7 +1077,8 @@ namespace JobSupervisor
 
                 Native.STARTUPINFOEX startup = new Native.STARTUPINFOEX();
                 startup.StartupInfo.cb = (uint)Marshal.SizeOf(typeof(Native.STARTUPINFOEX));
-                startup.StartupInfo.dwFlags = Native.STARTF_USESTDHANDLES;
+                startup.StartupInfo.dwFlags = Native.STARTF_USESTDHANDLES | Native.STARTF_USESHOWWINDOW;
+                startup.StartupInfo.wShowWindow = Native.SW_HIDE;
                 startup.StartupInfo.hStdInput = handles[0];
                 startup.StartupInfo.hStdOutput = handles[1];
                 startup.StartupInfo.hStdError = handles[2];
@@ -1342,6 +1343,7 @@ namespace JobSupervisor
                                 flags: Native.RM_SHUTDOWN_GRACEFUL,
                                 callback: IntPtr.Zero
                             );
+
                             if (error != 0)
                             {
                                 throw new Failure("RmShutdown", error);
