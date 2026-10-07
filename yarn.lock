@@ -117,7 +117,6 @@ __metadata:
     "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/plugin-jira": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
-    "@allurereport/plugin-mail": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
@@ -396,7 +395,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-mail@workspace:*, @allurereport/plugin-mail@workspace:packages/plugin-mail":
+"@allurereport/plugin-mail@workspace:packages/plugin-mail":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-mail@workspace:packages/plugin-mail"
   dependencies:
