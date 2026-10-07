@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
 import { AgentUsageError } from "./errors.js";
+import { findingSubjectRef } from "./findings.js";
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 import type { AgentHumanReportStatus } from "./model.js";
 import { isPathInside } from "./paths.js";
@@ -409,23 +410,11 @@ const uniqueValues = (values: string[]) => Array.from(new Set(values));
 
 const checkNameForFinding = (finding: AgentFindingManifestLine) => finding.check_id ?? finding.check_name;
 
-const subjectRefForFinding = (finding: AgentFindingManifestLine) => {
-  if (finding.subject_ref) {
-    return finding.subject_ref;
-  }
-
-  if (typeof finding.subject === "string") {
-    return finding.subject;
-  }
-
-  return finding.subject.path ?? finding.subject.id ?? finding.subject.type;
-};
-
 const subjectTypeForFinding = (finding: AgentFindingManifestLine): "run" | "test" =>
   finding.subject_type ??
   (typeof finding.subject === "object" && finding.subject.type === "test"
     ? "test"
-    : subjectRefForFinding(finding) === "run"
+    : findingSubjectRef(finding) === "run"
       ? "run"
       : "test");
 
@@ -681,7 +670,7 @@ export const planAgentEnrichmentReview = (
   const plan = sortPlan(
     output.findings.map((finding) => {
       const action = mapFindingToEnrichmentAction(finding);
-      const subject = subjectRefForFinding(finding);
+      const subject = findingSubjectRef(finding);
       const matchedTest = testsByPath.get(subject);
 
       return {

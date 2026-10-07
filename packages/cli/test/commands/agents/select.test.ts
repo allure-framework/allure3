@@ -5,7 +5,7 @@ import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AgentSelectCommand } from "../../src/commands/agent.js";
+import { AgentSelectCommand } from "../../../src/commands/agents/index.js";
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
