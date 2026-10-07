@@ -248,9 +248,12 @@ namespace JobSupervisor
         );
 
         // Process creation and inspection
-        internal const uint EXTENDED_STARTUPINFO_PRESENT = 0x80000;
+        internal const uint CREATE_NEW_CONSOLE = 0x10;
         internal const uint CREATE_UNICODE_ENVIRONMENT = 0x400;
+        internal const uint EXTENDED_STARTUPINFO_PRESENT = 0x80000;
+        internal const uint STARTF_USESHOWWINDOW = 0x1;
         internal const uint STARTF_USESTDHANDLES = 0x100;
+        internal const ushort SW_HIDE = 0;
         internal static readonly IntPtr HandleListAttribute = new IntPtr(0x20002);
         internal static readonly IntPtr JobListAttribute = new IntPtr(0x2000d);
         internal const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
@@ -1078,7 +1081,10 @@ namespace JobSupervisor
 
                 Native.STARTUPINFOEX startup = new Native.STARTUPINFOEX();
                 startup.StartupInfo.cb = (uint)Marshal.SizeOf(typeof(Native.STARTUPINFOEX));
-                startup.StartupInfo.dwFlags = Native.STARTF_USESTDHANDLES;
+                startup.StartupInfo.dwFlags =
+                    Native.STARTF_USESTDHANDLES
+                        | Native.STARTF_USESHOWWINDOW;
+                startup.StartupInfo.wShowWindow = Native.SW_HIDE;
                 startup.StartupInfo.hStdInput = handles[0];
                 startup.StartupInfo.hStdOutput = handles[1];
                 startup.StartupInfo.hStdError = handles[2];
@@ -1090,7 +1096,9 @@ namespace JobSupervisor
                     IntPtr.Zero,
                     IntPtr.Zero,
                     true,
-                    Native.EXTENDED_STARTUPINFO_PRESENT | Native.CREATE_UNICODE_ENVIRONMENT,
+                    Native.CREATE_NEW_CONSOLE
+                        | Native.CREATE_UNICODE_ENVIRONMENT
+                        | Native.EXTENDED_STARTUPINFO_PRESENT,
                     IntPtr.Zero,
                     cwd,
                     ref startup,
