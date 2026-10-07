@@ -1,14 +1,10 @@
 import type { AttachmentLink, TestStepResult } from "@allurereport/core-api";
 
-import type {
-  UploadResultsDto,
-  UploadTestResultCategoryGroupingDto,
-  UploadTestResultDto,
-  UploadTestResultStepDto,
-} from "../model.js";
+import type { UploadResultsDto, UploadTestResultCategoryGroupingDto, UploadTestResultDto } from "../model.js";
 import type { TestOpsPluginTestResult } from "../model.js";
 import { toUploadAttachmentDto } from "./attachments.js";
 import { calculateLegacyHistoryId } from "./legacyHistory.js";
+import { toUploadStepDto } from "./steps.js";
 import { validateExecutableName } from "./validation.js";
 
 export const normalizeTestStepsResults = (steps: TestStepResult[] | undefined): TestStepResult[] | undefined => {
@@ -27,25 +23,6 @@ export const normalizeTestStepsResults = (steps: TestStepResult[] | undefined): 
   }
 
   return projected;
-};
-
-const toUploadStepDto = (step: TestStepResult): UploadTestResultStepDto => {
-  if (step.type === "attachment") {
-    return { type: "attachment", attachment: toUploadAttachmentDto(step.link) };
-  }
-
-  return {
-    type: "body",
-    body: step.name,
-    status: step.status,
-    start: step.start,
-    stop: step.stop,
-    duration: step.duration,
-    message: typeof step.message === "string" ? step.message : undefined,
-    trace: typeof step.trace === "string" ? step.trace : undefined,
-    parameters: step.parameters,
-    steps: step.steps?.map(toUploadStepDto),
-  };
 };
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;

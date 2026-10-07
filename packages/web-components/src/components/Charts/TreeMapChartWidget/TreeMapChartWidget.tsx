@@ -1,5 +1,6 @@
 import type { TreeMapNode } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
+import { resolveCSSVarColor } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 
 import { useTheme } from "@/components/ThemeProvider/index.js";
@@ -13,7 +14,6 @@ import {
   type SuccessRateI18n,
 } from "../SuccessRatePieChart/successRate.js";
 import { TreeMapChart } from "../TreeMapChart/index.js";
-import { resolveCSSVarColor } from "../utils.js";
 import { useCoverageDiffColors, useCoverageDiffTextColors, useSuccessRateDistributionColors } from "./hooks.js";
 import type { TreeMapChartWidgetProps } from "./types.js";
 
