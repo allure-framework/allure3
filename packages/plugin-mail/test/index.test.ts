@@ -100,6 +100,38 @@ describe("collectMailData", () => {
     expect(fromOptions).toMatchObject({ title: "Custom", reportUrl: "https://opt.example" });
   });
 
+  it("never rounds the pass rate up to 100% while some tests did not pass", async () => {
+    const many = [...Array.from({ length: 999 }, (_, i) => tr({ id: `p${i}` })), tr({ id: "f", status: "failed" })];
+    const data = await collectMailData(createContext().context, createStore(many));
+
+    expect(data.passRate).toBe(99);
+  });
+
+  it("falls back to the default limit for an invalid maxFailed and hides all failed tests for 0", async () => {
+    const { context } = createContext();
+    const invalid = await collectMailData(context, createStore(results), { maxFailed: Number.NaN });
+    const zero = await collectMailData(context, createStore(results), { maxFailed: 0 });
+
+    expect(invalid.failed).toHaveLength(2);
+    expect(zero).toMatchObject({ failed: [], hiddenFailed: 2 });
+  });
+
+  it("falls back to the report name for an empty title and does not mutate the store results", async () => {
+    const failedResults = [results[1], results[2]];
+    const store = { ...createStore(results), failedTestResults: async () => failedResults } as unknown as AllureStore;
+    const data = await collectMailData(createContext().context, store, { title: "" });
+
+    expect(data.title).toBe("My Report");
+    expect(failedResults.map(({ id }) => id)).toEqual(["2", "3"]);
+  });
+
+  it("collapses multi-line error messages", async () => {
+    const multiline = [tr({ id: "m", status: "failed", error: { message: "line one\n  line two" } })];
+    const data = await collectMailData(createContext().context, createStore(multiline));
+
+    expect(data.failed[0].message).toBe("line one line two");
+  });
+
   it("includes CI info only when CI was detected", async () => {
     const ci = {
       detected: true,
@@ -136,6 +168,7 @@ describe("renderMail", () => {
     expect(html).toContain('href="https://reports.example/1"');
     expect(html).toContain("a.&lt;b&gt;failed&lt;/b&gt;");
     expect(html).toContain("x &lt; y");
+    expect(html).toContain("Failed");
     expect(html).not.toContain("<b>failed</b>");
   });
 
