@@ -7,6 +7,8 @@ export type IdeaLinksOptions = {
   port?: number;
   /** Extension of the test source file, with or without a leading dot. Default: "java" */
   fileExtension?: string;
+  /** Path of the sources root relative to the project root, e.g. "src/test/java". Default: none */
+  sourceRoot?: string;
 };
 
 export type AwesomeOptions = {

@@ -17,16 +17,21 @@ import type { IdeaLinksOptions } from "./model.js";
 const md = new MarkdownIt();
 const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
 
-const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinksOptions): TestLink[] => {
-  const { port = 63342, fileExtension = "java" } = options === true ? {} : options || {};
-  // nested classes (`Outer$Inner`) live in the file of the outer class
-  const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value?.split("$")[0];
+// dot-separated identifiers only, so that suite names and other non-class values do not produce broken links
+const javaClassNameRegexp = /^[\p{L}_$][\p{L}\p{N}_$]*(\.[\p{L}_$][\p{L}\p{N}_$]*)*$/u;
 
-  if (!testClass) {
+const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinksOptions): TestLink[] => {
+  const { port = 63342, fileExtension = "java", sourceRoot = "" } = options === true ? {} : options || {};
+  const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value;
+
+  if (!testClass || !javaClassNameRegexp.test(testClass)) {
     return [];
   }
 
-  const file = `${testClass.replaceAll(".", "/")}.${fileExtension.replace(/^\./, "")}`;
+  // nested classes (`Outer$Inner`) live in the file of the outer class
+  const classPath = testClass.split("$")[0].replaceAll(".", "/");
+  const root = sourceRoot.replace(/^\/+|\/+$/g, "");
+  const file = `${root ? `${root}/` : ""}${classPath}.${fileExtension.replace(/^\./, "")}`;
 
   return [
     { name: "Open in IDEA", type: "idea", url: `http://localhost:${port}/api/file?file=${encodeURIComponent(file)}` },

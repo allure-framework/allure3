@@ -319,4 +319,23 @@ describe("convertTestResult ideaLinks", () => {
   it("should not add idea link when ideaLinks is false", () => {
     expect(convertTestResult(createTestResult({ labels }), { ideaLinks: false }).links).toEqual([]);
   });
+
+  it("should prepend sourceRoot to the file path", () => {
+    const { links } = convertTestResult(createTestResult({ labels }), {
+      ideaLinks: { sourceRoot: "/module/src/test/java/" },
+    });
+
+    expect(links[0].url).toBe(
+      "http://localhost:63342/api/file?file=module%2Fsrc%2Ftest%2Fjava%2Forg%2Fexample%2FFooTest.java",
+    );
+  });
+
+  it.each(["Login suite", "tests/login.spec.ts", "", "org..FooTest", "1abc.Foo"])(
+    "should skip idea link for non-class testClass %j",
+    (value) => {
+      expect(
+        convertTestResult(createTestResult({ labels: [{ name: "testClass", value }] }), { ideaLinks: true }).links,
+      ).toEqual([]);
+    },
+  );
 });
