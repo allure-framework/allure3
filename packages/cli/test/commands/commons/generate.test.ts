@@ -9,6 +9,7 @@ import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generate } from "../../../src/commands/commons/generate.js";
+import { cleanOutputDirectory } from "../../../src/utils/cleanOutput.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";
 
@@ -29,6 +30,9 @@ vi.mock("@allurereport/core", async () => {
     ),
   };
 });
+vi.mock("../../../src/utils/cleanOutput.js", () => ({
+  cleanOutputDirectory: vi.fn(),
+}));
 vi.mock("../../../src/utils/logs.js", () => ({
   logError: vi.fn(),
 }));
@@ -65,6 +69,54 @@ beforeEach(async () => {
 });
 
 describe("generate function", () => {
+  it("should clean the output directory before generation when clean is set", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({
+      cwd: ".",
+      config: { output: "/tmp/out" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith({
+      output: "/tmp/out",
+      cwd: ".",
+      resultsDirs: ["./allure-results/"],
+      inputFiles: [],
+    });
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
+
+  it("should not clean the output directory by default", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({ cwd: ".", config: {} as FullConfig, resultsDir: ["./allure-results"], dump: [] });
+
+    expect(cleanOutputDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should exit with code 1 and not generate when cleaning is refused", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(cleanOutputDirectory).mockRejectedValueOnce(new Error("Refusing to clean"));
+
+    await generate({
+      cwd: ".",
+      config: { output: "." } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Refusing to clean"));
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(AllureReportMock.prototype.start).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("should do nothing when there are no results directory and dump files", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (glob as unknown as Mock).mockResolvedValue([]);
