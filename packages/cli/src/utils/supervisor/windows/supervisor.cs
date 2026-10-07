@@ -1537,15 +1537,26 @@ namespace JobSupervisor
 
         private void UnregisterConsoleCtrlHandler()
         {
-            if (ctrlHandlerRegistered)
+            if (!ctrlHandlerRegistered)
             {
-                if (!Native.SetConsoleCtrlHandler(ctrlHandler, false))
+                return;
+            }
+
+            if (!Native.SetConsoleCtrlHandler(ctrlHandler, false))
+            {
+                int error = Marshal.GetLastWin32Error();
+                if (error != Native.ERROR_INVALID_PARAMETER)
                 {
-                    throw Win32("SetConsoleCtrlHandler(remove)");
+                    throw new Failure("SetConsoleCtrlHandler(remove)", error);
                 }
 
-                ctrlHandlerRegistered = false;
+                // Error 87 is most probably caused by Restart Manager console
+                // detaching and reattaching the current process console,
+                // which resets the handler table.
+                // We can ignore this error.
             }
+
+            ctrlHandlerRegistered = false;
         }
 
         private int Execute(
