@@ -46,7 +46,9 @@ export const generate = async (params: {
         output: params.config.output,
         cwd: params.cwd,
         resultsDirs: resultDirectories,
-        inputFiles: dumpFiles,
+        inputs: [...dumpFiles, params.config.historyPath, params.config.resolutions?.knownIssuesPath].filter(
+          (path): path is string => !!path,
+        ),
       });
     } catch (error) {
       // eslint-disable-next-line no-console

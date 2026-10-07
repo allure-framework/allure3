@@ -84,9 +84,29 @@ describe("generate function", () => {
       output: "/tmp/out",
       cwd: ".",
       resultsDirs: ["./allure-results/"],
-      inputFiles: [],
+      inputs: [],
     });
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
+
+  it("should protect the history and known issues files from cleaning", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({
+      cwd: ".",
+      config: {
+        output: "/tmp/out",
+        historyPath: "/tmp/out/history.jsonl",
+        resolutions: { knownIssuesPath: "/tmp/known.json" },
+      } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ inputs: ["/tmp/out/history.jsonl", "/tmp/known.json"] }),
+    );
   });
 
   it("should not clean the output directory by default", async () => {
