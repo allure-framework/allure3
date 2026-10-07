@@ -1,4 +1,4 @@
-import type { TestStatus } from "@allurereport/core-api";
+import { type TestStatus, capitalize, sanitizeExternalUrl } from "@allurereport/core-api";
 import mjml2html from "mjml";
 
 import type { MailData } from "./model.js";
@@ -22,16 +22,9 @@ export const escapeHtml = (value: string): string =>
     .replace(/'/g, "&#39;");
 
 const safeUrl = (url?: string): string | undefined => {
-  if (!url) {
-    return undefined;
-  }
+  const sanitized = sanitizeExternalUrl(url);
 
-  try {
-    const { protocol } = new URL(url);
-    return protocol === "http:" || protocol === "https:" ? escapeHtml(url) : undefined;
-  } catch {
-    return undefined;
-  }
+  return sanitized ? escapeHtml(sanitized) : undefined;
 };
 
 const link = (label: string, url?: string): string => {
@@ -47,7 +40,7 @@ const renderStats = ({ stats }: MailData): string =>
 
       return `<td align="center" style="padding:8px">
   <div style="font-size:24px;font-weight:bold;color:${statusColors[status]}">${count}</div>
-  <div style="font-size:12px;color:#616161;text-transform:capitalize">${status}</div>
+  <div style="font-size:12px;color:#616161">${capitalize(status) ?? status}</div>
 </td>`;
     })
     .join("");
@@ -74,7 +67,7 @@ const renderFailed = ({ failed, hiddenFailed }: MailData): string => {
   const items = failed
     .map(
       ({ name, status, message }) =>
-        `<li style="margin-bottom:8px"><span style="color:${statusColors[status]};font-weight:bold">${escapeHtml(status)}</span> ${escapeHtml(name)}${
+        `<li style="margin-bottom:8px"><span style="color:${statusColors[status]};font-weight:bold">${capitalize(status) ?? status}</span> ${escapeHtml(name)}${
           message ? `<br/><span style="color:#757575;font-size:12px">${escapeHtml(message)}</span>` : ""
         }</li>`,
     )
@@ -100,7 +93,7 @@ export const renderMjml = (data: MailData): string => {
     </mj-attributes>
   </mj-head>
   <mj-body background-color="#f5f5f5">
-    <mj-section background-color="#ffffff" padding-bottom="0">
+    <mj-section background-color="#ffffff" padding-bottom="0" border-top="4px solid ${statusColors[data.status]}">
       <mj-column>
         <mj-text font-size="22px" font-weight="bold">${escapeHtml(data.title)}</mj-text>
         <mj-text color="#616161" font-size="14px">${data.passRate}% passed · ${data.stats.total} tests · ${escapeHtml(data.duration)}</mj-text>
