@@ -1,7 +1,7 @@
 import { env } from "node:process";
 
 import { applyAllureCiEnv, detect, isLocalCiDescriptor } from "@allurereport/ci";
-import { createProgressLogger } from "@allurereport/cli-commons";
+import { createProgressLogger, getGlobalLogLevel } from "@allurereport/cli-commons";
 import type {
   CiDescriptor,
   EnvironmentIdentity,
@@ -598,7 +598,8 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    if (context.realTime) {
+    // an explicit --verbose/--quiet (global log level) must not be overridden by real-time mode
+    if (context.realTime && getGlobalLogLevel() === undefined) {
       this.#logger.setLogLevel("info");
     }
 

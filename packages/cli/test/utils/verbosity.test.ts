@@ -2,7 +2,7 @@ import { getGlobalLogLevel } from "@allurereport/cli-commons";
 import { UsageError } from "clipanion";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { applyVerbosity, extractVerbosityFlags, getVerbosity, isQuiet } from "../../src/utils/verbosity.js";
+import { applyVerbosity, extractVerbosityFlags, isQuiet } from "../../src/utils/verbosity.js";
 
 describe("extractVerbosityFlags", () => {
   it("returns arguments untouched when no flags are present", () => {
@@ -29,6 +29,14 @@ describe("extractVerbosityFlags", () => {
     });
   });
 
+  it("accepts repeated flags and keeps -v for commands other than a lone version request", () => {
+    expect(extractVerbosityFlags(["-v", "-v", "generate", "-v"])).toEqual({
+      args: ["generate"],
+      verbosity: "verbose",
+    });
+    expect(extractVerbosityFlags(["-v", "--version"])).toEqual({ args: ["--version"], verbosity: "verbose" });
+  });
+
   it("keeps a lone -v for the version command", () => {
     expect(extractVerbosityFlags(["-v"])).toEqual({ args: ["-v"], verbosity: "normal" });
   });
@@ -52,7 +60,6 @@ describe("applyVerbosity", () => {
     applyVerbosity("quiet");
 
     expect(getGlobalLogLevel()).toBe("error");
-    expect(getVerbosity()).toBe("quiet");
     expect(isQuiet()).toBe(true);
   });
 

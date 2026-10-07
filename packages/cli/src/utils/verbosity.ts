@@ -1,14 +1,19 @@
-import { setGlobalLogLevel } from "@allurereport/cli-commons";
+import { type LogLevel, setGlobalLogLevel } from "@allurereport/cli-commons";
 import { UsageError } from "clipanion";
 
 export type Verbosity = "verbose" | "quiet" | "normal";
 
-const VERBOSE_FLAGS = new Set(["--verbose", "-v"]);
-const QUIET_FLAGS = new Set(["--quiet", "-q"]);
+// `--verbose` lowers the log level, `--quiet` keeps errors only; otherwise `ALLURE_LOG_LEVEL` decides
+const LOG_LEVELS: Record<Verbosity, LogLevel | undefined> = {
+  verbose: "verbose",
+  quiet: "error",
+  normal: undefined,
+};
+
+const isVerboseFlag = (arg: string) => arg === "--verbose" || arg === "-v";
+const isQuietFlag = (arg: string) => arg === "--quiet" || arg === "-q";
 
 let currentVerbosity: Verbosity = "normal";
-
-export const getVerbosity = (): Verbosity => currentVerbosity;
 
 export const isQuiet = () => currentVerbosity === "quiet";
 
@@ -24,24 +29,21 @@ export const extractVerbosityFlags = (args: string[]): { args: string[]; verbosi
 
   const separator = args.indexOf("--");
   const own = separator === -1 ? args : args.slice(0, separator);
-  const rest = separator === -1 ? [] : args.slice(separator);
-  const verbose = own.some((arg) => VERBOSE_FLAGS.has(arg));
-  const quiet = own.some((arg) => QUIET_FLAGS.has(arg));
+  const nested = separator === -1 ? [] : args.slice(separator);
+  const verbose = own.some(isVerboseFlag);
+  const quiet = own.some(isQuietFlag);
 
   if (verbose && quiet) {
     throw new UsageError("--verbose and --quiet cannot be used together");
   }
 
-  const filtered = own.filter((arg) => !VERBOSE_FLAGS.has(arg) && !QUIET_FLAGS.has(arg));
-
-  return { args: [...filtered, ...rest], verbosity: verbose ? "verbose" : quiet ? "quiet" : "normal" };
+  return {
+    args: [...own.filter((arg) => !isVerboseFlag(arg) && !isQuietFlag(arg)), ...nested],
+    verbosity: verbose ? "verbose" : quiet ? "quiet" : "normal",
+  };
 };
 
-/**
- * `--verbose` lowers the log level to `verbose`, `--quiet` raises it to `error`.
- * Without either flag the level still comes from `ALLURE_LOG_LEVEL`.
- */
 export const applyVerbosity = (verbosity: Verbosity) => {
   currentVerbosity = verbosity;
-  setGlobalLogLevel(verbosity === "verbose" ? "verbose" : verbosity === "quiet" ? "error" : undefined);
+  setGlobalLogLevel(LOG_LEVELS[verbosity]);
 };

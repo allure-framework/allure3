@@ -138,7 +138,7 @@ export class RunCommand extends Command {
 
   /** `--quiet` implies `--silent` for the spawned test process. */
   get silentOutput() {
-    return !!this.silent || isQuiet();
+    return !!(this.silent || this.quiet) || isQuiet();
   }
 
   get logs() {

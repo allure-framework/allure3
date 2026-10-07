@@ -1176,8 +1176,10 @@ describe("run command", () => {
     const createCommand = (ignoreLogs = false, silent = false) => {
       const command = new RunCommand();
 
+      // options of a command that was not parsed by clipanion are descriptors, not values
       command.ignoreLogs = ignoreLogs;
       command.silent = silent;
+      command.quiet = false;
 
       return command;
     };
@@ -1198,6 +1200,14 @@ describe("run command", () => {
 
       expect(command.silentOutput).toBe(true);
       expect(command.logs).toBe("ignore");
+    });
+
+    it("should treat a parsed --quiet option like --silent even without the global flag", () => {
+      const command = new RunCommand();
+
+      command.quiet = true;
+
+      expect(command.silentOutput).toBe(true);
     });
 
     it("should not change process output under --verbose", () => {

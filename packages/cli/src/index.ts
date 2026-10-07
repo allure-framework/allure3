@@ -77,31 +77,24 @@ cli.register(ResultsUnpackCommand);
 cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
-let args = rawArgs;
+const main = async () => {
+  const { args, verbosity } = extractVerbosityFlags(rawArgs);
 
-try {
-  const extracted = extractVerbosityFlags(rawArgs);
+  applyVerbosity(verbosity);
 
-  args = extracted.args;
-  applyVerbosity(extracted.verbosity);
-} catch (error) {
-  console.error(error instanceof UsageError ? error.message : error);
-  process.exit(1);
-}
+  const exitCode = await cli.run(args);
 
-void cli
-  .run(args)
-  .then((exitCode) => {
-    if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
-      process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
-    }
+  if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
+    process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
+  }
 
-    process.exitCode = exitCode;
-  })
-  .catch((error: unknown) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+  process.exitCode = exitCode;
+};
+
+void main().catch((error: unknown) => {
+  console.error(error instanceof UsageError ? `Usage Error: ${error.message}` : error);
+  process.exitCode = 1;
+});
 
 export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";
