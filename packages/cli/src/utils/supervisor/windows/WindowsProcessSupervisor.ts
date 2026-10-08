@@ -497,7 +497,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     });
 
     try {
-      const message = encode({ type: "stop", requestId, target: "root" });
+      const message = encode({ type: "stop", requestId });
       control.write(message);
       if (signal.aborted) {
         return;
