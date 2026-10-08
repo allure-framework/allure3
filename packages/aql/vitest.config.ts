@@ -1,45 +1,17 @@
-import { createRequire } from "node:module";
 import * as path from "node:path";
 
-import { defineConfig } from "vitest/config";
+import { defaultVitestConfig } from "@allurereport/test-config";
+import { defineConfig, mergeConfig } from "vitest/config";
 
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  test: {
+export default mergeConfig(
+  defaultVitestConfig({
     include: ["./tests/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
-    /**
-     * Enable --expose-gc flag for memory profiling tests
-     * This allows using global.gc() in tests for more accurate memory measurements
-     */
-    execArgv: ["--expose-gc"],
-    reporters: [
-      "default",
-      [
-        "allure-vitest/reporter",
-        {
-          resultsDir: "./out/allure-results",
-          globalLabels: [
-            { name: "module", value: "aql" },
-            { name: "layer", value: "unit" },
-            { name: "coverage", value: "aql" },
-            { name: "epic", value: "coverage" },
-            { name: "feature", value: "aql" },
-          ],
-          links: {
-            issue: {
-              urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
-              nameTemplate: "Issue %s",
-            },
-          },
-        },
-      ],
-    ],
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+  }),
+  defineConfig({
+    test: {
+      // Enable global.gc() for more accurate memory profiling measurements.
+      execArgv: ["--expose-gc"],
     },
-  },
-});
+    resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  }),
+);

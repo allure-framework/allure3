@@ -36,8 +36,10 @@
     "open": "^11.0.0"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@playwright/test": "^1.62.1",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",

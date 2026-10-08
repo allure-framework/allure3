@@ -27,6 +27,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "yarn run -T oxlint --import-plugin src test features stories",
     "lint:fix": "yarn run -T oxlint --import-plugin --fix src test features stories"
   },
@@ -37,7 +38,9 @@
   },
   "devDependencies": {
     "@allurereport/reader-api": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

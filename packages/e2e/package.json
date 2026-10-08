@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "test": "playwright install chromium firefox webkit && playwright test",
+    "test:e2e": "playwright install chromium firefox webkit && playwright test",
     "test:ui": "playwright test --ui",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"

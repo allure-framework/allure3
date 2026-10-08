@@ -27,6 +27,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -36,7 +37,9 @@
     "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",

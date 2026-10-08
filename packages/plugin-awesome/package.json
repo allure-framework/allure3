@@ -26,6 +26,7 @@
     "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-awesome/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -39,10 +40,12 @@
     "markdown-it": "^14.2.0"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
