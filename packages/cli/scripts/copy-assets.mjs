@@ -9,7 +9,9 @@ const distDir = join(__dirname, "../dist");
 
 const assets = [
   "utils/supervisor/windows/supervisor.ps1",
+  "utils/supervisor/windows/supervisor.cs",
   "utils/supervisor/windows/worker.ps1",
+  "utils/supervisor/windows/send-console-signal.ps1",
 ];
 
 for (const asset of assets) {

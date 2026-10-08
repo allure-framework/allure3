@@ -59,7 +59,6 @@ namespace JobSupervisor
         internal const int JobObjectAssociateCompletionPortInformation = 7;
         internal const int JobObjectExtendedLimitInformation = 9;
         internal const uint JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO = 4;
-        internal const int JobObjectBasicProcessIdList = 3;
         internal static readonly UIntPtr JobKey = new UIntPtr(1);
         internal static readonly UIntPtr StopKey = new UIntPtr(2);
 
@@ -200,7 +199,6 @@ namespace JobSupervisor
         internal const ushort SW_HIDE = 0;
         internal static readonly IntPtr HandleListAttribute = new IntPtr(0x20002);
         internal static readonly IntPtr JobListAttribute = new IntPtr(0x2000d);
-        internal const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         internal struct STARTUPINFO
@@ -241,12 +239,6 @@ namespace JobSupervisor
             public uint dwThreadId;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct FILETIME
-        {
-            public uint Low;
-            public uint High;
-        }
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool InitializeProcThreadAttributeList(
@@ -290,20 +282,10 @@ namespace JobSupervisor
         [DllImport("kernel32.dll")]
         internal static extern uint GetCurrentProcessId();
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool GetExitCodeProcess(IntPtr process, out uint code);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool GetProcessTimes(
-            IntPtr process,
-            out FILETIME created,
-            out FILETIME exited,
-            out FILETIME kernel,
-            out FILETIME user
-        );
 
         // Handles, waits, and Win32 errors
         internal const uint DUPLICATE_SAME_ACCESS = 2;
@@ -321,7 +303,6 @@ namespace JobSupervisor
         internal const uint WAIT_FAILED = 0xffffffff;
         internal const int ERROR_INVALID_HANDLE = 6;
         internal const int ERROR_INSUFFICIENT_BUFFER = 122;
-        internal const int ERROR_MORE_DATA = 234;
         internal const int ERROR_INVALID_PARAMETER = 87;
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -355,47 +336,18 @@ namespace JobSupervisor
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern uint WaitForSingleObject(IntPtr handle, uint timeout);
 
-        // Restart Manager
-        internal const uint RM_SHUTDOWN_GRACEFUL = 0;
-        internal const int CCH_RM_SESSION_KEY = 32;
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct RM_UNIQUE_PROCESS
-        {
-            public uint ProcessId;
-            public FILETIME ProcessStartTime;
-        }
-
-        // Restart Manager returns error codes directly; GetLastError is not applicable.
-        [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
-        internal static extern int RmStartSession(
-            out uint session,
-            uint flags,
-            StringBuilder key
-        );
-
-        [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
-        internal static extern int RmRegisterResources(
-            uint session,
-            uint files,
-            IntPtr fileNames,
-            uint count,
-            [In] RM_UNIQUE_PROCESS[] processes,
-            uint services,
-            IntPtr names
-        );
-
-        [DllImport("rstrtmgr.dll")]
-        internal static extern int RmShutdown(uint session, uint flags, IntPtr callback);
-
-        [DllImport("rstrtmgr.dll")]
-        internal static extern int RmEndSession(uint session);
     }
 
     public sealed class Supervisor : IDisposable
     {
         public const int MaxMessageBytes = 1048576;
         public const string CMD_UNQUOTED = @"#$*+-./:?@\_";
+
+        private static string PowerShellPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            "WindowsPowerShell\\v1.0\\powershell.exe"
+        );
 
         // Communication and event delivery
         // The script uses JavaScriptSerializer because the newer System.Text.Json is not available in PowerShell 5.1.
@@ -414,6 +366,7 @@ namespace JobSupervisor
 
         // Background threads and process resources
         private Thread reader, monitor, shutdown;
+        private Process signalDelivery;
         private IntPtr job, port, root;
         private uint rootPid;
         private string workerPath, tempDirectory;
@@ -951,10 +904,7 @@ namespace JobSupervisor
             }
             else if (scriptInfo != null)
             {
-                application = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.System),
-                    "WindowsPowerShell\\v1.0\\powershell.exe"
-                );
+                application = PowerShellPath;
                 StringBuilder script = new StringBuilder(QuoteNative(application));
                 script.Append(" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ")
                     .Append(QuoteNative(resolved));
@@ -981,10 +931,7 @@ namespace JobSupervisor
                     }),
                     utf8
                 );
-                application = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.System),
-                    "WindowsPowerShell\\v1.0\\powershell.exe"
-                );
+                application = PowerShellPath;
                 commandLine = QuoteNative(application)
                     + " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
                     + QuoteNative(workerPath)
@@ -1152,144 +1099,31 @@ namespace JobSupervisor
             return new Failure("ValidateRequest", message);
         }
 
-        private Native.RM_UNIQUE_PROCESS[] SnapshotJobProcesses()
-        {
-            // The variable-length PID array begins after two DWORDs on both architectures.
-            int capacity = 64;
-            for (int attempt = 0; attempt < 16; attempt++)
-            {
-                int bytes = checked(8 + capacity * IntPtr.Size);
-                IntPtr memory = Marshal.AllocHGlobal(bytes);
-                try
-                {
-                    uint returned;
-                    bool success = Native.QueryInformationJobObject(
-                        job,
-                        Native.JobObjectBasicProcessIdList,
-                        memory,
-                        (uint)bytes,
-                        out returned
-                    );
-
-                    int error = success ? 0 : Marshal.GetLastWin32Error();
-
-                    if (!success && error != Native.ERROR_MORE_DATA)
-                    {
-                        throw new Failure("QueryInformationJobObject", error);
-                    }
-
-                    int assigned = Marshal.ReadInt32(memory);
-                    int count = Marshal.ReadInt32(memory, 4);
-                    if (!success || assigned > count)
-                    {
-                        capacity = checked(Math.Max(capacity * 2, assigned));
-                        continue;
-                    }
-
-                    List<Native.RM_UNIQUE_PROCESS> processes = new List<Native.RM_UNIQUE_PROCESS>();
-                    for (int i = 0; i < count; i++)
-                    {
-                        uint pid = unchecked((uint)Marshal.ReadIntPtr(
-                            memory,
-                            8 + i * IntPtr.Size
-                        ).ToInt64());
-
-                        IntPtr process = Native.OpenProcess(
-                            Native.PROCESS_QUERY_LIMITED_INFORMATION,
-                            false,
-                            pid
-                        );
-
-                        if (process == IntPtr.Zero)
-                        {
-                            error = Marshal.GetLastWin32Error();
-                            if (error == Native.ERROR_INVALID_PARAMETER)
-                            {
-                                // The process has exited between the QueryInformationJobObject and OpenProcess calls.
-                                continue;
-                            }
-                            throw new Failure("OpenProcess(stop)", error);
-                        }
-
-                        try
-                        {
-                            bool member;
-                            if (!Native.IsProcessInJob(process, job, out member))
-                            {
-                                throw Win32("IsProcessInJob");
-                            }
-
-                            if (!member)
-                            {
-                                continue; // PID reused outside our job.
-                            }
-
-                            Native.FILETIME created, exited, kernel, user;
-                            success = Native.GetProcessTimes(
-                                process,
-                                out created,
-                                out exited,
-                                out kernel,
-                                out user
-                            );
-                            if (!success)
-                            {
-                                throw Win32("GetProcessTimes");
-                            }
-
-                            processes.Add(new Native.RM_UNIQUE_PROCESS
-                            {
-                                ProcessId = pid,
-                                ProcessStartTime = created,
-                            });
-                        }
-                        finally
-                        {
-                            Native.CloseHandle(process);
-                        }
-                    }
-
-                    return processes.ToArray();
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(memory);
-                }
-            }
-
-            throw new Failure("QueryInformationJobObject", "Job process list kept growing during stop snapshot.");
-        }
-
-        private Native.RM_UNIQUE_PROCESS[] SnapshotRootProcess()
+        private void BeginStop(string id)
         {
             uint wait = Native.WaitForSingleObject(root, 0);
             if (wait == Native.WAIT_OBJECT_0)
             {
-                return new Native.RM_UNIQUE_PROCESS[0];
+                SendStopResult(new StopResult { RequestId = id });
+                return;
             }
             if (wait == Native.WAIT_FAILED)
             {
-                throw Win32("WaitForSingleObject");
+                SendStopResult(new StopResult { RequestId = id, Error = Win32("WaitForSingleObject") });
+                return;
             }
 
-            Native.FILETIME created, exited, kernel, user;
-            if (!Native.GetProcessTimes(root, out created, out exited, out kernel, out user))
-            {
-                throw Win32("GetProcessTimes");
-            }
-            return new[] { new Native.RM_UNIQUE_PROCESS
-            {
-                ProcessId = rootPid,
-                ProcessStartTime = created,
-            } };
-        }
-
-        private void BeginStop(string id, string target)
-        {
-            Native.RM_UNIQUE_PROCESS[] processes;
             try
             {
-                processes = target == "root" ? SnapshotRootProcess() : SnapshotJobProcesses();
+                signalDelivery = Process.Start(new ProcessStartInfo
+                {
+                    FileName = PowerShellPath,
+                    Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
+                        + QuoteNative(Path.Combine(Path.GetDirectoryName(workerPath), "send-console-signal.ps1"))
+                        + " " + rootPid.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
             }
             catch (Exception e)
             {
@@ -1300,77 +1134,41 @@ namespace JobSupervisor
             stopPending = true;
             shutdown = new Thread(delegate ()
             {
-                StopResult result = new StopResult
-                {
-                    RequestId = id
-                };
-                uint session = 0;
-                bool opened = false;
+                StopResult result = new StopResult { RequestId = id };
                 try
                 {
-                    if (processes.Length != 0)
+                    signalDelivery.WaitForExit();
+                    if (signalDelivery.ExitCode != 0)
                     {
-                        int error = Native.RmStartSession(
-                            out session,
-                            flags: 0,
-                            key: new StringBuilder(Native.CCH_RM_SESSION_KEY + 1)
-                        );
-                        if (error != 0)
-                        {
-                            throw new Failure("RmStartSession", error);
-                        }
-
-                        opened = true;
-
-                        error = Native.RmRegisterResources(
-                            session,
-                            files: 0,
-                            fileNames: IntPtr.Zero,
-                            count: (uint)processes.Length,
-                            processes: processes,
-                            services: 0,
-                            names: IntPtr.Zero
-                        );
-                        if (error != 0)
-                        {
-                            throw new Failure("RmRegisterResources", error);
-                        }
-
-                        if (!stopping.IsCancellationRequested)
-                        {
-                            error = Native.RmShutdown(
-                                session,
-                                flags: Native.RM_SHUTDOWN_GRACEFUL,
-                                callback: IntPtr.Zero
-                            );
-
-                            if (error != 0)
-                            {
-                                throw new Failure("RmShutdown", error);
-                            }
-                        }
+                        result.Error = new Failure("SendConsoleSignal", signalDelivery.ExitCode);
                     }
                 }
                 catch (Exception e)
                 {
                     result.Error = e;
                 }
-                finally
-                {
-                    if (opened)
-                    {
-                        int error = Native.RmEndSession(session);
-                        if (error != 0 && result.Error == null)
-                        {
-                            result.Error = new Failure("RmEndSession", error);
-                        }
-                    }
-                }
-
                 Enqueue(result);
             });
             shutdown.IsBackground = true;
             shutdown.Start();
+        }
+
+        private void TerminateSendConsoleSignal()
+        {
+            if (signalDelivery != null && !signalDelivery.HasExited)
+            {
+                try
+                {
+                    signalDelivery.Kill();
+                }
+                catch (InvalidOperationException)
+                {
+                    if (!signalDelivery.HasExited)
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
         private void SendStopResult(StopResult result)
@@ -1437,17 +1235,7 @@ namespace JobSupervisor
                         throw Invalid("Stop after termination request.");
                     }
 
-                    string target = "all";
-                    if (request.TryGetValue("target", out value))
-                    {
-                        target = value as string;
-                        if (target != "all" && target != "root")
-                        {
-                            throw Invalid("target must be either 'root' or 'all'.");
-                        }
-                    }
-
-                    BeginStop(id, target);
+                    BeginStop(id);
                 }
                 else if (type == "terminate")
                 {
@@ -1482,6 +1270,7 @@ namespace JobSupervisor
                     Dictionary<string, object> response = Message("terminationResult");
                     response["requestId"] = id;
 
+                    TerminateSendConsoleSignal();
                     bool success = Native.TerminateJobObject(job, code);
 
                     int error = success ? 0 : Marshal.GetLastWin32Error();
@@ -1531,34 +1320,19 @@ namespace JobSupervisor
 
         private static bool HandleConsoleControl(uint controlType)
         {
-            // The Node.js part owns escalation.
-            // The target receives the original console event automatically.
-            // The PowerShell part should simply ignore the CTRL+C event.
+            // The Node.js implement the escalation policy.
+            // The PowerShell part must survive CTRL+C.
             return controlType == Native.CTRL_C_EVENT;
         }
 
         private void UnregisterConsoleCtrlHandler()
         {
-            if (!ctrlHandlerRegistered)
+            if (ctrlHandlerRegistered)
             {
-                return;
+                // Ignore any errors as we're about to exit anyway.
+                Native.SetConsoleCtrlHandler(ctrlHandler, false);
+                ctrlHandlerRegistered = false;
             }
-
-            if (!Native.SetConsoleCtrlHandler(ctrlHandler, false))
-            {
-                int error = Marshal.GetLastWin32Error();
-                if (error != Native.ERROR_INVALID_PARAMETER)
-                {
-                    throw new Failure("SetConsoleCtrlHandler(remove)", error);
-                }
-
-                // Error 87 is most probably caused by Restart Manager console
-                // detaching and reattaching the current process console,
-                // which resets the handler table.
-                // We can ignore this error.
-            }
-
-            ctrlHandlerRegistered = false;
         }
 
         private int Execute(
@@ -1715,6 +1489,7 @@ namespace JobSupervisor
             try
             {
                 stopping.Cancel();
+                TerminateSendConsoleSignal();
 
                 if (pipe != null)
                 {
@@ -1743,10 +1518,15 @@ namespace JobSupervisor
                     monitor.Join(1000);
                 }
 
-                // Give an interrupted RM call a bounded chance to end its session after job cleanup.
+                // Wait for the send-console-signal.ps1 helper to finish after cancellation.
                 if (shutdown != null)
                 {
-                    shutdown.Join(1000);
+                    shutdown.Join();
+                }
+
+                if (signalDelivery != null)
+                {
+                    signalDelivery.Dispose();
                 }
 
                 if (root != IntPtr.Zero)

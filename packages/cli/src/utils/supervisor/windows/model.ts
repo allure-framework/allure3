@@ -1,7 +1,6 @@
 export type StopRequest = {
   type: "stop";
   requestId: string;
-  target?: "all" | "root";
 };
 
 export type TerminateRequest = {
