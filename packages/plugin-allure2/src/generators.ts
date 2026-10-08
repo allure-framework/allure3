@@ -1,5 +1,10 @@
 import type { AttachmentLink, GlobalAttachmentLink, HistoryDataPoint, TestError } from "@allurereport/core-api";
-import { createBaseUrlScript, createScriptTag, createStylesLinkTag } from "@allurereport/core-api";
+import {
+  createBaseUrlScript,
+  createScriptTag,
+  createStylesLinkTag,
+  stringifyForInlineScript,
+} from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
@@ -86,13 +91,18 @@ const template = `<!DOCTYPE html>
 `;
 
 const compiledTemplate = Handlebars.compile(template);
+const reportDataScriptPlaceholder = "<!-- allure2-report-data -->";
 
-const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
-  const reportFilesDeclaration = reportFiles
-    .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
-    .join(",");
+const injectEmbeddedReportDataScript = (html: string, reportFiles: ReportFile[]): Buffer => {
+  const placeholderIndex = html.indexOf(reportDataScriptPlaceholder);
 
-  return `
+  if (placeholderIndex === -1) {
+    throw new Error("Report data script placeholder is missing from the Allure 2 HTML template");
+  }
+
+  const chunks = [
+    Buffer.from(html.slice(0, placeholderIndex), "utf8"),
+    Buffer.from(`
     <script>
       window.reportDataReady = false;
       window.reportData = window.reportData || {};
@@ -105,11 +115,25 @@ const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
       }
     </script>
     <script>
-      Promise.allSettled([${reportFilesDeclaration}]).then(function () {
+      Promise.allSettled([`),
+  ];
+
+  reportFiles.forEach(({ name, value }, index) => {
+    chunks.push(
+      Buffer.from(`${index === 0 ? "" : ","}d(${stringifyForInlineScript(name)},${stringifyForInlineScript(value)})`),
+    );
+  });
+
+  chunks.push(
+    Buffer.from(`]).then(function () {
         window.reportDataReady = true;
       });
     </script>
-  `;
+  `),
+    Buffer.from(html.slice(placeholderIndex + reportDataScriptPlaceholder.length), "utf8"),
+  );
+
+  return Buffer.concat(chunks);
 };
 
 export const readTemplateManifest = async (): Promise<TemplateManifest> => {
@@ -158,7 +182,7 @@ export const generateStaticFiles = async (payload: {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: singleFile ? createEmbeddedReportDataScript(reportDataFiles) : "",
+      reportFilesScript: singleFile ? reportDataScriptPlaceholder : "",
       analyticsEnable: process.env.ALLURE_NO_ANALYTICS?.toLowerCase() !== "true",
       allureVersion,
       reportLanguage,
@@ -167,7 +191,10 @@ export const generateStaticFiles = async (payload: {
       singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    await reportFiles.addFile(
+      "index.html",
+      singleFile ? injectEmbeddedReportDataScript(html, reportDataFiles) : Buffer.from(html, "utf8"),
+    );
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console

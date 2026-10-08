@@ -104,6 +104,83 @@ export const stringifyForInlineScript = (value: unknown): string => {
     .replaceAll("\u2029", "\\u2029");
 };
 
+export const reportDataScriptPlaceholder = "<!-- allure-report-data -->";
+
+const createReportDataScriptChunks = (
+  reportFiles: {
+    name: string;
+    value: string;
+  }[] = [],
+): Buffer[] => {
+  if (!reportFiles.length) {
+    return [
+      Buffer.from(`
+      <script async>
+        window.allureReportDataReady = true;
+      </script>
+    `),
+    ];
+  }
+
+  const chunks = [
+    Buffer.from(`
+    <script async>
+      window.allureReportDataReady = false;
+      window.allureReportData = window.allureReportData || {};
+
+      function d(name, value){
+        return new Promise(function (resolve) {
+          window.allureReportData[name] = value;
+
+          return resolve(true);
+        });
+      }
+    </script>
+    <script defer>
+      Promise.allSettled([`),
+  ];
+
+  reportFiles.forEach(({ name, value }, index) => {
+    chunks.push(
+      Buffer.from(`${index === 0 ? "" : ","}d(${stringifyForInlineScript(name)},${stringifyForInlineScript(value)})`),
+    );
+  });
+
+  chunks.push(
+    Buffer.from(`])
+        .then(function(){
+          window.allureReportDataReady = true;
+        })
+    </script>
+  `),
+  );
+
+  return chunks;
+};
+
+export const injectReportDataScript = (
+  html: string,
+  reportFiles: {
+    name: string;
+    value: string;
+  }[] = [],
+): Buffer => {
+  const placeholderIndex = html.indexOf(reportDataScriptPlaceholder);
+
+  if (placeholderIndex === -1) {
+    throw new Error("Report data script placeholder is missing from the HTML template");
+  }
+
+  const prefix = html.slice(0, placeholderIndex);
+  const suffix = html.slice(placeholderIndex + reportDataScriptPlaceholder.length);
+
+  return Buffer.concat([
+    Buffer.from(prefix, "utf8"),
+    ...createReportDataScriptChunks(reportFiles),
+    Buffer.from(suffix, "utf8"),
+  ]);
+};
+
 export const createReportDataScript = (
   reportFiles: {
     name: string;
@@ -119,7 +196,7 @@ export const createReportDataScript = (
   }
 
   const reportFilesDeclaration = reportFiles
-    .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
+    .map(({ name, value }) => `d(${stringifyForInlineScript(name)},${stringifyForInlineScript(value)})`)
     .join(",");
 
   return `
