@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import process, { argv } from "node:process";
 
-import { Builtins, Cli } from "clipanion";
+import { Builtins, Cli, UsageError } from "clipanion";
 
 import {
   AgentCommand,
@@ -34,8 +34,9 @@ import {
   WatchCommand,
   isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
+import { applyVerbosity, extractVerbosityFlags } from "./utils/verbosity.js";
 
-const [node, app, ...args] = argv;
+const [node, app, ...rawArgs] = argv;
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -76,19 +77,24 @@ cli.register(ResultsUnpackCommand);
 cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
-void cli
-  .run(args)
-  .then((exitCode) => {
-    if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
-      process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
-    }
+const main = async () => {
+  const { args, verbosity } = extractVerbosityFlags(rawArgs);
 
-    process.exitCode = exitCode;
-  })
-  .catch((error: unknown) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+  applyVerbosity(verbosity);
+
+  const exitCode = await cli.run(args);
+
+  if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
+    process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
+  }
+
+  process.exitCode = exitCode;
+};
+
+void main().catch((error: unknown) => {
+  console.error(error instanceof UsageError ? `Usage Error: ${error.message}` : error);
+  process.exitCode = 1;
+});
 
 export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";
