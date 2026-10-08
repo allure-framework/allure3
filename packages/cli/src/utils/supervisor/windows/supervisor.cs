@@ -187,6 +187,8 @@ namespace JobSupervisor
         internal const uint PE_SIGNATURE = 0x00004550; // 'PE\0\0' in little-endian
         internal const uint COFF_SIZE_OF_OPTIONAL_HEADER_OFFSET = 16;
         internal const uint COFF_FILE_HEADER_SIZE = 20;
+        internal const uint PE_MAGIC_PE32 = 0x10B;
+        internal const uint PE_MAGIC_PE32_PLUS = 0x20B;
         internal const uint PE_HEADER_SUBSYSTEM_OFFSET = 68;
         internal const ushort IMAGE_SUBSYSTEM_WINDOWS_GUI = 2;
 
@@ -531,7 +533,7 @@ namespace JobSupervisor
                 stream.Seek(Native.E_LFANEW_OFFSET, SeekOrigin.Begin);
 
                 uint signatureOffset = reader.ReadUInt32(); // Read the e_lfanew field (offset to PE header)
-                long optionalHeaderOffset = minLength = signatureOffset + 4 + Native.COFF_FILE_HEADER_SIZE;
+                long optionalHeaderOffset = minLength = (long)signatureOffset + 4 + Native.COFF_FILE_HEADER_SIZE;
                 if (length < minLength)
                 {
                     return false;
@@ -546,14 +548,26 @@ namespace JobSupervisor
                 stream.Seek(Native.COFF_SIZE_OF_OPTIONAL_HEADER_OFFSET, SeekOrigin.Current);
 
                 ushort optionalHeaderSize = reader.ReadUInt16();
+                if (optionalHeaderSize <= Native.PE_HEADER_SUBSYSTEM_OFFSET + 2)
+                {
+                    return false;
+                }
+
                 minLength += optionalHeaderSize;
                 if (length < minLength)
                 {
                     return false;
                 }
 
+                stream.Seek(optionalHeaderOffset, SeekOrigin.Begin);
+                uint magicField = reader.ReadUInt16();
+                if (magicField != Native.PE_MAGIC_PE32 && magicField != Native.PE_MAGIC_PE32_PLUS)
+                {
+                    return false;
+                }
+
                 stream.Seek(optionalHeaderOffset + Native.PE_HEADER_SUBSYSTEM_OFFSET, SeekOrigin.Begin);
-                uint subsystem = reader.ReadUInt16(); // Read the Subsystem field from the optional header
+                uint subsystem = reader.ReadUInt16();
 
                 return subsystem == Native.IMAGE_SUBSYSTEM_WINDOWS_GUI;
             }
@@ -858,7 +872,7 @@ namespace JobSupervisor
         {
             bool powershell = false;
             bool batch = false;
-            // bool hideWindow = true;
+            bool hideWindow = true;
             string resolved;
 
             ApplicationInfo applicationInfo = command as ApplicationInfo;
@@ -872,7 +886,7 @@ namespace JobSupervisor
                 batch = resolvedExtension.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
                     || resolvedExtension.Equals(".bat", StringComparison.OrdinalIgnoreCase);
 
-                // hideWindow = batch || !IsGuiApplication(resolved);
+                hideWindow = batch || !IsGuiApplication(resolved);
             }
             else if (scriptInfo != null)
             {
@@ -1024,16 +1038,15 @@ namespace JobSupervisor
 
                 Native.STARTUPINFOEX startup = new Native.STARTUPINFOEX();
                 startup.StartupInfo.cb = (uint)Marshal.SizeOf(typeof(Native.STARTUPINFOEX));
-                startup.StartupInfo.dwFlags = Native.STARTF_USESTDHANDLES | Native.STARTF_USESHOWWINDOW;
-                startup.StartupInfo.wShowWindow = Native.SW_HIDE;
+                startup.StartupInfo.dwFlags = Native.STARTF_USESTDHANDLES;
                 startup.StartupInfo.hStdInput = handles[0];
                 startup.StartupInfo.hStdOutput = handles[1];
                 startup.StartupInfo.hStdError = handles[2];
-                // if (hideWindow)
-                // {
-                //     startup.StartupInfo.dwFlags |= Native.STARTF_USESHOWWINDOW;
-                //     startup.StartupInfo.wShowWindow = Native.SW_HIDE;
-                // }
+                if (hideWindow)
+                {
+                    startup.StartupInfo.dwFlags |= Native.STARTF_USESHOWWINDOW;
+                    startup.StartupInfo.wShowWindow = Native.SW_HIDE;
+                }
                 startup.lpAttributeList = attributes;
 
                 success = Native.CreateProcessW(
