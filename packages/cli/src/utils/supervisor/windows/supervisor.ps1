@@ -1,4 +1,21 @@
 $ErrorActionPreference = 'Stop'
+$StartupClock = [System.Diagnostics.Stopwatch]::StartNew()
+$StageClock = [System.Diagnostics.Stopwatch]::StartNew()
+
+function Write-StartupTiming([string] $Stage)
+{
+    if ($Env:ALLURE_SUPERVISOR_TIMINGS -eq '1')
+    {
+        [Console]::Error.WriteLine(
+            '[AllureSupervisorTiming] {0} powershell {1}: {2} ms stage, {3} ms since script entry',
+            [DateTime]::UtcNow.ToString('o'), $Stage,
+            $StageClock.ElapsedMilliseconds, $StartupClock.ElapsedMilliseconds
+        )
+    }
+    $StageClock.Restart()
+}
+
+Write-StartupTiming 'script entry'
 
 try
 {
@@ -28,6 +45,7 @@ try
         $Arguments = $args[2..($args.Count - 1)]
     }
 
+    Write-StartupTiming 'arguments parsed'
     $ResolvedCommand = $null
     $ResolutionError = $null
     try
@@ -68,6 +86,9 @@ try
         $ResolutionError = $_.Exception.Message
     }
 
+    $CommandType = if ($null -ne $ResolvedCommand) { $ResolvedCommand.CommandType } else { 'unresolved' }
+    Write-StartupTiming "command resolution ($CommandType)"
+
     $source = Get-Item -Path (Join-Path $PSScriptRoot 'supervisor.cs') | Get-Content -Raw
 
     $compilerParams = [System.CodeDom.Compiler.CompilerParameters]::new()
@@ -78,7 +99,10 @@ try
     $compilerParams.ReferencedAssemblies.Add("System.Web.Extensions.dll") | Out-Null
     $compilerParams.ReferencedAssemblies.Add([System.Management.Automation.PowerShell].Assembly.Location) | Out-Null
 
+    Write-StartupTiming 'source and compiler setup'
     Add-Type -TypeDefinition $source -CompilerParameters $compilerParams -ErrorAction Stop | Out-Null
+
+    Write-StartupTiming 'C# compilation'
 
     $status = [JobSupervisor.Supervisor]::Run(
         $PipeName,

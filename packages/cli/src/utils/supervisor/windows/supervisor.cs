@@ -420,6 +420,21 @@ namespace JobSupervisor
             internal string Text;
         }
 
+        private readonly Stopwatch startupClock = Stopwatch.StartNew();
+        private readonly Stopwatch startupStageClock = Stopwatch.StartNew();
+
+        private void StartupTiming(string stage)
+        {
+            if (Environment.GetEnvironmentVariable("ALLURE_SUPERVISOR_TIMINGS") == "1")
+            {
+                Console.Error.WriteLine(
+                    "[AllureSupervisorTiming] {0:o} csharp {1}: {2} ms stage, {3} ms since supervisor entry",
+                    DateTime.UtcNow, stage, startupStageClock.ElapsedMilliseconds, startupClock.ElapsedMilliseconds
+                );
+            }
+            startupStageClock.Restart();
+        }
+
         private static Failure Win32(string operation)
         {
             return new Failure(operation, Marshal.GetLastWin32Error());
@@ -991,7 +1006,9 @@ namespace JobSupervisor
                 );
             }
 
+            StartupTiming("command preparation");
             CreateJob();
+            StartupTiming("job creation");
 
             IntPtr attributes = IntPtr.Zero, handlesMemory = IntPtr.Zero, jobsMemory = IntPtr.Zero;
             IntPtr[] handles = new IntPtr[3];
@@ -1070,6 +1087,7 @@ namespace JobSupervisor
                 }
                 startup.lpAttributeList = attributes;
 
+                StartupTiming("process attributes and handles");
                 success = Native.CreateProcessW(
                     application,
                     new StringBuilder(commandLine, commandLine.Length + 1),
@@ -1085,6 +1103,7 @@ namespace JobSupervisor
                     out process
                 );
 
+                StartupTiming("CreateProcessW");
                 if (!success)
                 {
                     throw Win32("CreateProcessW");
@@ -1466,6 +1485,7 @@ namespace JobSupervisor
             string resolutionError
         )
         {
+            StartupTiming("supervisor entry");
             workerPath = worker;
             try
             {
@@ -1483,13 +1503,16 @@ namespace JobSupervisor
                     PipeOptions.Asynchronous
                 );
 
+                StartupTiming("console handler and pipe setup");
                 pipe.Connect(ConnectTimeoutMs);
+                StartupTiming("pipe connection");
 
                 Dictionary<string, object> ready = Message("ready");
                 ready["version"] = 2;
                 ready["supervisorPid"] = Native.GetCurrentProcessId();
 
                 Send(ready);
+                StartupTiming("ready sent");
 
                 reader = new Thread(ReadLoop);
                 reader.IsBackground = true;
@@ -1505,6 +1528,7 @@ namespace JobSupervisor
                 Dictionary<string, object> started = Message("started");
                 started["rootPid"] = pid;
                 Send(started);
+                StartupTiming("launch completion and started sent");
 
                 Stopwatch completionClock = Stopwatch.StartNew();
                 long nextCompletionCheck = CompletionCheckIntervalMs;
