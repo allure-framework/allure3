@@ -42,8 +42,18 @@ public static class Native
 
     [Native]::FreeConsole() | Out-Null
 
-    If (-not [Native]::AttachConsole($ProcessId) -or
-        -not [Native]::SetConsoleCtrlHandler([IntPtr]::Zero, $true) -or
+    if (-not [Native]::AttachConsole($ProcessId))
+    {
+        $AttachError = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+        if ($AttachError -eq 6) # ERROR_INVALID_HANDLE: the target has no console.
+        {
+            # Signal the supervisor to try a different method
+            exit 0x20000001
+        }
+        exit $AttachError
+    }
+
+    if (-not [Native]::SetConsoleCtrlHandler([IntPtr]::Zero, $true) -or
         -not [Native]::GenerateConsoleCtrlEvent(0, 0))
     {
         exit [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()

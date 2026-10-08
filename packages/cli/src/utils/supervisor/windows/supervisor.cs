@@ -181,6 +181,21 @@ namespace JobSupervisor
             IntPtr overlapped
         );
 
+        internal delegate bool EnumWindowsCallback(IntPtr window, IntPtr parameter);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool EnumWindows(EnumWindowsCallback callback, IntPtr parameter);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool PostMessageW(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+
+        internal const uint WM_CLOSE = 0x0010;
+
         // PE inspection
         internal const ushort IMAGE_DOS_SIGNATURE = 0x5A4D; // 'MZ' in little-endian
         internal const uint E_LFANEW_OFFSET = 0x3C;
@@ -369,6 +384,13 @@ namespace JobSupervisor
         // Background threads and process resources
         private Thread reader, monitor, shutdown;
         private Process signalDelivery;
+        private readonly object gracefulStopLock = new object();
+        private bool stopCancelled = false;
+        private bool rootIsGui = false;
+        // Reserved helper exit code: AttachConsole found no console.
+        private const int ConsoleSignalInapplicable = 0x20000001;
+
+        private enum StopOutcome { Success, Failure, Inapplicable }
         private IntPtr job, port, root;
         private uint rootPid;
         private string workerPath, tempDirectory;
@@ -548,7 +570,7 @@ namespace JobSupervisor
                 stream.Seek(Native.COFF_SIZE_OF_OPTIONAL_HEADER_OFFSET, SeekOrigin.Current);
 
                 ushort optionalHeaderSize = reader.ReadUInt16();
-                if (optionalHeaderSize <= Native.PE_HEADER_SUBSYSTEM_OFFSET + 2)
+                if (optionalHeaderSize < Native.PE_HEADER_SUBSYSTEM_OFFSET + 2)
                 {
                     return false;
                 }
@@ -872,7 +894,6 @@ namespace JobSupervisor
         {
             bool powershell = false;
             bool batch = false;
-            bool hideWindow = true;
             string resolved;
 
             ApplicationInfo applicationInfo = command as ApplicationInfo;
@@ -886,7 +907,7 @@ namespace JobSupervisor
                 batch = resolvedExtension.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
                     || resolvedExtension.Equals(".bat", StringComparison.OrdinalIgnoreCase);
 
-                hideWindow = batch || !IsGuiApplication(resolved);
+                rootIsGui = !batch && IsGuiApplication(resolved);
             }
             else if (scriptInfo != null)
             {
@@ -1042,7 +1063,7 @@ namespace JobSupervisor
                 startup.StartupInfo.hStdInput = handles[0];
                 startup.StartupInfo.hStdOutput = handles[1];
                 startup.StartupInfo.hStdError = handles[2];
-                if (hideWindow)
+                if (!rootIsGui)
                 {
                     startup.StartupInfo.dwFlags |= Native.STARTF_USESHOWWINDOW;
                     startup.StartupInfo.wShowWindow = Native.SW_HIDE;
@@ -1112,6 +1133,104 @@ namespace JobSupervisor
             return new Failure("ValidateRequest", message);
         }
 
+        private StopOutcome StopWithConsoleSignal(out Exception error)
+        {
+            error = null;
+            try
+            {
+                lock (gracefulStopLock)
+                {
+                    if (stopCancelled)
+                    {
+                        throw new OperationCanceledException("Graceful stop was cancelled.");
+                    }
+                    signalDelivery = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = PowerShellPath,
+                        Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
+                            + QuoteNative(Path.Combine(Path.GetDirectoryName(workerPath), "send-console-signal.ps1"))
+                            + " " + rootPid.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    });
+                }
+
+                signalDelivery.WaitForExit();
+
+                int code = signalDelivery.ExitCode;
+
+                if (code == 0)
+                {
+                    return StopOutcome.Success;
+                }
+
+                if (code == ConsoleSignalInapplicable)
+                {
+                    return StopOutcome.Inapplicable;
+                }
+
+                error = new Failure("SendConsoleSignal", code);
+            }
+            catch (Exception e)
+            {
+                error = e;
+            }
+
+            return StopOutcome.Failure;
+        }
+
+        private StopOutcome StopWithWindowClose(out Exception error)
+        {
+            Exception failure = null;
+            bool found = false;
+            try
+            {
+                bool enumerated = Native.EnumWindows(delegate (IntPtr window, IntPtr parameter)
+                {
+                    uint pid;
+                    if (Native.GetWindowThreadProcessId(window, out pid) == 0 || pid != rootPid)
+                    {
+                        return true;
+                    }
+
+                    lock (gracefulStopLock)
+                    {
+                        if (stopCancelled)
+                        {
+                            failure = new OperationCanceledException("Graceful stop was cancelled.");
+                            return false;
+                        }
+
+                        found = true;
+
+                        if (!Native.PostMessageW(window, Native.WM_CLOSE, IntPtr.Zero, IntPtr.Zero))
+                        {
+                            failure = Win32("PostMessageW(WM_CLOSE)");
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }, IntPtr.Zero);
+
+                if (!enumerated && failure == null)
+                {
+                    failure = Win32("EnumWindows");
+                }
+            }
+            catch (Exception e)
+            {
+                failure = e;
+            }
+
+            error = failure;
+            return failure != null
+                ? StopOutcome.Failure
+                : found
+                    ? StopOutcome.Success
+                    : StopOutcome.Inapplicable;
+        }
+
         private void BeginStop(string id)
         {
             uint wait = Native.WaitForSingleObject(root, 0);
@@ -1120,27 +1239,10 @@ namespace JobSupervisor
                 SendStopResult(new StopResult { RequestId = id });
                 return;
             }
+
             if (wait == Native.WAIT_FAILED)
             {
                 SendStopResult(new StopResult { RequestId = id, Error = Win32("WaitForSingleObject") });
-                return;
-            }
-
-            try
-            {
-                signalDelivery = Process.Start(new ProcessStartInfo
-                {
-                    FileName = PowerShellPath,
-                    Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
-                        + QuoteNative(Path.Combine(Path.GetDirectoryName(workerPath), "send-console-signal.ps1"))
-                        + " " + rootPid.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                });
-            }
-            catch (Exception e)
-            {
-                SendStopResult(new StopResult { RequestId = id, Error = e });
                 return;
             }
 
@@ -1148,18 +1250,22 @@ namespace JobSupervisor
             shutdown = new Thread(delegate ()
             {
                 StopResult result = new StopResult { RequestId = id };
-                try
+                StopOutcome outcome = rootIsGui
+                    ? StopWithWindowClose(out result.Error)
+                    : StopWithConsoleSignal(out result.Error);
+
+                if (outcome == StopOutcome.Inapplicable)
                 {
-                    signalDelivery.WaitForExit();
-                    if (signalDelivery.ExitCode != 0)
-                    {
-                        result.Error = new Failure("SendConsoleSignal", signalDelivery.ExitCode);
-                    }
+                    outcome = rootIsGui
+                        ? StopWithConsoleSignal(out result.Error)
+                        : StopWithWindowClose(out result.Error);
                 }
-                catch (Exception e)
+
+                if (outcome == StopOutcome.Inapplicable)
                 {
-                    result.Error = e;
+                    result.Error = new Failure("Stop", "The root process has no console or top-level windows.");
                 }
+
                 Enqueue(result);
             });
             shutdown.IsBackground = true;
@@ -1168,17 +1274,21 @@ namespace JobSupervisor
 
         private void TerminateSendConsoleSignal()
         {
-            if (signalDelivery != null && !signalDelivery.HasExited)
+            lock (gracefulStopLock)
             {
-                try
+                stopCancelled = true;
+                if (signalDelivery != null && !signalDelivery.HasExited)
                 {
-                    signalDelivery.Kill();
-                }
-                catch (InvalidOperationException)
-                {
-                    if (!signalDelivery.HasExited)
+                    try
                     {
-                        throw;
+                        signalDelivery.Kill();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        if (!signalDelivery.HasExited)
+                        {
+                            throw;
+                        }
                     }
                 }
             }
