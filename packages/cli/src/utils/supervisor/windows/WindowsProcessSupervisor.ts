@@ -39,7 +39,7 @@ type PendingRequest = {
 };
 
 const MAX_MESSAGE_BYTES = 1048576;
-const START_TIMEOUT = 10_000;
+const START_TIMEOUT = 30_000;
 const REQUEST_RESPONSE_TIMEOUT = 3_000;
 
 const scriptPath = fileURLToPath(new URL("./supervisor.ps1", import.meta.url));
