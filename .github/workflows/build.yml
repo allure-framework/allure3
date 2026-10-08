@@ -59,6 +59,7 @@ jobs:
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
+          ALLURE_SUPERVISOR_TIMINGS: ${{ matrix.os == 'windows-latest' && '1' || '' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         timeout-minutes: 10
