@@ -113,18 +113,3 @@ export const navigateToTestResultTabById = (tab: TestResultTabId) => {
 
   navigateToTestResultTab({ testResultId, tab });
 };
-
-export const cycleTestResultTab = (direction: "next" | "prev") => {
-  const testResultId = currentTrId.value;
-
-  if (!testResultId) {
-    return;
-  }
-
-  const current = getCurrentTestResultTab();
-  const tabs = getAvailableTestResultTabs();
-  const index = tabs.indexOf(current);
-  const nextIndex = direction === "next" ? (index + 1) % tabs.length : (index - 1 + tabs.length) % tabs.length;
-
-  navigateToTestResultTabById(tabs[nextIndex]!);
-};

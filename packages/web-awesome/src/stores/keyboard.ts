@@ -175,8 +175,6 @@ export const isHotkeyScopeActive = (scope: "global" | "tree" | "testResult"): bo
 };
 
 const buildEnvSections = () => {
-  const envs = environmentsStore.value.data;
-
   return Object.entries(filteredTree.value)
     .map(([envId, tree]) => {
       const stats = statsByEnvStore.value.data[envId];
@@ -296,7 +294,17 @@ effect(() => {
   syncKeyboardStateFromRoute();
 });
 
-const expandPathToLeaf = (tree: RecursiveTree, targetNodeId: string, prefix: string | undefined): boolean => {
+const openTree = (tree: RecursiveTree, prefix: string | undefined) => {
+  const scopedId = prefix ? `${prefix}${tree.nodeId}` : tree.nodeId;
+  const openedByDefault = !tree.statistic || Boolean(tree.statistic.failed || tree.statistic.broken);
+  const isOpen = openedByDefault ? !collapsedTrees.peek().has(scopedId) : expandedTrees.peek().has(scopedId);
+
+  if (!isOpen) {
+    setTreeOpened(scopedId, true, openedByDefault);
+  }
+};
+
+const expandPathToNode = (tree: RecursiveTree, targetNodeId: string, prefix: string | undefined): boolean => {
   for (const leaf of tree.leaves) {
     if (leaf.nodeId === targetNodeId) {
       return true;
@@ -304,14 +312,8 @@ const expandPathToLeaf = (tree: RecursiveTree, targetNodeId: string, prefix: str
   }
 
   for (const sub of tree.trees) {
-    if (expandPathToLeaf(sub, targetNodeId, prefix)) {
-      const scopedId = prefix ? `${prefix}${sub.nodeId}` : sub.nodeId;
-      const openedByDefault = !sub.statistic || Boolean(sub.statistic.failed || sub.statistic.broken);
-      const isOpen = openedByDefault ? !collapsedTrees.peek().has(scopedId) : expandedTrees.peek().has(scopedId);
-
-      if (!isOpen) {
-        setTreeOpened(scopedId, true, openedByDefault);
-      }
+    if (sub.nodeId === targetNodeId || expandPathToNode(sub, targetNodeId, prefix)) {
+      openTree(sub, prefix);
 
       return true;
     }
@@ -320,21 +322,10 @@ const expandPathToLeaf = (tree: RecursiveTree, targetNodeId: string, prefix: str
   return false;
 };
 
-const expandAndFocusCurrentTest = () => {
-  const testResultId = currentTrId.peek();
-
-  if (!testResultId) {
-    return;
-  }
-
-  const flat = flatTree.peek();
-  const existing = flat.find((n) => n.kind === "leaf" && n.testResultId === testResultId);
-
-  if (existing) {
-    treeFocusId.value = existing.id;
-    return;
-  }
-
+/**
+ * Expands every ancestor of the node, then focuses it, so the tree scrolls it into view.
+ */
+export const revealTreeNode = (nodeId: string) => {
   const envs = environmentsStore.peek().data ?? [];
   const trees = filteredTree.peek();
   const curEnv = currentEnvironment.peek();
@@ -349,12 +340,49 @@ const expandAndFocusCurrentTest = () => {
 
     const prefix = usePrefix ? `${env.id}:` : undefined;
 
-    if (expandPathToLeaf(envTree, testResultId, prefix)) {
-      treeFocusId.value = prefix ? `${prefix}${testResultId}` : testResultId;
+    if (expandPathToNode(envTree, nodeId, prefix)) {
+      treeFocusId.value = prefix ? `${prefix}${nodeId}` : nodeId;
       return;
     }
   }
 };
+
+const expandAndFocusCurrentTest = (openedTestResultId?: string) => {
+  const testResultId = openedTestResultId ?? currentTrId.peek?.();
+
+  if (!testResultId) {
+    return;
+  }
+
+  const flat = flatTree.peek();
+  const existing = flat.find((n) => n.kind === "leaf" && n.testResultId === testResultId);
+
+  if (existing) {
+    treeFocusId.value = existing.id;
+    return;
+  }
+
+  revealTreeNode(testResultId);
+};
+
+let revealedTestResultId: string | undefined;
+
+effect(() => {
+  const testResultId = currentTrId.value;
+  const flat = flatTree.value;
+
+  if (!testResultId) {
+    revealedTestResultId = undefined;
+    return;
+  }
+
+  if (flat.length === 0 || revealedTestResultId === testResultId) {
+    return;
+  }
+
+  revealedTestResultId = testResultId;
+  expandAndFocusCurrentTest(testResultId);
+});
 
 let prevIsSplitMode = isSplitMode.peek();
 

@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Afficher les résultats de test échoués ou cassés sans résolution"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Sans résolution"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Réessais",
     "environments": "Environnements",
     "error": "Erreur",
+    "success": "Succès",
     "goToStep": "Aller à l'étape",
     "showLess": "Montrer moins",
     "showMore": "Montrer plus",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Autorisez les pop-ups et réessayez.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, avec le code de sortie {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, avec le code de sortie {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Fil d’Ariane",
+    "breadcrumbs-hidden": "Afficher les éléments masqués du fil d’Ariane"
   },
   "controls": {
     "newTabAttachment": "Ouvrir dans un nouvel onglet",
@@ -190,7 +195,9 @@
     "clipboardError": "Erreur. Il semble que cette fonctionnalité ne soit pas prise en charge par votre navigateur",
     "clipboardSuccess": "Copié avec succès",
     "collapse": "Réduire",
+    "collapseAll": "Tout réduire",
     "expand": "Agrandir",
+    "expandAll": "Tout développer",
     "fullscreen": "Plein écran",
     "language": "Changer la langue",
     "openInNewTab": "Ouvrir dans un nouvel onglet",
@@ -536,12 +543,8 @@
       "reportTabQualityGate": "Onglet rapport : Quality gate",
       "reportTabGlobalAttachments": "Onglet rapport : Pièces jointes globales",
       "reportTabGlobalErrors": "Onglet rapport : Erreurs globales",
-      "reportTabNext": "Onglet rapport suivant",
-      "reportTabPrev": "Onglet rapport précédent",
       "nextTest": "Résultat de test suivant",
       "prevTest": "Résultat de test précédent",
-      "testTabNext": "Onglet test suivant",
-      "testTabPrev": "Onglet test précédent",
       "tabOverview": "Onglet aperçu",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Onglet historique",

@@ -25,6 +25,7 @@ interface TreeItemProps {
   focused?: boolean;
   navigateTo: (id: string) => void;
   tooltips?: Record<string, string>;
+  parameters?: string[];
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -43,10 +44,12 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   focused,
   navigateTo,
   tooltips,
+  parameters,
   ...rest
 }) => {
   const treeNodeId = focusNodeId ?? id;
   const handleClick = () => navigateTo(id);
+  const parameterText = parameters?.join(",");
 
   return (
     <button
@@ -66,9 +69,16 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
         {groupOrder}
       </Code>
-      <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
-        {name}
-      </Text>
+      <div className={styles["item-text"]}>
+        <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
+          {name}
+        </Text>
+        {parameterText && (
+          <Text data-testid="tree-leaf-parameters" className={styles["item-parameters"]} title={parameterText}>
+            {parameterText}
+          </Text>
+        )}
+      </div>
       <TreeItemInfo
         data-testid="tree-leaf-info"
         duration={duration}

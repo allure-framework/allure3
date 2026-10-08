@@ -1,4 +1,4 @@
-import type { TreeMapChartNode } from "@allurereport/web-components";
+import type { TreeMapChartNode } from "@/components/Charts/TreeMapChart/types";
 
 // Mock data for TreeChart showing features and their success rates
 export const createTreeMapData = (): TreeMapChartNode => {
@@ -12,10 +12,12 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 10,
+              colorValue: 0.1,
             },
             {
               id: "user-story-2",
               value: 20,
+              colorValue: 0.2,
             },
           ],
         },
@@ -25,8 +27,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 40,
+              colorValue: 0.4,
             },
-          ]
+          ],
         },
         {
           id: "feature-3",
@@ -34,8 +37,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 55,
+              colorValue: 0.55,
             },
-          ]
+          ],
         },
       ],
     },
@@ -48,8 +52,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 80,
+              colorValue: 0.8,
             },
-          ]
+          ],
         },
         {
           id: "feature-2",
@@ -57,8 +62,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 20,
+              colorValue: 0.2,
             },
-          ]
+          ],
         },
         {
           id: "feature-3",
@@ -66,8 +72,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 100,
+              colorValue: 1.0,
             },
-          ]
+          ],
         },
       ],
     },
@@ -80,8 +87,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 70,
+              colorValue: 0.7,
             },
-          ]
+          ],
         },
         {
           id: "feature-2",
@@ -89,8 +97,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 50,
+              colorValue: 0.5,
             },
-          ]
+          ],
         },
       ],
     },
@@ -103,8 +112,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 50,
+              colorValue: 0.5,
             },
-          ]
+          ],
         },
         {
           id: "feature-2",
@@ -112,8 +122,9 @@ export const createTreeMapData = (): TreeMapChartNode => {
             {
               id: "user-story-1",
               value: 30,
+              colorValue: 0.3,
             },
-          ]
+          ],
         },
       ],
     },
@@ -128,16 +139,14 @@ export const createTreeMapData = (): TreeMapChartNode => {
 export const treeMapColors = {
   success: "#4caf50", // Green for high success rate
   warning: "#ff9800", // Orange for medium success rate
-  error: "#f44336",   // Red for low success rate
+  error: "#f44336", // Red for low success rate
 };
 
-export const getColor = (node: TreeMapChartNode) => {
-  const successRate = node.value;
-
-  if (successRate >= 100) {
-     return treeMapColors.success;
-  } else if (successRate >= 50) {
-     return treeMapColors.warning;
+export const getColor = (successRate: number) => {
+  if (successRate >= 0.8) {
+    return treeMapColors.success;
+  } else if (successRate >= 0.5) {
+    return treeMapColors.warning;
   }
 
   return treeMapColors.error;
@@ -153,3 +162,5 @@ export const getColorWithDomain = (value: number, domain = [0, 0.5, 1]) => {
 
   return treeMapColors.success;
 };
+
+export const createEmptyTreeMapData = (): TreeMapChartNode => ({ id: "root", children: [] });

@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Çözümü olmayan başarısız veya bozuk test sonuçlarını göster"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Çözüm yok"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Tekrar Denemeler",
     "environments": "Ortam",
     "error": "Hata",
+    "success": "Başarılı",
     "goToStep": "Adıma git",
     "showLess": "Daha az göster",
     "showMore": "Daha fazla göster",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "İçerik haritası",
+    "breadcrumbs-hidden": "Gizli içerik haritası öğelerini göster"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",
@@ -190,7 +195,9 @@
     "clipboardError": "Değer panoya kopyalanamıyor. Bu özellik tarayıcınız tarafından desteklenmiyor olabilir",
     "clipboardSuccess": "Başarıyla kopyalandı",
     "collapse": "Daralt",
+    "collapseAll": "Tümünü daralt",
     "expand": "Genişlet",
+    "expandAll": "Tümünü genişlet",
     "fullscreen": "Tam ekran",
     "language": "Dili değiştir",
     "openInNewTab": "Yeni sekmede aç",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "Rapor sekmesi: Kalite kapısı",
       "reportTabGlobalAttachments": "Rapor sekmesi: Global ekler",
       "reportTabGlobalErrors": "Rapor sekmesi: Global hatalar",
-      "reportTabNext": "Sonraki rapor sekmesi",
-      "reportTabPrev": "Önceki rapor sekmesi",
       "nextTest": "Sonraki test sonucu",
       "prevTest": "Önceki test sonucu",
-      "testTabNext": "Sonraki test sekmesi",
-      "testTabPrev": "Önceki test sekmesi",
       "tabOverview": "Genel bakış sekmesi",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Geçmiş sekmesi",

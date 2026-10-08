@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mostrar resultados de testes com falha ou quebrados sem resolução"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Sem resolução"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Repetições",
     "environments": "Ambientes",
     "error": "Erro",
+    "success": "Sucesso",
     "goToStep": "Ir para o passo",
     "showLess": "Mostrar menos",
     "showMore": "Mostrar mais",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Permita pop-ups e tente novamente.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, com código de saída {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, com código de saída {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Migalhas de pão",
+    "breadcrumbs-hidden": "Mostrar migalhas de pão ocultas"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",
@@ -190,7 +195,9 @@
     "clipboardError": "Erro. Parece que esta funcionalidade não é suportada pelo seu navegador",
     "clipboardSuccess": "Copiado com sucesso",
     "collapse": "Recolher",
+    "collapseAll": "Recolher tudo",
     "expand": "Expandir",
+    "expandAll": "Expandir tudo",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",
@@ -536,12 +543,8 @@
       "reportTabQualityGate": "Aba do relatório: Quality gate",
       "reportTabGlobalAttachments": "Aba do relatório: Anexos globais",
       "reportTabGlobalErrors": "Aba do relatório: Erros globais",
-      "reportTabNext": "Próxima aba do relatório",
-      "reportTabPrev": "Aba anterior do relatório",
       "nextTest": "Próximo resultado de teste",
       "prevTest": "Resultado de teste anterior",
-      "testTabNext": "Próxima aba de teste",
-      "testTabPrev": "Aba de teste anterior",
       "tabOverview": "Aba visão geral",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Aba histórico",

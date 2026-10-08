@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Show failed or broken test results without a resolution"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "No resolution"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Retries",
     "environments": "Environments",
     "error": "Error",
+    "success": "Success",
     "goToStep": "Go to step",
     "showLess": "Show less",
     "showMore": "Show more",
@@ -178,7 +181,9 @@
     "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Breadcrumbs",
+    "breadcrumbs-hidden": "Show hidden breadcrumbs"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -223,12 +228,8 @@
       "reportTabQualityGate": "Report tab: Quality gate",
       "reportTabGlobalAttachments": "Report tab: Global attachments",
       "reportTabGlobalErrors": "Report tab: Global errors",
-      "reportTabNext": "Next report tab",
-      "reportTabPrev": "Previous report tab",
       "nextTest": "Next test result",
       "prevTest": "Previous test result",
-      "testTabNext": "Next test tab",
-      "testTabPrev": "Previous test tab",
       "tabOverview": "Overview tab",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "History tab",
@@ -255,7 +256,10 @@
     "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",
     "clipboardSuccess": "Successfully copied",
     "collapse": "Collapse",
+    "collapseAll": "Collapse all",
+    "showMore": "Show more",
     "expand": "Expand",
+    "expandAll": "Expand all",
     "fullscreen": "Full screen",
     "language": "Change language",
     "openInNewTab": "Open in new tab",
@@ -509,6 +513,7 @@
       "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
       "noResults": "There are no test results.",
       "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+      "notAvailable": "N/A",
       "slice_one": "{{count}} test ({{percent}}% of all tests)",
       "slice_other": "{{count}} tests ({{percent}}% of all tests)",
       "layer": "Layer: {{layer}}",

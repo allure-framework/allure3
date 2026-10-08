@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "აჩვენე ჩავარდნილი ან დაზიანებული ტესტის შედეგები გადაწყვეტის გარეშე"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "გადაწყვეტის გარეშე"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "ხელახალი ცდები",
     "environments": "გარემობები",
     "error": "შეცდომა",
+    "success": "წარმატება",
     "goToStep": "გადადით საფეხურზე",
     "showLess": "ნაკლების ჩვენება",
     "showMore": "მეტის ჩვენება",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "დაუშვით ამომხტარი ფანჯრები და ხელახლა სცადეთ.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "პურის ნამცეცები",
+    "breadcrumbs-hidden": "დამალული პურის ნამცეცების ჩვენება"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",
@@ -190,7 +195,9 @@
     "clipboardError": "ბუფერში კოპირება ვერ მოხერხდა. შესაძლოა, ფუნქცია არ იყოს მხარდაჭერილი თქვენს ბრაუზერში",
     "clipboardSuccess": "წარმატებით დაკოპირდა",
     "collapse": "ჩაკეცვა",
+    "collapseAll": "ყველას ჩაკეცვა",
     "expand": "გახსნა",
+    "expandAll": "ყველას გაშლა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
     "openInNewTab": "გახსნა ახალ ჩანართში",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "ანგარიშის ჩანართი: ხარისხის კარიბჭე",
       "reportTabGlobalAttachments": "ანგარიშის ჩანართი: გლობალური დანართები",
       "reportTabGlobalErrors": "ანგარიშის ჩანართი: გლობალური შეცდომები",
-      "reportTabNext": "შემდეგი ანგარიშის ჩანართი",
-      "reportTabPrev": "წინა ანგარიშის ჩანართი",
       "nextTest": "შემდეგი ტესტის შედეგი",
       "prevTest": "წინა ტესტის შედეგი",
-      "testTabNext": "შემდეგი ტესტის ჩანართი",
-      "testTabPrev": "წინა ტესტის ჩანართი",
       "tabOverview": "მიმოხილვის ჩანართი",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "ისტორიის ჩანართი",

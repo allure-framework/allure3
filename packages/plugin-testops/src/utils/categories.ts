@@ -2,6 +2,7 @@ import type { CategoryDefinition, CategoryGroupSelector, TestResult } from "@all
 import { EMPTY_VALUE, extractErrorMatchingData, findLastByLabelName, matchCategory } from "@allurereport/core-api";
 
 import type { TestResultWithCategories, UploadCategory } from "../model.js";
+import { calculateLegacyHistoryId } from "./legacyHistory.js";
 
 const formatGroupName = (key: string, value: string) => `${key}: ${value === EMPTY_VALUE ? `No ${key}` : value}`;
 
@@ -63,8 +64,12 @@ const buildGrouping = (
   tr: Pick<TestResult, "status" | "labels" | "flaky" | "transition" | "environment"> & {
     id?: string;
     name?: string;
-    error?: TestResult["error"];
     historyId?: string;
+    error?: TestResult["error"];
+    testCase?: TestResult["testCase"];
+    fullName?: TestResult["fullName"];
+    parameters?: TestResult["parameters"];
+    sourceMetadata?: TestResult["sourceMetadata"];
   },
   category: CategoryDefinition,
 ): UploadCategory["grouping"] => {
@@ -81,7 +86,7 @@ const buildGrouping = (
   }
 
   if (category.groupEnvironments) {
-    const historyValue = tr.historyId ?? tr.id ?? EMPTY_VALUE;
+    const historyValue = calculateLegacyHistoryId(tr) ?? tr.id ?? EMPTY_VALUE;
     const historyName = tr.name?.trim() ? tr.name : historyValue;
 
     grouping.push({

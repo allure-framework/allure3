@@ -119,7 +119,7 @@ const createAgentOutput = (outputDir: string): AgentOutputBundle => ({
   tests: [
     {
       environment_id: "default",
-      history_id: "history-1",
+      retry_hash: "history-1",
       test_result_id: "tr-1",
       full_name: "suite should fail",
       package: "pkg-a",
@@ -140,7 +140,7 @@ const createAgentOutput = (outputDir: string): AgentOutputBundle => ({
     },
     {
       environment_id: "default",
-      history_id: "history-2",
+      retry_hash: "history-2",
       test_result_id: "tr-2",
       full_name: "suite should pass",
       package: "pkg-b",

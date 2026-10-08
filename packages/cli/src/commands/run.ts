@@ -1,8 +1,9 @@
-import * as console from "node:console";
 import { realpath, rm } from "node:fs/promises";
 import process, { exit } from "node:process";
 
+import { Logger } from "@allurereport/cli-commons";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
+import { formatDuration } from "@allurereport/core-api";
 import Awesome from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
@@ -19,6 +20,8 @@ import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 const missingRunCommandUsageError = () =>
   new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
+
+const runLogger = new Logger("AllureRun");
 
 export class RunCommand extends Command {
   static paths = [["run"]];
@@ -69,8 +72,7 @@ export class RunCommand extends Command {
   });
 
   rerun = Option.String("--rerun", {
-    description:
-      "The number of reruns for failed tests. Quality gate validation is skipped when rerun is greater than 0 (default: 0)",
+    description: "The maximum number of reruns for failed tests and Quality Gate fast-fails (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
@@ -133,18 +135,12 @@ export class RunCommand extends Command {
 
     const before = new Date().getTime();
 
-    process.on("exit", (exitCode) => {
-      const after = new Date().getTime();
-
-      console.log(`exit code ${exitCode} (${after - before}ms)`);
-    });
-
     const cwd = await realpath(this.cwd ?? process.cwd());
     const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
-    console.log(`${command} ${commandArgs.join(" ")}`);
-
     if (getActiveAllureCliCommand()) {
+      runLogger.info(`Running nested command: ${[command, ...commandArgs].join(" ")}`);
+
       const exitCode = await executeNestedAllureCommand({
         command,
         commandArgs,
@@ -177,25 +173,20 @@ export class RunCommand extends Command {
     const resultsPatterns = resolveResultsPatterns(this.resultsDir ?? [], config.resultsDir);
 
     const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
-    const withRerun = maxRerun > 0;
-    const withQualityGate = !!config.qualityGate && !withRerun;
-
-    if (config.qualityGate && withRerun) {
-      console.warn("Quality gate doesn't work with rerun; skipping quality gate validation.");
-    }
+    const withQualityGate = !!config.qualityGate;
 
     try {
       await rm(config.output, { recursive: true });
     } catch (e) {
       if (!isFileNotFoundError(e)) {
-        console.error("could not clean output directory", e);
+        runLogger.error(`Could not clean output directory: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,
       qualityGate: withQualityGate ? config.qualityGate : undefined,
-      dump: this.dump,
+      dump: this.dump ?? config.dump,
       realTime: false,
       plugins: [
         ...(config.plugins?.length
@@ -226,6 +217,9 @@ export class RunCommand extends Command {
       maxRerun,
       resultsPatterns,
     });
+    const finalExitCode = globalExitCode.actual ?? globalExitCode.original;
+
+    runLogger.info(`Completed with exit code ${finalExitCode} after ${formatDuration(Date.now() - before)}`);
 
     if (config.open) {
       await serve({
@@ -234,7 +228,7 @@ export class RunCommand extends Command {
         open: true,
       });
     } else {
-      exit(globalExitCode.actual ?? globalExitCode.original);
+      exit(finalExitCode);
     }
   }
 }

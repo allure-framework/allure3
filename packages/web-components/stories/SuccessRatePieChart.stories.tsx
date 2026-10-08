@@ -1,5 +1,7 @@
+import type { PieSlice } from "@allurereport/charts-api";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { SuccessRatePieChart } from "@/components/Charts/SuccessRatePieChart";
-import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof SuccessRatePieChart> = {
   title: "Commons/SuccessRatePieChart",
@@ -27,7 +29,7 @@ const meta: Meta<typeof SuccessRatePieChart> = {
 export default meta;
 type Story = StoryObj<typeof SuccessRatePieChart>;
 
-const mockSlices = [
+const mockSlices: PieSlice[] = [
   {
     d: "M0.96,-47.909A2,2,0,0,1,3.084,-49.905A50,50,0,0,1,44.761,22.282A2,2,0,0,1,41.97,23.123L36.763,20.116A2,2,0,0,1,35.965,17.509A40,40,0,0,0,2.819,-39.901A2,2,0,0,1,0.96,-41.896Z",
     status: "failed",
@@ -47,8 +49,6 @@ const mockSlices = [
 
 export const Default: Story = {
   args: {
-    styles: { width: "75px" },
-
     slices: mockSlices,
     percentage: 75,
   },

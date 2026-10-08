@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Показать упавшие или сломанные результаты тестов без решения"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Без решения"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Перезапуски",
     "environments": "Окружения",
     "error": "Ошибка",
+    "success": "Успех",
     "goToStep": "Перейти к шагу",
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Хлебные крошки",
+    "breadcrumbs-hidden": "Показать скрытые хлебные крошки"
   },
   "shortcuts": {
     "title": "Горячие клавиши",
@@ -220,12 +225,8 @@
       "reportTabQualityGate": "Вкладка отчёта: Quality gate",
       "reportTabGlobalAttachments": "Вкладка отчёта: Глобальные вложения",
       "reportTabGlobalErrors": "Вкладка отчёта: Глобальные ошибки",
-      "reportTabNext": "Следующая вкладка отчёта",
-      "reportTabPrev": "Предыдущая вкладка отчёта",
       "nextTest": "Следующий тест",
       "prevTest": "Предыдущий тест",
-      "testTabNext": "Следующая вкладка теста",
-      "testTabPrev": "Предыдущая вкладка теста",
       "tabOverview": "Вкладка обзор",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка история",
@@ -252,7 +253,10 @@
     "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",
     "clipboardSuccess": "Значение успешно скопировано",
     "collapse": "Свернуть",
+    "collapseAll": "Свернуть все",
+    "showMore": "Показать ещё",
     "expand": "Развернуть",
+    "expandAll": "Развернуть все",
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
     "openInNewTab": "Открыть в новой вкладке",

@@ -8,6 +8,7 @@ import type {
   RawFixtureResult,
   RawStep,
   RawTestAttachment,
+  RawError,
   RawTestLabel,
   RawTestLink,
   RawTestParameter,
@@ -20,7 +21,7 @@ import { XMLParser } from "fast-xml-parser";
 
 import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
-import { ensureBoolean, ensureInt, ensureString } from "../utils.js";
+import { ensureArray, ensureBoolean, ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 import type {
   Attachment,
@@ -32,6 +33,7 @@ import type {
   Link,
   Parameter,
   Status,
+  StatusDetails,
   StepResult,
   TestResult,
   TestResultContainer,
@@ -58,6 +60,63 @@ const historyMetadataKeys: Record<string, string> = {
   "duration-trend.json": "allure2_duration_trend",
   "retry-trend.json": "allure2_retry_trend",
   "categories-trend.json": "allure2_categories_trend",
+};
+
+type AssertionDiff = Pick<RawTestResult, "actual" | "expected">;
+
+const stripAnsi = (value: string) =>
+  // eslint-disable-next-line no-control-regex
+  value.replace(/\x1B\[[0-9;?]*[ -/]*[@-~]/g, "");
+
+const trimDiffValue = (value?: string) => value?.trim().replace(/^["'`](.*)["'`]$/s, "$1");
+
+const findLabeledAssertionDiff = (text: string): AssertionDiff | undefined => {
+  const expected = text.match(/^\s*Expected(?:\s+\w+)?:\s*(?<value>.+)\s*$/im)?.groups?.value;
+  const actual = text.match(/^\s*(?:Received|Actual)(?:\s+\w+)?:\s*(?<value>.+)\s*$/im)?.groups?.value;
+
+  const normalizedActual = trimDiffValue(actual);
+  const normalizedExpected = trimDiffValue(expected);
+
+  return normalizedActual && normalizedExpected
+    ? { actual: normalizedActual, expected: normalizedExpected }
+    : undefined;
+};
+
+const findPytestAssertionDiff = (text: string): AssertionDiff | undefined => {
+  const lines = text.split(/\r?\n/).map((line) =>
+    line
+      .replace(/^\s*(?:E\s+|>\s*)/, "")
+      .replace(/^AssertionError:\s*/, "")
+      .trim(),
+  );
+
+  for (const line of lines) {
+    const match = line.match(/^assert\s+(?<actual>.+?)\s+==\s+(?<expected>.+)$/);
+
+    if (!match?.groups) {
+      continue;
+    }
+
+    const actual = trimDiffValue(match.groups.actual);
+    const expected = trimDiffValue(match.groups.expected);
+
+    if (actual && expected) {
+      return { actual, expected };
+    }
+  }
+
+  return undefined;
+};
+
+const inferAssertionDiff = (message?: string, trace?: string, actual?: string, expected?: string): AssertionDiff => {
+  if (actual || expected) {
+    return { actual, expected };
+  }
+
+  const text = stripAnsi([message, trace].filter(Boolean).join("\n"));
+  const inferredDiff = findLabeledAssertionDiff(text) ?? findPytestAssertionDiff(text);
+
+  return inferredDiff ?? { actual, expected };
 };
 
 const isAllure2AttachmentFileName = (fileName: string): boolean => {
@@ -250,6 +309,33 @@ export const allure2: ResultsReader = {
 const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
   const links = result?.links?.filter(notNull) ?? [];
   const topLevelAttachmentCount = result?.attachments?.filter(notNull).length ?? 0;
+  const message = ensureString(result?.statusDetails?.message);
+  const trace = ensureString(result?.statusDetails?.trace);
+  const diff = inferAssertionDiff(
+    message,
+    trace,
+    ensureString(result?.statusDetails?.actual, ""),
+    ensureString(result?.statusDetails?.expected, ""),
+  );
+  const errors = ensureArray<StatusDetails>(result?.statusDetails?.errors)
+    ?.filter(notNull)
+    .map<RawError>((error) => {
+      const errorMessage = ensureString(error.message);
+      const errorTrace = ensureString(error.trace);
+      const errorDiff = inferAssertionDiff(
+        errorMessage,
+        errorTrace,
+        ensureString(error.actual, ""),
+        ensureString(error.expected, ""),
+      );
+
+      return {
+        message: errorMessage,
+        trace: errorTrace,
+        actual: errorDiff.actual,
+        expected: errorDiff.expected,
+      };
+    });
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
     titlePath: result?.titlePath?.length ? result.titlePath : [],
@@ -265,10 +351,11 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     descriptionHtml: ensureString(result.descriptionHtml),
 
     status: convertStatus(result.status),
-    message: ensureString(result?.statusDetails?.message),
-    trace: ensureString(result?.statusDetails?.trace),
-    actual: ensureString(result?.statusDetails?.actual, ""),
-    expected: ensureString(result?.statusDetails?.expected, ""),
+    message,
+    trace,
+    actual: diff.actual,
+    expected: diff.expected,
+    errors,
     flaky: ensureBoolean(result?.statusDetails?.flaky),
     known: ensureBoolean(result?.statusDetails?.known),
     muted: ensureBoolean(result?.statusDetails?.muted),

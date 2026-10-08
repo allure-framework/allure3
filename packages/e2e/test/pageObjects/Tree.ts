@@ -51,6 +51,7 @@ export class TreePage extends CommonPage {
   acceptedFilterLocator: Locator;
   mutedFilterLocator: Locator;
   issueFilterLocator: Locator;
+  noResolutionFilterLocator: Locator;
   resolutionFilterLocator: Locator;
 
   filterTooltipLocator: Locator;
@@ -107,6 +108,7 @@ export class TreePage extends CommonPage {
     this.acceptedFilterLocator = page.getByTestId("accepted-filter");
     this.mutedFilterLocator = page.getByTestId("muted-filter");
     this.issueFilterLocator = page.getByTestId("issue-filter");
+    this.noResolutionFilterLocator = page.getByTestId("none-filter");
     this.resolutionFilterLocator = page.getByTestId("resolution-filter");
 
     this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
@@ -235,7 +237,7 @@ export class TreePage extends CommonPage {
 
     try {
       return (await baseLocator.getByTestId("metadata-value").innerText({ timeout: 1000 })).trim();
-    } catch (err) {
+    } catch {
       return undefined;
     }
   }
@@ -326,12 +328,11 @@ export class TreePage extends CommonPage {
   }
 
   async toggleRetryFilter() {
-    await this.retryFilterLocator.click();
+    await this.metadataRetriesLocator.click();
   }
 
   async toggleFlakyFilter() {
-    // Flaky filter is now a direct button, click it
-    await this.flakyFilterLocator.click();
+    await this.metadataFlakyLocator.click();
   }
 
   async toggleNewFilter() {
@@ -378,6 +379,14 @@ export class TreePage extends CommonPage {
     await this.resolutionFilterLocator.click();
 
     await this.mutedFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async toggleNoResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.noResolutionFilterLocator.click();
 
     await this.closeMenu();
   }

@@ -4,20 +4,14 @@ import {
   collectExpandableSubtreeNodes,
   getExpandableDescendants,
   hasExpandableTreeChildren,
+  isFocusInView,
   resolveNextSubtreeToggleState,
   scrollTreePaneToTop,
-  type SubtreeNodeState,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed } from "@preact/signals";
 
-import { getBodyItems } from "@/components/TestResult/bodyItems";
-import {
-  collectExpandableStepNodes,
-  findStepBodyItems,
-  getStepTreeExpansionPolicy,
-} from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import {
   activePane,
@@ -39,25 +33,17 @@ import {
 import { isSplitMode } from "@/stores/layout";
 import { isModalOpen } from "@/stores/modal";
 import { getReportEnvSectionId, type ReportEnvSection } from "@/stores/reportEnvSections";
-import { cycleReportRootTab, navigateToReportRootTab, REPORT_ROOT_TAB } from "@/stores/reportRootTabs";
+import { navigateToReportRootTab, REPORT_ROOT_TAB } from "@/stores/reportRootTabs";
 import { navigateToRoot, navigateToTestResult, rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentSection } from "@/stores/sections";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
 import {
   applyTestResultFocusMove,
-  getFlatTestResultNode,
   isTestResultOverviewNavigationContext,
   moveTestResultFocus,
-  testResultFocusId,
-  toggleTestResultFocusNode,
 } from "@/stores/testResultOverviewNav";
-import { testResultNavStore, testResultStore } from "@/stores/testResults";
-import {
-  cycleTestResultTab,
-  getTestResultTabForTestResultId,
-  navigateToTestResultTabById,
-  TEST_RESULT_TAB,
-} from "@/stores/testResultTabs";
+import { testResultNavStore } from "@/stores/testResults";
+import { getTestResultTabForTestResultId, navigateToTestResultTabById, TEST_RESULT_TAB } from "@/stores/testResultTabs";
 import { filteredTree, isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
 
 const isTestResultRoute = computed(
@@ -442,64 +428,6 @@ export const cycleFocusedSubtreeToggle = () => {
   rememberSubtreeToggle(focusId, nextLastToggle);
 };
 
-export const cycleFocusedTestResultSubtreeToggle = () => {
-  if (!isTestResultOverviewNavigationContext()) {
-    return;
-  }
-
-  const focusId = testResultFocusId.value;
-
-  if (!focusId) {
-    return;
-  }
-
-  const flatNode = getFlatTestResultNode(focusId);
-
-  if (!flatNode?.nodeId || flatNode.kind !== "group") {
-    return;
-  }
-
-  const testResultId = currentTrId.value;
-  const testResult = testResultId ? testResultStore.value.data?.[testResultId] : undefined;
-
-  if (!testResult) {
-    return;
-  }
-
-  const policy = getStepTreeExpansionPolicy();
-  const bodyItems = getBodyItems(testResult, "");
-  const stepBodyItems = findStepBodyItems(bodyItems, flatNode.nodeId);
-
-  if (!stepBodyItems) {
-    return;
-  }
-
-  const openedByDefault = flatNode.openedByDefault ?? true;
-  const expandableDescendants = collectExpandableStepNodes(stepBodyItems, policy);
-
-  if (expandableDescendants.length === 0) {
-    return;
-  }
-
-  const subtreeNodes: SubtreeNodeState[] = [
-    { id: flatNode.nodeId, openedByDefault, isRoot: true },
-    ...expandableDescendants.map((node) => ({ ...node, isRoot: false })),
-  ];
-  const isOpened = (id: string, defaultOpened: boolean) => isTreeOpened(id, defaultOpened);
-  const { nextState, nextLastToggle } = resolveNextSubtreeToggleState(
-    subtreeNodes,
-    isOpened,
-    getRememberedSubtreeToggle(focusId),
-  );
-
-  applySubtreeToggleState(subtreeNodes, nextState, {
-    toScopedId: (id) => id,
-    isOpened,
-    setOpened: (id, shouldOpen, defaultOpened) => setTreeOpened(id, shouldOpen, defaultOpened),
-  });
-  rememberSubtreeToggle(focusId, nextLastToggle);
-};
-
 export const openTreeNodeFromFocus = () => {
   if (!isTreeNavigationContext()) {
     return;
@@ -556,13 +484,14 @@ export const openTestResultFromTree = () => {
     return;
   }
 
-  navigateToTestResult({ testResultId: node.testResultId, tab: getTestResultTabForTestResultId(node.testResultId) });
+  const focusedRow = document.querySelector(`[data-tree-node-id="${node.id}"]`);
 
-  if (isSplitMode.value) {
-    focusTestResultPane();
-  } else {
-    focusTestResultPane();
+  if (focusedRow instanceof HTMLElement && !isFocusInView(focusedRow)) {
+    return;
   }
+
+  navigateToTestResult({ testResultId: node.testResultId, tab: getTestResultTabForTestResultId(node.testResultId) });
+  focusTestResultPane();
 };
 
 export const getSearchInput = (): HTMLInputElement | null =>
@@ -692,23 +621,6 @@ export const goToReportRootTab = (tab: (typeof REPORT_ROOT_TAB)[keyof typeof REP
   focusTreePane();
 };
 
-export const cycleReportRootTabHotkey = (direction: "next" | "prev") => {
-  if (!isReportRootTabsContext()) {
-    return;
-  }
-
-  cycleReportRootTab(direction);
-  focusTreePane();
-};
-
-export const cycleTestResultTabHotkey = (direction: "next" | "prev") => {
-  if (!isTestResultHotkeysContext()) {
-    return;
-  }
-
-  cycleTestResultTab(direction);
-};
-
 export const toggleReportEnvSection = (section: ReportEnvSection) => {
   if (!isTreeNavigationContext()) {
     return;
@@ -737,30 +649,6 @@ export const applyTestResultOverviewNavigation = (direction: MoveDirection) => {
   }
 
   applyTestResultFocusMove(moveTestResultFocus(direction));
-};
-
-export const toggleTestResultOverviewNode = () => {
-  if (!isTestResultOverviewNavigationContext()) {
-    return;
-  }
-
-  toggleTestResultFocusNode();
-};
-
-export const openTestResultOverviewFromFocus = () => {
-  if (!isTestResultOverviewNavigationContext()) {
-    return;
-  }
-
-  const node = getFlatTestResultNode(testResultFocusId.value);
-
-  if (!node) {
-    return;
-  }
-
-  if (node.nodeId) {
-    toggleTestResultFocusNode();
-  }
 };
 
 export const handleTestResultEscape = () => {

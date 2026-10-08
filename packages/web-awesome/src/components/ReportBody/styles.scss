@@ -20,6 +20,13 @@
   justify-content: space-between;
 }
 
+.headerRowActions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
 .body {
   padding: 16px 0;
   min-height: 320px;

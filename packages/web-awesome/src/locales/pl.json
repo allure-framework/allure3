@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Pokaż nieudane lub uszkodzone wyniki testów bez rozwiązania"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Brak rozwiązania"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Próby ponowne",
     "environments": "Środowiska",
     "error": "Błąd",
+    "success": "Sukces",
     "goToStep": "Idź do kroku",
     "showLess": "Pokaż mniej",
     "showMore": "Pokaż więcej",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Zezwól na wyskakujące okna i spróbuj ponownie.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, z kodem wyjścia {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, z kodem wyjścia {{actual}} (oryginalny {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Okruszki chleba",
+    "breadcrumbs-hidden": "Pokaż ukryte okruszki chleba"
   },
   "controls": {
     "newTabAttachment": "Otwórz w nowej zakładce",
@@ -190,7 +195,9 @@
     "clipboardError": "Błąd. Najprawdopodobniej Twoja przeglądarka nie obsługuje tej funkcji",
     "clipboardSuccess": "Zawartość została skopiowana",
     "collapse": "Skrócić",
+    "collapseAll": "Zwiń wszystko",
     "expand": "Poszerzyć",
+    "expandAll": "Rozwiń wszystko",
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
     "openInNewTab": "Otwórz w nowej karcie",
@@ -545,12 +552,8 @@
       "reportTabQualityGate": "Zakładka raportu: Quality gate",
       "reportTabGlobalAttachments": "Zakładka raportu: Globalne załączniki",
       "reportTabGlobalErrors": "Zakładka raportu: Globalne błędy",
-      "reportTabNext": "Następna zakładka raportu",
-      "reportTabPrev": "Poprzednia zakładka raportu",
       "nextTest": "Następny wynik testu",
       "prevTest": "Poprzedni wynik testu",
-      "testTabNext": "Następna zakładka testu",
-      "testTabPrev": "Poprzednia zakładka testu",
       "tabOverview": "Zakładka przegląd",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Zakładka historia",

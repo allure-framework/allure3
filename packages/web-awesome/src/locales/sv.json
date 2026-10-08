@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Visa misslyckade eller trasiga testresultat utan lösning"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Ingen lösning"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Omtagningar",
     "environments": "Miljöer",
     "error": "Fel",
+    "success": "Lyckat",
     "goToStep": "Gå till steg",
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Brödsmulor",
+    "breadcrumbs-hidden": "Visa dolda brödsmulor"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",
@@ -190,7 +195,9 @@
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som om den här funktionen inte stöds av din webbläsare",
     "clipboardSuccess": "Kopierat framgångsrikt",
     "collapse": "Minimera",
+    "collapseAll": "Fäll ihop alla",
     "expand": "Expandera",
+    "expandAll": "Expandera alla",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "Rapportflik: Quality gate",
       "reportTabGlobalAttachments": "Rapportflik: Globala bilagor",
       "reportTabGlobalErrors": "Rapportflik: Globala fel",
-      "reportTabNext": "Nästa rapportflik",
-      "reportTabPrev": "Föregående rapportflik",
       "nextTest": "Nästa testresultat",
       "prevTest": "Föregående testresultat",
-      "testTabNext": "Nästa testflik",
-      "testTabPrev": "Föregående testflik",
       "tabOverview": "Flik översikt",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Flik historik",

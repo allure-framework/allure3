@@ -13,13 +13,14 @@ import {
   metricMaxDeltaRule,
   metricMaxRule,
   metricMinRule,
+  newTestsRule,
   successRateRule,
 } from "../../src/qualityGate/rules.js";
 
 const createTestResult = (
   id: string,
   status: TestStatus,
-  historyId?: string,
+  retryHash?: string,
   duration?: number,
   environment?: string,
   labels: TestResult["labels"] = [],
@@ -28,7 +29,7 @@ const createTestResult = (
   ({
     id,
     name: `Test ${id}`,
-    historyId,
+    retryHash,
     status,
     duration,
     environment,
@@ -152,6 +153,75 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(setState).toHaveBeenCalledWith(1, []);
+  });
+});
+
+describe("newTestsRule", () => {
+  const setState = vi.fn();
+  const state: QualityGateRuleState<number> = {
+    getResult: () => 0,
+    setResult: (value, testResults) => setState(value, testResults),
+  };
+
+  beforeEach(() => {
+    setState.mockClear();
+  });
+
+  it("should pass when the run has new tests", async () => {
+    const testResults: TestResult[] = [
+      { ...createTestResult("1", "passed"), transition: "new" },
+      { ...createTestResult("2", "passed"), transition: "fixed" },
+      { ...createTestResult("3", "failed"), transition: "new" },
+    ];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(2);
+    expect(result.testResults).toEqual(["1", "3"]);
+    expect(setState).toHaveBeenCalledWith(2, ["1", "3"]);
+  });
+
+  it("should fail when there are no new tests", async () => {
+    const testResults: TestResult[] = [
+      { ...createTestResult("1", "passed"), transition: "fixed" },
+      { ...createTestResult("2", "failed"), transition: "regressed" },
+    ];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual([]);
+    expect(setState).toHaveBeenCalledWith(0, []);
+  });
+
+  it("should keep passing when previous batches already found new tests", async () => {
+    let count = 1;
+    const accumulatedState: QualityGateRuleState<number> = {
+      getResult: () => count,
+      setResult: (value, testResults) => {
+        count = value;
+        setState(value, testResults);
+      },
+    };
+    const testResults: TestResult[] = [{ ...createTestResult("1", "passed"), transition: "fixed" }];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state: accumulatedState,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual([]);
     expect(setState).toHaveBeenCalledWith(1, []);
   });
 });
@@ -561,6 +631,45 @@ describe("environmentsTestedRule", () => {
     expect(secondResult.success).toBe(true);
     expect(secondResult.actual).toEqual([]);
     expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]), []);
+  });
+});
+
+// default rule messages are highlighted with ANSI codes whenever the terminal supports colors
+const ansiPattern = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
+const stripAnsi = (value: string) => value.replaceAll(ansiPattern, "");
+
+describe("default rules success messages", () => {
+  it.each([
+    [
+      maxFailuresRule,
+      { actual: 0, expected: 1 },
+      "The number of failed tests 0 is within the allowed threshold value 1",
+    ],
+    [minTestsCountRule, { actual: 2, expected: 1 }, "The total number of tests 2 meets the expected threshold value 1"],
+    [newTestsRule, { actual: 1, expected: true }, "New tests were found: 1"],
+    [successRateRule, { actual: 1, expected: 0.9 }, "Success rate 1 is not less, than expected 0.9"],
+    [
+      maxDurationRule,
+      { actual: 100, expected: 200 },
+      "Maximum duration of the tests is within the defined limit; actual 100, expected 200",
+    ],
+    [allTestsContainEnvRule, { actual: 0, expected: "prod" }, 'All tests contain the required "prod" environment'],
+    [
+      environmentsTestedRule,
+      { actual: [], expected: ["prod", "staging"] },
+      'All expected environments were tested: "prod", "staging"',
+    ],
+  ])("should provide a success message for the %# default rule", (rule, payload, expectedMessage) => {
+    expect(stripAnsi(rule.successMessage?.(payload as any) ?? "")).toBe(expectedMessage);
+  });
+
+  it("should round fractional success rate values in messages", () => {
+    const payload = { actual: 0.782608695652174, expected: 0.95 };
+
+    expect(stripAnsi(successRateRule.message(payload))).toBe("Success rate 0.783 is less, than expected 0.95");
+    expect(stripAnsi(successRateRule.successMessage?.(payload) ?? "")).toBe(
+      "Success rate 0.783 is not less, than expected 0.95",
+    );
   });
 });
 

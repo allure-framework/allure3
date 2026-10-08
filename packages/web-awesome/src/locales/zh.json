@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "显示没有解决方案的失败或损坏测试结果"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "无解决方案"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "重试",
     "environments": "环境",
     "error": "错误",
+    "success": "成功",
     "goToStep": "跳转到步骤",
     "showLess": "显示更少",
     "showMore": "显示更多",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "面包屑导航",
+    "breadcrumbs-hidden": "显示隐藏的面包屑导航项"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",
@@ -190,7 +195,9 @@
     "clipboardError": "无法复制到剪贴板。可能是浏览器不支持此功能",
     "clipboardSuccess": "复制成功",
     "collapse": "折叠",
+    "collapseAll": "全部折叠",
     "expand": "展开",
+    "expandAll": "全部展开",
     "fullscreen": "全屏",
     "language": "更改语言",
     "openInNewTab": "在新标签页中打开",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "报告标签页：质量门",
       "reportTabGlobalAttachments": "报告标签页：全局附件",
       "reportTabGlobalErrors": "报告标签页：全局错误",
-      "reportTabNext": "下一个报告标签页",
-      "reportTabPrev": "上一个报告标签页",
       "nextTest": "下一个测试结果",
       "prevTest": "上一个测试结果",
-      "testTabNext": "下一个测试标签页",
-      "testTabPrev": "上一个测试标签页",
       "tabOverview": "概览标签页",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "历史标签页",

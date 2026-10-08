@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Ցույց տալ ձախողված կամ խափանված թեստերի արդյունքները առանց լուծման"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Առանց լուծման"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Կրկնություններ",
     "environments": "Համակարգչային միջավայրներ",
     "error": "Սխալ",
+    "success": "Հաջողություն",
     "goToStep": "Գնալ քայլին",
     "showLess": "Ցուցադրել պակաս",
     "showMore": "Ցուցադրել ավելին",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Թույլատրեք բացվող պատուհանները և կրկին փորձեք։",
     "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Հացի փշրանքներ",
+    "breadcrumbs-hidden": "Ցուցադրել թաքնված հացի փշրանքները"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",
@@ -190,7 +195,9 @@
     "clipboardError": "Սխալ. Հավանաբար ձեր զննարկիչը չի աջակցում այս գործառույթին",
     "clipboardSuccess": "Հաջողությամբ պատճենվեց",
     "collapse": "Կծկել",
+    "collapseAll": "Ծալել բոլորը",
     "expand": "Ընդլայնել",
+    "expandAll": "Բացել բոլորը",
     "fullscreen": "Լրիվ էկրան",
     "language": "Փոխել լեզուն",
     "openInNewTab": "Բացել նոր ներդիրում",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "Հաշվետվության ներդիր: Որակի դարպաս",
       "reportTabGlobalAttachments": "Հաշվետվության ներդիր: Գլոբալ կցորդներ",
       "reportTabGlobalErrors": "Հաշվետվության ներդիր: Գլոբալ սխալներ",
-      "reportTabNext": "Հաջորդ հաշվետվության ներդիր",
-      "reportTabPrev": "Նախորդ հաշվետվության ներդիր",
       "nextTest": "Հաջորդ թեստի արդյունք",
       "prevTest": "Նախորդ թեստի արդյունք",
-      "testTabNext": "Հաջորդ թեստի ներդիր",
-      "testTabPrev": "Նախորդ թեստի ներդիր",
       "tabOverview": "Ակնարկի ներդիր",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Պատմության ներդիր",

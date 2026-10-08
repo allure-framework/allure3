@@ -1,7 +1,8 @@
 import { exit } from "node:process";
 
+import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
-import { AllureReport, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { epic, feature, label, story } from "allure-js-commons";
 import { glob } from "glob";
@@ -20,15 +21,37 @@ vi.mock("@allurereport/core", async () => {
   return {
     AllureReport: utils.AllureReportMock,
     readConfig: vi.fn(),
+    filterFailedQualityGateResults: vi.fn((results: { success: boolean }[]) =>
+      results.filter(({ success }) => !success),
+    ),
+    stringifyQualityGateResults: vi.fn((results: { success: boolean }[]) =>
+      results.some(({ success }) => !success) ? "quality gate failed" : "",
+    ),
   };
 });
 vi.mock("../../../src/utils/logs.js", () => ({
   logError: vi.fn(),
 }));
+vi.mock("@allurereport/ci", () => ({
+  createReportContext: vi.fn(),
+}));
 vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
 }));
+
+const summary: ReportContext = {
+  reports: [],
+  testResults: { byId: { one: { id: "one", name: "test", status: "passed", duration: 1 } } },
+  totals: {
+    duration: 1,
+    stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+    flags: { new: 0, flaky: 0, retry: 0 },
+    resolutions: { issues: 0, muted: 0, accepted: 0 },
+  },
+  environments: [],
+  artifacts: [],
+};
 
 beforeEach(async () => {
   await epic("coverage");
@@ -36,6 +59,9 @@ beforeEach(async () => {
   await story("generate");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  AllureReportMock.prototype.hasQualityGate = false;
+  AllureReportMock.prototype.store.allTestResults.mockResolvedValue([]);
+  vi.mocked(createReportContext).mockReset().mockResolvedValue(summary);
 });
 
 describe("generate function", () => {
@@ -197,6 +223,103 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
   });
 
+  it("should collect an optional context from finalized files after done succeeds", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    const events: string[] = [];
+    AllureReportMock.prototype.readDirectory.mockImplementationOnce(async () => {
+      events.push("readDirectory");
+    });
+    AllureReportMock.prototype.done.mockImplementationOnce(async () => {
+      events.push("done");
+    });
+    vi.mocked(createReportContext).mockImplementationOnce(async () => {
+      events.push("summary");
+      return summary;
+    });
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report", output: "./report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      collectSummary: true,
+    });
+
+    expect(createReportContext).toHaveBeenCalledWith("./report", { onError: expect.any(Function) });
+    expect(result).toEqual({ summary, exitCode: 0 });
+    expect(events).toEqual(["readDirectory", "done", "summary"]);
+  });
+
+  it("should not collect summaries for default callers", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+    });
+
+    expect(result).toEqual({ exitCode: 0 });
+    expect(createReportContext).not.toHaveBeenCalled();
+  });
+
+  it("should warn without failing generation when optional summary collection fails", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(createReportContext).mockRejectedValueOnce(new Error("summary failed"));
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      collectSummary: true,
+    });
+
+    expect(result).toEqual({ exitCode: 0 });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Report summary skipped"));
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+    expect(exit).not.toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should omit a context without a registry or plugin summaries", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(createReportContext).mockResolvedValueOnce({ ...summary, testResults: undefined });
+
+    const result = await generate({
+      cwd: ".",
+      config: {} as FullConfig,
+      resultsDir: ["./allure-results"],
+      collectSummary: true,
+    });
+
+    expect(result).toEqual({ exitCode: 0 });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Report summary skipped"));
+    expect(exit).not.toHaveBeenCalled();
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should not read a context when done fails", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    AllureReportMock.prototype.done.mockRejectedValueOnce(new KnownError("done failed"));
+
+    const result = await generate({
+      cwd: ".",
+      config: { name: "CLI report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      collectSummary: true,
+    });
+
+    expect(result).toBeUndefined();
+    expect(createReportContext).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("done failed"));
+    expect(exit).toHaveBeenCalledWith(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("should support multiple result directories", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./foo1/", "./foo2/"]);
     (glob as unknown as Mock).mockResolvedValueOnce(["./bar1/", "./bar2/"]);
@@ -236,5 +359,103 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(3, "./bar1/");
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(4, "./bar2/");
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
+
+  it("should not evaluate a quality gate when it is not configured", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    const result = await generate({
+      cwd: ".",
+      config: { environment: "linux" } as FullConfig,
+      resultsDir: ["./allure-results"],
+    });
+
+    expect(AllureReportMock.prototype.store.allTestResults).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.validate).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).not.toHaveBeenCalled();
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+    expect(result).toEqual({ exitCode: 0 });
+  });
+
+  it("should publish passed quality gate results before finalizing", async () => {
+    const testResults = [{ id: "passed", status: "passed" }];
+    const validationResults = [
+      {
+        success: true,
+        expected: 0,
+        actual: 0,
+        rule: "maxFailures",
+        message: "No failed tests",
+        testResults: [],
+        environment: "Linux",
+      },
+    ];
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.store.allTestResults.mockResolvedValueOnce(testResults);
+    AllureReportMock.prototype.validate.mockResolvedValueOnce({ results: validationResults, fastFailed: false });
+
+    const result = await generate({
+      cwd: ".",
+      config: { environment: "linux" } as FullConfig,
+      resultsDir: ["./allure-results"],
+    });
+
+    expect(AllureReportMock.prototype.store.allTestResults).toHaveBeenCalledWith({ includeRetries: false });
+    expect(AllureReportMock.prototype.validate).toHaveBeenCalledWith({
+      trs: testResults,
+      environment: "linux",
+    });
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith(
+      validationResults,
+    );
+    expect(
+      AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults.mock.invocationCallOrder[0],
+    ).toBeLessThan(AllureReportMock.prototype.done.mock.invocationCallOrder[0]);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(result).toEqual({ exitCode: 0 });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("should finalize output before returning a failed quality gate status", async () => {
+    const testResults = [{ id: "failed", status: "failed" }];
+    const validationResults = [
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "maxFailures",
+        message: "Too many failed tests",
+        testResults: ["failed"],
+        environment: "Windows",
+      },
+    ];
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.store.allTestResults.mockResolvedValueOnce(testResults);
+    AllureReportMock.prototype.validate.mockResolvedValueOnce({ results: validationResults, fastFailed: false });
+
+    const result = await generate({
+      cwd: ".",
+      config: { environment: "windows", dump: "windows-results" } as FullConfig,
+      resultsDir: ["./allure-results"],
+    });
+
+    expect(stringifyQualityGateResults).toHaveBeenCalledWith(validationResults);
+    expect(consoleErrorSpy).toHaveBeenCalledWith("quality gate failed");
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults).toHaveBeenCalledWith(
+      validationResults,
+    );
+    expect(
+      AllureReportMock.prototype.realtimeDispatcher.sendQualityGateResults.mock.invocationCallOrder[0],
+    ).toBeLessThan(AllureReportMock.prototype.done.mock.invocationCallOrder[0]);
+    expect(result).toEqual({ exitCode: 1 });
+
+    consoleErrorSpy.mockRestore();
   });
 });

@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 
 import { ReportSummaryCard } from "@/components/ReportSummaryCard";
+import type { ReportSummary } from "@/components/ReportSummaryCard";
 
 const meta: Meta<typeof ReportSummaryCard> = {
   title: "Components/ReportSummaryCard",
@@ -10,7 +11,7 @@ const meta: Meta<typeof ReportSummaryCard> = {
 export default meta;
 type Story = StoryObj<typeof ReportSummaryCard>;
 
-const defaultSummary = {
+const defaultSummary: ReportSummary = {
   name: "First sample report",
   href: "#",
   stats: {
@@ -42,7 +43,7 @@ const enLocales: Record<string, string> = {
   "metadata.retry": "retry",
 };
 
-const enI18n = (key: string, props: Record<string, any>) => {
+const enI18n = (key: string, props?: Record<string, any>) => {
   if (key === "createdAt") {
     return new Date(props?.createdAt as number).toLocaleDateString("en-US", {
       month: "long",

@@ -10,7 +10,7 @@ export * from "./metrics.js";
 export type * from "./model.js";
 export type * from "./testCase.js";
 export type * from "./testPlan.js";
-export type * from "./config.js";
+export * from "./config.js";
 export * from "./static.js";
 export * from "./categories.js";
 
@@ -26,6 +26,7 @@ export * from "./utils/status.js";
 export * from "./utils/successRate.js";
 export * from "./utils/environment.js";
 export * from "./utils/history.js";
+export * from "./utils/identity.js";
 export * from "./utils/strings.js";
 export * from "./utils/dictionary.js";
 export * from "./utils/path.js";

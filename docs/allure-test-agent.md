@@ -65,7 +65,7 @@ Document only integrations detected or explicitly configured in this project.
 - Supported integration configuration targets: discovered package runner configs
 - Validation command for integration setup: focused package command through `yarn allure agent -- yarn workspace <name> test`
 - Known unsupported or skipped integrations: local agent service, discovery/configuration commands
-- Integration-specific quirks: many package tests clean `./out`; CI uses `yarn allure run --config=./allurerc.gate.mjs --environment=<os> --dump=allure-results-<os> -- yarn test`
+- Integration-specific quirks: many package tests clean `./out`; CI captures each environment with `yarn allure run --config=./allurerc.mjs --environment=<os> --dump=allure-results-<os> -- yarn test`, then enables aggregate quality gates in the report job with `ALLURE_QUALITY_GATE=1`
 
 ## Project Test-Design Conventions
 

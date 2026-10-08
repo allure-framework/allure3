@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -17,7 +17,7 @@ import type {
   HistoryDataPoint,
   TestResult,
 } from "@allurereport/core-api";
-import { normalizeCategoriesConfig } from "@allurereport/core-api";
+import { normalizeCategoriesConfig, parseIntegerConfigValue } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -30,7 +30,15 @@ import {
   type ResultFile,
   createTestResultRegistry,
 } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
+import {
+  allure1,
+  allure2,
+  attachments,
+  cucumberjson,
+  cucumberMessages,
+  junitXml,
+  readXcResultBundle,
+} from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import {
   AllureRemoteHistory,
@@ -47,7 +55,7 @@ import pLimit from "p-limit";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "./history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
@@ -64,7 +72,9 @@ import { environmentIdentityById, environmentIdentityByName } from "./utils/envi
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
   getPerfMetricsResults,
+  incrementPerfCounter,
   isPerfMetricsEnabled,
+  measurePerfAggregate,
   measurePerf,
   PERF_METRIC_NAMES,
   PERF_METRIC_PREFIXES,
@@ -80,6 +90,7 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const INIT_REQUIRED_ERROR_MESSAGE = "report is not initialised. Call the start() method first.";
 const DEFAULT_READ_CONCURRENCY = 64;
 const MAX_READ_CONCURRENCY = 256;
+const DEFAULT_UPLOAD_CONCURRENCY = 10;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
 const ROOT_INTEGRATION_FILENAMES = new Set([
@@ -87,6 +98,20 @@ const ROOT_INTEGRATION_FILENAMES = new Set([
   QUALITY_GATE_RESULTS_FILENAME,
   ARTIFACTS_MANIFEST_FILENAME,
 ]);
+const WORKLOAD_PERF_METRIC = {
+  group: "workload",
+  groupTitle: "Workload",
+  better: "neutral",
+} as const;
+
+type PluginPerformance = {
+  measure<T>(name: string, fn: () => Promise<T>): Promise<T>;
+  count(name: string, value?: number, metadata?: typeof WORKLOAD_PERF_METRIC & { title: string; unit: string }): void;
+};
+
+type PerfAwarePluginContext = PluginContext & {
+  perf?: PluginPerformance;
+};
 
 const readConcurrency = () => {
   const parsed = Number.parseInt(process.env.ALLURE_READ_CONCURRENCY ?? "", 10);
@@ -121,10 +146,7 @@ const getExecutorReportUrl = (executor: unknown): string | undefined => {
   }
 
   try {
-    const navUrl = new URL(reportUrl);
-    navUrl.pathname = navUrl.pathname.endsWith("/") ? navUrl.pathname : `${navUrl.pathname}/`;
-
-    return navUrl.toString();
+    return new URL(reportUrl).toString();
   } catch {
     return undefined;
   }
@@ -177,15 +199,16 @@ export class AllureReport {
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
   #endGeneratePerfSpan?: () => void;
+  #resolvedReportUrl?: string;
+  #reportUrl?: string;
 
   readonly reportUuid: string;
   readonly reportName: string;
-  reportUrl?: string;
 
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, cucumberMessages, junitXml, attachments],
       plugins = [],
       resolutions,
       reportFiles,
@@ -193,6 +216,7 @@ export class AllureReport {
       historyPath,
       historyBaseUrl,
       historyLimit,
+      flakyDetection,
       appendHistory,
       defaultLabels = {},
       variables = {},
@@ -215,6 +239,7 @@ export class AllureReport {
       const allureServiceClientConfig = {
         ...allureService,
         accessToken: allureServiceAccessToken,
+        uploadConcurrency: parseIntegerConfigValue(allureService.uploadConcurrency, 1) ?? DEFAULT_UPLOAD_CONCURRENCY,
       };
 
       this.#allureServiceClient = allureServiceAccessToken.startsWith("ato1.")
@@ -231,7 +256,11 @@ export class AllureReport {
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
     this.reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
-    this.#realtimeChannel = new RealtimeChannel();
+    this.#realtimeChannel = new RealtimeChannel(() => {
+      if (this.#executionStage === "running") {
+        this.#store.updateHistoryFlags();
+      }
+    });
     this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
     this.#dump = dump;
@@ -269,6 +298,7 @@ export class AllureReport {
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
+      flakyDetection,
       resolutionsConfig: resolutions,
       defaultLabels,
       environment,
@@ -297,32 +327,53 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
-  #resolveHistoryReportUrl = async (): Promise<string> => {
-    if (this.reportUrl) {
-      return this.reportUrl;
+  get reportUrl(): string | undefined {
+    return this.#reportUrl ?? this.#resolvedReportUrl;
+  }
+
+  set reportUrl(url: string | undefined) {
+    this.#reportUrl = url;
+  }
+
+  #resolveReportUrl = async (): Promise<void> => {
+    if (this.#reportUrl) return;
+
+    // when base url is set, expose root report url to plugins as the main report url
+    if (this.#historyBaseUrl) {
+      const historyUrl = new URL(this.#historyBaseUrl);
+      historyUrl.pathname = `${historyUrl.pathname}index.html`;
+
+      this.#resolvedReportUrl = historyUrl.toString();
+      return;
     }
 
     const executorReportUrl = getExecutorReportUrl(await this.#store.metadataByKey("allure2_executor"));
+    if (!executorReportUrl) return;
 
-    if (executorReportUrl) {
-      this.reportUrl = executorReportUrl;
-      return executorReportUrl;
-    }
-
-    return "";
+    this.#resolvedReportUrl = executorReportUrl;
   };
 
-  #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
-    const allTrs = await this.#store.allTestResults();
+  #createHistoryDataPoint = async (flattenReport: boolean): Promise<HistoryDataPoint> => {
+    const allTrs = await Promise.all(
+      (await this.#store.allTestResults()).map(async (tr) => ({
+        ...tr,
+        retries: await this.#store.retriesByTrId(tr.id),
+      })),
+    );
     const allTcs = await this.#store.allTestCases();
-    const historyReportUrl = await this.#resolveHistoryReportUrl();
+    // always use explicitly set reportUrl for history
+    //
+    // if multiple reports exist and historyBaseUrl is present, use the base as history url so the final history urls
+    // can add correct plugin id to final href
+    const historyUrl =
+      this.#reportUrl ?? (!flattenReport && this.#historyBaseUrl ? this.#historyBaseUrl : this.#resolvedReportUrl);
 
     return createHistory(
       this.reportUuid,
       this.reportName,
       allTcs,
       allTrs,
-      historyReportUrl,
+      historyUrl ?? "",
       await this.#store.allMetrics(),
     );
   };
@@ -346,6 +397,15 @@ export class AllureReport {
     });
   };
 
+  #prepareReportFiles = async (): Promise<void> => {
+    await this.#writeTestResultRegistry();
+    if (this.#qualityGate) {
+      await this.#writeQualityGateFiles();
+    }
+    await this.#writeSummaryFiles();
+    await this.#generateRootSummary();
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -354,20 +414,6 @@ export class AllureReport {
     if (this.#executionStage !== "done") {
       throw new Error("report is not completed. Call the done() method first.");
     }
-
-    let historyPoint = this.#historyDataPoint;
-
-    if (!historyPoint) {
-      historyPoint = await this.#createHistoryDataPoint();
-      this.#historyDataPoint = historyPoint;
-    }
-
-    await this.#writeTestResultRegistry();
-    if (this.#qualityGate) {
-      await this.#writeQualityGateFiles();
-    }
-    await this.#writeSummaryFiles();
-    await this.#generateRootSummary();
 
     if (this.#realTime || !this.#allureServiceClient) {
       this.#published = true;
@@ -488,7 +534,7 @@ export class AllureReport {
 
       await client.completeReport({
         reportUuid: this.reportUuid,
-        historyPoint,
+        historyPoint: this.#historyDataPoint,
       });
 
       Object.values(linksByPluginId)
@@ -527,23 +573,34 @@ export class AllureReport {
 
       const resultsDirPath = resolve(resultsDir);
 
-      if (await readXcResultBundle(this.#store, resultsDirPath)) {
+      if (
+        await measurePerf(PERF_METRIC_NAMES.generateReadResultsXcresultCheck, () =>
+          readXcResultBundle(this.#store, resultsDirPath),
+        )
+      ) {
+        this.#store.updateHistoryFlags();
         return;
       }
 
       try {
-        const entries = (await readdir(resultsDirPath, { withFileTypes: true }))
-          .filter((dirent) => dirent.isFile() && !dirent.name.endsWith(".tmp"))
-          .sort((a, b) => a.name.localeCompare(b.name));
+        const entries = await measurePerf(PERF_METRIC_NAMES.generateReadResultsReaddir, async () =>
+          (await readdir(resultsDirPath, { withFileTypes: true }))
+            .filter((dirent) => dirent.isFile() && !dirent.name.endsWith(".tmp"))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        );
         const limit = pLimit(readConcurrency());
+
+        incrementPerfCounter(PERF_METRIC_NAMES.generateReadResultsFiles, entries.length, {
+          ...WORKLOAD_PERF_METRIC,
+          title: "Input files",
+          unit: "files",
+        });
 
         await Promise.all(
           entries.map((dirent) =>
             limit(async () => {
               try {
-                const path = await realpath(join(resultsDirPath, dirent.name));
-
-                await this.readResult(new PathResultFile(path, dirent.name));
+                await this.readResult(new PathResultFile(join(resultsDirPath, dirent.name), dirent.name));
               } catch (e) {
                 console.error(`can't read result file ${dirent.name}`, e);
               }
@@ -553,6 +610,8 @@ export class AllureReport {
       } catch (e) {
         console.error("can't read directory", e);
       }
+
+      this.#store.updateHistoryFlags();
     });
 
   readFile = async (resultsFile: string) =>
@@ -561,6 +620,7 @@ export class AllureReport {
         throw new Error(INIT_REQUIRED_ERROR_MESSAGE);
       }
       await this.readResult(new PathResultFile(resultsFile));
+      this.#store.updateHistoryFlags();
     });
 
   readResult = async (data: ResultFile) => {
@@ -574,7 +634,9 @@ export class AllureReport {
           continue;
         }
 
-        const processed = await reader.read(this.#store, data);
+        const processed = await measurePerfAggregate(PERF_METRIC_NAMES.generateReadResultsReaderRead, () =>
+          reader.read(this.#store, data),
+        );
 
         if (processed) {
           return;
@@ -585,6 +647,11 @@ export class AllureReport {
 
   validate = async (params: { trs: TestResult[]; state?: QualityGateState; environment?: string }) => {
     const { trs, state, environment } = params;
+
+    if (this.#executionStage !== "done") {
+      this.#store.updateHistoryFlags(trs.filter(Boolean));
+    }
+
     const qualityGateEnvironment =
       environment === undefined
         ? undefined
@@ -618,6 +685,7 @@ export class AllureReport {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
 
+    this.#store.updateHistoryFlags();
     this.#executionStage = "running";
     this.#endGeneratePerfSpan = startPerfSpan(PERF_METRIC_NAMES.generateTotal);
 
@@ -659,6 +727,8 @@ export class AllureReport {
     if (this.#executionStage !== "running") {
       return;
     }
+
+    this.#store.updateHistoryFlags();
 
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.update?.(context, this.#store);
@@ -720,11 +790,12 @@ export class AllureReport {
       attachments,
       environments,
       reportVariables,
+      metadata = {},
       checkResults = {},
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
-      indexTestResultByHistoryId = {},
+      indexTestResultByRetryHash = {},
       indexTestResultByTestCase = {},
       indexTestResultByResolutionIssue = {},
       indexAttachmentByFixture = {},
@@ -741,11 +812,12 @@ export class AllureReport {
       [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.Metadata, metadata],
       [AllureStoreDumpFiles.ResolutionIssues, resolutionIssues],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
       [AllureStoreDumpFiles.GlobalErrors, globalErrors],
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
-      [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
+      [AllureStoreDumpFiles.IndexTestResultsByRetryHash, indexTestResultByRetryHash],
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
       [AllureStoreDumpFiles.IndexTestResultsByResolutionIssue, indexTestResultByResolutionIssue],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
@@ -836,6 +908,7 @@ export class AllureReport {
   restoreState = async (dumps: string[]): Promise<void> => {
     this.#store.resetIngestOrder();
     await this.#restoreStateDumps(dumps.map((path) => ({ artifactPath: path, path })));
+    this.#store.updateHistoryFlags();
   };
 
   #recordArtifact = (filePath: string, name = basename(filePath)): void => {
@@ -926,15 +999,10 @@ export class AllureReport {
               const checkResultsEntry = await optionalEntryData(AllureStoreDumpFiles.CheckResults);
               const environmentsEntry = await requiredEntryData(AllureStoreDumpFiles.Environments);
               const reportVariablesEntry = await requiredEntryData(AllureStoreDumpFiles.ReportVariables);
+              const metadataEntry = await optionalEntryData(AllureStoreDumpFiles.Metadata);
               const globalAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalAttachments);
               const globalErrorsEntry = await requiredEntryData(AllureStoreDumpFiles.GlobalErrors);
               const indexAttachmentsEntry = await requiredEntryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
-              const indexTestResultsByHistoryId = await requiredEntryData(
-                AllureStoreDumpFiles.IndexTestResultsByHistoryId,
-              );
-              const indexTestResultsByTestCaseEntry = await requiredEntryData(
-                AllureStoreDumpFiles.IndexTestResultsByTestCase,
-              );
               const indexTestResultsByResolutionIssueEntry = await optionalEntryData(
                 AllureStoreDumpFiles.IndexTestResultsByResolutionIssue,
               );
@@ -959,11 +1027,12 @@ export class AllureReport {
                   case AllureStoreDumpFiles.Fixtures:
                   case AllureStoreDumpFiles.Environments:
                   case AllureStoreDumpFiles.ReportVariables:
+                  case AllureStoreDumpFiles.Metadata:
                   case AllureStoreDumpFiles.ResolutionIssues:
                   case AllureStoreDumpFiles.GlobalAttachments:
                   case AllureStoreDumpFiles.GlobalErrors:
                   case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
-                  case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
+                  case AllureStoreDumpFiles.IndexTestResultsByRetryHash:
                   case AllureStoreDumpFiles.IndexTestResultsByTestCase:
                   case AllureStoreDumpFiles.IndexTestResultsByResolutionIssue:
                   case AllureStoreDumpFiles.IndexAttachmentsByFixture:
@@ -990,11 +1059,12 @@ export class AllureReport {
                 checkResults: checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : [],
                 environments: JSON.parse(environmentsEntry.toString("utf8")),
                 reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
+                metadata: metadataEntry ? JSON.parse(metadataEntry.toString("utf8")) : {},
                 globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
                 globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
                 indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
-                indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
-                indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
+                indexTestResultByRetryHash: {},
+                indexTestResultByTestCase: {},
                 indexTestResultByResolutionIssue: indexTestResultsByResolutionIssueEntry
                   ? JSON.parse(indexTestResultsByResolutionIssueEntry.toString("utf8"))
                   : {},
@@ -1220,13 +1290,16 @@ export class AllureReport {
       // closing it after realtime update settles, to prevent future reads
       this.#executionStage = "done";
 
+      this.#store.updateHistoryFlags();
+
       // just dump state when dump is set and generate nothing
       if (this.#dump) {
         await this.dumpState();
         return;
       }
 
-      await this.#resolveHistoryReportUrl();
+      // resolve report url from available sources so it is available to plugins
+      await this.#resolveReportUrl();
 
       // isolate logs of different reports dumps: done and summary
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
@@ -1239,8 +1312,6 @@ export class AllureReport {
       this.#finishGeneratePerfSpan();
 
       await this.#ingestSelfPerfMetrics();
-
-      this.#historyDataPoint = await this.#createHistoryDataPoint();
 
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
@@ -1265,7 +1336,7 @@ export class AllureReport {
           .map((summary) => [summary.pluginId, summary]),
       );
 
-      await this.#publish();
+      await this.#prepareReportFiles();
 
       let outputDirFiles: string[] = [];
 
@@ -1274,6 +1345,16 @@ export class AllureReport {
         outputDirFiles = await readdir(this.#output);
       } catch {}
 
+      const outputEntries = await Promise.all(
+        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+      );
+      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
+      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
+
+      this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
+
+      await this.#publish();
+
       if (this.#knownIssuesPath) {
         await writeKnownIssues(this.#store, this.#knownIssuesPath);
       }
@@ -1281,23 +1362,6 @@ export class AllureReport {
       // just do nothing if there is no reports in the output directory
       if (outputDirFiles.length === 0) {
         return;
-      }
-
-      const outputEntries = await Promise.all(
-        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
-      );
-      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
-      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
-
-      if (this.#historyBaseUrl) {
-        const historyUrl = new URL(this.#historyBaseUrl);
-
-        if (shouldFlattenOutput) {
-          historyUrl.pathname = `${historyUrl.pathname}index.html`;
-        }
-
-        // historyDataPoint needs to be overwritten due to dependency of checking if output needs to be flattened or not
-        this.#historyDataPoint = setHistoryDataPointUrl(this.#historyDataPoint!, historyUrl.toString());
       }
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
@@ -1393,6 +1457,12 @@ export class AllureReport {
       }
 
       const pluginFiles = new PluginFiles(this.#reportFiles, id, async (key, filepath) => {
+        incrementPerfCounter(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.generatedFiles`, 1, {
+          ...WORKLOAD_PERF_METRIC,
+          title: `Generated ${id} files`,
+          unit: "files",
+        });
+
         const currentPluginState = this.#getPluginState(false, id);
         const files: Record<string, string> | undefined = await currentPluginState?.get("files");
 
@@ -1402,7 +1472,7 @@ export class AllureReport {
 
         files[key] = filepath;
       });
-      const pluginContext: PluginContext = {
+      const pluginContext: PerfAwarePluginContext = {
         id,
         publish: !!options?.publish,
         allureVersion: version,
@@ -1411,6 +1481,19 @@ export class AllureReport {
         hideLabels: this.#hideLabels,
         state: pluginState,
         reportFiles: pluginFiles,
+        ...(isPerfMetricsEnabled()
+          ? {
+              perf: {
+                measure: <T>(name: string, fn: () => Promise<T>) =>
+                  measurePerf(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.${name}`, fn),
+                count: (
+                  name: string,
+                  value?: number,
+                  metadata?: typeof WORKLOAD_PERF_METRIC & { title: string; unit: string },
+                ) => incrementPerfCounter(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.${name}`, value, metadata),
+              },
+            }
+          : {}),
         reportUrl: this.reportUrl,
         realTime: !!this.#realTime,
         output: this.#output,
@@ -1422,7 +1505,10 @@ export class AllureReport {
       try {
         await consumer.call(this, plugin, pluginContext);
 
-        this.reportUrl = pluginContext.reportUrl ?? this.reportUrl;
+        // update reportUrl if it was mutated by consumer
+        if (pluginContext.reportUrl !== null && pluginContext.reportUrl !== this.reportUrl) {
+          this.reportUrl = pluginContext.reportUrl;
+        }
 
         if (initState) {
           this.#state![id] = pluginState;

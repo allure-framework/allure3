@@ -1,4 +1,10 @@
-import { DEFAULT_ENVIRONMENT, type EnvironmentIdentity, type TestEnvGroup } from "@allurereport/core-api";
+import {
+  DEFAULT_ENVIRONMENT,
+  type EnvironmentIdentity,
+  type TestEnvGroup,
+  type TestResult,
+  calculateRetryHash,
+} from "@allurereport/core-api";
 import {
   environmentNameById as resolveEnvironmentNameById,
   errorMessageFromUnknown,
@@ -46,6 +52,13 @@ export const sharedEnvironmentId = computed<string | null>(() =>
     ? null
     : DEFAULT_ENVIRONMENT,
 );
+
+export const testEnvGroupId = (testResult?: Pick<TestResult, "testCaseHash" | "parametersHash">) =>
+  testResult &&
+  calculateRetryHash({
+    testCaseHash: testResult.testCaseHash,
+    parametersHash: testResult.parametersHash,
+  });
 
 export const fetchEnvironments = async () => {
   environmentsStore.value = {

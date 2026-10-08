@@ -3,7 +3,7 @@ import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
-import LogPlugin from "@allurereport/plugin-log";
+import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
@@ -24,6 +24,14 @@ const fixtures = {
       message: "The number of failed tests 1 exceeds the allowed threshold value 0",
       actual: 1,
       expected: 0,
+      testResults: ["failed-1"],
+    },
+    {
+      success: true,
+      rule: "minTestsCount",
+      message: "The total number of tests 1 meets the expected threshold value 1",
+      actual: 1,
+      expected: 1,
       testResults: ["failed-1"],
     },
   ] as QualityGateValidationResult[],
@@ -112,6 +120,7 @@ describe("log command", () => {
           enabled: true,
           options: expect.objectContaining({
             qualityGateResults: true,
+            qualityGateFilter: undefined,
           }),
           plugin: expect.any(LogPlugin),
         }),
@@ -166,6 +175,44 @@ describe("log command", () => {
             id: "log",
             options: expect.objectContaining({
               qualityGateResults: false,
+            }),
+            plugin: expect.any(LogPlugin),
+          }),
+        ]),
+      }),
+    );
+    expect(AllureReport.prototype.validate).not.toHaveBeenCalled();
+    expect(AllureReport.prototype.realtimeDispatcher.sendQualityGateResults).not.toHaveBeenCalled();
+  });
+
+  it("should pass all-results quality gate filter to the log plugin", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+
+    await run(LogCommand, ["log", "--all-quality-gate-results", fixtures.resultsDir]);
+
+    const config = vi.mocked(AllureReport).mock.calls[0][0] as { plugins: Array<{ options: LogPluginOptions }> };
+    const options = config.plugins[0].options;
+
+    expect(options.qualityGateResults).toBe(true);
+    expect(options.qualityGateFilter).toEqual(expect.any(Function));
+    expect(options.qualityGateFilter?.(fixtures.qualityGateValidationResults[0])).toBe(true);
+    expect(options.qualityGateFilter?.(fixtures.qualityGateValidationResults[1])).toBe(true);
+  });
+
+  it("should let disabled quality gate results logging win over all-results output", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+    (AllureReport.prototype as unknown as { hasQualityGate: boolean }).hasQualityGate = true;
+
+    await run(LogCommand, ["log", "--all-quality-gate-results", "--no-quality-gate-results", fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "log",
+            options: expect.objectContaining({
+              qualityGateResults: false,
+              qualityGateFilter: expect.any(Function),
             }),
             plugin: expect.any(LogPlugin),
           }),

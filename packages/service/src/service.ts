@@ -1,6 +1,8 @@
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
-import { type HistoryDataPoint } from "@allurereport/core-api";
+import { type HistoryDataPoint, parseIntegerConfigValue } from "@allurereport/core-api";
 
 import {
   ALLURE_SERVICE_STORAGE_PREFIX,
@@ -10,7 +12,8 @@ import {
   type UploadReportFilesPayload,
   type UploadReportPayload,
 } from "./model.js";
-import { type HttpClient, createServiceHttpClient, uploadReport } from "./utils/http.js";
+import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
+import { type StorageUploadFile, encodeUploadPath, normalizeUploadPath, uploadStorageReport } from "./utils/storage.js";
 import { parseServiceToken } from "./utils/token.js";
 import { createUploadForm } from "./utils/upload.js";
 
@@ -23,9 +26,22 @@ const createReportUrl = (baseUrl: string, reportUuid: string) => `${baseUrl}/${r
 const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
   `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
 
+const resolveUploadConcurrency = (value: number | undefined) => {
+  const concurrency = parseIntegerConfigValue(value) ?? 10;
+
+  if (concurrency <= 0) {
+    throw new Error(
+      `Allure service upload concurrency must resolve to an integer greater than 0; received ${String(value)}`,
+    );
+  }
+
+  return concurrency;
+};
+
 export class AllureServiceClient implements AllureServiceApiClient {
   readonly #client: HttpClient;
   readonly #url: string;
+  readonly #uploadedAssets = new Map<string, Set<string>>();
 
   constructor(readonly config: AllureServiceApiClientConfig) {
     if (!config?.accessToken) {
@@ -92,11 +108,15 @@ export class AllureServiceClient implements AllureServiceApiClient {
       url: createReportUrl(this.#url, reportUuid),
     };
 
-    return this.#client.post(`/api/reports/${reportUuid}/complete`, {
-      body: {
-        historyPoint: completedHistoryPoint,
-      },
-    });
+    try {
+      return await this.#client.post(`/api/reports/${reportUuid}/complete`, {
+        body: {
+          historyPoint: completedHistoryPoint,
+        },
+      });
+    } finally {
+      this.#uploadedAssets.delete(reportUuid);
+    }
   }
 
   /**
@@ -107,11 +127,62 @@ export class AllureServiceClient implements AllureServiceApiClient {
   async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
     const { reportUuid, pluginId = "" } = payload;
 
-    return this.#client.post(`/api/report/${reportUuid}/delete`, {
-      body: {
-        pluginId,
-      },
+    try {
+      return await this.#client.post(`/api/report/${reportUuid}/delete`, {
+        body: {
+          pluginId,
+        },
+      });
+    } finally {
+      this.#uploadedAssets.delete(reportUuid);
+    }
+  }
+
+  async #uploadRawFile(
+    payload: UploadReportFilePayload & {
+      endpoint: string;
+      remotePath: string;
+      size?: number;
+    },
+  ) {
+    const { endpoint, remotePath, file, filepath, signal } = payload;
+
+    if (file === undefined && !filepath) {
+      throw new Error("File or filepath is required");
+    }
+
+    const size = payload.size ?? (file !== undefined ? file.length : (await stat(filepath!)).size);
+    const body = file ?? createReadStream(filepath!, { signal });
+
+    try {
+      return await this.#client.put(`${endpoint}?path=${encodeUploadPath(remotePath)}`, {
+        body,
+        headers: {
+          "Content-Length": size,
+          "Content-Type": UPLOAD_CONTENT_TYPE,
+        },
+        maxBodyLength: Number.POSITIVE_INFINITY,
+        maxContentLength: Number.POSITIVE_INFINITY,
+        ...(signal ? { signal } : {}),
+      });
+    } finally {
+      if (!Buffer.isBuffer(body)) {
+        body.destroy();
+      }
+    }
+  }
+
+  async #uploadPreparedFile(reportUuid: string, file: StorageUploadFile, signal: AbortSignal) {
+    const endpoint = file.kind === "report" ? `/api/reports/${reportUuid}/files` : "/api/assets";
+
+    await this.#uploadRawFile({
+      ...file,
+      endpoint,
+      remotePath: file.remotePath,
+      signal,
     });
+
+    return file.kind === "report" ? createReportFileUrl(this.#url, reportUuid, file.remotePath) : undefined;
   }
 
   /**
@@ -137,7 +208,13 @@ export class AllureServiceClient implements AllureServiceApiClient {
   }
 
   async addReportAsset(payload: UploadReportFilePayload) {
-    return this.addReportAssets({ files: [payload], ...(payload.signal ? { signal: payload.signal } : {}) });
+    const remotePath = normalizeUploadPath(payload.filename);
+
+    return this.#uploadRawFile({
+      ...payload,
+      endpoint: "/api/assets",
+      remotePath,
+    });
   }
 
   /**
@@ -173,28 +250,30 @@ export class AllureServiceClient implements AllureServiceApiClient {
   }
 
   async addReportFile(payload: UploadReportFilePayload & { reportUuid: string; pluginId?: string }) {
-    const result = await this.addReportFiles({
-      reportUuid: payload.reportUuid,
-      pluginId: payload.pluginId,
-      files: [payload],
-      ...(payload.signal ? { signal: payload.signal } : {}),
+    const filename = normalizeUploadPath(payload.filename);
+    const remotePath = payload.pluginId ? `${normalizeUploadPath(payload.pluginId)}/${filename}` : filename;
+
+    await this.#uploadRawFile({
+      ...payload,
+      endpoint: `/api/reports/${payload.reportUuid}/files`,
+      remotePath,
     });
 
-    return result[payload.filename];
+    return createReportFileUrl(this.#url, payload.reportUuid, remotePath);
   }
 
   async uploadReport(payload: UploadReportPayload) {
-    const { uploadBatchMaxBytes: _uploadBatchMaxBytes, ...uploadPayload } = payload;
+    const uploadedAssets = this.#uploadedAssets.get(payload.reportUuid) ?? new Set<string>();
 
-    return uploadReport({
-      ...uploadPayload,
-      uploadConcurrency: this.config.uploadConcurrency,
+    this.#uploadedAssets.set(payload.reportUuid, uploadedAssets);
+
+    return uploadStorageReport({
+      ...payload,
+      uploadConcurrency: resolveUploadConcurrency(this.config.uploadConcurrency),
       uploadMaxAttempts: this.config.uploadMaxAttempts,
       uploadMaxSimultaneousFailures: this.config.uploadMaxSimultaneousFailures,
-      addReportAsset: this.addReportAsset.bind(this),
-      addReportAssets: this.addReportAssets.bind(this),
-      addReportFile: this.addReportFile.bind(this),
-      addReportFiles: this.addReportFiles.bind(this),
+      uploadedAssets,
+      upload: (file, signal) => this.#uploadPreparedFile(payload.reportUuid, file, signal),
     });
   }
 }

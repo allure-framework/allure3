@@ -68,6 +68,11 @@ Repeat `--results-dir` for multiple patterns. CLI overrides `config.resultsDir`.
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
 
+Allure operational messages use scoped prefixes such as `[AllureRun]:`, `[QualityGate]:`, and `[AllureRerun]:`.
+Set `ALLURE_LOG_LEVEL=debug` to include details such as selected tests and temporary test plan paths. Allure ignores
+the generic `LOG_LEVEL` environment variable. Use `--silent` to hide the nested test process output while keeping
+Allure lifecycle messages visible.
+
 ### Running Tests In Agent Mode
 
 When you need agent-friendly markdown output for review, debugging, or scope validation, use the `agent` command:

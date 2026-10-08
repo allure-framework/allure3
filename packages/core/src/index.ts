@@ -16,6 +16,7 @@ export {
   qualityGateDefaultRules,
   maxFailuresRule,
   minTestsCountRule,
+  newTestsRule,
   successRateRule,
   maxDurationRule,
   allTestsContainEnvRule,
@@ -25,5 +26,6 @@ export {
   metricMaxDeltaRule,
   metricMaxDeltaPercentRule,
   convertQualityGateResultsToTestErrors,
+  filterFailedQualityGateResults,
   stringifyQualityGateResults,
 } from "./qualityGate/index.js";

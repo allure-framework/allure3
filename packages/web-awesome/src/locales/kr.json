@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "해결이 없는 실패 또는 중단된 테스트 결과 표시"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "해결 없음"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "재시도",
     "environments": "환경",
     "error": "오류",
+    "success": "성공",
     "goToStep": "단계로 이동",
     "showLess": "덜 보기",
     "showMore": "더 보기",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "브레드크럼",
+    "breadcrumbs-hidden": "숨겨진 브레드크럼 항목 표시"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",
@@ -190,7 +195,9 @@
     "clipboardError": "값을 클립보드에 복사할 수 없습니다. 이 기능이 브라우저에서 지원되지 않을 수 있습니다",
     "clipboardSuccess": "성공적으로 복사됨",
     "collapse": "접기",
+    "collapseAll": "모두 접기",
     "expand": "펼치기",
+    "expandAll": "모두 펼치기",
     "fullscreen": "전체 화면",
     "language": "언어 변경",
     "openInNewTab": "새 탭에서 열기",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "보고서 탭: 품질 게이트",
       "reportTabGlobalAttachments": "보고서 탭: 전역 첨부 파일",
       "reportTabGlobalErrors": "보고서 탭: 전역 오류",
-      "reportTabNext": "다음 보고서 탭",
-      "reportTabPrev": "이전 보고서 탭",
       "nextTest": "다음 테스트 결과",
       "prevTest": "이전 테스트 결과",
-      "testTabNext": "다음 테스트 탭",
-      "testTabPrev": "이전 테스트 탭",
       "tabOverview": "개요 탭",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "기록 탭",

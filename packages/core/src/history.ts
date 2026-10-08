@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { WriteStream } from "node:fs";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -18,15 +19,16 @@ import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
-    .filter((tr) => tr.historyId)
+    .filter((tr) => tr.retryHash)
     .map(
       ({
         id,
         name,
         fullName,
         environment,
-        historyId,
+        retryHash,
         status,
+        retries = [],
         error: { message, trace } = {},
         start,
         stop,
@@ -39,6 +41,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           fullName,
           environment,
           status,
+          retries: retries.map((retry) => retry.status).reverse(),
           message,
           trace,
           start,
@@ -46,14 +49,14 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           duration,
           labels,
           url: remoteUrl,
-          historyId: historyId!,
+          retryHash: retryHash!,
           reportLinks: [],
         } as HistoryTestResult;
       },
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        acc[item.retryHash!] = item;
 
         return acc;
       },
@@ -101,14 +104,6 @@ export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
 
   return url.toString();
 };
-
-export const setHistoryDataPointUrl = (point: HistoryDataPoint, url: string): HistoryDataPoint => ({
-  ...point,
-  url,
-  testResults: Object.fromEntries(
-    Object.entries(point.testResults).map(([historyId, item]) => [historyId, { ...item, url }]),
-  ),
-});
 
 export const createHistory = (
   reportUuid: string,
@@ -205,17 +200,15 @@ export class AllureLocalHistory implements AllureHistory {
 
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
 
+    let dst: WriteStream | undefined;
+
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
-      if (limit === 0 && historyExists) {
-        await historyFile.truncate(0);
+      if (limit === 0) {
+        if (historyExists) await historyFile.truncate(0);
         return;
       }
 
-      if (limit === 0 && !historyExists) {
-        return;
-      }
+      dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
@@ -234,7 +227,13 @@ export class AllureLocalHistory implements AllureHistory {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
-      await historyFile.close();
+      const closing = historyFile.close();
+      // workaround for yarn PnP issue that cause EBADF on destroy call in tests
+      // https://github.com/yarnpkg/berry/pull/6919
+      if (historyFile.fd !== -1) {
+        dst?.destroy();
+      }
+      await closing;
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {

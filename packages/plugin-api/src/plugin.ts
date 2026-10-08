@@ -87,6 +87,11 @@ export interface PluginSummary {
   checks?: SummaryCheckResult[];
   createdAt?: number;
   /**
+   * Marks summaries produced from a filtered test result subset. Unfiltered summaries describe the same
+   * generation-wide result set and CI integrations may aggregate their stats instead of repeating them per report.
+   */
+  filtered?: boolean;
+  /**
    * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
    * The field can be used in integrations to make better experience
    */
@@ -152,9 +157,17 @@ export interface RealtimeSubscriber {
     listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
+  onProcessGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
+  ): () => void;
+
   onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
   onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalsReset(listener: () => RealtimeListenerResult): () => void;
 
   onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
@@ -168,9 +181,15 @@ export interface RealtimeSubscriber {
 export interface RealtimeEventsDispatcher {
   sendGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
 
+  sendProcessGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
+
   sendGlobalExitCode(payload: ExitCode): void;
 
   sendGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalsReset(): void;
 
   sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 

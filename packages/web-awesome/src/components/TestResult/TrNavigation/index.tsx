@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -7,7 +8,6 @@ import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
 import { getTestResultTabForTestResultId } from "@/stores/testResultTabs";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 
@@ -43,7 +43,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 
 const HOVER_CLOSE_DELAY = 300;
 
-const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
+const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string | null }) => {
   const { fullName, testCaseId, retryHash } = props;
   const [copied, setCopied] = useState(false);
   const { t } = useI18n("ui");

@@ -1,7 +1,8 @@
-import type { Meta, StoryFn } from "@storybook/react";
+import type { Meta, StoryFn } from "@storybook/preact-vite";
 import { useState } from "preact/hooks";
-import { Grid, GridItem } from "@/components/Grid";
 import type { SortableEvent } from "sortablejs";
+
+import { Grid, GridItem } from "@/components/Grid";
 
 const meta: Meta<typeof Grid> = {
   title: "Commons/Grid",
@@ -46,12 +47,7 @@ const handleGridSort = <T,>(items: T[], event: SortableEvent): T[] => {
  * Default story demonstrating a uniform widget layout with drag-and-drop functionality.
  */
 export const Default: StoryFn<typeof Grid> = (args) => {
-  const [widgets, setWidgets] = useState<string[]>([
-    "Widget 1",
-    "Widget 2",
-    "Widget 3",
-    "Widget 4",
-  ]);
+  const [widgets, setWidgets] = useState<string[]>(["Widget 1", "Widget 2", "Widget 3", "Widget 4"]);
 
   return (
     <Grid
@@ -127,11 +123,7 @@ export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
   return (
     <Grid {...args} style={gridStyle}>
       {Array.from({ length: 9 }, (_, index) => (
-        <GridItem
-          key={index}
-          dndEnabled={!(index % 3 === 0)}
-          style={defaultItemStyle}
-        >
+        <GridItem key={index} dndEnabled={!(index % 3 === 0)} style={defaultItemStyle}>
           Grid Item {index + 1}
           {index % 3 === 0 && " (Disabled DnD)"}
         </GridItem>
@@ -147,11 +139,7 @@ export const WithSwapMode: StoryFn<typeof Grid> = (args) => {
   return (
     <Grid {...args} kind="swap" style={gridStyle}>
       {Array.from({ length: 9 }, (_, index) => (
-        <GridItem
-          key={index}
-          dndEnabled={!(index % 3 === 0)}
-          style={defaultItemStyle}
-        >
+        <GridItem key={index} dndEnabled={!(index % 3 === 0)} style={defaultItemStyle}>
           Grid Item {index + 1}
           {index % 3 === 0 && " (Disabled DnD)"}
         </GridItem>

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-agent",
-  "version": "3.17.0",
+  "version": "3.20.1",
   "description": "Allure Agent Plugin – AI-friendly markdown report generator",
   "keywords": [
     "agent",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "yaml": "^2.8.1"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@allurereport/reader-api": "workspace:*",

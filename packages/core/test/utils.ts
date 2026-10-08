@@ -7,6 +7,9 @@ export class AllureServiceMock {}
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const AllureServiceClientMock = vi.fn(function () {});
 
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+export const AllureTestOpsClientMock = vi.fn(function () {});
+
 AllureServiceClientMock.prototype.decodeToken = vi.fn();
 
 AllureServiceClientMock.prototype.profile = vi.fn();

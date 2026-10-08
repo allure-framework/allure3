@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "عرض نتائج الاختبارات الفاشلة أو المعطلة بدون حل"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "بدون حل"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "محاولات الإعادة",
     "environments": "البيئات",
     "error": "خطأ",
+    "success": "نجاح",
     "goToStep": "انتقل إلى الخطوة",
     "showLess": "عرض أقل",
     "showMore": "عرض المزيد",
@@ -173,7 +176,9 @@
     "openPwTrace": "فتح تتبع Playwright",
     "finishedAtOriginal": "{{formattedCreatedAt}}، برمز خروج {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}، برمز خروج {{actual}} (الأصلي {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "مسار التصفح",
+    "breadcrumbs-hidden": "إظهار عناصر مسار التصفح المخفية"
   },
   "controls": {
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",
@@ -185,7 +190,9 @@
     "clipboardError": "لا يمكن نسخ القيمة إلى الحافظة. يبدو أن هذه الميزة غير مدعومة في متصفحك",
     "clipboardSuccess": "تم النسخ بنجاح",
     "collapse": "طي",
+    "collapseAll": "طي الكل",
     "expand": "توسيع",
+    "expandAll": "توسيع الكل",
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
     "openInNewTab": "فتح في علامة تبويب جديدة",
@@ -534,12 +541,8 @@
       "reportTabQualityGate": "تبويب التقرير: بوابة الجودة",
       "reportTabGlobalAttachments": "تبويب التقرير: المرفقات العامة",
       "reportTabGlobalErrors": "تبويب التقرير: الأخطاء العامة",
-      "reportTabNext": "التبويب التالي للتقرير",
-      "reportTabPrev": "التبويب السابق للتقرير",
       "nextTest": "نتيجة الاختبار التالية",
       "prevTest": "نتيجة الاختبار السابقة",
-      "testTabNext": "تبويب الاختبار التالي",
-      "testTabPrev": "تبويب الاختبار السابق",
       "tabOverview": "تبويب النظرة العامة",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "تبويب السجل",

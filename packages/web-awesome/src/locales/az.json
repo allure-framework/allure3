@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Həlli olmayan uğursuz və ya pozulmuş test nəticələrini göstər"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Həll yoxdur"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Təkrar cəhdlər",
     "environments": "Mühit",
     "error": "Xəta",
+    "success": "Uğurlu",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Çörək qırıntıları",
+    "breadcrumbs-hidden": "Gizli çörək qırıntılarını göstər"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",
@@ -190,7 +195,9 @@
     "clipboardError": "Dəyər kopyalana bilmir. Brauzeriniz bu funksiyanı dəstəkləmir",
     "clipboardSuccess": "Uğurla kopyalandı",
     "collapse": "Yığ",
+    "collapseAll": "Hamısını yığ",
     "expand": "Genişləndir",
+    "expandAll": "Hamısını aç",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "Hesabat nişanı: Keyfiyyət qapısı",
       "reportTabGlobalAttachments": "Hesabat nişanı: Qlobal əlavələr",
       "reportTabGlobalErrors": "Hesabat nişanı: Qlobal xətalar",
-      "reportTabNext": "Növbəti hesabat nişanı",
-      "reportTabPrev": "Əvvəlki hesabat nişanı",
       "nextTest": "Növbəti test nəticəsi",
       "prevTest": "Əvvəlki test nəticəsi",
-      "testTabNext": "Növbəti test nişanı",
-      "testTabPrev": "Əvvəlki test nişanı",
       "tabOverview": "İcmal nişanı",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tarixçə nişanı",

@@ -1,4 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
+import { downloadAttachment, openAttachmentInNewTab } from "@allurereport/web-commons";
 import { Button, Heading, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
 import type { FunctionalComponent, VNode } from "preact";
@@ -7,7 +8,7 @@ import Prism from "prismjs";
 import type { ReportTestResult } from "types";
 
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
-import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@/utils/attachments";
+import { attachmentType } from "@/utils/attachments";
 
 import * as styles from "./styles.scss";
 

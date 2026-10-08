@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
@@ -316,25 +317,6 @@ export const normalizeHttpExchangePayload = (payload: unknown): NormalizedHttpPa
   };
 };
 
-const copyToClipboard = async (text: string) => {
-  try {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-  } catch {
-    // Silently ignore copy failures
-  }
-};
-
 const tryBeautifyJson = (value: string): string => {
   try {
     return JSON.stringify(JSON.parse(value), null, 2);
@@ -348,7 +330,6 @@ const MaskedValue = () => (
     aria-label={MASKED_VALUE_TOOLTIP}
     className={styles["http-attachment__masked-value"]}
     data-http-masked-value="true"
-    tabIndex={0}
     title={MASKED_VALUE_TOOLTIP}
   >
     {MASKED_VALUE_PLACEHOLDER}
@@ -592,6 +573,7 @@ const BodyValue = ({ body, beautify }: { body: HttpBody; beautify?: boolean }) =
       <video
         data-testid="video-attachment-content"
         className={styles["test-result-attachment-video"]}
+        aria-label="HTTP body video"
         controls
         loop
         muted

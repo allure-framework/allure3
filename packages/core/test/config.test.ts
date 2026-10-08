@@ -257,6 +257,13 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow dump", () => {
+    expect(validateConfig({ dump: "./snapshots/stage_1" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should return array of unsupported fields if the config contains them", () => {
     // @ts-ignore
     expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
@@ -416,6 +423,12 @@ describe("resolveConfig", () => {
     expect((await resolveConfig({ resultsDir: ["  "] })).resultsDir).toEqual(["  "]);
   });
 
+  it("should keep dump in resolved config", async () => {
+    const resolved = await resolveConfig({ dump: "./snapshots/stage_1" });
+
+    expect(resolved.dump).toBe("./snapshots/stage_1");
+  });
+
   it("does not inject storage plugin and preserves allureService config", async () => {
     const resolved = await resolveConfig({
       allureService: {
@@ -449,7 +462,6 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadConcurrency: 100,
       uploadMaxAttempts: 5,
       uploadMaxSimultaneousFailures: 5,
     });
@@ -467,7 +479,6 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadConcurrency: 100,
       uploadMaxAttempts: 5,
       uploadMaxSimultaneousFailures: 5,
     });
@@ -477,7 +488,7 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig({
       allureService: {
         accessToken: "token",
-        uploadConcurrency: 4.9,
+        uploadConcurrency: 10000.9,
         uploadMaxAttempts: 3.7,
         uploadMaxSimultaneousFailures: 2.9,
       },
@@ -485,7 +496,7 @@ describe("resolveConfig", () => {
 
     expect(resolved.allureService).toEqual({
       accessToken: "token",
-      uploadConcurrency: 4,
+      uploadConcurrency: 10000,
       uploadMaxAttempts: 3,
       uploadMaxSimultaneousFailures: 2,
     });

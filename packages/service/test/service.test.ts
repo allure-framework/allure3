@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { join as joinPosix } from "node:path/posix";
+import { createReadStream } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -52,39 +52,24 @@ const fixtures = {
   branch: "main",
 };
 
-const expectMultipartUpload = async (expected: {
-  endpoint: string;
-  filename: string;
-  content: string;
-  signal?: AbortSignal;
-}) => {
-  expect(HttpClientMock.prototype.post).toHaveBeenLastCalledWith(expected.endpoint, {
-    body: expect.any(FormData),
+const expectRawUpload = (expected: { endpoint: string; body: unknown; size: number; signal?: AbortSignal }) => {
+  expect(HttpClientMock.prototype.put).toHaveBeenLastCalledWith(expected.endpoint, {
+    body: expected.body,
     headers: {
-      "Content-Type": "multipart/form-data",
+      "Content-Length": expected.size,
+      "Content-Type": "application/octet-stream",
     },
+    maxBodyLength: Number.POSITIVE_INFINITY,
+    maxContentLength: Number.POSITIVE_INFINITY,
     ...(expected.signal ? { signal: expected.signal } : {}),
   });
-
-  const [, payload] = HttpClientMock.prototype.post.mock.calls.at(-1) as [
-    string,
-    {
-      body: FormData;
-    },
-  ];
-  const uploadedFile = payload.body.get("file");
-
-  expect(payload.body.get("filename")).toBe(expected.filename);
-  expect(uploadedFile).toBeInstanceOf(Blob);
-  expect(uploadedFile).toBeInstanceOf(File);
-  expect(typeof uploadedFile).not.toBe("string");
-  expect((uploadedFile as Blob).type).toBe("application/octet-stream");
-  expect((uploadedFile as File).name).toBe(expected.filename);
-  expect(await (uploadedFile as Blob).text()).toBe(expected.content);
 };
 
 const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 
+vi.mock("node:fs", () => ({
+  createReadStream: vi.fn(),
+}));
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
   stat: vi.fn(),
@@ -99,6 +84,7 @@ describe("AllureServiceClient", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (stat as MockedFunction<typeof stat>).mockResolvedValue({ size: 12 } as never);
 
     serviceClient = new AllureServiceClientClass({
       ...uploadConfig,
@@ -290,7 +276,7 @@ describe("AllureServiceClient", () => {
     });
 
     it("should upload a given file", async () => {
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const fileBuffer = Buffer.from("test-content");
       const res = await serviceClient.addReportAsset({
@@ -298,30 +284,33 @@ describe("AllureServiceClient", () => {
         file: fileBuffer,
       });
 
-      await expectMultipartUpload({
-        endpoint: "/api/assets/upload",
-        filename: fixtures.filename,
-        content: "test-content",
+      expectRawUpload({
+        endpoint: "/api/assets?path=data.json",
+        body: fileBuffer,
+        size: fileBuffer.length,
       });
       expect(res).toEqual({});
     });
 
     it("should upload a file from a filepath", async () => {
-      const fileBuffer = Buffer.from("test-content");
-      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(fileBuffer);
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      const stream = { destroy: vi.fn() };
+      (createReadStream as MockedFunction<typeof createReadStream>).mockReturnValue(stream as never);
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const res = await serviceClient.addReportAsset({
         filename: fixtures.filename,
         filepath: "test.txt",
       });
 
-      expect(readFile).toHaveBeenCalledWith("test.txt");
-      await expectMultipartUpload({
-        endpoint: "/api/assets/upload",
-        filename: fixtures.filename,
-        content: "test-content",
+      expect(readFile).not.toHaveBeenCalled();
+      expect(stat).toHaveBeenCalledWith("test.txt");
+      expect(createReadStream).toHaveBeenCalledWith("test.txt", { signal: undefined });
+      expectRawUpload({
+        endpoint: "/api/assets?path=data.json",
+        body: stream,
+        size: 12,
       });
+      expect(stream.destroy).toHaveBeenCalled();
       expect(res).toEqual({});
     });
   });
@@ -338,7 +327,7 @@ describe("AllureServiceClient", () => {
     });
 
     it("should upload a given file", async () => {
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const fileBuffer = Buffer.from("test-content");
       const res = await serviceClient.addReportFile({
@@ -348,18 +337,18 @@ describe("AllureServiceClient", () => {
         file: fileBuffer,
       });
 
-      await expectMultipartUpload({
-        endpoint: `/api/reports/${fixtures.report}/upload`,
-        filename: joinPosix(fixtures.pluginId, fixtures.filename),
-        content: "test-content",
+      expectRawUpload({
+        endpoint: `/api/reports/${fixtures.report}/files?path=sample%2Fdata.json`,
+        body: fileBuffer,
+        size: fileBuffer.length,
       });
       expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/${fixtures.filename}`);
     });
 
     it("should upload a file from a filepath", async () => {
-      const fileBuffer = Buffer.from("test-content");
-      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(fileBuffer);
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      const stream = { destroy: vi.fn() };
+      (createReadStream as MockedFunction<typeof createReadStream>).mockReturnValue(stream as never);
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const res = await serviceClient.addReportFile({
         reportUuid: fixtures.report,
@@ -368,17 +357,67 @@ describe("AllureServiceClient", () => {
         filepath: "test.txt",
       });
 
-      expect(readFile).toHaveBeenCalledWith("test.txt");
-      await expectMultipartUpload({
-        endpoint: `/api/reports/${fixtures.report}/upload`,
-        filename: joinPosix(fixtures.pluginId, fixtures.filename),
-        content: "test-content",
+      expect(readFile).not.toHaveBeenCalled();
+      expect(stat).toHaveBeenCalledWith("test.txt");
+      expectRawUpload({
+        endpoint: `/api/reports/${fixtures.report}/files?path=sample%2Fdata.json`,
+        body: stream,
+        size: 12,
       });
+      expect(stream.destroy).toHaveBeenCalled();
       expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/${fixtures.filename}`);
     });
 
+    it("should stream a 45 MiB filesystem file without materializing it", async () => {
+      const size = 45 * 1024 * 1024;
+      const stream = { destroy: vi.fn() };
+      (stat as MockedFunction<typeof stat>).mockResolvedValue({ size } as never);
+      (createReadStream as MockedFunction<typeof createReadStream>).mockReturnValue(stream as never);
+      HttpClientMock.prototype.put.mockResolvedValue({});
+
+      await serviceClient.addReportFile({
+        reportUuid: fixtures.report,
+        pluginId: fixtures.pluginId,
+        filename: "large.bin",
+        filepath: "large.bin",
+      });
+
+      expect(readFile).not.toHaveBeenCalled();
+      expect(createReadStream).toHaveBeenCalledWith("large.bin", { signal: undefined });
+      expectRawUpload({
+        endpoint: `/api/reports/${fixtures.report}/files?path=sample%2Flarge.bin`,
+        body: stream,
+        size,
+      });
+      expect(stream.destroy).toHaveBeenCalled();
+    });
+
+    it("should destroy the filesystem stream when the request is cancelled", async () => {
+      const controller = new AbortController();
+      const stream = { destroy: vi.fn() };
+      (createReadStream as MockedFunction<typeof createReadStream>).mockReturnValue(stream as never);
+      HttpClientMock.prototype.put.mockImplementation(
+        async (_endpoint: string, payload: { signal: AbortSignal }) =>
+          new Promise((_resolve, reject) => {
+            payload.signal.addEventListener("abort", () => reject(payload.signal.reason), { once: true });
+          }),
+      );
+      const upload = serviceClient.addReportFile({
+        reportUuid: fixtures.report,
+        filename: fixtures.filename,
+        filepath: "test.txt",
+        signal: controller.signal,
+      });
+
+      await vi.waitFor(() => expect(HttpClientMock.prototype.put).toHaveBeenCalledTimes(1));
+      controller.abort(new Error("cancelled"));
+
+      await expect(upload).rejects.toThrow("cancelled");
+      expect(stream.destroy).toHaveBeenCalled();
+    });
+
     it("should upload a file without plugin ID", async () => {
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const fileBuffer = Buffer.from("test-content");
       const res = await serviceClient.addReportFile({
@@ -387,10 +426,10 @@ describe("AllureServiceClient", () => {
         file: fileBuffer,
       });
 
-      await expectMultipartUpload({
-        endpoint: `/api/reports/${fixtures.report}/upload`,
-        filename: fixtures.filename,
-        content: "test-content",
+      expectRawUpload({
+        endpoint: `/api/reports/${fixtures.report}/files?path=data.json`,
+        body: fileBuffer,
+        size: fileBuffer.length,
       });
       expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.filename}`);
     });
@@ -400,7 +439,7 @@ describe("AllureServiceClient", () => {
         ...uploadConfig,
         accessToken: createAccessToken({ accessToken: fixtures.serviceAccessToken, url: "http://localhost:3000/" }),
       });
-      HttpClientMock.prototype.post.mockResolvedValue({});
+      HttpClientMock.prototype.put.mockResolvedValue({});
 
       const res = await serviceClient.addReportFile({
         reportUuid: fixtures.report,
@@ -409,19 +448,42 @@ describe("AllureServiceClient", () => {
         file: Buffer.from("test-content"),
       });
 
-      await expectMultipartUpload({
-        endpoint: `/api/reports/${fixtures.report}/upload`,
-        filename: "awesome/index.html",
-        content: "test-content",
+      expectRawUpload({
+        endpoint: `/api/reports/${fixtures.report}/files?path=awesome%2Findex.html`,
+        body: expect.any(Buffer),
+        size: 12,
       });
       expect(res).toEqual(`http://localhost:3000/${fixtures.report}/awesome/index.html`);
     });
   });
 
   describe("uploadReport", () => {
+    it.each([0, 0.5, -1])("rejects upload concurrency that resolves to %s or less", async (uploadConcurrency) => {
+      serviceClient = new AllureServiceClientClass({
+        ...uploadConfig,
+        accessToken: fixtures.accessToken,
+        uploadConcurrency,
+      });
+
+      await expect(
+        serviceClient.uploadReport({
+          reportUuid: fixtures.report,
+          files: {
+            "index.html": "index.html",
+          },
+        }),
+      ).rejects.toThrow(
+        `Allure service upload concurrency must resolve to an integer greater than 0; received ${uploadConcurrency}`,
+      );
+
+      expect(stat).not.toHaveBeenCalled();
+      expect(HttpClientMock.prototype.put).not.toHaveBeenCalled();
+    });
+
     it("uploads files through shared helper", async () => {
-      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("<html></html>"));
-      HttpClientMock.prototype.post.mockResolvedValue(undefined);
+      const stream = { destroy: vi.fn() };
+      (createReadStream as MockedFunction<typeof createReadStream>).mockReturnValue(stream as never);
+      HttpClientMock.prototype.put.mockResolvedValue(undefined);
 
       const result = await serviceClient.uploadReport({
         reportUuid: fixtures.report,
@@ -432,8 +494,8 @@ describe("AllureServiceClient", () => {
       });
 
       expect(result.indexHref).toBe(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/index.html`);
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(
-        `/api/reports/${fixtures.report}/upload`,
+      expect(HttpClientMock.prototype.put).toHaveBeenCalledWith(
+        `/api/reports/${fixtures.report}/files?path=sample%2Findex.html`,
         expect.anything(),
       );
     });

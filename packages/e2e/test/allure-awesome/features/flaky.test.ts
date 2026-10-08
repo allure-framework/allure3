@@ -6,7 +6,7 @@ import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import {
   makeHistory,
   makeHistoryId,
-  makeHistoryTestResults,
+  makeHistoryTestResult,
   makeReportConfig,
   makeTestCaseId,
   makeTestResult,
@@ -30,24 +30,13 @@ const nonFlakyHistoryId = makeHistoryId(nonFlakyTestFullname);
 test.describe("flaky", () => {
   test.beforeAll(async () => {
     const historyItemsCount = 6;
-    // History: flaky: FAILED -> PASSED -> Rest is in FAILED state
-    const flakyHistoryResults = makeTestResults(historyItemsCount, (index) => {
-      if (index === 1) {
-        return {
-          name: flakyTestName,
-          fullName: flakyTestFullname,
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-        };
-      }
-
-      return {
-        name: flakyTestName,
-        fullName: flakyTestFullname,
-        status: Status.FAILED,
-        stage: Stage.FINISHED,
-      };
-    });
+    // Newest first: alternating outcomes give strong evidence of recent instability.
+    const flakyHistoryResults = makeTestResults(historyItemsCount, (index) => ({
+      name: flakyTestName,
+      fullName: flakyTestFullname,
+      status: index % 2 === 0 ? Status.PASSED : Status.FAILED,
+      stage: Stage.FINISHED,
+    }));
 
     // History: non-flaky: just always PASSED
     const nonFlakyHistoryResults = makeTestResults(historyItemsCount, () => ({
@@ -61,8 +50,14 @@ test.describe("flaky", () => {
       name: reportName,
       knownTestCaseIds: [flakyTestCaseId, nonFlakyTestCaseId],
       testResults: {
-        ...makeHistoryTestResults([flakyHistoryResults[index]]),
-        ...makeHistoryTestResults([nonFlakyHistoryResults[index]]),
+        [flakyHistoryId]: {
+          ...makeHistoryTestResult(flakyHistoryResults[index]),
+          environment: "default",
+        },
+        [nonFlakyHistoryId]: {
+          ...makeHistoryTestResult(nonFlakyHistoryResults[index]),
+          environment: "default",
+        },
       },
     }));
 

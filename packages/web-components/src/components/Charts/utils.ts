@@ -1,4 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
+import { resolveCSSVarColor } from "@allurereport/web-commons";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
 
@@ -62,19 +63,6 @@ export const getTrendForChart = (props: { value: number; total: number; noValueP
   const trendPercentage = getPercentage(Math.abs(value), total);
 
   return trendPercentage;
-};
-
-export const resolveCSSVarColor = (value: string, el: Element = document.documentElement): string => {
-  if (value.startsWith("var(")) {
-    const match = value.match(/var\((--[^),\s]+)/);
-    if (match) {
-      const cssVarName = match[1];
-      const resolved = getComputedStyle(el).getPropertyValue(cssVarName).trim();
-      return resolved || value;
-    }
-  }
-
-  return value;
 };
 
 export const getColorScale = (domain: [number, number], colors: string[]) => {

@@ -46,7 +46,7 @@ const createTestResult = (overrides: Partial<TestResult> & { status: TestStatus 
 };
 
 const createHistoryTestResult = (
-  overrides: Partial<HistoryTestResult> & { status: TestStatus; historyId: string },
+  overrides: Partial<HistoryTestResult> & { status: TestStatus; retryHash: string },
 ): HistoryTestResult => ({
   id: "tr-1",
   name: "Test",
@@ -94,7 +94,7 @@ describe("generateStatusAgePyramid", () => {
 
   it("should return single current data point with zero stats when no history", () => {
     const storeData = createStoreData({
-      testResults: [createTestResult({ id: "1", status: "failed", historyId: "hid-1", stop: 2000 })],
+      testResults: [createTestResult({ id: "1", status: "failed", retryHash: "hid-1", stop: 2000 })],
     });
 
     const result = generateStatusAgePyramid({
@@ -114,22 +114,22 @@ describe("generateStatusAgePyramid", () => {
   });
 
   it("should count FBSU tests at current run when history is present", () => {
-    const historyId1 = "hid-1";
-    const historyId2 = "hid-2";
+    const retryHash1 = "hid-1";
+    const retryHash2 = "hid-2";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId1]: createHistoryTestResult({ historyId: historyId1, status: "failed" }),
-            [historyId2]: createHistoryTestResult({ historyId: historyId2, status: "broken" }),
+            [retryHash1]: createHistoryTestResult({ retryHash: retryHash1, status: "failed" }),
+            [retryHash2]: createHistoryTestResult({ retryHash: retryHash2, status: "broken" }),
           },
         }),
       ],
       testResults: [
-        createTestResult({ id: "1", status: "failed", historyId: historyId1, stop: 2000 }),
-        createTestResult({ id: "2", status: "broken", historyId: historyId2, stop: 2000 }),
+        createTestResult({ id: "1", status: "failed", retryHash: retryHash1, stop: 2000 }),
+        createTestResult({ id: "2", status: "broken", retryHash: retryHash2, stop: 2000 }),
       ],
       statistic: { total: 2, failed: 1, broken: 1 },
     });
@@ -147,19 +147,99 @@ describe("generateStatusAgePyramid", () => {
     expect(currentPoint.unknown).toBe(0);
   });
 
+  it("should select explicit legacy history ids without rekeying history, while canonical ids win per point", () => {
+    const canonicalRetryHash = "canonical-retry-hash";
+    const legacyRetryHash = "legacy-retry-hash";
+    const historyDataPoint = createHistoryDataPoint({
+      testResults: {
+        [canonicalRetryHash]: createHistoryTestResult({
+          id: "canonical-history-result",
+          retryHash: canonicalRetryHash,
+          status: "broken",
+        }),
+        [legacyRetryHash]: createHistoryTestResult({
+          id: "legacy-history-result",
+          retryHash: legacyRetryHash,
+          status: "failed",
+        }),
+      },
+    });
+    const historyBeforeGeneration = structuredClone(historyDataPoint);
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
+      storeData: createStoreData({
+        historyDataPoints: [historyDataPoint],
+        testResults: [
+          createTestResult({
+            id: "current-result",
+            retryHash: canonicalRetryHash,
+            status: "failed",
+            sourceMetadata: {
+              readerId: "",
+              metadata: {},
+              legacyHistoryId: legacyRetryHash,
+            },
+            stop: 2000,
+          }),
+        ],
+      }),
+    });
+
+    const historyPoint = result.data.find(({ id }) => id === historyDataPoint.uuid)!;
+    const currentPoint = result.data.find(({ id }) => id === "current")!;
+
+    expect(historyPoint).toMatchObject({ failed: 0, broken: 1 });
+    expect(currentPoint).toMatchObject({ failed: 1, broken: 0 });
+    expect(historyDataPoint).toEqual(historyBeforeGeneration);
+  });
+
+  it("should select a legacy-only historical record for a default-environment result", () => {
+    const canonicalRetryHash = "canonical-retry-hash";
+    const legacyRetryHash = "legacy-retry-hash";
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
+      storeData: createStoreData({
+        historyDataPoints: [
+          createHistoryDataPoint({
+            testResults: {
+              [legacyRetryHash]: createHistoryTestResult({
+                retryHash: legacyRetryHash,
+                status: "failed",
+              }),
+            },
+          }),
+        ],
+        testResults: [
+          createTestResult({
+            retryHash: canonicalRetryHash,
+            status: "failed",
+            sourceMetadata: {
+              readerId: "",
+              metadata: {},
+              legacyHistoryId: legacyRetryHash,
+            },
+            stop: 2000,
+          }),
+        ],
+      }),
+    });
+
+    expect(result.data.find(({ id }) => id === "hdp-1")).toMatchObject({ failed: 1 });
+  });
+
   it("should not count passed tests", () => {
-    const historyId1 = "hid-1";
+    const retryHash1 = "hid-1";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId1]: createHistoryTestResult({ historyId: historyId1, status: "passed" }),
+            [retryHash1]: createHistoryTestResult({ retryHash: retryHash1, status: "passed" }),
           },
         }),
       ],
-      testResults: [createTestResult({ id: "1", status: "passed", historyId: historyId1, stop: 2000 })],
+      testResults: [createTestResult({ id: "1", status: "passed", retryHash: retryHash1, stop: 2000 })],
       statistic: { total: 1, passed: 1 },
     });
 
@@ -176,28 +256,28 @@ describe("generateStatusAgePyramid", () => {
   });
 
   it("should count only tests that kept same FBSU status from history run to current", () => {
-    const historyIdFailed = "hid-failed";
-    const historyIdBroken = "hid-broken";
+    const retryHashFailed = "hid-failed";
+    const retryHashBroken = "hid-broken";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyIdFailed]: createHistoryTestResult({
-              historyId: historyIdFailed,
+            [retryHashFailed]: createHistoryTestResult({
+              retryHash: retryHashFailed,
               status: "failed",
             }),
-            [historyIdBroken]: createHistoryTestResult({
-              historyId: historyIdBroken,
+            [retryHashBroken]: createHistoryTestResult({
+              retryHash: retryHashBroken,
               status: "broken",
             }),
           },
         }),
       ],
       testResults: [
-        createTestResult({ id: "1", status: "failed", historyId: historyIdFailed, stop: 2000 }),
-        createTestResult({ id: "2", status: "broken", historyId: historyIdBroken, stop: 2000 }),
+        createTestResult({ id: "1", status: "failed", retryHash: retryHashFailed, stop: 2000 }),
+        createTestResult({ id: "2", status: "broken", retryHash: retryHashBroken, stop: 2000 }),
       ],
       statistic: { total: 2, failed: 1, broken: 1 },
     });
@@ -217,25 +297,25 @@ describe("generateStatusAgePyramid", () => {
   });
 
   it("should not count test at history point if status changed in a later run", () => {
-    const historyId = "hid-1";
+    const retryHash = "hid-1";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-2",
           timestamp: 1500,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "passed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "passed" }),
           },
         }),
       ],
-      testResults: [createTestResult({ id: "1", status: "failed", historyId, stop: 2000 })],
+      testResults: [createTestResult({ id: "1", status: "failed", retryHash, stop: 2000 })],
       statistic: { total: 1, failed: 1 },
     });
 
@@ -254,32 +334,32 @@ describe("generateStatusAgePyramid", () => {
   });
 
   it("should count failed test in run 2, run 3 and current when it passed in run 1 (4 runs: current + history 1,2,3)", () => {
-    const historyId = "hid-test-1";
+    const retryHash = "hid-test-1";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "passed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "passed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-2",
           timestamp: 2000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-3",
           timestamp: 3000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
       ],
-      testResults: [createTestResult({ id: "test-1", status: "failed", historyId, stop: 4000 })],
+      testResults: [createTestResult({ id: "test-1", status: "failed", retryHash, stop: 4000 })],
       statistic: { total: 1, failed: 1 },
     });
 
@@ -301,32 +381,32 @@ describe("generateStatusAgePyramid", () => {
   });
 
   it("should count failed test only in run 3 and current when it failed in run 1 but passed in run 2 (4 runs: current + history 1,2,3)", () => {
-    const historyId = "hid-test-1";
+    const retryHash = "hid-test-1";
     const storeData = createStoreData({
       historyDataPoints: [
         createHistoryDataPoint({
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-2",
           timestamp: 2000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "passed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "passed" }),
           },
         }),
         createHistoryDataPoint({
           uuid: "run-3",
           timestamp: 3000,
           testResults: {
-            [historyId]: createHistoryTestResult({ historyId, status: "failed" }),
+            [retryHash]: createHistoryTestResult({ retryHash, status: "failed" }),
           },
         }),
       ],
-      testResults: [createTestResult({ id: "test-1", status: "failed", historyId, stop: 4000 })],
+      testResults: [createTestResult({ id: "test-1", status: "failed", retryHash, stop: 4000 })],
       statistic: { total: 1, failed: 1 },
     });
 
@@ -396,14 +476,14 @@ describe("generateStatusAgePyramid", () => {
           uuid: "run-1",
           timestamp: 1000,
           testResults: {
-            [hidSkipped]: createHistoryTestResult({ historyId: hidSkipped, status: "skipped" }),
-            [hidUnknown]: createHistoryTestResult({ historyId: hidUnknown, status: "unknown" }),
+            [hidSkipped]: createHistoryTestResult({ retryHash: hidSkipped, status: "skipped" }),
+            [hidUnknown]: createHistoryTestResult({ retryHash: hidUnknown, status: "unknown" }),
           },
         }),
       ],
       testResults: [
-        createTestResult({ id: "1", status: "skipped", historyId: hidSkipped, stop: 2000 }),
-        createTestResult({ id: "2", status: "unknown", historyId: hidUnknown, stop: 2000 }),
+        createTestResult({ id: "1", status: "skipped", retryHash: hidSkipped, stop: 2000 }),
+        createTestResult({ id: "2", status: "unknown", retryHash: hidUnknown, stop: 2000 }),
       ],
       statistic: { total: 2, skipped: 1, unknown: 1 },
     });

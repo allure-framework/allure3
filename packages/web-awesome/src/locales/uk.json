@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Показати невдалі або зламані результати тестів без рішення"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Без рішення"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Перезапуски",
     "environments": "Оточення",
     "error": "Помилка",
+    "success": "Успіх",
     "goToStep": "Перейти до кроку",
     "showLess": "Показати менше",
     "showMore": "Показати більше",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Хлібні крихти",
+    "breadcrumbs-hidden": "Показати приховані хлібні крихти"
   },
   "controls": {
     "newTabAttachment": "Відкрити в новій вкладці",
@@ -190,7 +195,9 @@
     "clipboardError": "Помилка. Швидше за все ваш браузер не підтримує дану функціональність",
     "clipboardSuccess": "Значення успішно скопійовано",
     "collapse": "Згорнути",
+    "collapseAll": "Згорнути все",
     "expand": "Розгорнути",
+    "expandAll": "Розгорнути все",
     "fullscreen": "На весь екран",
     "language": "Змінити мову",
     "openInNewTab": "Відкрити в новій вкладці",
@@ -488,12 +495,8 @@
       "reportTabQualityGate": "Вкладка звіту: Quality gate",
       "reportTabGlobalAttachments": "Вкладка звіту: Глобальні вкладення",
       "reportTabGlobalErrors": "Вкладка звіту: Глобальні помилки",
-      "reportTabNext": "Наступна вкладка звіту",
-      "reportTabPrev": "Попередня вкладка звіту",
       "nextTest": "Наступний результат тесту",
       "prevTest": "Попередній результат тесту",
-      "testTabNext": "Наступна вкладка тесту",
-      "testTabPrev": "Попередня вкладка тесту",
       "tabOverview": "Вкладка огляд",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка історія",

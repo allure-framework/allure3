@@ -1888,7 +1888,7 @@ const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
     `- Name: ${escapeInlineMarkdown(tr.name)}`,
     `- Full Name: ${escapeInlineMarkdown(tr.fullName ?? tr.name)}`,
     `- Environment: ${escapeInlineMarkdown(environmentId)}`,
-    `- History ID: ${escapeInlineMarkdown(tr.historyId ?? "n/a")}`,
+    `- Retry hash: ${escapeInlineMarkdown(tr.retryHash ?? "n/a")}`,
     `- Test Result ID: ${escapeInlineMarkdown(tr.id)}`,
     `- Status: ${statusLabel(tr.status)}`,
     `- Duration: ${formatDurationValue(tr.duration)}`,
@@ -3141,11 +3141,11 @@ const buildRunAndTestFindings = (params: {
           severity: "warning",
           category: "metadata",
           checkName: "history-id-collision",
-          message: "Multiple visible tests shared the same history ID in this environment.",
+          message: "Multiple visible tests shared the same retry hash in this environment.",
           explanation:
             "The output had to suffix the markdown file name because the logical test key was not unique within the environment.",
           evidencePaths: [entry.relativePath],
-          remediationHint: "Ensure the test metadata produces unique history IDs for distinct logical tests.",
+          remediationHint: "Ensure the test metadata produces unique retry hashes for distinct logical tests.",
           confidence: 0.85,
         }),
       );
@@ -3304,7 +3304,7 @@ const listVisibleTestLayouts = async (params: { outputDir: string; store: Allure
     const rawEnvironmentId = (await store.environmentIdByTrId(tr.id)) ?? "default";
     const environmentId = rawEnvironmentId;
     const environmentPath = sanitizePathSegment(rawEnvironmentId, "default");
-    const slugSeed = sanitizePathSegment(tr.historyId ?? tr.id, sanitizePathSegment(tr.id, "test"));
+    const slugSeed = sanitizePathSegment(tr.retryHash ?? tr.id, sanitizePathSegment(tr.id, "test"));
     const usedSlugs = slugsByEnvironment.get(environmentPath) ?? new Set<string>();
 
     slugsByEnvironment.set(environmentPath, usedSlugs);
@@ -3718,7 +3718,7 @@ const writeBootstrapFiles = async (runtime: AgentRuntimeState) => {
 
 const toTestsManifestLine = (entry: TestEntry) => ({
   environment_id: entry.environmentId,
-  history_id: entry.tr.historyId ?? null,
+  retry_hash: entry.tr.retryHash ?? null,
   test_result_id: entry.tr.id,
   full_name: entry.tr.fullName ?? entry.tr.name,
   package: entry.packageName ?? null,
@@ -4010,23 +4010,15 @@ export class AgentPlugin implements Plugin {
         { maxTimeout: 0 },
       ),
     );
-    runtime.unsubscribers.push(
-      realtime.onGlobalAttachment(async () => {
-        await queueRuntimeTask(runtime, async () => {
-          // Global artifacts are finalized from the store in done(). Live consumers should
-          // use test-events plus per-test markdown for fast feedback during the run.
+    const onGlobalError = async (error: { message?: string }) => {
+      await queueRuntimeTask(runtime, async () => {
+        await appendRuntimeEvent(runtime, "run_error", {
+          message: error.message ?? "Captured global error",
         });
-      }),
-    );
-    runtime.unsubscribers.push(
-      realtime.onGlobalError(async (error) => {
-        await queueRuntimeTask(runtime, async () => {
-          await appendRuntimeEvent(runtime, "run_error", {
-            message: error.message ?? "Captured global error",
-          });
-        });
-      }),
-    );
+      });
+    };
+
+    runtime.unsubscribers.push(realtime.onGlobalError(onGlobalError));
     runtime.unsubscribers.push(
       realtime.onGlobalExitCode(async (payload) => {
         await queueRuntimeTask(runtime, async () => {

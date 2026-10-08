@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "הצג תוצאות בדיקה שנכשלו או נשברו ללא פתרון"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "ללא פתרון"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "נסיונות חוזרים",
     "environments": "סביבות",
     "error": "שגיאה",
+    "success": "הצלחה",
     "goToStep": "עבור לשלב",
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "פירורי לחם",
+    "breadcrumbs-hidden": "הצג פירורי לחם מוסתרים"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",
@@ -190,7 +195,9 @@
     "clipboardError": "לא ניתן להעתיק ללוח. ייתכן שהתכונה לא נתמכת בדפדפן שלך",
     "clipboardSuccess": "הועתק בהצלחה",
     "collapse": "כווץ",
+    "collapseAll": "כווץ הכל",
     "expand": "הרחב",
+    "expandAll": "הרחב הכל",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
     "openInNewTab": "פתח בכרטיסייה חדשה",
@@ -536,12 +543,8 @@
       "reportTabQualityGate": "לשונית דוח: שער איכות",
       "reportTabGlobalAttachments": "לשונית דוח: קבצים מצורפים גלובליים",
       "reportTabGlobalErrors": "לשונית דוח: שגיאות גלובליות",
-      "reportTabNext": "לשונית דוח הבאה",
-      "reportTabPrev": "לשונית דוח הקודמת",
       "nextTest": "תוצאת בדיקה הבאה",
       "prevTest": "תוצאת בדיקה הקודמת",
-      "testTabNext": "לשונית בדיקה הבאה",
-      "testTabPrev": "לשונית בדיקה הקודמת",
       "tabOverview": "לשונית סקירה",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "לשונית היסטוריה",

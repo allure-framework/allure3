@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { validateEnvironmentName } from "@allurereport/core-api";
+import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
@@ -50,19 +50,8 @@ const CONFIG_FILENAMES = [
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
 const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
 const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
-
-export const parseIntegerConfigValue = (value: unknown, defaultValue: number, minValue: number): number => {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return defaultValue;
-  }
-
-  const normalized = Math.floor(value);
-
-  return normalized >= minValue ? normalized : defaultValue;
-};
 
 export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
@@ -168,6 +157,7 @@ export const validateConfig = (config: Config) => {
     "historyPath",
     "historyBaseUrl",
     "historyLimit",
+    "flakyDetection",
     "resolutions",
     "plugins",
     "defaultLabels",
@@ -182,6 +172,7 @@ export const validateConfig = (config: Config) => {
     "categories",
     "globalAttachments",
     "resultsDir",
+    "dump",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -310,6 +301,22 @@ const resolveConfigEnvironments = (config: Config) => {
   };
 };
 
+const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
+  if (config === undefined) {
+    return;
+  }
+
+  const { historyDepth, includePassedTests } = config;
+
+  if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {
+    throw new Error("flakyDetection.historyDepth must be an integer greater than or equal to -1");
+  }
+
+  if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {
+    throw new TypeError("flakyDetection.includePassedTests must be a boolean");
+  }
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
@@ -318,6 +325,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   }
 
   validateResolutionsConfig(config.resolutions);
+  validateFlakyDetectionConfig(config.flakyDetection);
 
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 
@@ -328,6 +336,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const historyPath = override.historyPath ?? config.historyPath;
   const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
+  const dump = config.dump;
   const appendHistory = config.appendHistory ?? true;
   const configuredKnownIssuesPath = override.resolutions?.knownIssuesPath ?? config.resolutions?.knownIssuesPath;
   const knownIssuesPathInput =
@@ -366,6 +375,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     pluginInstances = await resolvePlugins(pluginsWithAgent);
   }
 
+  const uploadConcurrency = parseIntegerConfigValue(config.allureService?.uploadConcurrency, 1);
+
   return {
     name,
     cwd,
@@ -380,8 +391,10 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     environments,
     appendHistory,
     historyLimit,
+    flakyDetection: config.flakyDetection,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     historyBaseUrl,
+    dump,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
@@ -391,21 +404,13 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
       ? {
           accessToken: config.allureService.accessToken,
           private: config.allureService.private,
-          uploadConcurrency: parseIntegerConfigValue(
-            config.allureService.uploadConcurrency,
-            DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
-            1,
-          ),
-          uploadMaxAttempts: parseIntegerConfigValue(
-            config.allureService.uploadMaxAttempts,
+          ...(uploadConcurrency === undefined ? {} : { uploadConcurrency }),
+          uploadMaxAttempts:
+            parseIntegerConfigValue(config.allureService.uploadMaxAttempts, 1) ??
             DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-            1,
-          ),
-          uploadMaxSimultaneousFailures: parseIntegerConfigValue(
-            config.allureService.uploadMaxSimultaneousFailures,
+          uploadMaxSimultaneousFailures:
+            parseIntegerConfigValue(config.allureService.uploadMaxSimultaneousFailures, 0) ??
             DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-            0,
-          ),
         }
       : undefined,
     categories: config.categories,

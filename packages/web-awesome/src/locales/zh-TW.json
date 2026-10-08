@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "顯示沒有解決方案的失敗或損壞測試結果"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "無解決方案"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "重試",
     "environments": "環境",
     "error": "錯誤",
+    "success": "成功",
     "goToStep": "跳轉到步驟",
     "showLess": "顯示更少",
     "showMore": "顯示更多",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "請允許彈出視窗後重試。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，結束代碼 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，結束代號 {{actual}}（原始 {{original}}）",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "麵包屑導覽",
+    "breadcrumbs-hidden": "顯示隱藏的麵包屑導覽項目"
   },
   "controls": {
     "newTabAttachment": "在新分頁中開啟附件",
@@ -190,7 +195,9 @@
     "clipboardError": "無法複製到剪貼簿。可能是瀏覽器不支援此功能",
     "clipboardSuccess": "複製成功",
     "collapse": "折疊",
+    "collapseAll": "全部摺疊",
     "expand": "展開",
+    "expandAll": "全部展開",
     "fullscreen": "全螢幕",
     "language": "更改語言",
     "openInNewTab": "在新分頁中開啟",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "報告標籤：品質門",
       "reportTabGlobalAttachments": "報告標籤：全域附件",
       "reportTabGlobalErrors": "報告標籤：全域錯誤",
-      "reportTabNext": "下一個報告標籤",
-      "reportTabPrev": "上一個報告標籤",
       "nextTest": "下一個測試結果",
       "prevTest": "上一個測試結果",
-      "testTabNext": "下一個測試標籤",
-      "testTabPrev": "上一個測試標籤",
       "tabOverview": "概覽標籤",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "歷史標籤",

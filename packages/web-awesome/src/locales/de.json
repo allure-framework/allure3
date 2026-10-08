@@ -61,14 +61,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Fehlgeschlagene oder fehlerhafte Testergebnisse ohne Lösung anzeigen"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Keine Lösung"
     }
   },
   "sort-by": {
@@ -160,6 +162,7 @@
     "retries": "Wiederholungen",
     "environments": "Umgebungen",
     "error": "Fehler",
+    "success": "Erfolg",
     "goToStep": "Zum Schritt gehen",
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
@@ -175,7 +178,9 @@
     "pwTracePopupBlockedHint": "Erlaube Pop-ups und versuche es erneut.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, mit Exit-Code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, mit Exit-Code {{actual}} (ursprünglich {{original}})",
-    "resolutionCategories": "Resolutions"
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Brotkrümelnavigation",
+    "breadcrumbs-hidden": "Ausgeblendete Brotkrümel anzeigen"
   },
   "controls": {
     "newTabAttachment": "Anhang in neuem Tab öffnen",
@@ -190,7 +195,9 @@
     "clipboardError": "Fehler. Diese Funktion wird von Ihrem Browser wahrscheinlich nicht unterstützt",
     "clipboardSuccess": "Erfolgreich kopiert",
     "collapse": "Einklappen",
+    "collapseAll": "Alle einklappen",
     "expand": "Ausklappen",
+    "expandAll": "Alle ausklappen",
     "fullscreen": "Vollbild",
     "language": "Sprache ändern",
     "openInNewTab": "In neuem Tab öffnen",
@@ -535,12 +542,8 @@
       "reportTabQualityGate": "Bericht-Tab: Quality Gate",
       "reportTabGlobalAttachments": "Bericht-Tab: Globale Anhänge",
       "reportTabGlobalErrors": "Bericht-Tab: Globale Fehler",
-      "reportTabNext": "Nächster Bericht-Tab",
-      "reportTabPrev": "Vorheriger Bericht-Tab",
       "nextTest": "Nächstes Testergebnis",
       "prevTest": "Vorheriges Testergebnis",
-      "testTabNext": "Nächster Test-Tab",
-      "testTabPrev": "Vorheriger Test-Tab",
       "tabOverview": "Tab Übersicht",
       "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tab Verlauf",

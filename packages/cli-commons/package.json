@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/cli-commons",
-  "version": "3.17.0",
+  "version": "3.20.1",
   "description": "Collection of utilities used across the Allure CLI",
   "keywords": [
     "allure",
@@ -26,10 +26,12 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "lodash.debounce": "^4.0.8"
+    "lodash.debounce": "^4.0.8",
+    "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",
+    "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

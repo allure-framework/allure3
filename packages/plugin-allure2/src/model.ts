@@ -73,8 +73,8 @@ export interface Allure2TestResult {
   uid: string;
   name: string;
   fullName?: string;
-  historyId?: string;
   testId?: string;
+  retryHash: string | null;
   time: Allure2Time;
   description?: string;
   descriptionHtml?: string;
