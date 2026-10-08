@@ -130,7 +130,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #pendingRequests = new Map<string, PendingRequest>();
 
-  #sigintReceived: boolean = false;
+  #manualStopController: AbortController | undefined;
 
   constructor(command: string, options: SupervisedCommandOptions) {
     const pipeName = `ps-supervisor-${randomUUID()}`;
@@ -268,6 +268,74 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
+  protected override getStartupInfo(): ProcessStartupInfo | undefined {
+    return this.#startupInfo;
+  }
+
+  protected override async requestRootStop(signal: AbortSignal) {
+    const control = this.#getRequestControl();
+    if (!control) {
+      return;
+    }
+
+    let onAbort!: () => void;
+
+    signal.throwIfAborted();
+
+    const requestId = randomUUID();
+    const response = new Promise<void>((resolve, reject) => {
+      this.#pendingRequests.set(requestId, { resolve, reject, expectedType: "stopResult" });
+    });
+
+    // Follow the graceful stop timeout policy defined by the base class.
+    const aborted = new Promise<never>((_, reject) => {
+      onAbort = () => reject(signal.reason);
+      signal.addEventListener("abort", onAbort, { once: true });
+    });
+
+    try {
+      const message = encode({ type: "stop", requestId });
+      control.write(message);
+      if (signal.aborted) {
+        return;
+      }
+
+      await Promise.race([response, aborted]);
+    } finally {
+      signal.removeEventListener("abort", onAbort);
+      this.#pendingRequests.delete(requestId);
+    }
+  }
+
+  protected override async requestTermination() {
+    const control = this.#getRequestControl();
+    if (!control) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    const requestId = randomUUID();
+    const response = new Promise<void>((resolve, reject) => {
+      this.#pendingRequests.set(requestId, { resolve, reject, expectedType: "terminationResult" });
+    });
+    try {
+      control.write(encode({ type: "terminate", requestId }));
+      await Promise.race([
+        response,
+        delay(REQUEST_RESPONSE_TIMEOUT, undefined, { signal }).then(() => {
+          throw new KnownError(`Timed out waiting for the terminate request to complete.`);
+        }),
+      ]);
+    } catch (error) {
+      this.#fail(error);
+      throw error;
+    } finally {
+      this.#pendingRequests.delete(requestId);
+      abortController.abort();
+    }
+  }
+
   readonly #onSigint = () => {
     if (!this.#started) {
       // The target may not exist yet and cannot reliably receive this interrupt.
@@ -276,17 +344,23 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       return;
     }
 
-    if (!this.#sigintReceived) {
-      // SIGINT is delivered to all processes that share the same console.
-      // We're ignoring the first SIGINT at the Allure level,
-      // allowing the target process to handle it.
-      this.#sigintReceived = true;
+    if (!this.#manualStopController) {
+      this.#manualStopController = new AbortController();
+      const signal = this.#manualStopController.signal;
+      this.requestRootStop(signal).catch((error) => {
+        this.#reportSupervisorError(
+          "Unable to gracefully stop the process. Press CTRL+C again to force termination.",
+          error,
+        );
+      });
       return;
     }
 
     // Removing the handler so the third SIGINT will use the default Node.js handler,
     // which terminates Allure.
     process.off("SIGINT", this.#onSigint);
+
+    this.#manualStopController.abort("Termination forced.");
 
     // The second SIGINT terminates the entire job.
     // Allure has a chance to complete the report generation.
@@ -469,73 +543,5 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       throw error;
     }
     return control;
-  }
-
-  protected override getStartupInfo(): ProcessStartupInfo | undefined {
-    return this.#startupInfo;
-  }
-
-  protected override async requestRootStop(signal: AbortSignal) {
-    const control = this.#getRequestControl();
-    if (!control) {
-      return;
-    }
-
-    let onAbort!: () => void;
-
-    signal.throwIfAborted();
-
-    const requestId = randomUUID();
-    const response = new Promise<void>((resolve, reject) => {
-      this.#pendingRequests.set(requestId, { resolve, reject, expectedType: "stopResult" });
-    });
-
-    // Follow the graceful stop timeout policy defined by the base class.
-    const aborted = new Promise<never>((_, reject) => {
-      onAbort = () => reject(signal.reason);
-      signal.addEventListener("abort", onAbort, { once: true });
-    });
-
-    try {
-      const message = encode({ type: "stop", requestId });
-      control.write(message);
-      if (signal.aborted) {
-        return;
-      }
-
-      await Promise.race([response, aborted]);
-    } finally {
-      signal.removeEventListener("abort", onAbort);
-      this.#pendingRequests.delete(requestId);
-    }
-  }
-
-  protected override async requestTermination() {
-    const control = this.#getRequestControl();
-    if (!control) {
-      return;
-    }
-
-    const abortController = new AbortController();
-    const { signal } = abortController;
-    const requestId = randomUUID();
-    const response = new Promise<void>((resolve, reject) => {
-      this.#pendingRequests.set(requestId, { resolve, reject, expectedType: "terminationResult" });
-    });
-    try {
-      control.write(encode({ type: "terminate", requestId }));
-      await Promise.race([
-        response,
-        delay(REQUEST_RESPONSE_TIMEOUT, undefined, { signal }).then(() => {
-          throw new KnownError(`Timed out waiting for the terminate request to complete.`);
-        }),
-      ]);
-    } catch (error) {
-      this.#fail(error);
-      throw error;
-    } finally {
-      this.#pendingRequests.delete(requestId);
-      abortController.abort();
-    }
   }
 }
