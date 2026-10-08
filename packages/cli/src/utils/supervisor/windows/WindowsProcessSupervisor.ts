@@ -1,7 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createServer, type Socket, type Server } from "node:net";
-import path from "node:path";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
@@ -22,19 +21,19 @@ import { KnownError } from "@allurereport/service";
 import { logError } from "../../logs.js";
 import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion, ProcessStartupInfo } from "../model.js";
 import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
-import { SupervisorOperationError } from "./error.js";
+import { ProcessHostOperationError } from "./error.js";
 import type {
-  ResultType,
-  RequestResult,
-  SupervisorError,
-  SupervisorRequest,
-  SupervisorResponse,
-  CompletedEvent,
-  StartedEvent,
+  HostResultType,
+  HostRequestResult,
+  HostError,
+  HostRequest,
+  HostResponse,
+  HostTargetCompletedEvent,
+  HostTargetStartedEvent,
 } from "./model.js";
 
 type PendingRequest = {
-  expectedType: ResultType;
+  expectedType: HostResultType;
   resolve: () => void;
   reject: (error: Error) => void;
 };
@@ -43,18 +42,9 @@ const MAX_MESSAGE_BYTES = 1048576;
 const START_TIMEOUT = 30_000;
 const REQUEST_RESPONSE_TIMEOUT = 3_000;
 
-const scriptPath = fileURLToPath(new URL("./supervisor.ps1", import.meta.url));
+const processHostPath = fileURLToPath(new URL("./process-host.exe", import.meta.url));
 
-const getPowerShellPath = () => {
-  const systemRoot = process.env.SystemRoot || process.env.windir;
-  if (!systemRoot) {
-    throw new KnownError("The 'SystemRoot' environment variable is not defined.");
-  }
-
-  return path.join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-};
-
-const encode = (message: SupervisorRequest): Buffer => {
+const encode = (message: HostRequest): Buffer => {
   const payload = Buffer.from(JSON.stringify(message), "utf8");
   if (!payload.length || payload.length > MAX_MESSAGE_BYTES) {
     throw new Error("Invalid frame size.");
@@ -66,7 +56,7 @@ const encode = (message: SupervisorRequest): Buffer => {
   return Buffer.concat([header, payload]);
 };
 
-const decode = (socket: Socket, onMessage: (message: ShallowKnown<SupervisorResponse>) => void) => {
+const decode = (socket: Socket, onMessage: (message: ShallowKnown<HostResponse>) => void) => {
   let pending = Buffer.alloc(0);
   socket.on("data", (chunk) => {
     pending = Buffer.concat([pending, chunk]);
@@ -86,7 +76,7 @@ const decode = (socket: Socket, onMessage: (message: ShallowKnown<SupervisorResp
 
         pending = pending.subarray(size + 4);
 
-        const message: Unknown<SupervisorResponse> = JSON.parse(text);
+        const message: Unknown<HostResponse> = JSON.parse(text);
         if (isObject(message)) {
           onMessage(message);
         } else {
@@ -134,23 +124,12 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
   #manualStopController: AbortController | undefined;
 
   constructor(command: string, options: SupervisedCommandOptions) {
-    const pipeName = `ps-supervisor-${randomUUID()}`;
+    const pipeName = `win-supervisor-${randomUUID()}`;
     const pipePath = `\\\\.\\pipe\\${pipeName}`;
 
-    super(getPowerShellPath(), {
+    super(processHostPath, {
       ...options,
-      arguments: [
-        "-NoLogo",
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        scriptPath,
-        pipeName,
-        command,
-        ...(options.arguments ?? []),
-      ],
+      arguments: ["run", pipeName, command, ...(options.arguments ?? [])],
     });
     this.#pipePath = pipePath;
 
@@ -265,7 +244,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       }
 
       // Base startup creates the child and completion promise synchronously.
-      this.#logStartupTiming("spawning PowerShell");
+      this.#logStartupTiming("spawning process-host.exe");
       const startup = super.start();
       this.#logStartupTiming("spawn returned");
       if (this.started) {
@@ -276,7 +255,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
           // An established socket must drain: its completed frame may arrive
           // after the wrapper closes. Without a connection no frame can arrive.
           if (!this.#control) {
-            this.#fail(new Error(`Supervisor exited before connecting (code ${code}, signal ${signal}).`));
+            this.#fail(new Error(`Process host exited before connecting (code ${code}, signal ${signal}).`));
           }
         });
       }
@@ -371,10 +350,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       this.#manualStopController = new AbortController();
       const signal = this.#manualStopController.signal;
       this.requestRootStop(signal).catch((error) => {
-        this.#reportSupervisorError(
-          "Unable to gracefully stop the process. Press CTRL+C again to force termination.",
-          error,
-        );
+        this.#reportHostError("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
       });
       return;
     }
@@ -392,7 +368,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     });
   };
 
-  #handleCompletedMessage(message: ShallowKnown<CompletedEvent>) {
+  #handleCompletedMessage(message: ShallowKnown<HostTargetCompletedEvent>) {
     const exitCode = ensureInt(message.rootExitCode);
     if (exitCode === undefined) {
       this.#fail(new Error("Root exit code is undefined."));
@@ -405,7 +381,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  #handleStartedMessage(message: ShallowKnown<StartedEvent>) {
+  #handleStartedMessage(message: ShallowKnown<HostTargetStartedEvent>) {
     const rootPid = ensureInt(message.rootPid);
     if (rootPid === undefined) {
       this.#fail(new Error("Root PID is undefined."));
@@ -416,18 +392,18 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  #handleRequestResultMessage(type: string, message: ShallowKnown<RequestResult>) {
+  #handleRequestResultMessage(type: string, message: ShallowKnown<HostRequestResult>) {
     const { requestId, success } = message;
 
     if (!isString(requestId) || !requestId.trim() || !isBoolean(success)) {
-      this.#fail(new Error(`Invalid ${type} message from the process supervisor.`));
+      this.#fail(new Error(`Invalid ${type} message from the process host.`));
       return;
     }
 
     const pendingRequest = this.#pendingRequests.get(requestId);
     if (!pendingRequest) {
       // A response can arrive after the request has been retired during shutdown.
-      this.#reportSupervisorError(`No pending ${type} request found for requestId ${requestId}.`);
+      this.#reportHostError(`No pending ${type} request found for requestId ${requestId}.`);
       return;
     }
 
@@ -443,41 +419,41 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     } else {
       const { error } = message;
       if (!isObject(error)) {
-        this.#fail(new Error(`Invalid error object in ${type} message from the process supervisor.`));
+        this.#fail(new Error(`Invalid error object in ${type} message from the process host.`));
         return;
       }
 
-      const supervisorError = this.#createSupervisorError(error);
-      pendingRequest.reject(supervisorError);
+      const hostError = this.#createHostError(error);
+      pendingRequest.reject(hostError);
     }
   }
 
-  #handleErrorMessage(message: ShallowKnown<SupervisorError>) {
-    const supervisorError = this.#createSupervisorError(message);
+  #handleErrorMessage(message: ShallowKnown<HostError>) {
+    const hostError = this.#createHostError(message);
 
     const { requestId } = message;
     if (isString(requestId)) {
       const pendingRequest = this.#pendingRequests.get(requestId);
       if (pendingRequest) {
-        pendingRequest.reject(supervisorError);
+        pendingRequest.reject(hostError);
       }
     }
 
-    if (supervisorError.fatal) {
-      this.#fail(supervisorError);
+    if (hostError.fatal) {
+      this.#fail(hostError);
       return;
     }
 
-    this.#reportSupervisorError(supervisorError.message, supervisorError);
+    this.#reportHostError(hostError.message, hostError);
   }
 
-  #createSupervisorError(data: ShallowKnown<SupervisorError>) {
-    const message = ensureString(data.message) || "The process supervisor signaled an error.";
+  #createHostError(data: ShallowKnown<HostError>) {
+    const message = ensureString(data.message) || "The process host signaled an error.";
     const isFatal = ensureBoolean(data.fatal) ?? false;
     const operation = ensureString(data.operation);
     const win32Error = ensureInt(data.win32Error);
 
-    return new SupervisorOperationError(message, isFatal, operation, win32Error);
+    return new ProcessHostOperationError(message, isFatal, operation, win32Error);
   }
 
   #disposeControl() {
@@ -487,7 +463,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     }
   }
 
-  #reportSupervisorError(logMessage: string, errorMessage?: string | Error) {
+  #reportHostError(logMessage: string, errorMessage?: string | Error) {
     const reason = errorMessage ? `: ${errorMessage instanceof Error ? errorMessage.message : errorMessage}` : "";
     const message = `${logMessage}${reason}`;
     void logError(
@@ -522,13 +498,14 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     if (wrapper && wrapper.exitCode === null && wrapper.signalCode === null) {
       try {
         if (!wrapper.kill("SIGKILL")) {
-          void logError("Unable to terminate the supervisor.", new Error("The kill request was not delivered.")).catch(
-            () => {},
-          );
+          void logError(
+            "Unable to terminate the process host.",
+            new Error("The kill request was not delivered."),
+          ).catch(() => {});
         }
       } catch (killError) {
         void logError(
-          "Unable to terminate the supervisor.",
+          "Unable to terminate the process host.",
           killError instanceof Error ? killError : new Error(String(killError)),
         ).catch(() => {});
       }
@@ -561,7 +538,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
     const control = this.#control;
     if (!control || control.destroyed || !control.writable || control.writableEnded || control.readableEnded) {
-      const error = new Error("The supervisor control connection is unavailable.");
+      const error = new Error("The process host control connection is unavailable.");
       this.#fail(error);
       throw error;
     }

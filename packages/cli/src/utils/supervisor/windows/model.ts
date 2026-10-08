@@ -1,19 +1,19 @@
-export type StopRequest = {
+export type HostStopRequest = {
   type: "stop";
   requestId: string;
 };
 
-export type TerminateRequest = {
+export type HostTerminateRequest = {
   type: "terminate";
   requestId: string;
   exitCode?: number;
 };
 
-export type SupervisorRequest = StopRequest | TerminateRequest;
+export type HostRequest = HostStopRequest | HostTerminateRequest;
 
-export type RequestType = SupervisorRequest["type"];
+export type HostRequestType = HostRequest["type"];
 
-export type SupervisorError = {
+export type HostError = {
   type: "error";
   requestId?: string;
   operation: string;
@@ -22,30 +22,30 @@ export type SupervisorError = {
   win32Error?: number;
 };
 
-export type RequestError = SupervisorError & {
+export type HostRequestError = HostError & {
   requestId: string;
   fatal: false;
 };
 
-export type ReadyEvent = {
+export type HostReadyEvent = {
   type: "ready";
-  supervisorPid: number;
+  hostPid: number;
 };
 
-export type StartedEvent = {
+export type HostTargetStartedEvent = {
   type: "started";
   rootPid: number;
 };
 
-export type CompletedEvent = {
+export type HostTargetCompletedEvent = {
   type: "completed";
   rootExitCode: number;
   reason: "normal" | "stopped" | "terminated";
 };
 
-export type ResultType = "stopResult" | "terminationResult";
+export type HostResultType = "stopResult" | "terminationResult";
 
-export type RequestResultBase<T extends ResultType> = {
+export type HostRequestResultBase<T extends HostResultType> = {
   type: T;
   requestId: string;
 } & (
@@ -55,18 +55,18 @@ export type RequestResultBase<T extends ResultType> = {
     }
   | {
       success: false;
-      error: RequestError;
+      error: HostRequestError;
     }
 );
 
-export type StopResult = RequestResultBase<"stopResult">;
-export type TerminationResult = RequestResultBase<"terminationResult">;
-export type RequestResult = StopResult | TerminationResult;
+export type HostStopResult = HostRequestResultBase<"stopResult">;
+export type HostTerminationResult = HostRequestResultBase<"terminationResult">;
+export type HostRequestResult = HostStopResult | HostTerminationResult;
 
-export type SupervisorResponse =
-  | ReadyEvent
-  | StartedEvent
-  | CompletedEvent
-  | StopResult
-  | TerminationResult
-  | SupervisorError;
+export type HostResponse =
+  | HostReadyEvent
+  | HostTargetStartedEvent
+  | HostTargetCompletedEvent
+  | HostStopResult
+  | HostTerminationResult
+  | HostError;
