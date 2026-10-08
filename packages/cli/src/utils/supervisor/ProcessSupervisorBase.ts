@@ -304,7 +304,7 @@ export abstract class ProcessSupervisorBase {
     };
 
     try {
-      // Request graceful stop (SIGINT on POSIX, Restart Manager on Windows).
+      // Request graceful stop.
       // If no completion is reported within the timeout, terminate by force
       // (SIGKILL in POSIX, TerminateProcess).
       const result = await Promise.race([
