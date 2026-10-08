@@ -252,6 +252,27 @@ describe("QualityGate", () => {
       expect(results[0].testResults).toEqual(["2", "3"]);
     });
 
+    it("should fail maxGlobalErrors using store global errors without test evidence", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxGlobalErrors: 0 }],
+      });
+
+      const { results, fastFailed } = await qualityGate.validate({
+        trs: [createTestResult("1", "passed")],
+        globalErrors: [{ message: "setup failed" }, { message: "teardown failed" }],
+      });
+
+      expect(fastFailed).toBe(false);
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({
+        success: false,
+        rule: "maxGlobalErrors",
+        actual: 2,
+        expected: 0,
+        testResults: [],
+      });
+    });
+
     it("should populate evidence ids for maxDuration default rule", async () => {
       const qualityGate = new QualityGate({
         rules: [{ maxDuration: 10 }],

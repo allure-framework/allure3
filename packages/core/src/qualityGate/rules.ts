@@ -146,6 +146,31 @@ export const maxFailuresRule: QualityGateRule<number> = {
   },
 };
 
+/**
+ * Fails when the number of global / process-level errors exceeds the threshold.
+ * Expected: maximum allowed global errors (number). Uses the full store snapshot each
+ * validation (no batch accumulation), optionally scoped to the current environment.
+ */
+export const maxGlobalErrorsRule: QualityGateRule<number> = {
+  rule: "maxGlobalErrors",
+  message: ({ actual, expected }) =>
+    `The number of global errors ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
+  successMessage: ({ actual, expected }) =>
+    `The number of global errors ${bold(String(actual))} is within the allowed threshold value ${bold(String(expected))}`,
+  validate: async ({ expected, globalErrors = [], environment }) => {
+    const relevantErrors = environment
+      ? globalErrors.filter((error) => error.environment === environment)
+      : globalErrors;
+    const actual = relevantErrors.length;
+
+    return {
+      success: actual <= expected,
+      actual,
+      testResults: [],
+    };
+  },
+};
+
 export const minTestsCountRule: QualityGateRule<number> = {
   rule: "minTestsCount",
   message: ({ actual, expected }) =>
@@ -366,6 +391,7 @@ export const metricMaxDeltaPercentRule: QualityGateRule<MetricRuleConfig> = {
 
 export const qualityGateDefaultRules = [
   maxFailuresRule,
+  maxGlobalErrorsRule,
   minTestsCountRule,
   newTestsRule,
   successRateRule,

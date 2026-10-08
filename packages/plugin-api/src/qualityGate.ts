@@ -1,4 +1,4 @@
-import type { MetricSample, TestResult } from "@allurereport/core-api";
+import type { MetricSample, TestError, TestResult } from "@allurereport/core-api";
 
 export type QualityGateValidationResult = {
   success: boolean;
@@ -36,6 +36,14 @@ export type QualityGateMetricHistoryPoint = {
   metrics?: Record<string, number>;
 };
 
+/**
+ * Global / process-level errors available to quality gate rules.
+ * Environment is set when the error was attributed to a specific run environment.
+ */
+export type QualityGateGlobalError = TestError & {
+  environment?: string;
+};
+
 export type QualityGateRule<T = unknown, K = T> = {
   rule: string;
   message: (payload: { expected: T; actual: K }) => string;
@@ -50,6 +58,7 @@ export type QualityGateRule<T = unknown, K = T> = {
     state: QualityGateRuleState;
     metrics?: MetricSample[];
     previousHistory?: QualityGateMetricHistoryPoint[];
+    globalErrors?: QualityGateGlobalError[];
     environment?: string;
   }) => Promise<QualityGateRuleResult<K>>;
 };

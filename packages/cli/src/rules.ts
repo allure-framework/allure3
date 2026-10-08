@@ -1,9 +1,13 @@
 export {
   qualityGateDefaultRules,
   maxFailuresRule,
+  maxGlobalErrorsRule,
   minTestsCountRule,
   newTestsRule,
   successRateRule,
+  maxDurationRule,
+  allTestsContainEnvRule,
+  environmentsTestedRule,
   metricMaxRule,
   metricMinRule,
   metricMaxDeltaRule,

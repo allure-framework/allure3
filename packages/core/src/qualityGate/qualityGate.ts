@@ -1,6 +1,7 @@
 import { type MetricSample, type TestError, type TestResult } from "@allurereport/core-api";
 import type {
   QualityGateConfig,
+  QualityGateGlobalError,
   QualityGateMetricHistoryPoint,
   QualityGateRule,
   QualityGateValidationResult,
@@ -101,9 +102,10 @@ export class QualityGate {
     trs: TestResult[];
     metrics?: MetricSample[];
     previousHistory?: QualityGateMetricHistoryPoint[];
+    globalErrors?: QualityGateGlobalError[];
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { state, trs, metrics = [], previousHistory = [], environment } = payload;
+    const { state, trs, metrics = [], previousHistory = [], globalErrors = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
 
     for (const tr of trs) {
@@ -157,6 +159,7 @@ export class QualityGate {
           expected,
           metrics,
           previousHistory,
+          globalErrors,
           environment,
         });
 

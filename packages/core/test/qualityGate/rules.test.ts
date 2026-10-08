@@ -8,6 +8,7 @@ import {
   environmentsTestedRule,
   maxDurationRule,
   maxFailuresRule,
+  maxGlobalErrorsRule,
   minTestsCountRule,
   metricMaxDeltaPercentRule,
   metricMaxDeltaRule,
@@ -114,6 +115,83 @@ describe("maxFailuresRule", () => {
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
     expect(result.testResults).toEqual(["1"]);
+  });
+});
+
+describe("maxGlobalErrorsRule", () => {
+  const state: QualityGateRuleState<number> = {
+    getResult: () => undefined,
+    setResult: () => {},
+  };
+
+  it("should pass when global error count is within the threshold", async () => {
+    const result = await maxGlobalErrorsRule.validate({
+      trs: [],
+      expected: 2,
+      state,
+      globalErrors: [{ message: "one" }, { message: "two" }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(2);
+    expect(result.testResults).toEqual([]);
+  });
+
+  it("should fail when global error count exceeds the threshold", async () => {
+    const result = await maxGlobalErrorsRule.validate({
+      trs: [createTestResult("1", "passed")],
+      expected: 0,
+      state,
+      globalErrors: [{ message: "boom" }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual([]);
+  });
+
+  it("should ignore test result statuses", async () => {
+    const result = await maxGlobalErrorsRule.validate({
+      trs: [createTestResult("1", "failed"), createTestResult("2", "broken")],
+      expected: 0,
+      state,
+      globalErrors: [],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(0);
+  });
+
+  it("should count only errors for the current environment when set", async () => {
+    const result = await maxGlobalErrorsRule.validate({
+      trs: [],
+      expected: 0,
+      state,
+      environment: "chrome",
+      globalErrors: [
+        { message: "chrome error", environment: "chrome" },
+        { message: "firefox error", environment: "firefox" },
+        { message: "unscoped" },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should count every global error when no environment is set", async () => {
+    const result = await maxGlobalErrorsRule.validate({
+      trs: [],
+      expected: 1,
+      state,
+      globalErrors: [
+        { message: "chrome error", environment: "chrome" },
+        { message: "firefox error", environment: "firefox" },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(2);
   });
 });
 
@@ -644,6 +722,11 @@ describe("default rules success messages", () => {
       maxFailuresRule,
       { actual: 0, expected: 1 },
       "The number of failed tests 0 is within the allowed threshold value 1",
+    ],
+    [
+      maxGlobalErrorsRule,
+      { actual: 0, expected: 1 },
+      "The number of global errors 0 is within the allowed threshold value 1",
     ],
     [minTestsCountRule, { actual: 2, expected: 1 }, "The total number of tests 2 meets the expected threshold value 1"],
     [newTestsRule, { actual: 1, expected: true }, "New tests were found: 1"],

@@ -151,7 +151,13 @@ import { defineConfig } from "allure";
 // import default rules at once
 import { qualityGateDefaultRules } from "allure/rules";
 // or import them separately
-import { maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule } from "allure/rules";
+import {
+  maxFailuresRule,
+  maxGlobalErrorsRule,
+  minTestsCountRule,
+  successRateRule,
+  maxDurationRule,
+} from "allure/rules";
 import { rule1, rule2 } from "custom-rules-package";
 
 export default defineConfig({
@@ -296,3 +302,25 @@ The `successRate` rule compares an unrounded ratio from 0 to 1 against the confi
 The ratio is `passed / (passed + failed + broken)`. Skipped and unknown results are excluded from this metric, but remain in report totals and status distributions. A run with no eligible results has a numeric success rate of zero and fails any positive success-rate threshold. Existing retry and resolution exclusions still apply before quality gate evaluation.
 
 Report success-rate charts use the same denominator. Displayed percentages are truncated to at most two decimal places. Pie slices and test-count proportions use all five statuses, so the passed slice percentage can differ from the success-rate caption. Empty pies display `???`; nonempty pies with no passed results display `0%`, with an explanation when no eligible results exist.
+
+## Global errors
+
+The `maxGlobalErrors` rule limits how many run-level (global / process) errors a report may contain. Unlike `maxFailures`, it does not look at test result statuses. A run can still fail the quality gate when every test passed but global errors exceed the threshold:
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  qualityGate: {
+    rules: [{ maxGlobalErrors: 0 }],
+  },
+});
+```
+
+CLI equivalent:
+
+```sh
+allure quality-gate ./allure-results --max-global-errors 0
+```
+
+When validation runs with an environment, only global errors attributed to that environment are counted. Without an environment, every global error in the store is counted. The rule has no related tests (`testResults` stays empty).

@@ -664,6 +664,7 @@ export class AllureReport {
       state,
       metrics: await this.#store.allMetrics(),
       previousHistory: (await this.#store.allHistoryDataPoints()).filter(({ uuid }) => uuid !== this.reportUuid),
+      globalErrors: await this.#store.allGlobalErrors(),
       environment: qualityGateEnvironment,
     });
   };

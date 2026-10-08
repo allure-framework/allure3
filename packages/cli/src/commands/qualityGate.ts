@@ -58,7 +58,12 @@ export class QualityGateCommand extends Command {
   });
 
   maxFailures = Option.String("--max-failures", {
-    description: "The maximum number of rule failures to allow before failing the command",
+    description: "The maximum number of failed tests to allow before failing the command",
+    validator: typanion.isNumber(),
+  });
+
+  maxGlobalErrors = Option.String("--max-global-errors", {
+    description: "The maximum number of global errors to allow before failing the command",
     validator: typanion.isNumber(),
   });
 
@@ -93,7 +98,7 @@ export class QualityGateCommand extends Command {
     normalizeCommandEnvironmentOptions(environmentOptions);
 
     const cwd = await realpath(this.cwd ?? processCwd());
-    const { maxFailures, minTestsCount, successRate, fastFail } = this;
+    const { maxFailures, maxGlobalErrors, minTestsCount, successRate, fastFail } = this;
     const config = await readConfig(cwd, this.config, {
       resolutions: { knownIssuesPath: this.knownIssues },
     });
@@ -102,6 +107,10 @@ export class QualityGateCommand extends Command {
 
     if (maxFailures !== undefined) {
       rules.maxFailures = maxFailures;
+    }
+
+    if (maxGlobalErrors !== undefined) {
+      rules.maxGlobalErrors = maxGlobalErrors;
     }
 
     if (minTestsCount !== undefined) {

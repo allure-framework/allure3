@@ -368,6 +368,38 @@ describe("quality-gate command", () => {
     });
   });
 
+  it("should apply --max-global-errors to the quality gate config", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
+
+    await run(QualityGateCommand, [
+      "quality-gate",
+      "--cwd",
+      fixtures.cwd,
+      "--max-global-errors",
+      "0",
+      fixtures.resultsDir,
+    ]);
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        qualityGate: {
+          rules: [{ maxGlobalErrors: 0 }],
+        },
+      }),
+    );
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
