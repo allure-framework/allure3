@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -11,9 +13,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
-using System.Management.Automation;
+using System.Globalization;
 
-namespace JobSupervisor
+namespace Allure.Run.Supervisor.Windows
 {
     public sealed class Failure : Exception
     {
@@ -353,13 +355,140 @@ namespace JobSupervisor
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern uint WaitForSingleObject(IntPtr handle, uint timeout);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FreeConsole();
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachConsole(uint processId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetConsoleCtrlHandler(
+            IntPtr handler,
+            [MarshalAs(UnmanagedType.Bool)] bool add
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GenerateConsoleCtrlEvent(
+            uint controlEvent,
+            uint processGroupId
+        );
     }
 
-    public sealed class Supervisor : IDisposable
+    public sealed class WindowsProcessHost : IDisposable
     {
         public const int MaxMessageBytes = 1048576;
         public const string CMD_UNQUOTED = @"#$*+-./:?@\_";
+
+        private static readonly string[] CommandExtensions = { ".exe", ".ps1", ".bat", ".cmd" };
+
+        public static string ResolveCommandPath(string command)
+        {
+            if (string.IsNullOrWhiteSpace(command))
+            {
+                throw new ArgumentException("Command must not be blank.", "command");
+            }
+
+            bool probeExtensions = !HasSupportedCommandExtension(command);
+            string resolved = IsCommandPath(command)
+                ? ProbeCommandPath(command, probeExtensions)
+                : ProbeBareCommand(command, probeExtensions);
+
+            if (resolved != null)
+            {
+                return resolved;
+            }
+
+            throw new Failure("resolveCommand", "Command not found: " + command);
+        }
+
+        private static bool IsCommandPath(string command)
+        {
+            return command.IndexOf(Path.DirectorySeparatorChar) >= 0
+                || command.IndexOf(Path.AltDirectorySeparatorChar) >= 0
+                || Path.IsPathRooted(command);
+        }
+
+        private static bool HasSupportedCommandExtension(string command)
+        {
+            string extension = Path.GetExtension(command);
+            if (string.Equals(extension, ".com", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            foreach (string supported in CommandExtensions)
+            {
+                if (string.Equals(extension, supported, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static string ProbeBareCommand(string command, bool probeExtensions)
+        {
+            string searchPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+            foreach (string entry in searchPath.Split(Path.PathSeparator))
+            {
+                string directory = entry;
+                if (directory.Length >= 2 && directory[0] == '"' && directory[directory.Length - 1] == '"')
+                {
+                    directory = directory.Substring(1, directory.Length - 2);
+                }
+                if (directory.Length == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    string commandPath = ProbeCommandPath(Path.Combine(directory, command), probeExtensions);
+                    if (commandPath != null)
+                    {
+                        return commandPath;
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    continue;
+                }
+                catch (NotSupportedException)
+                {
+                    continue;
+                }
+                catch (PathTooLongException)
+                {
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ProbeCommandPath(string path, bool probeExtensions)
+        {
+            if (probeExtensions)
+            {
+                foreach (string extension in CommandExtensions)
+                {
+                    string candidate = path + extension;
+                    if (File.Exists(candidate))
+                    {
+                        return Path.GetFullPath(candidate);
+                    }
+                }
+            }
+            else if (File.Exists(path))
+            {
+                return Path.GetFullPath(path);
+            }
+
+            return null;
+        }
 
         private static string PowerShellPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.System),
@@ -386,14 +515,13 @@ namespace JobSupervisor
         private Process signalDelivery;
         private readonly object gracefulStopLock = new object();
         private bool stopCancelled = false;
-        private bool rootIsGui = false;
+        private bool isGuiApplication = false;
         // Reserved helper exit code: AttachConsole found no console.
         private const int ConsoleSignalInapplicable = 0x20000001;
 
         private enum StopOutcome { Success, Failure, Inapplicable }
         private IntPtr job, port, root;
         private uint rootPid;
-        private string workerPath, tempDirectory;
 
         // CTRL+C handling
         // Keep the native callback rooted, including during cleanup or a failed removal.
@@ -428,7 +556,7 @@ namespace JobSupervisor
             if (Environment.GetEnvironmentVariable("ALLURE_SUPERVISOR_TIMINGS") == "1")
             {
                 Console.Error.WriteLine(
-                    "[AllureSupervisorTiming] {0:o} csharp {1}: {2} ms stage, {3} ms since supervisor entry",
+                    "[AllureSupervisorTiming] {0:o} csharp {1}: {2} ms stage, {3} ms since host entry",
                     DateTime.UtcNow, stage, startupStageClock.ElapsedMilliseconds, startupClock.ElapsedMilliseconds
                 );
             }
@@ -542,7 +670,7 @@ namespace JobSupervisor
             Dictionary<string, object> result = Message("error");
             if (requestId != null)
                 result["requestId"] = requestId;
-            result["operation"] = failure == null ? "Supervisor" : failure.Operation;
+            result["operation"] = failure == null ? "ProcessHost" : failure.Operation;
             result["message"] = exception.Message;
             result["fatal"] = fatal;
             if (failure != null && failure.NativeError.HasValue)
@@ -768,7 +896,7 @@ namespace JobSupervisor
         private static string MakeBatCommandLine(
             string cmdExePath,
             string scriptPath,
-            string[] arguments,
+            IEnumerable<string> arguments,
             bool forceQuotes
         )
         {
@@ -905,44 +1033,34 @@ namespace JobSupervisor
             }
         }
 
-        private uint Launch(CommandInfo command, string[] arguments, string cwd)
+        private uint Launch(string command, IEnumerable<string> arguments, string cwd)
         {
             bool powershell = false;
             bool batch = false;
-            string resolved;
 
-            ApplicationInfo applicationInfo = command as ApplicationInfo;
-            ExternalScriptInfo scriptInfo = command as ExternalScriptInfo;
+            string extension = Path.GetExtension(command);
 
-            if (applicationInfo != null)
+            switch (Path.GetExtension(command).ToLowerInvariant())
             {
-                resolved = applicationInfo.Path;
-                string resolvedExtension = Path.GetExtension(resolved);
-
-                batch = resolvedExtension.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
-                    || resolvedExtension.Equals(".bat", StringComparison.OrdinalIgnoreCase);
-
-                rootIsGui = !batch && IsGuiApplication(resolved);
-            }
-            else if (scriptInfo != null)
-            {
-                resolved = scriptInfo.Path;
-                powershell = true;
-            }
-            else if (command.CommandType == CommandTypes.Cmdlet
-                || command.CommandType == CommandTypes.Function)
-            {
-                resolved = String.IsNullOrEmpty(command.ModuleName)
-                    ? command.Name
-                    : command.ModuleName + "\\" + command.Name;
-                powershell = true;
-            }
-            else
-            {
-                throw new Failure("ResolveCommand", "Unsupported command type: " + command.CommandType);
+                case ".exe":
+                case ".com":
+                    isGuiApplication = IsGuiApplication(command);
+                    break;
+                case ".ps1":
+                    powershell = true;
+                    break;
+                case ".cmd":
+                case ".bat":
+                    batch = true;
+                    break;
+                default:
+                    throw new Failure(
+                        "ResolveCommand",
+                        "Unsupported command type: " + command
+                    );
             }
 
-            string application = resolved;
+            string application = command;
             string commandLine;
             if (batch)
             {
@@ -950,50 +1068,30 @@ namespace JobSupervisor
                     Environment.GetFolderPath(Environment.SpecialFolder.System),
                     "cmd.exe"
                 );
-                commandLine = MakeBatCommandLine(application, resolved, arguments, false);
-            }
-            else if (scriptInfo != null)
-            {
-                application = PowerShellPath;
-                StringBuilder script = new StringBuilder(QuoteNative(application));
-                script.Append(" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ")
-                    .Append(QuoteNative(resolved));
-                for (int i = 0; i < arguments.Length; i++)
-                {
-                    script.Append(' ').Append(QuoteNative(arguments[i]));
-                }
-                commandLine = script.ToString();
+                commandLine = MakeBatCommandLine(application, command, arguments, false);
             }
             else if (powershell)
             {
-                tempDirectory = Path.Combine(
-                    Path.GetTempPath(),
-                    "ps-supervisor-" + Guid.NewGuid().ToString("N")
-                );
-                Directory.CreateDirectory(tempDirectory);
-                string request = Path.Combine(tempDirectory, "request.json");
-                File.WriteAllText(
-                    request,
-                    json.Serialize(new Dictionary<string, object>
-                    {
-                        { "command", resolved },
-                        { "arguments", arguments }
-                    }),
-                    utf8
-                );
                 application = PowerShellPath;
-                commandLine = QuoteNative(application)
-                    + " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
-                    + QuoteNative(workerPath)
-                    + " -RequestFile " + QuoteNative(request);
+
+                StringBuilder script = new StringBuilder(QuoteNative(application));
+                script.Append(" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ")
+                    .Append(QuoteNative(command));
+
+                foreach (string argument in arguments)
+                {
+                    script.Append(' ').Append(QuoteNative(argument));
+                }
+
+                commandLine = script.ToString();
             }
             else
             {
                 StringBuilder native = new StringBuilder(QuoteNative(application));
-                for (int i = 0; i < arguments.Length; i++)
+                foreach (string argument in arguments)
                 {
                     native.Append(' ')
-                        .Append(QuoteNative(arguments[i]));
+                        .Append(QuoteNative(argument));
                 }
                 commandLine = native.ToString();
             }
@@ -1080,7 +1178,7 @@ namespace JobSupervisor
                 startup.StartupInfo.hStdInput = handles[0];
                 startup.StartupInfo.hStdOutput = handles[1];
                 startup.StartupInfo.hStdError = handles[2];
-                if (!rootIsGui)
+                if (!isGuiApplication)
                 {
                     startup.StartupInfo.dwFlags |= Native.STARTF_USESHOWWINDOW;
                     startup.StartupInfo.wShowWindow = Native.SW_HIDE;
@@ -1165,10 +1263,8 @@ namespace JobSupervisor
                     }
                     signalDelivery = Process.Start(new ProcessStartInfo
                     {
-                        FileName = PowerShellPath,
-                        Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "
-                            + QuoteNative(Path.Combine(Path.GetDirectoryName(workerPath), "send-console-signal.ps1"))
-                            + " " + rootPid.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        FileName = Assembly.GetExecutingAssembly().Location,
+                        Arguments = "signal " + rootPid.ToString(CultureInfo.InvariantCulture),
                         UseShellExecute = false,
                         CreateNoWindow = true
                     });
@@ -1269,13 +1365,13 @@ namespace JobSupervisor
             shutdown = new Thread(delegate ()
             {
                 StopResult result = new StopResult { RequestId = id };
-                StopOutcome outcome = rootIsGui
+                StopOutcome outcome = isGuiApplication
                     ? StopWithWindowClose(out result.Error)
                     : StopWithConsoleSignal(out result.Error);
 
                 if (outcome == StopOutcome.Inapplicable)
                 {
-                    outcome = rootIsGui
+                    outcome = isGuiApplication
                         ? StopWithConsoleSignal(out result.Error)
                         : StopWithWindowClose(out result.Error);
                 }
@@ -1446,17 +1542,85 @@ namespace JobSupervisor
             }
         }
 
-        public static int Run(
-            string pipeName,
-            string workerPath,
-            CommandInfo command,
-            string[] arguments,
-            string resolutionError
-        )
+        private static int Run(string pipeName, string command, IEnumerable<string> arguments)
         {
-            using (Supervisor supervisor = new Supervisor())
+            using (WindowsProcessHost host = new WindowsProcessHost())
             {
-                return supervisor.Execute(pipeName, workerPath, command, arguments, resolutionError);
+                return host.Execute(pipeName, command, arguments);
+            }
+        }
+
+        private static int Signal(uint processId)
+        {
+            Native.FreeConsole();
+
+            if (!Native.AttachConsole(processId))
+            {
+                int error = Marshal.GetLastWin32Error();
+                if (error == 6)
+                {
+                    // The target does not have a console.
+                    return 0x20000001;
+                }
+
+                return error;
+            }
+
+            if (!Native.SetConsoleCtrlHandler(null, true)
+                || !Native.GenerateConsoleCtrlEvent(Native.CTRL_C_EVENT, 0))
+            {
+                return Marshal.GetLastWin32Error();
+            }
+
+            return 0;
+        }
+
+        public static int Main(string[] args)
+        {
+            if (args.Length == 0)
+            {
+                Console.Error.WriteLine("No arguments provided to the process host.");
+                return 87;
+            }
+
+            string mode = args[0];
+
+            if (mode == "run")
+            {
+                if (args.Length < 3)
+                {
+                    Console.Error.WriteLine("Not enough arguments for the process host 'run' mode.");
+                    return 87;
+                }
+
+                return Run(args[1], args[2], args.Skip(3));
+            }
+            else if (mode == "signal")
+            {
+                if (args.Length < 2)
+                {
+                    Console.Error.WriteLine("Not enough arguments for the process host 'signal' mode.");
+                    return 87;
+                }
+
+                uint processId;
+                if (!uint.TryParse(args[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out processId))
+                {
+                    Console.Error.WriteLine("Invalid process ID for the process host 'signal' mode.");
+                    return 87;
+                }
+
+                return Signal(processId);
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    string.Format(
+                        "Unknown process host mode: '{0}'",
+                        mode
+                    )
+                );
+                return 1;
             }
         }
 
@@ -1477,16 +1641,9 @@ namespace JobSupervisor
             }
         }
 
-        private int Execute(
-            string pipeName,
-            string worker,
-            CommandInfo command,
-            string[] arguments,
-            string resolutionError
-        )
+        private int Execute(string pipeName, string command, IEnumerable<string> arguments)
         {
-            StartupTiming("supervisor entry");
-            workerPath = worker;
+            StartupTiming("process host entry");
             try
             {
                 if (!Native.SetConsoleCtrlHandler(ctrlHandler, true))
@@ -1509,7 +1666,7 @@ namespace JobSupervisor
 
                 Dictionary<string, object> ready = Message("ready");
                 ready["version"] = 2;
-                ready["supervisorPid"] = Native.GetCurrentProcessId();
+                ready["hostPid"] = Native.GetCurrentProcessId();
 
                 Send(ready);
                 StartupTiming("ready sent");
@@ -1518,12 +1675,9 @@ namespace JobSupervisor
                 reader.IsBackground = true;
                 reader.Start();
 
-                if (!String.IsNullOrEmpty(resolutionError))
-                {
-                    throw new Failure("ResolveCommand", resolutionError);
-                }
+                string resolved = ResolveCommandPath(command);
 
-                uint pid = Launch(command, arguments, Environment.CurrentDirectory);
+                uint pid = Launch(resolved, arguments, Environment.CurrentDirectory);
                 rootPid = pid;
                 Dictionary<string, object> started = Message("started");
                 started["rootPid"] = pid;
@@ -1665,7 +1819,6 @@ namespace JobSupervisor
                     monitor.Join(1000);
                 }
 
-                // Wait for the send-console-signal.ps1 helper to finish after cancellation.
                 if (shutdown != null)
                 {
                     shutdown.Join();
@@ -1684,17 +1837,6 @@ namespace JobSupervisor
                 if (port != IntPtr.Zero)
                 {
                     Native.CloseHandle(port);
-                }
-
-                if (tempDirectory != null)
-                {
-                    try
-                    {
-                        Directory.Delete(tempDirectory, true);
-                    }
-                    catch
-                    {
-                    }
                 }
             }
             finally
