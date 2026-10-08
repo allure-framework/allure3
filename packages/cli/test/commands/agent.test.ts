@@ -207,9 +207,7 @@ beforeEach(async () => {
     generatedAt: "2026-06-10T16:00:00.000Z",
   });
   (readRawConfig as Mock).mockResolvedValue({ plugins: {} });
-  AllureReportMock.prototype.store = {
-    allKnownIssues: vi.fn().mockResolvedValue([]),
-  };
+  AllureReportMock.prototype.store = {};
   (readConfig as Mock).mockResolvedValue({
     output: "./allure-report",
     open: true,
@@ -409,6 +407,55 @@ describe("agent command", () => {
     command.commandToRun = [];
 
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+  });
+
+  it("should pass --results-dir into executeAllureRun and prefer it over config.resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      name: "Allure Report",
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config"],
+    });
+
+    await run(AgentCommand, [
+      "agent",
+      "--report",
+      "off",
+      "--results-dir",
+      "./cli/**/allure-results",
+      "--results-dir",
+      "./other/allure-results",
+      "--",
+      "npm",
+      "test",
+    ]);
+
+    expect(executeAllureRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npm",
+        commandArgs: ["test"],
+        resultsPatterns: ["./cli/**/allure-results", "./other/allure-results"],
+      }),
+    );
+  });
+
+  it("should pass config.resultsDir into executeAllureRun when --results-dir is omitted", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      name: "Allure Report",
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      resultsDir: ["./from-config/**/allure-results"],
+    });
+
+    await run(AgentCommand, ["agent", "--report", "off", "--", "npm", "test"]);
+
+    expect(executeAllureRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsPatterns: ["./from-config/**/allure-results"],
+      }),
+    );
   });
 
   it("should translate plugin-agent expectation file validation failures to usage errors", async () => {

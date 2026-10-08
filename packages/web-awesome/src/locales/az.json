@@ -22,7 +22,8 @@
     "globalAttachments": "Qlobal qoşmalar",
     "globalErrors": "Qlobal xətalar",
     "qualityGates": "Keyfiyyət meyarları",
-    "categories": "Kateqoriyalar"
+    "categories": "Kateqoriyalar",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Axtar",
@@ -56,7 +57,20 @@
       "regressed": "Statusu \"uğurlu\" və ya \"sınıq\"dan \"uğursuz\"a dəyişən test nəticələrini göstər",
       "malfunctioned": "Statusu \"uğurlu\" və ya \"uğursuz\"dan \"sınıq\"a dəyişən test nəticələrini göstər",
       "tags": "Göstərilən teqləri olan test nəticələrini göstər",
-      "categories": "Göstərilən kateqoriyaları olan test nəticələrini göstər"
+      "categories": "Göstərilən kateqoriyaları olan test nəticələrini göstər",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results",
+        "none": "Həlli olmayan uğursuz və ya pozulmuş test nəticələrini göstər"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted",
+      "none": "Həll yoxdur"
     }
   },
   "sort-by": {
@@ -111,14 +125,17 @@
     "no-test-steps-results": "Test addımları haqqında məlumat yoxdur",
     "no-test-case-results": "Test halları üzrə nəticə yoxdur",
     "no-environments-results": "Mühitlər haqqında məlumat yoxdur",
-    "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur"
+    "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur",
+    "no-metrics-results": "Metrik yoxdur",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloklayıcı",
     "critical": "kritik",
     "normal": "normal",
     "minor": "kiçik",
-    "trivial": "əhəmiyyətsiz"
+    "trivial": "əhəmiyyətsiz",
+    "none": "ciddilik dərəcəsi yoxdur"
   },
   "execution": {
     "name": "İcra",
@@ -138,12 +155,14 @@
     "category": "Kateqoriya",
     "description": "Təsvir",
     "links": "Keçidlər",
+    "relatedTestResults": "Əlaqəli test nəticələri ({{count}})",
     "overview": "Ümumi baxış",
     "history": "Tarixçə",
     "attachments": "Qoşmalar",
     "retries": "Təkrar cəhdlər",
     "environments": "Mühit",
     "error": "Xəta",
+    "success": "Uğurlu",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
@@ -158,7 +177,10 @@
     "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",
     "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})",
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Çörək qırıntıları",
+    "breadcrumbs-hidden": "Gizli çörək qırıntılarını göstər"
   },
   "controls": {
     "newTabAttachment": "Qoşmanı yeni tabda aç",
@@ -173,7 +195,9 @@
     "clipboardError": "Dəyər kopyalana bilmir. Brauzeriniz bu funksiyanı dəstəkləmir",
     "clipboardSuccess": "Uğurla kopyalandı",
     "collapse": "Yığ",
+    "collapseAll": "Hamısını yığ",
     "expand": "Genişləndir",
+    "expandAll": "Hamısını aç",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
@@ -197,7 +221,8 @@
   "sections": {
     "report": "Hesabat",
     "charts": "Qrafiklər",
-    "timeline": "Zaman xətti"
+    "timeline": "Zaman xətti",
+    "metrics": "Metriklər"
   },
   "timeline": {
     "empty": "Məlumat yoxdur",
@@ -393,6 +418,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Performans metrikləri",
+      "phaseSummary": "Metrik xülasəsi",
+      "currentValues": "Cari dəyərlər",
+      "historyTitle": "Metrik tarixçəsi",
+      "noHistory": "Bu metrik üçün hələ tarixçə yoxdur",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Metrika",
+        "phase": "Metrik dəsti",
+        "count": "Say",
+        "total": "Cəmi",
+        "avg": "Orta",
+        "min": "Min.",
+        "max": "Maks.",
+        "value": "Dəyər",
+        "delta": "Fərq",
+        "trend": "Trend",
+        "source": "Mənbə",
+        "report": "Hesabat",
+        "date": "Tarix"
+      },
+      "summary": "{{groups}} xülasə sətri / {{metrics}} metrik",
+      "groups": {
+        "other": "Digər"
+      }
+    },
+    "successRate": {
+      "successRate": "Uğur faizi: {{rate}}",
+      "successRateDescription": "Uğurlu, uğursuz və nasaz testlər əsasında hesablanır. Ötürülmüş və statusu naməlum testlər daxil edilmir.",
+      "noResults": "Test nəticələri yoxdur.",
+      "noEligibleResults": "Uğurlu, uğursuz və ya nasaz testlər yoxdur. Ötürülmüş və statusu naməlum testlər uğur faizinə daxil edilmir.",
+      "slice_one": "{{count}} test (bütün testlərin {{percent}}%-i)",
+      "slice_other": "{{count}} test (bütün testlərin {{percent}}%-i)",
+      "layer": "Səviyyə: {{layer}}",
+      "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
+      "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
     }
   },
   "transitions": {
@@ -402,7 +465,12 @@
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
-      "flaky": "İşəsalınmalar arasında qeyri-sabitdir"
+      "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
@@ -474,13 +542,10 @@
       "reportTabQualityGate": "Hesabat nişanı: Keyfiyyət qapısı",
       "reportTabGlobalAttachments": "Hesabat nişanı: Qlobal əlavələr",
       "reportTabGlobalErrors": "Hesabat nişanı: Qlobal xətalar",
-      "reportTabNext": "Növbəti hesabat nişanı",
-      "reportTabPrev": "Əvvəlki hesabat nişanı",
       "nextTest": "Növbəti test nəticəsi",
       "prevTest": "Əvvəlki test nəticəsi",
-      "testTabNext": "Növbəti test nişanı",
-      "testTabPrev": "Əvvəlki test nişanı",
       "tabOverview": "İcmal nişanı",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Tarixçə nişanı",
       "tabRetries": "Yenidən cəhdlər nişanı",
       "tabAttachments": "Əlavələr nişanı",
@@ -488,7 +553,8 @@
       "toggleLabels": "Etiketləri göstər/gizlət",
       "toggleParameters": "Parametrləri göstər/gizlət",
       "toggleLinks": "Bağlantıları göstər/gizlət",
-      "backToTree": "Ağaca qayıt"
+      "backToTree": "Ağaca qayıt",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

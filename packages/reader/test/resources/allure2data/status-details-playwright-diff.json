@@ -1,0 +1,9 @@
+{
+  "name": "Test with Playwright diff",
+  "fullName": "Test with Playwright diff",
+  "status": "failed",
+  "statusDetails": {
+    "message": "Error: expect(received).toBe(expected)\n\nExpected: \"expected id\"\nReceived: \"actual id\"",
+    "trace": "Error: expect(received).toBe(expected)\n    at test.spec.ts:1:1"
+  }
+}

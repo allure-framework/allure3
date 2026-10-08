@@ -62,4 +62,32 @@ describe("createProgressLogger", () => {
       vi.useRealTimers();
     }
   });
+
+  it("suppresses every progress log in silent mode", () => {
+    vi.useFakeTimers();
+
+    const log = vi.fn();
+    const logger = createProgressLogger({
+      total: 10,
+      message: "Publishing report",
+      unitLabel: "files uploaded",
+      debounceMs: 1_000,
+      silent: true,
+      log,
+    });
+
+    try {
+      logger.log();
+      logger.log(true);
+      logger.increment();
+      logger.increment(9);
+      vi.runAllTimers();
+
+      expect(log).not.toHaveBeenCalled();
+      expect(logger.getCurrent()).toBe(10);
+    } finally {
+      logger.cancel?.();
+      vi.useRealTimers();
+    }
+  });
 });

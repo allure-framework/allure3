@@ -4,8 +4,7 @@ import { type ComponentChildren, type FunctionalComponent, type VNode, createCon
 import { createPortal } from "preact/compat";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 
-import check from "@/assets/svg/line-general-check.svg";
-import { SvgIcon } from "@/components/SvgIcon";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 
 import styles from "./styles.scss";
@@ -210,7 +209,10 @@ Menu.Item.displayName = "Menu.Item";
 const MenuItemWithCheckmark: FunctionalComponent<Omit<ItemProps, "rightSlot"> & { isChecked: boolean }> = (props) => {
   const { isChecked = false, ...itemProps } = props;
   return (
-    <MenuItem {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
+    <MenuItem
+      {...itemProps}
+      rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={allureIcons.lineGeneralCheck} />}
+    />
   );
 };
 

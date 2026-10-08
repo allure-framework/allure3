@@ -19,6 +19,7 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
   LogCommand,
@@ -28,6 +29,7 @@ import {
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsPlanCommand,
   TestPlanCommand,
   WatchCommand,
   isAgentTaskMapHelpRequest,
@@ -66,10 +68,12 @@ cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
 cli.register(SlackCommand);
+cli.register(TestOpsPlanCommand);
 cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 void cli

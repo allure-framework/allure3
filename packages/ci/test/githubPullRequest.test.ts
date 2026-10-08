@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parsePullRequestNumberFromEventJson, resolveGithubPullRequestNumber } from "../src/helpers/github.js";
+import {
+  parsePullRequestContextFromEventJson,
+  parsePullRequestNumberFromEventJson,
+  resolveGithubPullRequestContext,
+  resolveGithubPullRequestNumber,
+} from "../src/helpers/github.js";
 import { getEnv } from "../src/utils.js";
 
 vi.mock("../src/utils.js", () => ({
@@ -40,6 +45,76 @@ describe("parsePullRequestNumberFromEventJson", () => {
 
   it("returns empty string when pull_request.number is missing", () => {
     expect(parsePullRequestNumberFromEventJson(JSON.stringify({ pull_request: { title: "No number" } }))).toBe("");
+  });
+
+  it("returns pull request number from workflow_run.pull_requests", () => {
+    expect(
+      parsePullRequestNumberFromEventJson(
+        JSON.stringify({
+          workflow_run: {
+            event: "pull_request",
+            pull_requests: [{ number: 920, head: { ref: "feat/x" }, base: { ref: "main" } }],
+          },
+        }),
+      ),
+    ).toBe("920");
+  });
+});
+
+describe("parsePullRequestContextFromEventJson", () => {
+  it("returns head and base refs from pull_request payload", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          pull_request: {
+            number: 12,
+            head: { ref: "feature/foo" },
+            base: { ref: "main" },
+          },
+        }),
+      ),
+    ).toEqual({
+      number: "12",
+      headRef: "feature/foo",
+      baseRef: "main",
+    });
+  });
+
+  it("returns head and base refs from workflow_run.pull_requests", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          workflow_run: {
+            event: "pull_request",
+            head_branch: "feature/foo",
+            pull_requests: [
+              {
+                number: 33,
+                head: { ref: "feature/foo" },
+                base: { ref: "main" },
+              },
+            ],
+          },
+        }),
+      ),
+    ).toEqual({
+      number: "33",
+      headRef: "feature/foo",
+      baseRef: "main",
+    });
+  });
+
+  it("returns undefined when workflow_run.pull_requests is empty", () => {
+    expect(
+      parsePullRequestContextFromEventJson(
+        JSON.stringify({
+          workflow_run: {
+            event: "pull_request",
+            pull_requests: [],
+          },
+        }),
+      ),
+    ).toBeUndefined();
   });
 });
 
@@ -164,21 +239,30 @@ describe("resolveGithubPullRequestNumber", () => {
     expect(resolveGithubPullRequestNumber()).toBe("");
   });
 
-  it("returns empty string when only one of head/base refs is set", () => {
+  it("resolves pull request id from workflow_run event without head/base env refs", () => {
     (getEnv as Mock).mockImplementation((key: string) => {
-      if (key === "GITHUB_HEAD_REF") {
-        return "feature/foo";
-      }
+      const env: Record<string, string> = {
+        GITHUB_EVENT_PATH: "/tmp/event.json",
+        GITHUB_REF: "refs/heads/main",
+        GITHUB_REF_NAME: "main",
+      };
 
-      if (key === "GITHUB_EVENT_PATH") {
-        return "/tmp/event.json";
-      }
-
-      return "";
+      return env[key] ?? "";
     });
-    (readFileSync as Mock).mockReturnValue(JSON.stringify({ pull_request: { number: 77 } }));
+    (readFileSync as Mock).mockReturnValue(
+      JSON.stringify({
+        workflow_run: {
+          event: "pull_request",
+          pull_requests: [{ number: 897, head: { ref: "fix/x" }, base: { ref: "main" } }],
+        },
+      }),
+    );
 
-    expect(resolveGithubPullRequestNumber()).toBe("");
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(resolveGithubPullRequestNumber()).toBe("897");
+    expect(resolveGithubPullRequestContext()).toEqual({
+      number: "897",
+      headRef: "fix/x",
+      baseRef: "main",
+    });
   });
 });

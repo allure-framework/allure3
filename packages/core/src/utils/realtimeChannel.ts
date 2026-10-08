@@ -13,7 +13,11 @@ export class RealtimeChannel {
   readonly #emitter = new EventEmitter<AllureStoreEvents>();
 
   readonly dispatcher = new RealtimeEventsDispatcher(this.#emitter);
-  readonly subscriber = new RealtimeSubscriber(this.#emitter);
+  readonly subscriber: RealtimeSubscriber;
+
+  constructor(beforeTestResults?: () => void) {
+    this.subscriber = new RealtimeSubscriber(this.#emitter, beforeTestResults);
+  }
 
   /**
    * Runs the listener synchronously when results, fixtures, or attachments change.

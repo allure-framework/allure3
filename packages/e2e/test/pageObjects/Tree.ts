@@ -48,7 +48,15 @@ export class TreePage extends CommonPage {
   regressedFilterLocator: Locator;
   malfunctionedFilterLocator: Locator;
 
+  acceptedFilterLocator: Locator;
+  mutedFilterLocator: Locator;
+  issueFilterLocator: Locator;
+  noResolutionFilterLocator: Locator;
+  resolutionFilterLocator: Locator;
+
   filterTooltipLocator: Locator;
+
+  clearFiltersButtonLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -97,7 +105,14 @@ export class TreePage extends CommonPage {
     this.regressedFilterLocator = page.getByTestId("regressed-filter");
     this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
 
+    this.acceptedFilterLocator = page.getByTestId("accepted-filter");
+    this.mutedFilterLocator = page.getByTestId("muted-filter");
+    this.issueFilterLocator = page.getByTestId("issue-filter");
+    this.noResolutionFilterLocator = page.getByTestId("none-filter");
+    this.resolutionFilterLocator = page.getByTestId("resolution-filter");
+
     this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
+    this.clearFiltersButtonLocator = page.getByRole("button", { name: "Clear filters" });
   }
 
   getNthLeafLocator(n: number) {
@@ -171,6 +186,18 @@ export class TreePage extends CommonPage {
     });
   }
 
+  getLeafResolutionAcceptedLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-accepted");
+  }
+
+  getLeafResolutionMutedLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-muted");
+  }
+
+  getLeafResolutionIssueLocator(title: string) {
+    return this.getLeafByTitle(title).getByTestId("tree-leaf-resolution-issue");
+  }
+
   async getMetadataValue(
     metadata: "total" | "retries" | "flaky" | "passed" | "failed" | "skipped" | "broken" | "unknown" | "new" = "total",
   ) {
@@ -210,7 +237,7 @@ export class TreePage extends CommonPage {
 
     try {
       return (await baseLocator.getByTestId("metadata-value").innerText({ timeout: 1000 })).trim();
-    } catch (err) {
+    } catch {
       return undefined;
     }
   }
@@ -301,12 +328,11 @@ export class TreePage extends CommonPage {
   }
 
   async toggleRetryFilter() {
-    await this.retryFilterLocator.click();
+    await this.metadataRetriesLocator.click();
   }
 
   async toggleFlakyFilter() {
-    // Flaky filter is now a direct button, click it
-    await this.flakyFilterLocator.click();
+    await this.metadataFlakyLocator.click();
   }
 
   async toggleNewFilter() {
@@ -339,5 +365,33 @@ export class TreePage extends CommonPage {
     await this.malfunctionedFilterLocator.click();
 
     await this.closeMenu();
+  }
+
+  async toggleAcceptedResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.acceptedFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async toggleMutedResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.mutedFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async toggleNoResolutionFilter() {
+    await this.resolutionFilterLocator.click();
+
+    await this.noResolutionFilterLocator.click();
+
+    await this.closeMenu();
+  }
+
+  async clickClearFiltersButton() {
+    await this.clearFiltersButtonLocator.click();
   }
 }

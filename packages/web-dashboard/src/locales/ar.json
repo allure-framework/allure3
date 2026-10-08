@@ -210,6 +210,21 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "successRate": {
+      "successRate": "نسبة النجاح: {{rate}}",
+      "successRateDescription": "تُحسب من الاختبارات الناجحة والفاشلة والمتعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة.",
+      "noResults": "لا توجد نتائج اختبارات.",
+      "noEligibleResults": "لا توجد اختبارات ناجحة أو فاشلة أو متعطلة. تُستبعد الاختبارات المتخطاة وذات الحالة غير المعروفة من نسبة النجاح.",
+      "slice_one": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_other": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "layer": "المستوى: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% من جميع الاختبارات)",
+      "slice": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_zero": "{{count}} اختبار ({{percent}}% من جميع الاختبارات)",
+      "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
+      "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
+      "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
     }
   },
   "transitions": {

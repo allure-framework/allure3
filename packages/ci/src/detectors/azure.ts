@@ -7,13 +7,15 @@ const REF_PREFIX = "refs/";
 const BRANCH_REF_PREFIX = "refs/heads/";
 const TAG_REF_PREFIX = "refs/tags/";
 
-export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI");
+export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI").replace(/\/+$/, "");
 
 export const getBuildID = (): string => getEnv("BUILD_BUILDID");
 
 export const getDefinitionID = (): string => getEnv("SYSTEM_DEFINITIONID");
 
 export const getProjectID = (): string => getEnv("SYSTEM_TEAMPROJECTID");
+
+export const isClassicRelease = (): boolean => !!getEnv("RELEASE_RELEASEID");
 
 const mapAzureRepositoryProvider = (provider: string): GitProvider | undefined => {
   switch (provider) {
@@ -68,6 +70,19 @@ const getRepositoryFromUrl = () => {
   return repositoryUrl ? resolveRepositoryFromGitUrl(repositoryUrl) : undefined;
 };
 
+const getBrowserRepositoryUrl = (repositoryUrl: string): string => {
+  try {
+    const url = new URL(repositoryUrl);
+
+    url.username = "";
+    url.password = "";
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return repositoryUrl;
+  }
+};
+
 export const azure: CiDescriptor = {
   type: CiType.Azure,
 
@@ -90,18 +105,34 @@ export const azure: CiDescriptor = {
   },
 
   get jobName(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_DEFINITIONNAME");
+    }
+
     return getEnv("BUILD_DEFINITIONNAME");
   },
 
   get jobRunUid(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASEID");
+    }
+
     return getBuildID();
   },
 
   get jobRunUrl(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASEWEBURL");
+    }
+
     return `${getRootURL()}/${getProjectID()}/_build/results?buildId=${getBuildID()}`;
   },
 
   get jobRunName(): string {
+    if (isClassicRelease()) {
+      return getEnv("RELEASE_RELEASENAME");
+    }
+
     return getEnv("BUILD_BUILDNUMBER");
   },
 
@@ -123,7 +154,7 @@ export const azure: CiDescriptor = {
     }
 
     if (repositoryProvider === "TfsGit" || repositoryProvider === "TfsVersionControl") {
-      return `${repositoryUrl}/pullrequest/${pullRequestId}`;
+      return `${getBrowserRepositoryUrl(repositoryUrl)}/pullrequest/${pullRequestId}`;
     }
 
     return "";

@@ -5,6 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - labeled
+      - unlabeled
+  merge_group:
+    branches: [main]
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -30,7 +40,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build the project
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
@@ -61,6 +71,8 @@ jobs:
         run: yarn workspace @allurereport/static-server playwright install chromium
       - name: Install playwright for e2e
         run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
+      - name: Install playwright for Allure 2 web
+        run: yarn workspace @allurereport/web-allure2 playwright install chromium
       - name: Install playwright dependencies for e2e
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Cache build outputs
@@ -68,12 +80,12 @@ jobs:
         uses: actions/cache@v5
         with:
           path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build project
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Test Project
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+        run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
@@ -85,13 +97,15 @@ jobs:
     needs: [lint, test]
     name: Build report
     runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' }}
+    if: ${{ always() && !cancelled() && contains(fromJSON('["success","failure"]'), needs.test.result) && needs.lint.result != 'failure' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     permissions:
       actions: read
       contents: write
       pull-requests: write
       checks: write
     env:
+      ALLURE_QUALITY_GATE: "1"
+      ALLURE_REQUIRE_NEW_TESTS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'pr:new feature') && '1' || '' }}
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
       ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
       ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
@@ -128,53 +142,23 @@ jobs:
         uses: actions/cache@v5
         with:
           path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - name: Build project
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
-      - name: Generate report
+      - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
-      - name: Write perf metrics summary
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        run: node ./scripts/allure-perf-summary.mjs ./allure-report/allure-perf-metrics.json --output ./allure-report/allure-perf-metrics.md --github-step-summary
-      - name: Upload perf metrics
-        uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        with:
-          name: allure-perf-metrics
-          path: |
-            ./allure-report/allure-perf-metrics.json
-            ./allure-report/allure-perf-metrics.md
-          if-no-files-found: ignore
+        run: yarn allure generate --config=./.github/allurerc.perf.mjs --dump="allure-results-*.zip" --output=./allure-perf-report
+      - name: Prepare report metrics
+        run: |
+          mkdir -p ./allure-perf-results
+          cp ./allure-perf-report/*-perf.json ./allure-perf-results/
+      - name: Generate report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" ./allure-perf-results --output=./allure-report
       - name: Allure Report Official
+        if: ${{ !cancelled() }}
         uses: allure-framework/allure-action@v0
         with:
           report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-  perf-metrics-comment:
-    needs: report
-    name: Comment perf metrics
-    runs-on: ubuntu-latest
-    if: ${{ always() && !cancelled() && needs.report.result == 'success' && github.event_name == 'pull_request' }}
-    permissions:
-      actions: read
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v6
-      - name: Download perf metrics
-        uses: actions/download-artifact@v6
-        continue-on-error: true
-        with:
-          name: allure-perf-metrics
-          path: ./allure-perf-metrics
-      - name: Comment perf metrics on pull request
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const commentPerfMetrics = require("./scripts/comment-allure-perf-metrics.cjs");
-
-            await commentPerfMetrics({ context, github });

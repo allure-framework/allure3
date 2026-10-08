@@ -1,6 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { ClassicStatus, ClassicTree, ClassicTreeGroup } from "types";
+import type { ReportStatus, ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
@@ -10,13 +10,13 @@ export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
 export type TreeFiltersState = {
   query: string;
-  status: ClassicStatus;
+  status: ReportStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
 };
 
-export const categoriesStore = signal<StoreSignalState<ClassicTree>>({
+export const categoriesStore = signal<StoreSignalState<ReportTree>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -40,7 +40,7 @@ export const filteredCategories = computed(() => {
   const { root, leavesById, groupsById } = categoriesStore.value.data;
 
   return createRecursiveTree({
-    group: root as ClassicTreeGroup,
+    group: root as ReportTreeGroup,
     leavesById,
     groupsById,
     filterOptions: categoriesFiltersStore.value,
@@ -65,31 +65,10 @@ export const clearCategoriesFilters = () => {
   };
 };
 
-export const setCategoriesQuery = (query: string) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    query,
-  };
-};
-
-export const setCategoriesStatus = (status: ClassicStatus) => {
+export const setCategoriesStatus = (status: ReportStatus) => {
   categoriesFiltersStore.value = {
     ...categoriesFiltersStore.value,
     status,
-  };
-};
-
-export const setCategoriesSortBy = (sortBy: TreeSortBy) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setCategoriesDirection = (direction: TreeDirection) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    direction,
   };
 };
 
@@ -111,7 +90,7 @@ export const fetchCategoriesData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<ClassicTree>("widgets/categories.json", { bustCache: true });
+    const res = await fetchReportJsonData<ReportTree>("widgets/categories.json", { bustCache: true });
 
     categoriesStore.value = {
       data: res,

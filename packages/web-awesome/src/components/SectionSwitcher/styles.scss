@@ -1,4 +1,5 @@
 .layout {
   flex: 1 1 auto;
-  height: 85vh;
+  min-height: 0;
+  overflow: auto;
 }

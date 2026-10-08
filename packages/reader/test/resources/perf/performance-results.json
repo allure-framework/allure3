@@ -1,0 +1,16 @@
+[
+  {
+    "id": "check-1",
+    "key": "browser.coldLoad",
+    "value": 550.4,
+    "start": 100,
+    "stop": 650.4
+  },
+  {
+    "id": "check-2",
+    "key": "api.checkout",
+    "value": 246.8,
+    "start": 700,
+    "stop": 946.8
+  }
+]

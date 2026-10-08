@@ -8,7 +8,7 @@ import {
   redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
-import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
+import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -31,7 +31,7 @@ export const convertTestResult = (
   options: {
     hideLabels?: readonly (string | RegExp)[];
   } = {},
-): AwesomeTestResult => {
+): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
 
   return {
@@ -42,10 +42,15 @@ export const convertTestResult = (
     duration: tr.duration,
     status: tr.status,
     fullName: tr.fullName,
-    historyId: tr.historyId,
+    retryHash: tr.retryHash,
+    testCaseHash: tr.testCaseHash,
+    parametersHash: tr.parametersHash,
+    environmentHash: tr.environmentHash,
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
+    resolution: tr.resolution,
+    resolutionComment: tr.resolutionComment,
     isRetry: tr.isRetry,
     labels,
     groupedLabels: mapLabelsByName(labels),
@@ -53,6 +58,7 @@ export const convertTestResult = (
     links: tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
+    errors: tr.errors,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
     environment: tr.environment,
@@ -67,7 +73,7 @@ export const convertTestResult = (
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
   if (isStep(tsr)) {
     return {
       ...tsr,
@@ -79,7 +85,7 @@ export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResul
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): AwesomeFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

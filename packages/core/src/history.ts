@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { WriteStream } from "node:fs";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -8,6 +9,7 @@ import {
   type AllureHistory,
   type HistoryDataPoint,
   type HistoryTestResult,
+  type MetricSample,
   normalizeHistoryDataPointUrls,
   type TestCase,
   type TestResult,
@@ -17,15 +19,16 @@ import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
-    .filter((tr) => tr.historyId)
+    .filter((tr) => tr.retryHash)
     .map(
       ({
         id,
         name,
         fullName,
         environment,
-        historyId,
+        retryHash,
         status,
+        retries = [],
         error: { message, trace } = {},
         start,
         stop,
@@ -38,6 +41,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           fullName,
           environment,
           status,
+          retries: retries.map((retry) => retry.status).reverse(),
           message,
           trace,
           start,
@@ -45,19 +49,60 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           duration,
           labels,
           url: remoteUrl,
-          historyId: historyId!,
+          retryHash: retryHash!,
           reportLinks: [],
         } as HistoryTestResult;
       },
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        acc[item.retryHash!] = item;
 
         return acc;
       },
       {} as Record<string, HistoryTestResult>,
     );
+};
+
+const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number> => {
+  const grouped = new Map<string, number[]>();
+
+  for (const metric of metrics) {
+    if (!metric.key || !Number.isFinite(metric.value)) {
+      continue;
+    }
+
+    grouped.set(metric.key, [...(grouped.get(metric.key) ?? []), metric.value]);
+  }
+
+  return Object.fromEntries(
+    [...grouped.entries()].map(([key, values]) => [key, values.reduce((acc, value) => acc + value, 0) / values.length]),
+  );
+};
+
+export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
+  let url: URL;
+
+  try {
+    url = new URL(historyBaseUrl);
+  } catch (cause) {
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected an absolute URL`, { cause });
+  }
+
+  if (url.href.includes("#")) {
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: fragments are not allowed`);
+  }
+
+  if (/\.html\/?$/iu.test(url.pathname)) {
+    throw new Error(
+      `Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected a base URL, not an HTML document`,
+    );
+  }
+
+  // Always add trailing / at the end of pathname
+  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/`;
+
+  return url.toString();
 };
 
 export const createHistory = (
@@ -66,6 +111,7 @@ export const createHistory = (
   testCases: TestCase[],
   testResults: TestResult[],
   remoteUrl: string = "",
+  metrics: MetricSample[] = [],
 ): HistoryDataPoint => {
   const knownTestCaseIds = testCases.map((tc) => tc.id);
 
@@ -75,7 +121,7 @@ export const createHistory = (
     timestamp: new Date().getTime(),
     knownTestCaseIds,
     testResults: createHistoryItems(testResults, remoteUrl),
-    metrics: {},
+    metrics: metricsToHistoryValues(metrics),
     url: remoteUrl,
   };
 };
@@ -89,6 +135,24 @@ export class AllureLocalHistory implements AllureHistory {
       limit?: number;
     },
   ) {}
+
+  resolveTestResultUrl(historyUrl: string, pluginId: string, historicalResultId: string): string {
+    if (!historyUrl) {
+      return "";
+    }
+
+    const url = new URL(historyUrl);
+
+    // for local history, url entries end with / in case of multi report configuration, thus plugin id and index.html is added
+    // if url pathname does not end with /, it assumes single flattened report structure without plugin id
+    if (url.pathname.endsWith("/")) {
+      url.pathname = `${url.pathname}${pluginId}/index.html`;
+    }
+
+    url.hash = historicalResultId;
+
+    return url.toString();
+  }
 
   async readHistory() {
     if (this.#cachedHistory.length > 0) {
@@ -136,17 +200,15 @@ export class AllureLocalHistory implements AllureHistory {
 
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
 
+    let dst: WriteStream | undefined;
+
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
-      if (limit === 0 && historyExists) {
-        await historyFile.truncate(0);
+      if (limit === 0) {
+        if (historyExists) await historyFile.truncate(0);
         return;
       }
 
-      if (limit === 0 && !historyExists) {
-        return;
-      }
+      dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
@@ -165,7 +227,13 @@ export class AllureLocalHistory implements AllureHistory {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
-      await historyFile.close();
+      const closing = historyFile.close();
+      // workaround for yarn PnP issue that cause EBADF on destroy call in tests
+      // https://github.com/yarnpkg/berry/pull/6919
+      if (historyFile.fd !== -1) {
+        dst?.destroy();
+      }
+      await closing;
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {

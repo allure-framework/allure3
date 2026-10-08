@@ -164,6 +164,7 @@ export interface TestingPyramidChartData {
     layer: string;
     testCount: number;
     successRate: number;
+    eligibleCount?: number;
     percentage: number;
   }[];
 }
@@ -546,6 +547,8 @@ export type ChartOptions =
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
   testResults: TestResult[];
+  /** Unfiltered current results, including retries, for legacy alias ownership. */
+  allTestResults?: TestResult[];
   statistic: Statistic;
 }
 

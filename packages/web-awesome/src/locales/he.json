@@ -22,7 +22,8 @@
     "globalAttachments": "קבצים מצורפים גלובליים",
     "globalErrors": "שגיאות גלובליות",
     "qualityGates": "שערי איכות",
-    "categories": "קטגוריות"
+    "categories": "קטגוריות",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "חפש",
@@ -56,7 +57,20 @@
       "regressed": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"שבור\" ל-\"נכשל\"",
       "malfunctioned": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"נכשל\" ל-\"שבור\"",
       "tags": "הצג תוצאות בדיקות שיש להן את התגים שצוינו",
-      "categories": "הצג תוצאות בדיקות שיש להן את הקטגוריות שצוינו"
+      "categories": "הצג תוצאות בדיקות שיש להן את הקטגוריות שצוינו",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results",
+        "none": "הצג תוצאות בדיקה שנכשלו או נשברו ללא פתרון"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted",
+      "none": "ללא פתרון"
     }
   },
   "sort-by": {
@@ -111,14 +125,17 @@
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
     "no-test-case-results": "אין תוצאות של מקרי בדיקה",
     "no-environments-results": "לא נמצא מידע על סביבות",
-    "no-categories-results": "אין קטגוריות זמינות"
+    "no-categories-results": "אין קטגוריות זמינות",
+    "no-metrics-results": "אין מדדים זמינים",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "חוסם",
     "critical": "קריטי",
     "normal": "רגיל",
     "minor": "קל",
-    "trivial": "פעוט"
+    "trivial": "פעוט",
+    "none": "ללא חומרה"
   },
   "execution": {
     "name": "ביצוע",
@@ -138,12 +155,14 @@
     "category": "קטגוריה",
     "description": "תיאור",
     "links": "קישורים",
+    "relatedTestResults": "תוצאות בדיקה קשורות ({{count}})",
     "overview": "סקירה כללית",
     "history": "היסטוריה",
     "attachments": "קבצים מצורפים",
     "retries": "נסיונות חוזרים",
     "environments": "סביבות",
     "error": "שגיאה",
+    "success": "הצלחה",
     "goToStep": "עבור לשלב",
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
@@ -158,7 +177,10 @@
     "pwTracePopupBlocked": "הדפדפן חסם את פתיחת Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})",
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "פירורי לחם",
+    "breadcrumbs-hidden": "הצג פירורי לחם מוסתרים"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",
@@ -173,7 +195,9 @@
     "clipboardError": "לא ניתן להעתיק ללוח. ייתכן שהתכונה לא נתמכת בדפדפן שלך",
     "clipboardSuccess": "הועתק בהצלחה",
     "collapse": "כווץ",
+    "collapseAll": "כווץ הכל",
     "expand": "הרחב",
+    "expandAll": "הרחב הכל",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
     "openInNewTab": "פתח בכרטיסייה חדשה",
@@ -197,7 +221,8 @@
   "sections": {
     "report": "Report",
     "charts": "גרפים",
-    "timeline": "ציר זמן"
+    "timeline": "ציר זמן",
+    "metrics": "מדדים"
   },
   "timeline": {
     "empty": "אין נתונים",
@@ -393,6 +418,45 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "מדדי ביצועים",
+      "phaseSummary": "סיכום מדדים",
+      "currentValues": "ערכים נוכחיים",
+      "historyTitle": "היסטוריית מדד",
+      "noHistory": "אין עדיין היסטוריה למדד זה",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "מדד",
+        "phase": "ערכת מדדים",
+        "count": "ספירה",
+        "total": "סה״כ",
+        "avg": "ממוצע",
+        "min": "מינימום",
+        "max": "מקסימום",
+        "value": "ערך",
+        "delta": "שינוי",
+        "trend": "מגמה",
+        "source": "מקור",
+        "report": "דוח",
+        "date": "תאריך"
+      },
+      "summary": "{{groups}} שורות סיכום / {{metrics}} מדדים",
+      "groups": {
+        "other": "אחר"
+      }
+    },
+    "successRate": {
+      "successRate": "שיעור הצלחה: {{rate}}",
+      "successRateDescription": "מחושב לפי בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות.",
+      "noResults": "אין תוצאות בדיקות.",
+      "noEligibleResults": "אין בדיקות שעברו, נכשלו או נשברו. בדיקות שדולגו ובדיקות במצב לא ידוע אינן נכללות בשיעור ההצלחה.",
+      "slice_one": "בדיקה אחת: {{count}} ({{percent}}% מכל הבדיקות)",
+      "slice_other": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
+      "layer": "שכבה: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% מכל הבדיקות)",
+      "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
+      "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
     }
   },
   "transitions": {
@@ -402,7 +466,12 @@
       "regressed": "בדיקה שהייתה קודם \"עברה\" או \"שבורה\" ועכשיו \"נכשלה\"",
       "malfunctioned": "בדיקה שהייתה קודם \"עברה\" או \"נכשלה\" ועכשיו \"שבורה\"",
       "retries": "{{count}} ניסיונות חוזרים",
-      "flaky": "לא עקבי בין הרצות"
+      "flaky": "לא עקבי בין הרצות",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "חדש",
     "fixed": "מתוקן",
@@ -474,13 +543,10 @@
       "reportTabQualityGate": "לשונית דוח: שער איכות",
       "reportTabGlobalAttachments": "לשונית דוח: קבצים מצורפים גלובליים",
       "reportTabGlobalErrors": "לשונית דוח: שגיאות גלובליות",
-      "reportTabNext": "לשונית דוח הבאה",
-      "reportTabPrev": "לשונית דוח הקודמת",
       "nextTest": "תוצאת בדיקה הבאה",
       "prevTest": "תוצאת בדיקה הקודמת",
-      "testTabNext": "לשונית בדיקה הבאה",
-      "testTabPrev": "לשונית בדיקה הקודמת",
       "tabOverview": "לשונית סקירה",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "לשונית היסטוריה",
       "tabRetries": "לשונית ניסיונות חוזרים",
       "tabAttachments": "לשונית קבצים מצורפים",
@@ -488,7 +554,8 @@
       "toggleLabels": "הצג/הסתר תוויות",
       "toggleParameters": "הצג/הסתר פרמטרים",
       "toggleLinks": "הצג/הסתר קישורים",
-      "backToTree": "חזור לעץ"
+      "backToTree": "חזור לעץ",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

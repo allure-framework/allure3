@@ -19,7 +19,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
     duration: 1,
     flaky: false,
     muted: false,
-    known: false,
+    parametersHash: "parameters-hash",
     isRetry: false,
     labels: [],
     parameters: [],
@@ -36,6 +36,50 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
+  it("keeps identifiers used by test result copy actions", () => {
+    const result = convertTestResult(
+      createTestResult({
+        retryHash: "retry-hash",
+        testCase: { id: "test-case-id", name: "name" },
+      }),
+    );
+
+    expect(result.testCase?.id).toBe("test-case-id");
+    expect(result.retryHash).toBe("retry-hash");
+    expect(result).not.toHaveProperty("historyId");
+  });
+
+  it("keeps multiple test errors on convert", () => {
+    const result = convertTestResult(
+      createTestResult({
+        error: { message: "first assertion" },
+        errors: [{ message: "first assertion" }, { message: "second assertion" }],
+      }),
+    );
+
+    expect(result.error).toEqual({ message: "first assertion" });
+    expect(result.errors).toEqual([{ message: "first assertion" }, { message: "second assertion" }]);
+  });
+
+  it("keeps known resolution fields on convert", () => {
+    const result = convertTestResult(
+      createTestResult({
+        status: "failed",
+        known: true,
+        muted: false,
+        resolution: "accepted",
+        resolutionComment: "Accepted from result (known)",
+      }),
+    );
+
+    expect(result).toMatchObject({
+      known: true,
+      muted: false,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+  });
+
   it("converts markdown description to html when descriptionHtml is missing", () => {
     const result = convertTestResult(createTestResult({ description: "**bold** text" }));
 

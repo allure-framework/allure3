@@ -5,7 +5,7 @@ import { DEFAULT_ANCESTOR_LIMIT } from "@allurereport/git";
 import type { TestOpsPluginOptions } from "../model.js";
 import type { ResolvedGitFlowOptions } from "./types.js";
 
-const parseEnvBool = (value?: string): boolean | undefined => {
+export const parseEnvBool = (value?: string): boolean | undefined => {
   if (value === undefined || value === "") {
     return undefined;
   }

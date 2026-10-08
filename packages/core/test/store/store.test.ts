@@ -2,27 +2,33 @@
 import {
   type AllureHistory,
   type AttachmentLinkLinked,
+  calculateEnvironmentHash,
+  calculateParametersHash,
+  calculateRetryHash,
   type HistoryDataPoint,
   fallbackTestCaseIdLabelName,
-  type TestResult,
 } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { calculateParametersHash, calculateRetryHash } from "../../src/store/retrySubstore.js";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
+import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 class AllureTestHistory implements AllureHistory {
+  readonly appended: HistoryDataPoint[] = [];
+
   constructor(readonly history: HistoryDataPoint[]) {}
 
   async readHistory(): Promise<HistoryDataPoint[]> {
     return this.history;
   }
 
-  async appendHistory(): Promise<void> {}
+  async appendHistory(history: HistoryDataPoint): Promise<void> {
+    this.appended.push(history);
+  }
 }
 
 const readerId = "store.test.ts";
@@ -32,6 +38,10 @@ beforeEach(async () => {
   await feature("report-engine");
   await story("store");
   await label("coverage", "report-engine");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("test results", () => {
@@ -244,7 +254,7 @@ describe("test results", () => {
     );
   });
 
-  it("should calculate historyId for test results", async () => {
+  it("should calculate canonical hashes for test results", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -254,94 +264,466 @@ describe("test results", () => {
 
     const [tr] = await store.allTestResults();
     expect(tr).toMatchObject({
-      historyId: `${md5("some")}.${md5("")}`,
+      testCaseHash: md5("some"),
+      parametersHash: md5(""),
+      retryHash: `${md5("some")}.${md5("")}`,
+    });
+    expect(tr).not.toHaveProperty("historyId");
+  });
+
+  it("should accept known failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "known failed", status: "failed", known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      muted: false,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should mute muted failed results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat result known", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "muted and known", status: "failed", muted: true, known: true }, { readerId });
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      known: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
     });
   });
 
-  it("should not apply known history to passed results", async () => {
-    const historyId = `${md5("known-test")}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      known: [{ historyId }],
-    });
+  it("should accept known broken results when no resolution rule matches", async () => {
+    const store = new DefaultAllureStore();
 
-    await store.visitTestResult(
-      {
-        name: "passed test",
-        status: "passed",
-        testId: "known-test",
-      },
-      { readerId },
-    );
+    await store.visitTestResult({ name: "known broken", status: "broken", known: true }, { readerId });
 
-    const [testResult] = await store.allTestResults();
+    const [tr] = await store.allTestResults();
 
-    expect(testResult).toMatchObject({
-      known: false,
-      status: "passed",
-      historyId,
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
     });
   });
 
-  it("should classify failed and broken results as known during visitTestResult", async () => {
-    const failedTestId = "failed-known";
-    const brokenTestId = "broken-known";
-    const failedHistoryId = `${md5(failedTestId)}.${md5("")}`;
-    const brokenHistoryId = `${md5(brokenTestId)}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      known: [
-        { historyId: failedHistoryId, reason: "failed defect" },
-        { historyId: brokenHistoryId, reason: "broken defect" },
-      ],
-    });
+  it("should not accept known passed results", async () => {
+    const store = new DefaultAllureStore();
 
-    await store.visitTestResult(
-      {
-        name: "known failed test",
-        status: "failed",
-        testId: failedTestId,
-      },
-      { readerId },
-    );
-    await store.visitTestResult(
-      {
-        name: "known broken test",
-        status: "broken",
-        testId: brokenTestId,
-      },
-      { readerId },
-    );
+    await store.visitTestResult({ name: "known passed", status: "passed", known: true }, { readerId });
 
-    const testResults = await store.allTestResults({ includeRetries: true });
+    const [tr] = await store.allTestResults();
 
-    expect(testResults).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "known failed test", known: true }),
-        expect.objectContaining({ name: "known broken test", known: true }),
-      ]),
-    );
+    expect(tr.known).toBe(true);
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
   });
 
-  it("should classify failed and broken results by known issues rules during visitTestResult", async () => {
+  it("should let known beat matching muted resolution rule", async () => {
     const store = new DefaultAllureStore({
-      knownIssuesConfig: {
+      resolutionsConfig: {
         rules: [
           {
-            testCaseId: md5("tc-1"),
-            messageRegexp: "tracked defect",
-            decision: {
-              reason: "tracked defect",
-              links: [{ type: "issue", url: "https://example.org/issue-1" }],
-            },
+            resolution: "muted",
+            comment: "would mute if not known",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let result muted beat matching accepted resolution rule", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "would accept if not muted",
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const blockingFailed = await store.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should let matching issue rule beat result muted", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "muted failed", status: "failed", muted: true, testId: "tc-muted" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-1",
+      type: "jira",
+      link: {
+        name: "Jira SHOP-1",
+        url: "https://example.org/SHOP-1",
+        type: "jira",
+      },
+    });
+  });
+
+  it("should let matching issue rule beat result known", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-2", type: "jira" },
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "issue",
+    });
+    await expect(store.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-2",
+      type: "jira",
+      link: {
+        name: "Jira SHOP-2",
+        url: "https://example.org/SHOP-2",
+        type: "jira",
+      },
+    });
+  });
+
+  it("should keep known accepted after dump restore even with matching muted rule", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult(
+      { name: "known failed", status: "failed", known: true, testId: "tc-known" },
+      { readerId },
+    );
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "rule would mute",
+            testCaseId: [md5("tc-known")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr).toMatchObject({
+      known: true,
+      resolution: "accepted",
+      resolutionComment: "Accepted from result (known)",
+    });
+    expect(blockingFailed).toEqual([]);
+  });
+
+  it("should clear dumped resolution when restore rules no longer match", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-stale")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "stale muted", status: "failed", testId: "tc-stale" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+    const blockingFailed = await target.blockingFailedTestResults();
+
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+    expect(blockingFailed).toEqual([tr]);
+  });
+
+  it("should clear stale issue associations when no current rule matches", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-KEEP", type: "jira" },
+            comment: "tracked forever",
+            testCaseId: [md5("tc-issue-keep")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-keep" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "other test only",
+            testCaseId: [md5("tc-other")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr.resolution).toBeUndefined();
+    expect(tr.resolutionComment).toBeUndefined();
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toBeUndefined();
+  });
+
+  it("should overwrite dumped resolution when restore rules match a new resolution", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "will overwrite", status: "failed", testId: "tc-overwrite" }, { readerId });
+
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-9", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-overwrite")],
+          },
+        ],
+      },
+    });
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      resolution: "issue",
+      resolutionComment: "tracked",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toEqual({
+      id: "SHOP-9",
+      type: "jira",
+      comment: "tracked",
+      link: {
+        name: "Jira SHOP-9",
+        url: "https://example.org/SHOP-9",
+        type: "jira",
+      },
+    });
+  });
+
+  it("should classify result muted on restore without resolutionsConfig", async () => {
+    const source = new DefaultAllureStore();
+
+    await source.visitTestResult({ name: "muted failed", status: "failed", muted: true }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      resolution: undefined,
+      resolutionComment: undefined,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+  });
+
+  it("should overwrite issue with result muted on restore and clear association", async () => {
+    const source = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-MUTE", type: "jira" },
+            comment: "tracked",
+            testCaseId: [md5("tc-issue-mute")],
+          },
+        ],
+      },
+    });
+
+    await source.visitTestResult({ name: "issue failed", status: "failed", testId: "tc-issue-mute" }, { readerId });
+
+    const dump = source.dumpState();
+    const [dumpedId, dumpedTr] = Object.entries(dump.testResults)[0]!;
+
+    dump.testResults[dumpedId] = {
+      ...dumpedTr,
+      muted: true,
+      known: false,
+    };
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(dump);
+
+    const [tr] = await target.allTestResults();
+
+    expect(tr).toMatchObject({
+      muted: true,
+      resolution: "muted",
+      resolutionComment: "Muted from result",
+    });
+    await expect(target.resolutionIssueByTestResultId(tr.id)).resolves.toBeUndefined();
+  });
+
+  it("should classify failures by resolution rules and leave passed tests unclassified", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        links: { jira: { nameTemplate: "Jira %s", urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "accepted",
+            comment: "Accepted risk",
+            testCaseId: [md5("tc-1"), md5("tc-2"), md5("tc-3")],
           },
           {
-            testCaseId: md5("tc-2"),
-            decision: {
-              reason: "known broken defect",
-              links: [
-                { type: "issue", url: "https://example.org/issue-2" },
-                { type: "tms", url: "https://example.org/tms-2" },
-              ],
-            },
+            resolution: "muted",
+            comment: "noise",
+            testCaseId: [md5("tc-1"), md5("tc-2")],
+          },
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            comment: "Tracked defect",
+            testCaseId: [md5("tc-1")],
+            messageRegexp: "tracked defect",
           },
         ],
       },
@@ -349,7 +731,7 @@ describe("test results", () => {
 
     await store.visitTestResult(
       {
-        name: "known by rule",
+        name: "issue by rule",
         status: "failed",
         testId: "tc-1",
         message: "tracked defect reproduced",
@@ -358,100 +740,184 @@ describe("test results", () => {
     );
     await store.visitTestResult(
       {
-        name: "known broken by rule",
+        name: "muted by rule",
         status: "broken",
         testId: "tc-2",
       },
       { readerId },
     );
+    await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-2" }, { readerId });
+    await store.visitTestResult({ name: "accepted by rule", status: "failed", testId: "tc-3" }, { readerId });
 
     const testResults = await store.allTestResults({ includeRetries: true });
-    const knownIssues = await store.allKnownIssues();
+    const resolutionIssues = await store.allResolutionIssues();
     const blockingFailed = await store.blockingFailedTestResults();
-    const failedResult = testResults.find((tr) => tr.name === "known by rule")!;
-    const brokenResult = testResults.find((tr) => tr.name === "known broken by rule")!;
+    const issueResult = testResults.find((tr) => tr.name === "issue by rule")!;
 
-    expect(failedResult.known).toBe(true);
-    expect(brokenResult.known).toBe(true);
-    expect(blockingFailed).toEqual([]);
-    expect(knownIssues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          historyId: failedResult.historyId,
-          reason: "tracked defect",
-          links: [{ type: "issue", url: "https://example.org/issue-1" }],
-        }),
-        expect.objectContaining({
-          historyId: brokenResult.historyId,
-          reason: "known broken defect",
-          links: [
-            { type: "issue", url: "https://example.org/issue-2" },
-            { type: "tms", url: "https://example.org/tms-2" },
-          ],
-        }),
-      ]),
-    );
+    expect(issueResult.resolution).toBe("issue");
+    expect(issueResult.resolutionComment).toBe("Tracked defect");
+    expect(issueResult.links).toEqual([]);
+    expect(testResults.find((tr) => tr.name === "muted by rule")).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "noise",
+    });
+    expect(testResults.find((tr) => tr.name === "accepted by rule")).toMatchObject({
+      resolution: "accepted",
+      resolutionComment: "Accepted risk",
+    });
+    expect(testResults.find((tr) => tr.name === "passed")?.resolution).toBeUndefined();
+    expect(blockingFailed).toEqual([issueResult]);
+    expect(resolutionIssues).toEqual([
+      {
+        id: "SHOP-1",
+        type: "jira",
+        comment: "Tracked defect",
+        link: {
+          name: "Jira SHOP-1",
+          url: "https://example.org/SHOP-1",
+          type: "jira",
+        },
+      },
+    ]);
+    await expect(store.resolutionIssueByTestResultId(issueResult.id)).resolves.toEqual(resolutionIssues[0]);
+    await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });
 
-  it("should reclassify restored known flags with current known issues config", async () => {
-    const staleKnownHistoryId = "stale-known";
-    const currentKnownHistoryId = "current-known";
-    const dump = {
-      testResults: {
-        stale: {
-          id: "stale",
-          name: "stale known test",
-          status: "failed",
-          historyId: staleKnownHistoryId,
-          known: true,
-          parameters: [],
-          environment: "default",
+  it("should ignore stale resolution issue associations from the dump index", async () => {
+    const resolutionsConfig = {
+      links: { jira: { urlTemplate: "https://example.org/%s" } },
+      rules: [
+        {
+          resolution: "issue" as const,
+          issue: { id: "SHOP-1", type: "jira" },
+          testCaseId: [md5("tc-1")],
         },
-        current: {
-          id: "current",
-          name: "current known test",
-          status: "failed",
-          historyId: currentKnownHistoryId,
-          known: false,
-          parameters: [],
-          environment: "default",
-        },
-      },
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["default"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        [staleKnownHistoryId]: ["stale"],
-        [currentKnownHistoryId]: ["current"],
-      },
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      knownIssues: {},
-      testResultIdsIngestOrder: ["stale", "current"],
+      ],
     };
+    const source = new DefaultAllureStore({ resolutionsConfig });
+    await source.visitTestResult({ name: "failed", status: "failed", testId: "tc-1" }, { readerId });
+    const dump = source.dumpState();
+    const target = new DefaultAllureStore();
+
+    expect(dump.indexTestResultByResolutionIssue).toEqual({ "SHOP-1": [expect.any(String)] });
+
+    await target.restoreState(dump);
+    const [restored] = await target.allTestResults();
+
+    expect(restored.resolution).toBeUndefined();
+    expect(restored.resolutionComment).toBeUndefined();
+    await expect(target.resolutionIssueByTestResultId(restored.id)).resolves.toBeUndefined();
+    await expect(target.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([]);
+  });
+
+  it("should include resolution counters in test statistics", async () => {
     const store = new DefaultAllureStore({
-      known: [{ historyId: currentKnownHistoryId, reason: "current defect" }],
+      resolutionsConfig: {
+        links: { jira: { urlTemplate: "https://example.org/%s" } },
+        rules: [
+          {
+            resolution: "issue",
+            issue: { id: "SHOP-1", type: "jira" },
+            testCaseId: [md5("tc-issue")],
+          },
+          {
+            resolution: "muted",
+            comment: "muted failure",
+            testCaseId: [md5("tc-muted")],
+          },
+          {
+            resolution: "accepted",
+            comment: "accepted failure",
+            testCaseId: [md5("tc-accepted")],
+          },
+        ],
+      },
     });
 
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    const testResults = await store.allTestResults({ includeRetries: true });
-
-    expect(testResults).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: "stale", known: false }),
-        expect.objectContaining({ id: "current", known: true }),
-      ]),
+    await store.visitTestResult(
+      { name: "issue latest", status: "failed", testId: "tc-issue", start: 1000 },
+      { readerId },
     );
+    await store.visitTestResult({ name: "issue retry", status: "failed", testId: "tc-issue", start: 0 }, { readerId });
+    await store.visitTestResult({ name: "muted", status: "broken", testId: "tc-muted" }, { readerId });
+    await store.visitTestResult({ name: "accepted", status: "failed", testId: "tc-accepted" }, { readerId });
+    await store.visitTestResult({ name: "passed", status: "passed", testId: "tc-passed" }, { readerId });
+
+    await expect(store.testsStatistic()).resolves.toMatchObject({
+      total: 4,
+      failed: 2,
+      broken: 1,
+      passed: 1,
+      resolutions: {
+        issues: 1,
+        muted: 1,
+        accepted: 1,
+      },
+    });
+    await expect(store.testsStatistic((tr) => tr.status === "failed")).resolves.toMatchObject({
+      total: 2,
+      failed: 2,
+      resolutions: {
+        issues: 1,
+        accepted: 1,
+      },
+    });
   });
+
+  it.each(["issue", "muted", "accepted"] as const)(
+    "should reclassify restored results as %s using canonical retry hashes",
+    async (resolution) => {
+      const source = new DefaultAllureStore({
+        resolutionsConfig: {
+          rules: [{ resolution: "issue", issue: { id: "OLD-1", type: "jira" }, messageRegexp: "defect" }],
+        },
+      });
+
+      for (const [testId, status] of [
+        ["stale", "failed"],
+        ["current", "broken"],
+        ["passed", "passed"],
+      ] as const) {
+        await source.visitTestResult({ name: testId, testId, status, message: "defect" }, { readerId });
+      }
+
+      const dump = source.dumpState();
+
+      for (const result of Object.values(dump.testResults)) {
+        result.retryHash = "stale-retry-hash";
+        result.testCase!.id = "stale-test-case-id";
+      }
+
+      const currentRetryHash = `${md5("current")}.${md5("")}`;
+      const retryHash = [currentRetryHash, `${md5("passed")}.${md5("")}`];
+      const target = new DefaultAllureStore({
+        resolutionsConfig: {
+          rules: [
+            resolution === "issue"
+              ? { resolution, issue: { id: "NEW-1", type: "jira" }, retryHash }
+              : { resolution, comment: "Current decision", retryHash },
+          ],
+        },
+      });
+
+      await target.restoreState(dump);
+
+      const results = await target.allTestResults();
+      const current = results.find(({ name }) => name === "current")!;
+
+      expect(current).toMatchObject({ resolution, retryHash: currentRetryHash, testCase: { id: md5("current") } });
+      expect(results.find(({ name }) => name === "stale")?.resolution).toBeUndefined();
+      expect(results.find(({ name }) => name === "passed")?.resolution).toBeUndefined();
+      expect(target.dumpState().indexTestResultByRetryHash[currentRetryHash]).toEqual([current.id]);
+      await expect(target.testResultsByResolutionIssueId("OLD-1")).resolves.toEqual([]);
+      await expect(target.resolutionIssueByTestResultId(current.id)).resolves.toEqual(
+        resolution === "issue" ? { id: "NEW-1", type: "jira" } : undefined,
+      );
+      expect((await target.blockingFailedTestResults()).map(({ name }) => name).sort()).toEqual(
+        resolution === "issue" ? ["current", "stale"] : ["stale"],
+      );
+    },
+  );
 
   it("should mark retries as isRetry", async () => {
     const store = new DefaultAllureStore();
@@ -480,6 +946,52 @@ describe("test results", () => {
         }),
       ]),
     );
+  });
+
+  it("should not group class-level fixture failures with AS_ID placeholder as retries", async () => {
+    const store = new DefaultAllureStore();
+    const testA: RawTestResult = {
+      uuid: "test-a-result",
+      name: "TestA",
+      fullName: "org.example.TestA",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestA]",
+      historyId: "test-a-history",
+      status: "broken",
+      message: "setup failed in TestA",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestA]" },
+        { name: "suite", value: "org.example.TestA" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+    const testB: RawTestResult = {
+      uuid: "test-b-result",
+      name: "TestB",
+      fullName: "org.example.TestB",
+      testId: "[engine:junit-jupiter]/[class:org.example.TestB]",
+      historyId: "test-b-history",
+      status: "broken",
+      message: "setup failed in TestB",
+      labels: [
+        { name: "junit.platform.uniqueid", value: "[engine:junit-jupiter]/[class:org.example.TestB]" },
+        { name: "suite", value: "org.example.TestB" },
+        { name: "AS_ID", value: "-1" },
+      ],
+    };
+
+    await store.visitTestResult(testA, { readerId });
+    await store.visitTestResult(testB, { readerId });
+
+    const testResults = await store.allTestResults();
+    const statistic = await store.testsStatistic();
+
+    expect(testResults.map(({ name }) => name).sort()).toEqual(["TestA", "TestB"]);
+    expect(testResults.every(({ isRetry }) => !isRetry)).toBe(true);
+    expect(statistic).toMatchObject({
+      total: 2,
+      broken: 2,
+    });
+    expect(statistic.retries).toBeUndefined();
   });
 
   it("should not mark latest environment test result as retry", async () => {
@@ -688,7 +1200,7 @@ describe("test results", () => {
     );
     expect(fooResult).toEqual(
       expect.objectContaining({
-        environment: "Foo",
+        environment: "foo",
         retryHash: expect.any(String),
       }),
     );
@@ -697,10 +1209,22 @@ describe("test results", () => {
     const fooParametersHash = calculateParametersHash(fooResult!.parameters);
 
     expect(defaultResult!.retryHash).toEqual(
-      calculateRetryHash(defaultResult!.testCase?.id, defaultParametersHash, "default"),
+      calculateRetryHash({ testCaseHash: defaultResult!.testCaseHash, parametersHash: defaultParametersHash }),
     );
-    expect(fooResult!.retryHash).toEqual(calculateRetryHash(fooResult!.testCase?.id, fooParametersHash, "foo"));
-    expect(fooResult!.retryHash).not.toEqual(calculateRetryHash(fooResult!.testCase?.id, fooParametersHash, "Foo"));
+    expect(fooResult!.retryHash).toEqual(
+      calculateRetryHash({
+        testCaseHash: fooResult!.testCaseHash,
+        parametersHash: fooParametersHash,
+        environmentHash: calculateEnvironmentHash("foo"),
+      }),
+    );
+    expect(fooResult!.retryHash).not.toEqual(
+      calculateRetryHash({
+        testCaseHash: fooResult!.testCaseHash,
+        parametersHash: fooParametersHash,
+        environmentHash: calculateEnvironmentHash("Foo"),
+      }),
+    );
 
     const defaultRetries = defaultResult ? await store.retriesByTrId(defaultResult.id) : [];
     const fooRetries = fooResult ? await store.retriesByTrId(fooResult.id) : [];
@@ -745,7 +1269,7 @@ describe("test results", () => {
     expect(retries.map(({ name }) => name)).toEqual(["retry"]);
   });
 
-  it("should respect provided parametersHash when building retryHash", async () => {
+  it("should ignore a shared adapter parametersHash when parameters differ", async () => {
     const store = new DefaultAllureStore();
 
     await store.visitTestResult(
@@ -772,10 +1296,10 @@ describe("test results", () => {
     const [latest] = await store.allTestResults();
     const retries = await store.retriesByTrId(latest.id);
 
-    expect(retries.map(({ name }) => name)).toEqual(["retry"]);
+    expect(retries).toEqual([]);
   });
 
-  it("should not group results as retries when parameters match but parametersHash differs", async () => {
+  it("should ignore different adapter parametersHash values when parameters match", async () => {
     const store = new DefaultAllureStore();
     const sharedParameters = [{ name: "a", value: "1", excluded: false }];
 
@@ -800,21 +1324,21 @@ describe("test results", () => {
       { readerId },
     );
 
-    const allTestResults = await store.allTestResults();
+    const allTestResults = await store.allTestResults({ includeRetries: true });
     const latest = allTestResults.find((tr) => tr.name === "latest");
     const other = allTestResults.find((tr) => tr.name === "other");
 
     expect(latest?.retryHash).toBeDefined();
     expect(other?.retryHash).toBeDefined();
-    expect(latest?.retryHash).not.toEqual(other?.retryHash);
+    expect(latest?.retryHash).toEqual(other?.retryHash);
 
     const latestRetries = latest ? await store.retriesByTrId(latest.id) : [];
     const otherRetries = other ? await store.retriesByTrId(other.id) : [];
 
-    expect(latestRetries).toEqual([]);
-    expect(otherRetries).toEqual([]);
+    expect(latestRetries).toEqual([expect.objectContaining({ name: "other" })]);
+    expect(otherRetries).toEqual([expect.objectContaining({ name: "latest" })]);
     expect(latest?.isRetry).toBe(false);
-    expect(other?.isRetry).toBe(false);
+    expect(other?.isRetry).toBe(true);
   });
 });
 
@@ -834,14 +1358,14 @@ describe("environments", () => {
   });
 });
 describe("allNewTestResults", () => {
-  const historyId = `${md5("test1")}.${md5("")}`;
+  const retryHash = `${md5("test1")}.${md5("")}`;
   const createHistoryDataPoint = (testResultKeys: string[]): HistoryDataPoint => ({
     uuid: "dp-1",
     name: "history point",
     timestamp: 1,
     knownTestCaseIds: [],
     testResults: Object.fromEntries(
-      testResultKeys.map((key) => [key, { id: key, name: key, status: "passed" as const, url: "", historyId: key }]),
+      testResultKeys.map((key) => [key, { id: key, name: key, status: "passed" as const, url: "", retryHash: key }]),
     ),
     metrics: {},
     url: "",
@@ -870,7 +1394,7 @@ describe("allNewTestResults", () => {
 
   it("should return empty array when test result exists in history", async () => {
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([retryHash])]),
     });
 
     await store.readHistory();
@@ -881,11 +1405,11 @@ describe("allNewTestResults", () => {
     expect(result).toEqual([]);
   });
 
-  it("should return empty array for migrated test when history exists only for fallback testCaseId", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+  it("should treat a migrated test as new when history exists only for fallback testCaseId", async () => {
+    const fallbackTestCaseId = "legacy-test-case-id";
+    const fallbackRetryHash = `${md5(fallbackTestCaseId)}.${md5("")}`;
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([fallbackHistoryId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([fallbackRetryHash])]),
     });
 
     await store.readHistory();
@@ -900,7 +1424,7 @@ describe("allNewTestResults", () => {
 
     const result = await store.allNewTestResults();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
   });
 
   it("should return test result when it is not in history", async () => {
@@ -917,7 +1441,7 @@ describe("allNewTestResults", () => {
 
   it("should use provided history argument over stored history", async () => {
     const store = new DefaultAllureStore({
-      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+      history: new AllureTestHistory([createHistoryDataPoint([retryHash])]),
     });
     await store.readHistory();
     await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
@@ -972,101 +1496,6 @@ describe("allNewTestResults", () => {
 
     expect(noMatch).toEqual([]);
     expect(match).toEqual([expect.objectContaining({ name: "tr1" })]);
-  });
-});
-
-describe("unknownFailedTestResults", () => {
-  it("should treat migrated failed test as known when known issue contains fallback historyId", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      known: [{ historyId: fallbackHistoryId }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "failed test",
-        testId: "new-test-case-id",
-        status: "failed",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      },
-      { readerId },
-    );
-
-    const unknownFailed = await store.unknownFailedTestResults();
-
-    expect(unknownFailed).toEqual([]);
-  });
-
-  it("should keep known failures suppressed", async () => {
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const store = new DefaultAllureStore({
-      known: [{ historyId: fallbackHistoryId }],
-    });
-
-    await store.visitTestResult(
-      {
-        name: "known failed test",
-        testId: "new-test-case-id",
-        status: "failed",
-        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
-      },
-      { readerId },
-    );
-    const allKnownIssues = await store.allKnownIssues();
-    const blockingFailed = await store.blockingFailedTestResults();
-    const unknownFailed = await store.unknownFailedTestResults();
-    const allTestResults = await store.allTestResults({ includeRetries: true });
-
-    expect(allKnownIssues.map(({ historyId }) => historyId)).toEqual([fallbackHistoryId]);
-    expect(blockingFailed).toEqual([]);
-    expect(unknownFailed).toEqual([]);
-    expect(allTestResults.find((tr) => tr.name === "known failed test")?.known).toBe(true);
-  });
-
-  it("should preserve current and restored known issues across restores", async () => {
-    const known1HistoryId = `${md5("known-1")}.${md5("")}`;
-    const known2HistoryId = `${md5("known-2")}.${md5("")}`;
-    const source1 = new DefaultAllureStore({
-      known: [{ historyId: known1HistoryId }],
-    });
-    const source2 = new DefaultAllureStore({
-      known: [{ historyId: known2HistoryId }],
-    });
-
-    await source1.visitTestResult(
-      {
-        name: "known source test",
-        status: "failed",
-        testId: "known-1",
-      },
-      { readerId },
-    );
-    await source2.visitTestResult(
-      {
-        name: "known source test 2",
-        status: "failed",
-        testId: "known-2",
-      },
-      { readerId },
-    );
-    const target = new DefaultAllureStore({
-      known: [{ historyId: "known-config" }],
-    });
-
-    const dump1 = source1.dumpState();
-    const dump2 = source2.dumpState();
-
-    await target.restoreState(dump1);
-    await target.restoreState(dump1);
-    await target.restoreState(dump2);
-
-    const knownIds = (await target.allKnownIssues()).map(({ historyId }) => historyId);
-
-    expect(knownIds).toHaveLength(3);
-    expect(new Set(knownIds).size).toBe(knownIds.length);
-    expect(knownIds).toEqual(["known-config", known1HistoryId, known2HistoryId]);
   });
 });
 
@@ -2205,17 +2634,246 @@ describe("history", () => {
     ]);
   });
 
-  it("should return history for migrated test result using fallback testCaseId label", async () => {
+  it("should read mixed legacy and canonical history without rewriting points", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const canonicalRetryHash = `${md5("test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const canonicalHistoryPoint: HistoryDataPoint = {
+      uuid: "hp2",
+      name: "Newer Allure Report",
+      timestamp: 456,
+      testResults: {
+        [canonicalRetryHash]: {
+          id: "newer-historical-result",
+          name: "newer historical test",
+          status: "failed",
+          url: "",
+        },
+        [legacyHistoryId]: {
+          id: "shadowed-legacy-result",
+          name: "legacy test shadowed by canonical identity",
+          status: "broken",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const testHistory = new AllureTestHistory([historyPoint, canonicalHistoryPoint]);
+    const store = new DefaultAllureStore({ history: testHistory });
+    const rawTestResult: RawTestResult = {
+      name: "current test",
+      testId: "test-case-id",
+      historyId: legacyHistoryId,
+    };
+    const originalHistoryPoint = structuredClone({
+      ...historyPoint,
+      testResults: {
+        ...historyPoint.testResults,
+        [legacyHistoryId]: {
+          ...historyPoint.testResults[legacyHistoryId],
+          retryHash: legacyHistoryId,
+        },
+      },
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(rawTestResult, { readerId });
+
+    const [testResult] = await store.allTestResults();
+    const history = await store.historyByTrId(testResult.id);
+    const storedHistoryPoints = await store.allHistoryDataPoints();
+    const storedLegacyHistoryPoint = storedHistoryPoints.find(({ uuid }) => uuid === "hp1")!;
+    expect(history).toEqual([
+      expect.objectContaining({
+        id: "newer-historical-result",
+        retryHash: testResult.retryHash,
+      }),
+      expect.objectContaining({
+        id: "historical-result",
+        retryHash: legacyHistoryId,
+      }),
+    ]);
+    expect(history).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: "shadowed-legacy-result" })]));
+    expect(testResult.sourceMetadata).toMatchObject({
+      legacyHistoryId,
+    });
+    expect(rawTestResult.historyId).toBe(legacyHistoryId);
+    expect(storedLegacyHistoryPoint).toEqual(originalHistoryPoint);
+    expect(await store.allNewTestResults()).toEqual([]);
+  });
+
+  it("should use a legacy history ID only for the default environment", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([historyPoint]),
+      environmentsConfig: {
+        qa: {
+          matcher: () => true,
+        },
+      },
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(
+      {
+        name: "current test",
+        testId: "test-case-id",
+        historyId: legacyHistoryId,
+      },
+      { readerId },
+    );
+
+    const [testResult] = await store.allTestResults();
+    const [storedHistoryPoint] = await store.allHistoryDataPoints();
+
+    expect(await store.historyByTrId(testResult.id)).toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(legacyHistoryId);
+    expect(storedHistoryPoint.testResults).not.toHaveProperty(testResult.retryHash!);
+  });
+
+  it("should silently skip an ambiguous legacy history ID", async () => {
+    const legacyHistoryId = "legacy-history-id";
+    const firstRetryHash = `${md5("first-test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [legacyHistoryId]: {
+          id: "historical-result",
+          name: "historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const canonicalHistoryPoint: HistoryDataPoint = {
+      uuid: "hp2",
+      name: "Newer Allure Report",
+      timestamp: 456,
+      testResults: {
+        [firstRetryHash]: {
+          id: "canonical-historical-result",
+          name: "canonical historical test",
+          status: "failed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([historyPoint, canonicalHistoryPoint]),
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(
+      { name: "first current test", testId: "first-test-case-id", historyId: legacyHistoryId },
+      { readerId },
+    );
+    await store.visitTestResult(
+      { name: "second current test", testId: "second-test-case-id", historyId: legacyHistoryId },
+      { readerId },
+    );
+
+    const storedHistoryPoint = (await store.allHistoryDataPoints()).find(({ uuid }) => uuid === "hp1")!;
+
+    await expect(store.historyByTrId((await store.allTestResults())[0]!.id)).resolves.toEqual([
+      expect.objectContaining({ id: "canonical-historical-result", retryHash: firstRetryHash }),
+    ]);
+    await expect(store.historyByTrId((await store.allTestResults())[1]!.id)).resolves.toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(legacyHistoryId);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("should skip a legacy history ID that collides with a canonical retry hash", async () => {
+    const canonicalRetryHash = `${md5("canonical-test-case-id")}.${md5("")}`;
+    const historyPoint: HistoryDataPoint = {
+      uuid: "hp1",
+      name: "Allure Report",
+      timestamp: 123,
+      testResults: {
+        [canonicalRetryHash]: {
+          id: "canonical-historical-result",
+          name: "canonical historical test",
+          status: "passed",
+          url: "",
+        },
+      },
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const store = new DefaultAllureStore({ history: new AllureTestHistory([historyPoint]) });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "canonical current test", testId: "canonical-test-case-id" }, { readerId });
+    await store.visitTestResult(
+      { name: "alias current test", testId: "alias-test-case-id", historyId: canonicalRetryHash },
+      { readerId },
+    );
+
+    const [canonicalResult, aliasResult] = await store.allTestResults();
+    const storedHistoryPoint = (await store.allHistoryDataPoints())[0];
+
+    expect(await store.historyByTrId(canonicalResult.id)).toEqual([
+      expect.objectContaining({ id: "canonical-historical-result" }),
+    ]);
+    expect(await store.historyByTrId(aliasResult.id)).toEqual([]);
+    expect(storedHistoryPoint.testResults).toHaveProperty(canonicalRetryHash);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("should ignore fallback testCaseId when resolving history without a catalog", async () => {
     const testId = "new-test-id";
-    const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const fallbackTestCaseId = "legacy-test-case-id";
+    const fallbackRetryHash = `${md5(fallbackTestCaseId)}.${md5("")}`;
     const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
         timestamp: 123,
         testResults: {
-          [fallbackHistoryId]: {
+          [fallbackRetryHash]: {
             id: "legacy-id",
             name: "legacy-name",
             status: "passed",
@@ -2244,13 +2902,7 @@ describe("history", () => {
     const [tr] = await store.allTestResults();
     const historyTestResults = await store.historyByTrId(tr.id);
 
-    expect(historyTestResults).toEqual([
-      expect.objectContaining({
-        id: "legacy-id",
-        name: "legacy-name",
-        status: "passed",
-      }),
-    ]);
+    expect(historyTestResults).toEqual([]);
   });
 
   it("should return history for test result sorted by timestamp desc", async () => {
@@ -2492,6 +3144,41 @@ describe("environments", () => {
     });
   });
 
+  it.each(["ALLURE_ID", "AS_ID", fallbackTestCaseIdLabelName])(
+    "should not match environments by the %s identity label",
+    async (labelName) => {
+      const store = new DefaultAllureStore({
+        environmentsConfig: {
+          qa: {
+            matcher: ({ labels }) =>
+              labels.some(({ name }) => name === "ALLURE_ID" || name === fallbackTestCaseIdLabelName),
+          },
+        },
+      });
+
+      await store.visitTestResult(
+        {
+          name: "identity label test",
+          testId: "identity-label-test",
+          labels: [{ name: labelName, value: "123" }],
+        },
+        { readerId },
+      );
+
+      const [result] = await store.allTestResults();
+
+      expect(result).toMatchObject({
+        environment: "default",
+        environmentHash: null,
+        retryHash: `${md5("identity-label-test")}.${md5("")}`,
+      });
+      expect(result.labels).toContainEqual({
+        name: labelName === "AS_ID" ? "ALLURE_ID" : labelName,
+        value: "123",
+      });
+    },
+  );
+
   it("should set default environment event when environments are not specified", async () => {
     const store = new DefaultAllureStore();
     const rawTr1: RawTestResult = {
@@ -2514,6 +3201,93 @@ describe("environments", () => {
       name: rawTr2.name,
       environment: "default",
     });
+  });
+
+  it.each([
+    [
+      "forced default",
+      {
+        environment: "default",
+        environmentsConfig: {
+          qa: {
+            matcher: () => {
+              throw new Error("Forced environments must bypass matchers");
+            },
+          },
+        },
+      },
+    ],
+    ["configured default matcher", { environmentsConfig: { default: { matcher: () => true } } }],
+  ])("should preserve %s environment identities through restore", async (_name, options) => {
+    const source = new DefaultAllureStore(options);
+
+    await source.visitTestResult(
+      { name: "default environment test", testId: "default-environment-test" },
+      { readerId },
+    );
+
+    const beforeRestore = structuredClone(await source.allTestResults({ includeRetries: true }));
+    const target = new DefaultAllureStore(options);
+    await target.restoreState(JSON.parse(JSON.stringify(source.dumpState())));
+
+    expect(await target.allTestResults({ includeRetries: true })).toEqual(beforeRestore);
+    expect(beforeRestore[0]).toMatchObject({ environment: "default", environmentHash: null });
+    expect(beforeRestore[0].retryHash).toBe(`${md5("default-environment-test")}.${md5("")}`);
+  });
+
+  it("should rebuild environment indexes from the final restored results", async () => {
+    const environmentsConfig = {
+      foo: { matcher: () => false },
+      bar: { matcher: () => false },
+    };
+    const createDump = async (environment: "foo" | "bar") => {
+      const store = new DefaultAllureStore({ environment, environmentsConfig });
+
+      await store.visitTestResult(
+        { uuid: "shared-result-id", name: "restored test", testId: "restored-test" },
+        { readerId },
+      );
+
+      return JSON.parse(JSON.stringify(store.dumpState()));
+    };
+    const target = new DefaultAllureStore({ environmentsConfig });
+
+    await target.restoreState(await createDump("foo"));
+    await target.restoreState(await createDump("bar"));
+
+    const [result] = await target.allTestResults();
+
+    expect(result.environment).toBe("bar");
+    await expect(target.testResultsByEnvironmentId("foo")).resolves.toEqual([]);
+    await expect(target.testResultsByEnvironmentId("bar")).resolves.toEqual([result]);
+  });
+
+  it("should keep the first nonempty explicit Allure ID across restored dumps", async () => {
+    const createDump = async (allureId?: string) => {
+      const store = new DefaultAllureStore();
+
+      await store.visitTestResult(
+        {
+          uuid: `result-${allureId ?? "none"}`,
+          name: "restored test",
+          testId: "restored-test",
+          labels: allureId ? [{ name: "ALLURE_ID", value: allureId }] : [],
+        },
+        { readerId },
+      );
+
+      return JSON.parse(JSON.stringify(store.dumpState()));
+    };
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(await createDump());
+    await target.restoreState(await createDump("123"));
+    await target.restoreState(await createDump("456"));
+
+    await expect(target.allTestCases()).resolves.toEqual([
+      expect.objectContaining({ id: md5("restored-test"), allureId: "123" }),
+    ]);
+    expect((await target.allTestResults()).every(({ testCase }) => testCase?.allureId === "123")).toBe(true);
   });
 
   it("should return all environments", async () => {
@@ -2572,44 +3346,6 @@ describe("environments", () => {
     expect(await store.testResultsByEnvironment("  default  ")).toEqual([
       expect.objectContaining({
         name: rawTr2.name,
-      }),
-    ]);
-  });
-
-  it("should keep old unmatched runtime names readable through compatibility ids", async () => {
-    const dump = {
-      testResults: {
-        "compat-env-test": {
-          id: "compat-env-test",
-          name: "compat env test",
-          status: "passed",
-          environment: "foo/bar",
-        },
-      },
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["foo/bar"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {},
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      knownIssues: {},
-    };
-    const store = new DefaultAllureStore();
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    expect(await store.testResultsByEnvironmentId("foo/bar")).toEqual([
-      expect.objectContaining({
-        name: "compat env test",
-        environment: "foo/bar",
       }),
     ]);
   });
@@ -2690,6 +3426,61 @@ describe("environments", () => {
         default: tr3.id,
       },
     });
+  });
+
+  it("should keep parameter variants in separate environment-neutral groups", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const testResult = (parameter: string, environment: "default" | "foo"): RawTestResult => ({
+      name: "parameterized test",
+      fullName: "parameterized test",
+      status: "passed",
+      testId: "parameterized-test",
+      parameters: [{ name: "browser", value: parameter }],
+      labels: environment === "foo" ? [{ name: "env", value: "foo" }] : [],
+    });
+
+    await store.visitTestResult(testResult("chrome", "default"), { readerId });
+    await store.visitTestResult(testResult("chrome", "foo"), { readerId });
+    await store.visitTestResult(testResult("firefox", "default"), { readerId });
+    await store.visitTestResult(testResult("firefox", "foo"), { readerId });
+
+    const results = await store.allTestResults({ includeRetries: true });
+    const resultByParameterAndEnvironment = new Map(
+      results.map((result) => [`${result.parameters[0]?.value}-${result.environment ?? "default"}`, result]),
+    );
+    const groups = await store.allTestEnvGroups();
+
+    expect(groups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: calculateRetryHash({
+            testCaseHash: resultByParameterAndEnvironment.get("chrome-default")?.testCaseHash,
+            parametersHash: calculateParametersHash([{ name: "browser", value: "chrome" }]),
+          }),
+          testResultsByEnv: {
+            default: resultByParameterAndEnvironment.get("chrome-default")?.id,
+            foo: resultByParameterAndEnvironment.get("chrome-foo")?.id,
+          },
+        }),
+        expect.objectContaining({
+          id: calculateRetryHash({
+            testCaseHash: resultByParameterAndEnvironment.get("firefox-default")?.testCaseHash,
+            parametersHash: calculateParametersHash([{ name: "browser", value: "firefox" }]),
+          }),
+          testResultsByEnv: {
+            default: resultByParameterAndEnvironment.get("firefox-default")?.id,
+            foo: resultByParameterAndEnvironment.get("firefox-foo")?.id,
+          },
+        }),
+      ]),
+    );
+    expect(groups).toHaveLength(2);
   });
 });
 
@@ -2844,6 +3635,60 @@ describe("visitGlobals", () => {
 
     expect(errors).toHaveLength(0);
     expect(attachments).toHaveLength(0);
+  });
+
+  it("should reset process globals without removing reader or runtime globals", async () => {
+    const realtime = new RealtimeChannel();
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: realtime.subscriber,
+      realtimeDispatcher: realtime.dispatcher,
+    });
+    const runtimeAttachment = new BufferResultFile(Buffer.from("runtime"), "runtime.txt");
+    const processAttachment = new BufferResultFile(Buffer.from("stderr"), "stderr.txt");
+
+    await store.visitGlobals({
+      errors: [{ message: "Reader error" }],
+      attachments: [],
+    });
+    realtime.dispatcher.sendGlobalAttachment(runtimeAttachment, "Runtime attachment");
+    realtime.dispatcher.sendProcessGlobalError({ message: "Process error" });
+    realtime.dispatcher.sendProcessGlobalAttachment(processAttachment, "stderr");
+
+    const processAttachmentLink = (await store.allGlobalAttachments()).find(({ name }) => name === "stderr");
+
+    expect(await store.allGlobalErrors()).toEqual([
+      { message: "Reader error", environment: "default" },
+      { message: "Process error", environment: "default" },
+    ]);
+    expect(await store.allGlobalAttachments()).toHaveLength(2);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [
+        { message: "Reader error", environment: "default" },
+        { message: "Process error", environment: "default" },
+      ],
+    });
+
+    realtime.dispatcher.sendProcessGlobalsReset();
+
+    expect(await store.allGlobalErrors()).toEqual([{ message: "Reader error", environment: "default" }]);
+    expect(await store.allGlobalAttachments()).toEqual([
+      expect.objectContaining({
+        name: "Runtime attachment",
+        originalFileName: "runtime.txt",
+      }),
+    ]);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [{ message: "Reader error", environment: "default" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      default: [
+        expect.objectContaining({
+          name: "Runtime attachment",
+          originalFileName: "runtime.txt",
+        }),
+      ],
+    });
+    expect(await store.attachmentContentById(processAttachmentLink!.id)).toBeUndefined();
   });
 
   it("should make global attachments available in allAttachments", async () => {
@@ -3200,11 +4045,12 @@ describe("dump state", () => {
     expect(dump.environments).toContainEqual({ id: "default", name: "default" });
     expect(dump.reportVariables).toEqual({});
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.knownIssues).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
     expect(dump.qualityGateResults).toEqual([]);
   });
 
@@ -3321,11 +4167,12 @@ describe("dump state", () => {
     expect(dump.globalErrors).toEqual([]);
     expect(dump.qualityGateResults).toEqual([]);
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexTestResultByResolutionIssue).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.knownIssues).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
   });
 
   it("should restore globalAttachments and globalErrors from dump", async () => {
@@ -3384,7 +4231,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -3460,7 +4307,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
     const attachmentContent = new BufferResultFile(Buffer.from("name\tvalue", "utf-8"), "datatable.tsv");
     const store = new DefaultAllureStore();
@@ -3548,7 +4395,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -3633,11 +4480,34 @@ describe("dump state", () => {
     const testResults = await store.allTestResults();
 
     expect(testResults).toHaveLength(1);
-    expect(testResults[0].id).toBe("test-result-id");
+    expect(testResults[0] as TestResult & { historyId: string }).toMatchObject({
+      id: "test-result-id",
+      historyId: "history-1",
+      testCaseHash: null,
+      parametersHash: md5(""),
+      environmentHash: null,
+      retryHash: null,
+    });
 
     const testResultsByTestCase = await store.testResultsByTcId("test-case-1");
 
     expect(testResultsByTestCase).toBeDefined();
+  });
+
+  it("should serialize absent canonical identity components as null", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ uuid: "dynamic-result", name: "dynamic result" }, { readerId });
+
+    const [result] = await store.allTestResults();
+    const serialized = JSON.parse(JSON.stringify(store.dumpState())).testResults[result.id];
+
+    expect(serialized).toMatchObject({
+      testCaseHash: null,
+      parametersHash: md5(""),
+      environmentHash: null,
+      retryHash: null,
+    });
   });
 
   it("should dump and restore index properties with actual data", async () => {
@@ -3654,11 +4524,11 @@ describe("dump state", () => {
     const dump = store.dumpState();
 
     expect(dump.indexAttachmentByTestResult).toBeDefined();
-    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByRetryHash).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
-    expect(dump.knownIssues).toBeDefined();
+    expect(dump.resolutionIssues).toBeDefined();
 
     const newStore = new DefaultAllureStore();
 
@@ -3669,65 +4539,168 @@ describe("dump state", () => {
     expect(allTestResults).toHaveLength(1);
   });
 
-  it("should restore retries per environment without legacy latest-attempt index", async () => {
+  it("should recompute all identity hashes when restoring a dump", async () => {
+    const sourceStore = new DefaultAllureStore();
+
+    await sourceStore.visitTestResult(
+      {
+        name: "test result",
+        testId: "test-case-id",
+        parameters: [{ name: "argument", value: "value" }],
+      },
+      { readerId },
+    );
+
+    const dump = sourceStore.dumpState();
+    const [dumpedTestResult] = Object.values(dump.testResults);
+
+    dumpedTestResult.testCaseHash = "adapter-test-case-hash";
+    dumpedTestResult.parametersHash = "adapter-parameters-hash";
+    dumpedTestResult.environmentHash = "adapter-environment-hash";
+    dumpedTestResult.retryHash = "adapter-retry-hash";
+
+    const restoredStore = new DefaultAllureStore();
+
+    await restoredStore.restoreState(dump, {});
+
+    const [restoredTestResult] = await restoredStore.allTestResults();
+    const testCaseHash = md5("test-case-id");
+    const parametersHash = md5("argument:value");
+
+    expect(restoredTestResult).toMatchObject({
+      testCaseHash,
+      parametersHash,
+      retryHash: `${testCaseHash}.${parametersHash}`,
+    });
+    expect(restoredTestResult.environmentHash).toBeNull();
+  });
+
+  it.each([
+    {
+      name: "absent parameters",
+      parameters: undefined,
+    },
+    {
+      name: "invalid names, null values, and exclusions",
+      parameters: [
+        null,
+        { name: null, value: "ignored" },
+        { name: "", value: "ignored" },
+        { name: "missing", value: null },
+        { name: "excluded", value: "ignored", excluded: true },
+      ],
+    },
+    {
+      name: "hidden and masked raw values",
+      parameters: [
+        { name: "hidden", value: "hidden-value", hidden: true },
+        { name: "masked", value: "masked-value", masked: true },
+      ],
+    },
+    {
+      name: "duplicate and same-name parameters",
+      parameters: [
+        { name: "argument", value: "second" },
+        { name: "argument", value: "first" },
+        { name: "argument", value: "first" },
+      ],
+    },
+    {
+      name: "UTF-8 parameter ordering",
+      parameters: [
+        { name: "😀", value: "value" },
+        { name: "", value: "value" },
+      ],
+    },
+  ])("should preserve canonical hashes through dump restore for $name", async ({ parameters }) => {
+    const sourceStore = new DefaultAllureStore();
+
+    await sourceStore.visitTestResult(
+      {
+        name: "test result",
+        testId: "test-case-id",
+        parameters: parameters as RawTestResult["parameters"],
+        parametersHash: "adapter-parameters-hash",
+      },
+      { readerId },
+    );
+
+    const [sourceTestResult] = await sourceStore.allTestResults();
+    const dump = sourceStore.dumpState();
+    const [dumpedTestResult] = Object.values(dump.testResults);
+    const restoredStore = new DefaultAllureStore();
+
+    await restoredStore.restoreState(dump, {});
+
+    const [restoredTestResult] = await restoredStore.allTestResults();
+
+    expect(dumpedTestResult.parametersHash).toBe(sourceTestResult.parametersHash);
+    expect(dumpedTestResult.retryHash).toBe(sourceTestResult.retryHash);
+    expect(restoredTestResult.parametersHash).toBe(sourceTestResult.parametersHash);
+    expect(restoredTestResult.retryHash).toBe(sourceTestResult.retryHash);
+    expect(restoredTestResult.parametersHash).not.toBe("adapter-parameters-hash");
+  });
+
+  it("should rebuild retries per environment without a retry index", async () => {
     const dump = {
       testResults: {
         "tr-default-1": {
           id: "tr-default-1",
           name: "default old attempt",
+          fullName: "default test",
           status: "failed",
           isRetry: true,
-          historyId: "history-1",
-          testCase: { id: "tc-default" },
+          testCase: { id: "tc-default", externalId: "tc-default", fullName: "default test" },
           parameters: [],
           environment: "default",
         },
         "tr-default-2": {
           id: "tr-default-2",
           name: "default latest attempt",
+          fullName: "default test",
           status: "passed",
-          historyId: "history-1",
-          testCase: { id: "tc-default" },
+          testCase: { id: "tc-default", externalId: "tc-default", fullName: "default test" },
           parameters: [],
           environment: "default",
         },
         "tr-qa-1": {
           id: "tr-qa-1",
           name: "qa old attempt",
+          fullName: "qa test",
           status: "failed",
           isRetry: true,
-          historyId: "history-1",
-          testCase: { id: "tc-qa" },
+          testCase: { id: "tc-qa", externalId: "tc-qa", fullName: "qa test" },
           parameters: [],
-          environment: "QA",
+          environment: "qa",
         },
         "tr-qa-2": {
           id: "tr-qa-2",
           name: "qa latest attempt",
+          fullName: "qa test",
           status: "passed",
-          historyId: "history-1",
-          testCase: { id: "tc-qa" },
+          testCase: { id: "tc-qa", externalId: "tc-qa", fullName: "qa test" },
           parameters: [],
-          environment: "QA",
+          environment: "qa",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: [{ id: "qa", name: "QA" }],
+      environments: [
+        { id: "default", name: "default" },
+        { id: "qa", name: "QA" },
+      ],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
       checkResults: {},
       qualityGateResults: [],
       indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["tr-default-2", "tr-default-1", "tr-qa-1", "tr-qa-2"],
-      },
+      indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore({
@@ -3766,7 +4739,7 @@ describe("dump state", () => {
             name: "qa history result",
             historyId: "history-1",
             status: "passed",
-            environment: "Old QA",
+            environment: "qa",
             labels: [],
             reportLinks: [],
             url: "",
@@ -3791,23 +4764,29 @@ describe("dump state", () => {
         "tr-qa-1": {
           id: "tr-qa-1",
           name: "qa old attempt",
+          fullName: "qa test",
           status: "failed",
           isRetry: true,
           historyId: "history-1",
           testCase: {
             id: "tc-1",
+            externalId: "tc-1",
+            fullName: "qa test",
           },
-          environment: "Old QA",
+          environment: "qa",
         },
         "tr-qa-2": {
           id: "tr-qa-2",
           name: "qa latest attempt",
+          fullName: "qa test",
           status: "passed",
           historyId: "history-1",
           testCase: {
             id: "tc-1",
+            externalId: "tc-1",
+            fullName: "qa test",
           },
-          environment: "Old QA",
+          environment: "qa",
         },
       },
       attachments: {},
@@ -3822,19 +4801,17 @@ describe("dump state", () => {
           rule: "maxFailures",
           success: false,
           message: "qa gate failure",
-          environment: "Old QA",
+          environment: "qa",
         },
       ],
       indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["tr-qa-1", "tr-qa-2"],
-      },
+      indexTestResultByRetryHash: {},
       indexTestResultByTestCase: {
         "tc-1": ["tr-qa-1", "tr-qa-2"],
       },
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
       checkResults: {},
     };
 
@@ -3842,8 +4819,8 @@ describe("dump state", () => {
     await store.readHistory();
 
     expect(await store.testResultsByEnvironmentId("qa", { includeRetries: true })).toEqual([
-      expect.objectContaining({ id: "tr-qa-1", environment: "Old QA" }),
-      expect.objectContaining({ id: "tr-qa-2", environment: "Old QA" }),
+      expect.objectContaining({ id: "tr-qa-1", environment: "qa" }),
+      expect.objectContaining({ id: "tr-qa-2", environment: "qa" }),
     ]);
     expect(await store.envVariablesByEnvironmentId("qa")).toEqual({
       region: "eu",
@@ -3852,7 +4829,7 @@ describe("dump state", () => {
       qa: [
         expect.objectContaining({
           message: "qa gate failure",
-          environment: "Old QA",
+          environment: "qa",
         }),
       ],
     });
@@ -3867,7 +4844,7 @@ describe("dump state", () => {
       expect.objectContaining({
         testResults: {
           "history-1": expect.objectContaining({
-            environment: "Old QA",
+            environment: "qa",
           }),
         },
       }),
@@ -3885,60 +4862,6 @@ describe("dump state", () => {
           id: "qa",
           name: "New QA",
         }),
-      ]),
-    );
-  });
-
-  it("should keep previous name-shaped history separate when switching to explicit ids", async () => {
-    const store = new DefaultAllureStore({
-      environmentsConfig: {
-        staging_eu: {
-          name: "QA EU",
-          matcher: () => false,
-        },
-      },
-    });
-    const dump = {
-      testResults: {
-        "compat-tr-1": {
-          id: "compat-tr-1",
-          name: "compat env result",
-          status: "passed",
-          historyId: "history-1",
-          environment: "Staging EU",
-        },
-      },
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["Staging EU"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {
-        "history-1": ["compat-tr-1"],
-      },
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      knownIssues: {},
-    };
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    expect(await store.testResultsByEnvironmentId("staging_eu")).toEqual([]);
-    expect(await store.testResultsByEnvironmentId("Staging EU")).toEqual([
-      expect.objectContaining({
-        id: "compat-tr-1",
-      }),
-    ]);
-    expect(await store.allEnvironmentIdentities()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: "staging_eu", name: "QA EU" }),
-        expect.objectContaining({ id: "Staging EU", name: "Staging EU" }),
       ]),
     );
   });
@@ -4033,7 +4956,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -4109,13 +5032,13 @@ describe("dump state", () => {
           id: "tr-1",
           name: "prod result",
           status: "passed",
-          environment: "Prod",
+          environment: "prod_env",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: [],
+      environments: [{ id: "qa_env", name: "QA" }],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
@@ -4126,7 +5049,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -4164,7 +5087,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -4202,7 +5125,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
@@ -4230,13 +5153,13 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).resolves.toBeUndefined();
   });
 
-  it("should degrade invalid restored test result environment names for indexing only", async () => {
+  it("should exclude malformed restored environment ids from environment indexes", async () => {
     const dump = {
       testResults: {
         "invalid-env-result": {
@@ -4249,13 +5172,13 @@ describe("dump state", () => {
           id: "compat-env-result",
           name: "compat env result",
           status: "passed",
-          environment: "compatEnv",
+          environment: "compat_env",
         },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
-      environments: ["compatEnv"],
+      environments: [{ id: "compat_env", name: "compatEnv" }],
       reportVariables: {},
       globalAttachmentIds: [],
       globalErrors: [],
@@ -4266,7 +5189,7 @@ describe("dump state", () => {
       indexTestResultByTestCase: {},
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
-      knownIssues: {},
+      resolutionIssues: {},
     };
 
     const store = new DefaultAllureStore();
@@ -4274,18 +5197,14 @@ describe("dump state", () => {
     await store.restoreState(dump as unknown as AllureStoreDump, {});
 
     const byDefault = await store.testResultsByEnvironment("default");
-    const byCompatEnv = await store.testResultsByEnvironmentId("compatEnv");
+    const byCompatEnv = await store.testResultsByEnvironmentId("compat_env");
     const allResults = await store.allTestResults();
 
-    expect(byDefault).toEqual([
-      expect.objectContaining({
-        id: "invalid-env-result",
-      }),
-    ]);
+    expect(byDefault).toEqual([]);
     expect(byCompatEnv).toEqual([
       expect.objectContaining({
         id: "compat-env-result",
-        environment: "compatEnv",
+        environment: "compat_env",
       }),
     ]);
     expect(allResults).toEqual(
@@ -4296,61 +5215,10 @@ describe("dump state", () => {
         }),
         expect.objectContaining({
           id: "compat-env-result",
-          environment: "compatEnv",
+          environment: "compat_env",
         }),
       ]),
     );
-  });
-
-  it("should degrade invalid restored quality gate result environment names to default", async () => {
-    const dump = {
-      testResults: {},
-      attachments: {},
-      testCases: {},
-      fixtures: {},
-      environments: ["compatEnv"],
-      reportVariables: {},
-      globalAttachmentIds: [],
-      globalErrors: [],
-      checkResults: {},
-      qualityGateResults: [
-        {
-          rule: "maxFailures",
-          success: false,
-          message: "invalid env",
-          environment: "foo\nbar",
-        },
-        {
-          rule: "maxFailures",
-          success: false,
-          message: "compat env",
-          environment: "compatEnv",
-        },
-      ],
-      indexAttachmentByTestResult: {},
-      indexTestResultByHistoryId: {},
-      indexTestResultByTestCase: {},
-      indexAttachmentByFixture: {},
-      indexFixturesByTestResult: {},
-      knownIssues: {},
-    };
-
-    const store = new DefaultAllureStore();
-
-    await store.restoreState(dump as unknown as AllureStoreDump, {});
-
-    const resultsByEnv = await store.qualityGateResultsByEnv();
-
-    expect(resultsByEnv.default).toEqual([
-      expect.objectContaining({
-        message: "invalid env",
-      }),
-    ]);
-    expect(resultsByEnv.compatEnv).toEqual([
-      expect.objectContaining({
-        message: "compat env",
-      }),
-    ]);
   });
 
   it("should not duplicate env indexing after repeated environment lookups", async () => {
@@ -4400,7 +5268,7 @@ describe("dump state", () => {
     expect(await store.testResultsByEnvironmentId("qa", { includeRetries: true })).toEqual([
       expect.objectContaining({
         id: trId,
-        environment: "QA",
+        environment: "qa",
       }),
     ]);
   });
@@ -4461,12 +5329,25 @@ describe("dump state", () => {
   });
 
   it("should not duplicate environment test results when restoring the same dump repeatedly", async () => {
-    const sourceStore = new DefaultAllureStore({ environment: "qa" });
+    const sourceStore = new DefaultAllureStore({
+      environment: "qa",
+      environmentsConfig: {
+        qa: {
+          name: "QA",
+          matcher: () => false,
+        },
+      },
+    });
     const rawTr: RawTestResult = {
       name: "restored env test",
+      fullName: "suite restored env test",
       status: "passed",
-      testId: "restored-env-test",
-      historyId: "restored-env-test",
+      testCase: {
+        id: "restored-env-test",
+        externalId: "restored-env-test",
+        fullName: "suite restored env test",
+      },
+      environment: "qa",
     };
 
     await sourceStore.visitTestResult(rawTr, { readerId });
@@ -4479,7 +5360,7 @@ describe("dump state", () => {
 
     const restoredResults = await targetStore.testResultsByEnvironmentId("qa", { includeHidden: true });
 
-    expect(restoredResults.map(({ name }) => name)).toEqual(["restored env test"]);
+    expect(restoredResults).toEqual([expect.objectContaining({ name: "restored env test", environment: "qa" })]);
   });
 
   it("should merge two dumps with no envs", async () => {
@@ -4692,6 +5573,9 @@ describe("relatedByTestResultIds", () => {
     expect(related.attachmentsByTrId.get(latestResultId)).toEqual(await store.attachmentsByTrId(latestResultId));
     expect(related.fixturesByTrId.get(latestResultId)).toEqual(await store.fixturesByTrId(latestResultId));
     expect(related.historyByTrId.get(latestResultId)).toEqual(await store.historyByTrId(latestResultId));
+    expect(related.resolutionIssuesByTrId.get(latestResultId)).toEqual(
+      await store.resolutionIssueByTestResultId(latestResultId),
+    );
     expect(related.retriesByTrId.get(latestResultId)).toEqual(await store.retriesByTrId(latestResultId));
     expect(related.retriesByTrId.get(latestResultId)).toEqual([
       expect.objectContaining({

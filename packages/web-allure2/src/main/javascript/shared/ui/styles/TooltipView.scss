@@ -1,0 +1,44 @@
+@use "../../../theme/spacing.scss" as *;
+.tooltip {
+  position: absolute;
+  background: var(--color-bg-inverse-raised);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-0-5);
+  box-shadow: var(--shadow-small);
+  text-align: center;
+  padding: gap(1) gap(1.5);
+  line-height: var(--line-height-s);
+  font-size: var(--font-size-s);
+  pointer-events: none;
+  z-index: 5;
+  &:before {
+    content: "";
+    position: absolute;
+    border: 8px solid transparent;
+  }
+  &_position_top:before {
+    border-top-color: var(--color-bg-inverse-raised);
+    top: 100%;
+    left: 50%;
+    margin-left: calc(-1 * gap(1));
+  }
+  &_position_right:before {
+    border-right-color: var(--color-bg-inverse-raised);
+    top: gap(0.5);
+    left: calc(-1 * gap(2));
+  }
+  &_position_left:before {
+    border-left-color: var(--color-bg-inverse-raised);
+    top: gap(0.5);
+    left: 100%;
+  }
+  &_position_bottom:before {
+    border-bottom-color: var(--color-bg-inverse-raised);
+    top: calc(-1 * gap(2));
+    left: 50%;
+    margin-left: calc(-1 * gap(1));
+  }
+  &_position_center {
+    pointer-events: none;
+  }
+}

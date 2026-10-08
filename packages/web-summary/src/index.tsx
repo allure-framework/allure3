@@ -1,4 +1,4 @@
-import { ReportSummaryCard } from "@allurereport/web-components";
+import { type ReportSummary, ReportSummaryCard } from "@allurereport/web-components";
 
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
@@ -12,7 +12,7 @@ import { getLocale, useI18n, waitForI18next } from "@/stores";
 import * as styles from "./styles.scss";
 
 const getSummaries = () => {
-  return window.reportSummaries as Record<string, any>[] | undefined;
+  return window.reportSummaries;
 };
 
 const App = () => {
@@ -37,8 +37,8 @@ const App = () => {
       <Header />
       <main>
         <div className={styles["summary-showcase"]}>
-          {summaries.map((summary: any) => (
-            <ReportSummaryCard key={summary.output} i18n={tSummary} summary={summary} />
+          {summaries.map((summary: ReportSummary) => (
+            <ReportSummaryCard key={summary.href ?? summary.name} i18n={tSummary} summary={summary} />
           ))}
         </div>
       </main>

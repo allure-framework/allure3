@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { getBodyItems, hasDisplayableTestStatusDetails } from "@/components/TestResult/bodyItems";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
@@ -19,7 +19,7 @@ import { currentTrId } from "@/stores/testResult";
 import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TrOverviewProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {

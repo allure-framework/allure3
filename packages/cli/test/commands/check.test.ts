@@ -111,7 +111,6 @@ beforeEach(async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   AllureReportMock.prototype.store = {
-    allKnownIssues: vi.fn().mockResolvedValue([]),
     failedTestResults: vi.fn().mockResolvedValue([]),
     allTestResults: vi.fn().mockResolvedValue([]),
     addCheckResult: vi.fn().mockResolvedValue(undefined),

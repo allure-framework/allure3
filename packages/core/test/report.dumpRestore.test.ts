@@ -3,12 +3,13 @@ import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { calculateParametersHash } from "@allurereport/core-api";
 import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
-import { PathResultFile } from "@allurereport/reader-api";
+import { PathResultFile, type RawTestResult } from "@allurereport/reader-api";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import ZipReadStream from "node-stream-zip";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,13 +17,24 @@ import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
-import { PERF_METRICS_FILE, PERF_METRIC_NAMES, resetPerfMetrics } from "../src/utils/perf.js";
+import { PERF_METRIC_NAMES, perfMetricsFileName, resetPerfMetrics } from "../src/utils/perf.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const ARTIFACTS_MANIFEST_FILENAME = "artifacts.json";
 
-const minimalDumpJsonFiles = (
-  overrides: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
-): Record<string, string> => {
+const manifestPath = (cwd: string, filePath: string): string => relative(cwd, filePath).split(sep).join("/");
+
+const readArtifactsManifest = async (output: string) => {
+  return JSON.parse(await readFile(join(output, ARTIFACTS_MANIFEST_FILENAME), "utf8")) as {
+    name: string;
+    path: string;
+  }[];
+};
+
+const readPerfMetrics = async (output: string, reportUuid: string) =>
+  JSON.parse(await readFile(join(output, perfMetricsFileName(reportUuid)), "utf8"));
+
+const minimalDumpJsonFiles = (overrides: Partial<Record<string, string | undefined>> = {}): Record<string, string> => {
   const files: Record<string, string> = {
     [AllureStoreDumpFiles.TestResults]: "{}",
     [AllureStoreDumpFiles.TestCases]: "{}",
@@ -31,15 +43,15 @@ const minimalDumpJsonFiles = (
     [AllureStoreDumpFiles.CheckResults]: "[]",
     [AllureStoreDumpFiles.Environments]: "[]",
     [AllureStoreDumpFiles.ReportVariables]: "{}",
-    [AllureStoreDumpFiles.KnownIssues]: "{}",
+    [AllureStoreDumpFiles.ResolutionIssues]: "{}",
     [AllureStoreDumpFiles.GlobalAttachments]: "[]",
     [AllureStoreDumpFiles.GlobalErrors]: "[]",
     [AllureStoreDumpFiles.IndexAttachmentsByTestResults]: "{}",
-    [AllureStoreDumpFiles.IndexTestResultsByHistoryId]: "{}",
+    [AllureStoreDumpFiles.IndexTestResultsByRetryHash]: "{}",
     [AllureStoreDumpFiles.IndexTestResultsByTestCase]: "{}",
+    [AllureStoreDumpFiles.IndexTestResultsByResolutionIssue]: "{}",
     [AllureStoreDumpFiles.IndexAttachmentsByFixture]: "{}",
     [AllureStoreDumpFiles.IndexFixturesByTestResult]: "{}",
-    [AllureStoreDumpFiles.IndexKnownByHistoryId]: "{}",
     [AllureStoreDumpFiles.QualityGateResults]: "[]",
     [AllureStoreDumpFiles.TestResultIngestOrder]: "[]",
   };
@@ -80,7 +92,7 @@ const writeZip = async (filePath: string, entries: { name: string; data: Buffer 
 const writeDumpZip = async (
   filePath: string,
   attachmentEntries: { name: string; data: Buffer }[],
-  jsonFiles: Partial<Record<AllureStoreDumpFiles, string | undefined>> = {},
+  jsonFiles: Partial<Record<string, string | undefined>> = {},
 ): Promise<void> => {
   await writeZip(filePath, [
     ...Object.entries(minimalDumpJsonFiles(jsonFiles)).map(([name, body]) => ({
@@ -101,8 +113,14 @@ beforeEach(async () => {
 describe("AllureReport.restoreState (dump zip)", () => {
   const zipPaths: string[] = [];
   const tempDirs: string[] = [];
+  let previousCwd: string;
+
+  beforeEach(() => {
+    previousCwd = process.cwd();
+  });
 
   afterEach(async () => {
+    process.chdir(previousCwd);
     vi.restoreAllMocks();
     delete process.env.ALLURE_PERF_METRICS;
     resetPerfMetrics();
@@ -136,6 +154,231 @@ describe("AllureReport.restoreState (dump zip)", () => {
     });
   });
 
+  it.each([
+    { name: "a malformed retry index", index: AllureStoreDumpFiles.IndexTestResultsByRetryHash, value: "{invalid" },
+    { name: "a missing retry index", index: AllureStoreDumpFiles.IndexTestResultsByRetryHash, value: undefined },
+    { name: "a malformed test-case index", index: AllureStoreDumpFiles.IndexTestResultsByTestCase, value: "{invalid" },
+    { name: "a missing test-case index", index: AllureStoreDumpFiles.IndexTestResultsByTestCase, value: undefined },
+  ])("rebuilds derived identity indexes from restored results with $name", async ({ index, value }) => {
+    const zipPath = tempZipPath();
+    const testResult = {
+      id: "restored-test-result",
+      name: "restored test",
+      fullName: "suite restored test",
+      status: "passed",
+      environment: "default",
+      parameters: [],
+      testCase: {
+        id: "restored-test-case",
+        externalId: "restored-test-case",
+        fullName: "suite restored test",
+      },
+    };
+    const testCaseHash = md5(testResult.testCase.externalId);
+    const retryHash = `${testCaseHash}.${md5("")}`;
+
+    await writeDumpZip(zipPath, [], {
+      [AllureStoreDumpFiles.TestResults]: JSON.stringify({ [testResult.id]: testResult }),
+      [index]: value,
+    });
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport(config);
+
+    await expect(report.restoreState([zipPath])).resolves.toBeUndefined();
+    await expect(report.store.allTestResults()).resolves.toEqual([
+      expect.objectContaining({
+        ...testResult,
+        testCase: expect.objectContaining({
+          externalId: testResult.testCase.externalId,
+          fullName: testResult.testCase.fullName,
+          id: testCaseHash,
+        }),
+        testCaseHash,
+        retryHash,
+      }),
+    ]);
+    await expect(report.store.retriesByTrId(testResult.id)).resolves.toEqual([]);
+    expect(report.store.dumpState()).toMatchObject({
+      indexTestResultByRetryHash: { [retryHash]: [testResult.id] },
+      indexTestResultByTestCase: { [testCaseHash]: [testResult.id] },
+    });
+  });
+
+  it("writes a local artifacts manifest for restored dump files", async () => {
+    const dir = await tempDir();
+    const zipPath = join(dir, "state.zip");
+    const output = join(dir, "report");
+
+    await writeDumpZip(zipPath, []);
+    process.chdir(dir);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd: dir, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    await report.restoreState([zipPath]);
+    await report.start();
+    await report.done();
+
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "state.zip",
+        path: "state.zip",
+      },
+    ]);
+  });
+
+  it("writes dump paths outside the generation cwd as relative paths", async () => {
+    const cwd = await tempDir();
+    const outsideDir = await tempDir();
+    const zipPath = join(outsideDir, "state.zip");
+    const output = join(cwd, "report");
+
+    await writeDumpZip(zipPath, []);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    await report.restoreState([zipPath]);
+    await report.start();
+    await report.done();
+
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "state.zip",
+        path: manifestPath(cwd, zipPath),
+      },
+    ]);
+  });
+
+  it("deduplicates dump files before restoring them", async () => {
+    const dir = await tempDir();
+    const zipPath = join(dir, "state.zip");
+    const output = join(dir, "report");
+    const consoleInfoSpy = vi.spyOn(nodeConsole, "info").mockImplementation(() => {});
+
+    await writeDumpZip(zipPath, []);
+    process.chdir(dir);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd: dir, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    try {
+      await report.restoreState([zipPath, zipPath]);
+      await report.start();
+      await report.done();
+
+      await expect(readArtifactsManifest(output)).resolves.toEqual([
+        {
+          name: "state.zip",
+          path: "state.zip",
+        },
+      ]);
+      expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleInfoSpy.mockRestore();
+    }
+  });
+
+  it("omits missing and failed dump restore attempts from the local artifacts manifest", async () => {
+    const dir = await tempDir();
+    const missingZipPath = join(dir, "missing.zip");
+    const brokenZipPath = join(dir, "broken.zip");
+    const validZipPath = join(dir, "valid.zip");
+    const output = join(dir, "report");
+    const consoleErrorSpy = vi.spyOn(nodeConsole, "error").mockImplementation(() => {});
+
+    await writeZip(brokenZipPath, [
+      {
+        name: AllureStoreDumpFiles.TestResults,
+        data: Buffer.from("{}", "utf8"),
+      },
+    ]);
+    await writeDumpZip(validZipPath, []);
+    process.chdir(dir);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd: dir, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    try {
+      await report.restoreState([missingZipPath, brokenZipPath, validZipPath]);
+      await report.start();
+      await report.done();
+
+      const manifest = await readArtifactsManifest(output);
+
+      expect(manifest).toEqual([
+        {
+          name: "valid.zip",
+          path: "valid.zip",
+        },
+      ]);
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
+  it("records nested dump archives in the local artifacts manifest", async () => {
+    const dir = await tempDir();
+    const nestedZipPath = join(dir, "nested.zip");
+    const outerZipPath = join(dir, "artifact.zip");
+    const output = join(dir, "report");
+    const nestedEntryName = "allure-results-macos-latest.zip";
+
+    await writeDumpZip(nestedZipPath, []);
+    await writeZip(outerZipPath, [
+      {
+        name: nestedEntryName,
+        data: await readFile(nestedZipPath),
+      },
+    ]);
+    process.chdir(dir);
+
+    const config = await resolveConfig(
+      {
+        name: "Allure Report",
+        output,
+      },
+      { cwd: dir, plugins: {} },
+    );
+    const report = new AllureReport(config);
+
+    await report.restoreState([outerZipPath]);
+    await report.start();
+    await report.done();
+
+    await expect(readArtifactsManifest(output)).resolves.toEqual([
+      {
+        name: "artifact.zip",
+        path: manifestPath(dir, outerZipPath),
+      },
+    ]);
+  });
+
   it("writes opt-in dump restore perf metrics", async () => {
     process.env.ALLURE_PERF_METRICS = "1";
 
@@ -151,14 +394,14 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
-    expect(metrics.summary).toEqual(
+    expect(metrics).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateTotal, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateDump, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateAttachments, count: 1 }),
-        expect.objectContaining({ name: PERF_METRIC_NAMES.restoreStateStoreRestore, count: 1 }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateTotal, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateDump, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateAttachments, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.restoreStateStoreRestore, value: expect.any(Number) }),
       ]),
     );
   });
@@ -179,11 +422,11 @@ describe("AllureReport.restoreState (dump zip)", () => {
     await report.start();
     await report.done();
 
-    const metrics = JSON.parse(await readFile(join(output, PERF_METRICS_FILE), "utf8"));
+    const metrics = await readPerfMetrics(output, report.reportUuid);
 
     expect(existsSync(`${dumpPath}.zip`)).toBe(true);
-    expect(metrics.summary).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: PERF_METRIC_NAMES.generateTotal, count: 1 })]),
+    expect(metrics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal })]),
     );
   });
 
@@ -641,13 +884,128 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     try {
       const checkResultsEntry = await archive.entryData(AllureStoreDumpFiles.CheckResults);
+      const resolutionIssueIndexEntry = await archive.entryData(AllureStoreDumpFiles.IndexTestResultsByResolutionIssue);
 
       expect(JSON.parse(checkResultsEntry.toString("utf8"))).toEqual({
         [checkResult.id]: checkResult,
       });
+      expect(JSON.parse(resolutionIssueIndexEntry.toString("utf8"))).toEqual({});
     } finally {
       await archive.close();
     }
+  });
+
+  it("round-trips canonical parameter, retry, and test-case hashes through JSON dumps", async () => {
+    const dumpPath = join(tmpdir(), `allure-parameter-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    zipPaths.push(zipPath);
+    const parameterSets = [
+      undefined,
+      [],
+      [{ name: "", value: null }],
+      [{ name: 1, value: "nonstring name" }],
+      [{ name: "empty", value: "" }],
+      [{ name: "null", value: null }],
+      [{ name: "excluded", value: "ignored", excluded: true }],
+      [
+        { name: "hidden", value: "hidden-value", hidden: true },
+        { name: "masked", value: "masked-value", masked: true },
+      ],
+      [
+        { name: "duplicate", value: "first" },
+        { name: "duplicate", value: "second" },
+      ],
+      [
+        { name: "utf8", value: "Привет 🌍" },
+        { name: "order", value: "second" },
+      ],
+      [
+        { name: "order", value: "second" },
+        { name: "utf8", value: "Привет 🌍" },
+      ],
+      [{ name: "adapter", value: "override" }],
+    ];
+    const config = await resolveConfig({ name: "Allure Report" });
+    const source = new AllureReport({ ...config, dump: dumpPath, plugins: [] });
+
+    await source.start();
+    for (const [index, parameters] of parameterSets.entries()) {
+      await source.store.visitTestResult(
+        {
+          name: `parameters ${index}`,
+          testId: `parameters-${index}`,
+          parameters,
+          ...(index === parameterSets.length - 1 ? { parametersHash: "adapter-override" } : {}),
+        } as unknown as RawTestResult,
+        { readerId: "report.dumpRestore.test.ts" },
+      );
+    }
+    const beforeRestore = await source.store.allTestResults({ includeRetries: true });
+    const expected = Object.fromEntries(
+      parameterSets.map((parameters, index) => [
+        `parameters ${index}`,
+        {
+          parametersHash: calculateParametersHash(parameters as never),
+          testCaseHash: md5(`parameters-${index}`),
+        },
+      ]),
+    );
+    const expectedHashes = Object.fromEntries(
+      Object.entries(expected).map(([name, hashes]) => [
+        name,
+        expect.objectContaining({ ...hashes, retryHash: `${hashes.testCaseHash}.${hashes.parametersHash}` }),
+      ]),
+    );
+
+    expect(Object.fromEntries(beforeRestore.map((tr) => [tr.name, tr]))).toEqual(
+      expect.objectContaining(expectedHashes),
+    );
+    await source.done();
+
+    const archive = new ZipReadStream.async({ file: zipPath });
+    let serializedTestResults: Record<
+      string,
+      { name: string; parametersHash: string; retryHash: string; testCaseHash: string }
+    >;
+    try {
+      serializedTestResults = JSON.parse(
+        (await archive.entryData(AllureStoreDumpFiles.TestResults)).toString("utf8"),
+      ) as typeof serializedTestResults;
+    } finally {
+      await archive.close();
+    }
+    expect(Object.fromEntries(Object.values(serializedTestResults).map((tr) => [tr.name, tr]))).toEqual(
+      expect.objectContaining(expectedHashes),
+    );
+
+    const restored = new AllureReport(config);
+    await restored.restoreState([zipPath]);
+    expect(await restored.store.allTestResults({ includeRetries: true })).toEqual(beforeRestore);
+  });
+
+  it("preserves metadata through dump and restore", async () => {
+    const dumpPath = join(tmpdir(), `allure-metadata-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const environment = [{ name: "browser", values: ["chrome"] }];
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await report.start();
+    await report.store.visitMetadata({ allure_environment: environment });
+    await report.done();
+
+    const restoredReport = new AllureReport(config);
+
+    await restoredReport.restoreState([zipPath]);
+
+    expect(await restoredReport.store.metadataByKey("allure_environment")).toEqual(environment);
   });
 
   it("keeps ingest order across multiple dumps when resolving which retry attempt is primary", async () => {
@@ -664,7 +1022,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
       links: [],
       steps: [],
       sourceMetadata: { readerId: "system", metadata: {} },
-      testCase: { id: testCaseId },
+      testCase: { id: testCaseId, externalId: testCaseId },
     });
     const firstAttempt = makeTr("yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy", "failed", "tc-shared");
     const secondAttempt = makeTr("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "passed", "tc-shared");
@@ -709,6 +1067,65 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
       expect(statistic).toEqual(expect.objectContaining({ passed: 2, retries: 1 }));
       expect(statistic.failed).toBeUndefined();
+    });
+  });
+
+  it("writes and restores metrics from a dump", async () => {
+    const dumpPath = join(tmpdir(), `allure-metrics-dump-${randomBytes(8).toString("hex")}`);
+    const zipPath = `${dumpPath}.zip`;
+    const metrics = [
+      {
+        id: "generate-total",
+        key: "generate.total.avgMs",
+        value: 128.5,
+        start: 0,
+        stop: 128.5,
+      },
+      {
+        id: "browser-cold-load",
+        key: "browser.coldLoadMs",
+        value: 640,
+        start: 200,
+        stop: 840,
+      },
+    ];
+
+    zipPaths.push(zipPath);
+
+    const config = await resolveConfig({ name: "Allure Report" });
+    const report = new AllureReport({
+      ...config,
+      dump: dumpPath,
+      plugins: [],
+    });
+
+    await step("write metrics to a dump archive", async () => {
+      await report.start();
+      await report.store.visitMetrics(metrics);
+      await report.done();
+    });
+
+    const archive = new ZipReadStream.async({
+      file: zipPath,
+    });
+
+    try {
+      const metricsEntry = await archive.entryData(AllureStoreDumpFiles.Metrics);
+
+      await attachment("dump metrics entry", metricsEntry.toString("utf8"), "application/json");
+      expect(JSON.parse(metricsEntry.toString("utf8"))).toEqual(metrics);
+    } finally {
+      await archive.close();
+    }
+
+    const restoredReport = new AllureReport({
+      ...config,
+      plugins: [],
+    });
+
+    await step("restore metrics from the dump archive", async () => {
+      await expect(restoredReport.restoreState([zipPath])).resolves.toBeUndefined();
+      await expect(restoredReport.store.allMetrics()).resolves.toEqual(metrics);
     });
   });
 });

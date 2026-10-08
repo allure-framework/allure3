@@ -1,7 +1,15 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
-import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
+import { getCurrentUrl, goTo } from "@allurereport/web-commons";
 
-import { PARAMS, STATUSES, TRANSITIONS } from "./constants";
+import {
+  NO_SEVERITY,
+  PARAMS,
+  RESOLUTIONS,
+  SEVERITIES,
+  STATUSES,
+  TRANSITIONS,
+  type ResolutionFilterValue,
+} from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -9,10 +17,6 @@ import type {
   AwesomeFilterGroupSimple,
   Filters,
 } from "./model";
-
-export const truncateArrayFieldValues = (values: string[]): string[] => {
-  return values.slice(0, MAX_ARRAY_FIELD_VALUES);
-};
 
 export const getTagsFilterUrl = (tags: string[]): string => {
   const url = new URL(getCurrentUrl());
@@ -33,6 +37,14 @@ export const validateTransition = (transition: string): transition is TestStatus
 
 export const validateStatus = (status: string): status is TestStatus => {
   return STATUSES.includes(status as TestStatus);
+};
+
+export const validateSeverity = (severity: string): boolean => {
+  return SEVERITIES.includes(severity);
+};
+
+export const validateResolution = (resolution: string): resolution is ResolutionFilterValue => {
+  return RESOLUTIONS.includes(resolution as ResolutionFilterValue);
 };
 
 export const migrateFilterParam = () => {
@@ -80,6 +92,20 @@ export const migrateFilterParam = () => {
   goTo(currentUrl, { replace: true });
 };
 
+export const hasActiveFilters = (filters: Filters): boolean => {
+  return !!(
+    filters.query?.trim() ||
+    filters.status ||
+    filters.flaky ||
+    filters.retry ||
+    (filters.resolution && filters.resolution.length > 0) ||
+    (filters.transition && filters.transition.length > 0) ||
+    (filters.tags && filters.tags.length > 0) ||
+    (filters.categories && filters.categories.length > 0) ||
+    (filters.severity && filters.severity.length > 0)
+  );
+};
+
 export const constructFilterParams = (filters: Filters) => {
   const params = new URLSearchParams();
 
@@ -97,6 +123,12 @@ export const constructFilterParams = (filters: Filters) => {
 
   if (filters.retry) {
     params.set(PARAMS.RETRY, "true");
+  }
+
+  if (filters.resolution) {
+    filters.resolution.forEach((resolution) => {
+      params.append(PARAMS.RESOLUTION, resolution);
+    });
   }
 
   if (filters.transition) {
@@ -117,6 +149,12 @@ export const constructFilterParams = (filters: Filters) => {
     });
   }
 
+  if (filters.severity) {
+    filters.severity.forEach((severity) => {
+      params.append(PARAMS.SEVERITY, severity);
+    });
+  }
+
   if (filters.status) {
     params.set(PARAMS.STATUS, filters.status);
   }
@@ -132,6 +170,10 @@ export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFi
   return filter.type === "field" && filter.value.type === "boolean" && filter.value.key === "flaky";
 };
 
+export const isResolutionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
+  return filter.type === "group" && filter.fieldKey === "resolutionStatus";
+};
+
 export const isTagFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {
   return filter.type === "field" && filter.value.type === "array" && filter.value.key === "tags";
 };
@@ -143,3 +185,31 @@ export const isCategoryFilter = (filter: AwesomeFilter): filter is AwesomeArrayF
 export const isTransitionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
   return filter.type === "group" && filter.fieldKey === "transition";
 };
+
+export const isSeverityFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
+  return filter.type === "group" && filter.fieldKey === "severity";
+};
+
+/**
+ * Converts the severity filter group into the form used to match tree leaves.
+ *
+ * Test results without a severity label have no `severity` property, so the "no severity" option
+ * has to match the missing property instead of comparing it to a value.
+ */
+export const toSeverityPredicateFilter = (group: AwesomeFilterGroupSimple): AwesomeFilterGroupSimple => ({
+  ...group,
+  value: group.value.map((filter) => {
+    if (filter.value.type !== "string" || filter.value.value !== NO_SEVERITY) {
+      return filter;
+    }
+
+    return {
+      ...filter,
+      value: {
+        key: filter.value.key,
+        value: null,
+        type: "null",
+      },
+    };
+  }),
+});

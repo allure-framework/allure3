@@ -1,33 +1,6 @@
-import type { TestParameter, TestResult } from "@allurereport/core-api";
-
-import { md5 } from "../utils/crypto.js";
+import type { TestResult } from "@allurereport/core-api";
 
 const NO_RETRIES: TestResult[] = [];
-
-const compareByNameThenValue = (first: TestParameter, second: TestParameter) =>
-  first.name.localeCompare(second.name) || first.value.localeCompare(second.value);
-
-const stringifyRetryParameters = (parameters: TestParameter[] = []): string =>
-  parameters
-    .filter((parameter) => !parameter.excluded)
-    .sort(compareByNameThenValue)
-    .map((parameter) => `${parameter.name}:${parameter.value}`)
-    .join(",");
-
-export const calculateParametersHash = (parameters: TestParameter[] = []): string =>
-  md5(stringifyRetryParameters(parameters));
-
-export const calculateRetryHash = (
-  testCaseId: string | undefined,
-  parametersHash: string,
-  environmentId: string | undefined,
-): string | undefined => {
-  if (!testCaseId) {
-    return undefined;
-  }
-
-  return md5(`${testCaseId}:${parametersHash}:${environmentId ?? "default"}`);
-};
 
 export class RetrySubstore {
   readonly #testResultsByRetryHash = new Map<string, TestResult[]>();
@@ -99,7 +72,14 @@ export class RetrySubstore {
       return;
     }
 
-    results.push(testResult);
+    const existingIndex = results.findIndex((attempt) => attempt.id === testResult.id);
+
+    if (existingIndex !== -1) {
+      results.splice(existingIndex, 1, testResult);
+    } else {
+      results.push(testResult);
+    }
+
     results.sort((first, second) => this.#compareResults(first, second));
 
     results.forEach((attempt, index) => {
@@ -108,18 +88,25 @@ export class RetrySubstore {
   }
 
   retriesByTr(testResult: TestResult): TestResult[] {
-    if (!testResult.retryHash || testResult.isRetry) {
+    if (!testResult.retryHash) {
       return NO_RETRIES;
     }
 
     const attempts = this.#testResultsByRetryHash.get(testResult.retryHash) ?? [];
-    const index = attempts.findIndex((attempt) => attempt.id === testResult.id);
 
-    if (index !== 0) {
+    // retryHash is a grouping key, not a retry flag. A retry group exists only
+    // when multiple attempts share the same retryHash.
+    if (attempts.length <= 1) {
       return NO_RETRIES;
     }
 
-    return attempts.slice(1);
+    const index = attempts.findIndex((attempt) => attempt.id === testResult.id);
+
+    if (index === -1) {
+      return NO_RETRIES;
+    }
+
+    return attempts.filter((attempt) => attempt.id !== testResult.id);
   }
 
   reset() {

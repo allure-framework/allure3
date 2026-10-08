@@ -1,4 +1,4 @@
-import type { CategoriesConfig, KnownTestFailure, ResolvedAllureServiceConfig } from "@allurereport/core-api";
+import type { CategoriesConfig, PerformanceConfig, ResolvedAllureServiceConfig } from "@allurereport/core-api";
 import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
@@ -13,18 +13,25 @@ type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "o
 
 export interface FullConfig
   extends
-    Omit<Config, "name" | "output" | "open" | "allureService" | "knownIssuesPath" | "plugins" | "port">,
+    Omit<Config, "name" | "output" | "open" | "allureService" | "plugins" | "port" | "resultsDir">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
   allowedEnvironments?: Config["allowedEnvironments"];
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
-  known?: KnownTestFailure[];
-  knownIssuesPath?: Config["knownIssuesPath"];
   realTime?: any;
   qualityGate?: Config["qualityGate"];
+  performance?: PerformanceConfig;
   allureService?: ResolvedAllureServiceConfig;
   categories?: CategoriesConfig;
   globalAttachments?: string[];
+  /**
+   * Working directory used for resolving input patterns and local artifact paths.
+   */
+  cwd?: string;
+  /**
+   * Normalized results directory patterns from config (unset when empty / only empty-string entries).
+   */
+  resultsDir?: string[];
 }

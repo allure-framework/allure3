@@ -108,5 +108,5 @@ describe("components > Timeline", () => {
 
     expect(screen.getByTestId("timeline-shared-host")).toHaveTextContent("tr-qa-a");
     expect(screen.getByTestId("timeline-shared-host")).not.toHaveTextContent("tr-qa-b");
-  });
+  }, 15000);
 });

@@ -9,7 +9,14 @@ import { useMemo } from "preact/hooks";
 
 import { Widget } from "@/components/Widget";
 
+import { useChartTooltip } from "../ChartTooltip/useChartTooltip";
 import { EmptyDataStub } from "../EmptyDataStub";
+import {
+  defaultSuccessRateI18n,
+  formatChartPercentage,
+  successRateDescription,
+  type SuccessRateI18n,
+} from "../SuccessRatePieChart/successRate";
 
 const chartTheme: PartialTheme = {
   background: "var(--color-bg-primary)", // Chart background
@@ -55,10 +62,12 @@ type Props = {
     layer: string;
     testCount: number;
     successRate: number;
+    eligibleCount?: number;
     percentage: number;
   }[];
   title: string;
   translations: Record<string, string>;
+  i18n?: SuccessRateI18n;
   width?: JSX.CSSProperties["width"];
   height?: JSX.CSSProperties["height"];
 };
@@ -67,6 +76,12 @@ type TPFunnelDatum = FunnelDatum & {
   color: string;
   successRate: number;
   layer: string;
+  percentage: number;
+  eligibleCount: number;
+  layerLabel: string;
+  countLabel: string;
+  rateLabel: string;
+  description: string;
 };
 
 const Part = (part: FunnelPartWithHandlers<TPFunnelDatum>) => {
@@ -81,24 +96,24 @@ const Part = (part: FunnelPartWithHandlers<TPFunnelDatum>) => {
     immediate: !animate,
   });
 
-  const lines = [];
+  const { value, layerLabel, countLabel, rateLabel, description } = part.data;
+  const lines = [layerLabel, countLabel];
 
-  lines.push(`Layer: ${part.data.layer}`);
-
-  if (part.data.value > 0) {
-    lines.push(`Number of tests: ${part.data.value} (${part.data.percentage}%)`);
-    lines.push(`Success rate: ${part.data.successRate}%`);
-  } else {
-    lines.push("No tests");
+  if (value > 0) {
+    lines.push(rateLabel);
   }
 
+  const { triggerProps, tooltip } = useChartTooltip(`${lines.join("\n")}\n${description}`);
+
   return (
-    <animated.g transform={animatedProps.transform}>
+    <animated.g {...triggerProps} role="img" aria-label={lines.join("; ")} transform={animatedProps.transform}>
+      {tooltip}
+      <title>{lines.join("; ")}</title>
       <Text
         key={part.data.id}
         style={{
           ...theme.labels.text,
-          pointerEvents: "none",
+          pointerEvents: "all",
         }}
         lineHeight={1.2}
       >
@@ -121,7 +136,7 @@ const PyramidLabelsLayer = (layerProps: FunnelCustomLayerProps<TPFunnelDatum>) =
 };
 
 export const TestingPyramidWidget = (props: Props) => {
-  const { data, title, translations, height = 400, width = "100%" } = props;
+  const { data, title, translations, i18n = defaultSuccessRateI18n, height = 400, width = "100%" } = props;
   const emptyLabel = translations["no-results"];
 
   const funnelData: TPFunnelDatum[] = useMemo(
@@ -132,11 +147,20 @@ export const TestingPyramidWidget = (props: Props) => {
         value: item.testCount,
         label: item.layer,
         successRate: item.successRate,
+        eligibleCount: item.eligibleCount ?? item.testCount,
+        layerLabel: i18n("layer", { layer: item.layer }),
+        countLabel: item.testCount
+          ? i18n("slice", { count: item.testCount, percent: formatChartPercentage(item.percentage) })
+          : i18n("noResults"),
+        rateLabel: i18n("successRate", {
+          rate: item.testCount ? `${formatChartPercentage(item.successRate)}%` : "???",
+        }),
+        description: successRateDescription(item.testCount, item.eligibleCount ?? item.testCount, i18n),
         percentage: item.percentage,
         layer: item.layer,
         color: item.testCount > 0 ? "var(--color-intent-primary-bg)" : "var(--color-status-skipped-chart-fill)",
       })),
-    [data],
+    [data, i18n],
   );
 
   if (!data || data.length === 0) {
@@ -149,7 +173,7 @@ export const TestingPyramidWidget = (props: Props) => {
 
   return (
     <Widget title={title}>
-      <div role="img" tabIndex={0} style={{ width, height }}>
+      <div role="group" aria-label={title} style={{ width, height }}>
         <ResponsiveFunnel
           data={funnelData}
           theme={chartTheme}

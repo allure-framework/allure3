@@ -3,7 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { Button, Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import type { AwesomeExecutorInfo, AwesomeReportOptions } from "types";
+import type { ReportExecutorInfo, ReportOptions } from "types";
 
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
@@ -12,8 +12,9 @@ import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { getReportEnvSectionId } from "@/stores/reportEnvSections";
-import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { collapsedTrees, toggleTree, treeStore } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
+import { getUnresolvedStatusCounts } from "@/utils/statuses";
 
 import * as styles from "./styles.scss";
 
@@ -112,7 +113,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   );
 };
 
-const getExecutorLabel = (executor?: AwesomeExecutorInfo) => {
+const getExecutorLabel = (executor?: ReportExecutorInfo) => {
   if (!executor) return undefined;
   if (executor.name && executor.buildName) return `${executor.name} · ${executor.buildName}`;
 
@@ -126,7 +127,7 @@ const getExecutorLabel = (executor?: AwesomeExecutorInfo) => {
   );
 };
 
-const getExecutorMetadata = (executor?: AwesomeExecutorInfo): MetadataItem[] => {
+const getExecutorMetadata = (executor?: ReportExecutorInfo): MetadataItem[] => {
   const label = getExecutorLabel(executor);
 
   return label
@@ -136,9 +137,10 @@ const getExecutorMetadata = (executor?: AwesomeExecutorInfo): MetadataItem[] => 
 
 export const ReportMetadata = () => {
   const envId = currentEnvironment.value;
-  const { executor } = getReportOptions<AwesomeReportOptions>();
+  const { executor } = getReportOptions<ReportOptions>();
   const executorMetadata = getExecutorMetadata(executor);
   const stats = envId ? statsByEnvStore.value.data[envId] : reportStatsStore.value.data;
+  const statusCounts = stats && getUnresolvedStatusCounts(stats, treeStore.value.data, envId);
 
   useEffect(() => {
     fetchVariables(envId);
@@ -146,7 +148,7 @@ export const ReportMetadata = () => {
 
   return (
     <div className={styles["report-metadata-wrapper"]}>
-      {stats && <MetadataSummary stats={stats} />}
+      {stats && <MetadataSummary stats={stats} statusCounts={statusCounts} />}
       <Loadable
         source={variables}
         transformData={(data) => data?.[envId ?? "default"] ?? {}}

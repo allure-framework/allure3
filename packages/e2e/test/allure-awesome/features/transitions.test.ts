@@ -189,6 +189,26 @@ test.describe("status transitions", () => {
     await expect(treePage.leafLocator).toHaveCount(4);
   });
 
+  test("should show fixed and regressed tests when both transition filters are selected", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
+    await expect(treePage.leafLocator).toHaveCount(4);
+
+    await treePage.toggleFixedFilter();
+    await treePage.toggleRegressedFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(2);
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).not.toBeVisible();
+
+    await treePage.toggleFixedFilter();
+    await treePage.toggleRegressedFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(4);
+  });
+
   test("should show only one Tooltip and change its content on hover different transitions", async ({ page }) => {
     await page.goto(bootstrap.url);
 

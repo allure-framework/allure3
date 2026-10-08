@@ -1,5 +1,5 @@
 import type { BarDatum } from "@nivo/bar";
-import { toNumber } from "lodash";
+import toNumber from "lodash/toNumber.js";
 
 export const computeVerticalAxisMargin = <T extends BarDatum>({
   data,

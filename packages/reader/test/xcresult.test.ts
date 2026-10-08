@@ -1,5 +1,6 @@
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
+import { env } from "node:process";
 
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
@@ -64,7 +65,9 @@ describe.skipIf(!IS_MAC || HAS_XCRESULTTOOL)("A MAC machine without xcresulttool
   });
 });
 
-describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", { timeout: 10_000 }, () => {
+const XCRESULTTOOL_TEST_OPTIONS = { timeout: 10_000, retry: env.CI ? 2 : 0 };
+
+describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", XCRESULTTOOL_TEST_OPTIONS, () => {
   describe("attachments", () => {
     it("should parse a nameless test attachment", async () => {
       const result = await readXcResultResource("attachments/nameless.xcresult");

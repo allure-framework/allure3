@@ -9,6 +9,7 @@ export class TestResultPage extends CommonPage {
   titleLocator: Locator;
   fullnameLocator: Locator;
   fullnameCopyLocator: Locator;
+  fullnameCopyItemLocator: Locator;
 
   statusPassedLocator: Locator;
   statusFailedLocator: Locator;
@@ -44,6 +45,8 @@ export class TestResultPage extends CommonPage {
   prevStatusLocator: Locator;
 
   linksLocator: Locator;
+  setupDropdownLocator: Locator;
+  teardownDropdownLocator: Locator;
   stepsSubtreeToggleLocator: Locator;
 
   constructor(readonly page: Page) {
@@ -52,6 +55,7 @@ export class TestResultPage extends CommonPage {
     this.titleLocator = page.getByTestId("test-result-info-title");
     this.fullnameLocator = page.getByTestId("test-result-fullname");
     this.fullnameCopyLocator = page.getByTestId("test-result-fullname-copy");
+    this.fullnameCopyItemLocator = page.getByTestId("test-result-copy-fullname");
 
     this.statusPassedLocator = page.getByTestId("test-result-status-passed");
     this.statusFailedLocator = page.getByTestId("test-result-status-failed");
@@ -87,6 +91,8 @@ export class TestResultPage extends CommonPage {
     this.prevStatusLocator = page.getByTestId("test-result-prev-status");
 
     this.linksLocator = page.getByTestId("test-result-meta-links");
+    this.setupDropdownLocator = page.getByTestId("test-result-setup-dropdown");
+    this.teardownDropdownLocator = page.getByTestId("test-result-teardown-dropdown");
     this.stepsSubtreeToggleLocator = page.getByTestId("test-result-steps-subtree-toggle");
   }
 
@@ -139,7 +145,8 @@ export class TestResultPage extends CommonPage {
   }
 
   async copyFullname() {
-    await this.fullnameCopyLocator.click();
+    await this.fullnameCopyLocator.hover();
+    await this.fullnameCopyItemLocator.click();
   }
 
   async toggleStepByTitle(title: string) {

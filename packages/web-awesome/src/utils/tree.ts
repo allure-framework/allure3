@@ -1,5 +1,5 @@
 import type { RecursiveTree } from "@allurereport/web-components/global";
-import type { AwesomeTreeLeaf } from "types";
+import type { ReportTreeLeaf } from "types";
 
 type Localizer = (data: string, params?: Record<string, unknown>) => string;
 
@@ -9,11 +9,12 @@ type Localizers = {
 
 export const createLeafLocalizer =
   (t: Localizers) =>
-  (leaf: AwesomeTreeLeaf): AwesomeTreeLeaf => {
+  (leaf: ReportTreeLeaf): ReportTreeLeaf => {
     const tooltips = {
       transition: t.tooltip(leaf.transition),
       flaky: leaf.flaky && t.tooltip("flaky"),
       retries: leaf.retriesCount && t.tooltip("retries", { count: leaf.retriesCount }),
+      resolution: leaf.resolution && t.tooltip(`resolution.${leaf.resolution}`),
     };
     return {
       ...leaf,

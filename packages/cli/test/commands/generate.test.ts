@@ -75,7 +75,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: "known.json",
+      resolutions: { knownIssuesPath: "known.json" },
     });
   });
 
@@ -114,7 +114,16 @@ describe("generate command", () => {
     (readConfig as Mock).mockResolvedValueOnce({ open: false });
     (generate as Mock).mockResolvedValue(undefined);
 
-    await run(GenerateCommand, ["generate", "--output", "foo", "--report-name", "bar", "baz"]);
+    await run(GenerateCommand, [
+      "generate",
+      "--output",
+      "foo",
+      "--report-name",
+      "bar",
+      "--history-base-url",
+      "https://bucket.example/runs/42",
+      "baz",
+    ]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
@@ -124,7 +133,8 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      historyBaseUrl: "https://bucket.example/runs/42",
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -151,7 +161,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -177,7 +187,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -201,9 +211,19 @@ describe("generate command", () => {
     expect(serve).not.toHaveBeenCalled();
   });
 
+  it("should return the quality gate exit code from generate", async () => {
+    (readConfig as Mock).mockResolvedValue({ open: false });
+    (generate as Mock).mockResolvedValue({ exitCode: 1 });
+
+    const code = await run(GenerateCommand, ["generate", "foo"]);
+
+    expect(code).toBe(1);
+    expect(serve).not.toHaveBeenCalled();
+  });
+
   it("should call serve when open flag is true", async () => {
     (readConfig as Mock).mockResolvedValue({ output: "foo", open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(GenerateCommand, ["generate", "--open", "bar"]);
@@ -215,7 +235,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -232,13 +252,24 @@ describe("generate command", () => {
     );
   });
 
+  it("should start the server before returning a failed quality gate status", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "foo", open: true });
+    (generate as Mock).mockResolvedValue({ exitCode: 1 });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    const code = await run(GenerateCommand, ["generate", "--open", "bar"]);
+
+    expect(serve).toHaveBeenCalled();
+    expect(code).toBe(1);
+  });
+
   it("should pass port to serve when open flag is true and port is specified", async () => {
     (readConfig as Mock).mockResolvedValue({
       output: "foo",
       open: true,
       port: 10202,
     });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(GenerateCommand, ["generate", "--open", "--port", "10201", "bar"]);
@@ -250,7 +281,7 @@ describe("generate command", () => {
       port: "10201",
       hideLabels: undefined,
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -280,7 +311,7 @@ describe("generate command", () => {
   it("should handle errors from serve function when open is true", async () => {
     const error = new Error("Serve failed");
     (readConfig as Mock).mockResolvedValue({ open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockRejectedValue(error);
 
     const code = await run(GenerateCommand, ["generate", "--open", "foo"]);
@@ -305,7 +336,7 @@ describe("generate command", () => {
       port: undefined,
       hideLabels: ["baz", "qux"],
       historyLimit: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({

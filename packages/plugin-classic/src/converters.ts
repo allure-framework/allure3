@@ -6,7 +6,7 @@ import {
   isStep,
   redactParameters,
 } from "@allurereport/core-api";
-import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/web-classic";
+import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -24,7 +24,7 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, {});
 };
 
-export const convertTestResult = (tr: TestResult): ClassicTestResult => {
+export const convertTestResult = (tr: TestResult): ReportTestResult => {
   return {
     id: tr.id,
     name: tr.name,
@@ -33,7 +33,10 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     duration: tr.duration,
     status: tr.status,
     fullName: tr.fullName,
-    historyId: tr.historyId,
+    testCaseHash: tr.testCaseHash,
+    parametersHash: tr.parametersHash,
+    environmentHash: tr.environmentHash,
+    retryHash: tr.retryHash,
     flaky: tr.flaky,
     muted: tr.muted,
     known: tr.known,
@@ -44,6 +47,7 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     links: tr.links,
     steps: (tr.steps ?? []).map(convertTestStepResult),
     error: tr.error,
+    errors: tr.errors,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
     setup: [],
@@ -56,7 +60,7 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
   if (isStep(tsr)) {
     return {
       ...tsr,
@@ -68,7 +72,7 @@ export const convertTestStepResult = (tsr: TestStepResult): ClassicTestStepResul
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): ClassicFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

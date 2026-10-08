@@ -12,6 +12,7 @@ import {
   DropdownButton,
   IconButton,
   Menu,
+  SearchBox,
   Text,
   Tooltip,
   allureIcons,
@@ -157,7 +158,7 @@ export const MultipleChoiceFieldFilter = (props: {
   counter?: boolean;
   onChange: (group: FieldFilterGroup) => void;
   onClear?: () => void;
-  options: { key: string; label?: string; description?: string; icon?: string }[];
+  options: { key: string; label?: string; description?: string; icon?: string; count?: number }[];
   fieldKey: string;
   logicalOperator?: LogicalOperator;
   strict?: boolean;
@@ -258,7 +259,10 @@ export const MultipleChoiceFieldFilter = (props: {
             dataTestId={`${option.key}-filter`}
           >
             <div className={styles.itemContent}>
-              <Text tag="div">{option.label ?? option.key}</Text>
+              <div className={styles.itemHeader}>
+                <Text tag="div">{option.label ?? option.key}</Text>
+                {option.count !== undefined && <Counter count={option.count} size="s" truncateCount />}
+              </div>
               {option.description && (
                 <Text tag="div" size="s" type="paragraph" className={styles.description}>
                   {option.description}
@@ -272,6 +276,18 @@ export const MultipleChoiceFieldFilter = (props: {
   );
 };
 
+const ResetSearchOnClose = (props: { isOpened: boolean; onReset: () => void }) => {
+  const { isOpened, onReset } = props;
+
+  useEffect(() => {
+    if (!isOpened) {
+      onReset();
+    }
+  }, [isOpened, onReset]);
+
+  return null;
+};
+
 export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
   filter: FieldFilter & { value: T };
   counter?: boolean;
@@ -282,10 +298,36 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
   label?: string;
   description?: string;
   disabled?: boolean;
+  searchable?: boolean;
 }) => {
-  const { filter, onChange, icon, label, options, counter = true, onClear, description, disabled } = props;
+  const {
+    filter,
+    onChange,
+    icon,
+    label,
+    options,
+    counter = true,
+    onClear,
+    description,
+    disabled,
+    searchable = false,
+  } = props;
   const { value, key } = filter.value;
   const { t } = useI18n("filters");
+  const { t: tSearch } = useI18n("search");
+  const { t: tEmpty } = useI18n("empty");
+  const [search, setSearch] = useState("");
+  const [searchBoxKey, setSearchBoxKey] = useState(0);
+
+  const resetSearch = useCallback(() => {
+    setSearch("");
+    setSearchBoxKey((current) => current + 1);
+  }, []);
+
+  const handleClear = useCallback(() => {
+    resetSearch();
+    onClear?.();
+  }, [onClear, resetSearch]);
 
   const handleOptionClick = useCallback(
     (optionKey: string, optionValue: boolean) => {
@@ -306,6 +348,11 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
 
   const checkedValuesCount = options.map(({ key: optionKey }) => optionKey).filter(isOptionChecked).length;
   const hasCheckedValues = checkedValuesCount > 0;
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleOptions =
+    searchable && normalizedSearch
+      ? options.filter((option) => (option.label ?? option.key).toLowerCase().includes(normalizedSearch))
+      : options;
 
   const errorText = t("errors.max_values", { count: MAX_ARRAY_FIELD_VALUES });
   const hasError = checkedValuesCount > MAX_ARRAY_FIELD_VALUES;
@@ -314,33 +361,45 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
     <Menu
       placement="bottom-start"
       menuTrigger={({ onClick, isOpened }) => (
-        <FilterBtn
-          icon={icon}
-          text={label ?? key}
-          isActive={hasCheckedValues}
-          isExpanded={isOpened}
-          counter={counter && hasCheckedValues ? checkedValuesCount : undefined}
-          onClick={onClick}
-          onClear={onClear}
-          isDropdown
-          error={hasError ? errorText : undefined}
-          description={description}
-          disabled={disabled}
-        />
+        <>
+          {searchable && <ResetSearchOnClose isOpened={isOpened} onReset={resetSearch} />}
+          <FilterBtn
+            icon={icon}
+            text={label ?? key}
+            isActive={hasCheckedValues}
+            isExpanded={isOpened}
+            counter={counter && hasCheckedValues ? checkedValuesCount : undefined}
+            onClick={onClick}
+            onClear={onClear ? handleClear : undefined}
+            isDropdown
+            error={hasError ? errorText : undefined}
+            description={description}
+            disabled={disabled}
+          />
+        </>
       )}
     >
+      {searchable && (
+        <div className={styles.search}>
+          <SearchBox key={searchBoxKey} value={search} onChange={setSearch} placeholder={tSearch("search")} />
+        </div>
+      )}
       <Menu.Section>
-        {options.map((option) => (
-          <Menu.ItemWithCheckmark
-            closeMenuOnClick={false}
-            key={option.key}
-            onClick={() => handleOptionClick(option.key, !isOptionChecked(option.key))}
-            isChecked={isOptionChecked(option.key)}
-            leadingIcon={option.icon}
-          >
-            {option.label ?? option.key}
-          </Menu.ItemWithCheckmark>
-        ))}
+        {searchable && normalizedSearch && visibleOptions.length === 0 ? (
+          <Menu.Item>{tEmpty("no-results")}</Menu.Item>
+        ) : (
+          visibleOptions.map((option) => (
+            <Menu.ItemWithCheckmark
+              closeMenuOnClick={false}
+              key={option.key}
+              onClick={() => handleOptionClick(option.key, !isOptionChecked(option.key))}
+              isChecked={isOptionChecked(option.key)}
+              leadingIcon={option.icon}
+            >
+              {option.label ?? option.key}
+            </Menu.ItemWithCheckmark>
+          ))
+        )}
       </Menu.Section>
     </Menu>
   );

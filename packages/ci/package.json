@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/ci",
-  "version": "3.14.3",
+  "version": "3.20.1",
   "description": "Utilities set to get useful report data from different CI",
   "keywords": [
     "allure",
@@ -20,7 +20,9 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./report-context": "./dist/reportContext.js",
+    "./report-markdown": "./dist/reportMarkdown.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
@@ -30,12 +32,15 @@
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*"
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "axios": "^1.20.0",
+    "glob": "^13.0.6"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",

@@ -1,14 +1,14 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
 
 import * as styles from "./styles.scss";
 
 export type TestResultDescriptionProps = {
-  descriptionHtml: ClassicTestResult["descriptionHtml"];
+  descriptionHtml: ReportTestResult["descriptionHtml"];
 };
 
 const MIN_HEIGHT = 120;

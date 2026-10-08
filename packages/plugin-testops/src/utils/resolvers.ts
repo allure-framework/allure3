@@ -64,6 +64,7 @@ export function attachmentsResolverFactory(store: AllureStore) {
           originalFileName: filename,
           contentType: attachment.contentType ?? "application/octet-stream",
           content: body,
+          contentLength: content?.getContentLength(),
         });
       }),
     );

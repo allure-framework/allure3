@@ -20,6 +20,9 @@ export enum RealtimeEvents {
   QualityGateResults = "qualityGateResults",
   GlobalAttachment = "globalAttachment",
   GlobalError = "globalError",
+  ProcessGlobalAttachment = "processGlobalAttachment",
+  ProcessGlobalError = "processGlobalError",
+  ProcessGlobalsReset = "processGlobalsReset",
   GlobalExitCode = "globalExitCode",
 }
 
@@ -29,8 +32,11 @@ export interface AllureStoreEvents {
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
   [RealtimeEvents.GlobalAttachment]: [{ attachment: ResultFile; fileName?: string; environment?: string }];
+  [RealtimeEvents.ProcessGlobalAttachment]: [{ attachment: ResultFile; fileName?: string; environment?: string }];
   [RealtimeEvents.GlobalExitCode]: [ExitCode];
   [RealtimeEvents.GlobalError]: [PluginGlobalError];
+  [RealtimeEvents.ProcessGlobalError]: [PluginGlobalError];
+  [RealtimeEvents.ProcessGlobalsReset]: [];
 }
 
 type RealtimeListener<T extends unknown[]> = (...args: T) => RealtimeListenerResult;
@@ -75,12 +81,24 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter.emit(RealtimeEvents.GlobalAttachment, { attachment, fileName, environment });
   }
 
+  sendProcessGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string) {
+    this.#emitter.emit(RealtimeEvents.ProcessGlobalAttachment, { attachment, fileName, environment });
+  }
+
   sendGlobalExitCode(codes: ExitCode) {
     this.#emitter.emit(RealtimeEvents.GlobalExitCode, codes);
   }
 
   sendGlobalError(error: PluginGlobalError) {
     this.#emitter.emit(RealtimeEvents.GlobalError, error);
+  }
+
+  sendProcessGlobalError(error: PluginGlobalError) {
+    this.#emitter.emit(RealtimeEvents.ProcessGlobalError, error);
+  }
+
+  sendProcessGlobalsReset() {
+    this.#emitter.emit(RealtimeEvents.ProcessGlobalsReset);
   }
 
   sendQualityGateResults(payload: QualityGateValidationResult[]) {
@@ -107,10 +125,12 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
  */
 export class RealtimeSubscriber implements RealtimeSubscriberType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
+  readonly #beforeTestResults?: () => void;
   #handlers: BatchHandler[] = [];
 
-  constructor(emitter: EventEmitter<AllureStoreEvents>) {
+  constructor(emitter: EventEmitter<AllureStoreEvents>, beforeTestResults?: () => void) {
     this.#emitter = emitter;
+    this.#beforeTestResults = beforeTestResults;
   }
 
   onGlobalAttachment(
@@ -119,12 +139,26 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     return this.#onEvent(RealtimeEvents.GlobalAttachment, listener);
   }
 
+  onProcessGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
+  ) {
+    return this.#onEvent(RealtimeEvents.ProcessGlobalAttachment, listener);
+  }
+
   onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult) {
     return this.#onEvent(RealtimeEvents.GlobalExitCode, listener);
   }
 
   onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult) {
     return this.#onEvent(RealtimeEvents.GlobalError, listener);
+  }
+
+  onProcessGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult) {
+    return this.#onEvent(RealtimeEvents.ProcessGlobalError, listener);
+  }
+
+  onProcessGlobalsReset(listener: () => RealtimeListenerResult) {
+    return this.#onEvent(RealtimeEvents.ProcessGlobalsReset, listener);
   }
 
   onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) {
@@ -139,7 +173,15 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
    * next batch.
    */
   onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options: BatchOptions = {}) {
-    return this.#onBatchedEvent(RealtimeEvents.TestResult, listener, options);
+    return this.#onBatchedEvent(
+      RealtimeEvents.TestResult,
+      (trIds) => {
+        this.#beforeTestResults?.();
+
+        return listener(trIds);
+      },
+      options,
+    );
   }
 
   /**

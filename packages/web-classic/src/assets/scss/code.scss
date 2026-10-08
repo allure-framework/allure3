@@ -1,9 +1,9 @@
 pre[class*="language-"],
 code[class*="language-"] {
-  background: var(--bg-base-secondary);
+  background: var(--color-bg-secondary);
   font-size: 12px;
   font-family: "JetBrains Mono", monospace;
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   text-shadow: none !important;
   margin: 0;
 }
@@ -46,7 +46,7 @@ code[class*="language-"] {
 }
 
 .token.punctuation {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
 }
 
 .token.regex,
@@ -58,7 +58,7 @@ code[class*="language-"] {
 .line-numbers,
 .line-numbers-rows {
   border-right: none;
-  color: var(--on-text-hint);
+  color: var(--color-text-muted);
 }
 
 .token.operator,
@@ -66,6 +66,6 @@ code[class*="language-"] {
 .token.url,
 .language-css .token.string,
 .style .token.string {
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   background: none;
 }

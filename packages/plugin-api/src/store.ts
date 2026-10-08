@@ -5,7 +5,8 @@ import type {
   GlobalAttachmentLink,
   HistoryDataPoint,
   HistoryTestResult,
-  KnownTestFailure,
+  ResolutionIssue,
+  MetricSample,
   ReportVariables,
   Statistic,
   TestCase,
@@ -25,6 +26,7 @@ export interface TestResultRelatedData {
   attachmentsByTrId: Map<string, AttachmentLink[]>;
   fixturesByTrId: Map<string, TestFixtureResult[]>;
   historyByTrId: Map<string, HistoryTestResult[] | undefined>;
+  resolutionIssuesByTrId?: Map<string, ResolutionIssue | undefined>;
   retriesByTrId: Map<string, TestResult[]>;
 }
 
@@ -38,7 +40,10 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
-  allKnownIssues: () => Promise<KnownTestFailure[]>;
+  allResolutionIssues: () => Promise<ResolutionIssue[]>;
+  resolutionIssueByTestResultId: (trId: string) => Promise<ResolutionIssue | undefined>;
+  testResultsByResolutionIssueId: (resolutionIssueId: string) => Promise<TestResult[]>;
+  allMetrics: () => Promise<MetricSample[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // check data
   addCheckResult: (result: AllureCheckResult) => Promise<void>;
@@ -98,11 +103,14 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
-  knownIssues: Record<string, KnownTestFailure>;
+  metadata?: Record<string, any>;
+  resolutionIssues: Record<string, ResolutionIssue>;
   qualityGateResults: QualityGateValidationResult[];
+  metrics?: MetricSample[];
   indexAttachmentByTestResult: Record<string, string[]>;
-  indexTestResultByHistoryId: Record<string, string[]>;
+  indexTestResultByRetryHash: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
+  indexTestResultByResolutionIssue: Record<string, string[]>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
   /** Global ingest order of test result ids (append order in store). */
@@ -120,12 +128,15 @@ export enum AllureStoreDumpFiles {
   CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
-  KnownIssues = "known-issues.json",
+  Metadata = "metadata.json",
+  ResolutionIssues = "resolution-issues.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
-  IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
+  IndexTestResultsByRetryHash = "index-test-results-by-retry-hash.json",
   IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
+  IndexTestResultsByResolutionIssue = "index-test-results-by-resolution-issue.json",
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   QualityGateResults = "quality-gate-results.json",
   TestResultIngestOrder = "test-result-ingest-order.json",
+  Metrics = "metrics.json",
 }

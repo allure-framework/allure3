@@ -6,6 +6,10 @@
   }
 }
 
+.tree-root {
+  container: allure-tree / inline-size;
+}
+
 .tree-list {
   min-height: 128px;
 }
@@ -13,6 +17,7 @@
 .tree-section {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 4px;
   transition: background-color 300ms;
   cursor: pointer;
@@ -62,7 +67,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 24px;
-  flex-grow: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tree-show-more {
+  padding: 8px 8px 8px 6px;
 }
 
 .tree-subtree-toggle {
@@ -85,8 +95,17 @@
 .tree-item {
   display: flex;
   justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 6px 8px 6px 6px;
+  border: 0;
   transition: background-color 300ms;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   gap: 4px;
   cursor: pointer;
   position: relative;
@@ -100,11 +119,31 @@
   }
 }
 
+.item-text {
+  display: flex;
+  align-items: flex-start;
+  flex: 1 1 0;
+  min-width: 0;
+  gap: 4px;
+}
+
 .item-title {
   display: flex;
   align-items: flex-start;
-  margin-right: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.item-parameters {
+  flex: 1 1 10ch;
+  min-width: 2ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-s);
 }
 
 .test-count {
@@ -115,9 +154,12 @@
 
 .tree-content:not(.root) {
   display: block;
+  min-width: 0;
+  max-width: 100%;
   padding-left: 24px;
   margin-bottom: 12px;
   border-top: 1px solid var(--color-border-subtle);
+  box-sizing: border-box;
 }
 
 .tree-item-icon {
@@ -280,4 +322,10 @@
   outline: none;
   background: var(--color-control-bg);
   box-shadow: inset 3px 0 0 var(--color-intent-primary-bg);
+}
+
+@container allure-tree (max-width: 360px) {
+  .item-parameters {
+    display: none;
+  }
 }

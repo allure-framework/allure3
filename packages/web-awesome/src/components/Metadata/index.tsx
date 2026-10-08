@@ -1,4 +1,5 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
+import { copyToClipboard } from "@allurereport/web-commons";
 import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
@@ -8,7 +9,6 @@ import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
 import { getTagsFilterUrl } from "@/stores/treeFilters/utils";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 import { parseOwnerAddress } from "@/utils/ownerAddress";
 
 import * as styles from "./styles.scss";

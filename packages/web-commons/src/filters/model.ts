@@ -33,6 +33,16 @@ export type BooleanField<T extends string = string> = {
   type: "boolean";
 };
 
+/**
+ * Matches items where the field holds no value at all, i.e. it's `null` or missing.
+ */
+export type NullField<T extends string = string> = {
+  key: T;
+  value: null;
+  strict?: never;
+  type: "null";
+};
+
 export type ArrayField<T extends string = string> = {
   key: T;
   value: string[];
@@ -40,10 +50,15 @@ export type ArrayField<T extends string = string> = {
   type: "array";
 };
 
-export type Field<T extends string = string> = StringField<T> | NumberField<T> | BooleanField<T> | ArrayField<T>;
+export type Field<T extends string = string> =
+  | StringField<T>
+  | NumberField<T>
+  | BooleanField<T>
+  | ArrayField<T>
+  | NullField<T>;
 
 export type LogicalOperator = "AND" | "OR";
 
-export type AqlValueType = "STRING" | "NUMBER" | "BOOLEAN";
+export type AqlValueType = "STRING" | "NUMBER" | "BOOLEAN" | "NULL";
 
 export const MAX_ARRAY_FIELD_VALUES = 20;

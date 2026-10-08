@@ -21,6 +21,7 @@ describe("agent capabilities", () => {
     expect(payload.commands.run.usage).toContain("-- <command>");
     expect(payload.commands.run.options).not.toContain("--dump");
     expect(payload.commands.run.options).toContain("--report");
+    expect(payload.commands.run.options).toContain("--results-dir");
     expect(payload.commands.inspect.usage).toContain("allure agent inspect");
     expect(payload.commands.inspect.options).toContain("--dump");
     expect(payload.commands.inspect.options).toContain("--config");

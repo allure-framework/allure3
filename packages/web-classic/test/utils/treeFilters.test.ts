@@ -2,7 +2,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
-import type { ClassicTestResult } from "../../types.js";
+import type { ReportTestResult } from "../../types.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -20,15 +20,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -57,17 +57,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           status: "passed",
           start: baseDate,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
           start: baseDate + 1000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           status: "passed",
           start: baseDate + 2000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -92,17 +92,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate,
           flaky: true,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           flaky: false,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
           flaky: true,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -127,17 +127,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate,
           retry: true,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           retry: false,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
           retry: false,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         filter: {
@@ -154,15 +154,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -182,15 +182,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -209,13 +209,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -234,13 +234,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -260,23 +260,23 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -298,31 +298,31 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         f6: {
           name: "f6",
           status: "failed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         z9: {
           name: "z9",
           status: "passed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -348,17 +348,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -380,17 +380,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -416,15 +416,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const groupsById = {
         a1: {
@@ -473,27 +473,27 @@ describe("utils > treeFilters", () => {
         failedAlphaTest: {
           name: "failedAlphaTest",
           status: "failed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         failedZuluTest: {
           name: "failedZuluTest",
           status: "failed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         brokenTest1: {
           name: "brokenTest1",
           status: "broken",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         brokenTest2: {
           name: "brokenTest2",
           status: "broken",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         passedTest1: {
           name: "passedTest1",
           status: "passed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
         passedTest2: {
           name: "passedTest2",
           status: "passed",
-        } as ClassicTestResult,
+        } as ReportTestResult,
       };
       const groupsById = {
         passedHeavy: {

@@ -1,7 +1,7 @@
 .layout {
   margin: auto;
-  background: var(--bg-base-primary);
-  color: var(--on-text-primary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-size: 14px;
   height: 100vh;
   display: flex;
@@ -16,7 +16,7 @@
 
 .content {
   box-shadow: var(--shadow-small);
-  background: var(--bg-base-primary);
+  background: var(--color-bg-primary);
   border-radius: 12px;
   width: 100%;
 }
@@ -35,7 +35,7 @@
 .title {
   font-size: 14px;
   line-height: 1.25;
-  color: var(--on-text-primary);
+  color: var(--color-text-primary);
   margin-bottom: 8px;
 }
 

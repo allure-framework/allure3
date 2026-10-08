@@ -49,6 +49,7 @@ beforeEach(async () => {
   await story("allure2");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
 describe("allure2 command", () => {
@@ -131,6 +132,8 @@ describe("allure2 command", () => {
       "baz",
       "--history-path",
       "qux",
+      "--history-base-url",
+      "https://bucket.example/runs/42",
       "./allure-results",
     ]);
 
@@ -138,8 +141,9 @@ describe("allure2 command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       name: "foo",
       output: "bar",
-      knownIssuesPath: "baz",
+      resolutions: { knownIssuesPath: "baz" },
       historyPath: "qux",
+      historyBaseUrl: "https://bucket.example/runs/42",
     });
   });
 
@@ -153,7 +157,7 @@ describe("allure2 command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       output: undefined,
       name: undefined,
-      knownIssuesPath: undefined,
+      resolutions: { knownIssuesPath: undefined },
       historyPath: undefined,
     });
   });

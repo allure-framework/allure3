@@ -20,6 +20,13 @@ export type GeneratorParams = {
   resultsDir: string;
   testResults?: Partial<TestResult>[];
   rawTestResults?: Partial<TestResult>[];
+  rawTestResultContainers?: {
+    uuid?: string;
+    name?: string;
+    children?: string[];
+    befores?: Record<string, unknown>[];
+    afters?: Record<string, unknown>[];
+  }[];
   attachments?: { source: string; content: Buffer }[];
   reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath" | "port" | "open">;
   globals?: {
@@ -54,6 +61,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     resultsDir,
     testResults = [],
     rawTestResults = [],
+    rawTestResultContainers = [],
     attachments = [],
     history = [],
     globals,
@@ -89,6 +97,10 @@ export const generateReport = async (payload: GeneratorParams) => {
 
   for (const tr of rawTestResults) {
     await writeFile(resolve(resultsDir, `${randomUUID()}-result.json`), JSON.stringify(tr));
+  }
+
+  for (const container of rawTestResultContainers) {
+    await writeFile(resolve(resultsDir, `${randomUUID()}-container.json`), JSON.stringify(container));
   }
 
   for (const attachment of attachments) {

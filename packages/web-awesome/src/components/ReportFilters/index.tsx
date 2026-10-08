@@ -1,18 +1,23 @@
+import { Button } from "@allurereport/web-components";
 import { For } from "@preact/signals/utils";
 
+import { useI18n } from "@/stores/locale";
 import type { AwesomeFilter } from "@/stores/treeFilters/model";
-import { setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
+import { clearTreeFilters, hasActiveTreeFilters, setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
 import {
   isCategoryFilter,
   isFlakyFilter,
+  isResolutionFilter,
   isRetryFilter,
+  isSeverityFilter,
   isTagFilter,
   isTransitionFilter,
 } from "@/stores/treeFilters/utils";
 
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
-import { RetryFlakyFilter } from "./RetryFlaky";
+import { ResolutionFilter } from "./ResolutionFilter";
+import { SeverityFilter } from "./SeverityFilter";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
 
@@ -23,11 +28,19 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
   const { value: field, type } = filter;
 
   if (isRetryFilter(filter) || isFlakyFilter(filter)) {
-    return <RetryFlakyFilter filter={filter} onChange={onChange} />;
+    return null;
   }
 
   if (isTransitionFilter(filter)) {
     return <TransitionFilter group={filter} onChange={onChange} />;
+  }
+
+  if (isSeverityFilter(filter)) {
+    return <SeverityFilter group={filter} onChange={onChange} />;
+  }
+
+  if (isResolutionFilter(filter)) {
+    return <ResolutionFilter group={filter} onChange={onChange} />;
   }
 
   if (type === "field" && field.type === "boolean") {
@@ -49,10 +62,21 @@ const QuickFilters = () => {
   return <For each={treeQuickFilters}>{(filter) => <Filter filter={filter} onChange={setTreeFilter} />}</For>;
 };
 
+const ClearFiltersButton = () => {
+  const { t } = useI18n("empty");
+
+  if (!hasActiveTreeFilters.value) {
+    return null;
+  }
+
+  return <Button type="button" text={t("clear-filters")} size="s" style="outline" onClick={() => clearTreeFilters()} />;
+};
+
 export const ReportFilters = () => {
   return (
     <div className={styles.wrapper}>
       <QuickFilters />
+      <ClearFiltersButton />
     </div>
   );
 };

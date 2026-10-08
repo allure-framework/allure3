@@ -1,7 +1,7 @@
 import type { BarCustomLayerProps, BarDatum, BarSvgProps, ComputedBarDatum } from "@nivo/bar";
 import { useMotionConfig } from "@nivo/core";
 import { animated, useSpring } from "@react-spring/web";
-import { toNumber } from "lodash";
+import toNumber from "lodash/toNumber.js";
 import { createContext, createElement } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useContext, useId, useMemo } from "preact/hooks";

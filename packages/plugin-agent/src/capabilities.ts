@@ -17,6 +17,7 @@ export const createAgentCapabilities = () =>
           "--cwd",
           "--output",
           "--report",
+          "--results-dir",
           "--expectations",
           "--goal",
           "--task-id",

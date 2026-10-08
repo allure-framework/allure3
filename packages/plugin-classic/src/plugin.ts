@@ -9,6 +9,7 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 
 import {
+  generateAllCharts,
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateHistoryDataPoints,
@@ -35,6 +36,7 @@ export class ClassicPlugin implements Plugin {
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
+    await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
 

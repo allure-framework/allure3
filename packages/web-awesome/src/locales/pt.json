@@ -22,7 +22,8 @@
     "globalAttachments": "Anexos Globais",
     "globalErrors": "Erros Globais",
     "qualityGates": "Portões de Qualidade",
-    "categories": "Categorias"
+    "categories": "Categorias",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Pesquisar",
@@ -56,7 +57,20 @@
       "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"quebrado\" para \"falhou\"",
       "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"falhou\" para \"quebrado\"",
       "tags": "Mostra resultados de testes que têm as tags especificadas",
-      "categories": "Mostra resultados de testes que têm as categorias especificadas"
+      "categories": "Mostra resultados de testes que têm as categorias especificadas",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results",
+        "none": "Mostrar resultados de testes com falha ou quebrados sem resolução"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted",
+      "none": "Sem resolução"
     }
   },
   "sort-by": {
@@ -111,14 +125,17 @@
     "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
     "no-test-case-results": "Nenhum resultado de caso de teste",
     "no-environments-results": "Nenhuma informação de ambiente disponível",
-    "no-categories-results": "Nenhum resultado de categorias disponível"
+    "no-categories-results": "Nenhum resultado de categorias disponível",
+    "no-metrics-results": "Nenhuma métrica disponível",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "bloqueador",
     "critical": "crítico",
     "normal": "normal",
     "minor": "menor",
-    "trivial": "trivial"
+    "trivial": "trivial",
+    "none": "sem severidade"
   },
   "execution": {
     "name": "Execução",
@@ -138,12 +155,14 @@
     "category": "Categoria",
     "description": "Descrição",
     "links": "Links",
+    "relatedTestResults": "Resultados de teste relacionados ({{count}})",
     "overview": "Visão geral",
     "history": "Histórico",
     "attachments": "Anexos",
     "retries": "Repetições",
     "environments": "Ambientes",
     "error": "Erro",
+    "success": "Sucesso",
     "goToStep": "Ir para o passo",
     "showLess": "Mostrar menos",
     "showMore": "Mostrar mais",
@@ -158,7 +177,10 @@
     "pwTracePopupBlocked": "O navegador bloqueou a abertura do Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Permita pop-ups e tente novamente.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, com código de saída {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, com código de saída {{actual}} (original {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, com código de saída {{actual}} (original {{original}})",
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Migalhas de pão",
+    "breadcrumbs-hidden": "Mostrar migalhas de pão ocultas"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",
@@ -173,7 +195,9 @@
     "clipboardError": "Erro. Parece que esta funcionalidade não é suportada pelo seu navegador",
     "clipboardSuccess": "Copiado com sucesso",
     "collapse": "Recolher",
+    "collapseAll": "Recolher tudo",
     "expand": "Expandir",
+    "expandAll": "Expandir tudo",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",
@@ -197,7 +221,8 @@
   "sections": {
     "report": "Report",
     "charts": "Gráficos",
-    "timeline": "Linha do tempo"
+    "timeline": "Linha do tempo",
+    "metrics": "Métricas"
   },
   "timeline": {
     "empty": "Sem dados",
@@ -393,6 +418,45 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Métricas de desempenho",
+      "phaseSummary": "Resumo de métricas",
+      "currentValues": "Valores atuais",
+      "historyTitle": "Histórico da métrica",
+      "noHistory": "Ainda não há histórico para esta métrica",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Métrica",
+        "phase": "Conjunto de métricas",
+        "count": "Contagem",
+        "total": "Total",
+        "avg": "Média",
+        "min": "Mín.",
+        "max": "Máx.",
+        "value": "Valor",
+        "delta": "Variação",
+        "trend": "Tendência",
+        "source": "Origem",
+        "report": "Relatório",
+        "date": "Data"
+      },
+      "summary": "{{groups}} linhas de resumo / {{metrics}} métricas",
+      "groups": {
+        "other": "Outro"
+      }
+    },
+    "successRate": {
+      "successRate": "Taxa de sucesso: {{rate}}",
+      "successRateDescription": "Calculada a partir dos testes aprovados, reprovados e com erros. Os testes ignorados e com estado desconhecido são excluídos.",
+      "noResults": "Não há resultados de testes.",
+      "noEligibleResults": "Não há testes aprovados, reprovados ou com erros. Os testes ignorados e com estado desconhecido são excluídos da taxa de sucesso.",
+      "slice_one": "{{count}} teste ({{percent}}% de todos os testes)",
+      "slice_other": "{{count}} testes ({{percent}}% de todos os testes)",
+      "layer": "Camada: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% de todos os testes)",
+      "slice": "{{count}} testes ({{percent}}% de todos os testes)",
+      "slice_many": "{{count}} testes ({{percent}}% de todos os testes)"
     }
   },
   "transitions": {
@@ -402,7 +466,12 @@
       "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
       "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\"",
       "retries": "{{count}} tentativas",
-      "flaky": "Inconsistente entre execuções"
+      "flaky": "Inconsistente entre execuções",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Novo",
     "fixed": "Corrigido",
@@ -474,13 +543,10 @@
       "reportTabQualityGate": "Aba do relatório: Quality gate",
       "reportTabGlobalAttachments": "Aba do relatório: Anexos globais",
       "reportTabGlobalErrors": "Aba do relatório: Erros globais",
-      "reportTabNext": "Próxima aba do relatório",
-      "reportTabPrev": "Aba anterior do relatório",
       "nextTest": "Próximo resultado de teste",
       "prevTest": "Resultado de teste anterior",
-      "testTabNext": "Próxima aba de teste",
-      "testTabPrev": "Aba de teste anterior",
       "tabOverview": "Aba visão geral",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Aba histórico",
       "tabRetries": "Aba tentativas",
       "tabAttachments": "Aba anexos",
@@ -488,7 +554,8 @@
       "toggleLabels": "Mostrar/ocultar etiquetas",
       "toggleParameters": "Mostrar/ocultar parâmetros",
       "toggleLinks": "Mostrar/ocultar links",
-      "backToTree": "Voltar à árvore"
+      "backToTree": "Voltar à árvore",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

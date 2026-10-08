@@ -2,7 +2,7 @@ import { formatDuration } from "@allurereport/core-api";
 import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
@@ -13,7 +13,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 
 export type TrRetriesItemProps = {
-  testResultItem: AwesomeTestResult;
+  testResultItem: ReportTestResult;
   attempt: number;
   totalAttempts: number;
 };
@@ -84,7 +84,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   );
 };
 
-const getErrorPreview = (error: AwesomeTestResult["error"], diffPreview: string) => {
+const getErrorPreview = (error: ReportTestResult["error"], diffPreview: string) => {
   const message = error?.message?.trim();
   if (message) return message;
 

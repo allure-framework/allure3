@@ -36,6 +36,10 @@ vi.mock("@/stores", () => ({
   }),
 }));
 
+const { currentEnvironment } = vi.hoisted(() => ({ currentEnvironment: { value: "" } }));
+
+vi.mock("@/stores/env", () => ({ currentEnvironment }));
+
 vi.mock("@/utils/time", () => ({
   timestampToDate: (value: number, options?: Intl.DateTimeFormatOptions) =>
     `${options?.month === "long" ? "long" : "default"}:${value}`,
@@ -43,6 +47,7 @@ vi.mock("@/utils/time", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  currentEnvironment.value = "";
 });
 
 describe("components > ReportHeader", () => {
@@ -73,5 +78,39 @@ describe("components > ReportHeader", () => {
     render(<ReportHeader />);
 
     expect(screen.getByTestId("report-data")).toHaveTextContent("long:10");
+  });
+
+  it("should render the selected environment's launch start time instead of the report-wide one", () => {
+    (getReportOptions as Mock).mockReturnValue({
+      reportName: "Wrike report",
+      createdAt: 42,
+      runSummary: { start: 1000, stop: 12_500, duration: 11_500 },
+      runSummaryByEnv: {
+        staging: { start: 1000, stop: 3000, duration: 2000 },
+        prod: { start: 10_000, stop: 12_500, duration: 2500 },
+      },
+    });
+    currentEnvironment.value = "prod";
+
+    render(<ReportHeader />);
+
+    // "long:1000" (the report-wide start) is not a substring of the rendered "long:10000".
+    expect(screen.getByTestId("report-data")).toHaveTextContent("long:10000");
+  });
+
+  it("should fall back to generated time when the selected environment has no launch interval", () => {
+    (getReportOptions as Mock).mockReturnValue({
+      reportName: "Wrike report",
+      createdAt: 42,
+      runSummary: { start: 1000, stop: 12_500, duration: 11_500 },
+      runSummaryByEnv: {
+        staging: { start: 1000, stop: 3000, duration: 2000 },
+      },
+    });
+    currentEnvironment.value = "prod";
+
+    render(<ReportHeader />);
+
+    expect(screen.getByTestId("report-data")).toHaveTextContent("long:42");
   });
 });

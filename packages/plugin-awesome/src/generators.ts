@@ -1,20 +1,24 @@
 import { randomUUID } from "node:crypto";
-import { readFile, readdir } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, dirname, join } from "node:path";
 
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
   type EnvironmentIdentity,
   type EnvironmentItem,
+  type HistoryTestResultUrlResolver,
+  type MetricSample,
+  type ResolutionCategory,
   type Statistic,
   type TestEnvGroup,
   type TestLabel,
   type TestResult,
   type TreeData,
+  appLoaderFaviconDataUri,
+  appLoaderStyles,
   compareBy,
+  createAppLoaderMarkup,
   createBaseUrlScript,
+  createFaviconLinkTag,
   createFontLinkTag,
   createReportDataScript,
   stringifyForInlineScript,
@@ -24,9 +28,20 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  redactParameters,
+  severityLabelName,
 } from "@allurereport/core-api";
 import type {
   AllureStore,
+  ReportCategory,
+  ReportExecutorInfo,
+  ReportFixtureResult,
+  ReportOptions,
+  ReportRunSummary,
+  ReportSearchDocument,
+  ReportTestResult,
+  ReportTreeGroup,
+  ReportTreeLeaf,
   GlobalAttachmentLink,
   ExitCode,
   PluginContext,
@@ -35,6 +50,10 @@ import type {
   QualityGateValidationResult,
   ReportFiles,
   ResultFile,
+  ReportResolutionCategories,
+  ReportResolutionGroup,
+  ReportResolutionTestResult,
+  TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
   collapseTreeGroups,
@@ -44,17 +63,11 @@ import {
   preciseTreeLabels,
   processTree,
 } from "@allurereport/plugin-api";
-import type {
-  AwesomeCategory,
-  AwesomeExecutorInfo,
-  AwesomeFixtureResult,
-  AwesomeReportOptions,
-  AwesomeRunSummary,
-  AwesomeSearchDocument,
-  AwesomeTestResult,
-  AwesomeTreeGroup,
-  AwesomeTreeLeaf,
-} from "@allurereport/web-awesome";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
@@ -62,20 +75,22 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
 <head>
     <meta charset="utf-8">
     <title> {{ reportName }} </title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg width='32' height='32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M22.232 4.662a3.6 3.6 0 0 1 5.09.035c2.855 2.894 4.662 6.885 4.662 11.295a3.6 3.6 0 0 1-7.2 0c0-2.406-.981-4.61-2.587-6.24a3.6 3.6 0 0 1 .035-5.09Z' fill='url(%23a)'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.392 3.6a3.6 3.6 0 0 1 3.6-3.6c4.41 0 8.401 1.807 11.296 4.662a3.6 3.6 0 1 1-5.056 5.126C20.602 8.18 18.398 7.2 15.992 7.2a3.6 3.6 0 0 1-3.6-3.6Z' fill='url(%23b)'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M0 15.992C0 7.157 7.157 0 15.992 0a3.6 3.6 0 0 1 0 7.2A8.789 8.789 0 0 0 7.2 15.992c0 2.406.981 4.61 2.588 6.24a3.6 3.6 0 0 1-5.126 5.056C1.807 24.393 0 20.402 0 15.992Z' fill='url(%23c)'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.661 22.232a3.6 3.6 0 0 1 5.091-.035c1.63 1.606 3.834 2.587 6.24 2.587a3.6 3.6 0 0 1 0 7.2c-4.41 0-8.401-1.807-11.295-4.661a3.6 3.6 0 0 1-.036-5.091Z' fill='url(%23d)'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M28.384 12.392a3.6 3.6 0 0 1 3.6 3.6c0 8.835-7.157 15.992-15.992 15.992a3.6 3.6 0 0 1 0-7.2 8.789 8.789 0 0 0 8.792-8.792 3.6 3.6 0 0 1 3.6-3.6Z' fill='url(%23e)'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M28.385 12.392a3.6 3.6 0 0 1 3.6 3.6v12.392a3.6 3.6 0 0 1-7.2 0V15.992a3.6 3.6 0 0 1 3.6-3.6Z' fill='url(%23f)'/%3E%3Cg clip-path='url(%23g)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M22.232 4.662a3.6 3.6 0 0 1 5.091.035c2.855 2.894 4.662 6.885 4.662 11.295a3.6 3.6 0 0 1-7.2 0c0-2.406-.982-4.61-2.588-6.24a3.6 3.6 0 0 1 .035-5.09Z' fill='url(%23h)'/%3E%3C/g%3E%3Cdefs%3E%3ClinearGradient id='a' x1='26.4' y1='9.6' x2='28.8' y2='15' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%237E22CE'/%3E%3Cstop offset='1' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='26.8' y1='9.4' x2='17.8' y2='3.6' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%23EF4444'/%3E%3Cstop offset='1' stop-color='%23DC2626'/%3E%3C/linearGradient%3E%3ClinearGradient id='c' x1='3.6' y1='14' x2='5.4' y2='24.8' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2322C55E'/%3E%3Cstop offset='1' stop-color='%2315803D'/%3E%3C/linearGradient%3E%3ClinearGradient id='d' x1='4.8' y1='22.2' x2='14.4' y2='29.2' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2394A3B8'/%3E%3Cstop offset='.958' stop-color='%2364748B'/%3E%3Cstop offset='1' stop-color='%2364748B'/%3E%3C/linearGradient%3E%3ClinearGradient id='e' x1='28.4' y1='22.173' x2='22.188' y2='28.384' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%23D97706'/%3E%3Cstop offset='1' stop-color='%23FBBF24'/%3E%3C/linearGradient%3E%3ClinearGradient id='f' x1='29.2' y1='54.4' x2='30.626' y2='54.256' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%23FBBF24'/%3E%3Cstop offset='1' stop-color='%23FBBF24'/%3E%3C/linearGradient%3E%3ClinearGradient id='h' x1='26.4' y1='9.6' x2='28.8' y2='15' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%237E22CE'/%3E%3Cstop offset='1' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3CclipPath id='g'%3E%3Cpath fill='%23fff' transform='translate(24.8 12)' d='M0 0h7.2v8H0z'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E" />
+    ${createFaviconLinkTag(appLoaderFaviconDataUri)}
+    ${appLoaderStyles}
     {{{ headTags }}}
     <script>
       window.allureReportOptions = {{{ reportOptions }}}
     </script>
 </head>
 <body>
+    ${createAppLoaderMarkup()}
     <div id="app"></div>
     ${createBaseUrlScript()}
     <script>
@@ -103,16 +118,13 @@ const template = `<!DOCTYPE html>
 
 const compiledTemplate = Handlebars.compile(template);
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-awesome/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
-const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
+const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc: Record<string, string[]>, label: TestLabel) => {
       if (!acc[label.name]) {
@@ -147,27 +159,42 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
+const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
+  }
+  return results;
+};
+
 export const generateTestResults = async (
   _writer: AwesomeDataWriter,
   store: AllureStore,
   trs: TestResult[],
   options: {
+    pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
-  } = {},
+    related?: TestResultRelatedData;
+    resolveHistoryUrl?: HistoryTestResultUrlResolver;
+  },
 ) => {
-  let convertedTrs: AwesomeTestResult[] = [];
-  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
+  let convertedTrs: ReportTestResult[] = [];
+  const related = options.related ?? (await store.relatedByTestResultIds(trs.map(({ id }) => id)));
+  const resolutionIssuesByTrId = related.resolutionIssuesByTrId;
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: AwesomeFixtureResult[] = [...trFixtures]
+    const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
       .sort(nullsLast(compareBy("start", ordinal())))
       .map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr, {
+    const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
 
-    convertedTr.history = related.historyByTrId.get(tr.id) ?? [];
+    convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
+      ...item,
+      url: options.resolveHistoryUrl?.(item.url, options.pluginId, item.id) ?? "",
+    }));
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
@@ -181,6 +208,9 @@ export const generateTestResults = async (
       type: "attachment",
     }));
     convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
+    convertedTr.resolutionIssue = resolutionIssuesByTrId
+      ? resolutionIssuesByTrId.get(tr.id)
+      : await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTrs.push(convertedTr);
   }
@@ -193,7 +223,7 @@ export const generateTestResults = async (
   return convertedTrs;
 };
 
-export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[]) => {
+export const generateTestCases = async (writer: AwesomeDataWriter, trs: ReportTestResult[]) => {
   await writeConcurrently(trs, (tr) => writer.writeTestCase(tr));
 };
 
@@ -205,7 +235,7 @@ export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: T
   }
 };
 
-export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
+export const generateNav = async (writer: AwesomeDataWriter, trs: ReportTestResult[], filename = "nav.json") => {
   await writer.writeWidget(
     filename,
     trs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
@@ -232,7 +262,7 @@ const joinSearchValues = (values: (string | undefined)[]) => {
   return uniqueValues.size > 0 ? [...uniqueValues].join(" ") : undefined;
 };
 
-const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument => {
+const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => {
   const labels = (test.labels ?? []).flatMap(({ name, value }) => {
     if (!value || !SEARCHABLE_LABELS.has(name)) {
       return [];
@@ -250,27 +280,30 @@ const searchDocumentFactory = (test: AwesomeTestResult): AwesomeSearchDocument =
   });
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
-  const categories = test.categories?.map((category: AwesomeCategory) => category.name);
+  const categories = test.categories?.map((category: ReportCategory) => category.name);
+  const statusMessages = (test.errors?.length ? test.errors : test.error ? [test.error] : [])
+    .map((error) => error.message)
+    .filter(Boolean);
 
   return {
     id: test.id,
     nodeId: test.id,
     name: test.name,
     fullName: test.fullName,
-    historyId: test.historyId,
+    retryHash: test.retryHash,
     labels: joinSearchValues(labels),
     owner: joinSearchValues(test.groupedLabels.owner ?? []),
     tags: joinSearchValues(tags),
     parameters: joinSearchValues(parameters),
     categories: joinSearchValues(categories ?? []),
-    statusMessage: test.error?.message,
+    statusMessage: joinSearchValues(statusMessages),
     links: joinSearchValues(links),
   };
 };
 
 export const generateSearchIndex = async (
   writer: AwesomeDataWriter,
-  trs: AwesomeTestResult[],
+  trs: ReportTestResult[],
   filename = "search-index.json",
 ) => {
   const searchDocuments = trs.filter(({ isRetry }) => !isRetry).map(searchDocumentFactory);
@@ -278,7 +311,7 @@ export const generateSearchIndex = async (
   await writer.writeWidget(filename, searchDocuments);
 };
 
-export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): AwesomeRunSummary | undefined => {
+export const getRunSummary = (testResults: Pick<TestResult, "start" | "stop">[]): ReportRunSummary | undefined => {
   let start = Infinity;
   let stop = -Infinity;
 
@@ -298,14 +331,26 @@ export const generateTree = async (
   writer: AwesomeDataWriter,
   treeFilename: string,
   labels: string[],
-  tests: AwesomeTestResult[],
+  tests: ReportTestResult[],
+  options?: {
+    appendTitlePath?: boolean;
+  },
+) => {
+  const tree = generateTreeData(labels, tests, options);
+
+  await writer.writeWidget(treeFilename, tree);
+};
+
+const generateTreeData = (
+  labels: string[],
+  tests: ReportTestResult[],
   options?: {
     appendTitlePath?: boolean;
   },
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
   const { appendTitlePath } = options || {};
-  let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+  let tree: TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
   if (labels.length === 0) {
     tree = buildTreeByTitlePath(visibleTests);
@@ -320,14 +365,11 @@ export const generateTree = async (
     transform: (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }),
   });
 
-  await writer.writeWidget(treeFilename, tree);
+  return tree;
 };
 
-const buildTreeByLabels = (
-  tests: AwesomeTestResult[],
-  labels: string[],
-): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
-  return createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+const buildTreeByLabels = (tests: ReportTestResult[], labels: string[]): TreeData<ReportTreeLeaf, ReportTreeGroup> => {
+  return createTreeByLabels<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     tests,
     labels,
     leafFactory,
@@ -338,9 +380,9 @@ const buildTreeByLabels = (
   );
 };
 
-const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
-  const testsWithTitlePath: AwesomeTestResult[] = [];
-  const testsWithoutTitlePath: AwesomeTestResult[] = [];
+const buildTreeByTitlePath = (tests: ReportTestResult[]): TreeData<ReportTreeLeaf, ReportTreeGroup> => {
+  const testsWithTitlePath: ReportTestResult[] = [];
+  const testsWithoutTitlePath: ReportTestResult[] = [];
 
   for (const test of tests) {
     if (Array.isArray(test.titlePath) && test.titlePath.length > 0) {
@@ -350,12 +392,12 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     }
   }
 
-  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
+  const treeByTitlePath = createTreeByTitlePath<ReportTestResult>(
     testsWithTitlePath,
     leafFactory,
     undefined,
     (group, leaf) => incrementStatistic(group.statistic, leaf.status),
-  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+  ) as TreeData<ReportTreeLeaf, ReportTreeGroup>;
 
   if (!testsWithoutTitlePath.length) {
     return treeByTitlePath;
@@ -367,10 +409,10 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     ({ labels }: { labels: TestLabel[] }) => labels.map(({ name }: TestLabel) => name),
   );
 
-  let treeByDefaultLabels: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> | null = null;
+  let treeByDefaultLabels: TreeData<ReportTreeLeaf, ReportTreeGroup> | null = null;
 
   if (defaultLabels.length) {
-    treeByDefaultLabels = createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    treeByDefaultLabels = createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
       testsWithoutTitlePath,
       defaultLabels,
       leafFactory,
@@ -419,16 +461,16 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
 };
 
 const buildTreeByLabelsAndTitlePathCombined = (
-  tests: AwesomeTestResult[],
+  tests: ReportTestResult[],
   labels: string[],
-): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
+): TreeData<ReportTreeLeaf, ReportTreeGroup> =>
   collapseTreeGroups(
-    createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    createTreeByLabelsAndTitlePath<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
       tests,
       labels,
       leafFactory,
       undefined,
-      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+      (group: ReportTreeGroup, leaf: ReportTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
     ),
   );
 
@@ -441,15 +483,19 @@ const leafFactory = ({
   start,
   retry,
   retriesCount,
+  resolution,
   transition,
   tooltips,
-  historyId,
+  retryHash,
   groupedLabels,
   categories,
-}: AwesomeTestResult): AwesomeTreeLeaf => {
-  const leaf: AwesomeTreeLeaf = {
+  parameters,
+}: ReportTestResult): ReportTreeLeaf => {
+  const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
+  const parameterValues = redactParameters(parameters).flatMap(({ value }) => (value ? [value] : []));
+  const leaf: ReportTreeLeaf = {
     nodeId: id,
-    id: historyId ?? id,
+    id: retryHash ?? id,
     name,
     status,
     duration,
@@ -457,19 +503,93 @@ const leafFactory = ({
     start,
     retry,
     retriesCount,
+    resolution,
+    resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
   };
+
+  if (parameterValues.length) {
+    leaf.parameters = parameterValues;
+  }
+
+  const severity = groupedLabels[severityLabelName]?.[0];
+
+  if (severity) {
+    leaf.severity = severity;
+  }
 
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {
     leaf.tags = groupedLabels.tag;
   }
 
   if (categories?.length) {
-    leaf.categories = categories.map((category: AwesomeCategory) => category.name).filter(Boolean);
+    leaf.categories = categories.map((category: ReportCategory) => category.name).filter(Boolean);
   }
 
   return leaf;
+};
+
+const resolutionOrder: ResolutionCategory[] = ["issue", "muted", "accepted"];
+
+const getResolutionGroupName = (test: ReportTestResult): string => {
+  if (test.resolution === "issue") {
+    return test.resolutionIssue?.id ?? test.resolution;
+  }
+
+  return test.resolutionComment ?? test.resolution ?? "";
+};
+
+const resolutionTestResultFactory = (test: ReportTestResult, index: number): ReportResolutionTestResult => ({
+  nodeId: test.id,
+  id: test.retryHash ?? test.id,
+  name: test.name,
+  status: test.status,
+  duration: test.duration,
+  flaky: test.flaky,
+  transition: test.transition,
+  retry: test.retry,
+  retriesCount: test.retriesCount,
+  resolution: test.resolution,
+  groupOrder: index + 1,
+  tooltips: test.tooltips,
+});
+
+export const generateResolutionCategories = async (
+  writer: AwesomeDataWriter,
+  tests: ReportTestResult[],
+  filename = "resolution-categories.json",
+) => {
+  const groupsById = new Map<string, ReportResolutionGroup>();
+
+  tests
+    .filter((test) => !test.isRetry && test.resolution)
+    .forEach((test) => {
+      const resolution = test.resolution!;
+      const groupId =
+        resolution === "issue"
+          ? `${resolution}:${test.resolutionIssue?.id ?? test.id}`
+          : `${resolution}:${test.resolutionComment ?? test.id}`;
+      const group = groupsById.get(groupId) ?? {
+        id: groupId,
+        resolution,
+        name: getResolutionGroupName(test),
+        comment: test.resolutionComment ?? test.resolutionIssue?.comment,
+        issue: test.resolutionIssue,
+        testResults: [],
+      };
+
+      group.testResults.push(resolutionTestResultFactory(test, group.testResults.length));
+      groupsById.set(groupId, group);
+    });
+
+  const groups = [...groupsById.values()].sort((a, b) => {
+    const resolutionDiff = resolutionOrder.indexOf(a.resolution) - resolutionOrder.indexOf(b.resolution);
+
+    return resolutionDiff || a.name.localeCompare(b.name);
+  });
+
+  await writer.writeWidget(filename, { groups } satisfies ReportResolutionCategories);
 };
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
@@ -500,13 +620,15 @@ export const generateStatistic = async (
   data: {
     stats: Statistic;
     statsByEnv: Map<string, Statistic>;
+    pieStats?: Statistic;
+    pieStatsByEnv?: Map<string, Statistic>;
     envs: EnvironmentIdentity[];
   },
 ) => {
-  const { stats, statsByEnv, envs } = data;
+  const { stats, statsByEnv, pieStats = stats, pieStatsByEnv, envs } = data;
 
   await writer.writeWidget("statistic.json", stats);
-  await writer.writeWidget("pie_chart.json", getPieChartValues(stats));
+  await writer.writeWidget("pie_chart.json", getPieChartValues(pieStats));
 
   for (const env of envs) {
     const envStats = statsByEnv.get(env.id);
@@ -516,7 +638,10 @@ export const generateStatistic = async (
     }
 
     await writer.writeWidget(joinPosixPath(env.id, "statistic.json"), envStats);
-    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), envStats);
+    await writer.writeWidget(
+      joinPosixPath(env.id, "pie_chart.json"),
+      getPieChartValues(pieStatsByEnv?.get(env.id) ?? envStats),
+    );
   }
 };
 
@@ -525,21 +650,20 @@ export const generateAttachmentsFiles = async (
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
+  const writtenAttachments = await mapConcurrently(attachmentLinks, async ({ id, ext, ...link }) => {
     if (link.missed) {
-      continue;
+      return;
     }
     const content = await contentFunction(id);
 
     if (!content) {
-      continue;
+      return;
     }
     const src = `${id}${ext}`;
     await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
+    return [id, src] as const;
+  });
+  return new Map(writtenAttachments.filter((attachment) => attachment !== undefined));
 };
 
 export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
@@ -582,18 +706,25 @@ export const generateGlobals = async (
     globals.exitCode = globalExitCode;
   }
 
-  for (const attachment of globalAttachments) {
+  const attachmentWrites = new Map<string, Promise<void>>();
+  const writtenAttachments = await mapConcurrently(globalAttachments, async (attachment) => {
     const src = `${attachment.id}${attachment.ext}`;
     const content = await contentFunction(attachment.id);
 
     if (!content) {
-      continue;
+      return;
     }
 
-    await writer.writeAttachment(src, content);
+    let write = attachmentWrites.get(src);
+    if (!write) {
+      write = writer.writeAttachment(src, content);
+      attachmentWrites.set(src, write);
+    }
+    await write;
 
-    globals.attachments.push(attachment);
-  }
+    return attachment;
+  });
+  globals.attachments = writtenAttachments.filter((attachment) => attachment !== undefined);
 
   Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
     const attachmentIds = new Set(globals.attachments.map(({ id }) => id));
@@ -620,8 +751,35 @@ export const generateGlobals = async (
 export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
   qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
+  options: {
+    tests?: ReportTestResult[];
+    labels?: string[];
+    appendTitlePath?: boolean;
+  } = {},
 ) => {
-  await writer.writeWidget("quality-gate.json", qualityGateResults);
+  const { tests = [], labels = [], appendTitlePath } = options;
+  const testsById = new Map(tests.map((test) => [test.id, test] as const));
+  const resultsWithTrees = Object.fromEntries(
+    Object.entries(qualityGateResults).map(([environment, results]) => [
+      environment,
+      results.map((result) => {
+        const relatedTests = [...new Set(result.testResults ?? [])]
+          .map((testResultId) => testsById.get(testResultId))
+          .filter((test): test is ReportTestResult => Boolean(test));
+
+        if (relatedTests.length === 0) {
+          return result;
+        }
+
+        return {
+          ...result,
+          testResultsTree: generateTreeData(labels, relatedTests, { appendTitlePath }),
+        };
+      }),
+    ]),
+  );
+
+  await writer.writeWidget("quality-gate.json", resultsWithTrees);
 };
 
 export const generateStaticFiles = async (
@@ -632,15 +790,15 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
-    executor?: AwesomeExecutorInfo;
-    runSummary?: AwesomeRunSummary;
+    executor?: ReportExecutorInfo;
+    runSummary?: ReportRunSummary;
+    runSummaryByEnv?: Record<string, ReportRunSummary>;
   },
 ) => {
   const {
     id,
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "auto",
     groupBy,
@@ -653,20 +811,17 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
   } = payload;
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const sections: string[] = ["charts", "timeline"];
+  const sections: string[] = payload.sections?.length ? payload.sections : ["charts", "timeline"];
 
   if (!payload.singleFile) {
-    const manifestPath = require.resolve(
-      join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", "manifest.json"),
-    );
-    const templateDir = dirname(manifestPath);
-
     for (const key in manifest) {
       const fileName = manifest[key];
 
@@ -683,26 +838,24 @@ export const generateStaticFiles = async (
       }
     }
 
-    for (const fileName of await readdir(templateDir)) {
-      if (fileName === "manifest.json") {
-        continue;
-      }
-
-      const filePath = join(templateDir, fileName);
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
-    }
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
-    const mainJsContent = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
   }
 
   const now = Date.now();
-  const reportOptions: AwesomeReportOptions & { id: string } = {
+  const reportOptions: ReportOptions & { id: string } = {
     id,
     reportName,
     logo,
@@ -715,6 +868,7 @@ export const generateStaticFiles = async (
     ci,
     executor,
     runSummary,
+    runSummaryByEnv,
     layout,
     allureVersion,
     sections,
@@ -763,7 +917,46 @@ export const generateAllCharts = async (
   }
 };
 
-export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: AwesomeTestResult[]) => {
+export type AwesomeMetricsWidget = {
+  current: MetricSample[];
+  history: {
+    uuid: string;
+    name: string;
+    timestamp: number;
+    url?: string;
+    metrics: Record<string, number>;
+  }[];
+};
+
+export const generateMetricsWidget = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  reportUuid: string,
+): Promise<boolean> => {
+  const current = await store.allMetrics();
+
+  if (current.length === 0) {
+    return false;
+  }
+
+  const history = (await store.allHistoryDataPoints())
+    .filter(({ uuid, metrics = {} }) => uuid !== reportUuid && Object.keys(metrics).length > 0)
+    .map(({ uuid, name, timestamp, url, metrics = {} }) => ({
+      uuid,
+      name,
+      timestamp,
+      ...(url ? { url } : {}),
+      metrics,
+    }));
+
+  await writer.writeWidget("metrics.json", {
+    current,
+    history,
+  } satisfies AwesomeMetricsWidget);
+  return true;
+};
+
+export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: ReportTestResult[]) => {
   const trTags = new Set<string>();
   const trCategories = new Set<string>();
 
@@ -772,7 +965,7 @@ export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults
       trTags.add(tag);
     }
 
-    tr.categories?.forEach((category: AwesomeCategory) => {
+    tr.categories?.forEach((category: ReportCategory) => {
       if (category.name) {
         trCategories.add(category.name);
       }

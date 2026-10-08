@@ -7,11 +7,12 @@ import { currentSection } from "@/stores/sections";
 
 import * as styles from "./styles.scss";
 
-type SectionName = "report" | "charts" | "timeline";
+type SectionName = "report" | "charts" | "timeline" | "metrics";
 
 const sectionLoaders: Record<Exclude<SectionName, "report">, () => Promise<ComponentType>> = {
   charts: () => import("@/components/Charts").then((module) => module.Charts),
   timeline: () => import("@/components/Timeline").then((module) => module.Timeline),
+  metrics: () => import("@/components/ReportMetrics").then((module) => module.ReportMetrics),
 };
 
 const sectionCache = new Map<string, ComponentType>();
@@ -81,7 +82,7 @@ const LazySection = ({ section }: { section: SectionName }) => {
   return <Component />;
 };
 
-const VALID_SECTIONS: SectionName[] = ["report", "charts", "timeline"];
+const VALID_SECTIONS: SectionName[] = ["report", "charts", "timeline", "metrics"];
 
 export const SectionSwitcher = () => {
   const section = VALID_SECTIONS.includes(currentSection.value as SectionName)

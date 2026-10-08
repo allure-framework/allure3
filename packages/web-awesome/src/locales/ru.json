@@ -22,7 +22,8 @@
     "globalAttachments": "Глобальные Вложения",
     "globalErrors": "Глобальные Ошибки",
     "qualityGates": "Ворота Качества",
-    "categories": "Категории"
+    "categories": "Категории",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Поиск",
@@ -56,7 +57,20 @@
       "regressed": "Показать результаты тестов, которые изменили статус на \"неуспешный\" с \"успешный\" или \"сломанный\"",
       "malfunctioned": "Показать результаты тестов, которые изменили статус на \"сломанный\" с \"успешный\" или \"неуспешный\"",
       "tags": "Показать результаты тестов, которые имеют указанные теги",
-      "categories": "Показать результаты тестов, которые имеют указанные категории"
+      "categories": "Показать результаты тестов, которые имеют указанные категории",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results",
+        "none": "Показать упавшие или сломанные результаты тестов без решения"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted",
+      "none": "Без решения"
     }
   },
   "sort-by": {
@@ -111,14 +125,17 @@
     "no-test-steps-results": "Нет информации о шагах тестирования",
     "no-test-case-results": "Нет результатов тест-кейсов",
     "no-environments-results": "Информация об окружениях отсутствует",
-    "no-categories-results": "Нет доступных результатов по категориям"
+    "no-categories-results": "Нет доступных результатов по категориям",
+    "no-metrics-results": "Метрики отсутствуют",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "блокер",
     "critical": "критическая",
     "normal": "обычная",
     "minor": "невысокая",
-    "trivial": "минимальная"
+    "trivial": "минимальная",
+    "none": "без важности"
   },
   "execution": {
     "name": "Выполнение",
@@ -138,12 +155,14 @@
     "category": "Категория",
     "description": "Описание",
     "links": "Ссылки",
+    "relatedTestResults": "Связанные результаты тестов ({{count}})",
     "overview": "Обзор",
     "history": "История",
     "attachments": "Вложения",
     "retries": "Перезапуски",
     "environments": "Окружения",
     "error": "Ошибка",
+    "success": "Успех",
     "goToStep": "Перейти к шагу",
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
@@ -158,7 +177,10 @@
     "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Хлебные крошки",
+    "breadcrumbs-hidden": "Показать скрытые хлебные крошки"
   },
   "shortcuts": {
     "title": "Горячие клавиши",
@@ -203,13 +225,10 @@
       "reportTabQualityGate": "Вкладка отчёта: Quality gate",
       "reportTabGlobalAttachments": "Вкладка отчёта: Глобальные вложения",
       "reportTabGlobalErrors": "Вкладка отчёта: Глобальные ошибки",
-      "reportTabNext": "Следующая вкладка отчёта",
-      "reportTabPrev": "Предыдущая вкладка отчёта",
       "nextTest": "Следующий тест",
       "prevTest": "Предыдущий тест",
-      "testTabNext": "Следующая вкладка теста",
-      "testTabPrev": "Предыдущая вкладка теста",
       "tabOverview": "Вкладка обзор",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Вкладка история",
       "tabRetries": "Вкладка перезапуски",
       "tabAttachments": "Вкладка вложения",
@@ -217,7 +236,8 @@
       "toggleLabels": "Показать/скрыть лейблы",
       "toggleParameters": "Показать/скрыть параметры",
       "toggleLinks": "Показать/скрыть ссылки",
-      "backToTree": "Назад к дереву"
+      "backToTree": "Назад к дереву",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   },
   "controls": {
@@ -233,7 +253,10 @@
     "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",
     "clipboardSuccess": "Значение успешно скопировано",
     "collapse": "Свернуть",
+    "collapseAll": "Свернуть все",
+    "showMore": "Показать ещё",
     "expand": "Развернуть",
+    "expandAll": "Развернуть все",
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
     "openInNewTab": "Открыть в новой вкладке",
@@ -257,7 +280,8 @@
   "sections": {
     "report": "Отчет",
     "charts": "Графики",
-    "timeline": "Таймлайн"
+    "timeline": "Таймлайн",
+    "metrics": "Метрики"
   },
   "timeline": {
     "empty": "Нет данных",
@@ -461,6 +485,46 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Метрики производительности",
+      "phaseSummary": "Сводка метрик",
+      "currentValues": "Текущие значения",
+      "historyTitle": "История метрики",
+      "noHistory": "Для этой метрики пока нет истории",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Метрика",
+        "phase": "Набор метрик",
+        "count": "Количество",
+        "total": "Итого",
+        "avg": "Среднее",
+        "min": "Мин.",
+        "max": "Макс.",
+        "value": "Значение",
+        "delta": "Изменение",
+        "trend": "Тренд",
+        "source": "Источник",
+        "report": "Отчёт",
+        "date": "Дата"
+      },
+      "summary": "{{groups}} строк сводки / {{metrics}} метрик",
+      "groups": {
+        "other": "Прочее"
+      }
+    },
+    "successRate": {
+      "successRate": "Доля успешных: {{rate}}",
+      "successRateDescription": "Рассчитывается по успешным, упавшим и сломанным тестам. Пропущенные тесты и тесты с неизвестным статусом исключены.",
+      "noResults": "Нет результатов тестов.",
+      "noEligibleResults": "Нет успешных, упавших или сломанных тестов. Пропущенные тесты и тесты с неизвестным статусом исключены из расчёта доли успешных.",
+      "slice_one": "{{count}} тест ({{percent}}% всех тестов)",
+      "slice_other": "{{count}} тестов ({{percent}}% всех тестов)",
+      "layer": "Уровень: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% всех тестов)",
+      "slice": "{{count}} тестов ({{percent}}% всех тестов)",
+      "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
+      "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
     }
   },
   "transitions": {
@@ -470,7 +534,12 @@
       "regressed": "Ранее \"успешный\" или \"сломанный\" тест, который теперь \"неуспешный\"",
       "malfunctioned": "Ранее \"успешный\" или \"неуспешный\" тест, который теперь \"сломанный\"",
       "retries": "{{count}} повторов",
-      "flaky": "Нестабилен между запусками"
+      "flaky": "Нестабилен между запусками",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Новые",
     "fixed": "Исправленные",

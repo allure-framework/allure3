@@ -1,22 +1,38 @@
 import { env } from "node:process";
 
+import { parseEnvBool } from "../gitFlow/options.js";
 import type { TestOpsPluginOptions } from "../model.js";
 
+export const toPositiveInteger = (value: string | number | undefined): number | undefined => {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+};
+
 export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOpsPluginOptions, "filter"> => {
-  const { ALLURE_TOKEN, ALLURE_ENDPOINT, ALLURE_PROJECT_ID, ALLURE_LAUNCH_TAGS, ALLURE_LAUNCH_NAME } = env;
+  const { ALLURE_TOKEN, ALLURE_ENDPOINT, ALLURE_PROJECT_ID, ALLURE_LAUNCH_TAGS, ALLURE_LAUNCH_NAME, ALLURE_LAUNCH_ID } =
+    env;
   const {
     accessToken = ALLURE_TOKEN,
     endpoint = ALLURE_ENDPOINT,
     projectId = ALLURE_PROJECT_ID,
     launchTags = ALLURE_LAUNCH_TAGS,
     launchName = ALLURE_LAUNCH_NAME,
+    launchId = toPositiveInteger(ALLURE_LAUNCH_ID),
     autocloseLaunch,
+    uploadRateLimit,
+    reopenClosedLaunch = parseEnvBool(env.ALLURE_REOPEN_CLOSED_LAUNCH) ?? false,
   } = options;
   const tags = !launchTags
     ? []
     : Array.isArray(launchTags)
       ? launchTags
       : launchTags.split(",").map((tag) => tag.trim());
+  const resolvedLaunchId = toPositiveInteger(launchId);
 
   return {
     launchName: launchName || "Allure Report",
@@ -25,5 +41,8 @@ export const resolvePluginOptions = (options: TestOpsPluginOptions): Omit<TestOp
     endpoint: endpoint || "",
     projectId: projectId || "",
     ...(autocloseLaunch !== undefined ? { autocloseLaunch } : {}),
+    ...(uploadRateLimit !== undefined ? { uploadRateLimit } : {}),
+    ...(resolvedLaunchId !== undefined ? { launchId: resolvedLaunchId } : {}),
+    reopenClosedLaunch,
   };
 };

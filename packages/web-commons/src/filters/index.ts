@@ -7,6 +7,7 @@ export type {
   FieldFilterGroup,
   Filter,
   LogicalOperator,
+  NullField,
   NumberField,
   StringField,
 } from "./model.js";

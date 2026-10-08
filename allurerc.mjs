@@ -2,7 +2,74 @@ import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
+const requireNewTests = ALLURE_REQUIRE_NEW_TESTS === "1";
+
+const msMetric = (title, group) => ({
+  title,
+  unit: "ms",
+  better: "lower",
+  group,
+});
+
+const awesomeMetricTitles = {
+  readData: "Read report data",
+  environmentMap: "Build environment map",
+  stats: "Generate statistics",
+  charts: "Generate charts",
+  convert: "Convert test results",
+  categories: "Generate categories",
+  timeline: "Generate timeline",
+  testCases: "Write test cases",
+  tree: "Generate tree",
+  nav: "Generate navigation",
+  searchIndex: "Generate search index",
+  testEnvGroups: "Write test environment groups",
+  environmentsOutput: "Write environment views",
+  attachments: "Write attachments",
+  globals: "Write globals",
+  singleFileReportFiles: "Collect single-file data",
+  staticFiles: "Write static files",
+  "summary.create": "Create plugin summary",
+};
+
+const awesomeMetrics = Object.fromEntries(
+  Object.entries(awesomeMetricTitles).map(([key, title]) => [
+    `generate.plugin.awesome.${key}`,
+    msMetric(title, "awesome"),
+  ]),
+);
+
+const readResultsMetricTitles = {
+  xcresultCheck: "Check xcresult bundle",
+  readdir: "Read results directory",
+};
+
+const readResultsMetrics = Object.fromEntries(
+  Object.entries(readResultsMetricTitles).map(([key, title]) => [
+    `generate.readResults.${key}`,
+    msMetric(title, "generate"),
+  ]),
+);
+
+const storeMetricTitles = {
+  "visitTestResult.convert": "Convert test results",
+  "visitTestResult.defaultLabels": "Apply default labels",
+  "visitTestResult.environment": "Map environments",
+  "visitTestResult.retry": "Calculate retry hashes",
+  "visitTestResult.history": "Resolve history",
+  "visitTestResult.resolution": "Classify resolutions",
+  "visitTestResult.indexes": "Index test results",
+  "visitAttachmentFile.metadata": "Read attachment metadata",
+};
+
+const storeMetrics = Object.fromEntries(
+  Object.entries(storeMetricTitles).flatMap(([key, title]) => [
+    [`store.${key}.totalMs`, msMetric(`${title} total`, "store")],
+    [`store.${key}.avgMs`, msMetric(`${title} average`, "store")],
+  ]),
+);
 
 /**
  * @type {import("allure").AllureConfig}
@@ -23,6 +90,22 @@ const config = {
         publish: true,
       },
     },
+    classic: {
+      options: {
+        singleFile: false,
+        reportLanguage: "en",
+        reportName: "Allure 3 Report (plugin-classic)",
+        publish: true,
+      },
+    },
+    allure2: {
+      options: {
+        singleFile: false,
+        reportLanguage: "en",
+        reportName: "Allure 3 Report (plugin-allure2)",
+        publish: true,
+      },
+    },
     log: {
       options: {
         groupBy: "none",
@@ -40,22 +123,103 @@ const config = {
     testops: {
       options: {
         launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+        gitFlow: true,
       },
     },
   },
-  qualityGate: {
+  ...(qualityGateEnabled
+    ? {
+        qualityGate: {
+          rules: [
+            {
+              maxFailures: 0,
+            },
+            ...(requireNewTests
+              ? [
+                  {
+                    newTests: true,
+                  },
+                ]
+              : []),
+          ],
+          use: [...qualityGateDefaultRules],
+        },
+      }
+    : {}),
+  resolutions: {
     rules: [
       {
-        maxFailures: 0,
+        resolution: "accepted",
+        testCaseId: [
+          "85d28c01c71394fbdfa81e84cfd7e751",
+          "49dcb3bdd6479da760dd2d91c30a9baa",
+          "0a83faa11f37b5ec6dd119680e00b7c5",
+          "aca386ffeb0e3195d3296f035de6b214",
+          "8fb61126e49f99342262db3ac2a85c22",
+          "d41ec9abd4ce6884b4b1da1ed54359f1",
+        ],
+        comment: "Flaky tests that can't be fixed entirely for CI. On local machine they always pass",
       },
     ],
-    use: [...qualityGateDefaultRules],
+  },
+  performance: {
+    groups: {
+      allure: {
+        title: "Allure",
+      },
+      restoreState: {
+        title: "Restore state",
+      },
+      generate: {
+        title: "Generate",
+      },
+      awesome: {
+        title: "Awesome",
+      },
+      store: {
+        title: "Store",
+      },
+      publish: {
+        title: "Publish",
+      },
+      summary: {
+        title: "Summary",
+      },
+    },
+    metrics: {
+      "allure.total": msMetric("Allure total", "allure"),
+      "restoreState.total": msMetric("Restore state total", "restoreState"),
+      "restoreState.dump": msMetric("Restore state dump", "restoreState"),
+      "restoreState.attachments": msMetric("Restore state attachments", "restoreState"),
+      "restoreState.storeRestore": msMetric("Restore state store restore", "restoreState"),
+      "generate.total": msMetric("Generate total", "generate"),
+      "generate.readResults": msMetric("Read results", "generate"),
+      "generate.plugins.done": msMetric("Plugins done", "generate"),
+      "generate.plugin.done.awesome": msMetric("Awesome plugin done", "generate"),
+      "generate.plugin.done.classic": msMetric("Classic plugin done", "generate"),
+      "generate.plugin.done.allure2": msMetric("Allure 2 plugin done", "generate"),
+      "generate.plugin.done.log": msMetric("Log plugin done", "generate"),
+      "generate.plugin.done.dashboard": msMetric("Dashboard plugin done", "generate"),
+      "generate.plugin.done.testops": msMetric("TestOps plugin done", "generate"),
+      "summary.generate": msMetric("Generate summary", "summary"),
+      "publish.upload.total": msMetric("Upload total", "publish"),
+      "publish.upload.plugin.awesome": msMetric("Awesome upload", "publish"),
+      "publish.upload.plugin.classic": msMetric("Classic upload", "publish"),
+      "publish.upload.plugin.allure2": msMetric("Allure 2 upload", "publish"),
+      "publish.upload.plugin.dashboard": msMetric("Dashboard upload", "publish"),
+      ...readResultsMetrics,
+      "generate.readResults.reader.read.totalMs": msMetric("Read result files total", "generate"),
+      "generate.readResults.reader.read.avgMs": msMetric("Read result file average", "generate"),
+      ...storeMetrics,
+      ...awesomeMetrics,
+    },
   },
 };
 
 if (ALLURE_SERVICE_ACCESS_TOKEN) {
   config.allureService = {
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
+    uploadConcurrency: 100,
   };
 }
 

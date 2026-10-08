@@ -1,9 +1,9 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 
 import { useI18n } from "@/stores/locale";
-import { copyToClipboard } from "@/utils/copyToClipboard";
 
 import * as styles from "./styles.scss";
 
@@ -21,6 +21,7 @@ export const TestResultError: FunctionalComponent<{ message: string; trace: stri
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
+  const toggleTrace = () => setIsOpen((open) => !open);
 
   return (
     <div data-testid="test-result-error" className={styles["test-result-error"]}>
@@ -39,11 +40,16 @@ export const TestResultError: FunctionalComponent<{ message: string; trace: stri
           />
         </TooltipWrapper>
       </div>
-      <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
+      <button
+        type="button"
+        className={styles["test-result-error-message"]}
+        aria-label={t("error")}
+        onClick={toggleTrace}
+      >
         <Code data-testid="test-result-error-message" size={"s"}>
           <pre>{message}</pre>
         </Code>
-      </div>
+      </button>
       {isOpen && trace && <TestResultErrorTrace trace={trace} />}
     </div>
   );

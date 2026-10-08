@@ -3,12 +3,13 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "oxc.enable": true,
   "oxc.typeAware": true,
   "eslint.enable": false,
-  "oxc.enable.oxlint": true
+  "oxc.enable.oxlint": true,
+  "js/ts.tsdk.path": ".yarn/sdks/typescript/lib",
+  "oxc.path.oxfmt": ".yarn/sdks/oxfmt/bin/oxfmt",
+  "oxc.path.oxlint": ".yarn/sdks/oxlint/bin/oxlint"
 }

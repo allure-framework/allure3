@@ -237,6 +237,26 @@ describe("Events", () => {
     expect(listener).toBeCalledWith({ message: "global failure" });
   });
 
+  it("should dispatch process global events synchronously", () => {
+    const channel = new RealtimeChannel();
+    const attachmentListener = vi.fn();
+    const errorListener = vi.fn();
+    const resetListener = vi.fn();
+    const attachment = {} as never;
+
+    channel.subscriber.onProcessGlobalAttachment(attachmentListener);
+    channel.subscriber.onProcessGlobalError(errorListener);
+    channel.subscriber.onProcessGlobalsReset(resetListener);
+
+    channel.dispatcher.sendProcessGlobalAttachment(attachment, "stderr.txt", "qa");
+    channel.dispatcher.sendProcessGlobalError({ message: "process failed", environment: "qa" });
+    channel.dispatcher.sendProcessGlobalsReset();
+
+    expect(attachmentListener).toBeCalledWith({ attachment, fileName: "stderr.txt", environment: "qa" });
+    expect(errorListener).toBeCalledWith({ message: "process failed", environment: "qa" });
+    expect(resetListener).toBeCalledTimes(1);
+  });
+
   it("should log direct listener errors", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
     const events = new RealtimeSubscriber(emitter);

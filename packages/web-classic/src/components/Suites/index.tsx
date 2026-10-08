@@ -5,7 +5,7 @@ import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { TreeList } from "@/components/Tree";
-import { fetchStats, useI18n } from "@/stores";
+import { useI18n } from "@/stores";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import { fetchTreeData, treeStore } from "@/stores/tree";

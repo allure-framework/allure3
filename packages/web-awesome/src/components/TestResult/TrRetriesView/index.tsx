@@ -1,6 +1,6 @@
 import { EmptyView } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesItem";
 import { useI18n } from "@/stores";
@@ -8,7 +8,7 @@ import { useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
 export const TrRetriesView: FunctionalComponent<{
-  testResult: AwesomeTestResult;
+  testResult: ReportTestResult;
 }> = ({ testResult }) => {
   const retries = testResult?.retries ?? [];
   const { t } = useI18n("empty");
@@ -18,7 +18,7 @@ export const TrRetriesView: FunctionalComponent<{
       {retries.length ? (
         retries.map((item, key) => (
           <TrRetriesItem
-            testResultItem={item as unknown as AwesomeTestResult}
+            testResultItem={item as unknown as ReportTestResult}
             key={key}
             attempt={retries.length - key}
             totalAttempts={retries.length}

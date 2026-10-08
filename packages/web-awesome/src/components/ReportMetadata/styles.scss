@@ -37,12 +37,45 @@
 }
 
 .metadata-item-title {
+  display: block;
   color: var(--color-text-secondary);
   margin-bottom: 6px;
 }
 
 .metadata-item-value {
+  display: block;
   font-weight: bold;
+}
+
+.metadata-item-clickable {
+  display: block;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--color-change-transition-duration),
+    box-shadow var(--interaction-transition-duration),
+    outline var(--interaction-transition-duration);
+
+  &:hover {
+    background: var(--color-bg-secondary);
+    box-shadow: var(--shadow-raised);
+  }
+
+  &[aria-pressed="true"] {
+    background: var(--color-bg-secondary);
+    box-shadow: var(--shadow-raised);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 .report-metadata {

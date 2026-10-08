@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 import { useState } from "preact/hooks";
+
 import { Toggle } from "@/components/Toggle";
 
 const meta: Meta<typeof Toggle> = {
@@ -14,6 +15,11 @@ const meta: Meta<typeof Toggle> = {
       control: "text",
       description: "Accessible label for the toggle.",
     },
+    size: {
+      control: { type: "select" },
+      options: ["s", "m"],
+      description: "Size of the toggle.",
+    },
     focusable: {
       control: "boolean",
       description: "Whether the toggle is focusable.",
@@ -26,6 +32,7 @@ const meta: Meta<typeof Toggle> = {
   args: {
     value: false,
     label: "Toggle switch",
+    size: "m",
     focusable: true,
   },
 };
@@ -89,6 +96,19 @@ export const WithCustomLabel: Story = {
           console.log("Toggle changed:", newValue);
         }}
       />
+    );
+  },
+};
+
+export const Sizes: Story = {
+  render: (args) => {
+    const [value, setValue] = useState(true);
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <Toggle {...args} size="s" label="Small" value={value} onChange={setValue} />
+        <Toggle {...args} size="m" label="Medium" value={value} onChange={setValue} />
+      </div>
     );
   },
 };

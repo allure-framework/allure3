@@ -6,10 +6,11 @@ export const AllureReportMock = vi.fn(function (this: Record<string, unknown>, c
 });
 
 AllureReportMock.prototype.store = {
-  allKnownIssues: vi.fn().mockResolvedValue([]),
   blockingFailedTestResults: vi.fn().mockResolvedValue([]),
   failedTestResults: vi.fn().mockResolvedValue([]),
   allTestResults: vi.fn().mockResolvedValue([]),
+  allNewTestResults: vi.fn().mockResolvedValue([]),
+  testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
   addCheckResult: vi.fn().mockResolvedValue(undefined),
   allCheckResults: vi.fn().mockResolvedValue([]),
 };
@@ -21,7 +22,10 @@ AllureReportMock.prototype.realtimeSubscriber = {
 AllureReportMock.prototype.realtimeDispatcher = {
   sendQualityGateResults: vi.fn(),
   sendGlobalAttachment: vi.fn(),
+  sendProcessGlobalAttachment: vi.fn(),
   sendGlobalError: vi.fn(),
+  sendProcessGlobalError: vi.fn(),
+  sendProcessGlobalsReset: vi.fn(),
   sendGlobalExitCode: vi.fn(),
 };
 

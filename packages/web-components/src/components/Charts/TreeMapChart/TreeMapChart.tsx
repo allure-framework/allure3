@@ -32,6 +32,7 @@ export const TreeMapChart: FunctionalComponent<
   legendMaxValue = 1,
   formatLegend,
   colors,
+  missingValueColor,
   legendDomain,
   parentSkipSize,
   tooltipRows,
@@ -57,7 +58,13 @@ export const TreeMapChart: FunctionalComponent<
   }
 
   return (
-    <div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }} className={styles.treeMapChart}>
+    <div
+      role={"successRateText" in data ? "group" : "img"}
+      aria-label={rootAriaLabel}
+      tabIndex={"successRateText" in data ? undefined : 0}
+      style={{ width, height }}
+      className={styles.treeMapChart}
+    >
       <ResponsiveTreeMapChart<TreeMapNode>
         data={data}
         parentLabel={parentLabel}
@@ -67,7 +74,11 @@ export const TreeMapChart: FunctionalComponent<
         theme={CHART_THEME}
         motionConfig={CHART_MOTION_CONFIG}
         animate={!REDUCE_MOTION}
-        colors={(n) => colors(n.data.colorValue ?? 0)}
+        colors={(n) =>
+          n.data.colorValue === undefined && missingValueColor !== undefined
+            ? missingValueColor
+            : colors(n.data.colorValue ?? 0)
+        }
         labelTextColor={labelColor}
         parentLabelTextColor={labelColor}
         borderColor={"var(--color-bg-primary)"}

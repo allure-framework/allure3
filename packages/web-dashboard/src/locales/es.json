@@ -210,6 +210,18 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "successRate": {
+      "successRate": "Tasa de éxito: {{rate}}",
+      "successRateDescription": "Calculada con las pruebas exitosas, fallidas y con errores. Se excluyen las omitidas y las de estado desconocido.",
+      "noResults": "No hay resultados de pruebas.",
+      "noEligibleResults": "No hay pruebas exitosas, fallidas ni con errores. Las omitidas y las de estado desconocido se excluyen de la tasa de éxito.",
+      "slice_one": "{{count}} prueba ({{percent}}% de todas las pruebas)",
+      "slice_other": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
+      "layer": "Nivel: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% de todas las pruebas)",
+      "slice": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
+      "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)"
     }
   },
   "transitions": {

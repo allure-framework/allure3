@@ -2,14 +2,15 @@ import { type ComponentChildren } from "preact";
 
 import { NavTab, NavTabs, NavTabsList } from "@/components/NavTabs";
 import { navigateToTestResultTab } from "@/stores/router";
-import { currentTrId, trCurrentTab } from "@/stores/testResult";
+import { currentTrId } from "@/stores/testResult";
+import { getCurrentTestResultTab } from "@/stores/testResultTabs";
 
 export const TrTabs = NavTabs;
 export const TrTabsList = NavTabsList;
 
 export const TrTab = (props: { id: string; children: ComponentChildren }) => {
   const { id, children } = props;
-  const isCurrentTab = trCurrentTab.value === id;
+  const isCurrentTab = getCurrentTestResultTab() === id;
 
   const handleTabClick = () => {
     if (isCurrentTab) {

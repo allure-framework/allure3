@@ -7,6 +7,7 @@ export type ProgressLoggerOptions = {
   prefix?: string;
   maxLogs?: number;
   debounceMs?: number;
+  silent?: boolean;
   log?: (message: string) => void;
 };
 
@@ -23,6 +24,7 @@ export const createProgressLogger = ({
   unitLabel,
   prefix,
   debounceMs = 5_000,
+  silent = false,
   log = console.info,
 }: ProgressLoggerOptions): ProgressLogger => {
   let current = 0;
@@ -48,6 +50,10 @@ export const createProgressLogger = ({
   };
 
   const logProgress = (force = false) => {
+    if (silent) {
+      return;
+    }
+
     if (force) {
       flushLog();
 
@@ -67,6 +73,10 @@ export const createProgressLogger = ({
     log: logProgress,
     increment: (delta = 1) => {
       current = Math.min(total, current + delta);
+
+      if (silent) {
+        return;
+      }
 
       if (current === total) {
         flushLog();

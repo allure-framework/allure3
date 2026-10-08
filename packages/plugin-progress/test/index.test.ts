@@ -1,82 +1,76 @@
+import { PassThrough } from "node:stream";
+
 import type { AllureStore, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProgressPlugin } from "../src/plugin.js";
-import { Terminal } from "../src/terminal.js";
 
 beforeEach(async () => {
   await story("index");
 });
 
-beforeEach(() => {
-  vi.restoreAllMocks();
-});
+const createTtyStream = () => {
+  const stream = new PassThrough() as unknown as PassThrough & { isTTY: boolean; columns: number };
+
+  stream.isTTY = true;
+  stream.columns = 80;
+
+  let output = "";
+
+  stream.on("data", (chunk) => {
+    output += chunk.toString();
+  });
+
+  return { stream, getOutput: () => output };
+};
+
+const createStore = () => ({ testsStatistic: async () => ({ total: 1 }) }) as unknown as AllureStore;
 
 const createRealtime = () => {
-  let listener: ((trIds: string[]) => Promise<void>) | undefined;
+  let listener: (() => Promise<void>) | undefined;
 
   return {
     realtime: {
-      onTestResults: vi.fn((callback: (trIds: string[]) => Promise<void>) => {
+      onTestResults: (callback: () => Promise<void>) => {
         listener = callback;
-
         return () => {};
-      }),
-    } as RealtimeSubscriber,
+      },
+    } as unknown as RealtimeSubscriber,
     emitTestResults: async () => {
-      await listener?.([]);
+      await listener?.();
     },
   };
 };
 
-const createStore = () =>
-  ({
-    testsStatistic: vi.fn().mockResolvedValue({ total: 1 }),
-  }) as AllureStore;
-
 describe("ProgressPlugin", () => {
-  it("appends newline after each render in preserve mode", async () => {
-    const cursorRelativeResetSpy = vi.spyOn(Terminal.prototype, "cursorRelativeReset").mockImplementation(() => {});
-    const clearLineSpy = vi.spyOn(Terminal.prototype, "clearLine").mockImplementation(() => {});
-    const clearBottomSpy = vi.spyOn(Terminal.prototype, "clearBottom").mockImplementation(() => {});
-    const newlineSpy = vi.spyOn(Terminal.prototype, "newline").mockImplementation(() => {});
-    const writeSpy = vi.spyOn(Terminal.prototype, "write").mockImplementation(() => {});
+  it("appends a new line per render in preserve mode instead of overwriting the previous one", async () => {
+    const { stream, getOutput } = createTtyStream();
     const { realtime, emitTestResults } = createRealtime();
+    const plugin = new ProgressPlugin({ stream: stream as any, preserve: true, minRenderIntervalMs: 0 });
 
-    await new ProgressPlugin({ stream: {} as never, preserve: true }).start(
-      {} as PluginContext,
-      createStore(),
-      realtime,
-    );
-
+    await plugin.start({} as PluginContext, createStore(), realtime);
     await emitTestResults();
     await emitTestResults();
+    await plugin.done({} as PluginContext, createStore());
 
-    expect(cursorRelativeResetSpy).not.toHaveBeenCalled();
-    expect(clearLineSpy).not.toHaveBeenCalled();
-    expect(clearBottomSpy).not.toHaveBeenCalled();
-    expect(writeSpy).toHaveBeenCalledTimes(2);
-    expect(newlineSpy).toHaveBeenCalledTimes(2);
+    const lines = getOutput().split("\n").filter(Boolean);
+
+    expect(lines).toHaveLength(3);
   });
 
-  it("rewinds cursor between renders when preserve mode is off", async () => {
-    const cursorRelativeResetSpy = vi.spyOn(Terminal.prototype, "cursorRelativeReset").mockImplementation(() => {});
-    const clearLineSpy = vi.spyOn(Terminal.prototype, "clearLine").mockImplementation(() => {});
-    const clearBottomSpy = vi.spyOn(Terminal.prototype, "clearBottom").mockImplementation(() => {});
-    const newlineSpy = vi.spyOn(Terminal.prototype, "newline").mockImplementation(() => {});
-    const writeSpy = vi.spyOn(Terminal.prototype, "write").mockImplementation(() => {});
+  it("redraws a single line in place when preserve mode is off", async () => {
+    const { stream, getOutput } = createTtyStream();
     const { realtime, emitTestResults } = createRealtime();
+    const plugin = new ProgressPlugin({ stream: stream as any, minRenderIntervalMs: 0 });
 
-    await new ProgressPlugin({ stream: {} as never }).start({} as PluginContext, createStore(), realtime);
-
+    await plugin.start({} as PluginContext, createStore(), realtime);
     await emitTestResults();
     await emitTestResults();
+    await plugin.done({} as PluginContext, createStore());
 
-    expect(cursorRelativeResetSpy).toHaveBeenCalledTimes(2);
-    expect(clearLineSpy).toHaveBeenCalledTimes(2);
-    expect(clearBottomSpy).toHaveBeenCalledTimes(2);
-    expect(writeSpy).toHaveBeenCalledTimes(2);
-    expect(newlineSpy).toHaveBeenCalledTimes(2);
+    const lines = getOutput().split("\n").filter(Boolean);
+
+    expect(lines).toHaveLength(1);
   });
 });

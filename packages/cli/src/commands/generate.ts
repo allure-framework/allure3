@@ -11,7 +11,9 @@ export class GenerateCommand extends Command {
 
   static usage = Command.Usage({
     description: "Generates the report in the specified directory.",
-    details: "This command generates a report from the provided Allure Results directories.",
+    details:
+      "This command generates a report from the provided Allure Results directories. " +
+      "When a quality gate is configured, the command validates the loaded results and finishes writing the report or dump before returning its status.",
     examples: [
       ["generate ./allure-results", "Generate a report from the ./allure-results directory"],
       [
@@ -34,11 +36,11 @@ export class GenerateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   output = Option.String("--output,-o", {
@@ -72,12 +74,18 @@ export class GenerateCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   hideLabels = Option.Array("--hide-labels", {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to known issues file",
+    description:
+      "Path to known issues file. " +
+      "Allure loads the file and updates it every time with the actual resolutions data of type `issue`",
   });
 
   async execute() {
@@ -90,15 +98,20 @@ export class GenerateCommand extends Command {
       port: this.port,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
-      knownIssuesPath: this.knownIssues,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
 
-    await generate({
+    const result = await generate({
       dump: this.dump,
       resultsDir: this.resultsDir,
       cwd,
       config,
     });
+
+    if (!result) {
+      return;
+    }
 
     if (config.open) {
       await serve({
@@ -107,5 +120,7 @@ export class GenerateCommand extends Command {
         open: true,
       });
     }
+
+    return result.exitCode;
   }
 }

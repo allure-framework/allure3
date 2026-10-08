@@ -1,7 +1,7 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { Text } from "@allurereport/web-components";
 import { useEffect, useState } from "preact/hooks";
-import type { DashboardReportOptions } from "types";
+import type { ReportOptions } from "types";
 
 import { currentLocaleIso } from "@/stores/locale";
 
@@ -12,7 +12,7 @@ export const FooterVersion = () => {
   const [currentVersion, setCurrentVersion] = useState<string>();
 
   useEffect(() => {
-    const reportOptions = getReportOptions<DashboardReportOptions>();
+    const reportOptions = getReportOptions<ReportOptions>();
     if (reportOptions?.createdAt) {
       setCreatedAt(Number(reportOptions.createdAt));
     }

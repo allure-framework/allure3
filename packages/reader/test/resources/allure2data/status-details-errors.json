@@ -1,0 +1,19 @@
+{
+  "name": "Test with multiple errors",
+  "fullName": "Test with multiple errors",
+  "status": "failed",
+  "statusDetails": {
+    "errors": [
+      {
+        "message": "first assertion",
+        "trace": "first trace",
+        "actual": "1",
+        "expected": "2"
+      },
+      {
+        "message": "second assertion",
+        "trace": "second trace"
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
@@ -10,7 +10,7 @@ import * as styles from "./styles.scss";
 
 export type TrDescriptionProps = {
   id?: string;
-  descriptionHtml: AwesomeTestResult["descriptionHtml"];
+  descriptionHtml: ReportTestResult["descriptionHtml"];
 };
 
 const getIframeContentHeight = (iframe: HTMLIFrameElement) => {

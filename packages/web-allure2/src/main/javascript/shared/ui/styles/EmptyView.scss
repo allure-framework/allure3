@@ -1,0 +1,5 @@
+@use "../../../theme/spacing.scss" as *;
+.empty-view {
+  padding: gap(2);
+  text-align: center;
+}

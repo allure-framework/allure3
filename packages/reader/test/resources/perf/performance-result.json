@@ -1,0 +1,9 @@
+[
+  {
+    "id": "check-1",
+    "key": "browser.coldLoad",
+    "value": 550.4,
+    "start": 100,
+    "stop": 650.4
+  }
+]

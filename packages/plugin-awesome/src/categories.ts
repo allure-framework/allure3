@@ -10,14 +10,14 @@ import type {
 import {
   EMPTY_VALUE,
   buildEnvironmentSortOrder,
+  calculateRetryHash,
   compareChildNodes,
   extractErrorMatchingData,
   findLastByLabelName,
   incrementStatistic,
   matchCategory,
 } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
+import { type ReportTestResult, md5 } from "@allurereport/plugin-api";
 
 import type { AwesomeDataWriter } from "./writer.js";
 
@@ -34,6 +34,9 @@ const emptyStat = (): Statistic => ({
 const msgKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
 
 const envKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
+const environmentNeutralRetryHash = (testResult: ReportTestResult) =>
+  calculateRetryHash({ testCaseHash: testResult.testCaseHash, parametersHash: testResult.parametersHash }) ??
+  testResult.id;
 
 const formatEmptyValue = (key: string) => {
   if (key === "message") {
@@ -75,7 +78,7 @@ const displayGroupValue = (key: string, value: string) => (value === EMPTY_VALUE
 
 const formatGroupName = (key: string, value: string) => `${key}: ${displayGroupValue(key, value)}`;
 
-export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categories: CategoryDefinition[]) => {
+export const applyCategoriesToTestResults = (tests: ReportTestResult[], categories: CategoryDefinition[]) => {
   for (const tr of tests) {
     const matchingData = extractErrorMatchingData(tr);
     const matched = matchCategory(categories, matchingData);
@@ -90,7 +93,7 @@ export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categor
 
 const extractGroupValue = (
   selector: CategoryGroupSelector,
-  testResult: AwesomeTestResult,
+  testResult: ReportTestResult,
 ): { key: string; value: string; name: string } => {
   if (selector === "flaky") {
     const flakyValue = testResult.flaky ? "true" : "false";
@@ -139,7 +142,7 @@ const extractGroupValue = (
 
 const buildGroupLevels = (
   category: CategoryDefinition,
-  testResult: AwesomeTestResult,
+  testResult: ReportTestResult,
   matchingData: CategoryMatchingData,
   environmentCount: number,
   isSingleEnvironmentSelected: boolean,
@@ -164,11 +167,12 @@ const buildGroupLevels = (
   const groupEnvironments = computeGroupEnvironments(category, environmentCount, isSingleEnvironmentSelected);
 
   if (groupEnvironments) {
-    const testKeyValue = testResult.historyId ?? testResult.id;
+    const testKeyValue = environmentNeutralRetryHash(testResult);
     const testDisplayName = testResult.name ?? testKeyValue;
+
     levels.push({
       type: "history",
-      key: "historyId",
+      key: "retryHash",
       value: testKeyValue,
       name: testDisplayName,
     });
@@ -188,7 +192,7 @@ export const generateCategories = async (
     environments = [],
     defaultEnvironment = "default",
   }: {
-    tests: AwesomeTestResult[];
+    tests: ReportTestResult[];
     categories: CategoryDefinition[];
     filename?: string;
     environmentCount?: number;
@@ -219,7 +223,7 @@ export const generateCategories = async (
     childrenMap.set(parentId, set);
   };
 
-  const bumpStat = (nodeId: string, status: AwesomeTestResult["status"]) => {
+  const bumpStat = (nodeId: string, status: ReportTestResult["status"]) => {
     const node = nodes[nodeId];
     node.statistic ??= emptyStat();
     incrementStatistic(node.statistic, status);
@@ -262,14 +266,15 @@ export const generateCategories = async (
 
     for (const level of levels) {
       const levelId = `${level.type}:${md5(`${parentId}\n${level.key}\n${level.value}`)}`;
-      const historyId = level.type === "history" ? level.value : undefined;
+      const retryHash = level.type === "history" ? level.value : undefined;
+
       duplicateChecker({
         id: levelId,
         type: level.type,
         name: level.name,
         key: level.key,
         value: level.value,
-        historyId,
+        retryHash,
         statistic: emptyStat(),
         childrenIds: [],
       });

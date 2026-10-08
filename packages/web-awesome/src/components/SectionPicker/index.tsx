@@ -16,6 +16,7 @@ const sectionMap: Record<string, SectionItem> = {
   default: defaultSection,
   charts: { name: "charts", logo: allureIcons.lineChartsBarChartSquare },
   timeline: { name: "timeline", logo: allureIcons.lineChartsTimeline },
+  metrics: { name: "metrics", logo: allureIcons.lineChartsBarChartSquare },
 };
 
 export const SectionPicker = () => {

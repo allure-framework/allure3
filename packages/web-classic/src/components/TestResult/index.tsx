@@ -1,5 +1,5 @@
 import type { FunctionComponent, FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
@@ -12,7 +12,7 @@ import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResul
 import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TestResultViewProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }) => {
@@ -29,7 +29,7 @@ const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }
 };
 
 export type TestResultContentProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 const TestResultContent: FunctionalComponent<TestResultContentProps> = ({ testResult }) => {
@@ -42,7 +42,7 @@ const TestResultContent: FunctionalComponent<TestResultContentProps> = ({ testRe
 };
 
 export type TestResultProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => (

@@ -1,0 +1,11 @@
+.splash {
+  margin: auto;
+  text-align: center;
+  &__title {
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-xxl);
+  }
+  &__subtitle {
+    color: var(--color-text-muted);
+  }
+}

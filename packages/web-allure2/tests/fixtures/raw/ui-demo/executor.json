@@ -1,0 +1,10 @@
+{
+  "name": "GitHub Actions",
+  "type": "github",
+  "url": "https://github.com/allure-framework/allure2/actions",
+  "buildOrder": 207,
+  "buildName": "demo-report-207",
+  "buildUrl": "https://github.com/allure-framework/allure2/actions/runs/207",
+  "reportUrl": "https://allurereport.org/demo-report",
+  "reportName": "Allure Demo Report"
+}

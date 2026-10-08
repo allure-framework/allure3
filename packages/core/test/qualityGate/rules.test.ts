@@ -1,9 +1,4 @@
-import {
-  type KnownTestFailure,
-  type TestResult,
-  type TestStatus,
-  fallbackTestCaseIdLabelName,
-} from "@allurereport/core-api";
+import { type TestResult, type TestStatus, fallbackTestCaseIdLabelName } from "@allurereport/core-api";
 import { type QualityGateRuleState, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,29 +9,33 @@ import {
   maxDurationRule,
   maxFailuresRule,
   minTestsCountRule,
+  metricMaxDeltaPercentRule,
+  metricMaxDeltaRule,
+  metricMaxRule,
+  metricMinRule,
+  newTestsRule,
   successRateRule,
 } from "../../src/qualityGate/rules.js";
 
 const createTestResult = (
   id: string,
   status: TestStatus,
-  historyId?: string,
+  retryHash?: string,
   duration?: number,
   environment?: string,
   labels: TestResult["labels"] = [],
   parameters: TestResult["parameters"] = [],
-  known = false,
 ) =>
   ({
     id,
     name: `Test ${id}`,
-    historyId,
+    retryHash,
     status,
     duration,
     environment,
     flaky: false,
     muted: false,
-    known,
+    known: false,
     isRetry: false,
     labels,
     parameters,
@@ -57,7 +56,7 @@ describe("maxFailuresRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when failures count is less than expected", async () => {
@@ -70,13 +69,13 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
+    expect(result.testResults).toEqual(["3"]);
+    expect(setState).toHaveBeenCalledWith(1, ["3"]);
   });
 
   it("should fail when failures count is greater than expected", async () => {
@@ -89,36 +88,17 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(2);
-    expect(setState).toHaveBeenCalledWith(2);
+    expect(result.testResults).toEqual(["2", "3"]);
+    expect(setState).toHaveBeenCalledWith(2, ["2", "3"]);
   });
 
-  it("should filter out known failures by stored flag", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 1;
-    const result = await maxFailuresRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
-  });
-
-  it("should ignore knownIssues list alone", async () => {
+  it("should count an unresolved failure", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
       createTestResult("1", "failed", "new-history-id", undefined, undefined, [
         { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
@@ -128,12 +108,12 @@ describe("maxFailuresRule", () => {
     const result = await maxFailuresRule.validate({
       trs: testResults,
       expected: 0,
-      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["1"]);
   });
 });
 
@@ -141,7 +121,7 @@ describe("minTestsCountRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when test count is greater than expected", async () => {
@@ -154,13 +134,12 @@ describe("minTestsCountRule", () => {
     const result = await minTestsCountRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(3);
-    expect(setState).toHaveBeenCalledWith(3);
+    expect(setState).toHaveBeenCalledWith(3, []);
   });
 
   it("should fail when test count is less than expected", async () => {
@@ -169,21 +148,121 @@ describe("minTestsCountRule", () => {
     const result = await minTestsCountRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1);
+    expect(setState).toHaveBeenCalledWith(1, []);
+  });
+});
+
+describe("newTestsRule", () => {
+  const setState = vi.fn();
+  const state: QualityGateRuleState<number> = {
+    getResult: () => 0,
+    setResult: (value, testResults) => setState(value, testResults),
+  };
+
+  beforeEach(() => {
+    setState.mockClear();
+  });
+
+  it("should pass when the run has new tests", async () => {
+    const testResults: TestResult[] = [
+      { ...createTestResult("1", "passed"), transition: "new" },
+      { ...createTestResult("2", "passed"), transition: "fixed" },
+      { ...createTestResult("3", "failed"), transition: "new" },
+    ];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(2);
+    expect(result.testResults).toEqual(["1", "3"]);
+    expect(setState).toHaveBeenCalledWith(2, ["1", "3"]);
+  });
+
+  it("should fail when there are no new tests", async () => {
+    const testResults: TestResult[] = [
+      { ...createTestResult("1", "passed"), transition: "fixed" },
+      { ...createTestResult("2", "failed"), transition: "regressed" },
+    ];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual([]);
+    expect(setState).toHaveBeenCalledWith(0, []);
+  });
+
+  it("should keep passing when previous batches already found new tests", async () => {
+    let count = 1;
+    const accumulatedState: QualityGateRuleState<number> = {
+      getResult: () => count,
+      setResult: (value, testResults) => {
+        count = value;
+        setState(value, testResults);
+      },
+    };
+    const testResults: TestResult[] = [{ ...createTestResult("1", "passed"), transition: "fixed" }];
+    const result = await newTestsRule.validate({
+      trs: testResults,
+      expected: true,
+      state: accumulatedState,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual([]);
+    expect(setState).toHaveBeenCalledWith(1, []);
   });
 });
 
 describe("successRateRule", () => {
+  it("excludes skipped and unknown across batches and from failure evidence", async () => {
+    let counts = { totalCount: 0, passedCount: 0 };
+    const state = {
+      getResult: () => counts,
+      setResult: (value: typeof counts) => {
+        counts = value;
+      },
+    };
+    const first = await successRateRule.validate({
+      trs: [createTestResult("pass", "passed"), createTestResult("skip", "skipped")],
+      expected: 1,
+      state,
+    });
+    expect(first).toMatchObject({ success: true, actual: 1, testResults: [] });
+    const second = await successRateRule.validate({
+      trs: [createTestResult("broken", "broken"), createTestResult("unknown", "unknown")],
+      expected: 0.75,
+      state,
+    });
+    expect(second).toMatchObject({ success: false, actual: 0.5, testResults: ["broken"] });
+    expect(counts).toEqual({ totalCount: 2, passedCount: 1 });
+  });
+
+  it("fails a positive threshold when all results are excluded", async () => {
+    const result = await successRateRule.validate({
+      trs: [createTestResult("skip", "skipped"), createTestResult("unknown", "unknown")],
+      expected: 0.01,
+      state: { getResult: () => undefined, setResult: () => {} },
+    });
+    expect(result).toMatchObject({ success: false, actual: 0, testResults: [] });
+  });
+
   const setState = vi.fn();
-  const state: QualityGateRuleState<number> = {
-    getResult: () => 0,
-    setResult: (value) => setState(value),
+  const state: QualityGateRuleState<{ totalCount: number; passedCount: number }> = {
+    getResult: () => ({ totalCount: 0, passedCount: 0 }),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when success rate is greater than expected", async () => {
@@ -196,13 +275,13 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
-    expect(setState).not.toHaveBeenCalled();
+    expect(result.testResults).toEqual(["3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 2 }, ["3"]);
   });
 
   it("should fail when success rate is less than expected", async () => {
@@ -215,36 +294,19 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
-    expect(setState).not.toHaveBeenCalled();
-  });
-
-  it("should return full success rate when no unknown tests exist", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "failed", "known-issue-1", undefined, undefined, [], [], true),
-    ];
-    const expected = 1;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["2", "3"]);
+    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 1 }, ["2", "3"]);
   });
 
   it("should fail empty suite with zero success rate", async () => {
     const result = await successRateRule.validate({
       trs: [],
       expected: 1,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -252,28 +314,8 @@ describe("successRateRule", () => {
     expect(result.actual).toBe(0);
   });
 
-  it("should filter out known failures by stored flag", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed", "known-issue-1", undefined, undefined, [], [], true),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 0.5;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(0.5);
-    expect(setState).not.toHaveBeenCalled();
-  });
-
-  it("should ignore knownIssues list alone", async () => {
+  it("should count an unresolved failure", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
     const testResults: TestResult[] = [
       createTestResult("1", "failed", "new-history-id", undefined, undefined, [
         { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
@@ -283,12 +325,12 @@ describe("successRateRule", () => {
     const result = await successRateRule.validate({
       trs: testResults,
       expected: 1,
-      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual(["1"]);
   });
 });
 
@@ -296,7 +338,7 @@ describe("maxDurationRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
-    setResult: (value) => setState(value),
+    setResult: (value, testResults) => setState(value, testResults),
   };
 
   it("should pass when max duration is less than expected", async () => {
@@ -309,12 +351,12 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(200);
+    expect(result.testResults).toEqual([]);
   });
 
   it("should fail when max duration exceeds expected", async () => {
@@ -327,12 +369,12 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should pass when max duration equals expected", async () => {
@@ -345,7 +387,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -363,7 +404,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -381,7 +421,6 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [] as KnownTestFailure[],
       state,
     });
 
@@ -389,7 +428,7 @@ describe("maxDurationRule", () => {
     expect(result.actual).toBe(0);
   });
 
-  it("should not filter out known issues", async () => {
+  it("should use every result provided to the rule", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed", undefined, 100),
       createTestResult("2", "failed", "known-issue-1", 500),
@@ -399,17 +438,17 @@ describe("maxDurationRule", () => {
     const result = await maxDurationRule.validate({
       trs: testResults,
       expected,
-      knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
+    expect(result.testResults).toEqual(["2"]);
   });
 });
 
 describe("allTestsContainEnvRule", () => {
-  const state: QualityGateRuleState<string> = {
+  const state: QualityGateRuleState<number> = {
     getResult: () => undefined,
     setResult: () => {},
   };
@@ -422,7 +461,6 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
@@ -438,12 +476,12 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should fail when some tests have no environment", async () => {
@@ -454,24 +492,24 @@ describe("allTestsContainEnvRule", () => {
     const result = await allTestsContainEnvRule.validate({
       trs: testResults,
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
+    expect(result.testResults).toEqual(["2"]);
   });
 
   it("should pass when no tests and expected env is given", async () => {
     const result = await allTestsContainEnvRule.validate({
       trs: [],
       expected: "staging",
-      knownIssues: [],
       state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0);
+    expect(result.testResults).toEqual([]);
   });
 });
 
@@ -489,7 +527,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -510,7 +547,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -528,7 +564,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: testResults,
       expected: ["staging", "prod"],
-      knownIssues: [],
       state,
     });
 
@@ -545,7 +580,6 @@ describe("environmentsTestedRule", () => {
     const result = await environmentsTestedRule.validate({
       trs: [createTestResult("1", "passed", undefined, undefined, "staging")],
       expected: [],
-      knownIssues: [],
       state,
     });
 
@@ -575,13 +609,12 @@ describe("environmentsTestedRule", () => {
     const firstResult = await environmentsTestedRule.validate({
       trs: firstBatch,
       expected,
-      knownIssues: [],
       state,
     });
 
     expect(firstResult.success).toBe(false);
     expect(firstResult.actual).toEqual(["prod"]);
-    expect(setState).toHaveBeenLastCalledWith(["staging"]);
+    expect(setState).toHaveBeenLastCalledWith(["staging"], []);
 
     // Second batch: only "prod" is present, but state already contains "staging"
     const secondBatch: TestResult[] = [
@@ -592,12 +625,274 @@ describe("environmentsTestedRule", () => {
     const secondResult = await environmentsTestedRule.validate({
       trs: secondBatch,
       expected,
-      knownIssues: [],
       state,
     });
 
     expect(secondResult.success).toBe(true);
     expect(secondResult.actual).toEqual([]);
-    expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]));
+    expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]), []);
+  });
+});
+
+// default rule messages are highlighted with ANSI codes whenever the terminal supports colors
+const ansiPattern = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
+const stripAnsi = (value: string) => value.replaceAll(ansiPattern, "");
+
+describe("default rules success messages", () => {
+  it.each([
+    [
+      maxFailuresRule,
+      { actual: 0, expected: 1 },
+      "The number of failed tests 0 is within the allowed threshold value 1",
+    ],
+    [minTestsCountRule, { actual: 2, expected: 1 }, "The total number of tests 2 meets the expected threshold value 1"],
+    [newTestsRule, { actual: 1, expected: true }, "New tests were found: 1"],
+    [successRateRule, { actual: 1, expected: 0.9 }, "Success rate 1 is not less, than expected 0.9"],
+    [
+      maxDurationRule,
+      { actual: 100, expected: 200 },
+      "Maximum duration of the tests is within the defined limit; actual 100, expected 200",
+    ],
+    [allTestsContainEnvRule, { actual: 0, expected: "prod" }, 'All tests contain the required "prod" environment'],
+    [
+      environmentsTestedRule,
+      { actual: [], expected: ["prod", "staging"] },
+      'All expected environments were tested: "prod", "staging"',
+    ],
+  ])("should provide a success message for the %# default rule", (rule, payload, expectedMessage) => {
+    expect(stripAnsi(rule.successMessage?.(payload as any) ?? "")).toBe(expectedMessage);
+  });
+
+  it("should round fractional success rate values in messages", () => {
+    const payload = { actual: 0.782608695652174, expected: 0.95 };
+
+    expect(stripAnsi(successRateRule.message(payload))).toBe("Success rate 0.783 is less, than expected 0.95");
+    expect(stripAnsi(successRateRule.successMessage?.(payload) ?? "")).toBe(
+      "Success rate 0.783 is not less, than expected 0.95",
+    );
+  });
+});
+
+describe("metric quality gate rules", () => {
+  const state: QualityGateRuleState<never> = {
+    getResult: () => undefined,
+    setResult: () => {},
+  };
+  const basePayload = {
+    trs: [] as TestResult[],
+    knownIssues: [] as KnownTestFailure[],
+    state,
+  };
+
+  it("should validate maximum metric threshold against the current average", async () => {
+    await expect(
+      metricMaxRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 10 },
+        metrics: [
+          { id: "1", key: "bundle.size", value: 8, start: 0, stop: 1 },
+          { id: "2", key: "bundle.size", value: 12, start: 1, stop: 2 },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 10,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should fail missing metrics instead of silently passing", async () => {
+    await expect(
+      metricMinRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 1 },
+        metrics: [],
+      }),
+    ).resolves.toEqual({
+      success: false,
+      actual: {
+        key: "bundle.size",
+        value: Number.NaN,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should compare the current metric against the latest previous history point with that key", async () => {
+    await expect(
+      metricMaxDeltaRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
+        previousHistory: [
+          {
+            uuid: "new",
+            timestamp: 2,
+            metrics: { "bundle.size": 110 },
+          },
+          {
+            uuid: "old",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 2,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should pass metric delta rules when no previous baseline exists", async () => {
+    await expect(
+      metricMaxDeltaRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: 112, start: 0, stop: 1 }],
+        previousHistory: [],
+      }),
+    ).resolves.toEqual({
+      success: true,
+      actual: {
+        key: "bundle.size",
+        value: 0,
+      },
+      testResults: [],
+    });
+  });
+
+  it.each([
+    {
+      name: "lower improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: absolute delta",
+      rule: metricMaxDeltaRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+    {
+      name: "lower improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 80,
+      success: true,
+      actual: -20,
+    },
+    {
+      name: "higher improvement: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 120,
+      success: true,
+      actual: 20,
+    },
+    {
+      name: "lower regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "lower" as const,
+      current: 120,
+      success: false,
+      actual: 20,
+    },
+    {
+      name: "higher regression: percent delta",
+      rule: metricMaxDeltaPercentRule,
+      better: "higher" as const,
+      current: 80,
+      success: false,
+      actual: -20,
+    },
+  ])("should evaluate $name", async ({ rule, better, current, success, actual }) => {
+    await expect(
+      rule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 5 },
+        metrics: [{ id: "1", key: "bundle.size", value: current, start: 0, stop: 1, better }],
+        previousHistory: [
+          {
+            uuid: "previous",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success,
+      actual: {
+        key: "bundle.size",
+        value: actual,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should fail when the percent delta exceeds the configured threshold", async () => {
+    await expect(
+      metricMaxDeltaPercentRule.validate({
+        ...basePayload,
+        expected: { key: "bundle.size", value: 10 },
+        metrics: [{ id: "1", key: "bundle.size", value: 120, start: 0, stop: 1 }],
+        previousHistory: [
+          {
+            uuid: "previous",
+            timestamp: 1,
+            metrics: { "bundle.size": 100 },
+          },
+        ],
+      }),
+    ).resolves.toEqual({
+      success: false,
+      actual: {
+        key: "bundle.size",
+        value: 20,
+      },
+      testResults: [],
+    });
+  });
+
+  it("should format metric rule messages from expected and enriched actual values", async () => {
+    const result = await metricMaxRule.validate({
+      ...basePayload,
+      expected: { key: "bundle.size", value: 10 },
+      metrics: [{ id: "1", key: "bundle.size", value: 12, start: 0, stop: 1, title: "Bundle size", unit: "MB" }],
+    });
+    const message = metricMaxRule.message({
+      actual: result.actual,
+      expected: { key: "bundle.size", value: 10 },
+    });
+
+    expect(message).toContain("Bundle size");
+    expect(message).toContain("12 MB");
   });
 });
