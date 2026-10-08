@@ -85,6 +85,8 @@ jobs:
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Test Project
+        env:
+          ALLURE_SUPERVISOR_TIMINGS: ${{ matrix.os == 'windows-latest' && '1' || '' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         uses: actions/upload-artifact@v7
