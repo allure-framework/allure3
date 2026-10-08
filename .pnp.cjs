@@ -91,6 +91,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/plugin-log"\
     },\
     {\
+      "name": "@allurereport/plugin-metrics",\
+      "reference": "workspace:packages/plugin-metrics"\
+    },\
+    {\
       "name": "@allurereport/plugin-progress",\
       "reference": "workspace:packages/plugin-progress"\
     },\
@@ -186,6 +190,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-dashboard", ["workspace:packages/plugin-dashboard"]],\
     ["@allurereport/plugin-jira", ["workspace:packages/plugin-jira"]],\
     ["@allurereport/plugin-log", ["workspace:packages/plugin-log"]],\
+    ["@allurereport/plugin-metrics", ["workspace:packages/plugin-metrics"]],\
     ["@allurereport/plugin-progress", ["workspace:packages/plugin-progress"]],\
     ["@allurereport/plugin-server-reload", ["workspace:packages/plugin-server-reload"]],\
     ["@allurereport/plugin-slack", ["workspace:packages/plugin-slack"]],\
@@ -334,6 +339,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-dashboard", "workspace:packages/plugin-dashboard"],\
           ["@allurereport/plugin-jira", "workspace:packages/plugin-jira"],\
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
+          ["@allurereport/plugin-metrics", "workspace:packages/plugin-metrics"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
@@ -654,6 +660,24 @@ const RAW_RUNTIME_STATE =
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"],\
           ["yoctocolors", "npm:2.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/plugin-metrics", [\
+      ["workspace:packages/plugin-metrics", {\
+        "packageLocation": "./packages/plugin-metrics/",\
+        "packageDependencies": [\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@allurereport/plugin-metrics", "workspace:packages/plugin-metrics"],\
+          ["@types/node", "npm:20.19.41"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.12.1"],\
+          ["rimraf", "npm:6.1.2"],\
+          ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -12217,6 +12241,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-dashboard", "workspace:packages/plugin-dashboard"],\
           ["@allurereport/plugin-jira", "workspace:packages/plugin-jira"],\
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
+          ["@allurereport/plugin-metrics", "workspace:packages/plugin-metrics"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-server-reload", "workspace:packages/plugin-server-reload"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
