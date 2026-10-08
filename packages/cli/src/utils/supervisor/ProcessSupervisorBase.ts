@@ -286,7 +286,7 @@ export abstract class ProcessSupervisorBase {
       } catch (stopError) {
         const normalizedStopError = stopError instanceof Error ? stopError : new Error(String(stopError));
         void logError(
-          `Failed to request graceful stop: ${normalizedStopError.message} - terminating...`,
+          `Failed to request graceful stop: ${normalizedStopError.message} The process will be terminated by force`,
           normalizedStopError,
         ).catch(() => {});
 
