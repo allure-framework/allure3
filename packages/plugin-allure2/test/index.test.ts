@@ -1,7 +1,7 @@
 import type { GlobalAttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Allure2Plugin } from "../src/plugin.js";
 
@@ -10,6 +10,10 @@ beforeEach(async () => {
   await feature("plugin-allure2");
   await story("index");
   await label("coverage", "plugin-allure2");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const presentAttachment: GlobalAttachmentLink = {
@@ -164,6 +168,22 @@ describe("Allure2Plugin", () => {
     expect(index).toContain("window.reportData = window.reportData || {};");
     expect(index).toContain('d("widgets/globals.json"');
     expect(index).not.toContain("window.allureReportData");
+  });
+
+  it("should assemble single-file report data from separate buffers", async () => {
+    const concatSpy = vi.spyOn(Buffer, "concat");
+    const { context } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en", singleFile: true });
+
+    await plugin.done(context, createStore());
+
+    const reportDataChunks = concatSpy.mock.calls.find(([chunks]) =>
+      chunks.some((chunk) => chunk.includes("window.reportDataReady = false;")),
+    )?.[0];
+
+    expect(reportDataChunks).toBeDefined();
+    expect(reportDataChunks!.length).toBeGreaterThan(3);
+    expect(reportDataChunks!.every((chunk) => Buffer.isBuffer(chunk))).toBe(true);
   });
 
   it("should prefer legacy history stored by canonical retry hash", async () => {

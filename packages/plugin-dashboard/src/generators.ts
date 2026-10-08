@@ -5,7 +5,8 @@ import type { TestResult } from "@allurereport/core-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
-  createReportDataScript,
+  injectReportDataScript,
+  reportDataScriptPlaceholder,
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
@@ -160,7 +161,7 @@ export const generateStaticFiles = async (
     const html = compile({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
@@ -169,7 +170,7 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    await reportFiles.addFile("index.html", injectReportDataScript(html, reportDataFiles));
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console
