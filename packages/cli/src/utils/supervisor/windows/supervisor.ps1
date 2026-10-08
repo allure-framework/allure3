@@ -70,12 +70,15 @@ try
 
     $source = Get-Item -Path (Join-Path $PSScriptRoot 'supervisor.cs') | Get-Content -Raw
 
-    Add-Type -TypeDefinition $source -ReferencedAssemblies @(
-        'System.dll'
-        'System.Core.dll'
-        'System.Web.Extensions.dll'
-        [System.Management.Automation.PowerShell].Assembly.Location
-    ) -ErrorAction Stop | Out-Null
+    $compilerParams = [System.CodeDom.Compiler.CompilerParameters]::new()
+    $compilerParams.IncludeDebugInformation = $Env:ALLURE_SUPERVISOR_DEBUG -eq '1'
+    $compilerParams.GenerateInMemory = $true
+    $compilerParams.ReferencedAssemblies.Add("System.dll") | Out-Null
+    $compilerParams.ReferencedAssemblies.Add("System.Core.dll") | Out-Null
+    $compilerParams.ReferencedAssemblies.Add("System.Web.Extensions.dll") | Out-Null
+    $compilerParams.ReferencedAssemblies.Add([System.Management.Automation.PowerShell].Assembly.Location) | Out-Null
+
+    Add-Type -TypeDefinition $source -CompilerParameters $compilerParams -ErrorAction Stop | Out-Null
 
     $status = [JobSupervisor.Supervisor]::Run(
         $PipeName,
@@ -89,5 +92,11 @@ try
 }
 catch
 {
+    if ($Env:ALLURE_SUPERVISOR_DEBUG -eq '1')
+    {
+        [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+        Throw
+    }
+
     exit 1
 }
