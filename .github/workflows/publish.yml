@@ -15,6 +15,16 @@ jobs:
       - uses: ./.github/actions/build
         with:
           registry-url: "https://registry.npmjs.org"
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.x"
+
+      - name: Compose process-host.exe
+        run: |
+          yarn workspace allure run compile:process-host --force --use-dotnet
+          test -s packages/cli/dist/utils/supervisor/windows/process-host.exe
+
       - run: yarn workspaces foreach -Avv --no-private npm publish --access public
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
