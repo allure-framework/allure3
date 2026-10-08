@@ -127,27 +127,7 @@ vi.mock("../../src/utils/index.js", async (importOriginal) => ({
 }));
 vi.mock("../../src/utils/supervisor/index.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../src/utils/supervisor/index.js")>()),
-  PosixProcessSupervisor: class {
-    constructor(command: string, options: unknown) {
-      supervisorConstructorMock(command, options);
-    }
-
-    get exitCode(): Promise<number | null> {
-      return supervisorExitCodeMock();
-    }
-
-    get stdout(): Promise<string> {
-      return supervisorStdoutMock();
-    }
-
-    get stderr(): Promise<string> {
-      return supervisorStderrMock();
-    }
-
-    start = supervisorStartMock;
-    stop = supervisorStopMock;
-  },
-  WindowsProcessSupervisor: class {
+  ProcessSupervisor: class {
     constructor(command: string, options: unknown) {
       supervisorConstructorMock(command, options);
     }
