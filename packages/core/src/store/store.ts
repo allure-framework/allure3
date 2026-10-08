@@ -1587,6 +1587,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#environments;
   }
 
+  async configuredEnvironmentIds() {
+    return Object.keys(this.#environmentsConfig);
+  }
+
   async testResultsByEnvironment(
     env: string,
     options: {

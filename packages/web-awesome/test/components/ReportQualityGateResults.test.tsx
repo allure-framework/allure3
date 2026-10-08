@@ -14,17 +14,30 @@ beforeEach(async () => {
 
 const setupQualityGateComponent = async (
   testResults: string[],
-  extraResults: Record<string, unknown>[] = [],
-  precedingResults: Record<string, unknown>[] = [],
+  options: {
+    resultsByEnv?: Record<string, unknown[]>;
+    selectedEnvironment?: string;
+    sharedEnvironment?: string | null;
+    extraResults?: Record<string, unknown>[];
+    precedingResults?: Record<string, unknown>[];
+  } = {},
 ) => {
   vi.resetModules();
   navigateToTestResult.mockClear();
 
-  const currentEnvironment = signal("");
+  const {
+    resultsByEnv,
+    selectedEnvironment = "",
+    sharedEnvironment = "default",
+    extraResults = [],
+    precedingResults = [],
+  } = options;
+  const currentEnvironment = signal(selectedEnvironment);
+  const sharedEnvironmentId = signal(sharedEnvironment);
   const qualityGateStore = signal({
     loading: false,
     error: undefined,
-    data: {
+    data: resultsByEnv ?? {
       default: [
         ...precedingResults,
         {
@@ -128,7 +141,9 @@ const setupQualityGateComponent = async (
     };
   });
   vi.doMock("@/components/MetadataButton", () => ({
-    MetadataButton: () => <div />,
+    MetadataButton: ({ title, counter }: { title?: string; counter?: number }) => (
+      <div>{counter === undefined ? title : `${title} (${counter})`}</div>
+    ),
   }));
   vi.doMock("@/components/TestResult/TrError", () => ({
     TrError: ({ message, status, title }: { message: string; status?: string; title?: string }) => (
@@ -146,6 +161,7 @@ const setupQualityGateComponent = async (
   }));
   vi.doMock("@/stores/env", () => ({
     currentEnvironment,
+    sharedEnvironmentId,
     environmentNameById: (environmentId: string) => environmentId,
   }));
   vi.doMock("@/stores/qualityGate", () => ({ qualityGateStore }));
@@ -179,9 +195,8 @@ describe("components > Report quality gate results", () => {
   }, 15000);
 
   it("should render passed rules next to the failed ones", async () => {
-    await setupQualityGateComponent(
-      [],
-      [
+    await setupQualityGateComponent([], {
+      extraResults: [
         {
           success: true,
           expected: 1,
@@ -191,7 +206,7 @@ describe("components > Report quality gate results", () => {
           testResults: [],
         },
       ],
-    );
+    });
     const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
 
     render(<ReportQualityGateResults />);
@@ -208,10 +223,8 @@ describe("components > Report quality gate results", () => {
   }, 15000);
 
   it("should list failed rules before the passed ones", async () => {
-    await setupQualityGateComponent(
-      [],
-      [],
-      [
+    await setupQualityGateComponent([], {
+      precedingResults: [
         {
           success: true,
           expected: 1,
@@ -221,7 +234,7 @@ describe("components > Report quality gate results", () => {
           testResults: [],
         },
       ],
-    );
+    });
     const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
 
     render(<ReportQualityGateResults />);
@@ -242,5 +255,74 @@ describe("components > Report quality gate results", () => {
     render(<ReportQualityGateResults />);
 
     expect(screen.queryByTestId("quality-gate-result-test-results-title")).not.toBeInTheDocument();
+  }, 15000);
+
+  it("should keep results without an environment visible while a single environment is selected", async () => {
+    await setupQualityGateComponent([], {
+      resultsByEnv: {
+        default: [{ rule: "maxFailures", message: "Shared failure", testResults: [] }],
+        qa_env: [{ rule: "minTestsCount", message: "QA failure", testResults: [] }],
+        prod_env: [{ rule: "maxRetriesCount", message: "Prod failure", testResults: [] }],
+      },
+      selectedEnvironment: "qa_env",
+    });
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    expect(screen.getByText("QA failure")).toBeInTheDocument();
+    expect(screen.getByText("Shared failure")).toBeInTheDocument();
+    expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
+    expect(screen.getByText('environment: "qa_env" (1)')).toBeInTheDocument();
+    expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
+  }, 15000);
+
+  it("should label the shared bucket when the selected environment has no results of its own", async () => {
+    await setupQualityGateComponent([], {
+      resultsByEnv: {
+        default: [{ rule: "maxFailures", message: "Shared failure", testResults: [] }],
+        prod_env: [{ rule: "maxRetriesCount", message: "Prod failure", testResults: [] }],
+      },
+      selectedEnvironment: "qa_env",
+    });
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    expect(screen.getByText("Shared failure")).toBeInTheDocument();
+    expect(screen.getByText('environment: "default" (1)')).toBeInTheDocument();
+    expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
+  }, 15000);
+
+  it("should keep the default bucket environment specific when the report declares it as an environment", async () => {
+    await setupQualityGateComponent([], {
+      resultsByEnv: {
+        default: [{ rule: "maxFailures", message: "Default failure", testResults: [] }],
+        qa_env: [{ rule: "minTestsCount", message: "QA failure", testResults: [] }],
+      },
+      selectedEnvironment: "qa_env",
+      sharedEnvironment: null,
+    });
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    expect(screen.getByText("QA failure")).toBeInTheDocument();
+    expect(screen.queryByText("Default failure")).not.toBeInTheDocument();
+  }, 15000);
+
+  it("should show the empty state when neither the selected nor the shared bucket has results", async () => {
+    await setupQualityGateComponent([], {
+      resultsByEnv: {
+        prod_env: [{ rule: "maxRetriesCount", message: "Prod failure", testResults: [] }],
+      },
+      selectedEnvironment: "qa_env",
+    });
+    const { ReportQualityGateResults } = await import("@/components/ReportQualityGateResults");
+
+    render(<ReportQualityGateResults />);
+
+    expect(screen.getByText("no-quality-gate-results")).toBeInTheDocument();
+    expect(screen.queryByText("Prod failure")).not.toBeInTheDocument();
   }, 15000);
 });
