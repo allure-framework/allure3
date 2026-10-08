@@ -4,7 +4,9 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
+import { treeStore } from "@/stores/tree";
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
+import { getUnresolvedStatusCounts } from "@/utils/statuses";
 
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
@@ -28,13 +30,16 @@ const Header = () => {
           <Loadable
             source={statsByEnvStore}
             renderData={(stats) => {
-              const currentEnv = stats[currentEnvironment.value] || reportStatsStore.value.data;
+              const envId = currentEnvironment.value;
+              const currentEnv = stats[envId] || reportStatsStore.value.data;
+              const statusTabCounts = getUnresolvedStatusCounts(currentEnv, treeStore.value.data, envId);
               const statList = statusesList
                 .map((status) => {
-                  return { status, value: currentEnv[status] };
+                  return { status, value: statusTabCounts[status] };
                 })
                 .filter(({ value }) => value);
               const isStatListHaveCurrentTab = statList.filter(({ status }) => status === treeStatus.value);
+
               if (!isStatListHaveCurrentTab.length && treeStatus.value !== "total") {
                 setTreeStatus("total");
               }
@@ -67,7 +72,7 @@ const Header = () => {
 
 const Body = () => {
   return (
-    <div className={styles.body}>
+    <div className={styles.body} data-tree-body>
       <TreeList />
     </div>
   );

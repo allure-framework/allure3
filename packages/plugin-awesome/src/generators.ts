@@ -28,6 +28,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  redactParameters,
   severityLabelName,
 } from "@allurereport/core-api";
 import type {
@@ -52,6 +53,7 @@ import type {
   ReportResolutionCategories,
   ReportResolutionGroup,
   ReportResolutionTestResult,
+  TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
   collapseTreeGroups,
@@ -157,6 +159,14 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
+const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
+  }
+  return results;
+};
+
 export const generateTestResults = async (
   _writer: AwesomeDataWriter,
   store: AllureStore,
@@ -164,11 +174,13 @@ export const generateTestResults = async (
   options: {
     pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
+    related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
   },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
-  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
+  const related = options.related ?? (await store.relatedByTestResultIds(trs.map(({ id }) => id)));
+  const resolutionIssuesByTrId = related.resolutionIssuesByTrId;
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
@@ -178,7 +190,6 @@ export const generateTestResults = async (
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
-    const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
       ...item,
@@ -197,7 +208,9 @@ export const generateTestResults = async (
       type: "attachment",
     }));
     convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
-    convertedTr.resolutionIssue = resolutionIssue;
+    convertedTr.resolutionIssue = resolutionIssuesByTrId
+      ? resolutionIssuesByTrId.get(tr.id)
+      : await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTrs.push(convertedTr);
   }
@@ -476,7 +489,10 @@ const leafFactory = ({
   retryHash,
   groupedLabels,
   categories,
+  parameters,
 }: ReportTestResult): ReportTreeLeaf => {
+  const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
+  const parameterValues = redactParameters(parameters).flatMap(({ value }) => (value ? [value] : []));
   const leaf: ReportTreeLeaf = {
     nodeId: id,
     id: retryHash ?? id,
@@ -488,9 +504,14 @@ const leafFactory = ({
     retry,
     retriesCount,
     resolution,
+    resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
   };
+
+  if (parameterValues.length) {
+    leaf.parameters = parameterValues;
+  }
 
   const severity = groupedLabels[severityLabelName]?.[0];
 
@@ -629,21 +650,20 @@ export const generateAttachmentsFiles = async (
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
+  const writtenAttachments = await mapConcurrently(attachmentLinks, async ({ id, ext, ...link }) => {
     if (link.missed) {
-      continue;
+      return;
     }
     const content = await contentFunction(id);
 
     if (!content) {
-      continue;
+      return;
     }
     const src = `${id}${ext}`;
     await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
+    return [id, src] as const;
+  });
+  return new Map(writtenAttachments.filter((attachment) => attachment !== undefined));
 };
 
 export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
@@ -686,18 +706,25 @@ export const generateGlobals = async (
     globals.exitCode = globalExitCode;
   }
 
-  for (const attachment of globalAttachments) {
+  const attachmentWrites = new Map<string, Promise<void>>();
+  const writtenAttachments = await mapConcurrently(globalAttachments, async (attachment) => {
     const src = `${attachment.id}${attachment.ext}`;
     const content = await contentFunction(attachment.id);
 
     if (!content) {
-      continue;
+      return;
     }
 
-    await writer.writeAttachment(src, content);
+    let write = attachmentWrites.get(src);
+    if (!write) {
+      write = writer.writeAttachment(src, content);
+      attachmentWrites.set(src, write);
+    }
+    await write;
 
-    globals.attachments.push(attachment);
-  }
+    return attachment;
+  });
+  globals.attachments = writtenAttachments.filter((attachment) => attachment !== undefined);
 
   Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
     const attachmentIds = new Set(globals.attachments.map(({ id }) => id));

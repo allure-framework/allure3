@@ -29,6 +29,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
         environment,
         retryHash,
         status,
+        retries = [],
         error: { message, trace } = {},
         start,
         stop,
@@ -41,6 +42,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           fullName,
           environment,
           status,
+          retries: retries.map((retry) => retry.status).reverse(),
           message,
           trace,
           start,
@@ -103,14 +105,6 @@ export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
 
   return url.toString();
 };
-
-export const setHistoryDataPointUrl = (point: HistoryDataPoint, url: string): HistoryDataPoint => ({
-  ...point,
-  url,
-  testResults: Object.fromEntries(
-    Object.entries(point.testResults).map(([historyId, item]) => [historyId, { ...item, url }]),
-  ),
-});
 
 export const createHistory = (
   reportUuid: string,

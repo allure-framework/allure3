@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.19.1",
+  "version": "3.20.1",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -50,7 +50,7 @@
     "jiti": "^2.5.1",
     "node-stream-zip": "^1.15.0",
     "p-limit": "^7.3.0",
-    "yaml": "^2.8.3",
+    "yaml": "^2.9.1",
     "yoctocolors": "^2.2.0",
     "zip-stream": "^7.0.5"
   },

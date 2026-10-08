@@ -12,6 +12,7 @@ export interface HistoryTestResult {
   environment?: string;
 
   status: TestStatus;
+  retries?: TestStatus[];
   error?: TestError;
 
   start?: number;

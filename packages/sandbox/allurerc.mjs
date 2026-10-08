@@ -38,6 +38,10 @@ const chartLayout = [
     title: "Durations dynamics",
   },
   {
+    type: "successRateDistribution",
+    title: "Success rate distribution",
+  },
+  {
     type: "testingPyramid",
     title: "Testing pyramid",
   },
@@ -129,7 +133,7 @@ export default defineConfig({
       sample: {
         urlTemplate: "https://allurereport.org/tasks/%s",
         nameTemplate: "Sample issue %s",
-      }
+      },
     },
     rules: [
       {

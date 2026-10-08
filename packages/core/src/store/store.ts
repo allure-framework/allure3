@@ -65,7 +65,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
-import { getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
+import { createResolutionIssue, getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -513,7 +513,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     testResult.resolutionComment = rule.comment;
 
     if (rule.resolution === "issue") {
-      this.#associateResolutionIssue({ ...rule.issue, comment: rule.comment }, testResult.id);
+      this.#associateResolutionIssue(createResolutionIssue(rule, this.#resolutionsConfig), testResult.id);
     }
   }
 
@@ -1442,13 +1442,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const attachmentsByTrId = new Map<string, AttachmentLink[]>();
     const fixturesByTrId = new Map<string, TestFixtureResult[]>();
     const historyByTrId = new Map<string, HistoryTestResult[] | undefined>();
+    const resolutionIssuesByTrId = new Map<string, ResolutionIssue | undefined>();
     const retriesByTrId = new Map<string, TestResult[]>();
 
     for (const trId of trIds) {
       const tr = this.#testResults.get(trId);
+      const resolutionIssueId = this.#resolutionIssueIdByTestResultId.get(trId);
 
       attachmentsByTrId.set(trId, this.indexAttachmentByTestResult.get(trId) ?? []);
       fixturesByTrId.set(trId, this.indexFixturesByTestResult.get(trId) ?? []);
+      resolutionIssuesByTrId.set(trId, resolutionIssueId ? this.#resolutionIssues.get(resolutionIssueId) : undefined);
       retriesByTrId.set(trId, this.#retriesByTr(tr));
       historyByTrId.set(trId, tr ? this.#historyByTr(tr) : undefined);
     }
@@ -1457,6 +1460,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       attachmentsByTrId,
       fixturesByTrId,
       historyByTrId,
+      resolutionIssuesByTrId,
       retriesByTrId,
     };
   }

@@ -3,7 +3,6 @@ import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-co
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
-import { getHistoryNavigationUrl } from "@/components/TestResult/historyNavigation";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
@@ -46,13 +45,16 @@ export type TrPrevStatusesProps = {
 export const TrPrevStatuses: FunctionalComponent<TrPrevStatusesProps> = ({ history }) => {
   return (
     <div className={styles["test-result-prev-statuses"]}>
-      {history?.slice(0, 6).map((item, key) => (
-        <div key={key} data-testid={"test-result-prev-status"} className={styles["test-result-prev-status"]}>
-          <TooltipWrapper key={key} tooltipComponent={<TrPrevStatusTooltip item={item} />}>
-            <TrPrevStatus item={item} />
-          </TooltipWrapper>
-        </div>
-      ))}
+      {history
+        ?.slice(0, 6)
+        .sort((a: HistoryTestResult, b: HistoryTestResult) => (a.stop ?? 0) - (b.stop ?? 0))
+        .map((item: HistoryTestResult, key: number) => (
+          <div key={key} data-testid={"test-result-prev-status"} className={styles["test-result-prev-status"]}>
+            <TooltipWrapper key={key} tooltipComponent={<TrPrevStatusTooltip item={item} />}>
+              <TrPrevStatus item={item} />
+            </TooltipWrapper>
+          </div>
+        ))}
     </div>
   );
 };

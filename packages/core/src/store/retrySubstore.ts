@@ -81,18 +81,25 @@ export class RetrySubstore {
   }
 
   retriesByTr(testResult: TestResult): TestResult[] {
-    if (!testResult.retryHash || testResult.isRetry) {
+    if (!testResult.retryHash) {
       return NO_RETRIES;
     }
 
     const attempts = this.#testResultsByRetryHash.get(testResult.retryHash) ?? [];
-    const index = attempts.findIndex((attempt) => attempt.id === testResult.id);
 
-    if (index !== 0) {
+    // retryHash is a grouping key, not a retry flag. A retry group exists only
+    // when multiple attempts share the same retryHash.
+    if (attempts.length <= 1) {
       return NO_RETRIES;
     }
 
-    return attempts.slice(1);
+    const index = attempts.findIndex((attempt) => attempt.id === testResult.id);
+
+    if (index === -1) {
+      return NO_RETRIES;
+    }
+
+    return attempts.filter((attempt) => attempt.id !== testResult.id);
   }
 
   reset() {

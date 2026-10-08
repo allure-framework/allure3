@@ -25,6 +25,7 @@ export type TreeLeaf = {
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
+  parameters?: string[];
 };
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";

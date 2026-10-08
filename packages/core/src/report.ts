@@ -2,7 +2,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync, type ReadStream } from "node:fs";
-import { lstat, mkdtemp, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -55,7 +55,7 @@ import pLimit from "p-limit";
 import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "./history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { writeKnownIssues } from "./resolutions.js";
@@ -146,10 +146,7 @@ const getExecutorReportUrl = (executor: unknown): string | undefined => {
   }
 
   try {
-    const navUrl = new URL(reportUrl);
-    navUrl.pathname = navUrl.pathname.endsWith("/") ? navUrl.pathname : `${navUrl.pathname}/`;
-
-    return navUrl.toString();
+    return new URL(reportUrl).toString();
   } catch {
     return undefined;
   }
@@ -202,10 +199,11 @@ export class AllureReport {
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
   #endGeneratePerfSpan?: () => void;
+  #resolvedReportUrl?: string;
+  #reportUrl?: string;
 
   readonly reportUuid: string;
   readonly reportName: string;
-  reportUrl?: string;
 
   constructor(opts: FullConfig) {
     const {
@@ -329,32 +327,53 @@ export class AllureReport {
     return this.#realtimeChannel.dispatcher;
   }
 
-  #resolveHistoryReportUrl = async (): Promise<string> => {
-    if (this.reportUrl) {
-      return this.reportUrl;
+  get reportUrl(): string | undefined {
+    return this.#reportUrl ?? this.#resolvedReportUrl;
+  }
+
+  set reportUrl(url: string | undefined) {
+    this.#reportUrl = url;
+  }
+
+  #resolveReportUrl = async (): Promise<void> => {
+    if (this.#reportUrl) return;
+
+    // when base url is set, expose root report url to plugins as the main report url
+    if (this.#historyBaseUrl) {
+      const historyUrl = new URL(this.#historyBaseUrl);
+      historyUrl.pathname = `${historyUrl.pathname}index.html`;
+
+      this.#resolvedReportUrl = historyUrl.toString();
+      return;
     }
 
     const executorReportUrl = getExecutorReportUrl(await this.#store.metadataByKey("allure2_executor"));
+    if (!executorReportUrl) return;
 
-    if (executorReportUrl) {
-      this.reportUrl = executorReportUrl;
-      return executorReportUrl;
-    }
-
-    return "";
+    this.#resolvedReportUrl = executorReportUrl;
   };
 
-  #createHistoryDataPoint = async (): Promise<HistoryDataPoint> => {
-    const allTrs = await this.#store.allTestResults();
+  #createHistoryDataPoint = async (flattenReport: boolean): Promise<HistoryDataPoint> => {
+    const allTrs = await Promise.all(
+      (await this.#store.allTestResults()).map(async (tr) => ({
+        ...tr,
+        retries: await this.#store.retriesByTrId(tr.id),
+      })),
+    );
     const allTcs = await this.#store.allTestCases();
-    const historyReportUrl = await this.#resolveHistoryReportUrl();
+    // always use explicitly set reportUrl for history
+    //
+    // if multiple reports exist and historyBaseUrl is present, use the base as history url so the final history urls
+    // can add correct plugin id to final href
+    const historyUrl =
+      this.#reportUrl ?? (!flattenReport && this.#historyBaseUrl ? this.#historyBaseUrl : this.#resolvedReportUrl);
 
     return createHistory(
       this.reportUuid,
       this.reportName,
       allTcs,
       allTrs,
-      historyReportUrl,
+      historyUrl ?? "",
       await this.#store.allMetrics(),
     );
   };
@@ -378,6 +397,15 @@ export class AllureReport {
     });
   };
 
+  #prepareReportFiles = async (): Promise<void> => {
+    await this.#writeTestResultRegistry();
+    if (this.#qualityGate) {
+      await this.#writeQualityGateFiles();
+    }
+    await this.#writeSummaryFiles();
+    await this.#generateRootSummary();
+  };
+
   #publish = async (): Promise<void> => {
     if (this.#published) {
       return;
@@ -386,20 +414,6 @@ export class AllureReport {
     if (this.#executionStage !== "done") {
       throw new Error("report is not completed. Call the done() method first.");
     }
-
-    let historyPoint = this.#historyDataPoint;
-
-    if (!historyPoint) {
-      historyPoint = await this.#createHistoryDataPoint();
-      this.#historyDataPoint = historyPoint;
-    }
-
-    await this.#writeTestResultRegistry();
-    if (this.#qualityGate) {
-      await this.#writeQualityGateFiles();
-    }
-    await this.#writeSummaryFiles();
-    await this.#generateRootSummary();
 
     if (this.#realTime || !this.#allureServiceClient) {
       this.#published = true;
@@ -520,7 +534,7 @@ export class AllureReport {
 
       await client.completeReport({
         reportUuid: this.reportUuid,
-        historyPoint,
+        historyPoint: this.#historyDataPoint,
       });
 
       Object.values(linksByPluginId)
@@ -586,11 +600,7 @@ export class AllureReport {
           entries.map((dirent) =>
             limit(async () => {
               try {
-                const path = await measurePerfAggregate(PERF_METRIC_NAMES.generateReadResultsRealpath, () =>
-                  realpath(join(resultsDirPath, dirent.name)),
-                );
-
-                await this.readResult(new PathResultFile(path, dirent.name));
+                await this.readResult(new PathResultFile(join(resultsDirPath, dirent.name), dirent.name));
               } catch (e) {
                 console.error(`can't read result file ${dirent.name}`, e);
               }
@@ -1288,7 +1298,8 @@ export class AllureReport {
         return;
       }
 
-      await this.#resolveHistoryReportUrl();
+      // resolve report url from available sources so it is available to plugins
+      await this.#resolveReportUrl();
 
       // isolate logs of different reports dumps: done and summary
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
@@ -1301,8 +1312,6 @@ export class AllureReport {
       this.#finishGeneratePerfSpan();
 
       await this.#ingestSelfPerfMetrics();
-
-      this.#historyDataPoint = await this.#createHistoryDataPoint();
 
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
@@ -1327,7 +1336,7 @@ export class AllureReport {
           .map((summary) => [summary.pluginId, summary]),
       );
 
-      await this.#publish();
+      await this.#prepareReportFiles();
 
       let outputDirFiles: string[] = [];
 
@@ -1336,6 +1345,16 @@ export class AllureReport {
         outputDirFiles = await readdir(this.#output);
       } catch {}
 
+      const outputEntries = await Promise.all(
+        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
+      );
+      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
+      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
+
+      this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
+
+      await this.#publish();
+
       if (this.#knownIssuesPath) {
         await writeKnownIssues(this.#store, this.#knownIssuesPath);
       }
@@ -1343,23 +1362,6 @@ export class AllureReport {
       // just do nothing if there is no reports in the output directory
       if (outputDirFiles.length === 0) {
         return;
-      }
-
-      const outputEntries = await Promise.all(
-        outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
-      );
-      const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
-      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
-
-      if (this.#historyBaseUrl) {
-        const historyUrl = new URL(this.#historyBaseUrl);
-
-        if (shouldFlattenOutput) {
-          historyUrl.pathname = `${historyUrl.pathname}index.html`;
-        }
-
-        // historyDataPoint needs to be overwritten due to dependency of checking if output needs to be flattened or not
-        this.#historyDataPoint = setHistoryDataPointUrl(this.#historyDataPoint!, historyUrl.toString());
       }
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
@@ -1503,7 +1505,10 @@ export class AllureReport {
       try {
         await consumer.call(this, plugin, pluginContext);
 
-        this.reportUrl = pluginContext.reportUrl ?? this.reportUrl;
+        // update reportUrl if it was mutated by consumer
+        if (pluginContext.reportUrl !== null && pluginContext.reportUrl !== this.reportUrl) {
+          this.reportUrl = pluginContext.reportUrl;
+        }
 
         if (initState) {
           this.#state![id] = pluginState;

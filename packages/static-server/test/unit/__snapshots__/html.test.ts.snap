@@ -30,9 +30,16 @@ exports[`live > injects live reload script 1`] = `
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -55,9 +62,16 @@ exports[`returns index.html file by the full path 1`] = `
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -80,9 +94,16 @@ exports[`returns index.html when an url ends just with word without file extensi
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -105,9 +126,16 @@ exports[`returns index.html when an url ends with /, when the file exists 1`] = 
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -130,9 +158,16 @@ exports[`returns nested/index.html file by the full path 1`] = `
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -155,9 +190,16 @@ exports[`returns nested/index.html when an url ends just with word without file 
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -180,9 +222,16 @@ exports[`returns nested/index.html when an url ends with / 1`] = `
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -209,9 +258,16 @@ exports[`returns page with available files when an url ends with / and index.htm
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>
@@ -239,9 +295,16 @@ exports[`returns page with available files when an url ends with / asd 1`] = `
       
       eventSource.onmessage = () => {
         const newHash = Math.random().toString(36).slice(2, 10);
+        const reload = () => window.location.reload();
         
         window.localStorage.setItem("__allure_report_live_reload_hash__", newHash);
-        window.location.reload();
+
+        if (typeof window.__allureLiveReload !== "function") {
+          reload();
+          return;
+        }
+
+        Promise.resolve(window.__allureLiveReload()).catch(reload);
       };
     </script>
   </body>

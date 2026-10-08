@@ -8,7 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl, setHistoryDataPointUrl } from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -631,6 +631,39 @@ describe("AllureLocalHistory", () => {
 });
 
 describe("createHistory", () => {
+  it("should store earlier attempt statuses in history retries", async () => {
+    const retries = [
+      { id: "retry-1", status: "broken" },
+      { id: "retry-0", status: "failed" },
+    ] as TestResult[];
+
+    const testResults = [
+      {
+        id: "latest-result-id",
+        name: "latest result",
+        retryHash: "retry-hash",
+        status: "passed",
+        start: 300,
+        stop: 400,
+        duration: 100,
+        labels: [],
+        retries,
+      },
+      {
+        id: "single-result-id",
+        name: "single result",
+        retryHash: "single-retry-hash",
+        status: "passed",
+        labels: [],
+      },
+    ] as unknown as TestResult[];
+
+    const history = createHistory("report-id", "Report", [], testResults, "https://example.com/report");
+
+    expect(history.testResults["retry-hash"].retries).toEqual(["failed", "broken"]);
+    expect(history.testResults["single-retry-hash"].retries).toEqual([]);
+  });
+
   it("should set nested history test result url from remote url", () => {
     const remoteUrl = "https://service.allurereport.org/report/1";
     const testCases = [{ id: "test-case-id" }] as TestCase[];
@@ -641,7 +674,7 @@ describe("createHistory", () => {
         retryHash: "retry-hash",
         status: "passed",
         labels: [],
-      } as TestResult,
+      } as unknown as TestResult,
     ];
 
     const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
@@ -668,34 +701,6 @@ describe("local history URLs", () => {
     expect(() => normalizeHistoryBaseUrl("https://bucket.example/runs/42#current")).toThrow(
       /Invalid historyBaseUrl.*fragment/u,
     );
-  });
-
-  it("should replace run and test URLs without mutating the source history point", () => {
-    const source: HistoryDataPoint = {
-      uuid: "run-1",
-      name: "Run 1",
-      timestamp: 1,
-      knownTestCaseIds: [],
-      metrics: {},
-      url: "",
-      testResults: {
-        stable: {
-          id: "old-result",
-          name: "historical test",
-          status: "passed",
-          url: "",
-        },
-      },
-    };
-
-    const updated = setHistoryDataPointUrl(source, "https://bucket.example/runs/42/index.html");
-
-    expect(updated.url).toBe("https://bucket.example/runs/42/index.html");
-    expect(updated.testResults.stable.url).toBe("https://bucket.example/runs/42/index.html");
-    expect(updated).not.toBe(source);
-    expect(updated.testResults.stable).not.toBe(source.testResults.stable);
-    expect(source.url).toBe("");
-    expect(source.testResults.stable.url).toBe("");
   });
 
   it.each([

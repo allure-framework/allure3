@@ -1,7 +1,7 @@
 import { execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
@@ -17,6 +17,10 @@ const commandsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(commandsDir, "../../../..");
 const yarnRcPath = join(repoRoot, ".yarnrc.yml");
 const cliPath = join(repoRoot, "packages", "cli", "cli.js");
+const sharedBuildArtifacts = [
+  join(repoRoot, "packages", "cli", "dist", "index.js"),
+  join(repoRoot, "packages", "plugin-log", "dist", "index.js"),
+];
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
@@ -34,6 +38,29 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
     maxBuffer,
     ...restOptions,
   });
+};
+
+const runCommandWithExitCode = async (command: string, args: string[], options: RunCommandOptions = {}) => {
+  try {
+    const result = await runCommand(command, args, options);
+
+    return {
+      ...result,
+      exitCode: 0,
+    };
+  } catch (error) {
+    const commandError = error as Error & {
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+    };
+
+    return {
+      stdout: commandError.stdout ?? "",
+      stderr: commandError.stderr ?? "",
+      exitCode: commandError.code ?? 1,
+    };
+  }
 };
 
 const pathExists = async (filePath: string) => {
@@ -124,6 +151,7 @@ beforeAll(async () => {
 
 describe("run command integration", () => {
   let tempDir: string;
+  let sharedBuildModificationTimes: number[];
 
   beforeEach(async () => {
     await epic("coverage");
@@ -133,6 +161,10 @@ describe("run command integration", () => {
   });
 
   beforeAll(async () => {
+    // Workspace builds run before tests. Rebuilding here would clean shared dist files while other packages use them.
+    sharedBuildModificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
   });
 
@@ -324,6 +356,364 @@ export default config;
     await step("verify generated report uses TypeScript config", async () => {
       await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
       expect(stderr).toBe("");
+    });
+  }, 240_000);
+
+  it("stores per-environment quality gates in dumps without revalidating the combined report", async () => {
+    const fixtureDir = join(tempDir, "generate-quality-gate-dumps");
+    const linuxResultsDir = join(fixtureDir, "linux-results");
+    const windowsResultsDir = join(fixtureDir, "windows-results");
+    const linuxConfigPath = join(fixtureDir, "linux.mjs");
+    const windowsConfigPath = join(fixtureDir, "windows.mjs");
+    const finalConfigPath = join(fixtureDir, "final.mjs");
+    const linuxDump = join(fixtureDir, "linux-dump");
+    const windowsDump = join(fixtureDir, "windows-dump");
+    const outputDir = join(fixtureDir, "report");
+    const environmentsSource = `
+  environments: {
+    linux: { name: "Linux", matcher: () => false },
+    windows: { name: "Windows", matcher: () => false }
+  }`;
+    const environmentConfig = (environment: string, dump: string) =>
+      `
+export default {
+  name: "${environment} results",
+  environment: ${JSON.stringify(environment)},
+  dump: ${JSON.stringify(dump)},
+  qualityGate: {
+    rules: [{ maxFailures: 0 }]
+  },
+${environmentsSource}
+};
+`.trimStart();
+    const finalConfig = `
+export default {
+  name: "Combined report",
+  output: ${JSON.stringify(outputDir)},
+${environmentsSource}
+};
+`.trimStart();
+    const linuxResult = {
+      uuid: "linux-passed",
+      historyId: "linux-passed-history",
+      name: "Linux passed test",
+      fullName: "Quality Gate Suite > Linux passed test",
+      status: "passed",
+      start: 1,
+      stop: 2,
+    };
+    const windowsResult = {
+      uuid: "windows-failed",
+      historyId: "windows-failed-history",
+      name: "Windows failed test",
+      fullName: "Quality Gate Suite > Windows failed test",
+      status: "failed",
+      start: 1,
+      stop: 2,
+    };
+
+    await step("prepare per-environment result and config fixtures", async () => {
+      await mkdir(linuxResultsDir, { recursive: true });
+      await mkdir(windowsResultsDir, { recursive: true });
+      await writeJson(join(linuxResultsDir, "linux-result.json"), linuxResult);
+      await writeJson(join(windowsResultsDir, "windows-result.json"), windowsResult);
+      await writeFile(linuxConfigPath, environmentConfig("linux", linuxDump), "utf-8");
+      await writeFile(windowsConfigPath, environmentConfig("windows", windowsDump), "utf-8");
+      await writeFile(finalConfigPath, finalConfig, "utf-8");
+    });
+
+    await step("generate passing and failing environment dumps", async () => {
+      const linux = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        linuxConfigPath,
+        linuxResultsDir,
+      ]);
+      const windows = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        windowsConfigPath,
+        windowsResultsDir,
+      ]);
+
+      await attachCommandOutput("linux dump generation", linux);
+      await attachCommandOutput("windows dump generation", windows);
+
+      expect(linux.exitCode).toBe(0);
+      expect(windows.exitCode).toBe(1);
+      expect(stripAnsi(windows.stderr)).toContain("Quality Gate failed");
+      await expect(stat(`${linuxDump}.zip`)).resolves.toBeTruthy();
+      await expect(stat(`${windowsDump}.zip`)).resolves.toBeTruthy();
+    });
+
+    await step("combine dumps without an aggregate quality gate", async () => {
+      const combined = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        finalConfigPath,
+        "--dump",
+        `${linuxDump}.zip`,
+        "--dump",
+        `${windowsDump}.zip`,
+      ]);
+
+      await attachCommandOutput("combined report generation", combined);
+      expect(combined.exitCode).toBe(0);
+    });
+
+    await step("verify restored quality gates keep environment attribution", async () => {
+      const qualityGateWidget = JSON.parse(
+        await readFile(join(outputDir, "widgets", "quality-gate.json"), "utf-8"),
+      ) as Record<string, { success: boolean; environment?: string }[]>;
+
+      expect(Object.keys(qualityGateWidget).sort()).toEqual(["linux", "windows"]);
+      expect(qualityGateWidget.linux).toEqual([
+        expect.objectContaining({
+          success: true,
+          environment: "Linux",
+        }),
+      ]);
+      expect(qualityGateWidget.windows).toEqual([
+        expect.objectContaining({
+          success: false,
+          environment: "Windows",
+        }),
+      ]);
+      expect(Object.values(qualityGateWidget).flat()).toHaveLength(2);
+    });
+  }, 240_000);
+
+  it("restarts the full command after a fast-failing Quality Gate", async () => {
+    const fixtureDir = join(tempDir, "quality-gate-rerun");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "allure-report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const invocationsPath = join(fixtureDir, "invocations.jsonl");
+    const configSource = `
+export default {
+  output: ${JSON.stringify(outputDir)},
+  qualityGate: {
+    rules: [{ maxFailures: 0, fastFail: true }]
+  }
+};
+`.trimStart();
+    const runnerSource = `
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const invocationsPath = ${JSON.stringify(invocationsPath)};
+const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
+const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
+const rerun = process.env.ALLURE_RERUN;
+const isRerun = rerun !== undefined;
+
+await appendFile(invocationsPath, JSON.stringify({ rerun, testPlanPath, testPlan }) + "\\n", "utf-8");
+await writeFile(
+  join(resultsDir, isRerun ? "retry-result.json" : "initial-result.json"),
+  JSON.stringify({
+    uuid: isRerun ? "retry-result" : "initial-result",
+    historyId: "quality-gate-rerun",
+    name: "recovers after rerun",
+    fullName: "Quality Gate Suite > recovers after rerun",
+    status: isRerun ? "passed" : "failed",
+    start: isRerun ? 3 : 1,
+    stop: isRerun ? 4 : 2
+  }),
+  "utf-8"
+);
+
+if (isRerun) {
+  await writeFile(
+    join(resultsDir, "remaining-result.json"),
+    JSON.stringify({
+      uuid: "remaining-result",
+      historyId: "remaining-result",
+      name: "runs during the full rerun",
+      fullName: "Quality Gate Suite > runs during the full rerun",
+      status: "passed",
+      start: 5,
+      stop: 6
+    }),
+    "utf-8"
+  );
+}
+
+await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
+`.trimStart();
+    let stdout = "";
+    let stderr = "";
+
+    await step("prepare Quality Gate rerun fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(runnerPath, runnerSource, "utf-8");
+      await attachment("Quality Gate rerun config", configSource, "text/plain");
+      await attachment("Quality Gate rerun child process", runnerSource, "text/plain");
+    });
+
+    await step("run built command with Quality Gate rerun enabled", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "run",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--rerun",
+        "1",
+        "--results-dir",
+        resultsDir,
+        "--",
+        process.execPath,
+        runnerPath,
+      ]);
+
+      stdout = result.stdout;
+      stderr = result.stderr;
+      await attachCommandOutput("Quality Gate rerun", result);
+    });
+
+    await step("verify full rerun scope and final success", async () => {
+      const normalizedStdout = stripAnsi(stdout);
+      const normalizedStderr = stripAnsi(stderr);
+      const invocations = (await readFile(invocationsPath, "utf-8"))
+        .trim()
+        .split("\n")
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              rerun?: string;
+              testPlanPath?: string;
+              testPlan?: {
+                version: string;
+                tests: { selector?: string; id?: string }[];
+              };
+            },
+        );
+
+      expect(normalizedStdout).not.toContain("skipping quality gate validation");
+      expect(normalizedStdout).toContain("[QualityGate]: Fast-fail triggered: maxFailures; stopping attempt 1/2");
+      expect(normalizedStdout).toContain("[AllureRun]: Attempt 1/2 stopped by Quality Gate");
+      expect(normalizedStderr).toContain(
+        "[AllureRerun]: Attempt 2/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process",
+      );
+      expect(normalizedStdout).toContain("[AllureRun]: Completed with exit code 0");
+      expect(normalizedStdout).not.toContain("rerun number");
+      expect(normalizedStdout).not.toContain("Quality Gate Suite > recovers after rerun");
+      expect(invocations).toHaveLength(2);
+      expect(invocations[0]).toEqual({});
+      expect(invocations[1]?.rerun).toBe("0");
+      expect(invocations[1]?.testPlanPath).toBeUndefined();
+      expect(invocations[1]?.testPlan).toBeUndefined();
+    });
+  }, 240_000);
+
+  it("reruns passed tests related to failed Quality Gate rules after a completed run", async () => {
+    const fixtureDir = join(tempDir, "quality-gate-related-rerun");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "allure-report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const invocationsPath = join(fixtureDir, "invocations.jsonl");
+    const configSource = `
+export default {
+  output: ${JSON.stringify(outputDir)},
+  qualityGate: {
+    rules: [{ maxDuration: 100 }]
+  }
+};
+`.trimStart();
+    const runnerSource = `
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const invocationsPath = ${JSON.stringify(invocationsPath)};
+const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
+const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
+const isRerun = testPlan !== undefined;
+
+await appendFile(invocationsPath, JSON.stringify({ testPlanPath, testPlan }) + "\\n", "utf-8");
+await writeFile(
+  join(resultsDir, isRerun ? "retry-result.json" : "initial-result.json"),
+  JSON.stringify({
+    uuid: isRerun ? "duration-retry" : "duration-initial",
+    historyId: "quality-gate-duration",
+    name: "becomes fast enough after rerun",
+    fullName: "Quality Gate Suite > becomes fast enough after rerun",
+    status: "passed",
+    start: isRerun ? 300 : 1,
+    stop: isRerun ? 350 : 201
+  }),
+  "utf-8"
+);
+
+await new Promise((resolve) => setTimeout(resolve, 2500));
+`.trimStart();
+    let stderr = "";
+
+    await step("prepare completed Quality Gate rerun fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(runnerPath, runnerSource, "utf-8");
+    });
+
+    await step("run built command with a non-fast Quality Gate", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "run",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--rerun",
+        "1",
+        "--results-dir",
+        resultsDir,
+        "--",
+        process.execPath,
+        runnerPath,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("completed Quality Gate rerun", result);
+    });
+
+    await step("verify related passed test uses a focused rerun", async () => {
+      const invocations = (await readFile(invocationsPath, "utf-8"))
+        .trim()
+        .split("\n")
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              testPlanPath?: string;
+              testPlan?: {
+                version: string;
+                tests: { selector?: string; id?: string }[];
+              };
+            },
+        );
+
+      expect(stderr).toBe("");
+      expect(invocations).toHaveLength(2);
+      expect(invocations[0]).toEqual({});
+      expect(invocations[1]?.testPlanPath).toEqual(expect.any(String));
+      expect(isAbsolute(invocations[1]!.testPlanPath!)).toBe(true);
+      expect(invocations[1]?.testPlan).toEqual({
+        version: "1.0",
+        tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
+      });
     });
   }, 240_000);
 
@@ -1161,6 +1551,14 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       ]);
     });
   }, 240_000);
+
+  it("does not rebuild shared workspace artifacts", async () => {
+    const modificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
+
+    expect(modificationTimes).toEqual(sharedBuildModificationTimes);
+  });
 });
 
 // the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from

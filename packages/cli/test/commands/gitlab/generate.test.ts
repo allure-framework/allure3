@@ -92,7 +92,7 @@ beforeEach(() => {
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readConfig).mockResolvedValue(baseConfig as never);
   vi.mocked(restoreGitlabHistory).mockResolvedValue(undefined);
-  vi.mocked(generate).mockResolvedValue({ summary });
+  vi.mocked(generate).mockResolvedValue({ summary, exitCode: 0 });
   vi.mocked(upsertGitlabJobNote).mockResolvedValue(undefined);
 });
 
@@ -102,6 +102,25 @@ afterEach(() => {
 });
 
 describe("gitlab command", () => {
+  it.each([
+    { name: "by default", args: [] },
+    { name: "with --summary-comment", args: ["--summary-comment"] },
+  ])("posts the summary comment $name", async ({ args }) => {
+    await expect(runCommand([...args, "--gitlab-token", "token"])).resolves.toBe(0);
+
+    expect(upsertGitlabJobNote).toHaveBeenCalledExactlyOnceWith({
+      token: "token",
+      summary,
+      reportUrl: "https://group.gitlab.io/-/project/-/jobs/123/artifacts/allure-report/index.html",
+    });
+  });
+
+  it("skips the summary comment when disabled ", async () => {
+    await expect(runCommand(["--no-summary-comment", "--gitlab-token", "token", "./results"])).resolves.toBe(0);
+
+    expect(upsertGitlabJobNote).not.toHaveBeenCalled();
+  });
+
   it.each([
     { name: "CLI token precedence", cliToken: " cli-token ", envToken: "env-token", expected: "cli-token" },
     { name: "environment token", cliToken: undefined, envToken: " env-token ", expected: "env-token" },
@@ -321,6 +340,25 @@ describe("gitlab command", () => {
     );
   });
 
+  it("posts the report summary before returning a failed quality gate status", async () => {
+    vi.mocked(generate).mockResolvedValueOnce({ summary, exitCode: 1 });
+
+    await expect(runCommand(["--gitlab-token", "token"])).resolves.toBe(1);
+
+    expect(upsertGitlabJobNote).toHaveBeenCalledOnce();
+    expect(vi.mocked(generate).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(upsertGitlabJobNote).mock.invocationCallOrder[0],
+    );
+  });
+
+  it("preserves a failed quality gate status when no GitLab token is configured", async () => {
+    vi.mocked(generate).mockResolvedValueOnce({ summary, exitCode: 1 });
+
+    await expect(runCommand()).resolves.toBe(1);
+
+    expect(upsertGitlabJobNote).not.toHaveBeenCalled();
+  });
+
   it.each([
     { name: "without a URL override", args: [] },
     { name: "with a URL override", args: ["--history-base-url", "https://reports.example.test/run"] },
@@ -361,7 +399,7 @@ describe("gitlab command", () => {
   });
 
   it("prints the report link but does not post a note when generation omits the summary", async () => {
-    vi.mocked(generate).mockResolvedValueOnce({});
+    vi.mocked(generate).mockResolvedValueOnce({ exitCode: 0 });
     const stdout = new PassThrough();
 
     await expect(runCommand([], stdout)).resolves.toBe(0);

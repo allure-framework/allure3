@@ -61,7 +61,6 @@ export const PERF_METRIC_NAMES = {
   generateReadResultsXcresultCheck: "generate.readResults.xcresultCheck",
   generateReadResultsReaddir: "generate.readResults.readdir",
   generateReadResultsFiles: "generate.readResults.files",
-  generateReadResultsRealpath: "generate.readResults.realpath",
   generateReadResultsReaderRead: "generate.readResults.reader.read",
   generatePluginsDone: "generate.plugins.done",
   storeVisitTestResultConvert: "store.visitTestResult.convert",

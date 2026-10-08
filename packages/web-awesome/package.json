@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.19.1",
+  "version": "3.20.1",
   "private": true,
   "description": "The static files for Allure Awesome Report",
   "keywords": [
@@ -73,7 +73,7 @@
     "minisearch": "^7.2.0",
     "npm-run-all2": "^7.0.1",
     "postcss": "^8.5.10",
-    "preact": "^10.28.2",
+    "preact": "^10.29.8",
     "prismjs": "^1.30.0",
     "rimraf": "^6",
     "sass": "^1.79.1",

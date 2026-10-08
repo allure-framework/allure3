@@ -1,11 +1,30 @@
-import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { ReportFetchError, fetchReportJsonData, setParams } from "@allurereport/web-commons";
 
-import { PARAMS } from "./constants";
+import { PARAMS, type ResolutionFilterValue } from "./constants";
 import type { TreeFiltersData } from "./model";
 import { treeCategories, treeTags } from "./store";
 
+const keepTreeBodyHeightWhileHeaderHidden = () => {
+  const header = document.querySelector("[data-tree-sticky-header]");
+  const body = document.querySelector("[data-tree-body]");
+  const container = header?.closest("[data-tree-scroll-container]");
+
+  if (!(header instanceof HTMLElement) || !(body instanceof HTMLElement) || !(container instanceof HTMLElement)) {
+    return;
+  }
+
+  const containerTop = container.getBoundingClientRect().top;
+  const sectionTop = header.parentElement!.getBoundingClientRect().top - containerTop + container.scrollTop;
+  const bodyTop = body.getBoundingClientRect().top - containerTop + container.scrollTop;
+  const isHeaderHidden = container.scrollTop >= sectionTop;
+
+  body.style.minHeight = isHeaderHidden ? `${container.scrollTop + container.clientHeight - bodyTop}px` : "";
+};
+
 const preserveTreeScrollPosition = (apply: () => void) => {
+  keepTreeBodyHeightWhileHeaderHidden();
+
   const containers = Array.from(document.querySelectorAll("[data-tree-scroll-container]")).filter(
     (element): element is HTMLElement => element instanceof HTMLElement,
   );
@@ -65,7 +84,7 @@ export const setRetryFilter = (retry?: boolean) => {
   });
 };
 
-export const setResolutionFilter = (resolution: ResolutionCategory[]) => {
+export const setResolutionFilter = (resolution: ResolutionFilterValue[]) => {
   preserveTreeScrollPosition(() => {
     setParams({
       key: PARAMS.RESOLUTION,

@@ -1,5 +1,8 @@
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Timeline } from "@/components/Timeline";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { TimlineTr } from "@/components/Timeline/types";
+
 // @ts-ignore this is fine
 import mockData from "./data.mock.json";
 
@@ -10,7 +13,6 @@ const meta: Meta<typeof Timeline> = {
     layout: "padded",
   },
   args: {
-    width: "100%",
     translations: {
       empty: "No data",
       selected: (props: { count: number; percentage: string; minDuration: string; maxDuration: string }) =>
@@ -25,6 +27,6 @@ type Story = StoryObj<typeof Timeline>;
 
 export const Default: Story = {
   args: {
-    data: mockData,
+    data: mockData as unknown as TimlineTr[],
   },
 };
