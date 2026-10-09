@@ -234,7 +234,7 @@ export interface StabilityDistributionChartData {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
-   * Buckets of test results by duration
+   * Groups of assessed test results by label value
    */
   data: {
     /**
@@ -242,9 +242,8 @@ export interface StabilityDistributionChartData {
      */
     id: string;
     /**
-     * Stability rate
-     *
-     * as percentage like 0.90
+     * Percentage of assessed tests classified stable, from 0 to 100.
+     * Tests without comparable history are excluded unless explicitly reported flaky.
      */
     stabilityRate: number;
   }[];
@@ -400,13 +399,15 @@ export type StabilityDistributionChartOptions = {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
-   * Limit of history data points to be used for the chart
+   * Maximum comparable previous executions per test; current is included separately.
+   * Missing tests reset the calculation. Zero disables the chart.
    *
    * @default 10
    */
   limit?: number;
   /**
-   * Stabilization period: number of consecutive same statuses that reset the stability score
+   * Consecutive identical passed, failed, or broken outcomes that reset earlier instability.
+   * For bounded history, this is capped at the previous-execution limit plus current.
    *
    * @default 5
    */
