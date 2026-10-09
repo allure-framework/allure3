@@ -123,7 +123,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #manualStopController: AbortController | undefined;
 
-  constructor(command: string, options: SupervisedCommandOptions) {
+  constructor(command: string, options: SupervisedCommandOptions = {}) {
     const pipeName = `win-supervisor-${randomUUID()}`;
     const pipePath = `\\\\.\\pipe\\${pipeName}`;
 
