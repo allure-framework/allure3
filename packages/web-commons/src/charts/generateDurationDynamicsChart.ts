@@ -74,7 +74,8 @@ export const generateDurationDynamicsChart = (props: {
   const { options, storeData } = props;
   const { title, limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
 
-  const { historyDataPoints, testResults } = storeData;
+  const { historyDataPoints } = storeData;
+  const testResults = storeData.allTestResults ?? storeData.testResults;
 
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1).sort(
     // Sort by timestamp ascending, so earliest first and latest last
@@ -102,7 +103,7 @@ export const generateDurationDynamicsChart = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.retryHash ?? testResult.id] = testResult;
+          acc[testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,
