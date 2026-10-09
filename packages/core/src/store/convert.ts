@@ -89,7 +89,8 @@ export const testFixtureResultRawToState = (
 };
 
 export const testResultRawToState = (stateData: StateData, raw: RawTestResult, context: ReaderContext): TestResult => {
-  const legacyTestCaseHash = calculateLegacyTestCaseHash(raw);
+  const testCaseHash = calculateTestCaseHash(raw.testId, raw.fullName);
+  const legacyTestCaseHash = calculateLegacyTestCaseHash(raw, testCaseHash);
   const allureId = raw.labels
     ?.find((label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value?.trim())
     ?.value?.trim();
@@ -98,9 +99,8 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const threadId = findByLabelName(labels, "thread");
   const name = raw.name || "Unknown test";
   const parameters = convertParameters(raw.parameters);
-  const error = convertRawError(raw);
   const errors = convertTestErrors(raw);
-  const testCaseHash = calculateTestCaseHash(raw.testId, raw.fullName);
+  const error = errors?.[0] ?? convertRawError(raw);
   const parametersHash = calculateParametersHash(parameters);
   const testCase = processTestCase({ stateData, raw, allureId, testCaseHash });
 
@@ -117,7 +117,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     retryHash: calculateRetryHash({ testCaseHash, parametersHash }),
 
     status: raw.status ?? defaultStatus,
-    error: errors?.[0] ?? error,
+    error,
     errors,
 
     ...processTimings(raw),
@@ -153,7 +153,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   };
 };
 
-const calculateLegacyTestCaseHash = (raw: RawTestResult): string | undefined => {
+const calculateLegacyTestCaseHash = (raw: RawTestResult, testCaseHash: string | null): string | undefined => {
   const maybeAllureId = raw.labels?.find(
     (label) => (label?.name === "ALLURE_ID" || label?.name === "AS_ID") && label.value !== "-1",
   )?.value;
@@ -162,15 +162,7 @@ const calculateLegacyTestCaseHash = (raw: RawTestResult): string | undefined => 
     return md5(`ALLURE_ID=${maybeAllureId}`);
   }
 
-  if (raw.testId) {
-    return md5(raw.testId);
-  }
-
-  if (raw.fullName) {
-    return md5(raw.fullName);
-  }
-
-  return undefined;
+  return testCaseHash ?? undefined;
 };
 
 const processTestCase = ({
@@ -318,7 +310,16 @@ const processTimings = ({
 };
 
 const convertLabels = (labels: RawTestLabel[] | undefined): TestLabel[] => {
-  return labels?.filter(notNull)?.map(convertLabel)?.flatMap(processTagLabels).map(normalizeAllureIdLabel) ?? [];
+  const convertedLabels: TestLabel[] = [];
+  for (const label of labels ?? []) {
+    if (!notNull(label)) {
+      continue;
+    }
+    for (const expandedLabel of processTagLabels(convertLabel(label))) {
+      convertedLabels.push(normalizeAllureIdLabel(expandedLabel));
+    }
+  }
+  return convertedLabels;
 };
 
 const convertLabel = (label: RawTestLabel): TestLabel => {
@@ -332,18 +333,19 @@ const convertSteps = (
   stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
   steps: RawStep[] | undefined,
 ): { convertedSteps: TestStepResult[]; messages: Set<string> } => {
-  const convertedStepData = steps?.filter(notNull)?.map((step) => convertStep(stateData, step)) ?? [];
-  return {
-    convertedSteps: convertedStepData.map(({ convertedStep }) => convertedStep),
-    messages: new Set(
-      convertedStepData.reduce((acc, { messages }) => {
-        if (messages) {
-          acc.push(...messages);
-        }
-        return acc;
-      }, [] as string[]),
-    ),
-  };
+  const convertedSteps: TestStepResult[] = [];
+  const messages = new Set<string>();
+  for (const step of steps ?? []) {
+    if (!notNull(step)) {
+      continue;
+    }
+    const converted = convertStep(stateData, step);
+    convertedSteps.push(converted.convertedStep);
+    for (const message of converted.messages ?? []) {
+      messages.add(message);
+    }
+  }
+  return { convertedSteps, messages };
 };
 
 const convertStep = (
@@ -381,11 +383,15 @@ const convertStep = (
   };
 };
 
-const convertParameters = (parameters: RawTestParameter[] | undefined): TestParameter[] =>
-  parameters
-    ?.filter(notNull)
-    ?.filter((p) => typeof p.name === "string" && p.name.length > 0)
-    ?.map(convertParameter) ?? [];
+const convertParameters = (parameters: RawTestParameter[] | undefined): TestParameter[] => {
+  const convertedParameters: TestParameter[] = [];
+  for (const parameter of parameters ?? []) {
+    if (notNull(parameter) && typeof parameter.name === "string" && parameter.name.length > 0) {
+      convertedParameters.push(convertParameter(parameter));
+    }
+  }
+  return convertedParameters;
+};
 
 const convertParameter = (param: RawTestParameter): TestParameter => ({
   name: param.name ?? UNKNOWN_PARAMETER_VALUE,
@@ -395,11 +401,15 @@ const convertParameter = (param: RawTestParameter): TestParameter => ({
   masked: param.masked ?? false,
 });
 
-const convertLinks = (links: RawTestLink[] | undefined): TestLink[] =>
-  links
-    ?.filter(notNull)
-    ?.filter((l) => l.url)
-    ?.map(convertLink) ?? [];
+const convertLinks = (links: RawTestLink[] | undefined): TestLink[] => {
+  const convertedLinks: TestLink[] = [];
+  for (const link of links ?? []) {
+    if (notNull(link) && link.url) {
+      convertedLinks.push(convertLink(link));
+    }
+  }
+  return convertedLinks;
+};
 
 const convertLink = (link: RawTestLink): TestLink => ({
   name: link.name,
