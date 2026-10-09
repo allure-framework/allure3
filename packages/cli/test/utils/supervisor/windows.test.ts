@@ -1,4 +1,5 @@
 import { mkdtemp, rm } from "node:fs/promises";
+import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -211,6 +212,80 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expectProcesses([targetPid, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("rejects completion and cleans up when the process host dies unexpectedly", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const listenersBefore = process.rawListeners("SIGINT");
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("target.mjs"), fixture.resolvePath("target-ready")],
+      silent: true,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started) {
+            const host = supervisor.process;
+            if (host.exitCode === null && host.signalCode === null) {
+              host.kill("SIGKILL");
+            }
+            // Host death deliberately rejects completion; the test checks that error below.
+            await supervisor.completion.catch(() => {});
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+      import { rename, writeFile } from "node:fs/promises";
+
+      setTimeout(() => process.exit(42), 30_000);
+      const readyPath = process.argv[2];
+      const temporaryPath = readyPath + ".tmp";
+      await writeFile(temporaryPath, String(process.pid), "utf-8");
+      await rename(temporaryPath, readyPath);
+    `,
+    );
+    await start(supervisor);
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+    const pipePath = `\\\\.\\pipe\\${supervisor.process.spawnargs[2]}`;
+
+    await step("Kill the live host and verify completion rejects", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+      const completionError = supervisor.completion.then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+      expect(supervisor.process.kill("SIGKILL")).toBe(true);
+      expect(await completionError).toEqual(
+        expect.objectContaining({ message: "Control connection closed before startup or completion." }),
+      );
+    });
+
+    await step("Verify host death removes the target, SIGINT listener, and control pipe", async () => {
+      await Promise.all([targetPid, hostPid].map(waitProcessGone));
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.signalCode).toBe("SIGKILL");
+      expect(process.rawListeners("SIGINT")).toEqual(listenersBefore);
+      const connectionError = await new Promise<Error>((resolve, reject) => {
+        const socket = createConnection(pipePath);
+        socket.setTimeout(1_000, () => {
+          socket.destroy();
+          reject(new Error("Timed out checking control pipe cleanup."));
+        });
+        socket.once("connect", () => {
+          socket.destroy();
+          reject(new Error("The control pipe is still accepting connections."));
+        });
+        socket.once("error", resolve);
+      });
+      expect(connectionError).toMatchObject({ code: "ENOENT" });
     });
   }, 10_000);
 
@@ -770,6 +845,21 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(env.foo).toEqual("hello สวัสดี");
       expect(env).toEqual(expect.objectContaining(process.env));
       expect(stderr).toBe("");
+    });
+  });
+
+  it("ignores stop and terminate after completion", async () => {
+    const supervisor = superviseNodeScript("process.exit(23);");
+
+    await start(supervisor);
+    const { code, signal } = await supervisor.completion;
+
+    await supervisor.stop();
+    await supervisor.terminate();
+
+    await step("Observe the environment variables received by the target", async () => {
+      expect(code).toEqual(23);
+      expect(signal).toBeNull();
     });
   });
 });
