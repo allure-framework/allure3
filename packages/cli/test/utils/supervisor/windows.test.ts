@@ -1,7 +1,6 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -336,6 +335,102 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(stderr).toBe("");
       await Promise.all([targetPid, hostPid].map(waitProcessGone));
       expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("gracefully stops a three-level process tree", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("tree.mjs"), "0", fixture.workingDirectory, "exit"],
+      silent: true,
+      stopTimeout: 3_000,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript("tree.mjs", nodeScripts.threeLevelTree);
+    await start(supervisor);
+
+    const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify all three processes are ready to receive SIGINT", async () => {
+      expect(processIds[0]).toBe(supervisor.startupInfo.pid);
+      expect(new Set([...processIds, hostPid]).size).toBe(4);
+      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+    });
+
+    await step("Gracefully stop the tree and verify every SIGINT acknowledgment", async () => {
+      await supervisor.stop();
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      const acknowledgments = await Promise.all(
+        [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
+      );
+
+      expect(acknowledgments).toEqual(processIds);
+      expect(code).toBe(20);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([...processIds, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("escalates graceful stop to forced termination of a three-level process tree", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("tree.mjs"), "0", fixture.workingDirectory, "ignore"],
+      silent: true,
+      stopTimeout: 500,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript("tree.mjs", nodeScripts.threeLevelTree);
+    await start(supervisor);
+
+    const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify all three processes are ready before requesting graceful stop", async () => {
+      expect(processIds[0]).toBe(supervisor.startupInfo.pid);
+      expect(new Set([...processIds, hostPid]).size).toBe(4);
+      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+    });
+
+    await supervisor.stop();
+
+    await step("Verify stop timeout escalation removes the entire tree and host", async () => {
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(code).toBe(1);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([...processIds, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
     });
