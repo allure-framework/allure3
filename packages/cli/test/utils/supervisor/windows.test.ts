@@ -214,6 +214,130 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   }, 10_000);
 
+  it("reuses one termination promise for repeated calls", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("target.mjs"), fixture.resolvePath("target-ready")],
+      silent: true,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+        import { rename, writeFile } from "node:fs/promises";
+
+        setTimeout(() => process.exit(42), 30_000);
+        const readyPath = process.argv[2];
+        const temporaryPath = readyPath + ".tmp";
+        await writeFile(temporaryPath, String(process.pid), "utf-8");
+        await rename(temporaryPath, readyPath);
+      `,
+    );
+    await start(supervisor);
+
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the target is ready before repeated termination calls", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+    });
+
+    await step("Verify repeated terminate calls share one successful promise", async () => {
+      const first = supervisor.terminate();
+      const second = supervisor.terminate();
+      await Promise.all([first, second]);
+      expect(second).toBe(first);
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(code).toBe(1);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([targetPid, hostPid].map(waitProcessGone));
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("reuses one graceful stop promise for repeated calls", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [
+        fixture.resolvePath("target.mjs"),
+        fixture.resolvePath("target-ready"),
+        fixture.resolvePath("sigint"),
+      ],
+      silent: true,
+      stopTimeout: 3_000,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+        import { rename, writeFile } from "node:fs/promises";
+
+        const [readyPath, acknowledgmentPath] = process.argv.slice(2);
+        setTimeout(() => process.exit(42), 30_000);
+        process.once("SIGINT", async () => {
+          await writeFile(acknowledgmentPath, String(process.pid), "utf-8");
+          process.exit(20);
+        });
+        const temporaryPath = readyPath + ".tmp";
+        await writeFile(temporaryPath, String(process.pid), "utf-8");
+        await rename(temporaryPath, readyPath);
+      `,
+    );
+    await start(supervisor);
+
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the cooperative target is ready before repeated stop calls", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+    });
+
+    await step("Verify repeated stop calls share one successful graceful stop promise", async () => {
+      const first = supervisor.stop();
+      const second = supervisor.stop();
+      await Promise.all([first, second]);
+      expect(second).toBe(first);
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(await fixture.readProcessId("sigint")).toBe(targetPid);
+      expect(code).toBe(20);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([targetPid, hostPid].map(waitProcessGone));
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
   it("gracefully stops a single cooperative process", async ({ onTestFinished }) => {
     const fixture = await SupervisorFixture.create();
     const supervisor = new WindowsProcessSupervisor(process.execPath, {
