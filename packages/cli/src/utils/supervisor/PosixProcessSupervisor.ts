@@ -15,7 +15,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
   #sigintReceived: boolean = false;
 
-  constructor(command: string, options: SupervisedCommandOptions) {
+  constructor(command: string, options: SupervisedCommandOptions = {}) {
     super(command, options);
     this.monitor = {
       wait: async () => {

@@ -30,9 +30,10 @@ export const nodeScripts = {
     import { stat } from "node:fs/promises";
     import { setTimeout as delay } from "node:timers/promises";
 
-    const [descendantScriptPath, readyPath, releasePath] = process.argv.slice(2);
+    const [descendantScriptPath, readyPath, releasePath, mode] = process.argv.slice(2);
     const descendant = spawn(process.execPath, [descendantScriptPath, readyPath, releasePath], {
       stdio: "ignore",
+      detached: mode === "detached",
     });
 
     descendant.unref();
