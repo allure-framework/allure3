@@ -10,6 +10,7 @@ import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 const dirname = pathDirname(fileURLToPath(import.meta.url));
 const httpExchangeMime = "application/vnd.allure.http+json";
+const mermaidMime = "application/vnd.allure.diagrams.mermaid";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
@@ -410,6 +411,101 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
+
+      await testResultPage.attachScreenshot();
+    });
+  });
+
+  test.describe("Mermaid attachment", () => {
+    test.beforeEach(async ({ page }) => {
+      const diagrams = [
+        {
+          name: "Flowchart",
+          source: "flowchart.mmd",
+          content: "flowchart LR\nClient --> API\nAPI --> Database",
+        },
+        {
+          name: "Sequence",
+          source: "sequence.mmd",
+          content: "sequenceDiagram\nBrowser->>Server: Request\nServer-->>Browser: Response",
+        },
+        {
+          name: "Pie chart",
+          source: "pie.mmd",
+          content: 'pie title Results\n"Passed" : 80\n"Failed" : 20',
+        },
+      ];
+
+      bootstrap = await bootstrapReport({
+        reportConfig: {
+          name: "Allure report with Mermaid attachments",
+          appendHistory: true,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "foo",
+            fullName: "sample.test.js#test with Mermaid attachments",
+            historyId: "",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: Date.now(),
+            stop: Date.now() + 1000,
+            steps: [
+              {
+                name: "bar",
+                status: Status.PASSED,
+                stage: Stage.FINISHED,
+                parameters: [],
+                steps: [],
+                statusDetails: {},
+                attachments: diagrams.map(({ name, source }) => ({
+                  source,
+                  type: mermaidMime,
+                  name,
+                })),
+              },
+            ],
+          },
+        ],
+        attachments: diagrams.map(({ source, content }) => ({
+          source,
+          content: Buffer.from(content, "utf8"),
+        })),
+      });
+
+      await page.goto(bootstrap.url);
+    });
+
+    test("should render common Mermaid diagrams without external scripts", async ({ page }) => {
+      await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
+      await testResultPage.expandStepByTitle("bar");
+
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(3);
+
+      for (const [name, expectedText] of [
+        ["Flowchart", "Database"],
+        ["Sequence", "Response"],
+        ["Pie chart", "Results"],
+      ] as const) {
+        await testResultPage.toggleAttachmentByTitle(name);
+        await expect(page.getByTestId("mermaid-attachment-preview").filter({ hasText: expectedText })).toBeVisible();
+      }
+
+      await expect(page.getByTestId("mermaid-attachment-preview")).toHaveCount(3);
+
+      const flowchartAttachment = testResultPage.testResultAttachmentLocator.filter({
+        has: page.getByText("Flowchart", { exact: true }),
+      });
+
+      await flowchartAttachment.getByTestId("attachment-expand-button").click();
+
+      const modal = page.getByTestId("attachment-modal");
+
+      await expect(modal.getByTestId("mermaid-attachment-preview")).toBeVisible();
+      await modal.getByTestId("attachment-modal-preview-toggle").click();
+      await expect(modal.getByTestId("code-attachment-content")).toContainText("flowchart LR");
 
       await testResultPage.attachScreenshot();
     });
