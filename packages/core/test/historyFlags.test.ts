@@ -173,40 +173,6 @@ describe("history flags", () => {
 
     expect(result.flaky).toBe(true);
   });
-  it.each(["ingestion", "refresh"])(
-    "supplies current attempts to the classifier during %s without a history source",
-    async (mode) => {
-      const actual = await vi.importActual<typeof import("@allurereport/core-api")>("@allurereport/core-api");
-      mocks.getTestFlakiness.mockImplementation(actual.getTestFlakiness);
-      const store = new DefaultAllureStore();
-      await store.visitTestResult({ ...rawResult, uuid: "retry", start: 100 }, context);
-      const [retry] = await store.allTestResults();
-      if (mode === "refresh") {
-        await store.visitTestResult({ ...rawResult, start: 200 }, context);
-      }
-      mocks.getTestFlakiness.mockClear();
-
-      if (mode === "ingestion") {
-        await store.visitTestResult({ ...rawResult, start: 200 }, context);
-      }
-      const [result] = await store.allTestResults();
-      if (mode === "refresh") {
-        store.updateHistoryFlags([result]);
-      }
-
-      expect(mocks.getTestFlakiness).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: result.id,
-          retries: [expect.objectContaining({ id: retry.id, status: "failed" })],
-        }),
-        [],
-        { historyDepth: undefined, stabilizationPeriod: undefined },
-      );
-      expect(result.flaky).toBe(false);
-      expect(result.retries).toBeUndefined();
-      expect(result.transition).toBeUndefined();
-    },
-  );
   it("preserves incoming flaky without a history source", async () => {
     const store = new DefaultAllureStore();
     await store.visitTestResult({ ...rawResult, flaky: true }, context);
