@@ -214,6 +214,55 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   }, 10_000);
 
+  it("forcibly terminates a three-level process tree", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("tree.mjs"), "0", fixture.workingDirectory],
+      silent: true,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript("tree.mjs", nodeScripts.threeLevelTree);
+    await start(supervisor);
+
+    const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify root, child, and grandchild are ready and alive", async () => {
+      expect(processIds[0]).toBe(supervisor.startupInfo.pid);
+      expect(new Set([...processIds, hostPid]).size).toBe(4);
+      expectProcesses([...processIds, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+      await attachment(
+        "Process tree before termination",
+        JSON.stringify({ rootPid: processIds[0], childPid: processIds[1], grandchildPid: processIds[2], hostPid }),
+        "application/json",
+      );
+    });
+
+    await step("Force termination and verify the entire tree and host have exited", async () => {
+      await supervisor.terminate();
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(code).toBe(1);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([...processIds, hostPid].map(waitProcessGone));
+      expectProcesses([...processIds, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
   it("reports a non-zero exit code of a single process", async () => {
     const supervisor = superviseNodeScript("process.exitCode = 42;");
 
