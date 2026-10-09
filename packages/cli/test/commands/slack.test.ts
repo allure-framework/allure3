@@ -4,15 +4,16 @@ import { exit } from "node:process";
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin from "@allurereport/plugin-slack";
 import { epic, feature, label, story } from "allure-js-commons";
-import { run } from "clipanion";
+import { run, UsageError } from "clipanion";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SlackCommand } from "../../src/commands/slack.js";
 
 const fixtures = {
   token: "token",
   channel: "channel",
+  webhook: "https://hooks.slack.com/services/example",
   resultsDir: "foo/bar/allure-results",
   config: "./custom/allurerc.mjs",
   cwd: ".",
@@ -49,7 +50,23 @@ beforeEach(async () => {
   (readConfig as Mock).mockResolvedValue({ plugins: [] });
 });
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("slack command", () => {
+  it("should require a webhook or a token/channel pair", async () => {
+    const command = new SlackCommand();
+    command.webhook = undefined;
+    command.token = undefined;
+    command.channel = undefined;
+
+    const result = command.execute();
+
+    await expect(result).rejects.toBeInstanceOf(UsageError);
+    await expect(result).rejects.toThrow("Provide either --webhook or both --token and --channel");
+  });
+
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce([]);
 
@@ -79,6 +96,85 @@ describe("slack command", () => {
           plugin: expect.any(SlackPlugin),
         }),
       ]),
+    });
+  });
+
+  it("should initialize allure report with an incoming webhook", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+
+    await run(SlackCommand, ["slack", "--webhook", fixtures.webhook, fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: [
+        expect.objectContaining({
+          id: "slack",
+          enabled: true,
+          options: {
+            token: undefined,
+            channel: undefined,
+            webhook: fixtures.webhook,
+          },
+          plugin: expect.any(SlackPlugin),
+        }),
+      ],
+    });
+  });
+
+  it("should use Slack credentials from environment variables", async () => {
+    vi.stubEnv("ALLURE_SLACK_TOKEN", fixtures.token);
+    vi.stubEnv("ALLURE_SLACK_CHANNEL", fixtures.channel);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+
+    await run(SlackCommand, ["slack", fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: [
+        expect.objectContaining({
+          options: {
+            token: fixtures.token,
+            channel: fixtures.channel,
+            webhook: undefined,
+          },
+        }),
+      ],
+    });
+  });
+
+  it("should use a Slack webhook from the environment", async () => {
+    vi.stubEnv("ALLURE_SLACK_WEBHOOK", fixtures.webhook);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+
+    await run(SlackCommand, ["slack", fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: [
+        expect.objectContaining({
+          options: {
+            token: undefined,
+            channel: undefined,
+            webhook: fixtures.webhook,
+          },
+        }),
+      ],
+    });
+  });
+
+  it("should prefer command options over environment variables", async () => {
+    vi.stubEnv("ALLURE_SLACK_WEBHOOK", "https://hooks.slack.com/services/environment");
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
+
+    await run(SlackCommand, ["slack", "--webhook", fixtures.webhook, fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: [
+        expect.objectContaining({
+          options: {
+            token: undefined,
+            channel: undefined,
+            webhook: fixtures.webhook,
+          },
+        }),
+      ],
     });
   });
 
@@ -113,6 +209,7 @@ describe("slack command", () => {
             options: {
               token: fixtures.token,
               channel: fixtures.channel,
+              webhook: undefined,
             },
             plugin: expect.any(SlackPlugin),
           }),
