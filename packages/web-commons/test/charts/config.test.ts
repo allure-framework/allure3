@@ -16,6 +16,24 @@ const invalidOptions = [
 ] as const;
 
 describe("chart configuration", () => {
+  it.each([
+    ["algorithm", "failure-rate"],
+    ["pfsThreshold", Number.POSITIVE_INFINITY],
+    ["pfsThreshold", -0.1],
+    ["pfsThreshold", 1.1],
+  ])("rejects invalid scoring setting %s=%s", (field, value) => {
+    const options = [{ type: ChartType.StabilityDistribution, [field]: value }] as ChartOptions[];
+
+    expect(() => validateChartsOptions(options)).toThrow(field);
+  });
+  it("accepts PFS cutoffs independently of the group threshold", () => {
+    const options: ChartOptions[] = [
+      { type: ChartType.StabilityDistribution, algorithm: "pfs", pfsThreshold: 0, threshold: 90 },
+      { type: ChartType.StabilityDistribution, algorithm: "pfs", pfsThreshold: 1, threshold: 50 },
+    ];
+
+    expect(() => validateChartsOptions(options)).not.toThrow();
+  });
   it.each(invalidOptions)("rejects invalid %s=%s", (field, value) => {
     const options: ChartOptions[] = [{ type: ChartType.StabilityDistribution, [field]: value }];
 

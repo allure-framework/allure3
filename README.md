@@ -212,6 +212,7 @@ The configuration file allows you to fine-tune report generation. Key options in
 - **`output`**: Defines the directory where the report will be saved.
 - **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
+- **`flakyDetection`**: Selects status-change or probabilistic flakiness detection. See [Flaky test detection](./docs/flaky-test-detection.md) for algorithms, thresholds, history windows, and stability chart settings.
 
 ### Awesome Plugin Options
 

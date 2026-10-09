@@ -705,7 +705,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   #applyHistoryFlags(result: TestResult, history: (HistoryTestResult | undefined)[]): void {
-    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(result, history);
+    const current = { ...result, retries: this.#retriesByTr(result) };
+    result.flaky = result.sourceMetadata?.reportedFlaky === true || this.#detectFlaky(current, history);
     const resolvedHistory = history.filter((entry): entry is HistoryTestResult => entry !== undefined);
     result.transition = getStatusTransition(result, resolvedHistory);
   }
