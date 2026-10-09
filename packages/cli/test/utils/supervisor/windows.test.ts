@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +14,7 @@ import { nodeScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
 
 const createTempDir = async () => {
-  return await mkdtemp(join(tmpdir(), "win-supervisor-test-"));
+  return await realpath(await mkdtemp(join(tmpdir(), "win-supervisor-test-")));
 };
 
 const superviseNodeScript = (script: string, options: SupervisedCommandOptions = {}) => {
