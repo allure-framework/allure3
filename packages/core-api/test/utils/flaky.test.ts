@@ -240,7 +240,7 @@ describe("Bayesian PFS", () => {
   });
 });
 
-describe("getTestFlakiness", () => {
+describe("Status Changes", () => {
   const cases: [string, boolean | undefined][] = [
     ["P", undefined],
     ["F", undefined],
