@@ -14,7 +14,7 @@ import { nodeScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
 
 const createTempDir = async () => {
-  return await realpath(await mkdtemp(join(tmpdir(), "win-supervisor-test-")));
+  return await mkdtemp(join(tmpdir(), "win-supervisor-test-"));
 };
 
 const superviseNodeScript = (script: string, options: SupervisedCommandOptions = {}) => {
@@ -824,7 +824,7 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await step("Observe the CWD received by the target", async () => {
       expect(code).toEqual(0);
       expect(signal).toBeNull();
-      expect(stdout).toEqual(workingDirectory + "\n");
+      expect(await realpath(stdout.trim())).toEqual(await realpath(workingDirectory));
       expect(stderr).toBe("");
     });
   });
