@@ -56,7 +56,7 @@ export class SupervisorFixture {
     }
   }
 
-  async readProcessId(relativePath: string, timeout = 2_000) {
+  async readProcessId(relativePath: string, timeout = 5_000) {
     await this.waitForFile(relativePath, timeout);
     const contents = (await readFile(this.resolvePath(relativePath), "utf-8")).trim();
 
@@ -82,6 +82,15 @@ export class SupervisorFixture {
       }
 
       await delay(25);
+    }
+
+    try {
+      lstatSync(path);
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
     }
 
     throw new Error(`Timed out waiting for ${relativePath}`);

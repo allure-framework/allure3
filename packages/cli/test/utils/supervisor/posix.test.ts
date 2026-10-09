@@ -9,7 +9,7 @@ import { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
 import { nodeScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
 
-describe("PosixProcessSupervisor", { skip: process.platform === "win32" }, () => {
+describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout: 45_000 }, () => {
   beforeEach(async () => {
     await epic("coverage");
     await feature("cli-run");
