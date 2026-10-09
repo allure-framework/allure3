@@ -1,4 +1,11 @@
-import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  FlakinessOptions,
+  HistoryDataPoint,
+  SeverityLevel,
+  Statistic,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 
 // Chart types and enums
 export enum ChartType {
@@ -243,7 +250,7 @@ export interface StabilityDistributionChartData {
     id: string;
     /**
      * Percentage of assessed tests classified stable, from 0 to 100.
-     * Tests without comparable history are excluded unless explicitly reported flaky.
+     * Tests with insufficient evidence are excluded unless explicitly reported flaky.
      */
     stabilityRate: number;
   }[];
@@ -395,7 +402,7 @@ export type DurationsChartOptions = {
   groupBy?: "layer" | "none";
 };
 
-export type StabilityDistributionChartOptions = {
+export type StabilityDistributionChartOptions = Pick<FlakinessOptions, "algorithm" | "pfsThreshold"> & {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
@@ -406,7 +413,8 @@ export type StabilityDistributionChartOptions = {
    */
   limit?: number;
   /**
-   * Consecutive identical passed, failed, or broken outcomes that reset earlier instability.
+   * Consecutive identical final outcomes (status-changes) or full attempt sequences
+   * (PFS) that reset earlier instability. PFS retains the full stabilizing streak.
    * For bounded history, this is capped at the previous-execution limit plus current.
    *
    * @default 5
