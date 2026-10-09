@@ -542,7 +542,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.12.1"],\
           ["d3-shape", "npm:3.2.0"],\
           ["handlebars", "npm:4.7.9"],\
-          ["markdown-it", "npm:14.2.0"],\
+          ["markdown-it", "npm:15.0.2"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -568,7 +568,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.12.1"],\
           ["d3-shape", "npm:3.2.0"],\
           ["handlebars", "npm:4.7.9"],\
-          ["markdown-it", "npm:14.2.0"],\
+          ["markdown-it", "npm:15.0.2"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
@@ -1165,7 +1165,7 @@ const RAW_RUNTIME_STATE =
           ["globals", "npm:15.9.0"],\
           ["jsdom", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:26.0.0"],\
           ["lodash", "npm:4.18.1"],\
-          ["markdown-it", "npm:14.2.0"],\
+          ["markdown-it", "npm:15.0.2"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.28"],\
           ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0"],\
@@ -12579,6 +12579,13 @@ const RAW_RUNTIME_STATE =
           ["argparse", "npm:2.0.1"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:3.0.2", {\
+        "packageLocation": "./.yarn/cache/argparse-npm-3.0.2-70876347f1-83731af229.zip/node_modules/argparse/",\
+        "packageDependencies": [\
+          ["argparse", "npm:3.0.2"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["aria-query", [\
@@ -15076,6 +15083,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/entities-npm-4.5.0-7cdb83b832-ede2a35c9b.zip/node_modules/entities/",\
         "packageDependencies": [\
           ["entities", "npm:4.5.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:8.1.0", {\
+        "packageLocation": "./.yarn/cache/entities-npm-8.1.0-2241e5925c-bd2fadbcab.zip/node_modules/entities/",\
+        "packageDependencies": [\
+          ["entities", "npm:8.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -17853,11 +17867,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["linkify-it", [\
-      ["npm:5.0.2", {\
-        "packageLocation": "./.yarn/cache/linkify-it-npm-5.0.2-091da7d025-1d23387319.zip/node_modules/linkify-it/",\
+      ["npm:6.1.0", {\
+        "packageLocation": "./.yarn/cache/linkify-it-npm-6.1.0-91357dd923-56ab919765.zip/node_modules/linkify-it/",\
         "packageDependencies": [\
-          ["linkify-it", "npm:5.0.2"],\
-          ["uc.micro", "npm:2.1.0"]\
+          ["linkify-it", "npm:6.1.0"],\
+          ["uc.micro", "npm:3.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -18118,16 +18132,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["markdown-it", [\
-      ["npm:14.2.0", {\
-        "packageLocation": "./.yarn/cache/markdown-it-npm-14.2.0-af981e87c0-f5cdb7ca9c.zip/node_modules/markdown-it/",\
+      ["npm:15.0.2", {\
+        "packageLocation": "./.yarn/cache/markdown-it-npm-15.0.2-5d2a65fc84-55dd86dbcd.zip/node_modules/markdown-it/",\
         "packageDependencies": [\
-          ["argparse", "npm:2.0.1"],\
-          ["entities", "npm:4.5.0"],\
-          ["linkify-it", "npm:5.0.2"],\
-          ["markdown-it", "npm:14.2.0"],\
-          ["mdurl", "npm:2.0.0"],\
+          ["argparse", "npm:3.0.2"],\
+          ["entities", "npm:8.1.0"],\
+          ["linkify-it", "npm:6.1.0"],\
+          ["markdown-it", "npm:15.0.2"],\
+          ["mdurl", "npm:2.1.0"],\
           ["punycode.js", "npm:2.3.1"],\
-          ["uc.micro", "npm:2.1.0"]\
+          ["uc.micro", "npm:3.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -18177,10 +18191,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["mdurl", [\
-      ["npm:2.0.0", {\
-        "packageLocation": "./.yarn/cache/mdurl-npm-2.0.0-3259713daf-1720349d4a.zip/node_modules/mdurl/",\
+      ["npm:2.1.0", {\
+        "packageLocation": "./.yarn/cache/mdurl-npm-2.1.0-538571f335-b7db2c0aa0.zip/node_modules/mdurl/",\
         "packageDependencies": [\
-          ["mdurl", "npm:2.0.0"]\
+          ["mdurl", "npm:2.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -23278,10 +23292,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["uc.micro", [\
-      ["npm:2.1.0", {\
-        "packageLocation": "./.yarn/cache/uc.micro-npm-2.1.0-c45282c865-3719735824.zip/node_modules/uc.micro/",\
+      ["npm:3.0.0", {\
+        "packageLocation": "./.yarn/cache/uc.micro-npm-3.0.0-0605ff489b-780ac93f6d.zip/node_modules/uc.micro/",\
         "packageDependencies": [\
-          ["uc.micro", "npm:2.1.0"]\
+          ["uc.micro", "npm:3.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
