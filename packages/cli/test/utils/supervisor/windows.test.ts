@@ -1,4 +1,4 @@
-import { mkdtemp, realpath, rm } from "node:fs/promises";
+import { mkdtemp, stat, rm } from "node:fs/promises";
 import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -820,11 +820,22 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
 
     await start(supervisor);
     const { code, signal, stdout, stderr } = await wait(supervisor);
+    const actualWorkingDirectory = stdout.trim();
+
+    const [actual, expected] = await Promise.all([
+      stat(actualWorkingDirectory, { bigint: true }),
+      stat(workingDirectory, { bigint: true }),
+    ]);
 
     await step("Observe the CWD received by the target", async () => {
       expect(code).toEqual(0);
       expect(signal).toBeNull();
-      expect(await realpath(stdout.trim())).toEqual(await realpath(workingDirectory));
+
+      // Compare devices and iNodes instead of paths because
+      // Yarn's realpath does not resolves Windows short paths like C:\PROGRA~1,
+      // which GitHub Actions Windows runners might use for tmpDir().
+      expect({ dev: actual.dev, ino: actual.ino }).toEqual({ dev: expected.dev, ino: expected.ino });
+
       expect(stderr).toBe("");
     });
   });
