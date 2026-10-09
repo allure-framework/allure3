@@ -1,5 +1,6 @@
 import {
   incrementStatistic,
+  hasRetriesStatusChange,
   type EnvironmentItem,
   type Statistic,
   type TestResult,
@@ -46,7 +47,7 @@ import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter 
 
 const statisticByTestResults = (
   testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
-  trIdsWithRetries: ReadonlySet<string>,
+  retriesByTrId: ReadonlyMap<string, readonly Pick<TestResult, "status">[]>,
 ): Statistic => {
   const statistic: Statistic = { total: 0 };
   const incrementResolution = (testResult: (typeof testResults)[number]) => {
@@ -73,8 +74,14 @@ const statisticByTestResults = (
 
     incrementStatistic(statistic, testResult.status);
 
-    if (trIdsWithRetries.has(testResult.id)) {
+    const retries = retriesByTrId.get(testResult.id) ?? [];
+
+    if (retries.length > 0) {
       statistic.retries = (statistic.retries ?? 0) + 1;
+    }
+
+    if (hasRetriesStatusChange(testResult, retries)) {
+      statistic.retriesStatusChange = (statistic.retriesStatusChange ?? 0) + 1;
     }
 
     if (testResult.flaky) {
@@ -206,17 +213,10 @@ export class AwesomePlugin implements Plugin {
     const trsByEnvId = new Map<string, typeof allTrs>();
 
     await measure("stats", async () => {
-      const trIdsWithRetries = new Set<string>();
       const envStatistics = new Map<string, Statistic>();
       const pieEnvStatistics = new Map<string, Statistic>();
 
-      related.retriesByTrId.forEach((retries, trId) => {
-        if (retries.length > 0) {
-          trIdsWithRetries.add(trId);
-        }
-      });
-
-      const pieStatistics = statisticByTestResults(allTrs.filter(isActiveStatisticTestResult), trIdsWithRetries);
+      const pieStatistics = statisticByTestResults(allTrs.filter(isActiveStatisticTestResult), related.retriesByTrId);
 
       for (const tr of allTrs) {
         const environmentId = envIdByTrId.get(tr.id);
@@ -238,10 +238,10 @@ export class AwesomePlugin implements Plugin {
         environments.map(async ({ id }) => {
           const envTrs = trsByEnvId.get(id) ?? [];
 
-          envStatistics.set(id, statisticByTestResults(envTrs, trIdsWithRetries));
+          envStatistics.set(id, statisticByTestResults(envTrs, related.retriesByTrId));
           pieEnvStatistics.set(
             id,
-            statisticByTestResults(envTrs.filter(isActiveStatisticTestResult), trIdsWithRetries),
+            statisticByTestResults(envTrs.filter(isActiveStatisticTestResult), related.retriesByTrId),
           );
         }),
       );

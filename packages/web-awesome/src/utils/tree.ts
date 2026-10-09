@@ -14,6 +14,7 @@ export const createLeafLocalizer =
       transition: t.tooltip(leaf.transition),
       flaky: leaf.flaky && t.tooltip("flaky"),
       retries: leaf.retriesCount && t.tooltip("retries", { count: leaf.retriesCount }),
+      retriesStatusChange: leaf.retriesStatusChange && t.tooltip("retriesStatusChange"),
       resolution: leaf.resolution && t.tooltip(`resolution.${leaf.resolution}`),
     };
     return {

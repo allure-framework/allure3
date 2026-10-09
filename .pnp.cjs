@@ -938,7 +938,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@floating-ui/dom", "npm:1.6.12"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/preset-vite", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
@@ -1004,7 +1004,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@floating-ui/dom", "npm:1.6.12"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.8"],\
@@ -1094,7 +1094,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@floating-ui/dom", "npm:1.7.4"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
           ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
           ["@nivo/bar", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
@@ -1212,7 +1212,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@floating-ui/dom", "npm:1.6.12"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
@@ -1262,7 +1262,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-transform-react-jsx", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@babel/preset-env", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.0.2"],\
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
-          ["@floating-ui/dom", "npm:1.6.12"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@types/babel__core", "npm:7.20.5"],\
@@ -6391,55 +6391,31 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@floating-ui/core", [\
-      ["npm:1.6.8", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-core-npm-1.6.8-496cdfbb6e-87d52989c3.zip/node_modules/@floating-ui/core/",\
+      ["npm:1.8.0", {\
+        "packageLocation": "./.yarn/cache/@floating-ui-core-npm-1.8.0-7cb6ad2d03-762cd5677f.zip/node_modules/@floating-ui/core/",\
         "packageDependencies": [\
-          ["@floating-ui/core", "npm:1.6.8"],\
-          ["@floating-ui/utils", "npm:0.2.8"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:1.7.3", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-core-npm-1.7.3-2fe40b3781-a8952ff267.zip/node_modules/@floating-ui/core/",\
-        "packageDependencies": [\
-          ["@floating-ui/core", "npm:1.7.3"],\
-          ["@floating-ui/utils", "npm:0.2.10"]\
+          ["@floating-ui/core", "npm:1.8.0"],\
+          ["@floating-ui/utils", "npm:0.2.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@floating-ui/dom", [\
-      ["npm:1.6.12", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-dom-npm-1.6.12-4d4284e824-5c8e5fdcd3.zip/node_modules/@floating-ui/dom/",\
+      ["npm:1.8.0", {\
+        "packageLocation": "./.yarn/cache/@floating-ui-dom-npm-1.8.0-a6d2aa48a8-2e7d75fb70.zip/node_modules/@floating-ui/dom/",\
         "packageDependencies": [\
-          ["@floating-ui/core", "npm:1.6.8"],\
-          ["@floating-ui/dom", "npm:1.6.12"],\
-          ["@floating-ui/utils", "npm:0.2.8"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:1.7.4", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-dom-npm-1.7.4-e1f6d76b3d-d3d6a23e7b.zip/node_modules/@floating-ui/dom/",\
-        "packageDependencies": [\
-          ["@floating-ui/core", "npm:1.7.3"],\
-          ["@floating-ui/dom", "npm:1.7.4"],\
-          ["@floating-ui/utils", "npm:0.2.10"]\
+          ["@floating-ui/core", "npm:1.8.0"],\
+          ["@floating-ui/dom", "npm:1.8.0"],\
+          ["@floating-ui/utils", "npm:0.2.12"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@floating-ui/utils", [\
-      ["npm:0.2.10", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-utils-npm-0.2.10-5e22e99242-b635ea865a.zip/node_modules/@floating-ui/utils/",\
+      ["npm:0.2.12", {\
+        "packageLocation": "./.yarn/cache/@floating-ui-utils-npm-0.2.12-72e5a495e8-ec4e176fb2.zip/node_modules/@floating-ui/utils/",\
         "packageDependencies": [\
-          ["@floating-ui/utils", "npm:0.2.10"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:0.2.8", {\
-        "packageLocation": "./.yarn/cache/@floating-ui-utils-npm-0.2.8-01a00634a5-3e3ea3b2de.zip/node_modules/@floating-ui/utils/",\
-        "packageDependencies": [\
-          ["@floating-ui/utils", "npm:0.2.8"]\
+          ["@floating-ui/utils", "npm:0.2.12"]\
         ],\
         "linkType": "HARD"\
       }]\
