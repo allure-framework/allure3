@@ -25,7 +25,7 @@ export default (_env, argv) => {
       filename: devMode ? "app.js" : "app-[fullhash].js",
       chunkFilename: devMode ? "[name].js" : "[name]-[contenthash].js",
       assetModuleFilename: "[name][ext]",
-      publicPath: devMode ? "auto" : undefined,
+      publicPath: devMode ? "auto" : "",
     },
     devtool: devMode ? "eval-source-map" : false,
     optimization: {
