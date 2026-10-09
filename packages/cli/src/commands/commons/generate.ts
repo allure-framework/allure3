@@ -6,6 +6,7 @@ import { AllureReport, filterFailedQualityGateResults, stringifyQualityGateResul
 import { KnownError } from "@allurereport/service";
 import { red } from "yoctocolors";
 
+import { cleanOutputDirectory } from "../../utils/cleanOutput.js";
 import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
@@ -21,6 +22,7 @@ export const generate = async (params: {
   resultsDir?: string[];
   dump?: string[];
   collectSummary?: boolean;
+  clean?: boolean;
 }): Promise<GenerateResult | undefined> => {
   const dumpFiles: string[] = params?.dump?.length ? await findFilesByGlobs(params.cwd, params.dump) : [];
   const cliPatterns = params.resultsDir ?? [];
@@ -36,6 +38,24 @@ export const generate = async (params: {
     console.error(red(`No test results directories found matching pattern: ${patterns}`));
     exit(1);
     return;
+  }
+
+  if (params.clean) {
+    try {
+      await cleanOutputDirectory({
+        output: params.config.output,
+        cwd: params.cwd,
+        resultsDirs: resultDirectories,
+        inputs: [...dumpFiles, params.config.historyPath, params.config.resolutions?.knownIssuesPath].filter(
+          (path): path is string => !!path,
+        ),
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(red(error instanceof Error ? error.message : String(error)));
+      exit(1);
+      return;
+    }
   }
 
   try {

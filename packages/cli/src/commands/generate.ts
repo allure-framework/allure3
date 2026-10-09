@@ -21,6 +21,10 @@ export class GenerateCommand extends Command {
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
       [
+        "generate ./allure-results --clean",
+        "Remove the existing report directory before generating a fresh report from ./allure-results",
+      ],
+      [
         "generate --dump=windows.zip --dump=macos.zip ./allure-results",
         "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
       ],
@@ -60,6 +64,12 @@ export class GenerateCommand extends Command {
       "Path or pattern that matches one or more archives created by `allure run --dump ...`. " +
       "Allure loads the matched archives before generating the report. " +
       "This option can be specified multiple times.",
+  });
+
+  clean = Option.Boolean("--clean", {
+    description:
+      "Remove the output directory before generating the report (default: false). " +
+      "Refuses to remove the working directory, the home directory, a filesystem root, or the results directories",
   });
 
   open = Option.Boolean("--open", {
@@ -107,6 +117,7 @@ export class GenerateCommand extends Command {
       resultsDir: this.resultsDir,
       cwd,
       config,
+      clean: this.clean,
     });
 
     if (!result) {
