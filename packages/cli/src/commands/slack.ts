@@ -4,7 +4,7 @@ import process, { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin, { type SlackPluginOptions } from "@allurereport/plugin-slack";
-import { Command, Option } from "clipanion";
+import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
 import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
@@ -20,6 +20,10 @@ export class SlackCommand extends Command {
       [
         "slack ./allure-results --token xoxb-token --channel C12345",
         "Post test results from the ./allure-results directory to the specified Slack channel",
+      ],
+      [
+        "slack ./allure-results --webhook https://hooks.slack.com/services/...",
+        "Post test results using a Slack incoming webhook",
       ],
       [
         "slack ./packages/*/allure-results --token xoxb-token --channel C12345",
@@ -46,20 +50,27 @@ export class SlackCommand extends Command {
 
   token = Option.String("--token,-t", {
     description: "Slack Bot User OAuth Token",
-    required: true,
   });
 
   channel = Option.String("--channel", {
     description: "Slack channelId",
-    required: true,
+  });
+
+  webhook = Option.String("--webhook", {
+    description: "Slack incoming webhook URL",
   });
 
   async execute() {
+    if (!this.webhook && (!this.token || !this.channel)) {
+      throw new UsageError("Provide either --webhook or both --token and --channel");
+    }
+
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
     const defaultSlackOptions = {
       token: this.token,
       channel: this.channel,
+      webhook: this.webhook,
     } as SlackPluginOptions;
     const config = await readConfig(cwd, this.config);
     const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);

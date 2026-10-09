@@ -4,6 +4,7 @@ import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-ap
 export interface SlackPluginOptions {
   channel?: string;
   token?: string;
+  webhook?: string;
 }
 
 // TODO sort by status first?
@@ -70,7 +71,27 @@ export class SlackPlugin implements Plugin {
       },
     ];
 
-    const { token = process.env.ALLURE_SLACK_TOKEN, channel = process.env.ALLURE_SLACK_CHANNEL } = this.options;
+    const {
+      token = process.env.ALLURE_SLACK_TOKEN,
+      channel = process.env.ALLURE_SLACK_CHANNEL,
+      webhook = process.env.ALLURE_SLACK_WEBHOOK,
+    } = this.options;
+
+    if (webhook) {
+      const response = await fetch(webhook, {
+        method: "POST",
+        body: JSON.stringify({ blocks }),
+        headers: {
+          "Content-Type": "application/json;charset=utf-8",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`slack error: ${await response.text()}`);
+      }
+
+      return;
+    }
 
     const response = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
