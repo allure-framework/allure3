@@ -79,6 +79,7 @@ export default (env, argv) => {
       extensions: [".js", ".ts", ".tsx"],
       alias: {
         "@": join(baseDir, "src"),
+        "mermaid": false,
       },
     },
     externals: {

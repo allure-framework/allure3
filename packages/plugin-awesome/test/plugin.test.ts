@@ -1,3 +1,5 @@
+import { gunzipSync } from "node:zlib";
+
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
@@ -1042,7 +1044,24 @@ describe("plugin", () => {
       const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
 
       expect(indexHtml, "index.html must be generated").not.toBe("");
-      expect(indexHtml).toContain("data:text/javascript;base64,");
+      expect(indexHtml).not.toContain("data:text/javascript;base64,");
+      expect(indexHtml).toContain('id="allure-single-file-assets"');
+      expect(indexHtml).toContain('new DecompressionStream("gzip")');
+
+      const staticAssets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
+      const scriptsMatch = indexHtml.match(
+        /<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/,
+      );
+      const embeddedScripts = JSON.parse(scriptsMatch?.[1] ?? "{}") as Record<string, string>;
+
+      for (const [fileName, content] of staticAssets.files) {
+        if (fileName.endsWith(".js")) {
+          expect(
+            gunzipSync(Buffer.from(embeddedScripts[fileName], "base64")).equals(content),
+            `embedded script "${fileName}" must decompress to its original content`,
+          ).toBe(true);
+        }
+      }
 
       const embeddedData = extractEmbeddedData(indexHtml);
 

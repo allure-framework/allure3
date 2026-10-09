@@ -13,7 +13,7 @@ const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
-export default (env, argv) => {
+export default (_env, argv) => {
   const devMode = argv?.mode === "development";
   /**
    * @type {import("webpack").Configuration}
@@ -23,8 +23,9 @@ export default (env, argv) => {
     output: {
       path: join(baseDir, "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
+      chunkFilename: devMode ? "[name].js" : "[name]-[contenthash].js",
       assetModuleFilename: "[name][ext]",
-      publicPath: devMode ? "auto" : undefined,
+      publicPath: devMode ? "auto" : "",
     },
     devtool: devMode ? "eval-source-map" : false,
     optimization: {
@@ -129,14 +130,6 @@ export default (env, argv) => {
       test: /\.js$/i,
       extractSourceMap: true,
     });
-  }
-
-  if (!devMode) {
-    config.plugins.push(
-      new webpack.optimize.LimitChunkCountPlugin({
-        maxChunks: 1,
-      }),
-    );
   }
 
   if (devMode) {

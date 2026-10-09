@@ -75,6 +75,7 @@ import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
+import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -855,9 +856,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
-
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
+    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
   }
 
   const now = Date.now();
