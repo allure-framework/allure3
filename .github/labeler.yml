@@ -27,6 +27,7 @@
           - "packages/plugin-server-reload/**"
           - "packages/plugin-slack/**"
           - "packages/plugin-testplan/**"
+          - "packages/plugin-xray/**"
 
 "theme:cli":
   - changed-files:

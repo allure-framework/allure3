@@ -491,6 +491,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allurereport/plugin-xray@workspace:packages/plugin-xray":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/plugin-xray@workspace:packages/plugin-xray"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@types/node": "npm:^20"
+    "@vitest/runner": "npm:^2"
+    allure-js-commons: "npm:^3"
+    allure-vitest: "npm:^3"
+    axios: "npm:^1.20.0"
+    rimraf: "npm:^6"
+    typescript: "npm:^5"
+    vitest: "npm:^4.1.0"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/reader-api@workspace:*, @allurereport/reader-api@workspace:packages/reader-api":
   version: 0.0.0-use.local
   resolution: "@allurereport/reader-api@workspace:packages/reader-api"
