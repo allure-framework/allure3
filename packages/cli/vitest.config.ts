@@ -4,7 +4,11 @@ import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
 
-const nonParallelFiles = ["./test/commands/run.integration.test.ts"];
+const nonParallelFiles = [
+  "./test/commands/run.integration.test.ts", // runs yarn build;
+  "./test/utils/supervisor/posix.test.ts", // asserts process listeners;
+  "./test/utils/supervisor/windows.test.ts", // asserts process listeners;
+];
 
 export default defineConfig({
   test: {

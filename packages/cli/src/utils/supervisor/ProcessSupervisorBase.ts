@@ -47,7 +47,7 @@ export abstract class ProcessSupervisorBase {
       outputEncoding = "utf-8",
       silent = false,
       stopTimeout = DEFAULT_STOP_TIMEOUT,
-    }: SupervisedCommandOptions,
+    }: SupervisedCommandOptions = {},
   ) {
     if (!Number.isFinite(stopTimeout) || stopTimeout <= 0 || stopTimeout > 2_147_483_647) {
       throw new KnownError(`Invalid stop timeout ${stopTimeout}.`);
