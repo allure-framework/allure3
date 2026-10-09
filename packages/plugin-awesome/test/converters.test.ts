@@ -266,3 +266,76 @@ describe("convertTestResult", () => {
     expect(serialized).not.toContain("nested-hidden");
   });
 });
+
+describe("convertTestResult ideaLinks", () => {
+  const labels = [{ name: "testClass", value: "org.example.FooTest" }];
+
+  it("should not add idea link by default", () => {
+    expect(convertTestResult(createTestResult({ labels })).links).toEqual([]);
+  });
+
+  it("should add idea link built from testClass label", () => {
+    const { links } = convertTestResult(createTestResult({ labels }), { ideaLinks: {} });
+
+    expect(links).toEqual([
+      {
+        name: "Open in IDEA",
+        type: "idea",
+        url: "http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java",
+      },
+    ]);
+  });
+
+  it("should respect custom port and extension and keep existing links", () => {
+    const existing = { url: "https://example.org" };
+    const { links } = convertTestResult(createTestResult({ labels, links: [existing] }), {
+      ideaLinks: { port: 1234, fileExtension: "kt" },
+    });
+
+    expect(links).toHaveLength(2);
+    expect(links[0]).toBe(existing);
+    expect(links[1].url).toBe("http://localhost:1234/api/file?file=org%2Fexample%2FFooTest.kt");
+  });
+
+  it("should skip idea link without testClass label", () => {
+    expect(convertTestResult(createTestResult(), { ideaLinks: {} }).links).toEqual([]);
+  });
+
+  it("should accept true as default options", () => {
+    expect(convertTestResult(createTestResult({ labels }), { ideaLinks: true }).links[0].url).toBe(
+      "http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.java",
+    );
+  });
+
+  it("should point nested classes to the outer class file and accept a dotted extension", () => {
+    const { links } = convertTestResult(
+      createTestResult({ labels: [{ name: "testClass", value: "org.example.FooTest$Inner" }] }),
+      { ideaLinks: { fileExtension: ".kt" } },
+    );
+
+    expect(links[0].url).toBe("http://localhost:63342/api/file?file=org%2Fexample%2FFooTest.kt");
+  });
+
+  it("should not add idea link when ideaLinks is false", () => {
+    expect(convertTestResult(createTestResult({ labels }), { ideaLinks: false }).links).toEqual([]);
+  });
+
+  it("should prepend sourceRoot to the file path", () => {
+    const { links } = convertTestResult(createTestResult({ labels }), {
+      ideaLinks: { sourceRoot: "/module/src/test/java/" },
+    });
+
+    expect(links[0].url).toBe(
+      "http://localhost:63342/api/file?file=module%2Fsrc%2Ftest%2Fjava%2Forg%2Fexample%2FFooTest.java",
+    );
+  });
+
+  it.each(["Login suite", "tests/login.spec.ts", "", "org..FooTest", "1abc.Foo"])(
+    "should skip idea link for non-class testClass %j",
+    (value) => {
+      expect(
+        convertTestResult(createTestResult({ labels: [{ name: "testClass", value }] }), { ideaLinks: true }).links,
+      ).toEqual([]);
+    },
+  );
+});
