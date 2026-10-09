@@ -39,6 +39,24 @@ beforeEach(async () => {
 });
 
 describe("flaky detection configuration", () => {
+  it.each([
+    ["algorithm", "failure-rate"],
+    ["pfsThreshold", -0.1],
+    ["pfsThreshold", 1.1],
+    ["pfsThreshold", Number.NaN],
+    ["pfsThreshold", "0.1"],
+  ])("rejects invalid PFS setting %s=%s", async (field, value) => {
+    const input = { flakyDetection: { [field]: value } } as Config;
+
+    await expect(resolveConfig(input, { plugins: {} })).rejects.toThrow(`flakyDetection.${field}`);
+  });
+  it.each([0, 0.1, 1])("accepts PFS with threshold %s", async (pfsThreshold) => {
+    const input: Config = { flakyDetection: { algorithm: "pfs", pfsThreshold } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection).toEqual(input.flakyDetection);
+  });
   it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
     const input = { flakyDetection: { stabilizationPeriod } };
 

@@ -22,11 +22,11 @@ export const generateStabilityDistributionChart = (props: {
   const {
     title,
     limit,
-    stabilizationPeriod,
     threshold = DEFAULT_THRESHOLD,
     skipStatuses: skipStatusesList = NON_SIGNIFICANT_STATUSES,
     groupBy = DEFAULT_GROUP_BY,
     groupValues = [],
+    ...scoringOptions
   } = options;
 
   const chart: StabilityDistributionChartData = {
@@ -66,7 +66,7 @@ export const generateStabilityDistributionChart = (props: {
         : getTestFlakiness(
             tr,
             history.map((point) => lookup(point, tr)),
-            { historyDepth: limit, stabilizationPeriod },
+            { ...scoringOptions, historyDepth: limit },
           );
     if (flaky === undefined) {
       continue;

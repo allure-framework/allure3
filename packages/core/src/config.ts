@@ -2,7 +2,11 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
+import {
+  parseIntegerConfigValue,
+  validateEnvironmentName,
+  validateFlakinessScoringOptions,
+} from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
 import { parse } from "yaml";
@@ -306,6 +310,7 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
     return;
   }
 
+  validateFlakinessScoringOptions(config, "flakyDetection");
   const { historyDepth, includePassedTests, stabilizationPeriod } = config;
 
   if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {

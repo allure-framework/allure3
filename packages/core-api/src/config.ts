@@ -1,6 +1,10 @@
 export type DefaultLabelsConfig = Record<string, string | string[]>;
 
 export type FlakyDetectionConfig = {
+  /** History classifier. Defaults to the status-change heuristic. */
+  algorithm?: "status-changes" | "pfs";
+  /** Posterior-mean PFS must strictly exceed this value. Range [0, 1], default 0.1. */
+  pfsThreshold?: number;
   /**
    * Maximum number of comparable historical executions used by the built-in algorithm.
    * Counts passed, failed, and broken results in the current environment; skipped,
@@ -12,10 +16,10 @@ export type FlakyDetectionConfig = {
    */
   historyDepth?: number;
   /**
-   * Consecutive identical passed, failed, or broken outcomes that reset earlier
-   * instability. Must be an integer greater than or equal to 1. Defaults to 5.
-   * One recovered failure/broken interval is tolerated; repeated status changes
-   * outside that recovery pattern indicate instability.
+   * Consecutive identical outcomes that reset earlier instability. The status-change
+   * heuristic compares final statuses; PFS compares entire retry-plus-final sequences
+   * and retains the full stabilizing streak as evidence.
+   * Must be an integer greater than or equal to 1. Defaults to 5.
    */
   stabilizationPeriod?: number;
   /**

@@ -99,6 +99,38 @@ const sequenceInput = (statuses: TestStatus[]): Parameters<typeof generateStabil
   };
 };
 
+describe("PFS stability charts", () => {
+  it("classifies retry-aware PFS independently of report badges and group threshold", () => {
+    const input = sequenceInput(["passed", "passed"]);
+    const current = input.storeData.testResults[0];
+    current.retries = [{ ...current, id: "retry", status: "failed" }];
+    input.storeData.historyDataPoints[0].testResults[current.retryHash!]!.retries = ["failed"];
+    input.options.algorithm = "pfs";
+    const snapshot = structuredClone(input);
+
+    const unstable = generateStabilityDistributionChart(input);
+    const stable = generateStabilityDistributionChart({
+      ...input,
+      options: { ...input.options, pfsThreshold: 0.2, threshold: 50 },
+    });
+    const reported = generateStabilityDistributionChart({
+      ...input,
+      options: { ...input.options, pfsThreshold: 1 },
+      storeData: {
+        ...input.storeData,
+        testResults: [{ ...current, sourceMetadata: { ...current.sourceMetadata, reportedFlaky: true } }],
+      },
+    });
+
+    expect(unstable.data[0].stabilityRate).toBe(0);
+    expect(unstable.threshold).toBe(90);
+    expect(stable.data[0].stabilityRate).toBe(100);
+    expect(stable.threshold).toBe(50);
+    expect(reported.data[0].stabilityRate).toBe(0);
+    expect(input).toEqual(snapshot);
+  });
+});
+
 describe("stability scenarios", () => {
   it("Example 1: an empty significant sequence is unassessed", () => {
     const statuses: TestStatus[] = [];

@@ -109,6 +109,12 @@ const generateChartData = async (props: {
     allTestResults,
   }));
 
+  if (chartsOptions.some((option) => option.type === ChartType.StabilityDistribution && option.limit !== 0)) {
+    storeData.testResults = await Promise.all(
+      storeData.testResults.map(async (tr) => ({ ...tr, retries: await store.retriesByTrId(tr.id) })),
+    );
+  }
+
   for (const chartOption of chartsOptions) {
     const chartId = generateUuid();
 
