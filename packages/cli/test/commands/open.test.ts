@@ -118,6 +118,21 @@ describe("open command", () => {
     );
   });
 
+  it("should serve existing report on the host from the config", async () => {
+    (existsSync as Mock).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue(["foo"]);
+    (readConfig as Mock).mockResolvedValue({ host: "0.0.0.0" });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--host", "0.0.0.0"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      port: undefined,
+      host: "0.0.0.0",
+    });
+    expect(serve).toHaveBeenCalledWith(expect.objectContaining({ host: "0.0.0.0", open: true }));
+  });
+
   it("should generate report in temp directory and serve when no summary files found", async () => {
     (existsSync as Mock).mockReturnValue(true);
     (tmpdir as Mock).mockReturnValue("foo");

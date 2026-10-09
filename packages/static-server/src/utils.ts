@@ -907,6 +907,29 @@ export const TYPES_BY_EXTENSION: Record<string, string> = Object.fromEntries(
 
 export const identity = <T>(value?: T) => value;
 
+const WILDCARD_HOSTS = new Set(["0.0.0.0", "::"]);
+
+/**
+ * Brings the user-provided host to the form `net.Server#listen` accepts:
+ * blank means "not set", IPv6 brackets (`[::1]`) are stripped
+ */
+export const normalizeHost = (host: string | undefined) => {
+  const trimmed = host?.trim().replace(/^\[(.*)\]$/, "$1");
+
+  return trimmed || undefined;
+};
+
+/**
+ * Builds the URL the server is reachable at from the machine it runs on.
+ * No host or a wildcard host (`0.0.0.0`, `::`) means "all interfaces", so `localhost` is used for the link
+ */
+export const resolveServerUrl = (host: string | undefined, port: number) => {
+  const normalizedHost = normalizeHost(host);
+  const linkHost = !normalizedHost || WILDCARD_HOSTS.has(normalizedHost) ? "localhost" : normalizedHost;
+
+  return `http://${linkHost.includes(":") ? `[${linkHost}]` : linkHost}:${port}`;
+};
+
 export const injectLiveReloadScript = (html: string) => {
   const liveReloadScript = `
     <script>

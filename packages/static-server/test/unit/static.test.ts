@@ -25,6 +25,34 @@ beforeEach(async () => {
   server?.stop();
 });
 
+it("binds to the provided host and reports it in the url", async () => {
+  server = await serve({ port, host: "127.0.0.1", servePath });
+
+  expect(server.url).toBe(`http://127.0.0.1:${port}`);
+
+  const res = await axios.get(`http://127.0.0.1:${port}/sample`, {
+    timeout: 500,
+  });
+
+  expect(res.status).toBe(200);
+});
+
+it("accepts an IPv6 host in brackets", async () => {
+  server = await serve({ port, host: "[::1]", servePath });
+
+  expect(server.url).toBe(`http://[::1]:${port}`);
+});
+
+it("uses localhost in the url when no host is provided", async () => {
+  server = await serve({ port, servePath });
+
+  expect(server.url).toBe(`http://localhost:${port}`);
+});
+
+it("rejects when the server cannot bind to the provided host", async () => {
+  await expect(serve({ port, host: "192.0.2.1", servePath })).rejects.toThrow();
+});
+
 it("serves files without extension as binary ones", async () => {
   server = await serve({ port, servePath });
   const res = await axios.get(`http://localhost:${port}/sample`, {

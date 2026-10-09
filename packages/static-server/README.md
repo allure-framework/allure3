@@ -34,6 +34,8 @@ import { serve } from "@allurereport/static-server";
 const server = await serve({
   // by default uses a random available port
   port: 8080,
+  // by default listens on all interfaces
+  host: "127.0.0.1",
   // path to the directory with files should be served
   servePath: "/path/to/your/static/files",
   // enable live reload
