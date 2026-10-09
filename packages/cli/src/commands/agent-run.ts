@@ -1,8 +1,7 @@
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, realpath, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { realpath, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 import process, { exit } from "node:process";
 
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
@@ -10,16 +9,11 @@ import {
   createAgentTestPlanContext,
   AgentUsageError,
   assertExplicitAgentOutputDirIsSafe,
-  formatAgentOutputLinks,
   formatAgentRunSummary,
   isPathInside,
   loadAgentOutput,
   normalizeAgentRerunPreset,
   parseAgentLabelFilters,
-  cleanupAgentRunState,
-  cleanupStaleAgentRunStates,
-  resolveAgentStateDir,
-  writeAgentRunState,
   type AgentExpectationsInput,
   type AgentHumanReportMode,
 } from "@allurereport/plugin-agent";
@@ -29,24 +23,15 @@ import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../u
 import { findFilesByGlobs } from "../utils/fileSystem.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../utils/resultsPatterns.js";
 import { createAgentHumanReportConfig } from "./agent-human-report.js";
+import {
+  cleanupManagedAgentOutputs,
+  formatAgentCommand,
+  formatAgentInspectCommand,
+  persistAgentRunState,
+  printAgentOutputLinks,
+  resolveAgentOutputDir,
+} from "./agent-lifecycle.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
-
-export const formatAgentCommand = (args: string[]) => args.join(" ");
-
-export const formatAgentInspectCommand = (params: { dumps?: string[]; resultsDir?: string[] }) =>
-  [
-    "allure",
-    "agent",
-    "inspect",
-    ...(params.dumps ?? []).flatMap((dump) => ["--dump", dump]),
-    ...(params.resultsDir ?? []),
-  ].join(" ");
-
-export const printAgentOutputLinks = (outputDir: string) => {
-  for (const line of formatAgentOutputLinks(outputDir)) {
-    console.log(line);
-  }
-};
 
 /**
  * Before an agent run starts, print where the output goes and how to watch it. The agent plugin
@@ -86,52 +71,6 @@ export const printAgentRunSummary = async (
   } catch {
     // Best effort: fall back to the basic output links if the summary cannot be built.
     printAgentOutputLinks(outputDir);
-  }
-};
-
-export const persistAgentRunState = async (value: Parameters<typeof writeAgentRunState>[0]) => {
-  try {
-    await writeAgentRunState(value);
-  } catch (error) {
-    console.error(`Could not update agent state in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`);
-  }
-};
-
-const logAgentCleanupFailures = (failures: { state: { outputDir: string }; error: unknown }[]) => {
-  for (const failure of failures) {
-    console.error(`Could not clean stale agent output ${failure.state.outputDir}: ${(failure.error as Error).message}`);
-  }
-};
-
-const logAgentOrphanCleanupFailures = (failures: { outputDir: string; error: unknown }[]) => {
-  for (const failure of failures) {
-    console.error(`Could not clean stale agent output ${failure.outputDir}: ${(failure.error as Error).message}`);
-  }
-};
-
-export const cleanupManagedAgentOutputs = async (params: { cwd: string; runId: string; managedOutput: boolean }) => {
-  try {
-    const result = await cleanupAgentRunState({
-      cwd: params.cwd,
-      currentRunId: params.runId,
-      keepManagedRuns: params.managedOutput ? 1 : 0,
-    });
-
-    logAgentCleanupFailures(result.failed);
-  } catch (error) {
-    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
-  }
-
-  try {
-    const staleResult = await cleanupStaleAgentRunStates({
-      cwd: params.cwd,
-      currentRunId: params.runId,
-    });
-
-    logAgentCleanupFailures(staleResult.failed);
-    logAgentOrphanCleanupFailures(staleResult.orphaned.failed);
-  } catch (error) {
-    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
   }
 };
 
@@ -220,7 +159,7 @@ export const executeAgentMode = async (params: ExecuteAgentModeParams) => {
 
     const runId = randomUUID();
     const managedOutput = !output;
-    const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
+    const outputDir = await resolveAgentOutputDir(cwd, output);
     const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
     const environmentOptions = {
       environment,
@@ -403,7 +342,7 @@ export const executeAgentInspectMode = async (params: ExecuteAgentInspectModePar
 
   const runId = randomUUID();
   const managedOutput = !output;
-  const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
+  const outputDir = await resolveAgentOutputDir(cwd, output);
   const expectationsPath = expectations ? resolve(cwd, expectations) : undefined;
   const commandString = formatAgentInspectCommand({ dumps: dumpFiles, resultsDir: resultDirectories });
   const hiddenLabels = hideLabels?.length ? hideLabels : undefined;

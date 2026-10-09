@@ -1254,6 +1254,97 @@ describe("agent command", () => {
     expect(consoleModule.error).toHaveBeenCalledWith(
       'Invalid --expect-label "module". Expected the form name=value, for example module=cli',
     );
+    expect(writeAgentRunState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/cwd",
+        outputDir,
+        managedOutput: false,
+        command: "npm test",
+        startedAt: Date.parse("2026-06-10T16:00:00.000Z"),
+        finishedAt: Date.parse("2026-06-10T16:00:00.000Z"),
+        status: "finished",
+        exitCode: 1,
+      }),
+    );
+    expect(cleanupAgentRunState).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+      keepManagedRuns: 0,
+    });
+    expect(cleanupStaleAgentRunStates).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+    });
+    expect(exitMock).toHaveBeenCalledWith(1);
+  });
+
+  it("should use the shared invalid-expectation lifecycle for inspect mode", async () => {
+    const consoleModule = await import("node:console");
+    const outputDir = resolve("/cwd", "./agent-invalid-inspect");
+    const error = new AgentExpectationUsageError("Invalid inspect expectations", "--expectations");
+
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(error);
+
+    const command = new AgentInspectCommand();
+
+    command.output = "./agent-invalid-inspect";
+    command.expectations = "./expected.yaml";
+    command.resultsDir = ["./allure-results"];
+
+    await command.execute();
+
+    expect(writeInvalidAgentExpectationOutput).toHaveBeenCalledWith({
+      outputDir,
+      command: "allure agent inspect ./allure-results",
+      error,
+    });
+    expect(writeAgentRunState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/cwd",
+        outputDir,
+        managedOutput: false,
+        command: "allure agent inspect ./allure-results",
+        startedAt: Date.parse("2026-06-10T16:00:00.000Z"),
+        finishedAt: Date.parse("2026-06-10T16:00:00.000Z"),
+        status: "finished",
+        exitCode: 1,
+      }),
+    );
+    expect(cleanupAgentRunState).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+      keepManagedRuns: 0,
+    });
+    expect(cleanupStaleAgentRunStates).toHaveBeenCalledWith({
+      cwd: "/cwd",
+      currentRunId: expect.any(String),
+    });
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${outputDir}`);
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent index: ${join(outputDir, "index.md")}`);
+    expect(consoleModule.error).toHaveBeenCalledWith("Invalid inspect expectations");
+    expect(exitMock).toHaveBeenCalledWith(1);
+  });
+
+  it("should preserve the invalid expectation result when lifecycle persistence and cleanup fail", async () => {
+    const consoleModule = await import("node:console");
+    const error = new AgentExpectationUsageError("Invalid expectations", "--expectations");
+
+    (validateAgentExpectationsFile as Mock).mockRejectedValueOnce(error);
+    (writeAgentRunState as Mock).mockRejectedValueOnce(new Error("state failed"));
+    (cleanupAgentRunState as Mock).mockRejectedValueOnce(new Error("cleanup failed"));
+    (cleanupStaleAgentRunStates as Mock).mockRejectedValueOnce(new Error("stale cleanup failed"));
+
+    const command = new AgentCommand();
+
+    command.expectations = "./expected.yaml";
+    command.commandToRun = ["--", "npm", "test"];
+
+    await command.execute();
+
+    expect(consoleModule.error).toHaveBeenCalledWith("Invalid expectations");
+    expect(consoleModule.error).toHaveBeenCalledWith(expect.stringContaining("state failed"));
+    expect(consoleModule.error).toHaveBeenCalledWith(expect.stringContaining("cleanup failed"));
+    expect(consoleModule.error).toHaveBeenCalledWith(expect.stringContaining("stale cleanup failed"));
     expect(exitMock).toHaveBeenCalledWith(1);
   });
 

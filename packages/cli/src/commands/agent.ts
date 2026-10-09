@@ -1,8 +1,6 @@
 import * as console from "node:console";
-import { randomUUID } from "node:crypto";
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import process, { exit } from "node:process";
 
 import {
@@ -14,10 +12,7 @@ import {
   assertExplicitAgentOutputDirIsSafe,
   buildAgentInlineExpectations,
   buildAgentQueryPayload,
-  cleanupAgentRunState,
-  cleanupStaleAgentRunStates,
   createAgentCapabilities,
-  formatAgentOutputLinks,
   isAgentExpectationUsageError,
   isAgentTaskMapHelpRequest,
   isAgentUsageError,
@@ -33,14 +28,18 @@ import {
   resolveAgentStateDir,
   selectAgentTestPlan,
   validateAgentExpectationsFile,
-  writeAgentRunState,
-  writeInvalidAgentExpectationOutput,
   type AgentExpectationsInput,
   type AgentHumanReportMode,
 } from "@allurereport/plugin-agent";
 import { Command, Option, UsageError } from "clipanion";
 
 import { parseRunCommand } from "../utils/resultsPatterns.js";
+import {
+  formatAgentCommand,
+  formatAgentInspectCommand,
+  printAgentOutputLinks,
+  writeInvalidAgentExpectationRun,
+} from "./agent-lifecycle.js";
 
 export { AGENT_TASK_MAP_HELP, createAgentCapabilities, isAgentTaskMapHelpRequest };
 
@@ -50,17 +49,7 @@ const readOptionalBoolean = (value: unknown): boolean => value === true;
 
 const readOptionalStringArray = (value: unknown): string[] | undefined => (Array.isArray(value) ? value : undefined);
 
-const formatAgentCommand = (args: string[]) => args.join(" ");
 const AGENT_HUMAN_REPORT_MODES = ["auto", "off", "awesome", "config"] as const;
-
-const formatAgentInspectCommand = (params: { dumps?: string[]; resultsDir?: string[] }) =>
-  [
-    "allure",
-    "agent",
-    "inspect",
-    ...(params.dumps ?? []).flatMap((dump) => ["--dump", dump]),
-    ...(params.resultsDir ?? []),
-  ].join(" ");
 
 type AgentExpectationOptionSource = {
   goal?: string[];
@@ -92,58 +81,6 @@ const buildInlineExpectationsFromOptions = (options: AgentExpectationOptionSourc
     expectAttachments: options.expectAttachments,
     expectAttachmentFilters: readOptionalStringArray(options.expectAttachmentFilters),
   });
-
-const printAgentOutputLinks = (outputDir: string) => {
-  for (const line of formatAgentOutputLinks(outputDir)) {
-    console.log(line);
-  }
-};
-
-const persistAgentRunState = async (value: Parameters<typeof writeAgentRunState>[0]) => {
-  try {
-    await writeAgentRunState(value);
-  } catch (error) {
-    console.error(`Could not update agent state in ${resolveAgentStateDir(value.cwd)}: ${(error as Error).message}`);
-  }
-};
-
-const logAgentCleanupFailures = (failures: { state: { outputDir: string }; error: unknown }[]) => {
-  for (const failure of failures) {
-    console.error(`Could not clean stale agent output ${failure.state.outputDir}: ${(failure.error as Error).message}`);
-  }
-};
-
-const logAgentOrphanCleanupFailures = (failures: { outputDir: string; error: unknown }[]) => {
-  for (const failure of failures) {
-    console.error(`Could not clean stale agent output ${failure.outputDir}: ${(failure.error as Error).message}`);
-  }
-};
-
-const cleanupManagedAgentOutputs = async (params: { cwd: string; runId: string; managedOutput: boolean }) => {
-  try {
-    const result = await cleanupAgentRunState({
-      cwd: params.cwd,
-      currentRunId: params.runId,
-      keepManagedRuns: params.managedOutput ? 1 : 0,
-    });
-
-    logAgentCleanupFailures(result.failed);
-  } catch (error) {
-    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
-  }
-
-  try {
-    const staleResult = await cleanupStaleAgentRunStates({
-      cwd: params.cwd,
-      currentRunId: params.runId,
-    });
-
-    logAgentCleanupFailures(staleResult.failed);
-    logAgentOrphanCleanupFailures(staleResult.orphaned.failed);
-  } catch (error) {
-    console.error(`Could not clean agent state in ${resolveAgentStateDir(params.cwd)}: ${(error as Error).message}`);
-  }
-};
 
 const agentEnvironmentOption = () =>
   Option.String("--environment,--env", {
@@ -405,35 +342,13 @@ export class AgentCommand extends Command {
       }
 
       const expectationError = error as AgentExpectationUsageError;
-      const cwd = await realpath(configuredCwd ?? process.cwd());
-      const runId = randomUUID();
-      const managedOutput = !output;
-      const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
       const commandString = formatAgentCommand(args);
-      const { generatedAt } = await writeInvalidAgentExpectationOutput({
-        outputDir,
+      await writeInvalidAgentExpectationRun({
+        configuredCwd,
+        output,
         command: commandString,
         error: expectationError,
       });
-      const generatedAtMs = Date.parse(generatedAt);
-      const generatedAtTimestamp = Number.isFinite(generatedAtMs) ? generatedAtMs : Date.now();
-
-      await persistAgentRunState({
-        runId,
-        cwd,
-        outputDir,
-        managedOutput,
-        command: commandString,
-        startedAt: generatedAtTimestamp,
-        finishedAt: generatedAtTimestamp,
-        status: "finished",
-        exitCode: 1,
-        pid: process.pid,
-      });
-      await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
-
-      printAgentOutputLinks(outputDir);
-      console.error(expectationError.message);
       exit(1);
     }
   }
@@ -645,35 +560,13 @@ export class AgentInspectCommand extends Command {
       }
 
       const expectationError = error as AgentExpectationUsageError;
-      const cwd = await realpath(configuredCwd ?? process.cwd());
-      const runId = randomUUID();
-      const managedOutput = !output;
-      const outputDir = output ? resolve(cwd, output) : await mkdtemp(join(tmpdir(), "allure-agent-"));
       const commandString = formatAgentInspectCommand({ dumps, resultsDir });
-      const { generatedAt } = await writeInvalidAgentExpectationOutput({
-        outputDir,
+      await writeInvalidAgentExpectationRun({
+        configuredCwd,
+        output,
         command: commandString,
         error: expectationError,
       });
-      const generatedAtMs = Date.parse(generatedAt);
-      const generatedAtTimestamp = Number.isFinite(generatedAtMs) ? generatedAtMs : Date.now();
-
-      await persistAgentRunState({
-        runId,
-        cwd,
-        outputDir,
-        managedOutput,
-        command: commandString,
-        startedAt: generatedAtTimestamp,
-        finishedAt: generatedAtTimestamp,
-        status: "finished",
-        exitCode: 1,
-        pid: process.pid,
-      });
-      await cleanupManagedAgentOutputs({ cwd, runId, managedOutput });
-
-      printAgentOutputLinks(outputDir);
-      console.error(expectationError.message);
       exit(1);
     }
   }
