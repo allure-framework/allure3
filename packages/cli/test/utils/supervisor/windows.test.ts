@@ -157,6 +157,63 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   });
 
+  it("forcibly terminates a single running process", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [fixture.resolvePath("target.mjs"), fixture.resolvePath("target-ready")],
+      silent: true,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+        import { rename, writeFile } from "node:fs/promises";
+
+        setTimeout(() => process.exit(42), 30_000);
+        const readyPath = process.argv[2];
+        const temporaryPath = readyPath + ".tmp";
+        await writeFile(temporaryPath, String(process.pid), "utf-8");
+        await rename(temporaryPath, readyPath);
+      `,
+    );
+    await start(supervisor);
+
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the single target is ready and still running", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+      await attachment("Processes before termination", JSON.stringify({ targetPid, hostPid }), "application/json");
+    });
+
+    await step("Force termination and verify both target and host have exited", async () => {
+      await supervisor.terminate();
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+
+      expect(code).toBe(1);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await waitProcessGone(targetPid);
+      await waitProcessGone(hostPid);
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
   it("reports a non-zero exit code of a single process", async () => {
     const supervisor = superviseNodeScript("process.exitCode = 42;");
 
