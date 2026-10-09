@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -208,6 +209,132 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
       expect(stderr).toBe("");
       await waitProcessGone(targetPid);
       await waitProcessGone(hostPid);
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("gracefully stops a single cooperative process", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [
+        fixture.resolvePath("target.mjs"),
+        fixture.resolvePath("target-ready"),
+        fixture.resolvePath("sigint"),
+      ],
+      silent: true,
+      stopTimeout: 3_000,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+        import { rename, writeFile } from "node:fs/promises";
+
+        const [readyPath, acknowledgmentPath] = process.argv.slice(2);
+        setTimeout(() => process.exit(42), 30_000);
+        process.once("SIGINT", async () => {
+          await writeFile(acknowledgmentPath, String(process.pid), "utf-8");
+          process.exit(20);
+        });
+        const temporaryPath = readyPath + ".tmp";
+        await writeFile(temporaryPath, String(process.pid), "utf-8");
+        await rename(temporaryPath, readyPath);
+      `,
+    );
+    await start(supervisor);
+
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the cooperative target is ready to receive SIGINT", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+      expect(supervisor.completed).toBe(false);
+    });
+
+    await step("Gracefully stop and verify SIGINT acknowledgment and exit code 20", async () => {
+      await supervisor.stop();
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(await fixture.readProcessId("sigint")).toBe(targetPid);
+      expect(code).toBe(20);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([targetPid, hostPid].map(waitProcessGone));
+      expectProcesses([targetPid, hostPid]).toBeDead();
+      expect(supervisor.process.exitCode).toBe(0);
+      expect(supervisor.process.signalCode).toBeNull();
+    });
+  }, 10_000);
+
+  it("escalates graceful stop to forced termination when the target ignores SIGINT", async ({ onTestFinished }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [
+        fixture.resolvePath("target.mjs"),
+        fixture.resolvePath("target-ready"),
+        fixture.resolvePath("sigint"),
+      ],
+      silent: true,
+      stopTimeout: 500,
+    });
+
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) {
+            await supervisor.terminate();
+          }
+        },
+      }),
+    );
+
+    await fixture.writeScript(
+      "target.mjs",
+      `
+        import { rename, writeFile } from "node:fs/promises";
+
+        const [readyPath, acknowledgmentPath] = process.argv.slice(2);
+        setTimeout(() => process.exit(42), 30_000);
+        process.once("SIGINT", async () => {});
+        const temporaryPath = readyPath + ".tmp";
+        await writeFile(temporaryPath, String(process.pid), "utf-8");
+        await rename(temporaryPath, readyPath);
+      `,
+    );
+    await start(supervisor);
+
+    const targetPid = await fixture.readProcessId("target-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the target is ready before requesting graceful stop", async () => {
+      expect(targetPid).toBe(supervisor.startupInfo.pid);
+      expectProcesses([targetPid, hostPid]).toBeAlive();
+    });
+
+    await step("Waiting for the escalated stop", async () => {
+      await supervisor.stop();
+    });
+
+    await step("Verify the stop timeout forces termination of target and host", async () => {
+      const { code, signal, stdout, stderr } = await wait(supervisor);
+      expect(code).toBe(1);
+      expect(signal).toBeNull();
+      expect(stdout).toBe("");
+      expect(stderr).toBe("");
+      await Promise.all([targetPid, hostPid].map(waitProcessGone));
       expectProcesses([targetPid, hostPid]).toBeDead();
       expect(supervisor.process.exitCode).toBe(0);
       expect(supervisor.process.signalCode).toBeNull();
