@@ -38,7 +38,7 @@ describe("categories", () => {
       ],
       {
         status: "failed",
-        statusMessage: "hello here the result with some message and more",
+        message: "hello here the result with some message and more",
         flaky: false,
       },
     );
@@ -56,7 +56,7 @@ describe("categories", () => {
       ],
       {
         status: "failed",
-        statusMessage: "hello\n   here the result\nwith some message and\nmore\n",
+        message: "hello\n   here the result\nwith some message and\nmore\n",
         flaky: false,
       },
     );
@@ -74,7 +74,7 @@ describe("categories", () => {
       ],
       {
         status: "failed",
-        statusTrace: "hello here the result with some message and more",
+        trace: "hello here the result with some message and more",
         flaky: false,
       },
     );
@@ -92,12 +92,22 @@ describe("categories", () => {
       ],
       {
         status: "failed",
-        statusTrace: "hello\n   here the result\nwith some message and\nmore\n",
+        trace: "hello\n   here the result\nwith some message and\nmore\n",
         flaky: false,
       },
     );
     expect(matched).to.have.lengthOf(2, "should match provided category");
     expect(matched[0]).to.have.property("name", "some message category");
     expect(matched[1]).to.have.property("name", "all matched category");
+  });
+  it("should match by message using the generators.ts call shape (regression)", () => {
+    const matched = matchCategories([{ name: "network failure category", messageRegex: ".*connection refused.*" }], {
+      message: "Error: connect ECONNREFUSED 127.0.0.1:8080 (connection refused)",
+      trace: "at Object.connect (net.js:100:10)",
+      status: "failed",
+      flaky: false,
+    });
+    expect(matched).to.have.lengthOf(1, "should match category by messageRegex");
+    expect(matched[0]).to.have.property("name", "network failure category");
   });
 });
