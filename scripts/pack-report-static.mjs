@@ -3,10 +3,10 @@ import { argv } from "node:process";
 
 import { createReportStaticArchive } from "../packages/plugin-api/dist/packStaticAssets.js";
 
-const [source, target] = argv.slice(2);
+const [source, target, mode] = argv.slice(2);
 
 if (!source || !target) {
-  throw new Error("Usage: pack-report-static <source-directory> <target-archive>");
+  throw new Error("Usage: pack-report-static <source-directory> <target-archive> [--allow-chunks]");
 }
 
-await createReportStaticArchive(resolve(source), resolve(target));
+await createReportStaticArchive(resolve(source), resolve(target), { singleFileCompatible: mode !== "--allow-chunks" });

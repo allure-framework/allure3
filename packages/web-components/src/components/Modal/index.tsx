@@ -135,7 +135,7 @@ export const Modal = ({
   }
 
   return (
-    <div className={styles["modal-overlay"]} onClick={closeModal}>
+    <div className={styles["modal-overlay"]} data-testid="attachment-modal" onClick={closeModal}>
       <div className={clsx(styles["modal-content"])} onClick={(e) => e.stopPropagation()}>
         <div className={clsx(styles["modal-wrapper"], { [styles["modal-wrapper-fullscreen"]]: isFullScreen })}>
           <div className={styles["modal-header"]}>
@@ -152,6 +152,7 @@ export const Modal = ({
               {isPreviewableAttachment && (
                 <TooltipWrapper tooltipText={tooltipPreview}>
                   <IconButton
+                    data-testid="attachment-modal-preview-toggle"
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}

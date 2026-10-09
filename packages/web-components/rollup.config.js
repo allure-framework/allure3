@@ -53,6 +53,7 @@ export default defineConfig([
       "@preact/compat",
       "@preact/signals",
       "@preact/signals/utils",
+      "mermaid",
       "react",
       "react-dom",
     ],

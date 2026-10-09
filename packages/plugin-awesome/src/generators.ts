@@ -855,6 +855,12 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
+    for (const [fileName, content] of staticAssets.files) {
+      if (fileName !== mainJs && fileName.endsWith(".js")) {
+        bodyTags.push(createScriptTag(`data:text/javascript;base64,${content.toString("base64")}`));
+      }
+    }
+
     const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));

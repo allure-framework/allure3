@@ -18,6 +18,7 @@ import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
 import { HttpAttachment } from "./HttpAttachment";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { MermaidPreview } from "./MermaidPreview";
 import type { AttachmentProps, I18nProp } from "./model";
 
 import styles from "./styles.scss";
@@ -36,15 +37,17 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "video": AttachmentVideo,
   "image-diff": AttachmentImageDiff,
   "http": HttpAttachment,
+  "mermaid": AttachmentCode,
   "archive": null,
 };
 
 const previewComponentsByAttachmentType: Record<string, any> = {
   html: HtmlPreview,
   markdown: MarkdownPreview,
+  mermaid: MermaidPreview,
 };
 
-const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown"]);
+const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown", "mermaid"]);
 
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;

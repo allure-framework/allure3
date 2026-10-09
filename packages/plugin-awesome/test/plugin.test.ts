@@ -1043,6 +1043,7 @@ describe("plugin", () => {
 
       expect(indexHtml, "index.html must be generated").not.toBe("");
       expect(indexHtml).toContain("data:text/javascript;base64,");
+      expect(indexHtml.match(/data:text\/javascript;base64,/g)?.length).toBeGreaterThan(1);
 
       const embeddedData = extractEmbeddedData(indexHtml);
 
