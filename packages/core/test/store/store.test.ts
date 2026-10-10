@@ -5,6 +5,7 @@ import {
   calculateEnvironmentHash,
   calculateParametersHash,
   calculateRetryHash,
+  type DefaultTestStepResult,
   type HistoryDataPoint,
   fallbackTestCaseIdLabelName,
 } from "@allurereport/core-api";
@@ -4032,6 +4033,52 @@ describe("variables", () => {
 });
 
 describe("dump state", () => {
+  it("should share equal strings between restored test results without changing the dump", async () => {
+    const source = new DefaultAllureStore();
+    const raw = (name: string, testId: string): RawTestResult => ({
+      name,
+      fullName: `suite.${testId}`,
+      status: "failed",
+      testId,
+      steps: [
+        {
+          type: "step",
+          name: "open page",
+          status: "failed",
+          message: "boom",
+          parameters: [{ name: "request", value: "GET /index.html" }],
+          steps: [{ type: "step", name: "nested", parameters: [{ name: "n", value: "1" }] }],
+        },
+      ],
+    });
+
+    await source.visitTestResult(raw("first", "first"), { readerId });
+    await source.visitTestResult(raw("second", "second"), { readerId });
+
+    const target = new DefaultAllureStore();
+
+    await target.restoreState(JSON.parse(JSON.stringify(source.dumpState())));
+
+    // the serialised state is what the dedup must leave alone: only object identity may change
+    const serialised = (dump: AllureStoreDump) =>
+      JSON.parse(JSON.stringify({ testResults: dump.testResults, fixtures: dump.fixtures, testCases: dump.testCases }));
+
+    expect(serialised(target.dumpState())).toEqual(serialised(source.dumpState()));
+
+    const [first, second] = await target.allTestResults();
+    const firstStep = first.steps[0] as DefaultTestStepResult;
+    const secondStep = second.steps[0] as DefaultTestStepResult;
+
+    expect(firstStep).not.toBe(secondStep);
+    expect(firstStep.name).toBe(secondStep.name);
+    expect(firstStep.message).toBe(secondStep.message);
+    expect(firstStep.parameters[0].value).toBe(secondStep.parameters[0].value);
+    expect((firstStep.steps[0] as DefaultTestStepResult).name).toBe(
+      (secondStep.steps[0] as DefaultTestStepResult).name,
+    );
+    expect(first.name).not.toBe(second.name);
+  });
+
   it("should allow to dump store state", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
