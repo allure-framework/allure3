@@ -67,6 +67,7 @@ import type {
 } from "@allurereport/reader-api";
 
 import { createResolutionIssue, getResolutionByRules, isIgnoredFailure } from "../resolutions.js";
+import { StringPool, deduplicateHistoryDataPoints, deduplicateStoreState } from "../utils/deduplicate.js";
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -141,6 +142,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testResultIdsByResolutionIssueId: Map<string, Set<string>> = new Map();
   readonly #resolutionIssueIdByTestResultId: Map<string, string> = new Map();
   readonly #fixtures: Map<string, TestFixtureResult>;
+  readonly #ingestStringPool = new StringPool();
+  readonly #deduplicateIngestString = <T>(value: T): T => this.#ingestStringPool.deduplicate(value);
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
@@ -674,6 +677,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#processGlobalErrorsByEnv.clear();
   }
 
+  /**
+   * Drops the pool used to share equal strings between ingested results.
+   *
+   * The pooled strings stay referenced by the results themselves, so this only frees the pool's
+   * own index. Results visited afterwards fill the pool again, so they share strings with each
+   * other but not with results visited before the release.
+   */
+  releaseIngestStringPool() {
+    this.#ingestStringPool.clear();
+  }
+
   // history state
 
   async readHistory(): Promise<HistoryDataPoint[]> {
@@ -682,11 +696,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
 
     this.#historyLookup = undefined;
-    this.#historyPoints = ((await this.#history.readHistory()) ?? [])
-      .filter(
-        (historyPoint): historyPoint is HistoryDataPoint => typeof historyPoint === "object" && historyPoint !== null,
-      )
-      .map(normalizeHistoryDataPoint);
+
+    const historyPoints = ((await this.#history.readHistory()) ?? []).filter(
+      (historyPoint): historyPoint is HistoryDataPoint => typeof historyPoint === "object" && historyPoint !== null,
+    );
+
+    // before normalising: the provider keeps these points cached, and normalising copies every item
+    deduplicateHistoryDataPoints(historyPoints);
+    this.#historyPoints = historyPoints.map(normalizeHistoryDataPoint);
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;
@@ -917,6 +934,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           testCases: this.#testCases,
           attachments: this.#attachments,
           visitAttachmentLink: (link) => attachmentLinks.push(link),
+          deduplicateString: this.#deduplicateIngestString,
         },
         raw,
         context,
@@ -1008,6 +1026,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       {
         attachments: this.#attachments,
         visitAttachmentLink: (link) => attachmentLinks.push(link),
+        deduplicateString: this.#deduplicateIngestString,
       },
       result,
       context,
@@ -1788,6 +1807,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       metrics = [],
       testResultIdsIngestOrder = [],
     } = stateDump;
+    // before the state is indexed or copied: restored results share strings with each other and
+    // with results read afterwards, through the same pool
+    deduplicateStoreState(this.#ingestStringPool, { testResults, fixtures, testCases });
     this.#resolutionIssues.clear();
     this.#testResultIdsByResolutionIssueId.clear();
     this.#resolutionIssueIdByTestResultId.clear();
