@@ -105,9 +105,15 @@ export class QualityGate {
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, metrics = [], previousHistory = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
+    const ignoredTrsById = new Map<string, TestResult>();
 
     for (const tr of trs) {
-      if (tr.isRetry || isIgnoredFailure(tr) || state?.isTestResultProcessed(tr.id)) {
+      if (tr.isRetry || state?.isTestResultProcessed(tr.id)) {
+        continue;
+      }
+
+      if (isIgnoredFailure(tr)) {
+        ignoredTrsById.set(tr.id, tr);
         continue;
       }
 
@@ -132,6 +138,8 @@ export class QualityGate {
       }
 
       const filteredTrs = ruleset.filter ? trsToValidate.filter(ruleset.filter) : trsToValidate;
+      const filteredTrsSet = new Set(filteredTrs);
+      const excludedTrs = [...ignoredTrsById.values(), ...trsToValidate.filter((tr) => !filteredTrsSet.has(tr))];
 
       for (const [key, expected] of Object.entries(ruleset)) {
         // reserved rules configuration keys
@@ -150,6 +158,7 @@ export class QualityGate {
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
           trs: filteredTrs,
+          excluded: excludedTrs,
           state: {
             getResult: () => state?.getResult?.(ruleId),
             setResult: (value: unknown, testResults: string[]) => state?.setResult?.(ruleId, value, testResults),

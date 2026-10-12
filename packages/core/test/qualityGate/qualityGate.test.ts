@@ -511,8 +511,51 @@ describe("QualityGate", () => {
         trs: [createTestResult("2", "passed"), createTestResult("3", "passed")],
       });
 
-      expect(results).toEqual([expect.objectContaining({ rule: "minTestsCount", success: true })]);
-      expect(state.getResult("minTestsCount")).toBe(3);
+      expect(results).toEqual([expect.objectContaining({ rule: "minTestsCount", success: true, actual: 3 })]);
+    });
+
+    it("should stop counting a failed test when its retry is left out by the rule filter", async () => {
+      const qualityGate = new QualityGate({
+        rules: [{ maxFailures: 0, filter: (tr) => tr.status === "failed" }],
+      });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [{ ...createTestResult("1", "failed", "foo"), stop: 1 }] });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [{ ...createTestResult("2", "passed", "foo"), stop: 2 }],
+      });
+
+      expect(results[0]).toMatchObject({ success: true, actual: 0 });
+    });
+
+    it("should stop counting a failed test when its retry is an ignored failure", async () => {
+      const qualityGate = new QualityGate({ rules: [{ maxFailures: 0 }] });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({ state, trs: [{ ...createTestResult("1", "failed", "foo"), stop: 1 }] });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [{ ...createTestResult("2", "failed", "foo"), stop: 2, resolution: "muted" }],
+      });
+
+      expect(results[0]).toMatchObject({ success: true, actual: 0 });
+    });
+
+    it("should keep counting a failed test when a muted attempt is older than the failure", async () => {
+      const qualityGate = new QualityGate({ rules: [{ maxFailures: 0 }] });
+      const state = new QualityGateState();
+
+      await qualityGate.validate({
+        state,
+        trs: [{ ...createTestResult("2", "failed", "foo"), stop: 2, resolution: "muted" }],
+      });
+      const { results } = await qualityGate.validate({
+        state,
+        trs: [{ ...createTestResult("1", "failed", "foo"), stop: 3 }],
+      });
+
+      expect(results[0]).toMatchObject({ success: false, actual: 1 });
     });
 
     it("should not consume retry id before non-retry with same id arrives", async () => {
