@@ -343,6 +343,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
+          ["@allurereport/plugin-xray", "workspace:packages/plugin-xray"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
@@ -12244,6 +12245,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-server-reload", "workspace:packages/plugin-server-reload"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
+          ["@allurereport/plugin-xray", "workspace:packages/plugin-xray"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\

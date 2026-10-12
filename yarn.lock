@@ -121,6 +121,7 @@ __metadata:
     "@allurereport/plugin-slack": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
     "@allurereport/plugin-testplan": "workspace:*"
+    "@allurereport/plugin-xray": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
@@ -491,7 +492,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-xray@workspace:packages/plugin-xray":
+"@allurereport/plugin-xray@workspace:*, @allurereport/plugin-xray@workspace:packages/plugin-xray":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-xray@workspace:packages/plugin-xray"
   dependencies:
@@ -8571,6 +8572,7 @@ __metadata:
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
+    "@allurereport/plugin-xray": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
