@@ -18,11 +18,11 @@ export class TestOpsPlanCommand extends Command {
   static paths = [["testops-plan"]];
 
   static usage = Command.Usage({
-    description: "Fetches a testplan.json for the current TestOps job run",
+    description: "Fetches a testplan.json for the current Allure TestOps job run",
     details:
       "Reads ALLURE_JOB_RUN_ID and, when it's set, downloads the test cases selected for that job run " +
-      "from TestOps and writes them as a testplan.json compatible with ALLURE_TESTPLAN_PATH. " +
-      "Does nothing when ALLURE_JOB_RUN_ID isn't set, which covers every run TestOps didn't trigger itself.",
+      "from Allure TestOps and writes them as a testplan.json compatible with ALLURE_TESTPLAN_PATH. " +
+      "Does nothing when ALLURE_JOB_RUN_ID isn't set, which covers every run Allure TestOps didn't trigger itself.",
     examples: [
       ["testops-plan", "Write ./testplan.json from the current job run, if any"],
       ["testops-plan --output custom-testplan.json", "Write to a custom path instead"],
@@ -47,7 +47,7 @@ export class TestOpsPlanCommand extends Command {
     const accessToken = env.ALLURE_TOKEN;
 
     if (!endpoint || !accessToken) {
-      console.error(red("ALLURE_ENDPOINT and ALLURE_TOKEN are required to fetch a test plan from TestOps"));
+      console.error(red("ALLURE_ENDPOINT and ALLURE_TOKEN are required to fetch a test plan from Allure TestOps"));
       exit(1);
       return;
     }
