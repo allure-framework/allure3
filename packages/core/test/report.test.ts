@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
+import { detect } from "@allurereport/ci";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
@@ -99,6 +100,10 @@ beforeEach(async () => {
   await label("coverage", "report-engine");
   previousCwd = process.cwd();
   vi.clearAllMocks();
+  (detect as Mock).mockReturnValue({
+    repoName: "allure3",
+    jobRunBranch: "main",
+  });
   (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(
     new URL("https://allurereport.com/reports"),
   );
@@ -1227,6 +1232,81 @@ describe("report", () => {
     expect(Object.values(historyPoint.testResults)).toEqual([
       expect.objectContaining({ name: "Published test", status: "passed", url: reportUrl }),
     ]);
+  });
+
+  it("should read remote history from targetBranch on PR CI while creating report on jobRunBranch", async () => {
+    (detect as Mock).mockReturnValue({
+      repoName: "allure3",
+      jobRunBranch: "feature/pr-branch",
+      targetBranch: "main",
+    });
+    (AllureServiceClientMock.prototype.downloadHistory as Mock).mockResolvedValue([]);
+
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("p1"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(AllureServiceClientMock.prototype.downloadHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "feature/pr-branch",
+      }),
+    );
+  });
+
+  it("should read remote history from jobRunBranch when targetBranch is absent", async () => {
+    (detect as Mock).mockReturnValue({
+      repoName: "allure3",
+      jobRunBranch: "main",
+    });
+    (AllureServiceClientMock.prototype.downloadHistory as Mock).mockResolvedValue([]);
+
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("p1"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(AllureServiceClientMock.prototype.downloadHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
   });
 
   it("should skip publish in realtime mode", async () => {

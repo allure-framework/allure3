@@ -125,12 +125,23 @@ const readConcurrency = () => {
 
 const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
 
-const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
+type RemoteBranchParams = { repo?: string; branch?: string };
+
+const remoteBranchParams = (ci: CiDescriptor | undefined, branch: string | undefined): RemoteBranchParams => {
   const repo = ci?.repoName;
-  const branch = ci?.jobRunBranch;
 
   return repo && branch ? { repo, branch } : {};
 };
+
+// For calculating history related data we prioritize target branch over job run branch
+const remoteHistoryParams = (ci: CiDescriptor | undefined): RemoteBranchParams => {
+  const historyBranch = ci?.targetBranch || ci?.jobRunBranch;
+
+  return remoteBranchParams(ci, historyBranch);
+};
+
+const remoteReportParams = (ci: CiDescriptor | undefined): RemoteBranchParams =>
+  remoteBranchParams(ci, ci?.jobRunBranch);
 
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
 
@@ -282,7 +293,7 @@ export class AllureReport {
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
-        ...remoteReportParams(this.#ci),
+        ...remoteHistoryParams(this.#ci),
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
