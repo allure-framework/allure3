@@ -172,6 +172,20 @@ describe("renderMail", () => {
     expect(html).not.toContain("<b>failed</b>");
   });
 
+  it("renders a preheader with the status counts and dark mode styles", async () => {
+    const html = await renderMail(await collectMailData(createContext().context, createStore(results)));
+
+    expect(html).toContain("1 failed, 1 broken, 1 passed of 3 tests");
+    expect(html).toContain("prefers-color-scheme: dark");
+    expect(html).toContain('name="color-scheme"');
+  });
+
+  it("renders a preheader for an empty run", async () => {
+    const html = await renderMail(await collectMailData(createContext().context, createStore([])));
+
+    expect(html).toContain("No test results");
+  });
+
   it("drops non-http report links", async () => {
     const data = await collectMailData(createContext().context, createStore([]), { reportUrl: "javascript:alert(1)" });
 
