@@ -34,6 +34,7 @@ jobs:
           node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
+        timeout-minutes: 10
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Cache build outputs
         id: build-cache
@@ -66,14 +67,19 @@ jobs:
           node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
+        timeout-minutes: 10
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Install playwright for static server
+        timeout-minutes: 10
         run: yarn workspace @allurereport/static-server playwright install chromium
       - name: Install playwright for e2e
+        timeout-minutes: 15
         run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
       - name: Install playwright for Allure 2 web
+        timeout-minutes: 10
         run: yarn workspace @allurereport/web-allure2 playwright install chromium
       - name: Install playwright dependencies for e2e
+        timeout-minutes: 10
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Cache build outputs
         id: build-cache
@@ -85,8 +91,10 @@ jobs:
         if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Test Project
+        timeout-minutes: 40
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
+        timeout-minutes: 10
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
@@ -118,24 +126,28 @@ jobs:
           node-version: "24.14.x"
           cache: "yarn"
       - name: Download allure results from Ubuntu
+        timeout-minutes: 10
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: allure-results-ubuntu-latest
           path: ./
       - name: Download allure results from macOS
+        timeout-minutes: 10
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
           name: allure-results-macos-latest
           path: ./
       - name: Download allure results from Windows
+        timeout-minutes: 10
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: allure-results-windows-latest
           path: ./
       - name: Install dependencies
+        timeout-minutes: 10
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Cache build outputs
         id: build-cache
