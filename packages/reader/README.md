@@ -21,9 +21,12 @@ The `openTestReporting` reader supports the event-based and hierarchical XML for
 It is included among Allure's default readers, so no additional configuration is required.
 
 Reports are recognized by their XML namespaces, regardless of the producer, namespace prefixes, or `.xml` filename.
-Leaf nodes become test results; ancestor names provide suite grouping. The reader imports statuses, timing,
-reasons, tags, source information, infrastructure metadata, and the standard Java source and throwable extensions
-when present. Unknown extensions are ignored.
+Ancestor names provide suite grouping. When JUnit's optional type metadata is present, `TEST` and
+`CONTAINER_AND_TEST` nodes become test results, while `CONTAINER` nodes provide structure only. Test/container
+nodes also retain their child tests. Missing or unknown types use leaf-node inference, so other producers do not
+need JUnit metadata. Failed containers are reported as global errors, preserving their reasons and Java traces.
+The reader imports statuses, timing, reasons, tags, source information, infrastructure metadata, and the standard
+Java source and throwable extensions when present. Other unknown extensions are ignored.
 
 Core data and output attachments are preserved as JSON and text. File attachments are resolved relative to the
 report file's directory; absolute paths are accepted only within that directory. Symbolic links and paths outside

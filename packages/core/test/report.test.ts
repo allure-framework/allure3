@@ -628,7 +628,6 @@ describe("report", () => {
   it.for(["events", "hierarchy"] as const)(
     "generates a report from Open Test Reporting %s with default readers",
     async (format, { onTestFinished }) => {
-      // Arrange
       const directory = await mkdtemp(join(tmpdir(), "allure3-open-test-reporting-"));
       onTestFinished(() => rm(directory, { recursive: true, force: true }));
       const resultsDirectory = join(directory, "results");
@@ -636,9 +635,12 @@ describe("report", () => {
       const start = "2026-01-01T00:00:00Z";
       const stop = "2026-01-01T00:00:01Z";
       const coreNamespace = "https://schemas.opentest4j.org/reporting/core/0.2.0";
+      const junitNamespace = "https://schemas.junit.org/open-test-reporting";
+      const containerInfoXml = `<c:metadata><j:type>CONTAINER</j:type></c:metadata>`;
       const testInfoXml = `
         <c:metadata>
           <c:tags><c:tag>smoke</c:tag></c:tags>
+          <j:type>TEST</j:type>
         </c:metadata>
         <c:result status="FAILED">
           <c:reason>failure reason</c:reason>
@@ -650,16 +652,29 @@ describe("report", () => {
       `;
       const reportXmlByFormat = {
         events: `
-          <events xmlns="https://schemas.opentest4j.org/reporting/events/0.2.0" xmlns:c="${coreNamespace}">
-            <started id="suite" name="Suite" time="${start}"/>
+          <events xmlns="https://schemas.opentest4j.org/reporting/events/0.2.0" xmlns:c="${coreNamespace}" xmlns:j="${junitNamespace}">
+            <started id="engine" name="JUnit Jupiter" time="${start}">${containerInfoXml}</started>
+            <finished id="engine" time="${stop}"><c:result status="SUCCESSFUL"/></finished>
+            <started id="broken" name="Broken suite" time="${start}">${containerInfoXml}</started>
+            <finished id="broken" time="${stop}">
+              <c:result status="FAILED"><c:reason>setup failure</c:reason></c:result>
+            </finished>
+            <started id="suite" name="Suite" time="${start}">${containerInfoXml}</started>
             <started id="test" parentId="suite" name="Imported test" time="${start}"/>
             <finished id="test" time="${stop}">${testInfoXml}</finished>
             <finished id="suite" time="${stop}"/>
           </events>
         `,
         hierarchy: `
-          <execution xmlns="https://schemas.opentest4j.org/reporting/hierarchy/0.2.0" xmlns:c="${coreNamespace}">
+          <execution xmlns="https://schemas.opentest4j.org/reporting/hierarchy/0.2.0" xmlns:c="${coreNamespace}" xmlns:j="${junitNamespace}">
+            <root name="JUnit Jupiter" start="${start}">
+              ${containerInfoXml}<c:result status="SUCCESSFUL"/>
+            </root>
+            <root name="Broken suite" start="${start}">
+              ${containerInfoXml}<c:result status="FAILED"><c:reason>setup failure</c:reason></c:result>
+            </root>
             <root name="Suite" start="${start}">
+              ${containerInfoXml}
               <child name="Imported test" start="${start}" duration="PT1S">${testInfoXml}</child>
             </root>
           </execution>
@@ -682,6 +697,7 @@ describe("report", () => {
       await report.done();
 
       const testResults = await report.store.allTestResults();
+      const globalErrors = await report.store.allGlobalErrors();
       const attachments = await report.store.allAttachments();
       const attachmentContents = await Promise.all(
         attachments.map(async (attachment) => {
@@ -714,6 +730,10 @@ describe("report", () => {
         expect.objectContaining({ name: "evidence.txt", contentType: "text/custom", missed: false }),
       ]);
       expect(attachmentContents).toEqual(["output", "evidence"]);
+      expect(globalErrors).toEqual([
+        expect.objectContaining({ message: "Broken suite: setup failure", trace: undefined }),
+      ]);
+      expect(Object.keys(registry.byId)).toHaveLength(1);
       expect(registeredTestResult).toMatchObject({ name: "Imported test", status: "failed", duration: 1000 });
       expect(generatedHtml).toBe("generated");
     },
