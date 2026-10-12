@@ -1349,7 +1349,10 @@ export class AllureReport {
         outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
       );
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
-      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
+      // only a plugin report directory is moved to the root: other directories (for example the `export` one with
+      // Allure 2 compatible metrics files) are part of the output layout and must stay where they are
+      const shouldFlattenOutput =
+        outputDirectoryEntries.length === 1 && this.#plugins.some(({ id }) => id === outputDirectoryEntries[0].file);
 
       this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
 
