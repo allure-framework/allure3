@@ -354,7 +354,12 @@ export class AllureReport {
   };
 
   #createHistoryDataPoint = async (flattenReport: boolean): Promise<HistoryDataPoint> => {
-    const allTrs = await this.#store.allTestResults();
+    const allTrs = await Promise.all(
+      (await this.#store.allTestResults()).map(async (tr) => ({
+        ...tr,
+        retries: await this.#store.retriesByTrId(tr.id),
+      })),
+    );
     const allTcs = await this.#store.allTestCases();
     // always use explicitly set reportUrl for history
     //

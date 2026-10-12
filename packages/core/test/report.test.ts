@@ -365,6 +365,77 @@ describe("report", () => {
     expect(acceptedReader.read).toHaveBeenCalledWith(allureReport.store, resultFile);
   });
 
+  it("should serialize earlier attempt statuses in history retries", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "allure3-history-retries-"));
+    const historyPath = join(directory, "history.jsonl");
+    const existingEntry = {
+      uuid: "existing",
+      name: "Existing run",
+      timestamp: 1,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+      testResults: {
+        "existing-retry-hash": {
+          id: "existing-result",
+          name: "existing test",
+          status: "passed",
+          retryHash: "existing-retry-hash",
+          url: "",
+        },
+      },
+    };
+
+    try {
+      await writeFile(historyPath, `${JSON.stringify(existingEntry)}\n`, "utf-8");
+      const config = await resolveConfig(
+        { name: "Allure Report", output: join(directory, "report"), historyPath },
+        { plugins: {} },
+      );
+      const allureReport = new AllureReport(config);
+      const attempts = [
+        { status: "failed", start: 100 },
+        { status: "passed", start: 300 },
+        { status: "broken", start: 200 },
+      ] as const;
+
+      await allureReport.start();
+      await step("ingest attempts for one retryHash group", async () => {
+        for (const [index, attempt] of attempts.entries()) {
+          await allureReport.store.visitTestResult(
+            {
+              uuid: `attempt-${index}`,
+              testId: "retried-test",
+              name: `attempt ${index}`,
+              fullName: "suite.retried-test",
+              ...attempt,
+            },
+            { readerId: "test" },
+          );
+        }
+      });
+      await allureReport.done();
+
+      await step("verify history retries in the serialized file", async () => {
+        const [historicalPoint, currentPoint] = await readHistoryEntries(historyPath);
+        const historyTestResults = Object.values(currentPoint.testResults);
+
+        expect(historicalPoint).toEqual(existingEntry);
+        expect(historyTestResults).toHaveLength(1);
+        expect(historyTestResults[0]).toEqual(
+          expect.objectContaining({
+            name: "attempt 1",
+            fullName: "suite.retried-test",
+            status: "passed",
+            retries: ["failed", "broken"],
+          }),
+        );
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it("should not touch the history file when appendHistory is false", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-append-history-"));
     const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-append-history-data-")), "history.jsonl");

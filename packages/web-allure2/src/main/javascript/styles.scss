@@ -64,6 +64,7 @@ body {
   flex-direction: column;
   .app {
     flex: 1;
+    min-height: 0;
   }
 }
 
