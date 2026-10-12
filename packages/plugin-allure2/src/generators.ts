@@ -5,7 +5,7 @@ import {
   createStylesLinkTag,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
@@ -479,6 +479,7 @@ export const generateGlobalsData = async (
   attachmentMap: Map<string, string>,
   attachmentTimestamps: Record<string, number> = {},
   errorTimestamps: Array<number | undefined> = [],
+  exitCode?: ExitCode,
 ) => {
   const data: Allure2GlobalsData = {
     errors: globalErrors.map(({ message, trace, actual, expected }, index) => ({
@@ -507,6 +508,10 @@ export const generateGlobalsData = async (
       ];
     }),
   };
+
+  if (exitCode) {
+    data.exitCode = exitCode;
+  }
 
   await writer.writeWidget("globals.json", data);
 };

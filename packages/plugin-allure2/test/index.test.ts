@@ -81,6 +81,7 @@ const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
       },
     ]),
     allGlobalAttachments: vi.fn().mockResolvedValue([presentAttachment, missingAttachment]),
+    globalExitCode: vi.fn().mockResolvedValue(undefined),
     metadataByKey: vi.fn().mockResolvedValue(undefined),
     allTestResults: vi.fn().mockResolvedValue([]),
     relatedByTestResultIds: vi.fn().mockResolvedValue({
@@ -152,6 +153,43 @@ describe("Allure2Plugin", () => {
           size: 10,
         },
       ],
+    });
+    expect(globals).not.toHaveProperty("exitCode");
+  });
+
+  it("should include exitCode in widgets/globals.json when the store has one", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+    const exitCode = { original: 1, actual: 1 };
+
+    await plugin.done(
+      context,
+      createStore({
+        globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      }),
+    );
+
+    const globals = JSON.parse(files.get("widgets/globals.json")!.toString());
+    expect(globals.exitCode).toEqual(exitCode);
+  });
+
+  it("should omit exitCode from widgets/globals.json when the store has none", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+
+    await plugin.done(
+      context,
+      createStore({
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+      }),
+    );
+
+    const globals = JSON.parse(files.get("widgets/globals.json")!.toString());
+    expect(globals).toEqual({
+      errors: [],
+      attachments: [],
     });
   });
 

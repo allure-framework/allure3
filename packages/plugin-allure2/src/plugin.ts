@@ -50,9 +50,10 @@ export class Allure2Plugin implements Plugin {
     const attachmentMap = await generateAttachmentsData(writer, attachmentLinks, (id) =>
       store.attachmentContentById(id),
     );
-    const [globalErrors, globalAttachments] = await Promise.all([
+    const [globalErrors, globalAttachments, globalExitCode] = await Promise.all([
       store.allGlobalErrors(),
       store.allGlobalAttachments(),
+      store.globalExitCode(),
     ]);
     const globalAttachmentTimestamps =
       (await store.metadataByKey<Record<string, number>>("allure2_global_attachment_timestamps")) ?? {};
@@ -66,6 +67,7 @@ export class Allure2Plugin implements Plugin {
       attachmentMap,
       globalAttachmentTimestamps,
       globalErrorTimestamps,
+      globalExitCode,
     );
 
     const categories = (await store.metadataByKey<Allure2Category[]>("allure2_categories")) ?? [];

@@ -7,7 +7,13 @@ import {
   calculateRunDuration,
   createPluginSummary,
   createTestResultRegistry,
+  resolveReportStatus,
 } from "../src/utils/summary.js";
+
+const emptyStoreGlobals = () => ({
+  globalExitCode: vi.fn().mockResolvedValue(undefined),
+  allGlobalErrors: vi.fn().mockResolvedValue([]),
+});
 
 const testResult = (args: Partial<TestResult> = {}): TestResult => ({
   id: "test-id",
@@ -111,6 +117,7 @@ describe("summary utils", () => {
       allNewTestResults: vi.fn().mockResolvedValue(newTrs),
       testsStatistic: vi.fn().mockResolvedValue(stats),
       retriesByTr,
+      ...emptyStoreGlobals(),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -142,6 +149,8 @@ describe("summary utils", () => {
       plugin: "summary-plugin",
       meta: { build: 1 },
     });
+    expect(summary).not.toHaveProperty("exitCode");
+    expect(summary).not.toHaveProperty("globalErrorsCount");
   });
 
   it("calculateRunDuration uses the wall clock span of parallel test results", () => {
@@ -192,6 +201,7 @@ describe("summary utils", () => {
         ]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 2, passed: 2 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
+      ...emptyStoreGlobals(),
     };
     const summary = await createPluginSummary({
       name: "Passed tests",
@@ -213,6 +223,7 @@ describe("summary utils", () => {
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
+      ...emptyStoreGlobals(),
     };
     const history = { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory;
     const summary = await createPluginSummary({
@@ -225,7 +236,162 @@ describe("summary utils", () => {
 
     expect(summary.status).toBe("passed");
     expect(summary.filtered).toBeUndefined();
+    expect(summary).not.toHaveProperty("exitCode");
+    expect(summary).not.toHaveProperty("globalErrorsCount");
     expect(store.allNewTestResults).toHaveBeenCalledWith(undefined, []);
     expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
+  });
+
+  it("createPluginSummary marks failed when global errors exist even with passed tests and exit 0", async () => {
+    const exitCode = { original: 0, actual: 0 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "runner crashed" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(1);
+  });
+
+  it("createPluginSummary marks failed when exit code is nonzero", async () => {
+    const exitCode = { original: 1 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary).not.toHaveProperty("globalErrorsCount");
+  });
+
+  it("createPluginSummary applies report-wide globals and exit to filtered summaries", async () => {
+    const exitCode = { original: 1 };
+    const passedOnly = testResult({ id: "passed-1", status: "passed" });
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? [passedOnly] : [passedOnly])),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "env setup failed" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "Passed tests",
+      plugin: "awesome",
+      store: store as any,
+      filter: (tr) => tr.status === "passed",
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.filtered).toBe(true);
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(1);
+  });
+
+  it("createPluginSummary includes exitCode and globalErrorsCount when set", async () => {
+    const exitCode = { original: 0, actual: 0 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "failed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "err-1" }, { message: "err-2" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(2);
+    expect(summary.status).toBe("failed");
+  });
+
+  describe("resolveReportStatus", () => {
+    it("returns failed when global errors exist", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 1,
+          exitCode: { original: 0, actual: 0 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns failed when exit code is nonzero", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 2 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns worst test status when exit is zero or missing", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 0 },
+          testStatuses: ["passed", "broken"],
+        }),
+      ).toBe("broken");
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          testStatuses: ["passed", "failed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns passed when there are no signals of failure", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 0, actual: 0 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("passed");
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          testStatuses: [],
+        }),
+      ).toBe("passed");
+    });
   });
 });

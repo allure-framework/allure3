@@ -108,6 +108,8 @@ const fixtures: any = {
     allNewTestResults: () => Promise.resolve([]),
     allCheckResults: () => Promise.resolve([]),
     retriesByTr: () => Promise.resolve([]),
+    globalExitCode: () => Promise.resolve(undefined),
+    allGlobalErrors: () => Promise.resolve([]),
     testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
 
