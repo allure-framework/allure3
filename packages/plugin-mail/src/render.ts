@@ -11,6 +11,8 @@ const statusColors: Record<TestStatus, string> = {
   unknown: "#b388ff",
 };
 
+const fontFamily = "Helvetica, Arial, sans-serif";
+
 const statusOrder: TestStatus[] = ["failed", "broken", "passed", "skipped", "unknown"];
 
 export const escapeHtml = (value: string): string =>
@@ -38,7 +40,7 @@ const renderStats = ({ stats }: MailData): string =>
     .map((status) => {
       const count = stats[status] ?? 0;
 
-      return `<td align="center" style="padding:8px">
+      return `<td align="center" style="padding:8px;font-family:${fontFamily}">
   <div style="font-size:24px;font-weight:bold;color:${statusColors[status]}">${count}</div>
   <div style="font-size:12px;color:#616161">${capitalize(status) ?? status}</div>
 </td>`;
@@ -89,7 +91,7 @@ export const renderMjml = (data: MailData): string => {
   <mj-head>
     <mj-title>${escapeHtml(data.title)}</mj-title>
     <mj-attributes>
-      <mj-all font-family="Helvetica, Arial, sans-serif" />
+      <mj-all font-family="${fontFamily}" />
     </mj-attributes>
   </mj-head>
   <mj-body background-color="#f5f5f5">
