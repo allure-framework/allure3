@@ -115,8 +115,8 @@ describe("generate function", () => {
     );
 
     await generate({
-      cwd: "/work",
-      config: { output: "/work/report", globalAttachments: ["report/input.log"] } as FullConfig,
+      cwd: ".",
+      config: { output: "/work/report", cwd: "/work", globalAttachments: ["report/input.log"] } as FullConfig,
       resultsDir: ["./allure-results"],
       dump: [],
       clean: true,
@@ -125,6 +125,25 @@ describe("generate function", () => {
     expect(cleanOutputDirectory).toHaveBeenCalledWith(
       expect.objectContaining({ inputs: expect.arrayContaining(["/work/report/input.log"]) }),
     );
+  });
+
+  it("should resolve the global attachments only against the config cwd", async () => {
+    (glob as unknown as Mock).mockImplementation(async (pattern: string) =>
+      pattern === "report/*.log" ? [] : ["./allure-results/"],
+    );
+
+    await generate({
+      cwd: "/command-cwd",
+      config: { output: "/work/report", cwd: "/work", globalAttachments: ["report/*.log"] } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    const attachmentCalls = (glob as unknown as Mock).mock.calls.filter(([pattern]) => pattern === "report/*.log");
+
+    expect(attachmentCalls).toHaveLength(1);
+    expect(attachmentCalls[0][1]).toEqual(expect.objectContaining({ cwd: "/work" }));
   });
 
   it("should not clean the output directory by default", async () => {

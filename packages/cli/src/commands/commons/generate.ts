@@ -42,13 +42,12 @@ export const generate = async (params: {
 
   if (params.clean) {
     try {
-      // the report reads these files later, so they must be resolved before the output is removed;
-      // the core globs global attachments from the process directory, so both bases are covered
-      const globalAttachmentPatterns = params.config.globalAttachments ?? [];
-      const globalAttachments = [
-        ...(await findFilesByGlobs(params.cwd, globalAttachmentPatterns)),
-        ...(await findFilesByGlobs(processCwd(), globalAttachmentPatterns)),
-      ];
+      // the report reads these files later, so they must be resolved before the output is removed,
+      // against the same base the core uses
+      const globalAttachments = await findFilesByGlobs(
+        params.config.cwd ?? processCwd(),
+        params.config.globalAttachments ?? [],
+      );
 
       await cleanOutputDirectory({
         output: params.config.output,
