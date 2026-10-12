@@ -165,6 +165,7 @@ export type ReportSearchDocument = {
   id: string;
   nodeId: string;
   name: string;
+  titlePath?: string;
   fullName?: string;
   retryHash?: string | null;
   labels?: string;

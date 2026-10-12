@@ -123,6 +123,7 @@ export const fetchEnvTreesData = async (envs: string[], options?: { force?: bool
 const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeStore.value.data) : []));
 
 const alwaysTruePredicate = () => true;
+let searchIndexPrefetchTimer: ReturnType<typeof setTimeout> | undefined;
 
 const filterPredicate = computed(() => {
   if (treeNonQueryFilters.value.length === 0) {
@@ -145,6 +146,19 @@ effect(() => {
   }
 
   fetchEnvSearchIndexes(envsToFetch);
+});
+
+effect(() => {
+  const treeEnvIds = Object.keys(treeStore.value.data ?? {});
+
+  if (treeEnvIds.length === 0 || searchIndexPrefetchTimer) {
+    return;
+  }
+
+  searchIndexPrefetchTimer = setTimeout(() => {
+    searchIndexPrefetchTimer = undefined;
+    fetchEnvSearchIndexes(treeEnvIds);
+  }, 0);
 });
 
 const searchFilterPredicate = (env: string) => {
