@@ -7,7 +7,7 @@ import { cwd as processCwd } from "node:process";
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { cleanOutputDirectory, getUnsafeCleanReason } from "../../src/utils/cleanOutput.js";
+import { cleanOutputDirectory, getUnsafeCleanReason, isOutputDirectoryNotEmpty } from "../../src/utils/cleanOutput.js";
 
 let tmp: string;
 
@@ -152,5 +152,24 @@ describe("cleanOutputDirectory", () => {
 
     await expect(cleanOutputDirectory({ output: tmp, cwd: tmp })).rejects.toThrow(/Refusing to clean/);
     expect(existsSync(join(tmp, "keep.txt"))).toBe(true);
+  });
+});
+
+describe("isOutputDirectoryNotEmpty", () => {
+  it("is false for a missing directory", async () => {
+    expect(await isOutputDirectoryNotEmpty(tmp, "report")).toBe(false);
+  });
+
+  it("is false for an empty directory", async () => {
+    await mkdir(join(tmp, "report"));
+
+    expect(await isOutputDirectoryNotEmpty(tmp, "report")).toBe(false);
+  });
+
+  it("is true when the directory contains files, resolving a relative path against the cwd", async () => {
+    await mkdir(join(tmp, "report"));
+    await writeFile(join(tmp, "report", "index.html"), "");
+
+    expect(await isOutputDirectoryNotEmpty(tmp, "report")).toBe(true);
   });
 });

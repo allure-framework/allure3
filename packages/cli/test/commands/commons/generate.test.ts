@@ -9,7 +9,7 @@ import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generate } from "../../../src/commands/commons/generate.js";
-import { cleanOutputDirectory } from "../../../src/utils/cleanOutput.js";
+import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../../src/utils/cleanOutput.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";
 
@@ -32,6 +32,7 @@ vi.mock("@allurereport/core", async () => {
 });
 vi.mock("../../../src/utils/cleanOutput.js", () => ({
   cleanOutputDirectory: vi.fn(),
+  isOutputDirectoryNotEmpty: vi.fn().mockResolvedValue(false),
 }));
 vi.mock("../../../src/utils/logs.js", () => ({
   logError: vi.fn(),
@@ -152,6 +153,45 @@ describe("generate function", () => {
     await generate({ cwd: ".", config: {} as FullConfig, resultsDir: ["./allure-results"], dump: [] });
 
     expect(cleanOutputDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should warn about a non-empty output directory when clean is not set", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValueOnce(true);
+
+    await generate({
+      cwd: "/work",
+      config: { output: "allure-report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+    });
+
+    expect(isOutputDirectoryNotEmpty).toHaveBeenCalledWith("/work", "allure-report");
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("--clean"));
+    expect(AllureReportMock.prototype.start).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should not warn about the output directory when it is empty or cleaned", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValue(["./allure-results/"]);
+
+    await generate({ cwd: ".", config: { output: "out" } as FullConfig, resultsDir: ["./allure-results"], dump: [] });
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValue(true);
+    await generate({
+      cwd: ".",
+      config: { output: "out" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValue(false);
+    consoleWarnSpy.mockRestore();
   });
 
   it("should exit with code 1 and not generate when cleaning is refused", async () => {

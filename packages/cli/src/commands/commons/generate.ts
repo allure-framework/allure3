@@ -4,9 +4,9 @@ import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport, filterFailedQualityGateResults, stringifyQualityGateResults } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
-import { red } from "yoctocolors";
+import { red, yellow } from "yoctocolors";
 
-import { cleanOutputDirectory } from "../../utils/cleanOutput.js";
+import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../utils/cleanOutput.js";
 import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
@@ -66,6 +66,18 @@ export const generate = async (params: {
       exit(1);
       return;
     }
+  }
+
+  if (!params.clean && params.config.output && (await isOutputDirectoryNotEmpty(params.cwd, params.config.output))) {
+    // a previous report left in the output changes how the new one is laid out (e.g. it ends up in a nested
+    // directory next to the stale root index), so the history of the new report looks missing
+    // eslint-disable-next-line no-console
+    console.warn(
+      yellow(
+        `The output directory "${params.config.output}" is not empty. Files of a previous report may break the layout ` +
+          "of the new one. Use the --clean option to remove the directory before generating.",
+      ),
+    );
   }
 
   try {
