@@ -233,6 +233,56 @@ describe("report", () => {
       await expect(readFile(join(output, "p1", "index.html"), "utf8")).resolves.toBe("index");
     });
 
+    it("should keep the history base url as is when the output is not flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-not-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [{ id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/");
+    });
+
+    it("should point the history url to the root report when the output is flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/index.html");
+    });
+
     it("should still move a single plugin report directory to the root", async () => {
       const output = await mkdtemp(join(tmpdir(), "allure3-single-plugin-"));
       const p1 = createPlugin("p1");
