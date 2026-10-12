@@ -37,6 +37,7 @@ import {
   fallbackTestCaseIdLabelName,
   getWorstStatus,
   createHistoryTestResultLookup,
+  hasRetriesStatusChange,
   normalizeHistoryDataPoint,
   ordinal,
   reverse,
@@ -1555,6 +1556,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       if (retries.length > 0) {
         statistic.retries = (statistic.retries ?? 0) + 1;
+      }
+
+      if (hasRetriesStatusChange(tr, retries)) {
+        statistic.retriesStatusChange = (statistic.retriesStatusChange ?? 0) + 1;
       }
 
       if (tr.flaky) {

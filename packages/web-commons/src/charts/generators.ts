@@ -55,6 +55,22 @@ const generateChartData = async (props: {
     return trs;
   };
 
+  const getAllTrs = async (): Promise<TestResult[]> => {
+    let trs: TestResult[] = [];
+
+    if (envId) {
+      trs = await store.testResultsByEnvironmentId(envId, { includeRetries: true });
+    } else {
+      trs = await store.allTestResults({ includeRetries: true });
+    }
+
+    if (filter) {
+      trs = trs.filter(filter);
+    }
+
+    return trs;
+  };
+
   const getHistoryDataPoints = async (): Promise<HistoryDataPoint[]> => {
     let historyDataPoints: HistoryDataPoint[] = [];
 
@@ -72,7 +88,7 @@ const generateChartData = async (props: {
             // Just in case filter accesses some property
             // that is not present in the history test result
             return filter(tr as unknown as TestResult);
-          } catch (error) {
+          } catch {
             return false;
           }
         });
@@ -101,7 +117,7 @@ const generateChartData = async (props: {
     getHistoryDataPoints(),
     getTrs(),
     getStatistic(),
-    store.allTestResults({ includeRetries: true }),
+    getAllTrs(),
   ]).then(([historyDataPoints, testResults, statistic, allTestResults]) => ({
     historyDataPoints,
     testResults,

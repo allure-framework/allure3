@@ -109,6 +109,25 @@ test.describe("Run errors and attachments", () => {
     ).toHaveCount(0);
   });
 
+  test("scrolls the Run page when its content exceeds the viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 480 });
+    await openReport(page, {
+      fixture: fixtures.globalsAttachments.name,
+      mode: REPORT_MODES.DIRECTORY,
+      route: "run",
+    });
+
+    const content = page.locator(".app__content");
+    const dimensions = await content.evaluate(({ clientHeight, scrollHeight }) => ({ clientHeight, scrollHeight }));
+    expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
+
+    await content.hover();
+    await page.mouse.wheel(0, dimensions.scrollHeight);
+
+    await expect.poll(() => content.evaluate(({ scrollTop }) => scrollTop)).toBeGreaterThan(0);
+    await expect(page.locator(".run-view__attachment").last()).toBeInViewport();
+  });
+
   test("loads global metadata and attachment content from a single-file report", async ({ page }) => {
     await test.step("Open the embedded Run page", async () => {
       await openReport(page, {

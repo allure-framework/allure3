@@ -6,7 +6,7 @@ import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AgentLatestCommand, AgentStateDirCommand } from "../../src/commands/agent.js";
+import { AgentLatestCommand, AgentStateDirCommand } from "../../../src/commands/agents/index.js";
 
 const agentOutputDir = join(tmpdir(), "allure-agent-123");
 const agentStateDir = join(tmpdir(), "allure-agent-state");

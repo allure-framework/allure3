@@ -9,7 +9,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AgentQueryCommand } from "../../src/commands/agent.js";
+import { AgentQueryCommand } from "../../../src/commands/agents/index.js";
 
 vi.mock("node:console", async (importOriginal) => ({
   ...(await importOriginal()),
