@@ -1,4 +1,4 @@
-import { exit } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
 import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
@@ -42,13 +42,24 @@ export const generate = async (params: {
 
   if (params.clean) {
     try {
+      // the report reads these files later, so they must be resolved before the output is removed;
+      // the core globs global attachments from the process directory, so both bases are covered
+      const globalAttachmentPatterns = params.config.globalAttachments ?? [];
+      const globalAttachments = [
+        ...(await findFilesByGlobs(params.cwd, globalAttachmentPatterns)),
+        ...(await findFilesByGlobs(processCwd(), globalAttachmentPatterns)),
+      ];
+
       await cleanOutputDirectory({
         output: params.config.output,
         cwd: params.cwd,
         resultsDirs: resultDirectories,
-        inputs: [...dumpFiles, params.config.historyPath, params.config.resolutions?.knownIssuesPath].filter(
-          (path): path is string => !!path,
-        ),
+        inputs: [
+          ...dumpFiles,
+          ...globalAttachments,
+          params.config.historyPath,
+          params.config.resolutions?.knownIssuesPath,
+        ].filter((path): path is string => !!path),
       });
     } catch (error) {
       // eslint-disable-next-line no-console

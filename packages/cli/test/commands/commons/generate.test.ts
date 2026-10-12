@@ -109,6 +109,24 @@ describe("generate function", () => {
     );
   });
 
+  it("should protect the global attachments from cleaning", async () => {
+    (glob as unknown as Mock).mockImplementation(async (pattern: string) =>
+      pattern === "report/input.log" ? ["/work/report/input.log"] : ["./allure-results/"],
+    );
+
+    await generate({
+      cwd: "/work",
+      config: { output: "/work/report", globalAttachments: ["report/input.log"] } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ inputs: expect.arrayContaining(["/work/report/input.log"]) }),
+    );
+  });
+
   it("should not clean the output directory by default", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
 
