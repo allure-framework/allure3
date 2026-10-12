@@ -23,13 +23,13 @@ const javaClassNameRegexp = /^[\p{L}_$][\p{L}\p{N}_$]*(\.[\p{L}_$][\p{L}\p{N}_$]
 const createIdeaLink = (labels: TestLabel[], options: boolean | IdeaLinksOptions): TestLink[] => {
   const { port = 63342, fileExtension = "java", sourceRoot = "" } = options === true ? {} : options || {};
   const testClass = labels.find(({ name, value }) => name === "testClass" && value)?.value;
+  // nested classes (`Outer$Inner`) live in the file of the outer class
+  const classPath = testClass?.split("$")[0].replaceAll(".", "/");
 
-  if (!testClass || !javaClassNameRegexp.test(testClass)) {
+  if (!testClass || !classPath || !javaClassNameRegexp.test(testClass)) {
     return [];
   }
 
-  // nested classes (`Outer$Inner`) live in the file of the outer class
-  const classPath = testClass.split("$")[0].replaceAll(".", "/");
   const root = sourceRoot.replace(/^\/+|\/+$/g, "");
   const file = `${root ? `${root}/` : ""}${classPath}.${fileExtension.replace(/^\./, "")}`;
 

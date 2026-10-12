@@ -330,7 +330,7 @@ describe("convertTestResult ideaLinks", () => {
     );
   });
 
-  it.each(["Login suite", "tests/login.spec.ts", "", "org..FooTest", "1abc.Foo"])(
+  it.each(["Login suite", "tests/login.spec.ts", "", "org..FooTest", "1abc.Foo", "$Foo"])(
     "should skip idea link for non-class testClass %j",
     (value) => {
       expect(
