@@ -625,6 +625,100 @@ describe("report", () => {
     expect(acceptedReader.read).toHaveBeenCalledWith(allureReport.store, resultFile);
   });
 
+  it.for(["events", "hierarchy"] as const)(
+    "generates a report from Open Test Reporting %s with default readers",
+    async (format, { onTestFinished }) => {
+      // Arrange
+      const directory = await mkdtemp(join(tmpdir(), "allure3-open-test-reporting-"));
+      onTestFinished(() => rm(directory, { recursive: true, force: true }));
+      const resultsDirectory = join(directory, "results");
+      const outputDirectory = join(directory, "report");
+      const start = "2026-01-01T00:00:00Z";
+      const stop = "2026-01-01T00:00:01Z";
+      const coreNamespace = "https://schemas.opentest4j.org/reporting/core/0.2.0";
+      const testInfoXml = `
+        <c:metadata>
+          <c:tags><c:tag>smoke</c:tag></c:tags>
+        </c:metadata>
+        <c:result status="FAILED">
+          <c:reason>failure reason</c:reason>
+        </c:result>
+        <c:attachments>
+          <c:output time="${stop}" source="stdout">output</c:output>
+          <c:file time="${stop}" path="evidence.txt" mediaType="text/custom"/>
+        </c:attachments>
+      `;
+      const reportXmlByFormat = {
+        events: `
+          <events xmlns="https://schemas.opentest4j.org/reporting/events/0.2.0" xmlns:c="${coreNamespace}">
+            <started id="suite" name="Suite" time="${start}"/>
+            <started id="test" parentId="suite" name="Imported test" time="${start}"/>
+            <finished id="test" time="${stop}">${testInfoXml}</finished>
+            <finished id="suite" time="${stop}"/>
+          </events>
+        `,
+        hierarchy: `
+          <execution xmlns="https://schemas.opentest4j.org/reporting/hierarchy/0.2.0" xmlns:c="${coreNamespace}">
+            <root name="Suite" start="${start}">
+              <child name="Imported test" start="${start}" duration="PT1S">${testInfoXml}</child>
+            </root>
+          </execution>
+        `,
+      };
+      await mkdir(resultsDirectory);
+      await writeFile(join(resultsDirectory, "evidence.txt"), "evidence");
+      await writeFile(join(resultsDirectory, "producer-independent.xml"), reportXmlByFormat[format]);
+
+      const plugin = createPlugin("report");
+      plugin.plugin.done.mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("generated"));
+      });
+      const config = await resolveConfig({ name: "Open Test Reporting", output: outputDirectory }, { plugins: {} });
+      config.plugins = [plugin];
+      const report = new AllureReport(config);
+
+      await report.start();
+      await report.readDirectory(resultsDirectory);
+      await report.done();
+
+      const testResults = await report.store.allTestResults();
+      const attachments = await report.store.allAttachments();
+      const attachmentContents = await Promise.all(
+        attachments.map(async (attachment) => {
+          const content = await report.store.attachmentContentById(attachment.id);
+          return content?.asUtf8String();
+        }),
+      );
+      const registry = JSON.parse(await readFile(join(outputDirectory, "test-results.json"), "utf8"));
+      const registeredTestResult = registry.byId[testResults[0]?.id ?? ""];
+      const generatedHtml = await readFile(join(outputDirectory, "index.html"), "utf8");
+
+      expect(testResults).toEqual([
+        expect.objectContaining({
+          name: "Imported test",
+          status: "failed",
+          error: { message: "failure reason", trace: undefined },
+          duration: 1000,
+          labels: expect.arrayContaining([
+            { name: "suite", value: "Suite" },
+            { name: "tag", value: "smoke" },
+          ]),
+          steps: [
+            expect.objectContaining({ type: "attachment", link: expect.objectContaining({ name: "stdout" }) }),
+            expect.objectContaining({ type: "attachment", link: expect.objectContaining({ name: "evidence.txt" }) }),
+          ],
+        }),
+      ]);
+      expect(attachments).toEqual([
+        expect.objectContaining({ name: "stdout", contentType: "text/plain", missed: false }),
+        expect.objectContaining({ name: "evidence.txt", contentType: "text/custom", missed: false }),
+      ]);
+      expect(attachmentContents).toEqual(["output", "evidence"]);
+      expect(registeredTestResult).toMatchObject({ name: "Imported test", status: "failed", duration: 1000 });
+      expect(generatedHtml).toBe("generated");
+    },
+  );
+
   it("should serialize earlier attempt statuses in history retries", async () => {
     const directory = await mkdtemp(join(tmpdir(), "allure3-history-retries-"));
     const historyPath = join(directory, "history.jsonl");
