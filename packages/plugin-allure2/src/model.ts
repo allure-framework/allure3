@@ -1,4 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
+import type { ExitCode } from "@allurereport/plugin-api";
 
 export type Allure2Status = "failed" | "broken" | "passed" | "skipped" | "unknown";
 
@@ -47,6 +48,7 @@ export interface Allure2GlobalAttachment extends Allure2Attachment {
 }
 
 export interface Allure2GlobalsData {
+  exitCode?: ExitCode;
   errors: Allure2GlobalError[];
   attachments: Allure2GlobalAttachment[];
 }

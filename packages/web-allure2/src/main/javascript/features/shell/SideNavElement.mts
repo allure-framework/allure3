@@ -12,6 +12,7 @@ import { THEME_CHANGE_EVENT, getActiveTheme, toggleTheme } from "../../shared/th
 import TooltipView from "../../shared/ui/TooltipView.mts";
 import { findWhere } from "../../shared/utils/collections.mts";
 import { loadGlobalsData } from "../run/model/globalsData.mts";
+import { effectiveExitCode, hasBadExitCode } from "../run/model/runStatus.mts";
 import LanguageSelectView from "./LanguageSelectView.mts";
 
 const getThemeSwitchLabel = () => translate(getActiveTheme() === "dark" ? "controls.lightTheme" : "controls.darkTheme");
@@ -218,7 +219,7 @@ class SideNavCustomElement extends BaseElement {
 
   loadRunStatus(requestId: number) {
     loadGlobalsData()
-      .then(({ attachments, errors }) => {
+      .then(({ attachments, errors, exitCode }) => {
         if (requestId !== this.runStatusRequestId) {
           return;
         }
@@ -229,21 +230,27 @@ class SideNavCustomElement extends BaseElement {
           return;
         }
 
-        if (errors.length === 0 && attachments.length === 0) {
+        const badExit = hasBadExitCode(exitCode);
+        if (errors.length === 0 && attachments.length === 0 && !badExit) {
           item.remove();
           return;
         }
 
         const errorCount = errors.length;
+        const showAsFailed = errorCount > 0 || badExit;
         item.removeAttribute("hidden");
-        link.classList.toggle("side-nav__link_error", errorCount > 0);
+        link.classList.toggle("side-nav__link_error", showAsFailed);
         badge.toggleAttribute("hidden", errorCount === 0);
         badge.textContent = String(errorCount);
         item.dataset.tooltip = errorCount
           ? `${translate("tab.run.name")} · ${translate("run.errorCount", {
               hash: { count: errorCount },
             })}`
-          : translate("tab.run.name");
+          : badExit
+            ? `${translate("tab.run.name")} · ${translate("run.failedWithExitCode", {
+                hash: { code: effectiveExitCode(exitCode) },
+              })}`
+            : translate("tab.run.name");
       })
       .catch(() => {
         // Keep shell navigation usable; the page-level loader renders the data error.

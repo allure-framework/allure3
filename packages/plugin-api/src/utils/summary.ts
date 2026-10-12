@@ -3,11 +3,34 @@ import {
   type AllureHistory,
   type CiDescriptor,
   type TestResult,
+  type TestStatus,
   getWorstStatus,
 } from "@allurereport/core-api";
 
-import type { PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
+import type { ExitCode, PluginSummary, SummaryCheckResult, TestResultRegistry, TestResultSummary } from "../plugin.js";
 import type { AllureStore } from "../store.js";
+
+/**
+ * Resolves overall report status from global errors, exit code, and test statuses.
+ * Precedence: any global error -> failed; nonzero exit -> failed; else worst test status (or passed).
+ */
+export const resolveReportStatus = (params: {
+  globalErrorsCount: number;
+  exitCode?: ExitCode;
+  testStatuses: TestStatus[];
+}): TestStatus => {
+  if (params.globalErrorsCount > 0) {
+    return "failed";
+  }
+
+  const code = params.exitCode?.actual ?? params.exitCode?.original;
+
+  if (code !== undefined && code !== 0) {
+    return "failed";
+  }
+
+  return getWorstStatus(params.testStatuses) ?? "passed";
+};
 
 export const convertToTestResultSummary = (tr: TestResult): TestResultSummary => ({
   id: tr.id,
@@ -72,12 +95,18 @@ export const createPluginSummary = async (params: {
   const retryTrs = allTrs.filter(({ retryHash }) => retryHash && retryHashesWithRetries.has(retryHash));
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
   const duration = calculateRunDuration(allTrs);
-  const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+  const exitCode = await store.globalExitCode();
+  const globalErrors = await store.allGlobalErrors();
+  const status = resolveReportStatus({
+    globalErrorsCount: globalErrors.length,
+    exitCode,
+    testStatuses: allTrs.map(({ status: testStatus }) => testStatus),
+  });
   const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
   return {
     stats: await store.testsStatistic(filter),
-    status: worstStatus ?? "passed",
+    status,
     newTests: newTrs.filter(({ id }) => currentIds.has(id)).map(({ id }) => id),
     flakyTests: flakyTrs.map(({ id }) => id),
     retryTests: retryTrs.map(({ id }) => id),
@@ -85,6 +114,8 @@ export const createPluginSummary = async (params: {
     name,
     duration,
     createdAt,
+    ...(exitCode ? { exitCode } : {}),
+    ...(globalErrors.length > 0 ? { globalErrorsCount: globalErrors.length } : {}),
     ...(filter ? { filtered: true } : {}),
     plugin,
     meta,
