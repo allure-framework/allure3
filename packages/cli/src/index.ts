@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import process, { argv } from "node:process";
 
 import { Builtins, Cli, UsageError } from "clipanion";
+import updateNotifier from "update-notifier";
 
 import {
   AgentCommand,
@@ -43,6 +44,8 @@ const [node, app, ...rawArgs] = argv;
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
+
+updateNotifier({ pkg, shouldNotifyInNpmScript: true }).notify();
 
 const cli = new Cli({
   binaryName: pkg.name,
