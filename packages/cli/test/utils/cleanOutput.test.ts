@@ -79,6 +79,20 @@ describe("getUnsafeCleanReason", () => {
     expect(reason).toMatch(/input file/);
   });
 
+  it("resolves relative results directories and inputs against the working directory", async () => {
+    const cwd = join(tmp, "work");
+
+    expect(await getUnsafeCleanReason({ output: join(cwd, "results"), cwd, resultsDirs: ["results"] })).toMatch(
+      /results directory/,
+    );
+    expect(await getUnsafeCleanReason({ output: join(cwd, "out"), cwd, inputs: ["out/history.jsonl"] })).toMatch(
+      /input file/,
+    );
+    expect(
+      await getUnsafeCleanReason({ output: join(cwd, "out"), cwd, resultsDirs: ["results"], inputs: ["dump.zip"] }),
+    ).toBe(undefined);
+  });
+
   it("sees through symlinks", async () => {
     const results = join(tmp, "results");
     const link = join(tmp, "link");
