@@ -429,7 +429,7 @@ export class TestOpsClient {
       totalBytes += attachmentByteLength(attachment);
 
       formData.append("file", attachment.content, {
-        filename: attachment.originalFileName,
+        filename: "name" in attachmentLink && attachmentLink.name ? attachmentLink.name : attachment.originalFileName,
         contentType: attachment.contentType,
       });
       hasResolvedAttachments = true;
