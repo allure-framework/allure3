@@ -62,20 +62,20 @@ If neither `prometheus` nor `influxdb` is set, both exports are enabled with the
 
 | Option        | Description                                                                                                                                                           | Type                                 | Default                      |
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|------------------------------|
-| `fileName`    | Report-relative path of the file. Absolute paths are written to that location instead                                                                                  | `string`                             | `export/prometheusData.txt`  |
+| `fileName`    | Path of the file relative to the report directory. Absolute paths are written to that location instead                                                                                  | `string`                             | `export/prometheusData.txt`  |
 | `labels`      | Labels added to every line. A string is used as is (`team="qa",env="ci"`), an object is rendered and escaped. Falls back to `ALLURE_PROMETHEUS_LABELS` (or `allure.prometheus.labels`) environment variable | `string \| Record<string, string>` | none                         |
 | `pushgateway` | Pushes the metrics to Pushgateway with `PUT /metrics/job/<job>/<key>/<value>`                                                                                           | `PushgatewayOptions`                 | no push                      |
 
-`pushgateway` options: `url` (required), `job` (default `allure`), `grouping` (extra grouping keys), and `authorization` / `authorizationEnv` (the `Authorization` header value or the name of the environment variable that holds it).
+`pushgateway` options: `url` (required), `job` (default `allure`), `grouping` (extra grouping keys), and `authorization` / `authorizationEnv` (the `Authorization` header value or the name of the environment variable that holds it). Grouping values that contain a `/` or are empty are sent in the `<label>@base64/<value>` form the Pushgateway requires (URL-safe base64 without padding, a single `=` for an empty value).
 
 ### `influxdb`
 
 | Option     | Description                                                                           | Type              | Default                    |
 |------------|---------------------------------------------------------------------------------------|-------------------|----------------------------|
-| `fileName` | Report-relative path of the file. Absolute paths are written to that location instead | `string`          | `export/influxDbData.txt`  |
+| `fileName` | Path of the file relative to the report directory. Absolute paths are written to that location instead | `string`          | `export/influxDbData.txt`  |
 | `push`     | Pushes the metrics to the write API                                                   | `InfluxDbPushOptions` | no push                |
 
-`push` options: `url` (required), `bucket` and optionally `org` for InfluxDB 2.x (`/api/v2/write`) or `db` for InfluxDB 1.x (`/write`), and `token` / `tokenEnv` (the API token or the name of the environment variable that holds it). Prefer `tokenEnv` and `authorizationEnv` over literal secrets in the config file.
+`push` options: `url` (required) and either `bucket` together with `org` (name or id) for InfluxDB 2.x (`/api/v2/write`), or `db` for InfluxDB 1.x (`/write`). InfluxDB 2.x authenticates with `token` / `tokenEnv` (the API token or the name of the environment variable that holds it); InfluxDB 1.x with `username` and `password` / `passwordEnv`, sent as Basic authentication. A `bucket` without `org` is rejected before anything is written. Prefer `tokenEnv` and `passwordEnv` over literal secrets in the config file.
 
 ```js
 export default defineConfig({
@@ -115,6 +115,10 @@ Retries are not counted in any metric except `launch_retries`.
 Keys are lower-cased and whitespaces are replaced with underscores. Characters Prometheus does not accept in metric names are additionally replaced with `_` in the Prometheus file. If several keys end up with the same metric name after that (for example categories `Timeouts!` and `Timeouts?`), their values are summed, because Prometheus rejects duplicated series. Label names given as an object are sanitized the same way.
 
 > Unlike in Allure 2, a test belongs to a single category: the first one whose matchers it satisfies.
+
+### File location
+
+The files are written to `<output>/export/` (the same place Allure 2 used), not to the plugin directory, so existing scrapers keep working. Note that Allure flattens the report directory when it contains a single sub-directory: if the metrics are the only thing the report generates, `export/` is moved up and the files end up directly in `<output>/`.
 
 ### File formats
 

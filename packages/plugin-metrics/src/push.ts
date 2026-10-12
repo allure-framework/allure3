@@ -17,9 +17,19 @@ const ensureOk = async (response: Response, target: string): Promise<void> => {
   );
 };
 
+// Pushgateway treats even an encoded slash as a path separator, so such values (and empty ones) have to use
+// the `<label>@base64/<url-safe base64 without padding>` form. A single `=` stands for an empty value.
+const groupingSegment = (label: string, value: string): string => {
+  if (value === "" || value.includes("/")) {
+    return `${encodeURIComponent(label)}@base64/${value === "" ? "=" : Buffer.from(value).toString("base64url")}`;
+  }
+
+  return `${encodeURIComponent(label)}/${encodeURIComponent(value)}`;
+};
+
 export const pushgatewayUrl = ({ url, job = "allure", grouping = {} }: PrometheusPushgatewayOptions): string => {
   const segments = [["job", job], ...Object.entries(grouping)]
-    .map(([key, value]) => `${encodeURIComponent(key)}/${encodeURIComponent(value)}`)
+    .map(([label, value]) => groupingSegment(label, value))
     .join("/");
 
   return `${url.replace(/\/+$/, "")}/metrics/${segments}`;
@@ -52,13 +62,12 @@ export const influxDbWriteUrl = ({ url, org, bucket, db }: InfluxDbPushOptions):
   const base = url.replace(/\/+$/, "");
 
   if (bucket) {
-    const params = new URLSearchParams({ bucket, precision: "ns" });
-
-    if (org) {
-      params.set("org", org);
+    // InfluxDB 2.x rejects a write without an organization (name or id)
+    if (!org) {
+      throw new Error("InfluxDB 2.x push requires the `org` option together with `bucket`");
     }
 
-    return `${base}/api/v2/write?${params}`;
+    return `${base}/api/v2/write?${new URLSearchParams({ bucket, org, precision: "ns" })}`;
   }
 
   if (db) {
@@ -76,12 +85,19 @@ export const pushToInfluxDb = async (
   timeout: number = DEFAULT_PUSH_TIMEOUT,
 ): Promise<void> => {
   const token = options.token ?? (options.tokenEnv ? env[options.tokenEnv] : undefined);
+  const password = options.password ?? (options.passwordEnv ? env[options.passwordEnv] : undefined);
   const target = influxDbWriteUrl(options);
+  // `Token` is the InfluxDB 2.x scheme, authenticated 1.x instances expect Basic auth
+  const authorization = token
+    ? `Token ${token}`
+    : options.username
+      ? `Basic ${Buffer.from(`${options.username}:${password ?? ""}`).toString("base64")}`
+      : undefined;
   const response = await doFetch(target, {
     method: "POST",
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      ...(token ? { Authorization: `Token ${token}` } : {}),
+      ...(authorization ? { Authorization: authorization } : {}),
     },
     body,
     signal: AbortSignal.timeout(timeout),

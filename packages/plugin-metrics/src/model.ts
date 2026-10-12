@@ -38,7 +38,7 @@ export type PrometheusOptions = {
 export type InfluxDbPushOptions = {
   /** InfluxDB base url, e.g. `http://localhost:8086` */
   url: string;
-  /** InfluxDB 2.x organization */
+  /** InfluxDB 2.x organization name or id. Required together with `bucket` */
   org?: string;
   /** InfluxDB 2.x bucket */
   bucket?: string;
@@ -48,6 +48,12 @@ export type InfluxDbPushOptions = {
   tokenEnv?: string;
   /** API token. Prefer `tokenEnv` to keep secrets out of the config */
   token?: string;
+  /** InfluxDB 1.x user name, sent with Basic authentication */
+  username?: string;
+  /** Name of an environment variable holding the InfluxDB 1.x password */
+  passwordEnv?: string;
+  /** InfluxDB 1.x password. Prefer `passwordEnv` to keep secrets out of the config */
+  password?: string;
 };
 
 export type InfluxDbOptions = {

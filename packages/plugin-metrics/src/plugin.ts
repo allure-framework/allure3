@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { extractErrorMatchingData, matchCategory } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
@@ -8,7 +8,7 @@ import { collectMetrics } from "./collect.js";
 import { renderInfluxDb } from "./influxdb.js";
 import type { InfluxDbOptions, MetricsPluginOptions, PrometheusOptions } from "./model.js";
 import { labelsFromEnv, renderPrometheus } from "./prometheus.js";
-import { pushToInfluxDb, pushToPushgateway } from "./push.js";
+import { influxDbWriteUrl, pushToInfluxDb, pushToPushgateway } from "./push.js";
 
 export const DEFAULT_PROMETHEUS_FILE = "export/prometheusData.txt";
 export const DEFAULT_INFLUXDB_FILE = "export/influxDbData.txt";
@@ -39,6 +39,11 @@ export class MetricsPlugin implements Plugin {
 
     if (!prometheus && !influxdb) {
       return;
+    }
+
+    // a broken push configuration is a mistake in the config file, so it must not end up as a late warning
+    if (influxdb?.push) {
+      influxDbWriteUrl(influxdb.push);
     }
 
     const [statistic, allResults, performance] = await Promise.all([
@@ -95,15 +100,17 @@ export class MetricsPlugin implements Plugin {
   };
 
   async #write(context: PluginContext, fileName: string, content: string): Promise<void> {
-    const data = Buffer.from(content, "utf-8");
+    // `context.reportFiles` is scoped to the plugin directory (`<output>/<plugin id>/...`), but Allure 2 exports live
+    // in `<output>/export`, where existing scrapers look for them, so relative paths are resolved against the output
+    const target = isAbsolute(fileName) ? fileName : resolve(context.output, fileName);
 
-    // relative paths end up in the report directory, absolute ones are written as is
-    if (!isAbsolute(fileName)) {
-      await context.reportFiles.addFile(fileName, data);
-      return;
+    const outside = relative(context.output, target);
+
+    if (!isAbsolute(fileName) && (outside === ".." || outside.startsWith(`..${sep}`))) {
+      throw new Error(`Refusing to write the metrics file outside of the report directory: ${fileName}`);
     }
 
-    await mkdir(dirname(fileName), { recursive: true });
-    await writeFile(fileName, data);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, Buffer.from(content, "utf-8"));
   }
 }
