@@ -1,9 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import type { TestLabel, TestStatus } from "@allurereport/core-api";
+import type { TestStatus } from "@allurereport/core-api";
 
 import { AgentUsageError } from "./errors.js";
+import { matchesLabelFilters } from "./filters.js";
+import { findingSubjectRef } from "./findings.js";
 import type {
   AgentFindingCategory,
   AgentFindingSeverity,
@@ -104,26 +106,11 @@ export const normalizeAgentQueryLimit = (value?: string): number | undefined => 
   return parsed;
 };
 
-const matchesLabelFilters = (labels: TestLabel[], filters: AgentLabelFilter[]) =>
-  filters.every((filter) => labels.some((label) => label.name === filter.name && label.value === filter.value));
-
 const matchesAgentTestIdentifier = (test: AgentTestManifestLine, identifier: string) =>
   test.full_name === identifier ||
   test.test_result_id === identifier ||
   test.retry_hash === identifier ||
   test.markdown_path === identifier;
-
-const agentFindingSubjectRef = (finding: AgentOutputBundle["findings"][number]) => {
-  if (finding.subject_ref) {
-    return finding.subject_ref;
-  }
-
-  if (typeof finding.subject === "string") {
-    return finding.subject;
-  }
-
-  return finding.subject.path ?? finding.subject.id ?? finding.subject.type;
-};
 
 const agentFindingCheckName = (finding: AgentOutputBundle["findings"][number]) =>
   finding.check_id ?? finding.check_name;
@@ -144,7 +131,7 @@ const filterAgentQueryFindings = (output: AgentOutputBundle, filters: AgentQuery
     : undefined;
 
   return output.findings
-    .filter((finding) => (matchedSubjects ? matchedSubjects.has(agentFindingSubjectRef(finding)) : true))
+    .filter((finding) => (matchedSubjects ? matchedSubjects.has(findingSubjectRef(finding)) : true))
     .filter((finding) => (filters.severities?.length ? filters.severities.includes(finding.severity) : true))
     .filter((finding) => (filters.categories?.length ? filters.categories.includes(finding.category) : true))
     .filter((finding) => (filters.checks?.length ? filters.checks.includes(agentFindingCheckName(finding)) : true));
@@ -242,7 +229,7 @@ const buildAgentQueryTestPayload = async (output: AgentOutputBundle, filters: Ag
 
   const test = matched[0];
   const markdownPath = resolveAgentOutputPath(output, test.markdown_path);
-  const findings = output.findings.filter((finding) => agentFindingSubjectRef(finding) === test.markdown_path);
+  const findings = output.findings.filter((finding) => findingSubjectRef(finding) === test.markdown_path);
   let markdown: string | undefined;
 
   if (filters.includeMarkdown && markdownPath) {

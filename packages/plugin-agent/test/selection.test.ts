@@ -37,8 +37,8 @@ describe("agent-select utils", () => {
           environment_id: "default",
           full_name: "suite feature A",
           labels: [
-            { name: "feature", value: "checkout" },
-            { name: "priority", value: "high" },
+            { name: "module", value: "cli" },
+            { name: "layer", value: "unit" },
           ],
           status: "failed",
           markdown_path: "tests/default/feature-a.md",
@@ -46,7 +46,7 @@ describe("agent-select utils", () => {
         {
           environment_id: "api",
           full_name: "suite feature B",
-          labels: [{ name: "feature", value: "payments" }],
+          labels: [{ name: "module", value: "plugin-agent" }],
           status: "passed",
           markdown_path: "tests/api/feature-b.md",
         },
@@ -63,7 +63,10 @@ describe("agent-select utils", () => {
       outputDir: "/tmp/agent-output",
       preset: "review",
       environments: ["default"],
-      labelFilters: [{ name: "feature", value: "checkout" }],
+      labelFilters: [
+        { name: "module", value: "cli" },
+        { name: "layer", value: "unit" },
+      ],
     });
 
     await attachJsonEvidence("selected agent test plan", selection);
