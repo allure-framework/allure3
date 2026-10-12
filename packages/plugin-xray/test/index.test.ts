@@ -142,16 +142,42 @@ describe("XrayPlugin", () => {
     });
   });
 
-  it("keeps going and reports to stderr when Xray requests fail", async () => {
+  it("does not comment on an execution whose test run update failed", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
-    http.get.mockResolvedValueOnce({ data: [{ id: 1, key: "XT-1", status: "TODO" }] });
+    http.get.mockResolvedValue({ data: [{ id: 1, key: "XT-1", status: "TODO" }] });
     http.put.mockRejectedValueOnce(new Error("boom"));
+
+    await expect(
+      new XrayPlugin({ ...options, executions: ["XT-6", "XT-7"] }).done(context, store([tr("passed", "XT-1")])),
+    ).resolves.toBeUndefined();
+
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("failed to update test run XT-1 (id: 1) to PASS"));
+    expect(http.put).toHaveBeenCalledTimes(2);
+    expect(http.post).toHaveBeenCalledTimes(1);
+    expect(http.post).toHaveBeenCalledWith("api/2/issue/XT-7/comment", expect.anything());
+  });
+
+  it("does not comment on an execution whose test runs could not be read", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    http.get.mockRejectedValueOnce(new Error("nope")).mockResolvedValueOnce({ data: [] });
+
+    await new XrayPlugin({ ...options, executions: ["XT-6", "XT-7"] }).done(context, store([tr("passed", "XT-1")]));
+
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("failed to read test runs of XT-6"));
+    expect(http.post).toHaveBeenCalledTimes(1);
+    expect(http.post).toHaveBeenCalledWith("api/2/issue/XT-7/comment", expect.anything());
+  });
+
+  it("logs a failed comment and keeps going", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
     http.post.mockRejectedValueOnce(new Error("nope"));
 
-    await expect(new XrayPlugin(options).done(context, store([tr("passed", "XT-1")]))).resolves.toBeUndefined();
+    await expect(
+      new XrayPlugin({ ...options, executions: ["XT-6", "XT-7"] }).done(context, store([tr("passed", "XT-1")])),
+    ).resolves.toBeUndefined();
 
-    expect(error).toHaveBeenCalledWith(expect.stringContaining("failed to update test run XT-1"));
     expect(error).toHaveBeenCalledWith(expect.stringContaining("failed to comment on XT-6"));
+    expect(http.post).toHaveBeenCalledTimes(2);
   });
 
   it.each([

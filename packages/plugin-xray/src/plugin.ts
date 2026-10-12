@@ -107,12 +107,37 @@ export class XrayPlugin implements Plugin {
     return new XrayClient({ endpoint, username, password, token });
   }
 
+  /**
+   * Runs the action and logs a failure instead of throwing, so one failed request doesn't stop the others
+   * @returns whether the action succeeded
+   */
   async #attempt(description: string, action: () => Promise<void>) {
     try {
       await action();
+      return true;
     } catch (error) {
       console.error(`[${this.#pluginName}] failed to ${description}: ${formatXrayError(error)}`);
+      return false;
     }
+  }
+
+  async #syncExecution(client: XrayClient, execution: string, wanted: ReadonlyMap<string, XrayStatus>) {
+    let runs: XrayTestRun[] = [];
+    let synced = await this.#attempt(`read test runs of ${execution}`, async () => {
+      runs = await client.getTestRuns(execution);
+    });
+
+    for (const run of runs) {
+      const status = wanted.get(run.key);
+      if (status && run.status !== status) {
+        const updated = await this.#attempt(`update test run ${run.key} (id: ${run.id}) to ${status}`, () =>
+          client.updateTestRunStatus(run.id, status),
+        );
+        synced &&= updated;
+      }
+    }
+
+    return synced;
   }
 
   async done(context: PluginContext, store: AllureStore) {
@@ -129,32 +154,17 @@ export class XrayPlugin implements Plugin {
       return;
     }
 
-    const testRunsByKey = new Map<string, XrayTestRun[]>();
-    for (const execution of opts.executions) {
-      await this.#attempt(`read test runs of ${execution}`, async () => {
-        for (const run of await client.getTestRuns(execution)) {
-          testRunsByKey.set(run.key, [...(testRunsByKey.get(run.key) ?? []), run]);
-        }
-      });
-    }
+    const comment = context.reportUrl
+      ? `Execution updated from report [${escapeWikiLinkText(context.reportName)}|${context.reportUrl}]`
+      : undefined;
 
-    for (const [key, status] of wanted) {
-      for (const run of testRunsByKey.get(key) ?? []) {
-        if (run.status !== status) {
-          await this.#attempt(`update test run ${key} (id: ${run.id}) to ${status}`, () =>
-            client.updateTestRunStatus(run.id, status),
-          );
-        }
+    for (const execution of opts.executions) {
+      const synced = await this.#syncExecution(client, execution, wanted);
+
+      // don't claim the execution was updated when reading or updating its test runs failed
+      if (synced && opts.comment && comment) {
+        await this.#attempt(`comment on ${execution}`, () => client.addComment(execution, comment));
       }
-    }
-
-    if (!opts.comment || !context.reportUrl) {
-      return;
-    }
-
-    const comment = `Execution updated from report [${escapeWikiLinkText(context.reportName)}|${context.reportUrl}]`;
-    for (const execution of opts.executions) {
-      await this.#attempt(`comment on ${execution}`, () => client.addComment(execution, comment));
     }
   }
 }
