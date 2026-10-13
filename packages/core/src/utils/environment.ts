@@ -1,7 +1,6 @@
 import {
   DEFAULT_ENVIRONMENT,
   MAX_ENVIRONMENT_ID_LENGTH,
-  UNRESOLVED_ENVIRONMENT,
   UNRESOLVED_ENVIRONMENT_IDENTITY,
   DEFAULT_ENVIRONMENT_IDENTITY,
   formatNormalizedEnvironmentCollision,
@@ -73,12 +72,7 @@ export const validateAllowedEnvironmentId = (
   allowedIds: ReadonlySet<string>,
   sourcePath: string,
 ): string | undefined => {
-  if (
-    environmentId === DEFAULT_ENVIRONMENT ||
-    environmentId === UNRESOLVED_ENVIRONMENT ||
-    allowedIds.size === 0 ||
-    allowedIds.has(environmentId)
-  ) {
+  if (environmentId === DEFAULT_ENVIRONMENT || allowedIds.size === 0 || allowedIds.has(environmentId)) {
     return undefined;
   }
 
@@ -238,7 +232,7 @@ export const resolveDynamicEnvironmentIdentity = (
   const configured = environmentIdentityById(environmentsConfig, id);
 
   if (configured) {
-    return configured;
+    return { ...configured, source };
   }
 
   const nameResult = validateEnvironmentName(rawName ?? normalizedFrom ?? id);

@@ -176,6 +176,7 @@ describe("dynamic environment resolution", () => {
     expect(resolveDynamicEnvironmentIdentity(() => "alpha", { labels }, config)).toEqual({
       id: "alpha",
       name: "Configured alpha",
+      source: "alpha",
     });
   });
 

@@ -3456,6 +3456,73 @@ describe("environments", () => {
       );
     });
 
+    it("should reject colliding values for an id which is declared in environments", async () => {
+      const store = new DefaultAllureStore({
+        environmentsConfig: { a_b: { name: "Configured", matcher: () => false } },
+        dynamicEnvironments: hostResolver,
+      });
+
+      await store.visitTestResult(raw("a", "a_b"), { readerId });
+      await expect(store.visitTestResult(raw("b", "a.b"), { readerId })).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+      expect((await store.allTestResults())[0].environment).toBe("a_b");
+    });
+
+    it("should reject colliding values which come from different restored dumps", async () => {
+      const first = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const second = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const target = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await first.visitTestResult(raw("a", "a.b"), { readerId });
+      await second.visitTestResult(raw("b", "a b"), { readerId });
+      await target.restoreState(first.dumpState());
+
+      await expect(target.restoreState(second.dumpState())).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+    });
+
+    it("should accept the same value restored from several dumps", async () => {
+      const first = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const second = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const target = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await first.visitTestResult(raw("a", "a.b"), { readerId });
+      await second.visitTestResult(raw("b", "a.b"), { readerId });
+      await target.restoreState(first.dumpState());
+      await target.restoreState(second.dumpState());
+
+      expect(await target.allTestResults()).toHaveLength(2);
+    });
+
+    it("should reserve the unresolved id for the dynamic environments fallback", () => {
+      expect(
+        () =>
+          new DefaultAllureStore({
+            environmentsConfig: { unresolved: { matcher: () => false } },
+            dynamicEnvironments: hostResolver,
+          }),
+      ).toThrow(/"unresolved" is reserved/);
+      expect(() => new DefaultAllureStore({ environment: "unresolved", dynamicEnvironments: hostResolver })).toThrow(
+        /"unresolved" is reserved/,
+      );
+      expect(
+        () => new DefaultAllureStore({ environmentsConfig: { unresolved: { matcher: () => false } } }),
+      ).not.toThrow();
+    });
+
+    it("should still check unresolved against allowedEnvironments when it is not the fallback", async () => {
+      const store = new DefaultAllureStore({
+        allowedEnvironments: ["alpha"],
+        environmentsConfig: { alpha: { matcher: () => false } },
+      });
+
+      await expect(
+        store.restoreState({ ...store.dumpState(), environments: [{ id: "unresolved", name: "Unresolved" }] }),
+      ).rejects.toThrow(/not listed in allowedEnvironments/);
+    });
+
     it("should keep rejecting colliding values after dump and restore", async () => {
       const source = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
       const target = new DefaultAllureStore({ dynamicEnvironments: hostResolver });

@@ -234,6 +234,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     errors.push(...forcedEnvironment.errors);
 
+    if (
+      dynamicEnvironments &&
+      (UNRESOLVED_ENVIRONMENT in normalizedEnvironmentsConfig ||
+        forcedEnvironment.identity?.id === UNRESOLVED_ENVIRONMENT)
+    ) {
+      errors.push(
+        `the environment id ${JSON.stringify(UNRESOLVED_ENVIRONMENT)} is reserved for the dynamic environments fallback`,
+      );
+    }
+
     const resolvedEnvironment = forcedEnvironment.identity;
 
     if (errors.length > 0) {
@@ -443,12 +453,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     for (const testResult of this.#testResults.values()) {
       const environmentId = this.#environmentIdByTestResult(testResult);
 
-      if (!environmentId || this.#dynamicEnvironmentSources.has(environmentId)) {
+      if (!environmentId) {
         continue;
       }
 
+      let dynamic: DynamicEnvironmentIdentity | undefined;
+
       try {
-        const dynamic = resolveDynamicEnvironmentIdentity(
+        dynamic = resolveDynamicEnvironmentIdentity(
           this.#dynamicEnvironments,
           {
             labels: testResult.labels.filter(
@@ -457,30 +469,38 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           },
           this.#environmentsConfig,
         );
-
-        if (dynamic?.source !== undefined && dynamic.id === environmentId && dynamic.id !== UNRESOLVED_ENVIRONMENT) {
-          this.#dynamicEnvironmentSources.set(dynamic.id, dynamic.source);
-          this.#dynamicEnvironmentIds.add(dynamic.id);
-        }
       } catch {
         // the resolver can not handle this result anymore, there is nothing to rebuild from it
+        continue;
       }
+
+      if (dynamic?.source === undefined || dynamic.id !== environmentId || dynamic.id === UNRESOLVED_ENVIRONMENT) {
+        continue;
+      }
+
+      // every restored result is compared with what is already known, so dumps restored one by one are checked too
+      this.#trackDynamicEnvironmentSource(dynamic.id, dynamic.source);
+      this.#dynamicEnvironmentIds.add(dynamic.id);
     }
+  }
+
+  #trackDynamicEnvironmentSource(id: string, source: string) {
+    const knownSource = this.#dynamicEnvironmentSources.get(id);
+
+    if (knownSource !== undefined && knownSource !== source) {
+      throw new Error(
+        `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(source)} are both normalized to the environment id ${JSON.stringify(id)}`,
+      );
+    }
+
+    this.#dynamicEnvironmentSources.set(id, source);
   }
 
   #registerDynamicEnvironment(dynamic: DynamicEnvironmentIdentity): EnvironmentIdentity {
     const { source, ...identity } = dynamic;
 
     if (source !== undefined) {
-      const knownSource = this.#dynamicEnvironmentSources.get(identity.id);
-
-      if (knownSource !== undefined && knownSource !== source) {
-        throw new Error(
-          `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(source)} are both normalized to the environment id ${JSON.stringify(identity.id)}`,
-        );
-      }
-
-      this.#dynamicEnvironmentSources.set(identity.id, source);
+      this.#trackDynamicEnvironmentSource(identity.id, source);
     }
 
     this.#dynamicEnvironmentIds.add(identity.id);
@@ -532,6 +552,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   #assertAllowedEnvironmentId(environmentId: string | undefined, sourcePath: string) {
     if (!environmentId) {
+      return;
+    }
+
+    // the fallback environment of the dynamic environments is technical, like default
+    if (this.#dynamicEnvironments && environmentId === UNRESOLVED_ENVIRONMENT) {
       return;
     }
 

@@ -19,7 +19,7 @@ The function receives `{ labels }` and returns:
 - `{ id, name }` — the id and a display name;
 - `undefined` — the result is not matched (it goes to `default`).
 
-The environment `unresolved` is reserved for values which cannot be used: avoid returning it for other purposes.
+The environment id `unresolved` is reserved for values which cannot be used. Declaring it in `environments` or forcing it with `environment` together with `dynamicEnvironments` is an error.
 
 ## Declarative form
 
@@ -51,7 +51,7 @@ Ids which are not listed in `allowedEnvironments` (when it is set) are rejected 
 - Characters other than latin letters, digits, `_` and `-` are replaced with `_` in the id,
   the original value is used as the name: `srv1.example.com` becomes the environment `srv1.example.com` with the id `srv1_example_com`.
 - Ids are limited to 64 characters.
-- Different values which end up with the same id (`a.b` and `a b`) are rejected with an error.
+- Different values which end up with the same id (`a.b` and `a b`, or `a_b` and `a.b`) are rejected with an error, also for ids declared in `environments` and when several dumps are restored.
 - A value which cannot be turned into an id (for example `!!!`) goes to the technical environment `unresolved`
   and a warning with the value is printed once. It is not checked against `allowedEnvironments`.
 - A resolver returning something other than a string id (or `{ id, name }`) or an invalid explicit name is a bug in the config and throws.
