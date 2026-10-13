@@ -43,10 +43,11 @@ export const generate = async (params: {
   if (params.clean) {
     try {
       // the report reads these files later, so they must be resolved before the output is removed,
-      // against the same base the core uses
+      // with the same base and glob options as the core, so only files the report really reads are protected
       const globalAttachments = await findFilesByGlobs(
         params.config.cwd ?? processCwd(),
         params.config.globalAttachments ?? [],
+        { dot: false, windowsPathsNoEscape: false },
       );
 
       await cleanOutputDirectory({

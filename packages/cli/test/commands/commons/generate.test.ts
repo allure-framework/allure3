@@ -144,7 +144,7 @@ describe("generate function", () => {
     const attachmentCalls = (glob as unknown as Mock).mock.calls.filter(([pattern]) => pattern === "report/*.log");
 
     expect(attachmentCalls).toHaveLength(1);
-    expect(attachmentCalls[0][1]).toEqual(expect.objectContaining({ cwd: "/work" }));
+    expect(attachmentCalls[0][1]).toEqual(expect.objectContaining({ cwd: "/work", dot: false }));
   });
 
   it("should not clean the output directory by default", async () => {
