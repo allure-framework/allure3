@@ -54,4 +54,28 @@ describe("awesome locales", () => {
       });
     });
   });
+
+  it("defines muted resolution state labels for every locale", () => {
+    const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+
+    expect(localeFiles.length).toBeGreaterThan(0);
+
+    return step("verify muted resolution state labels in every awesome locale", async () => {
+      await attachment("checked locales", localeFiles.join("\n"), "text/plain");
+
+      localeFiles.forEach((file) => {
+        const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+        expect(locale.filters.resolutions.state, file).toEqual(
+          expect.objectContaining({
+            active: expect.any(String),
+            outdated: expect.any(String),
+            permanent: expect.any(String),
+            outdatedDescription: expect.any(String),
+            permanentDescription: expect.any(String),
+          }),
+        );
+      });
+    });
+  });
 });

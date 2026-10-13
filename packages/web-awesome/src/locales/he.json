@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "ללא פתרון"
+      "none": "ללא פתרון",
+      "state": {
+        "active": "הושתק עד {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "פג תוקף",
+        "permanent": "מושתק לצמיתות",
+        "outdatedDescription": "מועד ההשתקה חלף ב־{{timestamp, timestamp_long_no_seconds}}. מכשל זה כבר לא מתעלמים.",
+        "permanentDescription": "לא הוגדר תאריך יעד. מכשל זה יתעלמו ללא הגבלת זמן והוא עלול להסתיר בעיה עתידית."
+      }
     }
   },
   "sort-by": {

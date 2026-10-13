@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Həll yoxdur"
+      "none": "Həll yoxdur",
+      "state": {
+        "active": "{{timestamp, timestamp_long_no_seconds}} tarixinədək susdurulub",
+        "outdated": "Müddəti keçib",
+        "permanent": "Həmişəlik susdurulub",
+        "outdatedDescription": "Susdurma müddəti {{timestamp, timestamp_long_no_seconds}} tarixində bitdi. Bu xəta artıq gözardı edilmir.",
+        "permanentDescription": "Son tarix təyin edilməyib. Bu xəta qeyri-müəyyən müddətə gözardı ediləcək və gələcək problemi gizlədə bilər."
+      }
     }
   },
   "sort-by": {

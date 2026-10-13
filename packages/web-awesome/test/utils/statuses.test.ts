@@ -7,6 +7,7 @@ const leaf = (
   nodeId: string,
   status: ReportTreeLeaf["status"],
   resolutionStatus?: ReportTreeLeaf["resolutionStatus"],
+  resolutionState?: ReportTreeLeaf["resolutionState"],
 ): ReportTreeLeaf => ({
   nodeId,
   id: nodeId,
@@ -15,6 +16,7 @@ const leaf = (
   duration: 1,
   groupOrder: 1,
   resolutionStatus,
+  resolutionState,
 });
 
 const tree = (leaves: ReportTreeLeaf[]): ReportTree => ({
@@ -26,12 +28,13 @@ const tree = (leaves: ReportTreeLeaf[]): ReportTree => ({
 describe("utils > statuses", () => {
   it("should count unresolved failed and broken results only", () => {
     const counts = getUnresolvedStatusCounts(
-      { total: 5, failed: 3, broken: 1, passed: 1 },
+      { total: 6, failed: 4, broken: 1, passed: 1 },
       {
         default: tree([
           leaf("failed-unresolved", "failed", "none"),
           leaf("failed-issue", "failed", "issue"),
           leaf("failed-muted", "failed", "muted"),
+          leaf("failed-outdated-muted", "failed", "muted", "outdated"),
           leaf("broken-unresolved", "broken", "none"),
           leaf("passed", "passed"),
         ]),
@@ -39,7 +42,7 @@ describe("utils > statuses", () => {
       "default",
     );
 
-    expect(counts).toEqual({ failed: 1, broken: 1, passed: 1 });
+    expect(counts).toEqual({ failed: 2, broken: 1, passed: 1 });
   });
 
   it("should aggregate counts across environments", () => {

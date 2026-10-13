@@ -10,10 +10,18 @@ export const TrResolutionCategoriesView: FunctionalComponent<TrViewProps> = ({ t
   const groups: ReportResolutionGroup[] = testResult?.resolution
     ? [
         {
-          id: `${testResult.resolution}:${testResult.resolutionIssue?.id ?? testResult.id}`,
+          id: [
+            testResult.resolution,
+            testResult.resolutionIssue?.id ?? testResult.id,
+            testResult.resolution === "muted" ? (testResult.resolutionDueDate ?? "forever") : undefined,
+          ]
+            .filter(Boolean)
+            .join(":"),
           resolution: testResult.resolution,
           name: testResult.resolutionIssue?.id ?? testResult.resolution,
           comment: testResult.resolutionComment ?? testResult.resolutionIssue?.comment,
+          dueDate: testResult.resolutionDueDate,
+          resolutionState: testResult.resolutionState,
           issue: testResult.resolutionIssue,
           testResults: [],
         },
