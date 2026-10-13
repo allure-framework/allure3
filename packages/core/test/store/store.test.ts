@@ -3440,8 +3440,28 @@ describe("environments", () => {
       );
     });
 
-    it("should reject a value which can not be turned into an id", async () => {
-      const store = new DefaultAllureStore({ dynamicEnvironments: () => "!!!" });
+    it("should put a value which can not be turned into an id into default and warn once per value", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      try {
+        await store.visitTestResult(raw("a", "!!!"), { readerId });
+        await store.visitTestResult(raw("b", "!!!"), { readerId });
+        await store.visitTestResult(raw("c", "???"), { readerId });
+
+        const results = await store.allTestResults();
+
+        expect(results.map(({ environment }) => environment)).toEqual(["default", "default", "default"]);
+        expect(warn).toHaveBeenCalledTimes(2);
+        expect(warn.mock.calls[0][0]).toContain('"!!!"');
+        expect(warn.mock.calls[1][0]).toContain('"???"');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it("should reject a resolver which returns a non-string id", async () => {
+      const store = new DefaultAllureStore({ dynamicEnvironments: () => 42 as unknown as string });
 
       await expect(store.visitTestResult(raw("a"), { readerId })).rejects.toThrow(
         /dynamic environment resolver returned an invalid environment id/,

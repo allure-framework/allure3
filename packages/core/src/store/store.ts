@@ -153,6 +153,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // original label values of the dynamic environments whose ids had to be normalized
   readonly #dynamicEnvironmentSources: Map<string, string> = new Map();
   readonly #dynamicEnvironmentIds: Set<string> = new Set();
+  readonly #unusableDynamicEnvironmentValues: Set<string> = new Set();
   #dynamicEnvironmentsWarned = false;
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
@@ -413,6 +414,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#environments.find(({ id }) => id === environmentName)?.id ??
       this.#environments.find(({ name }) => name === environmentName)?.id ??
       this.#environmentIdForLookup(environmentName)
+    );
+  }
+
+  #warnUnusableDynamicEnvironmentValue(value: string) {
+    if (this.#unusableDynamicEnvironmentValues.has(value)) {
+      return;
+    }
+
+    this.#unusableDynamicEnvironmentValues.add(value);
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Allure: dynamic environment value ${JSON.stringify(value)} can not be used as an environment id, ` +
+        "the results with this value are put into the default environment",
     );
   }
 
@@ -1007,6 +1021,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           this.#dynamicEnvironments,
           { labels: environmentMatcherLabels },
           this.#environmentsConfig,
+          (value) => this.#warnUnusableDynamicEnvironmentValue(value),
         );
 
         if (dynamic) {

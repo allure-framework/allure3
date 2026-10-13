@@ -195,6 +195,7 @@ export const resolveDynamicEnvironmentIdentity = (
   resolver: DynamicEnvironmentResolver | undefined,
   payload: { labels: TestResult["labels"] },
   environmentsConfig: EnvironmentsConfig,
+  onUnusableValue?: (value: string) => void,
 ): DynamicEnvironmentIdentity | undefined => {
   const resolved = resolver?.(payload);
 
@@ -217,7 +218,10 @@ export const resolveDynamicEnvironmentIdentity = (
     const normalizedResult = validateEnvironmentId(id);
 
     if (!normalizedResult.valid || id.replace(/_/g, "").length === 0) {
-      throw new Error(`dynamic environment resolver returned an invalid environment id: ${idResult.reason}`);
+      // nothing meaningful is left of the value (e.g. "!!!"), treat it like there is no value at all
+      onUnusableValue?.(rawId);
+
+      return undefined;
     }
   } else {
     throw new Error(`dynamic environment resolver returned an invalid environment id: ${idResult.reason}`);

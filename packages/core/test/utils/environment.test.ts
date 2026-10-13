@@ -195,9 +195,18 @@ describe("dynamic environment resolution", () => {
     });
   });
 
-  it("should throw when the id can not be normalized or the name is invalid", () => {
-    expect(() => resolveDynamicEnvironmentIdentity(() => "!!!", { labels }, {})).toThrow(/invalid environment id/);
-    expect(() => resolveDynamicEnvironmentIdentity(() => "  ", { labels }, {})).toThrow(/invalid environment id/);
+  it("should treat a value which can not be normalized as no value and report it", () => {
+    const onUnusable = vi.fn();
+
+    expect(resolveDynamicEnvironmentIdentity(() => "!!!", { labels }, {}, onUnusable)).toBeUndefined();
+    expect(onUnusable).toHaveBeenCalledWith("!!!");
+    expect(resolveDynamicEnvironmentIdentity(() => "  ", { labels }, {})).toBeUndefined();
+  });
+
+  it("should throw when the resolver returns something other than a string id or the name is invalid", () => {
+    expect(() => resolveDynamicEnvironmentIdentity(() => 42 as unknown as string, { labels }, {})).toThrow(
+      /invalid environment id/,
+    );
     expect(() => resolveDynamicEnvironmentIdentity(() => ({ id: "alpha", name: "a\nb" }), { labels }, {})).toThrow(
       /invalid environment name/,
     );

@@ -49,8 +49,10 @@ Ids which are not listed in `allowedEnvironments` (when it is set) are rejected 
   the original value is used as the name: `srv1.example.com` becomes the environment `srv1.example.com` with the id `srv1_example_com`.
 - Ids are limited to 64 characters.
 - Different values which end up with the same id (`a.b` and `a b`) are rejected with an error.
-- A value which cannot be turned into an id (for example `!!!`) is rejected with an error.
-  In `allure watch` such a result is logged and skipped; the watch keeps running.
+- A value which cannot be turned into an id (for example `!!!`) is treated as if there was no value: the result goes
+  to `default` and a warning with the value is printed once. Such results share `default` with the results without a value
+  and, unlike results of the real environment, have a different retry identity.
+- A resolver returning something other than a string id (or `{ id, name }`) or an invalid explicit name is a bug in the config and throws.
 
 ## Things to keep in mind
 
