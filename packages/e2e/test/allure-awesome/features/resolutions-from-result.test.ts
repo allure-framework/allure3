@@ -18,14 +18,18 @@ const { name: mutedTestName, fullName: mutedTestFullName } = makeTestResultNames
 const { name: plainFailedTestName, fullName: plainFailedTestFullName } = makeTestResultNames("plain failed");
 const { name: knownBrokenTestName, fullName: knownBrokenTestFullName } = makeTestResultNames("known broken");
 const { name: mutedKnownTestName, fullName: mutedKnownTestFullName } = makeTestResultNames("muted and known failed");
+const { name: activeMutedTestName, fullName: activeMutedTestFullName } = makeTestResultNames("active muted failed");
+const { name: outdatedMutedTestName, fullName: outdatedMutedTestFullName } =
+  makeTestResultNames("outdated muted failed");
 
 const now = Date.now();
+type RawStatusDetails = { known?: boolean; muted?: boolean; message?: string };
 
 const makeRawResult = (
   name: string,
   fullName: string,
   status: typeof Status.FAILED | typeof Status.BROKEN,
-  statusDetails: { known?: boolean; muted?: boolean },
+  statusDetails: RawStatusDetails,
 ) => ({
   uuid: randomUUID(),
   name,
@@ -38,7 +42,7 @@ const makeRawResult = (
   labels: [{ name: "suite", value: "resolutions" }],
 });
 
-const makeRawFailedResult = (name: string, fullName: string, statusDetails: { known?: boolean; muted?: boolean }) =>
+const makeRawFailedResult = (name: string, fullName: string, statusDetails: RawStatusDetails) =>
   makeRawResult(name, fullName, Status.FAILED, statusDetails);
 
 test.describe("resolutions from result", () => {
@@ -46,6 +50,22 @@ test.describe("resolutions from result", () => {
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
         name: reportName,
+        resolutions: {
+          rules: [
+            {
+              resolution: "muted",
+              messageRegexp: "active mute",
+              comment: "Waiting for upstream fix",
+              dueDate: "2999-01-01T00:00:00Z",
+            },
+            {
+              resolution: "muted",
+              messageRegexp: "outdated mute",
+              comment: "Upstream deadline passed",
+              dueDate: "2000-01-01T00:00:00Z",
+            },
+          ],
+        },
       }),
       rawTestResults: [
         makeRawFailedResult(knownTestName, knownTestFullName, { known: true }),
@@ -53,6 +73,8 @@ test.describe("resolutions from result", () => {
         makeRawFailedResult(plainFailedTestName, plainFailedTestFullName, {}),
         makeRawResult(knownBrokenTestName, knownBrokenTestFullName, Status.BROKEN, { known: true }),
         makeRawFailedResult(mutedKnownTestName, mutedKnownTestFullName, { muted: true, known: true }),
+        makeRawFailedResult(activeMutedTestName, activeMutedTestFullName, { message: "active mute" }),
+        makeRawFailedResult(outdatedMutedTestName, outdatedMutedTestFullName, { message: "outdated mute" }),
       ],
     });
   });
@@ -98,6 +120,7 @@ test.describe("resolutions from result", () => {
     await expect(testResultPage.tabById("resolutionCategories")).toBeVisible();
     await testResultPage.tabById("resolutionCategories").click();
     await expect(page.getByText("Muted from result")).toBeVisible();
+    await expect(page.getByText("Muted forever")).toBeVisible();
 
     await page.goto(bootstrap.url);
     await treePage.openTestResultByTitle(knownTestName);
@@ -119,6 +142,8 @@ test.describe("resolutions from result", () => {
     await expect(treePage.getLeafByTitle(plainFailedTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(mutedTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(mutedKnownTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(activeMutedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(outdatedMutedTestName)).not.toBeVisible();
   });
 
   test("should filter tree by muted resolution", async ({ page }) => {
@@ -127,6 +152,8 @@ test.describe("resolutions from result", () => {
     await treePage.toggleMutedResolutionFilter();
     await expect(treePage.getLeafByTitle(mutedTestName)).toBeVisible();
     await expect(treePage.getLeafByTitle(mutedKnownTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(activeMutedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(outdatedMutedTestName)).toBeVisible();
     await expect(treePage.getLeafByTitle(knownTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(knownBrokenTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(plainFailedTestName)).not.toBeVisible();
@@ -135,10 +162,12 @@ test.describe("resolutions from result", () => {
   test("should filter failed tab to unresolved failures", async ({ page }) => {
     await page.goto(bootstrap.url);
 
-    await expect(treePage.metadataFailedLocator).toContainText("1");
+    await expect(treePage.metadataFailedLocator).toContainText("2");
 
     await treePage.clickTreeTab("failed");
     await expect(treePage.getLeafByTitle(plainFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(outdatedMutedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(activeMutedTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(knownTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(mutedTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(knownBrokenTestName)).not.toBeVisible();
@@ -154,6 +183,8 @@ test.describe("resolutions from result", () => {
     await expect(treePage.getLeafByTitle(mutedTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(knownBrokenTestName)).not.toBeVisible();
     await expect(treePage.getLeafByTitle(mutedKnownTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(activeMutedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(outdatedMutedTestName)).not.toBeVisible();
   });
 
   test("should show accepted resolution icon for known broken leaf", async ({ page }) => {
@@ -171,5 +202,20 @@ test.describe("resolutions from result", () => {
     await expect(testResultPage.tabById("resolutionCategories")).toBeVisible();
     await testResultPage.tabById("resolutionCategories").click();
     await expect(page.getByText("Muted from result")).toBeVisible();
+  });
+
+  test("should show active configured mute deadline and mark expired mute as outdated", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
+    await treePage.openTestResultByTitle(activeMutedTestName);
+    await testResultPage.tabById("resolutionCategories").click();
+    await expect(page.getByText(/Muted until/)).toBeVisible();
+
+    await page.goto(bootstrap.url);
+    await treePage.openTestResultByTitle(outdatedMutedTestName);
+    await testResultPage.tabById("resolutionCategories").click();
+
+    await expect(page.getByText("Outdated", { exact: true })).toBeVisible();
+    await expect(page.getByText(/This failure is no longer ignored/)).toBeVisible();
   });
 });

@@ -2,6 +2,7 @@ import {
   type TestLabel,
   type TestResult,
   createDictionary,
+  getMutedResolutionState,
   redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
@@ -28,6 +29,7 @@ export const convertTestResult = (
   tr: TestResult,
   options: {
     hideLabels?: readonly (string | RegExp)[];
+    resolutionEvaluatedAt?: number;
   } = {},
 ): ReportTestResult => {
   const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
@@ -49,6 +51,8 @@ export const convertTestResult = (
     known: tr.known,
     resolution: tr.resolution,
     resolutionComment: tr.resolutionComment,
+    resolutionDueDate: tr.resolutionDueDate,
+    resolutionState: getMutedResolutionState(tr, options.resolutionEvaluatedAt),
     isRetry: tr.isRetry,
     labels,
     groupedLabels: mapLabelsByName(labels),

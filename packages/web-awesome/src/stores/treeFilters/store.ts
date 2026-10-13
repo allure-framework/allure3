@@ -160,14 +160,30 @@ const treeStatusFilter = computed<AwesomeFilter>(() => {
     value: [
       statusFilter,
       {
-        type: "field",
+        type: "group",
         logicalOperator: "AND",
-        value: {
-          key: "resolutionStatus",
-          value: NO_RESOLUTION,
-          type: "string",
-          strict: true,
-        },
+        value: [
+          {
+            type: "field",
+            logicalOperator: "OR",
+            value: {
+              key: "resolutionStatus",
+              value: NO_RESOLUTION,
+              type: "string",
+              strict: true,
+            },
+          },
+          {
+            type: "field",
+            logicalOperator: "OR",
+            value: {
+              key: "resolutionState",
+              value: "outdated",
+              type: "string",
+              strict: true,
+            },
+          },
+        ],
       },
     ],
   };

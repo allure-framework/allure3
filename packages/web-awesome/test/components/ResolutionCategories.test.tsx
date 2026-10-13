@@ -12,6 +12,7 @@ afterEach(() => {
 
 const navigateToTestResultMock = vi.hoisted(() => vi.fn());
 const treeItemMock = vi.hoisted(() => vi.fn());
+const arrowButtonMock = vi.hoisted(() => vi.fn());
 const resolutionCategoriesStoreMock = vi.hoisted(() => ({
   value: {
     loading: false,
@@ -24,11 +25,44 @@ const resolutionCategoriesStoreMock = vi.hoisted(() => ({
 
 vi.mock("@allurereport/web-components/core", () => {
   return {
-    ArrowButton: ({ isOpened }: { isOpened: boolean }) => <span aria-label={isOpened ? "collapse" : "expand"} />,
+    ArrowButton: (props: {
+      "isOpened": boolean;
+      "onClick"?: () => void;
+      "type"?: "button" | "reset" | "submit";
+      "aria-controls"?: string;
+      "aria-expanded"?: boolean;
+      "aria-label"?: string;
+    }) => {
+      const {
+        isOpened,
+        onClick,
+        type,
+        "aria-controls": ariaControls,
+        "aria-expanded": ariaExpanded,
+        "aria-label": ariaLabel,
+      } = props;
+
+      arrowButtonMock(props);
+
+      return (
+        <button
+          aria-controls={ariaControls}
+          aria-expanded={ariaExpanded}
+          aria-label={ariaLabel ?? (isOpened ? "collapse" : "expand")}
+          onClick={onClick}
+          type={type}
+        />
+      );
+    },
     Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>
       renderData(source.value.data),
     PageLoader: () => <div>Loading</div>,
     SvgIcon: ({ id }: { id: string }) => <span data-testid={`resolution-icon-${id}`} />,
+    Tag: ({ children, skin }: { children: ComponentChildren; skin?: string }) => (
+      <span data-testid="resolution-state" data-skin={skin}>
+        {children}
+      </span>
+    ),
     Text: ({ children, tag: Tag = "div", ...rest }: { children: ComponentChildren; tag?: any }) => (
       <Tag {...rest}>{children}</Tag>
     ),
@@ -77,6 +111,7 @@ vi.mock("@/stores/router", () => ({
 beforeEach(() => {
   navigateToTestResultMock.mockClear();
   treeItemMock.mockClear();
+  arrowButtonMock.mockClear();
   resolutionCategoriesStoreMock.value = {
     loading: false,
     error: undefined,
@@ -140,6 +175,13 @@ describe("components > ResolutionCategories", () => {
     expect(screen.getByTestId("status-icon-failed")).toBeInTheDocument();
     expect(screen.getByTestId("resolution-marker-issue")).toBeInTheDocument();
     expect(screen.getByText("123")).toBeInTheDocument();
+    expect(arrowButtonMock.mock.calls[0]?.[0]).toMatchObject({
+      "aria-label": "Jira BUG-1",
+      "aria-expanded": true,
+      "isOpened": true,
+      "type": "button",
+    });
+    expect(arrowButtonMock.mock.calls[0]?.[0]).not.toHaveProperty("buttonSize");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("nodeId");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("retry");
     expect(treeItemMock.mock.calls[0]?.[0]).not.toHaveProperty("fullName");
@@ -205,6 +247,7 @@ describe("components > ResolutionCategories", () => {
       status: "failed",
       resolution: "muted",
       resolutionComment: "Muted while infra is unstable",
+      resolutionState: "permanent",
     } as ReportTestResult;
 
     render(<TrResolutionCategoriesView testResult={testResult} />);
@@ -212,5 +255,26 @@ describe("components > ResolutionCategories", () => {
     expect(screen.getByText("resolutions.muted")).toBeInTheDocument();
     expect(screen.getByText("Muted while infra is unstable")).toBeInTheDocument();
     expect(screen.getByTestId("resolution-icon-muted-icon")).toBeInTheDocument();
+    expect(screen.getByText("resolutions.state.permanent")).toBeInTheDocument();
+    expect(screen.getByText("resolutions.state.permanentDescription")).toBeInTheDocument();
+    expect(screen.getByTestId("resolution-state")).toHaveAttribute("data-skin", "warning-light");
+  });
+
+  it("should render outdated muted resolution state and due date metadata", () => {
+    const testResult = {
+      id: "tr-outdated",
+      name: "checkout fails",
+      status: "failed",
+      resolution: "muted",
+      resolutionComment: "Waiting for upstream fix",
+      resolutionDueDate: "2000-01-01T00:00:00Z",
+      resolutionState: "outdated",
+    } as ReportTestResult;
+
+    render(<TrResolutionCategoriesView testResult={testResult} />);
+
+    expect(screen.getByText("resolutions.state.outdated")).toBeInTheDocument();
+    expect(screen.getByText("resolutions.state.outdatedDescription")).toBeInTheDocument();
+    expect(screen.getByTestId("resolution-state")).toHaveAttribute("data-skin", "failed-light");
   });
 });

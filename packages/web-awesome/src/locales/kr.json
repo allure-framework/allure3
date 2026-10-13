@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "해결 없음"
+      "none": "해결 없음",
+      "state": {
+        "active": "{{timestamp, timestamp_long_no_seconds}}까지 음소거됨",
+        "outdated": "기한 만료",
+        "permanent": "영구 음소거",
+        "outdatedDescription": "음소거 기한이 {{timestamp, timestamp_long_no_seconds}}에 만료되었습니다. 이 실패는 더 이상 무시되지 않습니다.",
+        "permanentDescription": "기한이 설정되지 않았습니다. 이 실패는 무기한 무시되며 향후 문제를 숨길 수 있습니다."
+      }
     }
   },
   "sort-by": {

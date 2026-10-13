@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Nessuna risoluzione"
+      "none": "Nessuna risoluzione",
+      "state": {
+        "active": "Disattivato fino a {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Scaduto",
+        "permanent": "Disattivato per sempre",
+        "outdatedDescription": "Il termine di disattivazione è scaduto il {{timestamp, timestamp_long_no_seconds}}. Questo errore non viene più ignorato.",
+        "permanentDescription": "Non è impostata alcuna data di scadenza. Questo errore verrà ignorato a tempo indeterminato e potrebbe nascondere un problema futuro."
+      }
     }
   },
   "sort-by": {
