@@ -147,13 +147,18 @@ describe("dynamic environment resolution", () => {
   });
 
   it("should build an identity from a string id and use the id as name", () => {
-    expect(resolveDynamicEnvironmentIdentity(() => "alpha", { labels }, {})).toEqual({ id: "alpha", name: "alpha" });
+    expect(resolveDynamicEnvironmentIdentity(() => "alpha", { labels }, {})).toEqual({
+      id: "alpha",
+      name: "alpha",
+      source: "alpha",
+    });
   });
 
   it("should use the name returned alongside the id", () => {
     expect(resolveDynamicEnvironmentIdentity(() => ({ id: "alpha", name: "Host alpha" }), { labels }, {})).toEqual({
       id: "alpha",
       name: "Host alpha",
+      source: "alpha",
     });
   });
 
@@ -178,12 +183,12 @@ describe("dynamic environment resolution", () => {
     expect(resolveDynamicEnvironmentIdentity(() => "srv1.example.com", { labels }, {})).toEqual({
       id: "srv1_example_com",
       name: "srv1.example.com",
-      normalizedFrom: "srv1.example.com",
+      source: "srv1.example.com",
     });
     expect(resolveDynamicEnvironmentIdentity(() => "a/b", { labels }, {})).toEqual({
       id: "a_b",
       name: "a_b",
-      normalizedFrom: "a/b",
+      source: "a/b",
     });
   });
 
@@ -191,7 +196,7 @@ describe("dynamic environment resolution", () => {
     expect(resolveDynamicEnvironmentIdentity(() => ({ id: "a/b", name: "Host a/b" }), { labels }, {})).toEqual({
       id: "a_b",
       name: "a_b",
-      normalizedFrom: "a/b",
+      source: "a/b",
     });
   });
 

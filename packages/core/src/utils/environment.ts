@@ -188,8 +188,8 @@ export const environmentIdentityByName = (
 };
 
 export type DynamicEnvironmentIdentity = EnvironmentIdentity & {
-  /** The original value, set only when the id had to be normalized */
-  normalizedFrom?: string;
+  /** The original (trimmed) value the id was derived from, used to detect different values with the same id */
+  source?: string;
 };
 
 const normalizeDynamicEnvironmentId = (rawId: string): string =>
@@ -215,6 +215,7 @@ export const resolveDynamicEnvironmentIdentity = (
   const idResult = validateEnvironmentId(rawId);
   let id: string;
   let normalizedFrom: string | undefined;
+  const source = typeof rawId === "string" ? rawId.trim() : undefined;
 
   if (idResult.valid) {
     id = idResult.normalized;
@@ -244,15 +245,13 @@ export const resolveDynamicEnvironmentIdentity = (
 
   if (!nameResult.valid) {
     if (normalizedFrom !== undefined) {
-      return { id, name: id, normalizedFrom };
+      return { id, name: id, source };
     }
 
     throw new Error(`dynamic environment resolver returned an invalid environment name: ${nameResult.reason}`);
   }
 
-  return normalizedFrom === undefined
-    ? { id, name: nameResult.normalized }
-    : { id, name: nameResult.normalized, normalizedFrom };
+  return { id, name: nameResult.normalized, source };
 };
 
 /**

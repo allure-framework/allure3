@@ -3441,6 +3441,36 @@ describe("environments", () => {
       );
     });
 
+    it("should reject colliding values in both directions, including already valid ids", async () => {
+      const valid = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const reversed = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await valid.visitTestResult(raw("a", "a_b"), { readerId });
+      await expect(valid.visitTestResult(raw("b", "a.b"), { readerId })).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+
+      await reversed.visitTestResult(raw("a", "a.b"), { readerId });
+      await expect(reversed.visitTestResult(raw("b", "a_b"), { readerId })).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+    });
+
+    it("should keep rejecting colliding values after dump and restore", async () => {
+      const source = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+      const target = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await source.visitTestResult(raw("a", "a.b"), { readerId });
+      await target.restoreState(source.dumpState());
+
+      await expect(target.visitTestResult(raw("b", "a b"), { readerId })).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+      await target.visitTestResult(raw("c", "a.b"), { readerId });
+
+      expect(await target.allTestResults()).toHaveLength(2);
+    });
+
     it("should put a value which can not be turned into an id into unresolved and warn once per value", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });

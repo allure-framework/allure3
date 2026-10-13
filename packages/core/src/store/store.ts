@@ -151,7 +151,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #environment: EnvironmentIdentity | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #dynamicEnvironments: DynamicEnvironmentResolver | undefined;
-  // original label values of the dynamic environments whose ids had to be normalized
+  // the original values of the dynamic environments by id, to reject different values normalized to the same id
   readonly #dynamicEnvironmentSources: Map<string, string> = new Map();
   readonly #dynamicEnvironmentIds: Set<string> = new Set();
   readonly #unusableDynamicEnvironmentValues: Set<string> = new Set();
@@ -431,19 +431,56 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
   }
 
-  #registerDynamicEnvironment(dynamic: DynamicEnvironmentIdentity): EnvironmentIdentity {
-    const { normalizedFrom, ...identity } = dynamic;
+  /**
+   * The original values are not a part of the dump, but the resolver is deterministic over the labels,
+   * so the mapping is rebuilt from the restored results to keep the collision checks working
+   */
+  #rebuildDynamicEnvironmentSources() {
+    if (!this.#dynamicEnvironments || this.#environment) {
+      return;
+    }
 
-    if (normalizedFrom !== undefined) {
+    for (const testResult of this.#testResults.values()) {
+      const environmentId = this.#environmentIdByTestResult(testResult);
+
+      if (!environmentId || this.#dynamicEnvironmentSources.has(environmentId)) {
+        continue;
+      }
+
+      try {
+        const dynamic = resolveDynamicEnvironmentIdentity(
+          this.#dynamicEnvironments,
+          {
+            labels: testResult.labels.filter(
+              ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
+            ),
+          },
+          this.#environmentsConfig,
+        );
+
+        if (dynamic?.source !== undefined && dynamic.id === environmentId && dynamic.id !== UNRESOLVED_ENVIRONMENT) {
+          this.#dynamicEnvironmentSources.set(dynamic.id, dynamic.source);
+          this.#dynamicEnvironmentIds.add(dynamic.id);
+        }
+      } catch {
+        // the resolver can not handle this result anymore, there is nothing to rebuild from it
+      }
+    }
+  }
+
+  #registerDynamicEnvironment(dynamic: DynamicEnvironmentIdentity): EnvironmentIdentity {
+    const { source, ...identity } = dynamic;
+
+    if (source !== undefined) {
       const knownSource = this.#dynamicEnvironmentSources.get(identity.id);
 
-      if (knownSource !== undefined && knownSource !== normalizedFrom) {
+      if (knownSource !== undefined && knownSource !== source) {
         throw new Error(
-          `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(normalizedFrom)} are both normalized to the environment id ${JSON.stringify(identity.id)}`,
+          `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(source)} are both normalized to the environment id ${JSON.stringify(identity.id)}`,
         );
       }
 
-      this.#dynamicEnvironmentSources.set(identity.id, normalizedFrom);
+      this.#dynamicEnvironmentSources.set(identity.id, source);
     }
 
     this.#dynamicEnvironmentIds.add(identity.id);
@@ -2058,6 +2095,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
     this.#rebuildIdentityIndexes();
     this.#rebuildEnvironmentIndexes();
+    this.#rebuildDynamicEnvironmentSources();
     this.#rebuildRetrySubstore();
 
     for (const testResult of this.#testResults.values()) {
