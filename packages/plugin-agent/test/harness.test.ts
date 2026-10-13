@@ -996,4 +996,25 @@ describe("agent enrichment harness", () => {
       ]),
     );
   });
+
+  it("normalizes type-only finding subjects in review plans", () => {
+    const review = planAgentEnrichmentReview(
+      createOutputBundle({
+        findings: [
+          createFinding({
+            subject: { type: "test" },
+          }),
+        ],
+      }),
+    );
+
+    expect(review.plan).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: "test",
+          subjectType: "test",
+        }),
+      ]),
+    );
+  });
 });

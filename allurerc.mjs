@@ -1,6 +1,7 @@
+import { env } from "node:process";
+
 import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
-import { env } from "node:process";
 
 const { ALLURE_QUALITY_GATE, ALLURE_REQUIRE_NEW_TESTS, ALLURE_SERVICE_ACCESS_TOKEN } = env;
 const qualityGateEnabled = Boolean(ALLURE_QUALITY_GATE);
@@ -14,23 +15,23 @@ const msMetric = (title, group) => ({
 });
 
 const awesomeMetricTitles = {
-  readData: "Read report data",
-  environmentMap: "Build environment map",
-  stats: "Generate statistics",
-  charts: "Generate charts",
-  convert: "Convert test results",
-  categories: "Generate categories",
-  timeline: "Generate timeline",
-  testCases: "Write test cases",
-  tree: "Generate tree",
-  nav: "Generate navigation",
-  searchIndex: "Generate search index",
-  testEnvGroups: "Write test environment groups",
-  environmentsOutput: "Write environment views",
-  attachments: "Write attachments",
-  globals: "Write globals",
-  singleFileReportFiles: "Collect single-file data",
-  staticFiles: "Write static files",
+  "readData": "Read report data",
+  "environmentMap": "Build environment map",
+  "stats": "Generate statistics",
+  "charts": "Generate charts",
+  "convert": "Convert test results",
+  "categories": "Generate categories",
+  "timeline": "Generate timeline",
+  "testCases": "Write test cases",
+  "tree": "Generate tree",
+  "nav": "Generate navigation",
+  "searchIndex": "Generate search index",
+  "testEnvGroups": "Write test environment groups",
+  "environmentsOutput": "Write environment views",
+  "attachments": "Write attachments",
+  "globals": "Write globals",
+  "singleFileReportFiles": "Collect single-file data",
+  "staticFiles": "Write static files",
   "summary.create": "Create plugin summary",
 };
 
@@ -200,7 +201,7 @@ const config = {
       "generate.plugin.done.allure2": msMetric("Allure 2 plugin done", "generate"),
       "generate.plugin.done.log": msMetric("Log plugin done", "generate"),
       "generate.plugin.done.dashboard": msMetric("Dashboard plugin done", "generate"),
-      "generate.plugin.done.testops": msMetric("TestOps plugin done", "generate"),
+      "generate.plugin.done.testops": msMetric("Allure TestOps plugin done", "generate"),
       "summary.generate": msMetric("Generate summary", "summary"),
       "publish.upload.total": msMetric("Upload total", "publish"),
       "publish.upload.plugin.awesome": msMetric("Awesome upload", "publish"),

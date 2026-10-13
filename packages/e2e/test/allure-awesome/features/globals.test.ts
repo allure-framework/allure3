@@ -105,6 +105,54 @@ test.describe("globals", () => {
       await expect(reportHeader.getByTestId("test-result-status-failed")).not.toBeVisible();
       await globalsPage.attachScreenshot();
     });
+
+    test("should show failed status when global errors exist without exit code", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+        }),
+        testResults: [],
+        globals: {
+          errors: [{ message: "runner crashed", trace: "Error: runner crashed" }],
+        },
+      });
+
+      await page.goto(bootstrap.url);
+
+      const reportHeader = page.getByTestId("report-header");
+
+      await expect(reportHeader.getByTestId("test-result-status-failed")).toBeVisible();
+      await expect(reportHeader.getByTestId("test-result-status-passed")).not.toBeVisible();
+      await expect(reportHeader.getByTestId("report-data")).not.toContainText("with exit code");
+      await globalsPage.attachScreenshot();
+    });
+
+    test("should show failed status when global errors exist even with exit code 0", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+        }),
+        testResults: [],
+        globals: {
+          exitCode: {
+            original: 0,
+            actual: 0,
+          },
+          errors: [{ message: "runner crashed", trace: "Error: runner crashed" }],
+        },
+      });
+
+      await page.goto(bootstrap.url);
+
+      const reportHeader = page.getByTestId("report-header");
+
+      await expect(reportHeader.getByTestId("test-result-status-failed")).toBeVisible();
+      await expect(reportHeader.getByTestId("test-result-status-passed")).not.toBeVisible();
+      await expect(page.getByTestId("report-data")).toContainText("with exit code 0");
+      await globalsPage.attachScreenshot();
+    });
   });
 
   test.describe("attachments", () => {

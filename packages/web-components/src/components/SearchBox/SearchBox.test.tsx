@@ -51,6 +51,20 @@ describe("SearchBox", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("does not overwrite newer typing when a debounced value is acknowledged", () => {
+    vi.useFakeTimers();
+    const onChange = vi.fn();
+    const { rerender } = render(<SearchBox value="" onChange={onChange} changeDebounce={300} />);
+
+    fireEvent.input(searchInput(), { target: { value: "h" } });
+    vi.advanceTimersByTime(300);
+
+    fireEvent.input(searchInput(), { target: { value: "he" } });
+    rerender(<SearchBox value="h" onChange={onChange} changeDebounce={300} />);
+
+    expect(searchInput().value).toBe("he");
+  });
+
   it("clears the input immediately when the clear button is pressed", () => {
     const onChange = vi.fn();
 

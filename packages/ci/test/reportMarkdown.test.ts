@@ -55,6 +55,7 @@ describe("report markdown", () => {
           {
             name: "Launch",
             plugin: "TestOps",
+            pluginId: "testops",
             remoteHref: "https://testops.example.org/launch/1",
             stats: { total: 128989, passed: 128900, failed: 39, broken: 25, skipped: 16, unknown: 9 },
             status: "failed",
@@ -98,7 +99,7 @@ describe("report markdown", () => {
 
 **Reports:** <a href="https://example.org/awesome">Awesome</a>, <a href="https://example.org/classic">Classic</a>
 
-**TestOps:** <a href="https://testops.example.org/launch/1">TestOps</a>
+**Allure TestOps:** <a href="https://testops.example.org/launch/1">Launch</a>
 
 <details>
 <summary>Artifacts used (2)</summary>
@@ -108,6 +109,55 @@ describe("report markdown", () => {
 
 </details>
 `);
+  });
+
+  it("classifies TestOps links by pluginId, not by plugin display name", () => {
+    const withPluginId = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Launch",
+            plugin: "Anything",
+            pluginId: "testops",
+            remoteHref: "https://testops.example.org/launch/1",
+            stats: { total: 1, passed: 1 },
+            status: "passed",
+            duration: 1,
+          },
+        ],
+        totals: {
+          stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+          flags: { new: 0, flaky: 0, retry: 0 },
+          resolutions: { issues: 0, muted: 0, accepted: 0 },
+          duration: 1,
+        },
+      }),
+    );
+    const byDisplayNameOnly = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Launch",
+            plugin: "TestOps",
+            remoteHref: "https://testops.example.org/launch/1",
+            stats: { total: 1, passed: 1 },
+            status: "passed",
+            duration: 1,
+          },
+        ],
+        totals: {
+          stats: { total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+          flags: { new: 0, flaky: 0, retry: 0 },
+          resolutions: { issues: 0, muted: 0, accepted: 0 },
+          duration: 1,
+        },
+      }),
+    );
+
+    expect(withPluginId).toContain('**Allure TestOps:** <a href="https://testops.example.org/launch/1">Launch</a>');
+    expect(withPluginId).not.toContain("**Reports:**");
+    expect(byDisplayNameOnly).toContain('**Reports:** <a href="https://testops.example.org/launch/1">TestOps</a>');
+    expect(byDisplayNameOnly).not.toContain("**Allure TestOps:**");
   });
 
   it("renders filtered reports as separate rows because their statistics may differ", () => {

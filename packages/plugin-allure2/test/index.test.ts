@@ -1,7 +1,7 @@
 import type { GlobalAttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Allure2Plugin } from "../src/plugin.js";
 
@@ -10,6 +10,10 @@ beforeEach(async () => {
   await feature("plugin-allure2");
   await story("index");
   await label("coverage", "plugin-allure2");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const presentAttachment: GlobalAttachmentLink = {
@@ -77,6 +81,7 @@ const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
       },
     ]),
     allGlobalAttachments: vi.fn().mockResolvedValue([presentAttachment, missingAttachment]),
+    globalExitCode: vi.fn().mockResolvedValue(undefined),
     metadataByKey: vi.fn().mockResolvedValue(undefined),
     allTestResults: vi.fn().mockResolvedValue([]),
     relatedByTestResultIds: vi.fn().mockResolvedValue({
@@ -149,6 +154,43 @@ describe("Allure2Plugin", () => {
         },
       ],
     });
+    expect(globals).not.toHaveProperty("exitCode");
+  });
+
+  it("should include exitCode in widgets/globals.json when the store has one", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+    const exitCode = { original: 1, actual: 1 };
+
+    await plugin.done(
+      context,
+      createStore({
+        globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      }),
+    );
+
+    const globals = JSON.parse(files.get("widgets/globals.json")!.toString());
+    expect(globals.exitCode).toEqual(exitCode);
+  });
+
+  it("should omit exitCode from widgets/globals.json when the store has none", async () => {
+    const { context, files } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en" });
+
+    await plugin.done(
+      context,
+      createStore({
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+      }),
+    );
+
+    const globals = JSON.parse(files.get("widgets/globals.json")!.toString());
+    expect(globals).toEqual({
+      errors: [],
+      attachments: [],
+    });
   });
 
   it("should embed the latest UI and report data in single-file mode", async () => {
@@ -164,6 +206,22 @@ describe("Allure2Plugin", () => {
     expect(index).toContain("window.reportData = window.reportData || {};");
     expect(index).toContain('d("widgets/globals.json"');
     expect(index).not.toContain("window.allureReportData");
+  });
+
+  it("should assemble single-file report data from separate buffers", async () => {
+    const concatSpy = vi.spyOn(Buffer, "concat");
+    const { context } = createContext();
+    const plugin = new Allure2Plugin({ reportLanguage: "en", singleFile: true });
+
+    await plugin.done(context, createStore());
+
+    const reportDataChunks = concatSpy.mock.calls.find(([chunks]) =>
+      chunks.some((chunk) => chunk.includes("window.reportDataReady = false;")),
+    )?.[0];
+
+    expect(reportDataChunks).toBeDefined();
+    expect(reportDataChunks!.length).toBeGreaterThan(3);
+    expect(reportDataChunks!.every((chunk) => Buffer.isBuffer(chunk))).toBe(true);
   });
 
   it("should prefer legacy history stored by canonical retry hash", async () => {
