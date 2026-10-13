@@ -10,6 +10,7 @@ import {
   type DefaultLabelsConfig,
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
+  type DynamicEnvironmentResolver,
   type EnvironmentIdentity,
   type EnvironmentsConfig,
   type FlakyDetectionConfig,
@@ -70,6 +71,8 @@ import { createResolutionIssue, getResolutionByRules, isIgnoredFailure } from ".
 import {
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
+  resolveDynamicEnvironmentIdentity,
+  type DynamicEnvironmentIdentity,
   resolveEnvironmentIdentity,
   resolveStoredEnvironmentIdentity,
   validateAllowedEnvironmentId,
@@ -79,6 +82,8 @@ import { getStatusTransition } from "../utils/new.js";
 import { measurePerfAggregateSync, PERF_METRIC_NAMES } from "../utils/perf.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { RetrySubstore } from "./retrySubstore.js";
+
+const DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD = 50;
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | null | undefined, ...items: T[]) => {
   if (key) {
@@ -144,6 +149,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: EnvironmentIdentity | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
+  readonly #dynamicEnvironments: DynamicEnvironmentResolver | undefined;
+  // original label values of the dynamic environments whose ids had to be normalized
+  readonly #dynamicEnvironmentSources: Map<string, string> = new Map();
+  readonly #dynamicEnvironmentIds: Set<string> = new Set();
+  #dynamicEnvironmentsWarned = false;
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
@@ -185,6 +195,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     environment?: string;
     allowedEnvironments?: string[];
     environmentsConfig?: EnvironmentsConfig;
+    dynamicEnvironments?: DynamicEnvironmentResolver;
     reportVariables?: ReportVariables;
     performance?: PerformanceConfig;
   }) {
@@ -198,6 +209,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environment,
       allowedEnvironments,
       environmentsConfig = {},
+      dynamicEnvironments,
       reportVariables = {},
       performance = {},
     } = params ?? {};
@@ -247,6 +259,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = normalizedEnvironmentsConfig;
+    this.#dynamicEnvironments = dynamicEnvironments;
     this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
     this.#allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
@@ -403,6 +416,35 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
   }
 
+  #registerDynamicEnvironment(dynamic: DynamicEnvironmentIdentity): EnvironmentIdentity {
+    const { normalizedFrom, ...identity } = dynamic;
+
+    if (normalizedFrom !== undefined) {
+      const knownSource = this.#dynamicEnvironmentSources.get(identity.id);
+
+      if (knownSource !== undefined && knownSource !== normalizedFrom) {
+        throw new Error(
+          `dynamic environment values ${JSON.stringify(knownSource)} and ${JSON.stringify(normalizedFrom)} are both normalized to the environment id ${JSON.stringify(identity.id)}`,
+        );
+      }
+
+      this.#dynamicEnvironmentSources.set(identity.id, normalizedFrom);
+    }
+
+    this.#dynamicEnvironmentIds.add(identity.id);
+
+    if (!this.#dynamicEnvironmentsWarned && this.#dynamicEnvironmentIds.size > DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD) {
+      this.#dynamicEnvironmentsWarned = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Allure: more than ${DYNAMIC_ENVIRONMENTS_WARN_THRESHOLD} dynamic environments were created. ` +
+          "Make sure dynamicEnvironments returns stable values with a small set of variants (not ids, timestamps or hostnames of short-lived agents)",
+      );
+    }
+
+    return identity;
+  }
+
   #addEnvironments(envs: EnvironmentIdentity[]) {
     if (this.#environments.length === 0) {
       this.#environments.push(DEFAULT_ENVIRONMENT_IDENTITY);
@@ -462,6 +504,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const identity = resolveStoredEnvironmentIdentity(params, this.#environmentsConfig, {
       forcedEnvironment: this.#environment,
       fallbackToMatch: options?.fallbackToMatch,
+      dynamicEnvironments: this.#dynamicEnvironments,
     });
     const environmentKey =
       identity?.id ??
@@ -950,14 +993,28 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         : Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
             matcher({ labels: environmentMatcherLabels }),
           );
-      const namedEnvironmentIdentity =
-        this.#environment ??
-        (environmentMatch
-          ? {
-              id: environmentMatch[0],
-              name: environmentMatch[1].name ?? environmentMatch[0],
-            }
-          : undefined);
+      let namedEnvironmentIdentity: EnvironmentIdentity | undefined;
+
+      if (this.#environment) {
+        namedEnvironmentIdentity = this.#environment;
+      } else if (environmentMatch) {
+        namedEnvironmentIdentity = {
+          id: environmentMatch[0],
+          name: environmentMatch[1].name ?? environmentMatch[0],
+        };
+      } else {
+        const dynamic = resolveDynamicEnvironmentIdentity(
+          this.#dynamicEnvironments,
+          { labels: environmentMatcherLabels },
+          this.#environmentsConfig,
+        );
+
+        if (dynamic) {
+          this.#assertAllowedEnvironmentId(dynamic.id, "dynamic environment");
+          namedEnvironmentIdentity = this.#registerDynamicEnvironment(dynamic);
+        }
+      }
+
       const identity = namedEnvironmentIdentity ?? DEFAULT_ENVIRONMENT_IDENTITY;
 
       testResult.environment = identity.id;

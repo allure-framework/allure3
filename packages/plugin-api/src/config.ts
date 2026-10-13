@@ -2,6 +2,7 @@ import type {
   AllureServiceConfig,
   CategoriesConfig,
   DefaultLabelsConfig,
+  DynamicEnvironmentsConfig,
   EnvironmentsConfig,
   FlakyDetectionConfig,
   PerformanceConfig,
@@ -36,6 +37,17 @@ export interface Config {
   environment?: string;
   allowedEnvironments?: string[];
   environments?: EnvironmentsConfig;
+  /**
+   * Derives an environment from test result labels as results arrive, so environments
+   * don't have to be listed upfront. Statically configured `environments` take priority.
+   * @example
+   * ```js
+   * dynamicEnvironments: ({ labels }) => labels.find(({ name }) => name === "host")?.value
+   * // or declaratively
+   * dynamicEnvironments: { label: "host", pattern: /^[\w-]+/ }
+   * ```
+   */
+  dynamicEnvironments?: DynamicEnvironmentsConfig;
   variables?: ReportVariables;
   /**
    * You can specify plugins by their package name:

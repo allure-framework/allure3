@@ -3334,6 +3334,137 @@ describe("environments", () => {
     expect(result).toEqual(["default", "foo"]);
   });
 
+  describe("dynamicEnvironments", () => {
+    const hostResolver = ({ labels }: { labels: { name: string; value?: string }[] }) =>
+      labels.find(({ name }) => name === "host")?.value;
+    const raw = (fullName: string, host?: string): RawTestResult => ({
+      name: fullName,
+      fullName,
+      labels: host ? [{ name: "host", value: host }] : [],
+    });
+
+    it("should create environments as results with new label values arrive", async () => {
+      const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      expect(await store.allEnvironments()).toEqual(["default"]);
+
+      await store.visitTestResult(raw("a", "alpha"), { readerId });
+      await store.visitTestResult(raw("b", "beta"), { readerId });
+      await store.visitTestResult(raw("c"), { readerId });
+
+      expect(await store.allEnvironments()).toEqual(expect.arrayContaining(["default", "alpha", "beta"]));
+      expect(await store.allEnvironments()).toHaveLength(3);
+      expect((await store.testResultsByEnvironmentId("alpha")).map(({ name }) => name)).toEqual(["a"]);
+      expect((await store.testResultsByEnvironmentId("beta")).map(({ name }) => name)).toEqual(["b"]);
+    });
+
+    it("should use the display name returned by the resolver", async () => {
+      const store = new DefaultAllureStore({
+        dynamicEnvironments: ({ labels }) => {
+          const host = labels.find(({ name }) => name === "host")?.value;
+
+          return host ? { id: host, name: `Host ${host}` } : undefined;
+        },
+      });
+
+      await store.visitTestResult(raw("a", "alpha"), { readerId });
+
+      expect(await store.allEnvironmentIdentities()).toEqual(
+        expect.arrayContaining([{ id: "alpha", name: "Host alpha" }]),
+      );
+    });
+
+    it("should prefer statically configured environments and the forced environment", async () => {
+      const configured = new DefaultAllureStore({
+        environmentsConfig: { static: { matcher: ({ labels }) => labels.some(({ value }) => value === "alpha") } },
+        dynamicEnvironments: hostResolver,
+      });
+      const forced = new DefaultAllureStore({ environment: "forced", dynamicEnvironments: hostResolver });
+
+      await configured.visitTestResult(raw("a", "alpha"), { readerId });
+      await forced.visitTestResult(raw("a", "alpha"), { readerId });
+
+      expect((await configured.allTestResults())[0].environment).toBe("static");
+      expect((await forced.allTestResults())[0].environment).toBe("forced");
+    });
+
+    it("should reject dynamic environments which are not listed in allowedEnvironments", async () => {
+      const store = new DefaultAllureStore({
+        allowedEnvironments: ["alpha"],
+        dynamicEnvironments: hostResolver,
+      });
+
+      await store.visitTestResult(raw("a", "alpha"), { readerId });
+      await expect(store.visitTestResult(raw("g", "gamma"), { readerId })).rejects.toThrow(
+        /environment id "gamma" is not listed in allowedEnvironments/,
+      );
+      expect(await store.allTestResults()).toHaveLength(1);
+    });
+
+    it("should keep dynamic environments and their names after dump and restore", async () => {
+      const resolver = ({ labels }: { labels: { name: string; value?: string }[] }) => {
+        const host = labels.find(({ name }) => name === "host")?.value;
+
+        return host ? { id: host, name: `Host ${host}` } : undefined;
+      };
+      const source = new DefaultAllureStore({ dynamicEnvironments: resolver });
+      const target = new DefaultAllureStore({ dynamicEnvironments: resolver });
+
+      await source.visitTestResult(raw("a", "alpha"), { readerId });
+      await target.restoreState(source.dumpState());
+
+      expect((await target.allTestResults())[0].environment).toBe("alpha");
+      expect(await target.allEnvironmentIdentities()).toEqual(
+        expect.arrayContaining([{ id: "alpha", name: "Host alpha" }]),
+      );
+    });
+
+    it("should normalize unsupported characters in the id and keep the original value as the name", async () => {
+      const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await store.visitTestResult(raw("a", "srv1.example.com"), { readerId });
+
+      expect((await store.allTestResults())[0].environment).toBe("srv1_example_com");
+      expect(await store.allEnvironmentIdentities()).toEqual(
+        expect.arrayContaining([{ id: "srv1_example_com", name: "srv1.example.com" }]),
+      );
+    });
+
+    it("should reject different values which are normalized to the same id", async () => {
+      const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      await store.visitTestResult(raw("a", "a.b"), { readerId });
+      await store.visitTestResult(raw("same", "a.b"), { readerId });
+      await expect(store.visitTestResult(raw("c", "a b"), { readerId })).rejects.toThrow(
+        /both normalized to the environment id "a_b"/,
+      );
+    });
+
+    it("should reject a value which can not be turned into an id", async () => {
+      const store = new DefaultAllureStore({ dynamicEnvironments: () => "!!!" });
+
+      await expect(store.visitTestResult(raw("a"), { readerId })).rejects.toThrow(
+        /dynamic environment resolver returned an invalid environment id/,
+      );
+    });
+
+    it("should warn once when too many dynamic environments are created", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
+
+      try {
+        for (let i = 0; i <= 52; i++) {
+          await store.visitTestResult(raw(`t${i}`, `host${i}`), { readerId });
+        }
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain("more than 50 dynamic environments");
+      } finally {
+        warn.mockRestore();
+      }
+    });
+  });
+
   it("should return test results for given environment", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
