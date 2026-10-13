@@ -2,6 +2,11 @@ import type { EnvironmentIdentity } from "../environment.js";
 import type { TestEnvGroup } from "../model.js";
 
 export const DEFAULT_ENVIRONMENT = "default";
+export const UNRESOLVED_ENVIRONMENT = "unresolved";
+export const UNRESOLVED_ENVIRONMENT_IDENTITY: EnvironmentIdentity = {
+  id: UNRESOLVED_ENVIRONMENT,
+  name: "Unresolved",
+};
 export const MAX_ENVIRONMENT_NAME_LENGTH = 64;
 export const MAX_ENVIRONMENT_ID_LENGTH = 64;
 export const DEFAULT_ENVIRONMENT_IDENTITY: EnvironmentIdentity = {

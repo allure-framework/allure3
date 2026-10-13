@@ -15,6 +15,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
+import { createDynamicEnvironmentResolver } from "../../src/utils/environment.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 class AllureTestHistory implements AllureHistory {
@@ -3440,7 +3441,7 @@ describe("environments", () => {
       );
     });
 
-    it("should put a value which can not be turned into an id into default and warn once per value", async () => {
+    it("should put a value which can not be turned into an id into unresolved and warn once per value", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const store = new DefaultAllureStore({ dynamicEnvironments: hostResolver });
 
@@ -3451,10 +3452,37 @@ describe("environments", () => {
 
         const results = await store.allTestResults();
 
-        expect(results.map(({ environment }) => environment)).toEqual(["default", "default", "default"]);
+        expect(results.map(({ environment }) => environment)).toEqual(["unresolved", "unresolved", "unresolved"]);
         expect(warn).toHaveBeenCalledTimes(2);
         expect(warn.mock.calls[0][0]).toContain('"!!!"');
         expect(warn.mock.calls[1][0]).toContain('"???"');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it("should keep results without the label in default and put a label with a non-matching pattern into unresolved", async () => {
+      const store = new DefaultAllureStore({
+        dynamicEnvironments: createDynamicEnvironmentResolver({ label: "host", pattern: /^srv\d+/ }),
+      });
+
+      await store.visitTestResult(raw("a", "srv1.example.com"), { readerId });
+      await store.visitTestResult(raw("b", "db1.example.com"), { readerId });
+      await store.visitTestResult(raw("c"), { readerId });
+
+      const byName = Object.fromEntries((await store.allTestResults()).map((tr) => [tr.name, tr.environment]));
+
+      expect(byName).toEqual({ a: "srv1", b: "unresolved", c: "default" });
+    });
+
+    it("should not require unresolved to be listed in allowedEnvironments", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const store = new DefaultAllureStore({ allowedEnvironments: ["alpha"], dynamicEnvironments: hostResolver });
+
+      try {
+        await store.visitTestResult(raw("a", "!!!"), { readerId });
+
+        expect((await store.allTestResults())[0].environment).toBe("unresolved");
       } finally {
         warn.mockRestore();
       }

@@ -195,12 +195,15 @@ describe("dynamic environment resolution", () => {
     });
   });
 
-  it("should treat a value which can not be normalized as no value and report it", () => {
+  it("should resolve a value which can not be normalized to the unresolved environment and report it", () => {
     const onUnusable = vi.fn();
 
-    expect(resolveDynamicEnvironmentIdentity(() => "!!!", { labels }, {}, onUnusable)).toBeUndefined();
+    expect(resolveDynamicEnvironmentIdentity(() => "!!!", { labels }, {}, onUnusable)).toEqual({
+      id: "unresolved",
+      name: "Unresolved",
+    });
     expect(onUnusable).toHaveBeenCalledWith("!!!");
-    expect(resolveDynamicEnvironmentIdentity(() => "  ", { labels }, {})).toBeUndefined();
+    expect(resolveDynamicEnvironmentIdentity(() => "  ", { labels }, {})?.id).toBe("unresolved");
   });
 
   it("should throw when the resolver returns something other than a string id or the name is invalid", () => {
@@ -237,7 +240,10 @@ describe("dynamic environment resolution", () => {
       expect(createDynamicEnvironmentResolver({ label: "host", pattern: "^(runner)-" })!(payload("runner-7f3a"))).toBe(
         "runner",
       );
-      expect(createDynamicEnvironmentResolver({ label: "host", pattern: /^srv/ })!(payload("db1"))).toBeUndefined();
+      expect(createDynamicEnvironmentResolver({ label: "host", pattern: /^srv/ })!(payload("db1"))).toEqual({
+        id: "unresolved",
+        name: "Unresolved",
+      });
     });
 
     it("should not keep state for global patterns", () => {

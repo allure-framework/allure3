@@ -1,6 +1,8 @@
 import {
   DEFAULT_ENVIRONMENT,
   MAX_ENVIRONMENT_ID_LENGTH,
+  UNRESOLVED_ENVIRONMENT,
+  UNRESOLVED_ENVIRONMENT_IDENTITY,
   DEFAULT_ENVIRONMENT_IDENTITY,
   formatNormalizedEnvironmentCollision,
   validateEnvironmentId,
@@ -71,7 +73,12 @@ export const validateAllowedEnvironmentId = (
   allowedIds: ReadonlySet<string>,
   sourcePath: string,
 ): string | undefined => {
-  if (environmentId === DEFAULT_ENVIRONMENT || allowedIds.size === 0 || allowedIds.has(environmentId)) {
+  if (
+    environmentId === DEFAULT_ENVIRONMENT ||
+    environmentId === UNRESOLVED_ENVIRONMENT ||
+    allowedIds.size === 0 ||
+    allowedIds.has(environmentId)
+  ) {
     return undefined;
   }
 
@@ -218,10 +225,10 @@ export const resolveDynamicEnvironmentIdentity = (
     const normalizedResult = validateEnvironmentId(id);
 
     if (!normalizedResult.valid || id.replace(/_/g, "").length === 0) {
-      // nothing meaningful is left of the value (e.g. "!!!"), treat it like there is no value at all
+      // nothing meaningful is left of the value (e.g. "!!!"): the value exists but can not identify an environment
       onUnusableValue?.(rawId);
 
-      return undefined;
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
     }
   } else {
     throw new Error(`dynamic environment resolver returned an invalid environment id: ${idResult.reason}`);
@@ -288,13 +295,14 @@ export const createDynamicEnvironmentResolver = (
     const match = pattern ? new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(raw) : undefined;
 
     if (pattern && !match) {
-      return undefined;
+      // the label is there but the pattern does not fit its value
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
     }
 
     const value = match ? (match[1] ?? match[0]) : raw;
 
     if (!value) {
-      return undefined;
+      return UNRESOLVED_ENVIRONMENT_IDENTITY;
     }
 
     return name ? { id: value, name: name.replace(/\{value\}/g, value) } : value;

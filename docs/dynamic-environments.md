@@ -19,6 +19,8 @@ The function receives `{ labels }` and returns:
 - `{ id, name }` — the id and a display name;
 - `undefined` — the result is not matched (it goes to `default`).
 
+The environment `unresolved` is reserved for values which cannot be used: avoid returning it for other purposes.
+
 ## Declarative form
 
 ```js
@@ -31,7 +33,8 @@ export default {
 };
 ```
 
-A result without the label, or whose value does not match `pattern`, is not matched.
+A result without the label is not matched and goes to `default`. A result with the label whose value does not match
+`pattern` goes to the `unresolved` environment, so a wrong pattern is visible in the report right away.
 
 ## Resolution order
 
@@ -49,9 +52,8 @@ Ids which are not listed in `allowedEnvironments` (when it is set) are rejected 
   the original value is used as the name: `srv1.example.com` becomes the environment `srv1.example.com` with the id `srv1_example_com`.
 - Ids are limited to 64 characters.
 - Different values which end up with the same id (`a.b` and `a b`) are rejected with an error.
-- A value which cannot be turned into an id (for example `!!!`) is treated as if there was no value: the result goes
-  to `default` and a warning with the value is printed once. Such results share `default` with the results without a value
-  and, unlike results of the real environment, have a different retry identity.
+- A value which cannot be turned into an id (for example `!!!`) goes to the technical environment `unresolved`
+  and a warning with the value is printed once. It is not checked against `allowedEnvironments`.
 - A resolver returning something other than a string id (or `{ id, name }`) or an invalid explicit name is a bug in the config and throws.
 
 ## Things to keep in mind

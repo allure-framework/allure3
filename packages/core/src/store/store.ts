@@ -10,6 +10,7 @@ import {
   type DefaultLabelsConfig,
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
+  UNRESOLVED_ENVIRONMENT,
   type DynamicEnvironmentResolver,
   type EnvironmentIdentity,
   type EnvironmentsConfig,
@@ -426,7 +427,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // eslint-disable-next-line no-console
     console.warn(
       `Allure: dynamic environment value ${JSON.stringify(value)} can not be used as an environment id, ` +
-        "the results with this value are put into the default environment",
+        `the results with this value are put into the ${UNRESOLVED_ENVIRONMENT} environment`,
     );
   }
 
@@ -1026,6 +1027,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         if (dynamic) {
           this.#assertAllowedEnvironmentId(dynamic.id, "dynamic environment");
+
           namedEnvironmentIdentity = this.#registerDynamicEnvironment(dynamic);
         }
       }
