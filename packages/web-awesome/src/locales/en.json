@@ -184,7 +184,14 @@
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
     "resolutionCategories": "Resolutions",
     "breadcrumbs": "Breadcrumbs",
-    "breadcrumbs-hidden": "Show hidden breadcrumbs"
+    "breadcrumbs-hidden": "Show hidden breadcrumbs",
+    "failureSummary": {
+      "title": "Report failed",
+      "unsuccessfulTests": "Unsuccessful tests",
+      "failedQualityGates": "Failed quality gates",
+      "globalErrors": "Global errors",
+      "exitCode": "Process exited with code {{code}}."
+    }
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
