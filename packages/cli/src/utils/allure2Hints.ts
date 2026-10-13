@@ -4,8 +4,8 @@
  */
 const OPTION_HINTS: Record<string, string> = {
   "--clean":
-    "`allure generate` doesn't clean the output directory. Remove it yourself (e.g. `rm -rf allure-report`) " +
-    "or use `allure run`, which recreates the output directory on every launch.",
+    "`--clean` is available for `allure generate` only: it removes the output directory before generating. " +
+    "`allure run` recreates the output directory on every launch.",
   "--verbose": "There is no verbose mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "--quiet": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "-q": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
@@ -34,12 +34,12 @@ export const ALLURE2_COMMAND_MAP: readonly { allure2: string; allure3: string; n
   {
     allure2: "allure generate <results> -o <dir>",
     allure3: "allure generate <results> -o <dir>",
-    note: "Same command. Add `--open` to serve the report afterwards. The output directory is not cleaned",
+    note: "Same command. Add `--open` to serve the report afterwards",
   },
   {
     allure2: "allure generate <results> --clean",
-    allure3: "rm -rf <dir> && allure generate <results> -o <dir>",
-    note: "There is no `--clean`. `allure run` recreates the output directory on every launch",
+    allure3: "allure generate <results> --clean",
+    note: "Same flag: removes the output directory before generating. `allure run` recreates it on every launch",
   },
   {
     allure2: "allure open <report>",

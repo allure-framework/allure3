@@ -12,9 +12,10 @@ beforeEach(async () => {
 
 describe("getAllure2Hint", () => {
   it("suggests an alternative for removed Allure 2 options", () => {
-    const hint = getAllure2Hint(["generate", "--clean"], 'Unsupported option name ("--clean")');
+    const hint = getAllure2Hint(["open", "--clean"], 'Unsupported option name ("--clean")');
 
-    expect(hint).toContain("allure run");
+    expect(hint).toContain("allure generate");
+    expect(hint).not.toContain("rm -rf");
   });
 
   it("points to allurerc for --single-file and --lang", () => {
@@ -40,5 +41,7 @@ describe("renderAllure2CommandMap", () => {
     expect(output).toContain("allure serve <results>");
     expect(output).toContain("allure open <results>");
     expect(output).toContain("allure run -- <test command>");
+    expect(output).toContain("allure generate <results> --clean");
+    expect(output).not.toContain("rm -rf");
   });
 });
