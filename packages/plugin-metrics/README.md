@@ -118,7 +118,7 @@ Keys are lower-cased and whitespaces are replaced with underscores. Characters P
 
 ### File location
 
-The files are written to `<output>/export/` (the same place Allure 2 used), not to the plugin directory, so existing scrapers keep working. This holds when the metrics are the only thing the report generates as well.
+The files are written to `<output>/export/` (the same place Allure 2 used), not to the plugin directory, so existing scrapers keep working. This holds when the metrics are the only thing the report generates as well, and the `export` directory does not prevent a single report plugin (for example `awesome`) from staying in the root of `<output>`: the report keeps its `index.html` there and `export/` is placed next to it.
 
 ### File formats
 
