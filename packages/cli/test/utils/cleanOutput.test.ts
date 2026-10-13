@@ -43,6 +43,14 @@ describe("getUnsafeCleanReason", () => {
     expect(await getUnsafeCleanReason({ output: parse(tmp).root, cwd: tmp })).toMatch(/root/);
   });
 
+  it("refuses an existing file", async () => {
+    const file = join(tmp, "package.json");
+
+    await writeFile(file, "{}");
+
+    expect(await getUnsafeCleanReason({ output: file, cwd: join(tmp, "work") })).toMatch(/not a directory/);
+  });
+
   it("refuses the working directory and its ancestors", async () => {
     expect(await getUnsafeCleanReason({ output: ".", cwd: tmp })).toMatch(/working directory/);
     expect(await getUnsafeCleanReason({ output: join(tmp, ".."), cwd: tmp })).toMatch(/working directory/);
@@ -145,6 +153,15 @@ describe("cleanOutputDirectory", () => {
 
     expect(existsSync(link)).toBe(false);
     expect(existsSync(join(target, "keep.txt"))).toBe(true);
+  });
+
+  it("keeps an existing file given as the output", async () => {
+    const file = join(tmp, "keep.txt");
+
+    await writeFile(file, "x");
+
+    await expect(cleanOutputDirectory({ output: file, cwd: join(tmp, "work") })).rejects.toThrow(/not a directory/);
+    expect(existsSync(file)).toBe(true);
   });
 
   it("throws and keeps files for an unsafe path", async () => {

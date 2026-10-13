@@ -1,4 +1,4 @@
-import { readdir, realpath, rm } from "node:fs/promises";
+import { readdir, realpath, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, parse, relative, resolve, sep } from "node:path";
 import { cwd as processCwd } from "node:process";
@@ -38,6 +38,11 @@ export const getUnsafeCleanReason = async (params: CleanOutputParams): Promise<s
 
   if (output === parse(output).root) {
     return "it is a filesystem root";
+  }
+
+  // `--output package.json --clean` must not delete an unrelated file
+  if ((await stat(output).catch(() => undefined))?.isDirectory() === false) {
+    return "it is not a directory";
   }
 
   const mustSurvive: [label: string, path: string][] = [
