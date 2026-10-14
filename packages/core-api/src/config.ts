@@ -6,20 +6,21 @@ export type FlakyDetectionConfig = {
   /** Posterior-mean PFS must strictly exceed this value. Range [0, 1], default 0.1. */
   pfsThreshold?: number;
   /**
-   * Maximum number of comparable historical executions used by the built-in algorithm.
-   * Counts passed, failed, and broken results in the current environment; skipped,
-   * unknown, and other environments do not consume the limit.
-   * The current execution is assessed separately and is not counted against this limit.
+   * Maximum number of previous history entries selected before classification.
+   * Positive values select history.slice(0, historyDepth); skipped, unknown,
+   * incomplete, and duplicate entries occupy positions in that slice.
+   * The current execution is assessed separately and does not consume the limit.
    * A missing test resets the calculation; only executions since the latest gap count.
-   * Must be an integer greater than or equal to -1. Defaults to 10.
-   * 0 uses all comparable history since the latest gap; -1 disables history inference.
+   * Must be an integer greater than or equal to -1. Defaults to 0 (unlimited).
+   * 0 selects the whole history array; -1 disables history inference.
    */
   historyDepth?: number;
   /**
    * Consecutive identical outcomes that reset earlier instability. The status-change
-   * heuristic compares final statuses; PFS compares entire retry-plus-final sequences
-   * and retains the full stabilizing streak as evidence.
-   * Must be an integer greater than or equal to 1. Defaults to 5.
+   * heuristic compares final statuses; PFS stabilizes only identical uniform
+   * retry-plus-final sequences and discards the streak and all older evidence.
+   * Mixed attempt sequences do not stabilize and remain in the calculation.
+   * Must be a positive integer, less than a positive historyDepth. Defaults to 5.
    */
   stabilizationPeriod?: number;
   /**

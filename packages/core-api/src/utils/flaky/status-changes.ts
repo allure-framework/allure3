@@ -6,7 +6,7 @@ const SIGNIFICANT_STATUSES = new Set<TestStatus>(["passed", "failed", "broken"])
 export class StatusChangesFlakinessAlgorithm extends FlakinessAlgorithm {
   isFlaky(): boolean | undefined {
     const { current, history } = this;
-    const { historyDepth = 10, stabilizationPeriod = 5 } = this.options;
+    const { historyDepth, stabilizationPeriod } = this.options;
     if (historyDepth === -1 || !SIGNIFICANT_STATUSES.has(current.status)) {
       return undefined;
     }
@@ -20,9 +20,6 @@ export class StatusChangesFlakinessAlgorithm extends FlakinessAlgorithm {
         continue;
       }
       statuses.push(result.status);
-      if (historyDepth > 0 && statuses.length === historyDepth) {
-        break;
-      }
     }
     if (statuses.length === 0) {
       return undefined;
@@ -30,12 +27,11 @@ export class StatusChangesFlakinessAlgorithm extends FlakinessAlgorithm {
     statuses.reverse();
     statuses.push(current.status);
 
-    const period = historyDepth > 0 ? Math.min(stabilizationPeriod, historyDepth + 1) : stabilizationPeriod;
     let anchor = 0;
     let streak = 0;
     for (let index = 0; index < statuses.length; index++) {
       streak = index > 0 && statuses[index] === statuses[index - 1] ? streak + 1 : 1;
-      if (streak >= period) {
+      if (streak >= stabilizationPeriod) {
         anchor = index;
       }
     }

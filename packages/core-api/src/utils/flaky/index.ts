@@ -1,6 +1,6 @@
 import type { HistoryTestResult } from "../../history.js";
 import type { TestResult } from "../../model.js";
-import type { FlakinessAlgorithm, FlakinessOptions } from "./algorithm.js";
+import { DEFAULT_FLAKINESS_OPTIONS, type FlakinessAlgorithm, type FlakinessOptions } from "./algorithm.js";
 import { PfsFlakinessAlgorithm } from "./pfs.js";
 import { StatusChangesFlakinessAlgorithm } from "./status-changes.js";
 
@@ -13,7 +13,7 @@ const algorithms = {
 
 /** Validate algorithm settings at report/plugin configuration boundaries. */
 export const validateFlakinessScoringOptions = (
-  { algorithm, pfsThreshold }: Pick<FlakinessOptions, "algorithm" | "pfsThreshold">,
+  { algorithm, pfsThreshold, historyDepth, stabilizationPeriod }: FlakinessOptions,
   scope: string,
 ): void => {
   if (algorithm !== undefined && (typeof algorithm !== "string" || !Object.hasOwn(algorithms, algorithm))) {
@@ -28,6 +28,11 @@ export const validateFlakinessScoringOptions = (
   ) {
     throw new RangeError(`${scope}.pfsThreshold must be a finite number between 0 and 1`);
   }
+  const depth = historyDepth ?? DEFAULT_FLAKINESS_OPTIONS.historyDepth;
+  const period = stabilizationPeriod ?? DEFAULT_FLAKINESS_OPTIONS.stabilizationPeriod;
+  if (depth > 0 && period >= depth) {
+    throw new RangeError(`${scope}.stabilizationPeriod must be less than the positive history limit`);
+  }
 };
 
 /**
@@ -39,6 +44,6 @@ export const getTestFlakiness = (
   history: (HistoryTestResult | undefined)[],
   options: FlakinessOptions = {},
 ): boolean | undefined => {
-  const Algorithm = algorithms[options.algorithm ?? "status-changes"];
+  const Algorithm = algorithms[options.algorithm ?? DEFAULT_FLAKINESS_OPTIONS.algorithm];
   return new Algorithm(current, history, options).isFlaky();
 };

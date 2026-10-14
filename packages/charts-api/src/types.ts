@@ -406,16 +406,19 @@ export type StabilityDistributionChartOptions = Pick<FlakinessOptions, "algorith
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
-   * Maximum comparable previous executions per test; current is included separately.
+   * Maximum previous history entries selected per test before classification.
+   * Positive values select history.slice(0, limit), including noncomparable entries.
+   * Current is included separately. Omit to use the whole history array.
    * Missing tests reset the calculation. Zero disables the chart.
    *
-   * @default 10
+   * @default undefined
    */
   limit?: number;
   /**
-   * Consecutive identical final outcomes (status-changes) or full attempt sequences
-   * (PFS) that reset earlier instability. PFS retains the full stabilizing streak.
-   * For bounded history, this is capped at the previous-execution limit plus current.
+   * Consecutive identical final outcomes (status-changes) or uniform attempt sequences
+   * (PFS) that reset earlier instability. PFS discards the stabilizing streak and all
+   * older evidence; mixed sequences do not stabilize.
+   * Must be a positive integer, less than a positive limit. Defaults to 5.
    *
    * @default 5
    */

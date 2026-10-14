@@ -11,7 +11,7 @@ export default defineConfig({
   flakyDetection: {
     algorithm: "pfs", // "status-changes" is the default
     pfsThreshold: 0.1,
-    historyDepth: 10,
+    historyDepth: 0, // unlimited by default
     stabilizationPeriod: 5,
     includePassedTests: true,
   },
@@ -86,25 +86,27 @@ History is matched using existing test identity, parameters, and environment
 - Each historical run stores earlier attempt statuses in `retries`, oldest first,
   and the final outcome in `status`. PFS reconstructs `[...retries, status]` and
   includes the current run's attempts, even without a configured history file.
-- Legacy history without `retries` is treated as `retries: []`; unavailable retry
-  evidence is not reconstructed. Such results still participate as single attempts.
+- Legacy history without `retries` is incomplete: it provides neither likelihood
+  evidence nor a stabilization signature and breaks an identical-attempt streak.
+  Explicit `retries: []` represents a complete execution with no retries.
 - Eligible runs finish as `passed`, `failed`, or `broken`. Within those runs,
   `failed` and `broken` both count as failures; skipped and unknown attempts do
   not contribute to the likelihood. Currently skipped/unknown tests are unassessed.
-- `historyDepth` defaults to **10 previous comparable runs**, plus the current run.
-  Skipped/unknown runs and duplicate current IDs do not consume the limit.
-  **0** means all comparable history since the latest gap; **−1** disables inference.
-  A PFS estimate requires at least two comparable attempts in the selected window.
+- `historyDepth` defaults to **0**, selecting the whole history array. A positive
+  value selects `history.slice(0, historyDepth)` before filtering: skipped, unknown,
+  incomplete, and duplicate entries consume positions. The current run is included
+  separately. **−1** disables inference. A PFS estimate still requires at least two
+  comparable attempts after any reset.
 - A **missing entire test result in a run** ends usable history. Missing `retries`
   does not. A gap can represent quarantine or removal, so older evidence is not
   carried across it.
-- `stabilizationPeriod` defaults to **5**. PFS compares complete ordered attempt
-  sequences, including the final status, rather than only final outcomes:
-  `[failed, passed]` and `[passed]` differ, as do `[failed, passed]` and
-  `[broken, passed]`. A qualifying streak discards older evidence but retains the
-  **entire latest identical streak**. Repeated failed-then-passed runs therefore
-  remain evidence of flakiness; repeated clean passes reduce the score.
-  For bounded history, the effective period cannot exceed `historyDepth + 1`.
+- `stabilizationPeriod` defaults to **5**. PFS stabilizes only identical **uniform**
+  ordered attempt sequences, including the final status and retry count. For example,
+  `[failed, failed]` differs from `[failed]`. Mixed sequences such as `[failed, passed]`
+  or `[failed, broken]` break a streak and remain evidence. A qualifying streak clears
+  **both the entire streak and all older evidence**. If no attempts remain, the test
+  is unassessed. The configured period is not capped: it must be less than a positive
+  `historyDepth` (or chart `limit`); unlimited and disabled settings are exempt.
 
 PFS costs more than the status-change heuristic, particularly with unlimited
 history or many retry attempts. Prefer a bounded history window for large reports.
@@ -120,7 +122,7 @@ Dashboard plugin's `layout` array:
   type: "stabilityDistribution",
   algorithm: "pfs",
   pfsThreshold: 0.1,
-  limit: 10,
+  // Omit limit to use the whole history array.
   stabilizationPeriod: 5,
   groupBy: "feature",
   threshold: 90,

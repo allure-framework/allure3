@@ -7,7 +7,6 @@ export const validateChartsOptions = (charts: ChartOptions[]): void => {
     if (options.type !== ChartType.StabilityDistribution) {
       continue;
     }
-    validateFlakinessScoringOptions(options, "stabilityDistribution");
     const { limit, stabilizationPeriod } = options;
     if (limit !== undefined && (!Number.isInteger(limit) || limit < 0)) {
       throw new RangeError("stabilityDistribution.limit must be a non-negative integer");
@@ -15,5 +14,6 @@ export const validateChartsOptions = (charts: ChartOptions[]): void => {
     if (stabilizationPeriod !== undefined && (!Number.isInteger(stabilizationPeriod) || stabilizationPeriod < 1)) {
       throw new RangeError("stabilityDistribution.stabilizationPeriod must be a positive integer");
     }
+    validateFlakinessScoringOptions({ ...options, historyDepth: limit }, "stabilityDistribution");
   }
 };

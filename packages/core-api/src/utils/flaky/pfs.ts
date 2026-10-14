@@ -119,16 +119,18 @@ const estimatePosterior = (runs: TestStatus[][]): number => {
 export class PfsFlakinessAlgorithm extends FlakinessAlgorithm {
   isFlaky(): boolean | undefined {
     const score = this.#getScore();
-    return score === undefined ? undefined : score > (this.options.pfsThreshold ?? 0.1);
+    return score === undefined ? undefined : score > this.options.pfsThreshold;
   }
 
   #getScore(): number | undefined {
     const { current, history } = this;
-    const { historyDepth = 10, stabilizationPeriod = 5 } = this.options;
+    const { historyDepth, stabilizationPeriod } = this.options;
     if (historyDepth === -1 || !SIGNIFICANT_STATUSES.has(current.status)) {
       return undefined;
     }
-    const runs: TestStatus[][] = [];
+    // The base class selects the raw history slice. Incomplete executions supply
+    // neither counts nor a signature; a missing execution ends the window.
+    const runs: (TestStatus[] | undefined)[] = [];
     for (const result of history) {
       if (result === undefined) {
         break;
@@ -136,24 +138,29 @@ export class PfsFlakinessAlgorithm extends FlakinessAlgorithm {
       if (result.id === current.id || !SIGNIFICANT_STATUSES.has(result.status)) {
         continue;
       }
-      runs.push([...(result.retries ?? []), result.status]);
-      if (historyDepth > 0 && runs.length === historyDepth) {
-        break;
-      }
+      runs.push(result.retries === undefined ? undefined : [...result.retries, result.status]);
     }
     runs.reverse();
     runs.push([...(current.retries ?? []).map((retry) => retry.status).reverse(), current.status]);
 
-    const period = historyDepth > 0 ? Math.min(stabilizationPeriod, historyDepth + 1) : stabilizationPeriod;
     let anchor = 0;
     let streak = 0;
+    let previousSignature: string | undefined;
     for (let index = 0; index < runs.length; index++) {
-      streak = index > 0 && runs[index].join(",") === runs[index - 1].join(",") ? streak + 1 : 1;
-      if (streak >= period) {
-        anchor = index - streak + 1;
+      const run = runs[index];
+      if (run === undefined || !run.every((status) => status === run[0])) {
+        streak = 0;
+        previousSignature = undefined;
+        continue;
+      }
+      const signature = run.join(",");
+      streak = signature === previousSignature ? streak + 1 : 1;
+      previousSignature = signature;
+      if (streak >= stabilizationPeriod) {
+        anchor = index + 1;
       }
     }
-    const window = runs.slice(anchor);
+    const window = runs.slice(anchor).filter((run): run is TestStatus[] => run !== undefined);
     const attempts = window.reduce(
       (sum, run) => sum + run.filter((status) => SIGNIFICANT_STATUSES.has(status)).length,
       0,

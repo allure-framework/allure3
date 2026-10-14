@@ -312,7 +312,6 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
     return;
   }
 
-  validateFlakinessScoringOptions(config, "flakyDetection");
   const { historyDepth, includePassedTests, stabilizationPeriod } = config;
 
   if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {
@@ -326,6 +325,7 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
   if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {
     throw new TypeError("flakyDetection.includePassedTests must be a boolean");
   }
+  validateFlakinessScoringOptions(config, "flakyDetection");
 };
 
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
