@@ -28,12 +28,14 @@
     "build:dev:multi": "webpack --mode development",
     "lint": "oxlint --import-plugin src test features stories",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-components": "workspace:*",
     "@babel/core": "^7.27.4",
@@ -47,6 +49,7 @@
     "@types/d3-shape": "^3.1.8",
     "@types/diff": "^7",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",

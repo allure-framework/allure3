@@ -47,6 +47,7 @@ export default defineConfig({
         resultsDir: "./out/allure-results",
         globalLabels: [
           { name: "module", value: "e2e" },
+          { name: "type", value: "playwright" },
         ],
         links: {
           issue: {
