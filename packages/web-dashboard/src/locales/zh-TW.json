@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "返回總覽"
+  },
   "statuses": {
     "passed": "通過",
     "failed": "失敗",

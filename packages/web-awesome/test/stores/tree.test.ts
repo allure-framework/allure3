@@ -5,6 +5,7 @@ import { collapsedEnvironments, currentEnvironment, environmentsStore } from "..
 import { flatTree } from "../../src/stores/keyboard";
 import {
   allTreesCollapsed,
+  allTreesExpanded,
   collapsedTrees,
   expandedTrees,
   hasCollapsibleTrees,
@@ -108,10 +109,13 @@ describe("stores > tree > collapse all", () => {
     setEnvironments(["default"]);
 
     expect(hasCollapsibleTrees.value).toBe(true);
+    // only the groups that are opened by default are expanded
     expect(allTreesCollapsed.value).toBe(false);
+    expect(allTreesExpanded.value).toBe(false);
 
     setAllTreesOpened(false);
 
+    expect(allTreesExpanded.value).toBe(false);
     expect(allTreesCollapsed.value).toBe(true);
     expect(isTreeOpened("default-passed", false)).toBe(false);
     expect(isTreeOpened("default-failed", true)).toBe(false);
@@ -120,6 +124,7 @@ describe("stores > tree > collapse all", () => {
     setAllTreesOpened(true);
 
     expect(allTreesCollapsed.value).toBe(false);
+    expect(allTreesExpanded.value).toBe(true);
     expect(isTreeOpened("default-passed", false)).toBe(true);
     expect(isTreeOpened("default-failed", true)).toBe(true);
     expect(isTreeOpened("default-nested", true)).toBe(true);

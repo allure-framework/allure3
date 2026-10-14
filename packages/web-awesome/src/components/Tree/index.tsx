@@ -126,6 +126,12 @@ export const TreeList = () => {
         }
 
         const showMoreLabel = tControls("showMore");
+        const subtreeToggleLabels = {
+          "expand-first-level": tControls("expandFirstLevel"),
+          "collapse-to-first-level": tControls("collapseToFirstLevel"),
+          "expand-all": tControls("expandAll"),
+          "collapse-all": tControls("collapseAll"),
+        };
         const treeLocalizer = createTreeLocalizer(localizers);
 
         // render single tree for single environment
@@ -149,6 +155,7 @@ export const TreeList = () => {
                 routeId={trId}
                 focusedId={focusedId}
                 showMoreLabel={showMoreLabel}
+                subtreeToggleLabels={subtreeToggleLabels}
                 root
               />
             </div>
@@ -172,6 +179,7 @@ export const TreeList = () => {
                 routeId={trId}
                 focusedId={focusedId}
                 showMoreLabel={showMoreLabel}
+                subtreeToggleLabels={subtreeToggleLabels}
                 root
               />
             </div>
@@ -234,6 +242,7 @@ export const TreeList = () => {
                         routeId={trId}
                         focusedId={focusedId}
                         showMoreLabel={showMoreLabel}
+                        subtreeToggleLabels={subtreeToggleLabels}
                         focusIdPrefix={`${key}:`}
                         root
                       />

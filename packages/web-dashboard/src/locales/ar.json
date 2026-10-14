@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "العودة إلى النظرة العامة"
+  },
   "statuses": {
     "passed": "ناجح",
     "failed": "فشل",

@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Torna alla panoramica"
+  },
   "statuses": {
     "passed": "Superato",
     "failed": "Fallito",
