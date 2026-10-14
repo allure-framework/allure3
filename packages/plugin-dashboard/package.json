@@ -38,7 +38,7 @@
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
-    "handlebars": "^4.7.9"
+    "handlebars": "4.7.10"
   },
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",

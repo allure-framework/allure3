@@ -33,7 +33,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "handlebars": "^4.7.9"
+    "handlebars": "4.7.10"
   },
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",
