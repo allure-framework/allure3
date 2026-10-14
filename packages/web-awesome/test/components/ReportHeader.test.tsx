@@ -1,6 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { render, screen } from "@testing-library/preact";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportHeader } from "@/components/ReportHeader";
 

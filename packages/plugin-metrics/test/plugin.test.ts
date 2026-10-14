@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { CategoryDefinition, MetricSample, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { MetricsPlugin } from "../src/plugin.js";
 

@@ -1,5 +1,5 @@
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

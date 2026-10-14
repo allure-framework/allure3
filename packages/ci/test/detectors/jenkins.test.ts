@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vite-plus/test";
 
 import { jenkins } from "../../src/detectors/jenkins.js";
 import { getEnv } from "../../src/utils.js";

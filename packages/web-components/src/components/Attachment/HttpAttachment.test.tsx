@@ -1,6 +1,6 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/preact";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { HttpAttachment } from "./HttpAttachment";
 

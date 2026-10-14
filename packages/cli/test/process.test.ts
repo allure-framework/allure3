@@ -8,7 +8,7 @@ import path from "node:path";
 import { platform } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { runProcess, stopProcessTree, terminationOf } from "../src/utils/process.js";
 

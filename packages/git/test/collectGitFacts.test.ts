@@ -1,4 +1,4 @@
-import { type Mock, beforeEach, describe, it, vi, expect } from "vitest";
+import { type Mock, beforeEach, describe, it, vi, expect } from "vite-plus/test";
 
 import { collectGitFacts } from "../src/collectGitFacts.js";
 import * as runGitModule from "../src/runGit.js";

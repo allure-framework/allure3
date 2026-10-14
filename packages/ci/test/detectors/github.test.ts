@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import { story } from "allure-js-commons";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { github } from "../../src/detectors/github.js";
 import { getEnv } from "../../src/utils.js";

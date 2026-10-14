@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 
 import type { AllureStore, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ProgressPlugin } from "../src/plugin.js";
 import { Terminal } from "../src/terminal.js";

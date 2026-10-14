@@ -2,7 +2,7 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { WatchCommand } from "../../src/commands/watch.js";
 

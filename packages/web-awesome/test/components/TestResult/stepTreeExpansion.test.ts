@@ -1,6 +1,6 @@
 import { getNextSubtreeToggleState } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import {

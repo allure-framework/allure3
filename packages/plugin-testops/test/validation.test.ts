@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getAttachmentIdsFromTestStepsResults } from "../src/utils/attachments.js";
 import { toUploadFixtureResultDto } from "../src/utils/fixtures.js";

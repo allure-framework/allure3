@@ -6,7 +6,7 @@ import type { HistoryDataPoint } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveConfig } from "../src/config.js";
 import { AllureReport } from "../src/report.js";

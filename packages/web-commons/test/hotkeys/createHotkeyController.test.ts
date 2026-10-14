@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createHotkeyController } from "../../src/hotkeys/createHotkeyController.js";
 import type { HotkeyBinding } from "../../src/hotkeys/types.js";

@@ -21,11 +21,11 @@ import { svgrOptions } from "./svgr.config.js";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
-const YARN_DEPENDENCY_PATH = /[/\\]\.yarn[/\\]/;
+const DEPENDENCY_PATH = /[/\\](?:\.yarn|node_modules)[/\\]/;
 
 const onLog = (level, log, defaultHandler) => {
   if (log.code === "CIRCULAR_DEPENDENCY") {
-    if (log.ids?.length && log.ids.every((id) => YARN_DEPENDENCY_PATH.test(id))) {
+    if (log.ids?.length && log.ids.every((id) => DEPENDENCY_PATH.test(id))) {
       return;
     }
 

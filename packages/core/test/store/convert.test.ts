@@ -1,6 +1,6 @@
 import { md5Utf8 } from "@allurereport/core-api";
 import { attachment, epic, feature, issue, label, step, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";

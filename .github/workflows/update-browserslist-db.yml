@@ -155,5 +155,3 @@ jobs:
           add-paths: |
             yarn.lock
             .yarn/cache
-            .pnp.cjs
-            .pnp.loader.mjs

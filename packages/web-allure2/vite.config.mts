@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import autoprefixer from "autoprefixer";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Plugin, lazyPlugins } from "vite-plus";
 
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 const sourceRoot = path.resolve(projectRoot, "src/main/javascript");
@@ -158,6 +158,71 @@ const emitReportManifest = (): Plugin => ({
 });
 
 export default defineConfig(({ mode }) => ({
+  lint: {
+    plugins: ["typescript", "unicorn", "oxc", "import"],
+    categories: {
+      correctness: "error",
+    },
+    env: {
+      builtin: true,
+      browser: true,
+    },
+    ignorePatterns: [
+      "**/*",
+      "!**/",
+      "!src/main/javascript/**/*.mts",
+      "!scripts/*.mts",
+      "!tests/e2e/**/*.mts",
+      "!playwright.config.mts",
+      "build/**",
+      "coverage/**",
+      "dist/**",
+      "node_modules/**",
+      "src/test/javascript/**",
+    ],
+    rules: {
+      "curly": "error",
+      "eqeqeq": ["error", "smart"],
+      "guard-for-in": "error",
+      "no-console": "error",
+      "no-empty": "off",
+      "no-fallthrough": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: ["b_", "backbone", "backbone.marionette", "jquery", "rxjs", "underscore", "underscore.string/pad"],
+        },
+      ],
+      "no-shadow": [
+        "error",
+        {
+          hoist: "all",
+        },
+      ],
+      "no-unused-expressions": "error",
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+      "no-var": "error",
+      "prefer-const": "error",
+      "prefer-default-parameters": "error",
+      "prefer-function-type": "error",
+      "prefer-keyboard-event-key": "error",
+      "radix": "error",
+      "throw-new-error": "error",
+      "vite-plus/prefer-vite-plus-imports": "error",
+    },
+    jsPlugins: [
+      {
+        name: "vite-plus",
+        specifier: "vite-plus/oxlint-plugin",
+      },
+    ],
+  },
   root: projectRoot,
   base: "",
   define: {
@@ -188,5 +253,5 @@ export default defineConfig(({ mode }) => ({
   server: {
     strictPort: true,
   },
-  plugins: [demoReportDevServer(), emitReportManifest()],
+  plugins: lazyPlugins(() => [demoReportDevServer(), emitReportManifest()]),
 }));
