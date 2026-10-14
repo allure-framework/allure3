@@ -23,6 +23,14 @@ describe("getAllure2Hint", () => {
     expect(getAllure2Hint(["generate"], 'Unsupported option name ("--lang")')).toContain("reportLanguage");
   });
 
+  it("does not claim that --verbose and --quiet are missing, Allure 3 supports them", () => {
+    for (const option of ["--verbose", "--quiet", "-q"]) {
+      expect(getAllure2Hint(["generate"], `Unsupported option name ("${option}")`)).toBeUndefined();
+    }
+
+    expect(renderAllure2CommandMap()).toContain("--verbose, --quiet (-v, -q)");
+  });
+
   it("suggests a replacement for removed Allure 2 commands", () => {
     expect(getAllure2Hint(["plugin"], "Command not found; did you mean one of:")).toContain("allurerc");
   });

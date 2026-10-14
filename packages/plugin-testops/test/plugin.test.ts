@@ -2,6 +2,7 @@ import { env } from "node:process";
 
 /* eslint max-lines: off */
 import { detect } from "@allurereport/ci";
+import { setGlobalLogLevel } from "@allurereport/cli-commons";
 import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
@@ -1321,6 +1322,23 @@ describe("testops plugin", () => {
         ).toBe(true);
       } finally {
         verboseSpy.mockRestore();
+      }
+    });
+
+    it("should force the info log level in real-time mode unless a global log level is set", async () => {
+      const setLogLevelSpy = vi.spyOn(Logger.prototype, "setLogLevel");
+
+      try {
+        await plugin.start({ realTime: true } as PluginContext, store);
+        expect(setLogLevelSpy).toHaveBeenCalledWith("info");
+
+        setLogLevelSpy.mockClear();
+        setGlobalLogLevel("error");
+        await plugin.start({ realTime: true } as PluginContext, store);
+        expect(setLogLevelSpy).not.toHaveBeenCalled();
+      } finally {
+        setGlobalLogLevel(undefined);
+        setLogLevelSpy.mockRestore();
       }
     });
 

@@ -6,9 +6,6 @@ const OPTION_HINTS: Record<string, string> = {
   "--clean":
     "`--clean` is available for `allure generate` only: it removes the output directory before generating. " +
     "`allure run` recreates the output directory on every launch.",
-  "--verbose": "There is no verbose mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
-  "--quiet": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
-  "-q": "There is no quiet mode in Allure 3. `allure run` has `--silent` and `--ignore-logs`.",
   "--profile": "Profiles are gone. Use a single allurerc file and pass it with `--config`.",
   "--configDirectory": "The config directory is gone. Use a single allurerc file and pass it with `--config`.",
   "--lang":
@@ -73,8 +70,8 @@ export const ALLURE2_COMMAND_MAP: readonly { allure2: string; allure3: string; n
   },
   {
     allure2: "--verbose, --quiet",
-    allure3: "allure run --silent / --ignore-logs",
-    note: "No global verbosity switches",
+    allure3: "--verbose, --quiet (-v, -q)",
+    note: "Same global flags. For `allure run`, `--quiet` also implies `--silent`; `--ignore-logs` is separate",
   },
 ];
 

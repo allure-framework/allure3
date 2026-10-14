@@ -73,6 +73,22 @@ Set `ALLURE_LOG_LEVEL=debug` to include details such as selected tests and tempo
 the generic `LOG_LEVEL` environment variable. Use `--silent` to hide the nested test process output while keeping
 Allure lifecycle messages visible.
 
+### Verbosity flags
+
+`-v/--verbose` and `-q/--quiet` are global flags accepted by every command (place them before `--` in `allure run`;
+everything after `--` is passed to your test command untouched).
+
+| Flag | Allure log level | `allure run` test process output |
+| --- | --- | --- |
+| _(none)_ | `ALLURE_LOG_LEVEL`, default `info` | printed |
+| `--verbose`, `-v` | `verbose` | printed |
+| `--quiet`, `-q` | `error` (errors only) | hidden, same as `--silent` |
+
+- The flags override `ALLURE_LOG_LEVEL`. `--verbose` and `--quiet` cannot be combined.
+- `--quiet` implies `--silent`. Logs are still collected into the report unless `--ignore-logs` is set.
+- `--silent` and `--ignore-logs` keep their meaning and are independent of `--verbose`.
+- A lone `allure -v` still prints the version.
+
 ### Running Tests In Agent Mode
 
 When you need agent-friendly markdown output for review, debugging, or scope validation, use the `agent` command:
