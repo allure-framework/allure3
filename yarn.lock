@@ -431,7 +431,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-mail@workspace:packages/plugin-mail":
+"@allurereport/plugin-mail@workspace:*, @allurereport/plugin-mail@workspace:packages/plugin-mail":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-mail@workspace:packages/plugin-mail"
   dependencies:
@@ -17064,6 +17064,7 @@ __metadata:
   dependencies:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
+    "@allurereport/plugin-mail": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^4.0.18"

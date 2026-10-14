@@ -24019,6 +24019,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/plugin-csv", "workspace:packages/plugin-csv"],\
+          ["@allurereport/plugin-mail", "workspace:packages/plugin-mail"],\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:4.1.0"],\
