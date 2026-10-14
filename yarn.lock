@@ -712,7 +712,7 @@ __metadata:
     d3-shape: "npm:^3.2.0"
     filesize: "npm:^10.1.1"
     highlight.js: "npm:^11.11.1"
-    i18next: "npm:^26.0.5"
+    i18next: "npm:^26.4.3"
     normalize-css: "npm:^2.3.1"
     npm-run-all2: "npm:^7.0.1"
     oxfmt: "npm:^0.52.0"
@@ -769,7 +769,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^24.0.2"
+    i18next: "npm:^26.4.3"
     jsdom: "npm:^26.1.0"
     md5: "npm:^2.3.0"
     npm-run-all2: "npm:^7.0.1"
@@ -831,7 +831,7 @@ __metadata:
     globals: "npm:^15.9.0"
     handlebars-loader: "npm:^1.7.3"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^24.0.2"
+    i18next: "npm:^26.4.3"
     md5: "npm:^2.3.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
@@ -1028,7 +1028,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^24.0.2"
+    i18next: "npm:^26.4.3"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
     preact: "npm:^10.29.8"
@@ -1070,7 +1070,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^9.0.2"
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
-    i18next: "npm:^24.0.2"
+    i18next: "npm:^26.4.3"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
     preact: "npm:^10.29.8"
@@ -3795,7 +3795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.8.4":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.8.4":
   version: 7.28.2
   resolution: "@babel/runtime@npm:7.28.2"
   checksum: 10/a0965fbdd6aaa40709290923bbe05e1c4314021f0cef608eb1d69f04f717c41829e50a53d79c4a0f461512b4be9b3c0190dc19387b219bcdaacdd793b2fe1b8a
@@ -12253,29 +12253,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^24.0.2":
-  version: 24.0.5
-  resolution: "i18next@npm:24.0.5"
-  dependencies:
-    "@babel/runtime": "npm:^7.23.2"
-  peerDependencies:
-    typescript: ^5
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/d0a310c7a0b171ae8265d178d5ef5c378ceafb83852338d042fa9483b720355dc1e2c84c69c77fec1b3e23da6f59e91c5170ada05cd174afc9be3fc218ebd195
-  languageName: node
-  linkType: hard
-
-"i18next@npm:^26.0.5":
-  version: 26.4.1
-  resolution: "i18next@npm:26.4.1"
+"i18next@npm:^26.4.3":
+  version: 26.4.3
+  resolution: "i18next@npm:26.4.3"
   peerDependencies:
     typescript: ^5 || ^6 || ^7
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/b8d546a9dd20b0c3915dd0751827f2461c2694224029a3ffcb65812e941d401df9c3c0e3b02f4d9a4dfea55a8e203e98fd7b0ccd7f43109382d6b04c84532aab
+  checksum: 10/fd18a10e52d19c0d6a79e9ea06eedb401362d2e37df906321011dbd8131d19cf5cee5cc9974bdf06abc04edc5ccebe959ae0b4caf71beb2a519303bc2207f63a
   languageName: node
   linkType: hard
 
