@@ -19,7 +19,7 @@ The function receives `{ labels }` and returns:
 - `{ id, name }` — the id and a display name;
 - `undefined` — the result is not matched (it goes to `default`).
 
-The environment id `unresolved` is reserved for values which cannot be used. Declaring it in `environments` or forcing it with `environment` together with `dynamicEnvironments` is an error.
+The environment id `unresolved` is reserved for values which cannot be used. Declaring it in `environments`, forcing it with `environment` or returning it from the resolver is an error when `dynamicEnvironments` is used.
 
 ## Declarative form
 

@@ -212,6 +212,23 @@ describe("dynamic environment resolution", () => {
     expect(resolveDynamicEnvironmentIdentity(() => "  ", { labels }, {})?.id).toBe("unresolved");
   });
 
+  it("should reject an explicit answer with the reserved unresolved id but accept the internal fallback", () => {
+    expect(() => resolveDynamicEnvironmentIdentity(() => "unresolved", { labels }, {})).toThrow(
+      /reserved environment id/,
+    );
+    expect(() => resolveDynamicEnvironmentIdentity(() => ({ id: "unresolved", name: "Mine" }), { labels }, {})).toThrow(
+      /reserved environment id/,
+    );
+    expect(() => resolveDynamicEnvironmentIdentity(() => "Unresolved.", { labels }, {})).not.toThrow();
+    expect(
+      resolveDynamicEnvironmentIdentity(
+        createDynamicEnvironmentResolver({ label: "host", pattern: /^nothing/ }),
+        { labels: [{ name: "host", value: "alpha" }] },
+        {},
+      ),
+    ).toEqual({ id: "unresolved", name: "Unresolved" });
+  });
+
   it("should throw when the resolver returns something other than a string id or the name is invalid", () => {
     expect(() => resolveDynamicEnvironmentIdentity(() => 42 as unknown as string, { labels }, {})).toThrow(
       /invalid environment id/,

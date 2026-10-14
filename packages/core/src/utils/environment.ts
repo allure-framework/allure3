@@ -204,6 +204,11 @@ export const resolveDynamicEnvironmentIdentity = (
     return undefined;
   }
 
+  // the internal fallback is not an explicit answer of the resolver
+  if (resolved === UNRESOLVED_ENVIRONMENT_IDENTITY) {
+    return UNRESOLVED_ENVIRONMENT_IDENTITY;
+  }
+
   const rawId = typeof resolved === "string" ? resolved : resolved.id;
   const rawName = typeof resolved === "string" ? undefined : resolved.name;
   const idResult = validateEnvironmentId(rawId);
@@ -227,6 +232,12 @@ export const resolveDynamicEnvironmentIdentity = (
     }
   } else {
     throw new Error(`dynamic environment resolver returned an invalid environment id: ${idResult.reason}`);
+  }
+
+  if (id === UNRESOLVED_ENVIRONMENT_IDENTITY.id) {
+    throw new Error(
+      `dynamic environment resolver returned the reserved environment id ${JSON.stringify(id)}, it is used for the values which can not be resolved`,
+    );
   }
 
   const configured = environmentIdentityById(environmentsConfig, id);

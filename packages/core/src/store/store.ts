@@ -460,15 +460,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       let dynamic: DynamicEnvironmentIdentity | undefined;
 
       try {
-        dynamic = resolveDynamicEnvironmentIdentity(
-          this.#dynamicEnvironments,
-          {
-            labels: testResult.labels.filter(
-              ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
-            ),
-          },
-          this.#environmentsConfig,
+        const labels = testResult.labels.filter(
+          ({ name }) => name !== "ALLURE_ID" && name !== fallbackTestCaseIdLabelName,
         );
+
+        // the same precedence as on ingest: a result matched by a static matcher was not assigned dynamically
+        if (Object.values(this.#environmentsConfig).some(({ matcher }) => matcher({ labels }))) {
+          continue;
+        }
+
+        dynamic = resolveDynamicEnvironmentIdentity(this.#dynamicEnvironments, { labels }, this.#environmentsConfig);
       } catch {
         // the resolver can not handle this result anymore, there is nothing to rebuild from it
         continue;
