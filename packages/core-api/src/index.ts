@@ -26,7 +26,7 @@ export * from "./utils/status.js";
 export * from "./utils/successRate.js";
 export * from "./utils/environment.js";
 export * from "./utils/history.js";
-export * from "./utils/flaky.js";
+export * from "./utils/flaky/index.js";
 export * from "./utils/identity.js";
 export * from "./utils/strings.js";
 export * from "./utils/dictionary.js";
