@@ -287,6 +287,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
@@ -299,6 +300,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -348,6 +350,7 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     allureVersion,
     cacheKey: now.toString(),
+    overviewHref,
   };
 
   try {
