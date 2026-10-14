@@ -40,6 +40,9 @@ export const DEFAULT_REPORTS: ReportRequest[] = [
   { fixture: "globals-green", mode: REPORT_MODES.DIRECTORY },
   { fixture: "globals-no-tests", mode: REPORT_MODES.DIRECTORY },
   { fixture: "globals-attachments", mode: REPORT_MODES.DIRECTORY },
+  // Exit code is not readable from *-globals.json fixtures; inject after generate.
+  { fixture: "globals-exit-failed", mode: REPORT_MODES.DIRECTORY },
+  { fixture: "globals-exit-actual-ok", mode: REPORT_MODES.DIRECTORY },
 ];
 
 const resolveYarnCli = (): string => {
@@ -147,7 +150,29 @@ export const prepareSingleReport = ({ fixture, mode }: ReportRequest): string =>
     ALLURE_NO_ANALYTICS: "true",
   });
 
+  const injectedExitCode = EXIT_CODE_INJECTIONS[fixture];
+  if (injectedExitCode && ensuredMode === REPORT_MODES.DIRECTORY) {
+    injectExitCodeIntoGlobals(outputDir, injectedExitCode);
+  }
+
   return getReportIndexPath({ fixture, mode: ensuredMode });
+};
+
+const EXIT_CODE_INJECTIONS: Record<string, { original: number; actual?: number }> = {
+  "globals-exit-failed": { original: 1 },
+  // actual overrides original -> effective exit 0, no failure banner
+  "globals-exit-actual-ok": { original: 1, actual: 0 },
+};
+
+const injectExitCodeIntoGlobals = (outputDir: string, exitCode: { original: number; actual?: number }): void => {
+  const globalsPath = path.join(outputDir, "widgets", "globals.json");
+  if (!fs.existsSync(globalsPath)) {
+    throw new Error(`Expected ${globalsPath} after generating globals-exit-failed`);
+  }
+
+  const globals = JSON.parse(fs.readFileSync(globalsPath, "utf8")) as Record<string, unknown>;
+  globals.exitCode = exitCode;
+  fs.writeFileSync(globalsPath, `${JSON.stringify(globals, null, 2)}\n`);
 };
 
 const parseCliReports = (argv: string[]): ReportRequest[] => {

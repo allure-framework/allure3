@@ -2018,6 +2018,7 @@ describe("testops plugin", () => {
       const result = await plugin.info({} as PluginContext, store);
 
       expect(result).toBeDefined();
+      expect(result?.plugin).toBe("TestOps");
       expect(result?.remoteHref).toBe(fixtures.launchUrl);
     });
 

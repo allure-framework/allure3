@@ -1,11 +1,12 @@
-import { exit } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
 import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport, filterFailedQualityGateResults, stringifyQualityGateResults } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
-import { red } from "yoctocolors";
+import { red, yellow } from "yoctocolors";
 
+import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../utils/cleanOutput.js";
 import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
 import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
@@ -21,6 +22,7 @@ export const generate = async (params: {
   resultsDir?: string[];
   dump?: string[];
   collectSummary?: boolean;
+  clean?: boolean;
 }): Promise<GenerateResult | undefined> => {
   const dumpFiles: string[] = params?.dump?.length ? await findFilesByGlobs(params.cwd, params.dump) : [];
   const cliPatterns = params.resultsDir ?? [];
@@ -36,6 +38,47 @@ export const generate = async (params: {
     console.error(red(`No test results directories found matching pattern: ${patterns}`));
     exit(1);
     return;
+  }
+
+  if (params.clean) {
+    try {
+      // the report reads these files later, so they must be resolved before the output is removed,
+      // with the same base and glob options as the core, so only files the report really reads are protected
+      const globalAttachments = await findFilesByGlobs(
+        params.config.cwd ?? processCwd(),
+        params.config.globalAttachments ?? [],
+        { dot: false, windowsPathsNoEscape: false },
+      );
+
+      await cleanOutputDirectory({
+        output: params.config.output,
+        cwd: params.cwd,
+        resultsDirs: resultDirectories,
+        inputs: [
+          ...dumpFiles,
+          ...globalAttachments,
+          params.config.historyPath,
+          params.config.resolutions?.knownIssuesPath,
+        ].filter((path): path is string => !!path),
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(red(error instanceof Error ? error.message : String(error)));
+      exit(1);
+      return;
+    }
+  }
+
+  if (!params.clean && params.config.output && (await isOutputDirectoryNotEmpty(params.cwd, params.config.output))) {
+    // a previous report left in the output changes how the new one is laid out (e.g. it ends up in a nested
+    // directory next to the stale root index), so the history of the new report looks missing
+    // eslint-disable-next-line no-console
+    console.warn(
+      yellow(
+        `The output directory "${params.config.output}" is not empty. Files of a previous report may break the layout ` +
+          "of the new one. Use the --clean option to remove the directory before generating.",
+      ),
+    );
   }
 
   try {

@@ -16,6 +16,7 @@ import {
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
 import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { isQuiet } from "../utils/verbosity.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
@@ -73,6 +74,11 @@ export class RunCommand extends Command {
 
   port = Option.String("--port", {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
   });
 
   reportName = Option.String("--report-name,--name", {
@@ -188,6 +194,7 @@ export class RunCommand extends Command {
       name: this.reportName,
       open: this.open,
       port: this.port,
+      host: this.host,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
       ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
@@ -246,7 +253,7 @@ export class RunCommand extends Command {
 
     if (config.open) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

@@ -93,6 +93,9 @@ const MAX_READ_CONCURRENCY = 256;
 const DEFAULT_UPLOAD_CONCURRENCY = 10;
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
 const QUALITY_GATE_RESULTS_FILENAME = "quality-gate.json";
+// directories next to the report ones that are not reports on their own, for example the `export` one with the
+// Allure 2 compatible metrics files, so they must not prevent a single report from being moved to the root
+const AUXILIARY_OUTPUT_DIRECTORIES = new Set(["export"]);
 const ROOT_INTEGRATION_FILENAMES = new Set([
   TEST_RESULTS_REGISTRY_FILENAME,
   QUALITY_GATE_RESULTS_FILENAME,
@@ -125,12 +128,23 @@ const readConcurrency = () => {
 
 const clonePluginSummary = (summary: PluginSummary): PluginSummary => structuredClone(summary);
 
-const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
+type RemoteBranchParams = { repo?: string; branch?: string };
+
+const remoteBranchParams = (ci: CiDescriptor | undefined, branch: string | undefined): RemoteBranchParams => {
   const repo = ci?.repoName;
-  const branch = ci?.jobRunBranch;
 
   return repo && branch ? { repo, branch } : {};
 };
+
+// For calculating history related data we prioritize target branch over job run branch
+const remoteHistoryParams = (ci: CiDescriptor | undefined): RemoteBranchParams => {
+  const historyBranch = ci?.targetBranch || ci?.jobRunBranch;
+
+  return remoteBranchParams(ci, historyBranch);
+};
+
+const remoteReportParams = (ci: CiDescriptor | undefined): RemoteBranchParams =>
+  remoteBranchParams(ci, ci?.jobRunBranch);
 
 const errorDetails = (err: unknown): string => (err instanceof Error ? (err.stack ?? err.message) : String(err));
 
@@ -282,7 +296,7 @@ export class AllureReport {
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
-        ...remoteReportParams(this.#ci),
+        ...remoteHistoryParams(this.#ci),
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
@@ -1349,7 +1363,12 @@ export class AllureReport {
         outputDirFiles.map(async (file) => ({ file, stats: await lstat(join(this.#output, file)) })),
       );
       const outputDirectoryEntries = outputEntries.filter(({ stats }) => stats.isDirectory());
-      const shouldFlattenOutput = outputDirectoryEntries.length === 1;
+      // only a plugin report directory is moved to the root, auxiliary directories are left where they are
+      const reportDirectoryEntries = outputDirectoryEntries.filter(
+        ({ file }) => !AUXILIARY_OUTPUT_DIRECTORIES.has(file),
+      );
+      const shouldFlattenOutput =
+        reportDirectoryEntries.length === 1 && this.#plugins.some(({ id }) => id === reportDirectoryEntries[0].file);
 
       this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
 
@@ -1366,7 +1385,7 @@ export class AllureReport {
 
       // if there is a single report directory in the output directory, move it to the root and prevent summary generation
       if (shouldFlattenOutput) {
-        const reportPath = join(this.#output, outputDirectoryEntries[0].file);
+        const reportPath = join(this.#output, reportDirectoryEntries[0].file);
         const reportContent = await readdir(reportPath);
 
         for (const entry of reportContent) {

@@ -87,6 +87,14 @@ export interface PluginSummary {
   checks?: SummaryCheckResult[];
   createdAt?: number;
   /**
+   * Process exit code for the run. Omitted when the store has no exit code.
+   */
+  exitCode?: ExitCode;
+  /**
+   * Number of global (runner-level) errors. Omitted when zero.
+   */
+  globalErrorsCount?: number;
+  /**
    * Marks summaries produced from a filtered test result subset. Unfiltered summaries describe the same
    * generation-wide result set and CI integrations may aggregate their stats instead of repeating them per report.
    */

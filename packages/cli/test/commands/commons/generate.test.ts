@@ -9,6 +9,7 @@ import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generate } from "../../../src/commands/commons/generate.js";
+import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../../src/utils/cleanOutput.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";
 
@@ -29,6 +30,10 @@ vi.mock("@allurereport/core", async () => {
     ),
   };
 });
+vi.mock("../../../src/utils/cleanOutput.js", () => ({
+  cleanOutputDirectory: vi.fn(),
+  isOutputDirectoryNotEmpty: vi.fn().mockResolvedValue(false),
+}));
 vi.mock("../../../src/utils/logs.js", () => ({
   logError: vi.fn(),
 }));
@@ -65,6 +70,150 @@ beforeEach(async () => {
 });
 
 describe("generate function", () => {
+  it("should clean the output directory before generation when clean is set", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({
+      cwd: ".",
+      config: { output: "/tmp/out" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith({
+      output: "/tmp/out",
+      cwd: ".",
+      resultsDirs: ["./allure-results/"],
+      inputs: [],
+    });
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
+
+  it("should protect the history and known issues files from cleaning", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({
+      cwd: ".",
+      config: {
+        output: "/tmp/out",
+        historyPath: "/tmp/out/history.jsonl",
+        resolutions: { knownIssuesPath: "/tmp/known.json" },
+      } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ inputs: ["/tmp/out/history.jsonl", "/tmp/known.json"] }),
+    );
+  });
+
+  it("should protect the global attachments from cleaning", async () => {
+    (glob as unknown as Mock).mockImplementation(async (pattern: string) =>
+      pattern === "report/input.log" ? ["/work/report/input.log"] : ["./allure-results/"],
+    );
+
+    await generate({
+      cwd: ".",
+      config: { output: "/work/report", cwd: "/work", globalAttachments: ["report/input.log"] } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(cleanOutputDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ inputs: expect.arrayContaining(["/work/report/input.log"]) }),
+    );
+  });
+
+  it("should resolve the global attachments only against the config cwd", async () => {
+    (glob as unknown as Mock).mockImplementation(async (pattern: string) =>
+      pattern === "report/*.log" ? [] : ["./allure-results/"],
+    );
+
+    await generate({
+      cwd: "/command-cwd",
+      config: { output: "/work/report", cwd: "/work", globalAttachments: ["report/*.log"] } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    const attachmentCalls = (glob as unknown as Mock).mock.calls.filter(([pattern]) => pattern === "report/*.log");
+
+    expect(attachmentCalls).toHaveLength(1);
+    expect(attachmentCalls[0][1]).toEqual(expect.objectContaining({ cwd: "/work", dot: false }));
+  });
+
+  it("should not clean the output directory by default", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+
+    await generate({ cwd: ".", config: {} as FullConfig, resultsDir: ["./allure-results"], dump: [] });
+
+    expect(cleanOutputDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should warn about a non-empty output directory when clean is not set", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValueOnce(true);
+
+    await generate({
+      cwd: "/work",
+      config: { output: "allure-report" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+    });
+
+    expect(isOutputDirectoryNotEmpty).toHaveBeenCalledWith("/work", "allure-report");
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("--clean"));
+    expect(AllureReportMock.prototype.start).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should not warn about the output directory when it is empty or cleaned", async () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValue(["./allure-results/"]);
+
+    await generate({ cwd: ".", config: { output: "out" } as FullConfig, resultsDir: ["./allure-results"], dump: [] });
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValue(true);
+    await generate({
+      cwd: ".",
+      config: { output: "out" } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+    vi.mocked(isOutputDirectoryNotEmpty).mockResolvedValue(false);
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("should exit with code 1 and not generate when cleaning is refused", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
+    vi.mocked(cleanOutputDirectory).mockRejectedValueOnce(new Error("Refusing to clean"));
+
+    await generate({
+      cwd: ".",
+      config: { output: "." } as FullConfig,
+      resultsDir: ["./allure-results"],
+      dump: [],
+      clean: true,
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Refusing to clean"));
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(AllureReportMock.prototype.start).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("should do nothing when there are no results directory and dump files", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (glob as unknown as Mock).mockResolvedValue([]);

@@ -1,6 +1,6 @@
 import type { Statistic } from "@allurereport/core-api";
-import { DEFAULT_ENVIRONMENT, getWorstStatus, statusesList } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { DEFAULT_ENVIRONMENT, statusesList } from "@allurereport/core-api";
+import { type AllureStore, type Plugin, type PluginContext, resolveReportStatus } from "@allurereport/plugin-api";
 import axios, { isAxiosError } from "axios";
 
 import { isJiraIssueKey, prepareTestResults, trimCiInfoLabel, trimName } from "./helpers.js";
@@ -114,33 +114,15 @@ export class JiraPlugin implements Plugin {
 
   async #getReportStatus(store: AllureStore, statistic: Statistic) {
     const globalErrors = await store.allGlobalErrors();
-    const globalExitCode = await store.globalExitCode();
-    const code = globalExitCode?.actual ?? globalExitCode?.original;
-    const hasGlobalErrors = globalErrors.length > 0;
+    const exitCode = await store.globalExitCode();
+    const testStatuses = statusesList.filter((status) => (statistic[status] ?? 0) > 0);
+    const status = resolveReportStatus({
+      globalErrorsCount: globalErrors.length,
+      exitCode,
+      testStatuses,
+    });
 
-    if (hasGlobalErrors) {
-      return "failed";
-    }
-
-    if (code === 0) {
-      return "passed";
-    }
-
-    const worstStatus =
-      getWorstStatus(
-        statusesList
-          .map((status) => {
-            const value = statistic[status] ?? 0;
-            return value > 0 ? status : undefined;
-          })
-          .filter((status) => status !== undefined),
-      ) ?? "passed";
-
-    if (worstStatus === "passed") {
-      return "passed";
-    }
-
-    return "failed";
+    return status === "passed" ? "passed" : "failed";
   }
 
   async #getStatisticByEnv(store: AllureStore) {

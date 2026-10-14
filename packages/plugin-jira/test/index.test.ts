@@ -568,6 +568,123 @@ describe("JiraPlugin", () => {
       );
     });
 
+    it("should upload report as failed when global errors exist even with exit 0 and passed tests", async () => {
+      const mockTestResults = [createTestResult()];
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue(mockTestResults),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
+        allGlobalErrors: vi.fn().mockResolvedValue([{ message: "runner crashed" }]),
+        globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
+      });
+      const axiosPostSpy = vi.spyOn(axios, "post");
+
+      const plugin = new JiraPlugin({
+        token: "test-token",
+        webhook: "http://example.com/webhook",
+        issue: "PROJ-123",
+        uploadReport: true,
+      });
+
+      axiosPostSpy.mockResolvedValue({ data: { success: true } } as any);
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "http://example.com/webhook",
+        expect.objectContaining({
+          operation: "upload-report",
+          payload: expect.objectContaining({
+            report: expect.objectContaining({
+              status: "failed",
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("should upload report as failed when exit is 0 but tests failed", async () => {
+      const mockTestResults = [createTestResult({ status: "failed" })];
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue(mockTestResults),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 1, passed: 0, failed: 1, broken: 0, skipped: 0, unknown: 0 }),
+      });
+      const axiosPostSpy = vi.spyOn(axios, "post");
+
+      const plugin = new JiraPlugin({
+        token: "test-token",
+        webhook: "http://example.com/webhook",
+        issue: "PROJ-123",
+        uploadReport: true,
+      });
+
+      axiosPostSpy.mockResolvedValue({ data: { success: true } } as any);
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "http://example.com/webhook",
+        expect.objectContaining({
+          operation: "upload-report",
+          payload: expect.objectContaining({
+            report: expect.objectContaining({
+              status: "failed",
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("should upload report as failed when exit is nonzero even if all tests passed", async () => {
+      const mockTestResults = [createTestResult()];
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue(mockTestResults),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue({ original: 1 }),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
+      });
+      const axiosPostSpy = vi.spyOn(axios, "post");
+
+      const plugin = new JiraPlugin({
+        token: "test-token",
+        webhook: "http://example.com/webhook",
+        issue: "PROJ-123",
+        uploadReport: true,
+      });
+
+      axiosPostSpy.mockResolvedValue({ data: { success: true } } as any);
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "http://example.com/webhook",
+        expect.objectContaining({
+          operation: "upload-report",
+          payload: expect.objectContaining({
+            report: expect.objectContaining({
+              status: "failed",
+            }),
+          }),
+        }),
+      );
+    });
+
     it("should throw error if no test results found for report", async () => {
       const plugin = new JiraPlugin({
         token: "test-token",

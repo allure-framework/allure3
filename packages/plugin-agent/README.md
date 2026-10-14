@@ -158,7 +158,7 @@ npx allure agent \
 ```
 
 That command uses the default `--report auto` policy. Configured presentation or
-export plugins such as Dashboard or TestOps are otherwise ignored for agent runs
+export plugins such as Dashboard or Allure TestOps are otherwise ignored for agent runs
 unless you explicitly use `--report config`.
 
 ## Options
