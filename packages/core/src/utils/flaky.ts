@@ -6,10 +6,10 @@ import {
 } from "@allurereport/core-api";
 
 export const createFlakyDetector =
-  ({ includePassedTests = false, historyDepth, stabilizationPeriod }: FlakyDetectionConfig = {}) =>
+  ({ includePassedTests = false, historyDepth, stabilizationPeriod, ...scoringOptions }: FlakyDetectionConfig = {}) =>
   (tr: TestResult, history: (HistoryTestResult | undefined)[]): boolean => {
     if (tr.status !== "failed" && tr.status !== "broken" && !(includePassedTests && tr.status === "passed")) {
       return false;
     }
-    return getTestFlakiness(tr, history, { historyDepth, stabilizationPeriod }) === true;
+    return getTestFlakiness(tr, history, { historyDepth, stabilizationPeriod, ...scoringOptions }) === true;
   };

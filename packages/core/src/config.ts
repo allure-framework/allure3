@@ -2,7 +2,11 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { validateEnvironmentName, validatePerformanceConfig } from "@allurereport/core-api";
+import {
+  validateEnvironmentName,
+  validateFlakinessScoringOptions,
+  validatePerformanceConfig,
+} from "@allurereport/core-api";
 import { type NameContext, createNameContext, resolveName } from "@allurereport/core-api/expression";
 import type { Config, PluginConstructor, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
 import { createJiti } from "jiti";
@@ -326,6 +330,7 @@ const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
   if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {
     throw new TypeError("flakyDetection.includePassedTests must be a boolean");
   }
+  validateFlakinessScoringOptions(config, "flakyDetection");
 };
 
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
