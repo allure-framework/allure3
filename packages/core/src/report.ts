@@ -207,6 +207,7 @@ export class AllureReport {
   #executionStage: "init" | "running" | "done" = "init";
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
+  #overviewHref?: string;
   #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
@@ -1155,6 +1156,31 @@ export class AllureReport {
       return restoredCount;
     });
 
+  /**
+   * Resolves the link from the plugin reports to the root overview.
+   * The overview page is written only when several plugins provide a summary, and a single report directory is
+   * moved to the output root instead (see `shouldFlattenOutput`), so the link is passed to the plugins only when
+   * at least two of them generate a report of their own. Summaries with a remote link (TestOps) have no local
+   * directory and don't count. The root page is written when the report is done, so it isn't linked in real time
+   */
+  #resolveOverviewHref = async (): Promise<string | undefined> => {
+    if (this.#realTime) {
+      return undefined;
+    }
+
+    let localSummaries = 0;
+
+    await this.#eachPlugin(false, async (plugin, context) => {
+      const summary = await plugin.info?.(context, this.#store);
+
+      if (summary && !summary.remoteHref) {
+        localSummaries += 1;
+      }
+    });
+
+    return localSummaries > 1 ? "../index.html" : undefined;
+  };
+
   #getReportsToPublish = async (): Promise<PluginReportFile[]> => {
     const reports: PluginReportFile[] = [];
 
@@ -1314,6 +1340,8 @@ export class AllureReport {
 
       // resolve report url from available sources so it is available to plugins
       await this.#resolveReportUrl();
+
+      this.#overviewHref = await this.#resolveOverviewHref();
 
       // isolate logs of different reports dumps: done and summary
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
@@ -1514,6 +1542,7 @@ export class AllureReport {
             }
           : {}),
         reportUrl: this.reportUrl,
+        overviewHref: this.#overviewHref,
         realTime: !!this.#realTime,
         output: this.#output,
         ci: this.#ci,
