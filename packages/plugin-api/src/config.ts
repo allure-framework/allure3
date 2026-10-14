@@ -18,6 +18,7 @@ export interface Config {
   output?: string;
   open?: boolean;
   port?: string;
+  host?: string;
   hideLabels?: (string | RegExp)[];
   historyPath?: string;
   historyBaseUrl?: string;

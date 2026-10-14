@@ -31,6 +31,7 @@ export interface ConfigOverride {
   output?: Config["output"];
   open?: Config["open"];
   port?: Config["port"];
+  host?: Config["host"];
   hideLabels?: Config["hideLabels"];
   historyPath?: Config["historyPath"];
   historyBaseUrl?: Config["historyBaseUrl"];
@@ -154,6 +155,7 @@ export const validateConfig = (config: Config) => {
     "output",
     "open",
     "port",
+    "host",
     "hideLabels",
     "historyPath",
     "historyBaseUrl",
@@ -334,6 +336,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
+  const host = override.host ?? config.host ?? undefined;
   const hideLabels = override.hideLabels ?? config.hideLabels;
   const historyPath = override.historyPath ?? config.historyPath;
   const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
@@ -385,6 +388,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     output,
     open,
     port,
+    host,
     hideLabels,
     resolutions,
     environment,

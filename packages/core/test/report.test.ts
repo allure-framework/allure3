@@ -8,6 +8,7 @@ import { detect } from "@allurereport/ci";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import MetricsPlugin from "@allurereport/plugin-metrics";
 import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
@@ -185,6 +186,175 @@ describe("report", () => {
     expect(registryEntry).not.toHaveProperty("attachments");
     expect(registryEntry).not.toHaveProperty("error");
     await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
+  describe("flattening of the output directory", () => {
+    const visitFailedTest = async (allureReport: AllureReport) => {
+      await allureReport.start();
+      await allureReport.store.visitTestResult(
+        { uuid: "result-1", name: "failed test", status: "failed", duration: 123 },
+        { readerId: "report.test.ts" },
+      );
+    };
+
+    it("should keep the metrics export directory when metrics is the only report plugin", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-only-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [{ id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+      await expect(readFile(join(output, "export", "influxDbData.txt"), "utf8")).resolves.toContain(
+        "launch_status failed=1 ",
+      );
+      await expect(readFile(join(output, "prometheusData.txt"), "utf8")).rejects.toThrow();
+    });
+
+    it("should keep a single plugin report in the root next to the metrics export directory", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-with-plugin-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1, { id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+    });
+
+    it("should keep every plugin report directory next to the metrics export directory", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-with-plugins-"));
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1, p2, { id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      for (const plugin of [p1, p2]) {
+        (plugin.plugin.done as Mock).mockImplementation(async (context) => {
+          await context.reportFiles.addFile("index.html", Buffer.from(context.id));
+        });
+      }
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).resolves.toBe("p1");
+      await expect(readFile(join(output, "p2", "index.html"), "utf8")).resolves.toBe("p2");
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+    });
+
+    it("should not move a plugin report to the root when the output has other directories", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-other-directories-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      await mkdir(join(output, "other"), { recursive: true });
+      await writeFile(join(output, "other", "keep.txt"), "keep");
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "other", "keep.txt"), "utf8")).resolves.toBe("keep");
+    });
+
+    it("should keep the history base url as is when the output is not flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-not-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [{ id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/");
+    });
+
+    it("should point the history url to the root report when the output is flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/index.html");
+    });
+
+    it("should still move a single plugin report directory to the root", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-single-plugin-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
+    });
   });
 
   it("should write quality gate results with related test ids", async () => {
