@@ -930,24 +930,61 @@ export const resolveServerUrl = (host: string | undefined, port: number) => {
   return `http://${linkHost.includes(":") ? `[${linkHost}]` : linkHost}:${port}`;
 };
 
-export const injectLiveReloadScript = (html: string) => {
+export const injectLiveReloadScript = (html: string, reloadId: string) => {
   const liveReloadScript = `
     <script>
-      const eventSource = new EventSource("/__live_reload");
-      
-      eventSource.onmessage = () => {
-        const newHash = Math.random().toString(36).slice(2, 10);
-        const reload = () => window.location.reload();
-        
-        window.localStorage.setItem("${ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY}", newHash);
+      (() => {
+        // every opened page would keep a permanent connection to the server and browsers limit the number of them per host,
+        // so the connection is closed while the page is hidden and the reloads missed in the meantime are caught up on return
+        let eventSource;
+        let lastReloadId = ${JSON.stringify(reloadId)};
 
-        if (typeof window.__allureLiveReload !== "function") {
-          reload();
-          return;
+        const applyReload = () => {
+          const newHash = Math.random().toString(36).slice(2, 10);
+          const reload = () => window.location.reload();
+
+          window.localStorage.setItem("${ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY}", newHash);
+
+          if (typeof window.__allureLiveReload !== "function") {
+            reload();
+            return;
+          }
+
+          Promise.resolve(window.__allureLiveReload()).catch(reload);
+        };
+        const connect = () => {
+          eventSource = new EventSource("/__live_reload");
+
+          eventSource.onmessage = (event) => {
+            lastReloadId = event.lastEventId;
+            applyReload();
+          };
+          eventSource.addEventListener("sync", (event) => {
+            if (lastReloadId === event.data) {
+              return;
+            }
+
+            lastReloadId = event.data;
+            applyReload();
+          });
+        };
+        const disconnect = () => {
+          eventSource?.close();
+          eventSource = undefined;
+        };
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            disconnect();
+          } else if (!eventSource) {
+            connect();
+          }
+        });
+
+        if (!document.hidden) {
+          connect();
         }
-
-        Promise.resolve(window.__allureLiveReload()).catch(reload);
-      };
+      })();
     </script>
   `;
 
