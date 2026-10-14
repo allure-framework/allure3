@@ -361,3 +361,23 @@ describe("generate command", () => {
     );
   });
 });
+
+describe("generate command --clean", () => {
+  it("should pass clean flag to generate", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report", open: false });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "--clean", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ clean: true }));
+  });
+
+  it("should not clean by default", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report", open: false });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ clean: undefined }));
+  });
+});
