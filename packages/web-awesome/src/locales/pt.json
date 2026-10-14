@@ -201,6 +201,7 @@
     "collapse": "Recolher",
     "collapseAll": "Recolher tudo",
     "collapseAllPartial": "Recolher tudo (alguns grupos estão expandidos)",
+    "collapseToDefault": "Recolher para a visualização padrão",
     "expandFirstLevel": "Expandir o primeiro nível",
     "collapseToFirstLevel": "Recolher até o primeiro nível",
     "expand": "Expandir",

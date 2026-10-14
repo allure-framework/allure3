@@ -201,6 +201,7 @@
     "collapse": "Samenvouwen",
     "collapseAll": "Alles inklappen",
     "collapseAllPartial": "Alles inklappen (sommige groepen zijn uitgeklapt)",
+    "collapseToDefault": "Inklappen naar de standaardweergave",
     "expandFirstLevel": "Eerste niveau uitklappen",
     "collapseToFirstLevel": "Inklappen tot eerste niveau",
     "expand": "Uitvouwen",

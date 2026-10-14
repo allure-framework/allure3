@@ -259,6 +259,7 @@
     "collapse": "Свернуть",
     "collapseAll": "Свернуть все",
     "collapseAllPartial": "Свернуть все (часть групп развёрнута)",
+    "collapseToDefault": "Свернуть до вида по умолчанию",
     "expandFirstLevel": "Развернуть первый уровень",
     "collapseToFirstLevel": "Свернуть до первого уровня",
     "showMore": "Показать ещё",

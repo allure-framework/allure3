@@ -37,7 +37,8 @@
     background-color: var(--color-control-bg-ghost-active);
   }
 
-  // no outline around the tab, the focus is shown with the background
+  // no outline around the tab, the focus from the keyboard is shown with the background,
+  // the current tab has a background of its own, so its border gets stronger
   &:focus,
   &:focus-visible {
     outline: none;
@@ -45,5 +46,9 @@
 
   &:focus-visible:not([aria-current]) {
     background-color: var(--color-control-bg-ghost-hover);
+  }
+
+  &[aria-current]:focus-visible {
+    border-color: var(--color-border-strong);
   }
 }

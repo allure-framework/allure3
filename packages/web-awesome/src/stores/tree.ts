@@ -310,6 +310,17 @@ export const allTreesExpanded = computed(() => {
   );
 });
 
+// when every group is opened by default, there is no default view to go back to, so it is the same as expanded
+export const canResetTreesToDefault = computed(() => collapsibleTreeNodes.value.some((node) => !node.openedByDefault));
+
+export const resetTreesToDefault = () => {
+  batch(() => {
+    collapsedTrees.value = new Set();
+    expandedTrees.value = new Set();
+    collapsedEnvironments.value = [];
+  });
+};
+
 export const setAllTreesOpened = (shouldBeOpened: boolean) => {
   const nextCollapsedTrees = new Set(collapsedTrees.peek());
   const nextExpandedTrees = new Set(expandedTrees.peek());

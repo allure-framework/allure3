@@ -201,6 +201,7 @@
     "collapse": "Colapsar",
     "collapseAll": "Contraer todo",
     "collapseAllPartial": "Contraer todo (algunos grupos están expandidos)",
+    "collapseToDefault": "Contraer a la vista predeterminada",
     "expandFirstLevel": "Expandir el primer nivel",
     "collapseToFirstLevel": "Contraer al primer nivel",
     "expand": "Expandir",

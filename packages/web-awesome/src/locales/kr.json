@@ -201,6 +201,7 @@
     "collapse": "접기",
     "collapseAll": "모두 접기",
     "collapseAllPartial": "모두 접기 (일부 그룹이 펼쳐져 있음)",
+    "collapseToDefault": "기본 보기로 접기",
     "expandFirstLevel": "첫 번째 수준 펼치기",
     "collapseToFirstLevel": "첫 번째 수준으로 접기",
     "expand": "펼치기",

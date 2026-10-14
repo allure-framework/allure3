@@ -4,14 +4,30 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CollapseAll } from "@/components/ReportBody/CollapseAll";
 
-const { allTreesCollapsed, allTreesExpanded, hasCollapsibleTrees, setAllTreesOpened } = vi.hoisted(() => ({
+const {
+  allTreesCollapsed,
+  allTreesExpanded,
+  canResetTreesToDefault,
+  hasCollapsibleTrees,
+  resetTreesToDefault,
+  setAllTreesOpened,
+} = vi.hoisted(() => ({
   allTreesCollapsed: { value: false },
   allTreesExpanded: { value: false },
+  canResetTreesToDefault: { value: true },
   hasCollapsibleTrees: { value: true },
+  resetTreesToDefault: vi.fn(),
   setAllTreesOpened: vi.fn(),
 }));
 
-vi.mock("@/stores/tree", () => ({ allTreesCollapsed, allTreesExpanded, hasCollapsibleTrees, setAllTreesOpened }));
+vi.mock("@/stores/tree", () => ({
+  allTreesCollapsed,
+  allTreesExpanded,
+  canResetTreesToDefault,
+  hasCollapsibleTrees,
+  resetTreesToDefault,
+  setAllTreesOpened,
+}));
 vi.mock("@/stores/locale", () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
@@ -25,6 +41,7 @@ beforeEach(async () => {
   cleanup();
   allTreesCollapsed.value = false;
   allTreesExpanded.value = false;
+  canResetTreesToDefault.value = true;
   hasCollapsibleTrees.value = true;
 });
 
@@ -43,8 +60,24 @@ describe("components > ReportBody > CollapseAll", () => {
     expect(setAllTreesOpened).toHaveBeenCalledWith(true);
   });
 
-  it("offers to collapse everything when every group is expanded", () => {
+  it("goes back to the default view when every group is expanded", () => {
     allTreesExpanded.value = true;
+
+    render(<CollapseAll />);
+
+    const button = screen.getByTestId("collapse-all-button");
+
+    expect(button.getAttribute("aria-label")).toBe("collapseToDefault");
+
+    fireEvent.click(button);
+
+    expect(resetTreesToDefault).toHaveBeenCalledTimes(1);
+    expect(setAllTreesOpened).not.toHaveBeenCalled();
+  });
+
+  it("collapses everything when every group is expanded by default", () => {
+    allTreesExpanded.value = true;
+    canResetTreesToDefault.value = false;
 
     render(<CollapseAll />);
 
@@ -55,6 +88,7 @@ describe("components > ReportBody > CollapseAll", () => {
     fireEvent.click(button);
 
     expect(setAllTreesOpened).toHaveBeenCalledWith(false);
+    expect(resetTreesToDefault).not.toHaveBeenCalled();
   });
 
   it("says that a part of the groups is expanded and collapses them when the groups are in the mixed state", () => {

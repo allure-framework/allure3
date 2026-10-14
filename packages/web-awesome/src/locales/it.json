@@ -201,6 +201,7 @@
     "collapse": "Comprimi",
     "collapseAll": "Comprimi tutto",
     "collapseAllPartial": "Comprimi tutto (alcuni gruppi sono espansi)",
+    "collapseToDefault": "Comprimi alla vista predefinita",
     "expandFirstLevel": "Espandi il primo livello",
     "collapseToFirstLevel": "Comprimi al primo livello",
     "expand": "Espandi",

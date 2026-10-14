@@ -18,6 +18,7 @@ import lineAlertsMalfunctioned from "@/assets/svg/line-alerts-malfunctioned.svg"
 import lineAlertsNew from "@/assets/svg/line-alerts-new.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
 import lineAlertsRegressed from "@/assets/svg/line-alerts-regressed.svg";
+import lineArrowsArrowLeft from "@/assets/svg/line-arrows-arrow-left.svg";
 import lineArrowsChevronDownDouble from "@/assets/svg/line-arrows-chevron-down-double.svg";
 import lineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import lineArrowsChevronRight from "@/assets/svg/line-arrows-chevron-right.svg";
@@ -106,6 +107,7 @@ const iconComponents = {
   "line-alerts-new": lineAlertsNew,
   "line-alerts-notification-box": lineAlertsNotificationBox,
   "line-alerts-regressed": lineAlertsRegressed,
+  "line-arrows-arrow-left": lineArrowsArrowLeft,
   "line-arrows-chevron-down-double": lineArrowsChevronDownDouble,
   "line-arrows-chevron-down": lineArrowsChevronDown,
   "line-arrows-chevron-right": lineArrowsChevronRight,
@@ -190,6 +192,7 @@ export const allureIcons = {
   lineAlertsNew: "line-alerts-new",
   lineAlertsNotificationBox: "line-alerts-notification-box",
   lineAlertsRegressed: "line-alerts-regressed",
+  lineArrowsArrowLeft: "line-arrows-arrow-left",
   lineArrowsChevronDownDouble: "line-arrows-chevron-down-double",
   lineArrowsChevronDown: "line-arrows-chevron-down",
   lineArrowsChevronRight: "line-arrows-chevron-right",
