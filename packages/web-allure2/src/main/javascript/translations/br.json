@@ -93,6 +93,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Back to overview",
     "backto": "Voltar para",
     "clipboard": "Copiar para área de transferência",
     "clipboardError": "Não é possível copiar o valor para área de transferência. Parece que está funcionalidade não é suportada pelo seu browser",

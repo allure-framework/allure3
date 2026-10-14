@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Back to overview",
     "backto": "Հետ գնալ",
     "clipboard": "Պատճենել clipboard-ում",
     "clipboardError": "Հնարավոր չէ պատճենել clipboard-ում: Հնարավոր է, որ այս գործառույթը չի ապահովվում դիտարկիչում",

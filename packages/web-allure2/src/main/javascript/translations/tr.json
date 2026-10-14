@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Genel bakışa dön",
     "backto": "Geri Dön",
     "clipboard": "Panoya Kopyala",
     "clipboardError": "Değer panoya kopyalanamadı. Tarayıcınız tarafından desteklenmediği görünüyor.",
