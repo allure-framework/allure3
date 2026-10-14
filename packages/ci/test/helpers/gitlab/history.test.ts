@@ -19,13 +19,21 @@ vi.mock("../../../src/utils.js", () => ({
   getEnv: vi.fn(),
 }));
 
-const previousGitlabJobQuery = `query PreviousGitlabJob($path: ID!, $ref: String!, $source: String!, $job: String!) {
+const previousGitlabJobQuery = `query PreviousGitlabJob($path: ID!, $ref: String!, $source: String, $job: String!) {
   project(fullPath: $path) {
     pipelines(ref: $ref, source: $source, first: 100) {
       nodes { id source job(name: $job) { id name status retried } }
     }
   }
 }`;
+
+const mergeRequestEnv = {
+  CI_PIPELINE_SOURCE: "merge_request_event",
+  CI_MERGE_REQUEST_IID: "7",
+  CI_MERGE_REQUEST_SOURCE_BRANCH_NAME: "feature/a",
+  CI_MERGE_REQUEST_TARGET_BRANCH_NAME: "release",
+  CI_DEFAULT_BRANCH: "main",
+};
 
 const pipelines = [
   { id: "gid://gitlab/Ci::Pipeline/102", source: "push", job: null },
@@ -98,6 +106,298 @@ describe("restoreGitlabHistory", () => {
       ]);
     },
   );
+
+  it("prefers an eligible previous merge-request job over branch history", async () => {
+    const historyPath = join(tempDir!, "history.jsonl");
+    mockEnv(gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir! }));
+    const { calls } = stubRequest((call) =>
+      call.method === "POST"
+        ? jsonResponse({
+            data: {
+              project: {
+                pipelines: {
+                  nodes: pipelines.map((node) => ({ ...node, source: "merge_request_event" })),
+                },
+              },
+            },
+          })
+        : artifactResponse("merge-request history\n"),
+    );
+
+    await restoreGitlabHistory({ historyPath });
+
+    expect(calls.filter((call) => call.method === "POST").map((call) => call.body)).toEqual([
+      {
+        query: previousGitlabJobQuery,
+        variables: { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+      },
+    ]);
+    expect(calls.filter((call) => call.method === "GET").map((call) => call.url)).toEqual([
+      "https://gitlab.example.com/api/v4/projects/1/jobs/980/artifacts/history.jsonl",
+    ]);
+    expect(await readFile(historyPath, "utf8")).toBe("merge-request history\n");
+  });
+
+  it("restores stacked-MR target history using the current pipeline source without a pipeline-ID cutoff", async () => {
+    const historyPath = join(tempDir!, "history.jsonl");
+    mockEnv(gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir! }));
+    const { calls } = stubRequest((call) => {
+      if (call.method === "POST") {
+        const { variables } = call.body as { variables: { ref: string } };
+        return jsonResponse({
+          data: {
+            project: {
+              pipelines: {
+                nodes:
+                  variables.ref === "release"
+                    ? [
+                        {
+                          id: "gid://gitlab/Ci::Pipeline/103",
+                          source: "merge_request_event",
+                          job: { id: "gid://gitlab/Ci::Build/1030", name: "tests", status: "RUNNING", retried: false },
+                        },
+                        {
+                          id: "gid://gitlab/Ci::Pipeline/102",
+                          source: "merge_request_event",
+                          job: { id: "gid://gitlab/Ci::Build/1020", name: "tests", status: "FAILED", retried: false },
+                        },
+                        {
+                          id: "gid://gitlab/Ci::Pipeline/99",
+                          source: "merge_request_event",
+                          job: { id: "gid://gitlab/Ci::Build/990", name: "tests", status: "SUCCESS", retried: false },
+                        },
+                      ]
+                    : [{ id: "gid://gitlab/Ci::Pipeline/100", source: "merge_request_event", job: null }],
+              },
+            },
+          },
+        });
+      }
+
+      if (call.url.endsWith("/jobs/1020/artifacts/history.jsonl")) {
+        return artifactResponse("target-branch history\n");
+      }
+
+      throw new Error("unexpected artifact request");
+    });
+
+    await restoreGitlabHistory({ historyPath });
+
+    expect(calls.filter((call) => call.method === "POST").map((call) => call.body)).toEqual([
+      {
+        query: previousGitlabJobQuery,
+        variables: { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+      },
+      {
+        query: previousGitlabJobQuery,
+        variables: { path: "group/project", ref: "release", source: "merge_request_event", job: "tests" },
+      },
+    ]);
+    expect(await readFile(historyPath, "utf8")).toBe("target-branch history\n");
+  });
+
+  it.each([
+    {
+      scenario: "stacked-MR target has no eligible job",
+      targetBranch: "release",
+      expectedVariables: [
+        { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+        { path: "group/project", ref: "release", source: "merge_request_event", job: "tests" },
+        { path: "group/project", ref: "main", source: null, job: "tests" },
+      ],
+    },
+    {
+      scenario: "target branch is unset",
+      targetBranch: "",
+      expectedVariables: [
+        { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+        { path: "group/project", ref: "main", source: null, job: "tests" },
+      ],
+    },
+    {
+      scenario: "MR targets the default branch",
+      targetBranch: "main",
+      expectedVariables: [
+        { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+        { path: "group/project", ref: "main", source: null, job: "tests" },
+      ],
+    },
+  ])("restores default-branch history when $scenario", async ({ targetBranch, expectedVariables }) => {
+    const historyPath = join(tempDir!, "history.jsonl");
+    mockEnv(
+      gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir!, CI_MERGE_REQUEST_TARGET_BRANCH_NAME: targetBranch }),
+    );
+    const { calls } = stubRequest((call) => {
+      if (call.method === "POST") {
+        const { variables } = call.body as { variables: { ref: string } };
+        return jsonResponse({
+          data: {
+            project: {
+              pipelines: {
+                nodes:
+                  variables.ref === "main"
+                    ? [
+                        {
+                          id: "gid://gitlab/Ci::Pipeline/101",
+                          source: "schedule",
+                          job: { id: "gid://gitlab/Ci::Build/1010", name: "tests", status: "SUCCESS", retried: null },
+                        },
+                      ]
+                    : [],
+              },
+            },
+          },
+        });
+      }
+
+      if (call.url.endsWith("/jobs/1010/artifacts/history.jsonl")) {
+        return artifactResponse("default-branch history\n");
+      }
+
+      throw new Error("unexpected artifact request");
+    });
+
+    await restoreGitlabHistory({ historyPath });
+
+    expect(calls.filter((call) => call.method === "POST").map((call) => call.body)).toEqual(
+      expectedVariables.map((variables) => ({ query: previousGitlabJobQuery, variables })),
+    );
+    expect(await readFile(historyPath, "utf8")).toBe("default-branch history\n");
+  });
+
+  it.each([
+    { newestSource: "push", olderSource: "schedule" },
+    { newestSource: "schedule", olderSource: "push" },
+  ])(
+    "restores the newest default-branch job when its source is $newestSource",
+    async ({ newestSource, olderSource }) => {
+      const historyPath = join(tempDir!, "history.jsonl");
+      mockEnv(gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir!, CI_MERGE_REQUEST_TARGET_BRANCH_NAME: "main" }));
+      const { calls } = stubRequest((call) => {
+        if (call.method === "POST") {
+          const { variables } = call.body as { variables: { ref: string } };
+          return jsonResponse({
+            data: {
+              project: {
+                pipelines: {
+                  nodes:
+                    variables.ref === "main"
+                      ? [
+                          {
+                            id: "gid://gitlab/Ci::Pipeline/104",
+                            source: "web",
+                            job: {
+                              id: "gid://gitlab/Ci::Build/1040",
+                              name: "tests",
+                              status: "SUCCESS",
+                              retried: false,
+                            },
+                          },
+                          {
+                            id: "gid://gitlab/Ci::Pipeline/103",
+                            source: newestSource,
+                            job: {
+                              id: "gid://gitlab/Ci::Build/1030",
+                              name: "tests",
+                              status: "SUCCESS",
+                              retried: false,
+                            },
+                          },
+                          {
+                            id: "gid://gitlab/Ci::Pipeline/102",
+                            source: olderSource,
+                            job: {
+                              id: "gid://gitlab/Ci::Build/1020",
+                              name: "tests",
+                              status: "SUCCESS",
+                              retried: false,
+                            },
+                          },
+                        ]
+                      : [],
+                },
+              },
+            },
+          });
+        }
+
+        return artifactResponse("newest default-branch history\n");
+      });
+
+      await restoreGitlabHistory({ historyPath });
+
+      expect(calls.filter((call) => call.method === "POST").map((call) => call.body)).toEqual([
+        {
+          query: previousGitlabJobQuery,
+          variables: { path: "group/project", ref: "feature/a", source: "merge_request_event", job: "tests" },
+        },
+        {
+          query: previousGitlabJobQuery,
+          variables: { path: "group/project", ref: "main", source: null, job: "tests" },
+        },
+      ]);
+      expect(calls.filter((call) => call.method === "GET").map((call) => call.url)).toEqual([
+        "https://gitlab.example.com/api/v4/projects/1/jobs/1030/artifacts/history.jsonl",
+      ]);
+      expect(await readFile(historyPath, "utf8")).toBe("newest default-branch history\n");
+    },
+  );
+
+  it.each([
+    { scenario: "all branches have no eligible job", env: {}, expectedRefs: ["feature/a", "release", "main"] },
+    {
+      scenario: "target and default branches are equal",
+      env: { CI_DEFAULT_BRANCH: "release" },
+      expectedRefs: ["feature/a", "release"],
+    },
+    { scenario: "default branch is unset", env: { CI_DEFAULT_BRANCH: "" }, expectedRefs: ["feature/a", "release"] },
+    {
+      scenario: "both fallback branches are unset",
+      env: { CI_MERGE_REQUEST_TARGET_BRANCH_NAME: "", CI_DEFAULT_BRANCH: "" },
+      expectedRefs: ["feature/a"],
+    },
+    {
+      scenario: "pipeline is not a merge request",
+      env: { CI_PIPELINE_SOURCE: "push", CI_MERGE_REQUEST_IID: "" },
+      expectedRefs: ["feature/a"],
+    },
+  ])("reports no history when $scenario", async ({ env, expectedRefs }) => {
+    const historyPath = join(tempDir!, "history.jsonl");
+    mockEnv(gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir!, ...env }));
+    const { calls } = stubRequest((call) => {
+      if (call.method === "POST") {
+        return jsonResponse({ data: { project: { pipelines: { nodes: [] } } } });
+      }
+
+      throw new Error("must not request artifacts");
+    });
+
+    await expect(restoreGitlabHistory({ historyPath })).rejects.toThrow(
+      "no matching prior job in returned pipeline window",
+    );
+
+    expect(calls.map((call) => (call.body as { variables: { ref: string } }).variables.ref)).toEqual(expectedRefs);
+  });
+
+  it("propagates target-branch discovery errors without trying the default branch", async () => {
+    const historyPath = join(tempDir!, "history.jsonl");
+    mockEnv(gitlabEnv({ ...mergeRequestEnv, CI_PROJECT_DIR: tempDir! }));
+    const { calls } = stubRequest((call) => {
+      const { variables } = call.body as { variables: { ref: string } };
+      return jsonResponse(
+        variables.ref === "feature/a"
+          ? { data: { project: { pipelines: { nodes: [] } } } }
+          : { errors: [{ message: "access denied" }] },
+      );
+    });
+
+    await expect(restoreGitlabHistory({ historyPath })).rejects.toThrow("GitLab GraphQL response contained errors");
+
+    expect(calls.map((call) => (call.body as { variables: { ref: string } }).variables.ref)).toEqual([
+      "feature/a",
+      "release",
+    ]);
+  });
 
   it("rejects an empty history artifact without requesting fallback artifacts", async () => {
     const historyPath = join(tempDir!, "history.jsonl");
