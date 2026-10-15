@@ -88,7 +88,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.14.x"
-          cache: "yarn"
 
       - name: Install dependencies
         timeout-minutes: 10
@@ -116,15 +115,7 @@ jobs:
             exit 1
           fi
 
-      - name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: update-web-screenshots-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-
       - name: Build project
-        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
 
       - name: Update screenshots
