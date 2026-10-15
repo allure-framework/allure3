@@ -1,5 +1,5 @@
 import type { CategoryNode, CategoryNodeProps, TestCategories } from "@allurereport/core-api";
-import { IconButton, TreeItem, allureIcons } from "@allurereport/web-components";
+import { IconButton, TreeItem, allureIcons } from "@allurereport/web-components/core";
 import type { FC } from "preact/compat";
 import { useState } from "preact/hooks";
 

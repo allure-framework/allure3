@@ -1,5 +1,5 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
-import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
+import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import "@allurereport/web-components/index.css";
 import { computed, useSignalEffect } from "@preact/signals";

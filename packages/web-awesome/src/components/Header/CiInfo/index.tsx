@@ -1,6 +1,6 @@
 import { CiDescriptor, CiType, sanitizeExternalUrl } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 

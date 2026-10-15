@@ -1,4 +1,4 @@
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
 

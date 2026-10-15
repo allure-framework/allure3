@@ -1,4 +1,4 @@
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 
 import { TrInfo } from "@/components/TestResult/TrInfo";
 import { useI18n } from "@/stores";

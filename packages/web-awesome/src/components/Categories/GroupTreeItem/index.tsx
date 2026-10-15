@@ -1,5 +1,5 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
-import { TreeHeader } from "@allurereport/web-components";
+import { TreeHeader } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren, FC } from "preact/compat";
 

@@ -1,4 +1,4 @@
-import { PageLoader } from "@allurereport/web-components";
+import { PageLoader } from "@allurereport/web-components/core";
 import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 

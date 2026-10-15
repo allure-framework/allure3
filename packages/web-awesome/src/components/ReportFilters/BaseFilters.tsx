@@ -17,7 +17,7 @@ import {
   Tooltip,
   allureIcons,
   useTooltip,
-} from "@allurereport/web-components";
+} from "@allurereport/web-components/core";
 import { createPortal } from "preact/compat";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 

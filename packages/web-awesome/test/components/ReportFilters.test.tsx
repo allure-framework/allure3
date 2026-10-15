@@ -55,7 +55,7 @@ vi.mock("@/components/ReportFilters/BaseFilters", () => ({
   BooleanFieldFilter: () => null,
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   Button: (props: { text: string; onClick: () => void }) => (
     <button type="button" onClick={props.onClick}>
       {props.text}

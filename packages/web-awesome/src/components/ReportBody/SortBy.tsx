@@ -1,4 +1,4 @@
-import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 
