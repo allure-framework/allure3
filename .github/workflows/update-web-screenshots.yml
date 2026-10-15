@@ -81,7 +81,7 @@ jobs:
       - name: Checkout base revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.prepare.outputs.base_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Setup Node.js
