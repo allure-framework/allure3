@@ -44,7 +44,7 @@ const collectFiles = async (sourceDir: string, currentDir = sourceDir): Promise<
   });
 };
 
-const validateInlineableBuild = async (files: StaticFile[]) => {
+const validateBuild = async (files: StaticFile[], singleFileCompatible: boolean) => {
   const filesByName = new Map(files.map((file) => [file.archivePath, file]));
   const manifestFile = filesByName.get("manifest.json");
 
@@ -59,13 +59,19 @@ const validateInlineableBuild = async (files: StaticFile[]) => {
     throw new Error('The report static build manifest does not contain "main.js"');
   }
 
-  for (const [key, value] of Object.entries(manifest)) {
-    if (!allowedKeys.has(key)) {
-      throw new Error(`The report static build is not single-file compatible; unexpected manifest entry: ${key}`);
-    }
-
+  for (const value of Object.values(manifest)) {
     if (typeof value !== "string" || !filesByName.has(value)) {
       throw new Error(`The report static build does not contain manifest asset: ${String(value)}`);
+    }
+  }
+
+  if (!singleFileCompatible) {
+    return;
+  }
+
+  for (const key of Object.keys(manifest)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`The report static build is not single-file compatible; unexpected manifest entry: ${key}`);
     }
   }
 
@@ -82,7 +88,11 @@ const validateInlineableBuild = async (files: StaticFile[]) => {
   }
 };
 
-export const createReportStaticArchive = async (source: string, target: string): Promise<void> => {
+export const createReportStaticArchive = async (
+  source: string,
+  target: string,
+  options: { singleFileCompatible?: boolean } = {},
+): Promise<void> => {
   const sourceDir = resolve(source);
   const targetPath = resolve(target);
   const temporaryPath = `${targetPath}.tmp`;
@@ -94,7 +104,7 @@ export const createReportStaticArchive = async (source: string, target: string):
 
   const files = await collectFiles(sourceDir);
 
-  await validateInlineableBuild(files);
+  await validateBuild(files, options.singleFileCompatible ?? true);
   await mkdir(dirname(targetPath), { recursive: true });
   await rm(temporaryPath, { force: true });
 

@@ -106,7 +106,8 @@ test.describe("Runtime Contract", () => {
 
     expect(bundle).not.toContain("backbone.marionette");
     expect(bundle).not.toContain("window.jQuery");
-    expect(bundle).not.toContain("window.allure");
+    // `window.allureReportOptions` is the report runtime config and is allowed; only the legacy `window.allure` global is not
+    expect(bundle).not.toMatch(/window\.allure(?![\w$])/);
   });
 
   test("preserves the existing localStorage keys for report and plugin settings", async ({ page }) => {
