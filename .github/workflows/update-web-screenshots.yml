@@ -128,18 +128,7 @@ jobs:
         env:
           ALLURE_NO_ANALYTICS: "true"
         shell: bash
-        run: |
-          set -euo pipefail
-
-          while IFS= read -r config; do
-            package_dir="$(dirname "${config}")"
-            config_file="$(basename "${config}")"
-            workspace="$(node -e 'process.stdout.write(require(`./${process.argv[1]}/package.json`).name)' "${package_dir}")"
-            yarn allure agent \
-              --goal "Verify the updated ${workspace} ${{ matrix.name }} visual baselines" \
-              -- yarn workspace "${workspace}" playwright test \
-                --config "${config_file}"
-          done < <(find packages -mindepth 2 -maxdepth 2 -type f -path 'packages/web-*/playwright.config.*' -print | sort)
+        run: yarn run test:e2e
 
       - name: Stage screenshot artifact
         shell: bash
