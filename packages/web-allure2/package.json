@@ -46,7 +46,8 @@
   },
   "devDependencies": {
     "@allurereport/core-api": "workspace:*",
-    "@playwright/test": "^1.62.1",
+    "@allurereport/test-config": "workspace:*",
+    "@playwright/test": "catalog:",
     "@types/d3-array": "^3.2.2",
     "@types/d3-axis": "^3.0.6",
     "@types/d3-brush": "^3.0.6",

@@ -34,7 +34,7 @@ jobs:
           node-version: "24.14.x"
           cache: "yarn"
       - name: Install dependencies
-        timeout-minutes: 10
+        timeout-minutes: 5
         run: yarn install --immutable --immutable-cache --check-cache
       - &uses-build-cache
         name: Cache build outputs
@@ -79,18 +79,13 @@ jobs:
         run: yarn install --immutable --immutable-cache
       - *uses-build-cache
       - *uses-build
-      - name: Install playwright for static server
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/static-server playwright install chromium
-      - name: Install playwright for e2e
-        timeout-minutes: 15
-        run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
-      - name: Install playwright for Allure 2 web
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/web-allure2 playwright install chromium
-      - name: Install playwright dependencies for e2e
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/e2e playwright install-deps
+      - parallel:
+        - name: Install Playwright browsers
+          timeout-minutes: 5
+          run: yarn workspace @allurereport/test-config playwright install chromium firefox webkit
+        - name: Install playwright dependencies for e2e
+          timeout-minutes: 5
+          run: yarn workspace @allurereport/test-config playwright install-deps
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
