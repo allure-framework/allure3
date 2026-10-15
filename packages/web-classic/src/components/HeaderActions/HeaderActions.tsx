@@ -8,7 +8,6 @@ import { useI18n } from "@/stores/locale";
 import { setTreeQuery, treeFiltersStore } from "@/stores/tree";
 
 import { Filters } from "./Filters";
-import { OverviewLink } from "./OverviewLink";
 
 import * as styles from "./styles.scss";
 
@@ -26,7 +25,6 @@ export const HeaderActions = () => {
 
   return (
     <div className={styles.headerActions}>
-      <OverviewLink />
       <div className={styles["header-search"]}>
         <Search />
         <Filters />
