@@ -201,6 +201,7 @@
     "collapse": "Einklappen",
     "collapseAll": "Alle einklappen",
     "collapseAllPartial": "Alle einklappen (einige Gruppen sind aufgeklappt)",
+    "collapseToDefault": "Auf die Standardansicht einklappen",
     "expandFirstLevel": "Erste Ebene aufklappen",
     "collapseToFirstLevel": "Auf erste Ebene einklappen",
     "expand": "Ausklappen",

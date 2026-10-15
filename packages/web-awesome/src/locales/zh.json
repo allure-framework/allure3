@@ -201,6 +201,7 @@
     "collapse": "折叠",
     "collapseAll": "全部折叠",
     "collapseAllPartial": "全部折叠（部分分组已展开）",
+    "collapseToDefault": "折叠到默认视图",
     "expandFirstLevel": "展开第一层",
     "collapseToFirstLevel": "折叠到第一层",
     "expand": "展开",

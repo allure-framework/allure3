@@ -201,6 +201,7 @@
     "collapse": "ჩაკეცვა",
     "collapseAll": "ყველას ჩაკეცვა",
     "collapseAllPartial": "ყველას ჩაკეცვა (ზოგი ჯგუფი გაშლილია)",
+    "collapseToDefault": "ნაგულისხმევ ხედამდე ჩაკეცვა",
     "expandFirstLevel": "პირველი დონის გაშლა",
     "collapseToFirstLevel": "პირველ დონემდე ჩაკეცვა",
     "expand": "გახსნა",

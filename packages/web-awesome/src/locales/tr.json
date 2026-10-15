@@ -201,6 +201,7 @@
     "collapse": "Daralt",
     "collapseAll": "Tümünü daralt",
     "collapseAllPartial": "Tümünü daralt (bazı gruplar açık)",
+    "collapseToDefault": "Varsayılan görünüme daralt",
     "expandFirstLevel": "İlk seviyeyi aç",
     "collapseToFirstLevel": "İlk seviyeye daralt",
     "expand": "Genişlet",

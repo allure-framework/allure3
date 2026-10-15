@@ -57,13 +57,13 @@
     background-color: var(--color-control-bg-ghost-active);
   }
 
-  // no outline around the tab, the focus is shown with the background
+  // no outline around the tab, the focus from the keyboard is shown with the background, also for the current tab
   &:focus,
   &:focus-visible {
     outline: none;
   }
 
-  &:focus-visible:not([aria-current]) {
+  &:focus-visible {
     background-color: var(--color-control-bg-ghost-hover);
   }
 }

@@ -63,6 +63,7 @@ describe("awesome locales", () => {
 
         expect(locale.controls.backToOverview, file).toEqual(expect.any(String));
         expect(locale.controls.collapseAllPartial, file).toEqual(expect.any(String));
+        expect(locale.controls.collapseToDefault, file).toEqual(expect.any(String));
         expect(locale.controls.expandFirstLevel, file).toEqual(expect.any(String));
         expect(locale.controls.collapseToFirstLevel, file).toEqual(expect.any(String));
         expect(locale.ui["open-link"], file).toEqual(expect.any(String));

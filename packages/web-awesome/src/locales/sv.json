@@ -201,6 +201,7 @@
     "collapse": "Minimera",
     "collapseAll": "Fäll ihop alla",
     "collapseAllPartial": "Fäll ihop alla (vissa grupper är utfällda)",
+    "collapseToDefault": "Fäll ihop till standardvyn",
     "expandFirstLevel": "Fäll ut första nivån",
     "collapseToFirstLevel": "Fäll ihop till första nivån",
     "expand": "Expandera",

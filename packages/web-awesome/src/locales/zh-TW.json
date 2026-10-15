@@ -201,6 +201,7 @@
     "collapse": "折疊",
     "collapseAll": "全部摺疊",
     "collapseAllPartial": "全部摺疊（部分群組已展開）",
+    "collapseToDefault": "摺疊至預設檢視",
     "expandFirstLevel": "展開第一層",
     "collapseToFirstLevel": "摺疊至第一層",
     "expand": "展開",

@@ -262,6 +262,7 @@
     "collapse": "Collapse",
     "collapseAll": "Collapse all",
     "collapseAllPartial": "Collapse all (some groups are expanded)",
+    "collapseToDefault": "Collapse to the default view",
     "expandFirstLevel": "Expand first level",
     "collapseToFirstLevel": "Collapse to first level",
     "showMore": "Show more",

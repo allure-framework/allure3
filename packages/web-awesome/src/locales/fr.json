@@ -201,6 +201,7 @@
     "collapse": "Réduire",
     "collapseAll": "Tout réduire",
     "collapseAllPartial": "Tout réduire (certains groupes sont développés)",
+    "collapseToDefault": "Réduire à la vue par défaut",
     "expandFirstLevel": "Développer le premier niveau",
     "collapseToFirstLevel": "Réduire au premier niveau",
     "expand": "Agrandir",

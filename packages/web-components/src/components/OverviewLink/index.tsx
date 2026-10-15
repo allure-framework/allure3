@@ -39,7 +39,7 @@ export const OverviewLink = ({ href, text }: OverviewLinkProps) => {
         style="ghost"
         action="accent"
         size="s"
-        icon={allureIcons.lineGeneralHomeLine}
+        icon={allureIcons.lineArrowsArrowLeft}
         className={styles.link}
         data-testid="overview-link"
       />

@@ -201,6 +201,7 @@
     "collapse": "折りたたむ",
     "collapseAll": "すべて折りたたむ",
     "collapseAllPartial": "すべて折りたたむ（一部のグループは展開されています）",
+    "collapseToDefault": "既定の表示まで折りたたむ",
     "expandFirstLevel": "第1階層を展開",
     "collapseToFirstLevel": "第1階層まで折りたたむ",
     "expand": "展開",
