@@ -148,6 +148,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>
             <IconButton
+              data-testId="attachment-expand-button"
               className={styles["item-button"]}
               style={"ghost"}
               size={"s"}
