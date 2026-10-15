@@ -300,6 +300,16 @@ export const allTreesCollapsed = computed(() => {
   );
 });
 
+export const allTreesExpanded = computed(() => {
+  const everyEnvironmentExpanded = environmentSectionIds.value.every(
+    (envId) => !collapsedEnvironments.value.includes(envId),
+  );
+
+  return (
+    everyEnvironmentExpanded && collapsibleTreeNodes.value.every((node) => isTreeOpened(node.id, node.openedByDefault))
+  );
+});
+
 export const setAllTreesOpened = (shouldBeOpened: boolean) => {
   const nextCollapsedTrees = new Set(collapsedTrees.peek());
   const nextExpandedTrees = new Set(expandedTrees.peek());

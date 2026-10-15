@@ -15,7 +15,7 @@ export type TrAttachmentViewProps = {
 
 export const TrAttachmentView: FunctionalComponent<TrAttachmentViewProps> = ({ testResult, className }) => {
   const { attachments } = testResult ?? {};
-  const { t } = useI18n("ui");
+  const { t } = useI18n("empty");
 
   return (
     <div className={cx(styles["test-result-attachments-view"], className)}>

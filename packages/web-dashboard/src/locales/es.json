@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Volver al resumen"
+  },
   "statuses": {
     "passed": "Aprobado",
     "failed": "Fallido",

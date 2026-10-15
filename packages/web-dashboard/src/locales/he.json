@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "חזרה לסקירה"
+  },
   "statuses": {
     "passed": "עבר",
     "failed": "נכשל",

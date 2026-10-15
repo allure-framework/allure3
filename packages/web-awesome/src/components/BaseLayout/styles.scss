@@ -19,6 +19,11 @@
   min-height: 100%;
 }
 
+// room for the card shadow, which would be clipped by the scroll container otherwise
+.layout-card {
+  padding-bottom: 12px;
+}
+
 .content {
   box-shadow: var(--shadow-small);
   background: var(--color-bg-primary);

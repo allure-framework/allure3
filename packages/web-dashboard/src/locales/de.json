@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Zurück zur Übersicht"
+  },
   "statuses": {
     "passed": "Bestanden",
     "failed": "Fehlgeschlagen",

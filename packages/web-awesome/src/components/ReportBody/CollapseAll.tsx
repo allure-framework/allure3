@@ -1,7 +1,7 @@
 import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 
 import { useI18n } from "@/stores/locale";
-import { allTreesCollapsed, hasCollapsibleTrees, setAllTreesOpened } from "@/stores/tree";
+import { allTreesCollapsed, allTreesExpanded, hasCollapsibleTrees, setAllTreesOpened } from "@/stores/tree";
 
 export const CollapseAll = () => {
   const { t } = useI18n("controls");
@@ -11,7 +11,16 @@ export const CollapseAll = () => {
   }
 
   const isCollapsed = allTreesCollapsed.value;
-  const label = isCollapsed ? t("expandAll") : t("collapseAll");
+  // the button has three states: every group is collapsed, every group is expanded or only a part of them is expanded,
+  // in the last two it collapses the groups, so the tooltip tells which state it is in
+  let label = t("collapseAllPartial");
+
+  if (isCollapsed) {
+    label = t("expandAll");
+  } else if (allTreesExpanded.value) {
+    label = t("collapseAll");
+  }
+
   const icon = isCollapsed ? allureIcons.lineArrowsChevronDownDouble : allureIcons.lineArrowsChevronUpDouble;
 
   return (
