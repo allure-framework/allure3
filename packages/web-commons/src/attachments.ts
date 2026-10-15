@@ -77,6 +77,7 @@ export const fetchAttachment = async (
     case "code":
     case "html":
     case "markdown":
+    case "mermaid":
     case "table":
     case "text": {
       const text = await response.text();
@@ -143,9 +144,13 @@ export type AttachmentType =
   | "uri"
   | "archive"
   | "image-diff"
-  | "http";
+  | "http"
+  | "mermaid";
+
+export const MERMAID_CONTENT_TYPE = "application/vnd.allure.diagrams.mermaid";
 
 export const PREVIEWABLE_CONTENT_TYPES = [
+  MERMAID_CONTENT_TYPE,
   "text/html",
   "text/csv",
   "text/markdown",
@@ -154,7 +159,7 @@ export const PREVIEWABLE_CONTENT_TYPES = [
 ] as const;
 
 export const isPreviewableContentType = (type?: string): boolean =>
-  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type);
+  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type.split(";")[0].trim().toLowerCase());
 
 const HIGHLIGHT_EXTS = new Set([
   "js",
@@ -346,6 +351,8 @@ export const attachmentType = (type?: string): AttachmentType | null => {
       return "image-diff";
     case "application/vnd.allure.http+json":
       return "http";
+    case MERMAID_CONTENT_TYPE:
+      return "mermaid";
     default:
       return null;
   }
