@@ -133,6 +133,7 @@ __metadata:
     "@allurereport/plugin-slack": "workspace:*"
     "@allurereport/plugin-testops": "workspace:*"
     "@allurereport/plugin-testplan": "workspace:*"
+    "@allurereport/plugin-xray": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
@@ -567,6 +568,23 @@ __metadata:
     "@vitest/runner": "npm:^2"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
+    rimraf: "npm:^6"
+    typescript: "npm:^5"
+    vitest: "npm:^4.1.0"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/plugin-xray@workspace:*, @allurereport/plugin-xray@workspace:packages/plugin-xray":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/plugin-xray@workspace:packages/plugin-xray"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@types/node": "npm:^20"
+    "@vitest/runner": "npm:^2"
+    allure-js-commons: "npm:^3"
+    allure-vitest: "npm:^3"
+    axios: "npm:^1.20.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vitest: "npm:^4.1.0"
@@ -8938,6 +8956,7 @@ __metadata:
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
+    "@allurereport/plugin-xray": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"

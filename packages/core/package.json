@@ -43,6 +43,7 @@
     "@allurereport/plugin-slack": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
     "@allurereport/plugin-testplan": "workspace:*",
+    "@allurereport/plugin-xray": "workspace:*",
     "@allurereport/reader": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
