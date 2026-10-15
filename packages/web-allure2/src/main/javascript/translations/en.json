@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Back to overview",
     "backto": "Back to",
     "clipboard": "Copy to clipboard",
     "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",

@@ -87,6 +87,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Torna alla panoramica",
     "backto": "Torna a",
     "clipboard": "Copia negli appunti",
     "clipboardError": "Impossibile copiare il valore negli appunti. Sembra che questa funzione non sia supportata dal tuo browser",

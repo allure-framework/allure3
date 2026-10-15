@@ -19,6 +19,33 @@ const getThemeSwitchLabel = () => translate(getActiveTheme() === "dark" ? "contr
 
 const getThemeSwitchIcon = () => (getActiveTheme() === "dark" ? "lineWeatherSun" : "lineWeatherMoon");
 
+const createOverviewItem = () => {
+  const overviewHref = window.allureReportOptions?.overviewHref;
+  if (!overviewHref) {
+    return null;
+  }
+  const text = translate("controls.backToOverview");
+
+  return createElement("div", {
+    attrs: { "data-tooltip": text },
+    className: b("side-nav", "item"),
+    children: createElement("a", {
+      attrs: { "aria-label": text, "data-testid": "overview-link", "href": overviewHref },
+      className: b("side-nav", "overview"),
+      children: [
+        createElement("span", {
+          className: b("side-nav", "icon-lane"),
+          children: createIconElement("lineGeneralHomeLine", {
+            className: b("side-nav", "icon"),
+            size: "m",
+          }),
+        }),
+        createElement("span", { className: b("side-nav", "text"), text }),
+      ],
+    }),
+  });
+};
+
 class SideNavCustomElement extends BaseElement {
   declare tooltip: TooltipView;
 
@@ -47,6 +74,9 @@ class SideNavCustomElement extends BaseElement {
       lang: language.id,
     })}`;
 
+    const overviewItem = createOverviewItem();
+    const overviewItems = overviewItem ? [overviewItem] : [];
+
     this.className = "side-nav";
     this.classList.toggle("side-nav_collapsed", isCollapsed);
     this.replaceChildren(
@@ -72,6 +102,7 @@ class SideNavCustomElement extends BaseElement {
           ],
         }),
       }),
+      ...overviewItems,
       createElement("ul", {
         className: b("side-nav", "menu"),
         children: getTabs().map(({ tabName, icon, title }) => {

@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Back to overview",
     "backto": "Vissza",
     "clipboard": "Vágólapra másol",
     "clipboardError": "Nem lehetséges vágólapra másolni. Ezt a funkciót valószínűleg nem támogatja a böngésző.",

@@ -99,6 +99,7 @@
     "at": "à"
   },
   "controls": {
+    "backToOverview": "Retour à l'aperçu",
     "newTabAttachment": "Ouvrir dans un nouvel onglet",
     "nextTR": "Résultat de test suivant",
     "prevTR": "Résultat de test précédent",

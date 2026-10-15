@@ -87,6 +87,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Volver al resumen",
     "backto": "Volver a",
     "clipboard": "Copiar a portapapeles",
     "clipboardError": "No es posible utilizar el portapapeles. Parece ser que esta funcionalidad no es soportada por tu navegador",

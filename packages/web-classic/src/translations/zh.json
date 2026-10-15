@@ -99,6 +99,7 @@
     "at": "在"
   },
   "controls": {
+    "backToOverview": "返回概览",
     "newTabAttachment": "在新标签页中打开附件",
     "nextTR": "下一个测试结果",
     "prevTR": "上一个测试结果",
