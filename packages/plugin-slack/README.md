@@ -48,14 +48,14 @@ export default defineConfig({
 
 The plugin accepts the following options:
 
-| Option    | Description                                                     | Type     |
-| --------- | --------------------------------------------------------------- | -------- |
-| `channel` | Name or ID of the target channel. Used together with `token`    | `string` |
-| `token`   | Slack API token. Used together with `channel`                   | `string` |
-| `webhook` | Slack incoming webhook URL. Takes precedence over token/channel | `string` |
+| Option    | Description                                                    | Type     | Env variable           |
+| --------- | -------------------------------------------------------------- | -------- | ---------------------- |
+| `channel` | Name or ID of the target channel. Used together with `token`    | `string` | `ALLURE_SLACK_CHANNEL` |
+| `token`   | Slack API token. Used together with `channel`                   | `string` | `ALLURE_SLACK_TOKEN`   |
+| `webhook` | Slack incoming webhook URL. Takes precedence over token/channel | `string` | `ALLURE_SLACK_WEBHOOK` |
 
-The options can also be set with the `ALLURE_SLACK_CHANNEL`, `ALLURE_SLACK_TOKEN`, and
-`ALLURE_SLACK_WEBHOOK` environment variables. Use either a webhook or the token/channel pair.
+The options can also be provided through the environment variables listed above. Use either a webhook or the
+token/channel pair.
 
 For example, to use an incoming webhook from the environment, no explicit credential option is required:
 
