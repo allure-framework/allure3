@@ -24,6 +24,10 @@ test.describe("Back to overview link", () => {
 
     await expect(link).toHaveAttribute("href", "../index.html");
     await expect(link).toContainText("Back to overview");
+    await expect(link).toHaveAttribute("aria-label", "Back to overview");
+
+    await page.locator(".side-nav__collapse").click();
+    await expect(page.getByRole("link", { name: "Back to overview" })).toBeVisible();
     await expect(page.locator(".side-nav__menu .side-nav__text")).toHaveText(uiDemo.topLevelTabs);
   });
 

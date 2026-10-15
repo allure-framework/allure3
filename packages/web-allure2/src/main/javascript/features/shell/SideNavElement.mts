@@ -30,7 +30,7 @@ const createOverviewItem = () => {
     attrs: { "data-tooltip": text },
     className: b("side-nav", "item"),
     children: createElement("a", {
-      attrs: { "data-testid": "overview-link", "href": overviewHref },
+      attrs: { "aria-label": text, "data-testid": "overview-link", "href": overviewHref },
       className: b("side-nav", "overview"),
       children: [
         createElement("span", {

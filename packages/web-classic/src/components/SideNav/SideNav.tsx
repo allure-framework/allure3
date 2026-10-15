@@ -43,7 +43,12 @@ const SideNav = () => {
       </a>
       {overviewHref && (
         <div className={styles.item} data-tooltip={controls("backToOverview")}>
-          <a href={overviewHref} className={styles.link} data-testid="overview-link">
+          <a
+            href={overviewHref}
+            className={styles.link}
+            aria-label={controls("backToOverview")}
+            data-testid="overview-link"
+          >
             <span className={styles.icon}>
               <SvgIcon id={allureIcons.lineGeneralHomeLine} />
             </span>
