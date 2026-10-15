@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Առանց լուծման"
+      "none": "Առանց լուծման",
+      "state": {
+        "active": "Լռեցված է մինչև {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Ժամկետանց",
+        "permanent": "Ընդմիշտ լռեցված",
+        "outdatedDescription": "Լռեցման վերջնաժամկետը լրացել է {{timestamp, timestamp_long_no_seconds}}-ին։ Այս ձախողումն այլևս չի անտեսվում։",
+        "permanentDescription": "Վերջնաժամկետ սահմանված չէ։ Այս ձախողումը կանտեսվի անորոշ ժամանակով և կարող է թաքցնել ապագա խնդիր։"
+      }
     }
   },
   "sort-by": {

@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Keine Lösung"
+      "none": "Keine Lösung",
+      "state": {
+        "active": "Stummgeschaltet bis {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Abgelaufen",
+        "permanent": "Dauerhaft stummgeschaltet",
+        "outdatedDescription": "Die Stummschaltungsfrist ist am {{timestamp, timestamp_long_no_seconds}} abgelaufen. Dieser Fehler wird nicht mehr ignoriert.",
+        "permanentDescription": "Es ist kein Fälligkeitsdatum festgelegt. Dieser Fehler wird unbegrenzt ignoriert und kann ein zukünftiges Problem verbergen."
+      }
     }
   },
   "sort-by": {

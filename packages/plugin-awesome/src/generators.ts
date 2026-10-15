@@ -30,6 +30,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
+  parseResolutionDueDate,
   redactParameters,
   severityLabelName,
 } from "@allurereport/core-api";
@@ -178,6 +179,7 @@ export const generateTestResults = async (
     hideLabels?: readonly (string | RegExp)[];
     related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
+    resolutionEvaluatedAt?: number;
   },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
@@ -191,6 +193,7 @@ export const generateTestResults = async (
       .map(convertFixtureResult);
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
+      resolutionEvaluatedAt: options.resolutionEvaluatedAt,
     });
 
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
@@ -491,6 +494,8 @@ const leafFactory = ({
   retriesCount,
   retriesStatusChange,
   resolution,
+  resolutionDueDate,
+  resolutionState,
   transition,
   tooltips,
   retryHash,
@@ -512,6 +517,8 @@ const leafFactory = ({
     retriesCount,
     retriesStatusChange,
     resolution,
+    resolutionDueDate,
+    resolutionState,
     resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
@@ -575,15 +582,23 @@ export const generateResolutionCategories = async (
     .filter((test) => !test.isRetry && test.resolution)
     .forEach((test) => {
       const resolution = test.resolution!;
+      const mutedDeadlineKey =
+        test.resolutionDueDate === undefined
+          ? "forever"
+          : (parseResolutionDueDate(test.resolutionDueDate)?.toString() ?? `invalid:${test.resolutionDueDate}`);
       const groupId =
         resolution === "issue"
           ? `${resolution}:${test.resolutionIssue?.id ?? test.id}`
-          : `${resolution}:${test.resolutionComment ?? test.id}`;
+          : [resolution, test.resolutionComment ?? test.id, resolution === "muted" ? mutedDeadlineKey : undefined]
+              .filter(Boolean)
+              .join(":");
       const group = groupsById.get(groupId) ?? {
         id: groupId,
         resolution,
         name: getResolutionGroupName(test),
         comment: test.resolutionComment ?? test.resolutionIssue?.comment,
+        ...(test.resolutionDueDate ? { dueDate: test.resolutionDueDate } : {}),
+        ...(test.resolutionState ? { resolutionState: test.resolutionState } : {}),
         issue: test.resolutionIssue,
         testResults: [],
       };

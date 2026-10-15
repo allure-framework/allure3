@@ -808,6 +808,125 @@ describe("test results", () => {
     await expect(store.testResultsByResolutionIssueId("SHOP-1")).resolves.toEqual([issueResult]);
   });
 
+  it("should block outdated muted failures and keep active or permanent muted failures ignored", async () => {
+    const store = new DefaultAllureStore({
+      resolutionsConfig: {
+        rules: [
+          {
+            resolution: "muted",
+            comment: "Temporary mute",
+            dueDate: "2999-01-01T00:00:00Z",
+            testCaseId: [md5("tc-active-muted")],
+          },
+          {
+            resolution: "muted",
+            comment: "Expired mute",
+            dueDate: "2000-01-01T00:00:00Z",
+            testCaseId: [md5("tc-outdated-muted")],
+          },
+          {
+            resolution: "muted",
+            comment: "Permanent mute",
+            testCaseId: [md5("tc-permanent-muted")],
+          },
+          {
+            resolution: "muted",
+            comment: "Malformed mute",
+            dueDate: "",
+            testCaseId: [md5("tc-malformed-muted")],
+          },
+        ],
+      },
+    });
+
+    await store.visitTestResult({ name: "active muted", status: "failed", testId: "tc-active-muted" }, { readerId });
+    await store.visitTestResult(
+      { name: "outdated muted", status: "broken", testId: "tc-outdated-muted" },
+      { readerId },
+    );
+    await store.visitTestResult(
+      { name: "permanent muted", status: "failed", testId: "tc-permanent-muted" },
+      { readerId },
+    );
+    await store.visitTestResult(
+      { name: "malformed muted", status: "failed", testId: "tc-malformed-muted" },
+      { readerId },
+    );
+
+    const testResults = await store.allTestResults();
+    const active = testResults.find(({ name }) => name === "active muted");
+    const outdated = testResults.find(({ name }) => name === "outdated muted");
+    const permanent = testResults.find(({ name }) => name === "permanent muted");
+    const malformed = testResults.find(({ name }) => name === "malformed muted");
+
+    expect(active).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "Temporary mute",
+      resolutionDueDate: "2999-01-01T00:00:00Z",
+    });
+    expect(outdated).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "Expired mute",
+      resolutionDueDate: "2000-01-01T00:00:00Z",
+    });
+    expect(permanent).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "Permanent mute",
+    });
+    expect(permanent).not.toHaveProperty("resolutionDueDate");
+    expect(malformed).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "Malformed mute",
+      resolutionDueDate: "",
+    });
+    await expect(store.blockingFailedTestResults()).resolves.toEqual([outdated, malformed]);
+  });
+
+  it("should recompute muted deadlines when restoring state", async () => {
+    const resolutionsConfig = (dueDate?: string) => ({
+      rules: [
+        {
+          resolution: "muted" as const,
+          comment: "Temporary mute",
+          testCaseId: [md5("tc-restored-muted")],
+          ...(dueDate === undefined ? {} : { dueDate }),
+        },
+      ],
+    });
+    const source = new DefaultAllureStore({
+      resolutionsConfig: resolutionsConfig("2999-01-01T00:00:00Z"),
+    });
+
+    await source.visitTestResult(
+      { name: "restored muted", status: "failed", testId: "tc-restored-muted" },
+      { readerId },
+    );
+
+    const dump = source.dumpState();
+    const restoreWith = async (dueDate: string | undefined, configured = true) => {
+      const target = new DefaultAllureStore(configured ? { resolutionsConfig: resolutionsConfig(dueDate) } : undefined);
+
+      await target.restoreState(structuredClone(dump));
+
+      return { target, testResult: (await target.allTestResults())[0]! };
+    };
+    const active = await restoreWith("2999-01-01T00:00:00Z");
+    const outdated = await restoreWith("2000-01-01T00:00:00Z");
+    const permanent = await restoreWith(undefined);
+    const unconfigured = await restoreWith(undefined, false);
+
+    expect(active.testResult.resolutionDueDate).toBe("2999-01-01T00:00:00Z");
+    await expect(active.target.blockingFailedTestResults()).resolves.toEqual([]);
+    expect(outdated.testResult.resolutionDueDate).toBe("2000-01-01T00:00:00Z");
+    await expect(outdated.target.blockingFailedTestResults()).resolves.toEqual([outdated.testResult]);
+    expect(permanent.testResult.resolution).toBe("muted");
+    expect(permanent.testResult).not.toHaveProperty("resolutionDueDate");
+    await expect(permanent.target.blockingFailedTestResults()).resolves.toEqual([]);
+    expect(unconfigured.testResult.resolution).toBeUndefined();
+    expect(unconfigured.testResult).not.toHaveProperty("resolutionDueDate");
+    await expect(unconfigured.target.blockingFailedTestResults()).resolves.toEqual([unconfigured.testResult]);
+  });
+
   it("should ignore stale resolution issue associations from the dump index", async () => {
     const resolutionsConfig = {
       links: { jira: { urlTemplate: "https://example.org/%s" } },

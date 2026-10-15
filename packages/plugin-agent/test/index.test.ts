@@ -565,6 +565,29 @@ describe("AgentPlugin", () => {
     expect(testContent).not.toContain("\\(");
   });
 
+  it("should render muted resolution deadline and lifecycle state", async () => {
+    const outputDir = join(tempDir, "muted-resolution");
+    const testResult = createTestResult({
+      id: "tr-muted-resolution",
+      retryHash: "muted-resolution",
+      status: "failed",
+      resolution: "muted",
+      resolutionDueDate: "2000-01-01T00:00:00Z",
+    });
+    const store = createStore({
+      allTestResults: vi.fn().mockResolvedValue([testResult]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
+    });
+
+    await new AgentPlugin({ outputDir }).done(createContext(), store);
+
+    const testContent = await readText(join(outputDir, "tests", "default", "muted-resolution.md"), "text/markdown");
+
+    expect(testContent).toContain("Resolution: muted");
+    expect(testContent).toContain("Resolution Due Date: 2000-01-01T00:00:00Z");
+    expect(testContent).toContain("Resolution State: outdated");
+  });
+
   it("should fold retries into one logical file and suffix collisions", async () => {
     const outputDir = join(tempDir, "retries");
     const primary = createTestResult({

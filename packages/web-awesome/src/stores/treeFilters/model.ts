@@ -25,15 +25,16 @@ export type Filters = {
 
 export type AwesomeFieldFilter = FieldFilter<keyof ReportTreeLeaf>;
 
-export type AwesomeFieldFilterGroup = FieldFilterGroup<keyof ReportTreeLeaf> & {
+export type AwesomeFieldFilterGroup = Omit<FieldFilterGroup<keyof ReportTreeLeaf>, "value"> & {
   fieldKey?: keyof ReportTreeLeaf;
+  value: AwesomeFilter[];
 };
 
-export type AwesomeFilterGroupSimple = AwesomeFieldFilterGroup & {
+export type AwesomeFilterGroupSimple = Omit<AwesomeFieldFilterGroup, "value"> & {
   value: AwesomeFieldFilter[];
 };
 
-export type AwesomeFilter = AwesomeFieldFilter | AwesomeFilterGroupSimple;
+export type AwesomeFilter = AwesomeFieldFilter | AwesomeFieldFilterGroup;
 
 export type AwesomeField = Field<keyof ReportTreeLeaf>;
 

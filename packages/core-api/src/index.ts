@@ -4,7 +4,7 @@ export * from "./ci.js";
 export * from "./gitFlow.js";
 export type * from "./environment.js";
 export type * from "./history.js";
-export type * from "./resolutions.js";
+export * from "./resolutions.js";
 export type * from "./metadata.js";
 export * from "./metrics.js";
 export type * from "./model.js";

@@ -1,5 +1,5 @@
-import { sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
-import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components";
+import { parseResolutionDueDate, sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
+import { ArrowButton, SvgIcon, Tag, Text, TreeItem, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -71,6 +71,25 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const linkName = group.issue?.link?.name ?? title;
   const accessibleName = safeIssueUrl ? linkName : title;
   const subtitle = group.comment ?? group.issue?.comment;
+  const dueDateTimestamp = group.dueDate === undefined ? undefined : parseResolutionDueDate(group.dueDate);
+  const resolutionStateLabel =
+    group.resolutionState === "active" && dueDateTimestamp !== undefined
+      ? t("resolutions.state.active", { timestamp: dueDateTimestamp })
+      : group.resolutionState
+        ? t(`resolutions.state.${group.resolutionState}`)
+        : undefined;
+  const resolutionStateDescription =
+    group.resolutionState === "permanent"
+      ? t("resolutions.state.permanentDescription")
+      : group.resolutionState === "outdated" && dueDateTimestamp !== undefined
+        ? t("resolutions.state.outdatedDescription", { timestamp: dueDateTimestamp })
+        : undefined;
+  const resolutionStateSkin =
+    group.resolutionState === "outdated"
+      ? "failed-light"
+      : group.resolutionState === "permanent"
+        ? "warning-light"
+        : "neutral-light";
   const testsId = `resolution-category-tests-${group.id}`;
   const toggle = () => setIsOpened((value) => !value);
   const content = (
@@ -97,9 +116,19 @@ const ResolutionCategoriesItem: FunctionalComponent<{
           {group.issue.type}
         </Text>
       )}
+      {resolutionStateLabel && (
+        <Tag className={styles["resolution-categories-state"]} skin={resolutionStateSkin}>
+          {resolutionStateLabel}
+        </Tag>
+      )}
       {subtitle && (
         <Text tag="span" size="s" className={styles["resolution-categories-comment"]}>
           {subtitle}
+        </Text>
+      )}
+      {resolutionStateDescription && (
+        <Text tag="span" size="s" className={styles["resolution-categories-state-description"]}>
+          {resolutionStateDescription}
         </Text>
       )}
     </>
@@ -108,21 +137,14 @@ const ResolutionCategoriesItem: FunctionalComponent<{
     <>
       <div className={styles["resolution-categories-header-icons"]}>
         {hasTests ? (
-          <button
-            className={styles["resolution-categories-arrow-button"]}
+          <ArrowButton
+            aria-controls={testsId}
+            aria-expanded={isOpened}
+            aria-label={accessibleName}
+            isOpened={isOpened}
             onClick={toggle}
             type="button"
-            aria-label={accessibleName}
-            aria-expanded={isOpened}
-            aria-controls={testsId}
-          >
-            <ArrowButton
-              tag="span"
-              buttonSize="s"
-              className={styles["resolution-categories-arrow"]}
-              isOpened={isOpened}
-            />
-          </button>
+          />
         ) : (
           <span className={styles["resolution-categories-arrow-spacer"]} />
         )}

@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Sans résolution"
+      "none": "Sans résolution",
+      "state": {
+        "active": "Mis en sourdine jusqu’au {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Expiré",
+        "permanent": "Mis en sourdine définitivement",
+        "outdatedDescription": "La date limite de mise en sourdine est passée le {{timestamp, timestamp_long_no_seconds}}. Cet échec n’est plus ignoré.",
+        "permanentDescription": "Aucune date d’échéance n’est définie. Cet échec sera ignoré indéfiniment et peut masquer un futur problème."
+      }
     }
   },
   "sort-by": {

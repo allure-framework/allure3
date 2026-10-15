@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Без рішення"
+      "none": "Без рішення",
+      "state": {
+        "active": "Ігнорується до {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Прострочено",
+        "permanent": "Ігнорується безстроково",
+        "outdatedDescription": "Строк ігнорування минув {{timestamp, timestamp_long_no_seconds}}. Ця помилка більше не ігнорується.",
+        "permanentDescription": "Строк не встановлено. Ця помилка ігноруватиметься безстроково й може приховати майбутню проблему."
+      }
     }
   },
   "sort-by": {

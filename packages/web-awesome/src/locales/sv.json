@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Ingen lösning"
+      "none": "Ingen lösning",
+      "state": {
+        "active": "Tystad till {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Utgången",
+        "permanent": "Tystad för alltid",
+        "outdatedDescription": "Tidsgränsen för tystningen gick ut {{timestamp, timestamp_long_no_seconds}}. Det här felet ignoreras inte längre.",
+        "permanentDescription": "Inget förfallodatum har angetts. Det här felet ignoreras tills vidare och kan dölja ett framtida problem."
+      }
     }
   },
   "sort-by": {

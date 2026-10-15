@@ -80,6 +80,25 @@ describe("convertTestResult", () => {
     });
   });
 
+  it("derives muted resolution lifecycle from due date", () => {
+    const result = convertTestResult(
+      createTestResult({
+        status: "failed",
+        resolution: "muted",
+        resolutionComment: "Waiting for upstream fix",
+        resolutionDueDate: "2026-10-01T00:00:00Z",
+      }),
+      { resolutionEvaluatedAt: Date.parse("2026-10-01T00:00:00Z") },
+    );
+
+    expect(result).toMatchObject({
+      resolution: "muted",
+      resolutionComment: "Waiting for upstream fix",
+      resolutionDueDate: "2026-10-01T00:00:00Z",
+      resolutionState: "outdated",
+    });
+  });
+
   it("converts markdown description to html when descriptionHtml is missing", () => {
     const result = convertTestResult(createTestResult({ description: "**bold** text" }));
 

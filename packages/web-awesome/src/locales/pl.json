@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Brak rozwiązania"
+      "none": "Brak rozwiązania",
+      "state": {
+        "active": "Wyciszono do {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Nieaktualne",
+        "permanent": "Wyciszono bezterminowo",
+        "outdatedDescription": "Termin wyciszenia upłynął {{timestamp, timestamp_long_no_seconds}}. Ta awaria nie jest już ignorowana.",
+        "permanentDescription": "Nie ustawiono terminu. Ta awaria będzie ignorowana bezterminowo i może ukryć przyszły problem."
+      }
     }
   },
   "sort-by": {

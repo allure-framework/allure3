@@ -105,9 +105,10 @@ export class QualityGate {
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, metrics = [], previousHistory = [], environment } = payload;
     const trsToValidateById = new Map<string, TestResult>();
+    const resolutionEvaluatedAt = Date.now();
 
     for (const tr of trs) {
-      if (tr.isRetry || isIgnoredFailure(tr) || state?.isTestResultProcessed(tr.id)) {
+      if (tr.isRetry || isIgnoredFailure(tr, resolutionEvaluatedAt) || state?.isTestResultProcessed(tr.id)) {
         continue;
       }
 

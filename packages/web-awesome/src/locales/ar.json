@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "بدون حل"
+      "none": "بدون حل",
+      "state": {
+        "active": "مكتوم حتى {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "منتهي الصلاحية",
+        "permanent": "مكتوم إلى الأبد",
+        "outdatedDescription": "انقضت مهلة الكتم في {{timestamp, timestamp_long_no_seconds}}. لم يعد هذا الفشل مُتجاهلًا.",
+        "permanentDescription": "لم يُحدد تاريخ استحقاق. سيُتجاهل هذا الفشل إلى أجل غير مسمى وقد يخفي مشكلة مستقبلية."
+      }
     }
   },
   "sort-by": {

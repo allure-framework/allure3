@@ -139,41 +139,41 @@ export default defineConfig({
     },
     rules: [
       {
-        resolution: "issue",
-        messageRegexp: "test issue",
-        issue: {
-          id: "TEST-1",
-          type: "sample",
-        },
+        resolution: "muted",
+        messageRegexp: "foo",
+        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+        // dueDate: "2099-01-01T00:00:00Z",
       },
       {
         resolution: "muted",
-        messageRegexp: "test muted",
+        messageRegexp: "bar",
         comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+        dueDate: "2099-01-01T00:00:00Z",
       },
-      {
-        resolution: "accepted",
-        messageRegexp: "test accepted",
-        comment: "We accept the possible risks",
-      },
+      // {
+      //   resolution: "muted",
+      //   messageRegexp: "baz",
+      //   comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+      //   dueDate: "2020-01-01T00:00:00Z",
+      // },
     ],
   },
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 5,
-        fastFail: true,
-      },
-      {
-        // Fails: not all tests have env "foo" (some have "bar" or "default")
-        allTestsContainEnv: "foo",
-      },
-      {
-        // Fails: "staging" is not present in the run (only foo, bar, default exist)
-        environmentsTested: ["foo", "bar", "staging"],
-      },
-    ],
-  },
+  // qualityGate: {
+  //   rules: [
+  //     {
+  //       maxFailures: 5,
+  //       fastFail: true,
+  //     },
+  //     {
+  //       // Fails: not all tests have env "foo" (some have "bar" or "default")
+  //       allTestsContainEnv: "foo",
+  //     },
+  //     {
+  //       // Fails: "staging" is not present in the run (only foo, bar, default exist)
+  //       environmentsTested: ["foo", "bar", "staging"],
+  //     },
+  //   ],
+  // },
   categories: {
     rules: comboRules,
   },

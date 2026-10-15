@@ -626,7 +626,7 @@ describe("QualityGate", () => {
       );
     });
 
-    it("should omit accepted and muted results from every quality gate rule", async () => {
+    it("should omit accepted, permanent muted, and active muted results from every quality gate rule", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
         message: () => "Done",
@@ -641,6 +641,16 @@ describe("QualityGate", () => {
         trs: [
           { ...createTestResult("accepted", "failed"), resolution: "accepted" },
           { ...createTestResult("muted", "broken"), resolution: "muted" },
+          {
+            ...createTestResult("active-muted", "failed"),
+            resolution: "muted",
+            resolutionDueDate: "2999-01-01T00:00:00Z",
+          },
+          {
+            ...createTestResult("outdated-muted", "failed"),
+            resolution: "muted",
+            resolutionDueDate: "2000-01-01T00:00:00Z",
+          },
           { ...createTestResult("issue", "failed"), resolution: "issue" },
           createTestResult("unresolved", "broken"),
         ],
@@ -648,7 +658,11 @@ describe("QualityGate", () => {
 
       expect(mockRule.validate).toHaveBeenCalledWith(
         expect.objectContaining({
-          trs: [expect.objectContaining({ id: "issue" }), expect.objectContaining({ id: "unresolved" })],
+          trs: [
+            expect.objectContaining({ id: "outdated-muted" }),
+            expect.objectContaining({ id: "issue" }),
+            expect.objectContaining({ id: "unresolved" }),
+          ],
         }),
       );
     });

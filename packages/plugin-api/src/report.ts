@@ -3,6 +3,7 @@ import type {
   CiDescriptor,
   DefaultTreeGroup,
   HistoryTestResult,
+  MutedResolutionState,
   ResolutionCategory,
   ResolutionIssue,
   TestFixtureResult,
@@ -112,6 +113,7 @@ export type ReportTestResult = Omit<
   categories?: ReportCategory[];
   environment?: string | "default";
   resolutionIssue?: ResolutionIssue;
+  resolutionState?: MutedResolutionState;
   tooltips?: Record<string, string>;
   time?: Record<string, string[]>;
   extra?: { severity: string };
@@ -130,6 +132,7 @@ export type ReportTreeLeaf = Pick<
   | "retriesCount"
   | "retriesStatusChange"
   | "resolution"
+  | "resolutionDueDate"
 > & {
   nodeId: string;
   id?: string;
@@ -145,6 +148,7 @@ export type ReportTreeLeaf = Pick<
    * Resolution filter bucket. Present for resolved test results and for unresolved failed/broken test results.
    */
   resolutionStatus?: ResolutionCategory | "none";
+  resolutionState?: MutedResolutionState;
   /**
    * Non-empty, redacted parameter values displayed next to the test name in report trees.
    */
@@ -200,6 +204,8 @@ export type ReportResolutionGroup = {
   resolution: ResolutionCategory;
   name: string;
   comment?: string;
+  dueDate?: string;
+  resolutionState?: MutedResolutionState;
   issue?: ResolutionIssue;
   testResults: ReportResolutionTestResult[];
 };

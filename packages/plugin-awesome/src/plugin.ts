@@ -4,6 +4,7 @@ import {
   type EnvironmentItem,
   type Statistic,
   type TestResult,
+  isIgnoredResolution,
   validateEnvironmentId,
   joinPosixPath,
 } from "@allurereport/core-api";
@@ -98,9 +99,6 @@ const statisticByTestResults = (
   return statistic;
 };
 
-const isActiveStatisticTestResult = (testResult: TestResult) =>
-  testResult.resolution !== "muted" && testResult.resolution !== "accepted";
-
 type PluginPerformance = {
   measure<T>(name: string, fn: () => Promise<T>): Promise<T>;
   count(
@@ -129,6 +127,7 @@ export class AwesomePlugin implements Plugin {
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const resolutionEvaluatedAt = Date.now();
     const perf = (context as PerfAwarePluginContext).perf;
     const measure = <T>(name: string, fn: () => Promise<T>) => perf?.measure(name, fn) ?? fn();
     const hideLabels = context.hideLabels;
@@ -216,7 +215,10 @@ export class AwesomePlugin implements Plugin {
       const envStatistics = new Map<string, Statistic>();
       const pieEnvStatistics = new Map<string, Statistic>();
 
-      const pieStatistics = statisticByTestResults(allTrs.filter(isActiveStatisticTestResult), related.retriesByTrId);
+      const pieStatistics = statisticByTestResults(
+        allTrs.filter((testResult) => !isIgnoredResolution(testResult, resolutionEvaluatedAt)),
+        related.retriesByTrId,
+      );
 
       for (const tr of allTrs) {
         const environmentId = envIdByTrId.get(tr.id);
@@ -241,7 +243,10 @@ export class AwesomePlugin implements Plugin {
           envStatistics.set(id, statisticByTestResults(envTrs, related.retriesByTrId));
           pieEnvStatistics.set(
             id,
-            statisticByTestResults(envTrs.filter(isActiveStatisticTestResult), related.retriesByTrId),
+            statisticByTestResults(
+              envTrs.filter((testResult) => !isIgnoredResolution(testResult, resolutionEvaluatedAt)),
+              related.retriesByTrId,
+            ),
           );
         }),
       );
@@ -272,6 +277,7 @@ export class AwesomePlugin implements Plugin {
         hideLabels,
         related,
         resolveHistoryUrl: context.history?.resolveTestResultUrl,
+        resolutionEvaluatedAt,
       }),
     );
     if (perf) {
