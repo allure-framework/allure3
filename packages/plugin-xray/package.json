@@ -26,7 +26,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vitest run",
+    "test": "vp test run",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
@@ -36,7 +36,7 @@
     "axios": "^1.20.0"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",

@@ -24,7 +24,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vp test run",
+    "test": "vp test run",
     "test:unit": "yarn test",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
@@ -34,7 +34,7 @@
     "tar-stream": "3.1.7"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@types/node": "^20",
     "@types/tar-stream": "^3.1.4",
     "@vitest/coverage-istanbul": "catalog:",

@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { defaultTasksConfig } from "@allurereport/common-config";
 import autoprefixer from "autoprefixer";
 import { defineConfig, type Plugin, lazyPlugins } from "vite-plus";
 
@@ -223,6 +224,7 @@ export default defineConfig(({ mode }) => ({
       },
     ],
   },
+  ...defaultTasksConfig(import.meta.dirname, { buildInput: ["!build/**"], buildOutput: ["build/**"] }),
   root: projectRoot,
   base: "",
   define: {

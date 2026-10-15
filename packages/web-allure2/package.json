@@ -21,11 +21,11 @@
     "dev": "run-s build dev:demo dev:serve",
     "dev:demo": "rimraf build/demo-report && yarn run -T allure generate ${ALLURE_RESULTS_DIR:-../sandbox/allure-results} --config=./allurerc-dev.mjs --output=./build/demo-report",
     "dev:serve": "vp dev --host=0.0.0.0 --port=3000",
-    "build": "run-s clean typecheck build:prod",
+    "build": "run clean && run typecheck && run build:prod",
     "build:dev": "run-s clean typecheck build:dev:bundle",
     "build:prod": "vp build --mode production",
     "build:dev:bundle": "vp build --mode development",
-    "test": "run-s typecheck:e2e test:e2e",
+    "test": "run typecheck:e2e && run test:e2e",
     "test:e2e": "playwright test --config playwright.config.mts",
     "test:e2e:accessibility": "playwright test --config playwright.config.mts tests/e2e/accessibility.spec.mts --workers=1",
     "test:e2e:headed": "playwright test --config playwright.config.mts --headed",
@@ -45,8 +45,8 @@
     "@allurereport/web-commons": "workspace:*"
   },
   "devDependencies": {
+    "@allurereport/common-config": "workspace:*",
     "@allurereport/core-api": "workspace:*",
-    "@allurereport/test-config": "workspace:*",
     "@playwright/test": "catalog:",
     "@types/d3-array": "^3.2.2",
     "@types/d3-axis": "^3.0.6",
