@@ -152,6 +152,19 @@ describe("stores > tree > collapse all", () => {
     expect(isTreeOpened("default-failed", true)).toBe(true);
   });
 
+  it("keeps the state of the nodes that do not belong to the rendered trees when going back to the default view", () => {
+    setEnvironments(["env-a", "env-b"]);
+    collapsedTrees.value = new Set(["step-1", "env-a:env-a-failed"]);
+    expandedTrees.value = new Set(["fixture-1", "env-a:env-a-passed"]);
+    collapsedEnvironments.value = ["env-a", "other-env"];
+
+    resetTreesToDefault();
+
+    expect([...collapsedTrees.value]).toEqual(["step-1"]);
+    expect([...expandedTrees.value]).toEqual(["fixture-1"]);
+    expect(collapsedEnvironments.value).toEqual(["other-env"]);
+  });
+
   it("keeps the headerless root opened so the tree never disappears", () => {
     setEnvironments(["default"]);
     setAllTreesOpened(false);
