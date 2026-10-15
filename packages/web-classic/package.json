@@ -22,7 +22,7 @@
     "dev:demo": "rimraf out/demo && yarn run -T allure generate ${ALLURE_RESULTS_DIR:-../sandbox/allure-results} --config=./allurerc-dev.mjs --output=./out/demo",
     "dev:copy": "rimraf out/dev/data out/dev/widgets && mkdir -p out/dev && cp -R out/demo/data out/dev/data && cp -R out/demo/widgets out/dev/widgets",
     "dev:serve": "webpack serve --mode development",
-    "build": "run-s clean build:prod:multi",
+    "build": "run clean && run build:prod:multi",
     "build:dev": "run-s clean build:dev:multi",
     "build:prod:multi": "webpack --mode production",
     "build:dev:multi": "webpack --mode development",
@@ -32,9 +32,9 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
+    "@allurereport/common-config": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-components": "workspace:*",
     "@babel/core": "^7.27.4",

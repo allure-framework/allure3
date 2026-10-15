@@ -16,7 +16,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/aql@workspace:packages/aql"
   dependencies:
-    "@allurereport/test-config": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -36,9 +36,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/charts-api@workspace:packages/charts-api"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^20"
@@ -60,9 +60,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/ci@workspace:packages/ci"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2.1.8"
@@ -83,7 +83,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/cli-commons@workspace:packages/cli-commons"
   dependencies:
-    "@allurereport/test-config": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@types/lodash.debounce": "npm:^4.0.9"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -101,11 +101,35 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allurereport/common-config@workspace:*, @allurereport/common-config@workspace:packages/common-config":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/common-config@workspace:packages/common-config"
+  dependencies:
+    "@playwright/test": "catalog:"
+    "@types/node": "npm:^20"
+    "@vitest/coverage-istanbul": "catalog:"
+    "@vitest/runner": "npm:4.1.8"
+    allure-js-commons: "npm:^3"
+    allure-vitest: "npm:^3"
+    glob: "npm:^13.0.6"
+    rimraf: "npm:^6"
+    typescript: "npm:^5"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+    vitest: "catalog:"
+  peerDependencies:
+    "@playwright/test": ^1
+  peerDependenciesMeta:
+    "@playwright/test":
+      optional: true
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/core-api@workspace:*, @allurereport/core-api@workspace:packages/core-api":
   version: 0.0.0-use.local
   resolution: "@allurereport/core-api@workspace:packages/core-api"
   dependencies:
-    "@allurereport/test-config": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -128,6 +152,7 @@ __metadata:
   dependencies:
     "@allurereport/ci": "workspace:*"
     "@allurereport/cli-commons": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-agent": "workspace:*"
     "@allurereport/plugin-allure2": "workspace:*"
@@ -148,7 +173,6 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@types/zip-stream": "npm:^7.0.0"
     "@vitest/coverage-istanbul": "catalog:"
@@ -177,7 +201,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/directory-watcher@workspace:packages/directory-watcher"
   dependencies:
-    "@allurereport/test-config": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -198,6 +222,7 @@ __metadata:
   resolution: "@allurereport/e2e@workspace:packages/e2e"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -206,7 +231,6 @@ __metadata:
     "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@faker-js/faker": "npm:^10.5.0"
     "@playwright/test": "catalog:"
     "@types/lodash.times": "npm:^4.3.9"
@@ -223,8 +247,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/git@workspace:packages/git"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -257,10 +281,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-agent@workspace:packages/plugin-agent"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -279,9 +303,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-allure2@workspace:packages/plugin-allure2"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-allure2": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -301,8 +325,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-api@workspace:packages/plugin-api"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@types/tar-stream": "npm:^3.1.4"
     "@vitest/coverage-istanbul": "catalog:"
@@ -324,10 +348,10 @@ __metadata:
   resolution: "@allurereport/plugin-awesome@workspace:packages/plugin-awesome"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/git": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -353,9 +377,9 @@ __metadata:
   resolution: "@allurereport/plugin-classic@workspace:packages/plugin-classic"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -380,9 +404,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-csv@workspace:packages/plugin-csv"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -401,9 +425,9 @@ __metadata:
   resolution: "@allurereport/plugin-dashboard@workspace:packages/plugin-dashboard"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
@@ -426,9 +450,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-jira@workspace:packages/plugin-jira"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@faker-js/faker": "npm:^10.5.0"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -448,9 +472,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-log@workspace:packages/plugin-log"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -470,9 +494,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-mail@workspace:packages/plugin-mail"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/mjml": "npm:^4"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -492,6 +516,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-metrics@workspace:packages/plugin-metrics"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@types/node": "npm:^20"
@@ -510,9 +535,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-progress@workspace:packages/plugin-progress"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -532,9 +557,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-server-reload@workspace:packages/plugin-server-reload"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -553,9 +578,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-slack@workspace:packages/plugin-slack"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -575,12 +600,12 @@ __metadata:
   dependencies:
     "@allurereport/ci": "workspace:*"
     "@allurereport/cli-commons": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/git": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20"
@@ -606,9 +631,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-testplan@workspace:packages/plugin-testplan"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -626,9 +651,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-xray@workspace:packages/plugin-xray"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
@@ -647,9 +672,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/reader-api@workspace:packages/reader-api"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -671,10 +696,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/reader@workspace:packages/reader"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/archiver": "npm:^6.0.3"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -695,9 +720,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/service@workspace:packages/service"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2.1.8"
@@ -718,8 +743,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/static-server@workspace:packages/static-server"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/directory-watcher": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@playwright/test": "catalog:"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -744,9 +769,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/summary@workspace:packages/summary"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-summary": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
@@ -762,36 +787,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/test-config@workspace:*, @allurereport/test-config@workspace:packages/test-config":
-  version: 0.0.0-use.local
-  resolution: "@allurereport/test-config@workspace:packages/test-config"
-  dependencies:
-    "@playwright/test": "catalog:"
-    "@types/node": "npm:^20"
-    "@vitest/coverage-istanbul": "catalog:"
-    "@vitest/runner": "npm:4.1.8"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
-    glob: "npm:^13.0.6"
-    rimraf: "npm:^6"
-    typescript: "npm:^5"
-    vite: "catalog:"
-    vite-plus: "catalog:"
-    vitest: "catalog:"
-  peerDependencies:
-    "@playwright/test": ^1.62.1
-  peerDependenciesMeta:
-    "@playwright/test":
-      optional: true
-  languageName: unknown
-  linkType: soft
-
 "@allurereport/web-allure2@workspace:*, @allurereport/web-allure2@workspace:packages/web-allure2":
   version: 0.0.0-use.local
   resolution: "@allurereport/web-allure2@workspace:packages/web-allure2"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@playwright/test": "catalog:"
     "@types/d3-array": "npm:^3.2.2"
@@ -840,9 +841,9 @@ __metadata:
   resolution: "@allurereport/web-awesome@workspace:packages/web-awesome"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -851,7 +852,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.27.1"
     "@floating-ui/dom": "npm:^1.8.0"
     "@preact/compat": "npm:^18.3.1"
-    "@preact/preset-vite": "npm:^2.10.2"
+    "@preact/preset-vite": "npm:^2.10.4"
     "@preact/signals": "npm:^2.6.1"
     "@testing-library/jest-dom": "npm:^6.9.1"
     "@testing-library/preact": "npm:^3.2.3"
@@ -905,9 +906,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-classic@workspace:packages/web-classic"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -965,9 +966,9 @@ __metadata:
   dependencies:
     "@allurereport/aql": "workspace:*"
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@preact/signals": "npm:^2.6.1"
     "@preact/signals-core": "npm:^1.12.2"
     "@types/d3-interpolate": "npm:^3.0.4"
@@ -998,8 +999,8 @@ __metadata:
   resolution: "@allurereport/web-components@workspace:packages/web-components"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.27.4"
     "@babel/plugin-transform-react-jsx": "npm:^7.27.1"
@@ -1110,9 +1111,9 @@ __metadata:
   resolution: "@allurereport/web-dashboard@workspace:packages/web-dashboard"
   dependencies:
     "@allurereport/charts-api": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -1164,6 +1165,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-summary@workspace:packages/web-summary"
   dependencies:
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
@@ -1375,12 +1377,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-annotate-as-pure@npm:^7.25.9, @babel/helper-annotate-as-pure@npm:^7.27.1":
-  version: 7.27.3
-  resolution: "@babel/helper-annotate-as-pure@npm:7.27.3"
+"@babel/helper-annotate-as-pure@npm:^7.25.9, @babel/helper-annotate-as-pure@npm:^7.27.1, @babel/helper-annotate-as-pure@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/helper-annotate-as-pure@npm:7.29.7"
   dependencies:
-    "@babel/types": "npm:^7.27.3"
-  checksum: 10/63863a5c936ef82b546ca289c9d1b18fabfc24da5c4ee382830b124e2e79b68d626207febc8d4bffc720f50b2ee65691d7d12cc0308679dee2cd6bdc926b7190
+    "@babel/types": "npm:^7.29.7"
+  checksum: 10/acd9e128de634a5144b5d622357d018fa616de45f64c74e42007c048dd15d0a0be213f4d5a2bf02307bdaddf053791b87900a99d183de828c08dc3b556329009
   languageName: node
   linkType: hard
 
@@ -1696,6 +1698,13 @@ __metadata:
   version: 7.27.1
   resolution: "@babel/helper-plugin-utils@npm:7.27.1"
   checksum: 10/96136c2428888e620e2ec493c25888f9ceb4a21099dcf3dd4508ea64b58cdedbd5a9fb6c7b352546de84d6c24edafe482318646932a22c449ebd16d16c22d864
+  languageName: node
+  linkType: hard
+
+"@babel/helper-plugin-utils@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/helper-plugin-utils@npm:7.29.7"
+  checksum: 10/6d16929fe5c792bbc8e4d67e18d7c1be69d2f18992deaa3d94dc26541fec662e83cbeeaf7553c6867d068eb7aed4e0d5e3e137c1dd4d5bcfa286f8d772f1f457
   languageName: node
   linkType: hard
 
@@ -2106,14 +2115,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-syntax-jsx@npm:^7.27.1":
-  version: 7.27.1
-  resolution: "@babel/plugin-syntax-jsx@npm:7.27.1"
+"@babel/plugin-syntax-jsx@npm:^7.27.1, @babel/plugin-syntax-jsx@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/plugin-syntax-jsx@npm:7.29.7"
   dependencies:
-    "@babel/helper-plugin-utils": "npm:^7.27.1"
+    "@babel/helper-plugin-utils": "npm:^7.29.7"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 10/c6d1324cff286a369aa95d99b8abd21dd07821b5d3affd5fe7d6058c84cff9190743287826463ee57a7beecd10fa1e4bc99061df532ee14e188c1c8937b13e3a
+  checksum: 10/84150d27c553a1d3d921354437f6725ca1d63b49514c25591bfcaaafa6ea4d6c10715b66fe7245e4ad7ab7c6cf4b6e1de7373defd3df00877ab12638170d7772
   languageName: node
   linkType: hard
 
@@ -3070,7 +3079,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-react-jsx-development@npm:^7.22.5, @babel/plugin-transform-react-jsx-development@npm:^7.25.9":
+"@babel/plugin-transform-react-jsx-development@npm:^7.22.5":
   version: 7.25.9
   resolution: "@babel/plugin-transform-react-jsx-development@npm:7.25.9"
   dependencies:
@@ -3081,7 +3090,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-react-jsx@npm:^7.22.15, @babel/plugin-transform-react-jsx@npm:^7.25.9, @babel/plugin-transform-react-jsx@npm:^7.27.1":
+"@babel/plugin-transform-react-jsx-development@npm:^7.25.9, @babel/plugin-transform-react-jsx-development@npm:^7.27.1":
+  version: 7.29.7
+  resolution: "@babel/plugin-transform-react-jsx-development@npm:7.29.7"
+  dependencies:
+    "@babel/plugin-transform-react-jsx": "npm:^7.29.7"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 10/c535bb5ee09e07839a422f7a8e55849cd30525af57021888eceb84d33391290f6250207319bb4fbb4d4cbdcdb894b2a2b963f0769a3e95536370159b4b505855
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-transform-react-jsx@npm:^7.22.15":
   version: 7.27.1
   resolution: "@babel/plugin-transform-react-jsx@npm:7.27.1"
   dependencies:
@@ -3093,6 +3113,21 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0-0
   checksum: 10/e865f194770906398957df23530af9a46009ac3737aaa10026b3925fe0a38fc3254f4b227d3b8807ab66ac92c14323bef561dd2217644052de5a9702af76e2f6
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-transform-react-jsx@npm:^7.25.9, @babel/plugin-transform-react-jsx@npm:^7.27.1, @babel/plugin-transform-react-jsx@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/plugin-transform-react-jsx@npm:7.29.7"
+  dependencies:
+    "@babel/helper-annotate-as-pure": "npm:^7.29.7"
+    "@babel/helper-module-imports": "npm:^7.29.7"
+    "@babel/helper-plugin-utils": "npm:^7.29.7"
+    "@babel/plugin-syntax-jsx": "npm:^7.29.7"
+    "@babel/types": "npm:^7.29.7"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 10/ad735e6666e296404fd3c55378ad9ac712816a9ba3292bf491fd44e2d7bf32217a02c70fd8977c5ae07a246cfdbd75ea3bf5906e69af5dc1d0f404bca09aa7bf
   languageName: node
   linkType: hard
 
@@ -3729,14 +3764,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/types@npm:^7.0.0, @babel/types@npm:^7.20.7":
-  version: 7.23.9
-  resolution: "@babel/types@npm:7.23.9"
+"@babel/types@npm:^7.0.0, @babel/types@npm:^7.20.7, @babel/types@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/types@npm:7.29.7"
   dependencies:
-    "@babel/helper-string-parser": "npm:^7.23.4"
-    "@babel/helper-validator-identifier": "npm:^7.22.20"
-    to-fast-properties: "npm:^2.0.0"
-  checksum: 10/bed9634e5fd0f9dc63c84cfa83316c4cb617192db9fedfea464fca743affe93736d7bf2ebf418ee8358751a9d388e303af87a0c050cb5d87d5870c1b0154f6cb
+    "@babel/helper-string-parser": "npm:^7.29.7"
+    "@babel/helper-validator-identifier": "npm:^7.29.7"
+  checksum: 10/bd4f5635db1057bd0abeebf93eb3ae38399e152271cea8dce8288350f0afa13ed3e2db2e16e22bd3303068890eec18965a83420539afbe0dde31432b4cf9636d
   languageName: node
   linkType: hard
 
@@ -3767,16 +3801,6 @@ __metadata:
     "@babel/helper-string-parser": "npm:^7.27.1"
     "@babel/helper-validator-identifier": "npm:^7.28.5"
   checksum: 10/bfc2b211210f3894dcd7e6a33b2d1c32c93495dc1e36b547376aa33441abe551ab4bc1640d4154ee2acd8e46d3bbc925c7224caae02fcaf0e6a771e97fccc661
-  languageName: node
-  linkType: hard
-
-"@babel/types@npm:^7.29.7":
-  version: 7.29.7
-  resolution: "@babel/types@npm:7.29.7"
-  dependencies:
-    "@babel/helper-string-parser": "npm:^7.29.7"
-    "@babel/helper-validator-identifier": "npm:^7.29.7"
-  checksum: 10/bd4f5635db1057bd0abeebf93eb3ae38399e152271cea8dce8288350f0afa13ed3e2db2e16e22bd3303068890eec18965a83420539afbe0dde31432b4cf9636d
   languageName: node
   linkType: hard
 
@@ -4265,7 +4289,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/sourcemap-codec@npm:^1.4.10, @jridgewell/sourcemap-codec@npm:^1.4.14, @jridgewell/sourcemap-codec@npm:^1.6.0":
+"@jridgewell/sourcemap-codec@npm:^1.4.10, @jridgewell/sourcemap-codec@npm:^1.4.14, @jridgewell/sourcemap-codec@npm:^1.5.5, @jridgewell/sourcemap-codec@npm:^1.6.0":
   version: 1.6.0
   resolution: "@jridgewell/sourcemap-codec@npm:1.6.0"
   checksum: 10/eb53fbf7eb4051302a599d6b91425f381168b2856f321336fb00852cea1e0c1904af2610c157b1535e94a61caa98f0bd068d1d0394dd46adf9e9c45c4e11af91
@@ -5935,22 +5959,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@preact/preset-vite@npm:^2.10.2":
-  version: 2.10.2
-  resolution: "@preact/preset-vite@npm:2.10.2"
+"@preact/preset-vite@npm:^2.10.4":
+  version: 2.10.6
+  resolution: "@preact/preset-vite@npm:2.10.6"
   dependencies:
-    "@babel/plugin-transform-react-jsx": "npm:^7.22.15"
-    "@babel/plugin-transform-react-jsx-development": "npm:^7.22.5"
-    "@prefresh/vite": "npm:^2.4.1"
-    "@rollup/pluginutils": "npm:^4.1.1"
+    "@babel/plugin-transform-react-jsx": "npm:^7.27.1"
+    "@babel/plugin-transform-react-jsx-development": "npm:^7.27.1"
+    "@prefresh/vite": "npm:^2.4.11"
+    "@rollup/pluginutils": "npm:^5.0.0"
     babel-plugin-transform-hook-names: "npm:^1.0.2"
-    debug: "npm:^4.3.4"
+    debug: "npm:^4.4.3"
+    magic-string: "npm:^0.30.21"
     picocolors: "npm:^1.1.1"
-    vite-prerender-plugin: "npm:^0.5.3"
+    vite-prerender-plugin: "npm:^0.5.8"
+    zimmerframe: "npm:^1.1.4"
   peerDependencies:
     "@babel/core": 7.x
-    vite: 2.x || 3.x || 4.x || 5.x || 6.x || 7.x
-  checksum: 10/fc348b122264c14925b694699369d5ad46f9f20c4a176dce0592756838e93c313d7590d8978dfdf3be0160d3c486b67316fee9bb120f79103c887f57a5a8cec9
+    vite: 2.x || 3.x || 4.x || 5.x || 6.x || 7.x || 8.x
+  checksum: 10/4ae58fd0f570625b4ae8e71b9e1ef1dae0640d13baa011a0f569045ad4b1d81d9f3045de5e87ea5504babe0a34e039b79f5f376082caeacf7405306be1837259
   languageName: node
   linkType: hard
 
@@ -5998,6 +6024,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prefresh/babel-plugin@npm:^0.5.2":
+  version: 0.5.4
+  resolution: "@prefresh/babel-plugin@npm:0.5.4"
+  peerDependencies:
+    "@babel/core": ^7.0.0 || ^8.0.0
+  checksum: 10/ecf77a7d9b5f6413ca9958544604caeffa9ae3c1b2965848ec95c707752208f96b5860f622bc49b21aca4e5d47b7c326404b6794f672072df4f317fb41422c99
+  languageName: node
+  linkType: hard
+
+"@prefresh/core@npm:^1.5.0":
+  version: 1.5.11
+  resolution: "@prefresh/core@npm:1.5.11"
+  peerDependencies:
+    preact: ^10.0.0 || ^11.0.0-0
+  checksum: 10/2da7c8c3795d8c182cbc214820fbe9169527bbfdf28123bed6f4201df2d3ecfdf68c86f1af8c9967756a88ec8afaa39640aed7d3529bbf6a238a1547a4e67225
+  languageName: node
+  linkType: hard
+
 "@prefresh/core@npm:^1.5.1":
   version: 1.5.3
   resolution: "@prefresh/core@npm:1.5.3"
@@ -6027,6 +6071,22 @@ __metadata:
     preact: ^10.4.0
     vite: ">=2.0.0"
   checksum: 10/87fac42beca17b4a0e135afdc1bcbb2dde1cfd7b182600e4594228a09ab7ee95e4f0475ef811e8129f37935281b3d5ded962ceb9437dbabc3096465d1f4563d1
+  languageName: node
+  linkType: hard
+
+"@prefresh/vite@npm:^2.4.11":
+  version: 2.4.12
+  resolution: "@prefresh/vite@npm:2.4.12"
+  dependencies:
+    "@babel/core": "npm:^7.22.1"
+    "@prefresh/babel-plugin": "npm:^0.5.2"
+    "@prefresh/core": "npm:^1.5.0"
+    "@prefresh/utils": "npm:^1.2.0"
+    "@rollup/pluginutils": "npm:^4.2.1"
+  peerDependencies:
+    preact: ^10.4.0 || ^11.0.0-0
+    vite: ">=2.0.0"
+  checksum: 10/c01bb5528838584c9423c9de0f8ec751a3977e1b6de38b06ed2652cca672d88025d3d1861abf98c5255d2d8c699f7cd831040f1b25f5752e3b30f94cc88787c2
   languageName: node
   linkType: hard
 
@@ -6241,7 +6301,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/pluginutils@npm:^5.0.1, @rollup/pluginutils@npm:^5.0.2, @rollup/pluginutils@npm:^5.1.0, @rollup/pluginutils@npm:^5.3.0":
+"@rollup/pluginutils@npm:^5.0.0, @rollup/pluginutils@npm:^5.0.1, @rollup/pluginutils@npm:^5.0.2, @rollup/pluginutils@npm:^5.1.0, @rollup/pluginutils@npm:^5.3.0":
   version: 5.4.0
   resolution: "@rollup/pluginutils@npm:5.4.0"
   dependencies:
@@ -8587,6 +8647,7 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/ci": "workspace:*"
     "@allurereport/cli-commons": "workspace:*"
+    "@allurereport/common-config": "workspace:*"
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/directory-watcher": "workspace:*"
@@ -8607,7 +8668,6 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
-    "@allurereport/test-config": "workspace:*"
     "@types/adm-zip": "npm:^0"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20"
@@ -10611,15 +10671,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.4":
-  version: 4.3.4
-  resolution: "debug@npm:4.3.4"
+"debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.4, debug@npm:^4.4.3":
+  version: 4.4.3
+  resolution: "debug@npm:4.4.3"
   dependencies:
-    ms: "npm:2.1.2"
+    ms: "npm:^2.1.3"
   peerDependenciesMeta:
     supports-color:
       optional: true
-  checksum: 10/0073c3bcbd9cb7d71dd5f6b55be8701af42df3e56e911186dfa46fac3a5b9eb7ce7f377dd1d3be6db8977221f8eb333d945216f645cf56f6b688cd484837d255
+  checksum: 10/9ada3434ea2993800bd9a1e320bd4aa7af69659fb51cca685d390949434bc0a8873c21ed7c9b852af6f2455a55c6d050aa3937d52b3c69f796dab666f762acad
   languageName: node
   linkType: hard
 
@@ -10908,18 +10968,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domutils@npm:^3.0.1":
-  version: 3.1.0
-  resolution: "domutils@npm:3.1.0"
-  dependencies:
-    dom-serializer: "npm:^2.0.0"
-    domelementtype: "npm:^2.3.0"
-    domhandler: "npm:^5.0.3"
-  checksum: 10/9a169a6e57ac4c738269a73ab4caf785114ed70e46254139c1bbc8144ac3102aacb28a6149508395ae34aa5d6a40081f4fa5313855dc8319c6d8359866b6dfea
-  languageName: node
-  linkType: hard
-
-"domutils@npm:^3.1.0, domutils@npm:^3.2.2":
+"domutils@npm:^3.0.1, domutils@npm:^3.1.0, domutils@npm:^3.2.2":
   version: 3.2.2
   resolution: "domutils@npm:3.2.2"
   dependencies:
@@ -13609,6 +13658,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"magic-string@npm:0.x >= 0.26.0, magic-string@npm:^0.30.21":
+  version: 0.30.21
+  resolution: "magic-string@npm:0.30.21"
+  dependencies:
+    "@jridgewell/sourcemap-codec": "npm:^1.5.5"
+  checksum: 10/57d5691f41ed40d962d8bd300148114f53db67fadbff336207db10a99f2bdf4a1be9cac3a68ee85dba575912ee1d4402e4396408196ec2d3afd043b076156221
+  languageName: node
+  linkType: hard
+
 "magic-string@npm:^0.30.17, magic-string@npm:^0.30.3, magic-string@npm:^0.30.6":
   version: 0.30.17
   resolution: "magic-string@npm:0.30.17"
@@ -14525,14 +14583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:2.1.2":
-  version: 2.1.2
-  resolution: "ms@npm:2.1.2"
-  checksum: 10/673cdb2c3133eb050c745908d8ce632ed2c02d85640e2edb3ace856a2266a813b30c613569bf3354fdf4ea7d1a1494add3bfa95e2713baa27d0c2c71fc44f58f
-  languageName: node
-  linkType: hard
-
-"ms@npm:2.1.3":
+"ms@npm:2.1.3, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: 10/aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
@@ -18328,14 +18379,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-dedent@npm:^2.0.0":
-  version: 2.2.0
-  resolution: "ts-dedent@npm:2.2.0"
-  checksum: 10/93ed8f7878b6d5ed3c08d99b740010eede6bccfe64bce61c5a4da06a2c17d6ddbb80a8c49c2d15251de7594a4f93ffa21dd10e7be75ef66a4dc9951b4a94e2af
-  languageName: node
-  linkType: hard
-
-"ts-dedent@npm:^2.2.0":
+"ts-dedent@npm:^2.0.0, ts-dedent@npm:^2.2.0":
   version: 2.3.0
   resolution: "ts-dedent@npm:2.3.0"
   checksum: 10/fc56bfac5daf2a3d2197eda2c804125756ecfbbc830ad3ce28cf775cca0027fe848abf827a913be67d33fb0f57dfbdd536f9c908e9979fa65968443b514561b2
@@ -18800,6 +18844,22 @@ __metadata:
     source-map: "npm:^0.7.4"
     stack-trace: "npm:^1.0.0-pre2"
   checksum: 10/2a29e723a0f873e5b4a97353cd56a666692bbcbaf2b449e1420d86919347ef9f5392375e1e475c741f23a77afd366d9e3123a68ff6861dc9ad4c50c271c684f1
+  languageName: node
+  linkType: hard
+
+"vite-prerender-plugin@npm:^0.5.8":
+  version: 0.5.14
+  resolution: "vite-prerender-plugin@npm:0.5.14"
+  dependencies:
+    kolorist: "npm:^1.8.0"
+    magic-string: "npm:0.x >= 0.26.0"
+    node-html-parser: "npm:^6.1.12"
+    simple-code-frame: "npm:^1.3.0"
+    source-map: "npm:^0.7.4"
+    stack-trace: "npm:^1.0.0-pre2"
+  peerDependencies:
+    vite: 5.x || 6.x || 7.x || 8.x
+  checksum: 10/35a67cdd4a6ad3fa68f07b4d11ef03f7084d51dbb066bc067b51762619015c626f8705d84a7ba3c6dd930020a42e14b8f0b1cd52953461c690b008a0a50d0299
   languageName: node
   linkType: hard
 
@@ -19551,6 +19611,13 @@ __metadata:
     "@yuku-toolchain/types": "npm:^0.19.0"
     yuku-core: "npm:0.19.0"
   checksum: 10/ba84acfd8fa56f1c7f21512e93d6bde362835024acadabb7d9c1288d4eaf33202bdabecfc63f46cb5e9b6eb8bceee4b4cdb076a704aedf1e8d1ec59c06c3c45b
+  languageName: node
+  linkType: hard
+
+"zimmerframe@npm:^1.1.4":
+  version: 1.1.5
+  resolution: "zimmerframe@npm:1.1.5"
+  checksum: 10/be63ed24eddc1638a5b4c7ae183d4cfac715e17a82a6146b2d18749ac733916b42c225f754b806e0b3d72aa9c681d14a6c904ef72c556794bcd6ebead8ae4fc9
   languageName: node
   linkType: hard
 

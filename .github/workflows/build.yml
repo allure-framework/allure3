@@ -27,6 +27,8 @@ jobs:
   lint:
     name: Lint
     runs-on: "ubuntu-latest"
+    env:
+      CACHE_TYPE: build
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -36,21 +38,30 @@ jobs:
       - name: Install dependencies
         timeout-minutes: 5
         run: yarn install --immutable --immutable-cache --check-cache
-      - &uses-build-cache
-        name: Cache build outputs
+      - &uses-restore-cache
+        name: Restore Vite Task cache
         id: build-cache
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v6
         with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'vite.config.*', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/vite.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+          path: node_modules/.vite/task-cache
+          key: vite-${{ env.CACHE_TYPE || 'build' }}-${{ github.head_ref || github.ref_name }}-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vite-${{ env.CACHE_TYPE || 'build' }}-${{ github.head_ref || github.ref_name }}-${{ runner.os }}-${{ runner.arch }}-
+            vite-${{ env.CACHE_TYPE || 'build' }}-${{ github.event.repository.default_branch }}-${{ runner.os }}-${{ runner.arch }}-
       - &uses-build
         name: Build the project
-        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
       - name: Lint Project
         run: yarn lint
       - name: Check formatting
         run: yarn format:check
+      - &uses-save-cache
+        name: Save Vite Task cache
+        uses: actions/cache/save@v6
+        if: success()
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
       # - name: Type-aware lint
       #   run: yarn lint:type
 
@@ -58,6 +69,8 @@ jobs:
     needs: lint
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      CACHE_TYPE: test
     strategy:
       fail-fast: false
       matrix:
@@ -68,7 +81,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.14.x"
-          cache: '' # all dependencies are already committed in repository, skip unnecessary global folder cache
+          cache: "" # all dependencies are already committed in repository, skip unnecessary global folder cache
       - &uses-yarn-install
         name: Install dependencies
         env:
@@ -77,19 +90,20 @@ jobs:
           # ensure no cross drive links are being created (windows runners fail otherwise because global folder is on different disk)
           YARN_GLOBAL_FOLDER: ${{ github.workspace }}/.yarn/ci-global
         run: yarn install --immutable --immutable-cache
-      - *uses-build-cache
+      - *uses-restore-cache
       - *uses-build
       - parallel:
-        - name: Install Playwright browsers
-          timeout-minutes: 5
-          run: yarn workspace @allurereport/test-config playwright install chromium firefox webkit
-        - name: Install playwright dependencies for e2e
-          timeout-minutes: 5
-          run: yarn workspace @allurereport/test-config playwright install-deps
+          - name: Install Playwright browsers
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install chromium firefox webkit
+          - name: Install playwright dependencies for e2e
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install-deps
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+      - *uses-save-cache
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
@@ -124,7 +138,7 @@ jobs:
           path: ./
       - *uses-node-setup
       - *uses-yarn-install
-      - *uses-build-cache
+      - *uses-restore-cache
       - *uses-build
       - name: Generate test coverage report
         env:
@@ -133,7 +147,7 @@ jobs:
       - name: Publish code coverage
         uses: clearlyip/code-coverage-report-action@v7
         with:
-          filename: packages/test-config/.vitest/coverage/cobertura-coverage.xml
+          filename: packages/common-config/.vitest/coverage/cobertura-coverage.xml
           badge: true
           togglable-report: true
           report-low-coverage-only: true
@@ -167,7 +181,7 @@ jobs:
           path: ./
       - *uses-node-setup
       - *uses-yarn-install
-      - *uses-build-cache
+      - *uses-restore-cache
       - *uses-build
       - name: Measure report generation
         env:
