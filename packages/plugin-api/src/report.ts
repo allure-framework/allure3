@@ -56,6 +56,7 @@ export type ReportOptions = {
   runSummaryByEnv?: Record<string, ReportRunSummary>;
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
+  overviewHref?: string;
 };
 
 export type ReportFixtureResult = Omit<
@@ -165,6 +166,7 @@ export type ReportSearchDocument = {
   id: string;
   nodeId: string;
   name: string;
+  titlePath?: string;
   fullName?: string;
   retryHash?: string | null;
   labels?: string;

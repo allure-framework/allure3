@@ -200,10 +200,14 @@ const renderTable = (
 
 const reportHref = (report: ReportContextTestReport): string | undefined => report.remoteHref ?? report.href;
 
-const reportLabel = (report: ReportContextTestReport): string => report.plugin ?? report.name;
-
 const isAwesomeReport = (report: ReportContextTestReport | undefined): report is ReportContextTestReport =>
   report?.pluginId?.toLowerCase() === "awesome" || report?.plugin?.toLowerCase() === "awesome";
+
+const isAllureTestOpsReport = (report: ReportContextTestReport | undefined): boolean =>
+  report?.pluginId?.toLowerCase() === "testops";
+
+const reportLabel = (report: ReportContextTestReport): string =>
+  isAllureTestOpsReport(report) ? report.name : (report.plugin ?? report.name);
 
 const appendReportFilter = (href: string, filter: keyof ReportContextFlagStats): string => {
   const hashIndex = href.indexOf("#");
@@ -229,7 +233,7 @@ const createDefaultReportFilterHref = (
 };
 
 const reportLinkKind = (report: ReportContextTestReport): ReportLink["kind"] =>
-  report.plugin?.toLowerCase() === "testops" ? "testops" : "report";
+  isAllureTestOpsReport(report) ? "testops" : "report";
 
 const toReportLink = (report: ReportContextTestReport): ReportLink | undefined => {
   const href = reportHref(report);
@@ -259,7 +263,7 @@ const renderReportLinks = (reports: ReportContextTestReport[]): string[] => {
   const reportLinks = links.filter(({ kind }) => kind === "report");
   const testOpsLinks = links.filter(({ kind }) => kind === "testops");
 
-  return [renderLinks("Reports", reportLinks), renderLinks("TestOps", testOpsLinks)].filter(
+  return [renderLinks("Reports", reportLinks), renderLinks("Allure TestOps", testOpsLinks)].filter(
     (line): line is string => line !== undefined,
   );
 };

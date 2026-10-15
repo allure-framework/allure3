@@ -32,6 +32,18 @@ export const getLogLevelFromEnv = (): LogLevel => {
   return "info";
 };
 
+let globalLogLevel: LogLevel | undefined;
+
+/**
+ * Sets the process-wide log level used by every logger that has no explicit level of its own.
+ * Takes precedence over `ALLURE_LOG_LEVEL`; pass `undefined` to fall back to the environment again.
+ */
+export const setGlobalLogLevel = (logLevel: LogLevel | undefined) => {
+  globalLogLevel = logLevel;
+};
+
+export const getGlobalLogLevel = (): LogLevel | undefined => globalLogLevel;
+
 const stringifyMessage = (message: LogMessage) => {
   if (typeof message === "string") {
     return message;
@@ -60,12 +72,12 @@ const stringifyMessage = (message: LogMessage) => {
 export class Logger {
   readonly #prefix: string;
   readonly #continuationPrefix: string;
-  #level: LogLevel;
+  #level: LogLevel | undefined;
 
   constructor(loggerName: string, logLevel?: LogLevel) {
     const plainPrefix = `[${loggerName}]:`;
 
-    this.#level = logLevel ?? getLogLevelFromEnv();
+    this.#level = logLevel;
     this.#prefix = cyan(bold(plainPrefix));
     this.#continuationPrefix = " ".repeat(plainPrefix.length);
   }
@@ -75,7 +87,9 @@ export class Logger {
   }
 
   #isLogLevel(level: LogLevel) {
-    return logLevelsPriority[this.#level] <= logLevelsPriority[level];
+    const current = this.#level ?? globalLogLevel ?? getLogLevelFromEnv();
+
+    return logLevelsPriority[current] <= logLevelsPriority[level];
   }
 
   #format(message: LogMessage, color: (value: string) => string) {

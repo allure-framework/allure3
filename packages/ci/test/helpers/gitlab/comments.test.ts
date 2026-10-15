@@ -154,7 +154,12 @@ describe("upsertGitlabJobNote", () => {
             flakyTests: [],
             retryTests: ["a"],
           },
-          { ...report, plugin: "TestOps", remoteHref: "https://testops.example/launch/1" },
+          {
+            ...report,
+            plugin: "TestOps",
+            pluginId: "testops",
+            remoteHref: "https://testops.example/launch/1",
+          },
         ],
       },
     });
@@ -168,7 +173,7 @@ describe("upsertGitlabJobNote", () => {
     expect(body).toContain(withReportLinks([1, 0, 1], "https://reports.example/run/failed/index.html"));
     expect(body).toContain('<a href="https://reports.example/run/awesome/index.html">Awesome</a>');
     expect(body).toContain('<a href="https://reports.example/run/failed/index.html">Awesome</a>');
-    expect(body).toContain('**TestOps:** <a href="https://testops.example/launch/1">TestOps</a>');
+    expect(body).toContain('**Allure TestOps:** <a href="https://testops.example/launch/1">Tests | &lt;smoke&gt;</a>');
   });
 
   it.each(["href", "remoteHref"] as const)("does not turn an unsafe %s into a clickable link", async (field) => {

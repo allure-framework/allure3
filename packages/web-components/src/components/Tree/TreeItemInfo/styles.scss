@@ -1,8 +1,11 @@
+// the icons and the duration are centered in the first line of the title
 .item-info {
   display: flex;
   gap: 8px;
   color: var(--color-text-secondary);
   align-items: center;
+  align-self: flex-start;
+  min-height: var(--tree-item-line-height, 20px);
   flex: 0 0 auto;
 }
 

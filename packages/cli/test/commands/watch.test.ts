@@ -1,4 +1,5 @@
 import { readConfig } from "@allurereport/core";
+import { serve } from "@allurereport/static-server";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -138,6 +139,22 @@ describe("watch command --new-only with dynamic directory discovery", () => {
       expect.any(Function),
       expect.objectContaining({ ignoreInitial: false }),
     );
+  });
+});
+
+describe("watch server host", () => {
+  it("passes --host to the config and the server", async () => {
+    (readConfig as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+      host: "127.0.0.1",
+    });
+
+    await run(WatchCommand, ["watch", "--host", "127.0.0.1"]);
+
+    expect(readConfig).toHaveBeenCalledWith("/cwd", undefined, expect.objectContaining({ host: "127.0.0.1" }));
+    expect(serve).toHaveBeenCalledWith(expect.objectContaining({ host: "127.0.0.1" }));
   });
 });
 

@@ -60,6 +60,48 @@ test.describe("Run errors and attachments", () => {
     });
   });
 
+  test("marks a green report unsuccessful when only the process exit code failed", async ({ page }) => {
+    await test.step("Open the overview with a passed test and a nonzero exit code", async () => {
+      await openReport(page, {
+        fixture: fixtures.globalsExitFailed.name,
+        mode: REPORT_MODES.DIRECTORY,
+      });
+
+      await expect(page.locator(".run-status-banner__title")).toHaveText(
+        `Run failed with exit code ${fixtures.globalsExitFailed.exitCode}`,
+      );
+      await expect(page.locator(".run-status-banner__description")).toContainText("All 1 reported tests passed");
+      await expect(page.locator(".run-status-banner__description")).toContainText(
+        `Exit code: ${fixtures.globalsExitFailed.exitCode}`,
+      );
+      await expect(page.locator(".summary-widget__stats .splash__title")).toHaveText("1");
+      await expect(runTabLink(page)).toBeVisible();
+      await expect(runTabLink(page)).toHaveClass(/side-nav__link_error/);
+      await expect(runTabLink(page).locator(".side-nav__badge")).toBeHidden();
+    });
+
+    await test.step("Review the exit-only failure on the Run page", async () => {
+      await page.getByRole("link", { name: "Review run details" }).click();
+      await expect(page).toHaveURL(/#run$/);
+      await expect(page.locator(".run-view__outcome-title")).toHaveText(
+        `Run failed with exit code ${fixtures.globalsExitFailed.exitCode}`,
+      );
+      await expect(page.locator(".run-view__error")).toHaveCount(0);
+      await expect(page.locator(".run-view__attachments .attachment-row")).toHaveCount(0);
+    });
+  });
+
+  test("prefers actual exit code over original when deciding run failure", async ({ page }) => {
+    await openReport(page, {
+      fixture: fixtures.globalsExitActualOk.name,
+      mode: REPORT_MODES.DIRECTORY,
+    });
+
+    await expect(page.locator(".run-status-banner")).toHaveCount(0);
+    await expect(page.locator(".summary-widget__stats .splash__title")).toHaveText("1");
+    await expect(runTabLink(page)).toHaveCount(0);
+  });
+
   test("keeps attachment-only runs neutral and makes evidence available", async ({ page }) => {
     await test.step("Open an attachment-only run", async () => {
       await openReport(page, {

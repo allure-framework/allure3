@@ -47,6 +47,12 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
+  /**
+   * Relative link from the plugin report to the root overview page.
+   * Defined only when the report is generated (not in real time) and at least two plugins
+   * generate a report of their own, so the root overview page exists.
+   */
+  overviewHref?: string;
   realTime?: boolean;
   output: string;
   ci?: CiDescriptor;
@@ -86,6 +92,14 @@ export interface PluginSummary {
   retryTests?: string[];
   checks?: SummaryCheckResult[];
   createdAt?: number;
+  /**
+   * Process exit code for the run. Omitted when the store has no exit code.
+   */
+  exitCode?: ExitCode;
+  /**
+   * Number of global (runner-level) errors. Omitted when zero.
+   */
+  globalErrorsCount?: number;
   /**
    * Marks summaries produced from a filtered test result subset. Unfiltered summaries describe the same
    * generation-wide result set and CI integrations may aggregate their stats instead of repeating them per report.

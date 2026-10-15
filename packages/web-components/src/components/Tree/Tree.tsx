@@ -3,10 +3,12 @@ import {
   applySubtreeToggleState,
   collectExpandableSubtreeNodes,
   getNextSubtreeToggleState,
+  getSubtreeToggleAction,
   getSubtreeToggleIcon,
   hasExpandableTreeChildren,
   isSubtreeExpandedAll,
   isSubtreeFirstLevelOnlyOpened,
+  type SubtreeToggleAction,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import cx from "clsx";
@@ -15,6 +17,7 @@ import { useLayoutEffect, useState } from "preact/hooks";
 
 import { Button, IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
+import { TooltipWrapper } from "@/components/Tooltip";
 import { TreeItem } from "@/components/Tree/TreeItem";
 
 import type { RecursiveTree, Status } from "../../../global";
@@ -39,6 +42,8 @@ interface TreeProps {
   /** When set, must match keyboard navigation open state (e.g. awesome `isTreeOpened`). */
   isGroupOpened?: (scopedNodeId: string, openedByDefault: boolean) => boolean;
   showMoreLabel?: string;
+  /** Labels of the subtree toggle by the action of the next click, they are shown in the tooltip of the toggle. */
+  subtreeToggleLabels?: Record<SubtreeToggleAction, string>;
 }
 
 const PAGE_SIZE = 30;
@@ -92,6 +97,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   isGroupOpened,
   navigateTo,
   showMoreLabel = "Show more",
+  subtreeToggleLabels,
 }) => {
   const rootNodeId = tree.nodeId as string;
   const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
@@ -115,14 +121,14 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     isSubtreeExpandedAll(expandableSubtreeNodes, (id, openedByDefault) =>
       resolveIsOpened(toScopedId(id), openedByDefault),
     );
-  const subtreeToggleIcon =
-    subtreeToggleIconByState[
-      getSubtreeToggleIcon({
-        hasOnlyLeafResults,
-        isSubtreeCollapsedAll,
-        isSubtreeFirstLevelOnly,
-      })
-    ];
+  const subtreeToggleState = {
+    hasOnlyLeafResults,
+    isSubtreeCollapsedAll,
+    isSubtreeFirstLevelOnly,
+    isSubtreeExpandedAll: isSubtreeFullyExpanded,
+    lastSubtreeToggle,
+  };
+  const subtreeToggleIcon = subtreeToggleIconByState[getSubtreeToggleIcon(subtreeToggleState)];
   const canRenderHeader = Boolean(name);
   const hasRenderableChildren = tree.trees.length > 0 || tree.leaves.length > 0;
   const contentClassName = cx({
@@ -170,13 +176,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
 
   const toggleSubtree = (event: MouseEvent) => {
     event.stopPropagation();
-    const nextState = getNextSubtreeToggleState({
-      hasOnlyLeafResults,
-      isSubtreeCollapsedAll,
-      isSubtreeFirstLevelOnly,
-      isSubtreeExpandedAll: isSubtreeFullyExpanded,
-      lastSubtreeToggle,
-    });
+    const nextState = getNextSubtreeToggleState(subtreeToggleState);
     setSubtreeState(nextState);
     if (nextState !== "first") {
       setLastSubtreeToggle(nextState);
@@ -207,6 +207,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       isGroupOpened={isGroupOpened}
       navigateTo={navigateTo}
       showMoreLabel={showMoreLabel}
+      subtreeToggleLabels={subtreeToggleLabels}
     />
   ));
 
@@ -234,15 +235,26 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     />
   ));
 
-  const headerActions = hasChildren ? (
+  const subtreeToggleLabel = subtreeToggleLabels?.[getSubtreeToggleAction(subtreeToggleState)];
+  const subtreeToggle = (
     <IconButton
       size="xs"
       style="ghost"
       icon={subtreeToggleIcon}
+      aria-label={subtreeToggleLabel}
       onClick={toggleSubtree}
       className={styles["tree-subtree-toggle"]}
       data-testid="tree-subtree-toggle"
     />
+  );
+  const headerActions = hasChildren ? (
+    subtreeToggleLabel ? (
+      <TooltipWrapper tooltipText={subtreeToggleLabel} placement="bottom">
+        {subtreeToggle}
+      </TooltipWrapper>
+    ) : (
+      subtreeToggle
+    )
   ) : undefined;
 
   const treeContent = isOpened ? (

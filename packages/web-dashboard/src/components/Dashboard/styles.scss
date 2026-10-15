@@ -1,8 +1,8 @@
+// no clipping here: the cards cast shadows and sit flush with the edges of the header and the footer
 .overview {
-  padding: 24px;
+  padding: 0 0 24px;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
 }
 
 .overview-grid {
@@ -11,9 +11,15 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(50% - 12px)), 1fr));
 }
 
-.overview-grid-item {
-  padding: 4px;
+// the doubled class wins against the styles of the shared GridItem regardless of the order of stylesheets
+.overview-grid-item.overview-grid-item {
+  padding: 0;
   width: 100%;
+  box-shadow: var(--shadow-small);
+
+  & *[data-drop-shadow="true"] {
+    box-shadow: none;
+  }
 }
 
 .overview-grid-item-pie-chart-wrapper {
@@ -26,4 +32,11 @@
 
 .overview-grid-item-pie-chart-wrapper-squeezer {
   width: 50%;
+}
+
+.loader {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  width: 100%;
 }

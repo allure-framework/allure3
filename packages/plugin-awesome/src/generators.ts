@@ -249,7 +249,9 @@ export const generateNav = async (writer: AwesomeDataWriter, trs: ReportTestResu
 
 const SEARCHABLE_LABELS = new Set([
   "owner",
+  "parentSuite",
   "suite",
+  "subSuite",
   "package",
   "testClass",
   "testMethod",
@@ -294,6 +296,7 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
     id: test.id,
     nodeId: test.id,
     name: test.name,
+    titlePath: joinSearchValues(test.titlePath ?? []),
     fullName: test.fullName,
     retryHash: test.retryHash,
     labels: joinSearchValues(labels),
@@ -798,6 +801,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -822,6 +826,7 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -883,6 +888,7 @@ export const generateStaticFiles = async (
     defaultSection,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   };
 
   try {

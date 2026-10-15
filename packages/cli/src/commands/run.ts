@@ -16,6 +16,8 @@ import {
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
 import { parseRunCommand, resolveResultsPatterns } from "../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
+import { isQuiet } from "../utils/verbosity.js";
 import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 const missingRunCommandUsageError = () =>
@@ -32,7 +34,12 @@ export class RunCommand extends Command {
       "This command runs the specified command and collects Allure results. " +
       "Override results discovery with repeated `--results-dir` (CLI overrides `config.resultsDir`). " +
       "When neither is set, directories named `allure-results` are discovered dynamically. " +
-      "Quote globs in the shell so they are not expanded early.",
+      "Quote globs in the shell so they are not expanded early.\n\n" +
+      "Global flags: `--verbose`/`-v` prints verbose Allure messages, `--quiet`/`-q` prints errors only. " +
+      "They cannot be combined and must come before `--`. " +
+      "`--quiet` also implies `--silent`: the test process output is not printed, but is still attached to the report " +
+      "unless `--ignore-logs` is set. `--verbose` does not change `--silent` or `--ignore-logs`. " +
+      "Without either flag the log level comes from `ALLURE_LOG_LEVEL` (default: info).",
     examples: [
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
@@ -40,6 +47,8 @@ export class RunCommand extends Command {
         "run --dump=my-dump -- npm run test",
         "Run npm run test and pack inner report state into my-dump.zip archive to restore the state in the next run",
       ],
+      ["run --quiet -- npm run test", "Print only errors and hide the test process output"],
+      ["run --verbose -- npm run test", "Print verbose Allure messages while running the tests"],
       [
         "run --results-dir './artifacts/**/allure-results' -- npm test",
         "Override results discovery with a quoted glob",
@@ -67,6 +76,11 @@ export class RunCommand extends Command {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
   });
 
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name (default: Allure Report)",
   });
@@ -77,6 +91,16 @@ export class RunCommand extends Command {
 
   silent = Option.Boolean("--silent", {
     description: "Don't pipe the process output logs to console (default: 0)",
+  });
+
+  // `--verbose`/`--quiet` are consumed before clipanion parses the arguments (see utils/verbosity.ts);
+  // they are declared here only so that they show up in `allure run --help`.
+  verbose = Option.Boolean("--verbose,-v", {
+    description: "Print verbose Allure messages (global flag, cannot be combined with --quiet)",
+  });
+
+  quiet = Option.Boolean("--quiet,-q", {
+    description: "Print errors only and hide the test process output, implies --silent (global flag)",
   });
 
   ignoreLogs = Option.Boolean("--ignore-logs", {
@@ -118,8 +142,13 @@ export class RunCommand extends Command {
    */
   commandToRun = Option.Rest();
 
+  /** `--quiet` implies `--silent` for the spawned test process. */
+  get silentOutput() {
+    return !!(this.silent || this.quiet) || isQuiet();
+  }
+
   get logs() {
-    if (this.silent) {
+    if (this.silentOutput) {
       return this.ignoreLogs ? "ignore" : "pipe";
     }
 
@@ -145,7 +174,7 @@ export class RunCommand extends Command {
         command,
         commandArgs,
         cwd,
-        silent: this.silent,
+        silent: this.silentOutput,
       });
 
       exit(exitCode ?? -1);
@@ -165,6 +194,7 @@ export class RunCommand extends Command {
       name: this.reportName,
       open: this.open,
       port: this.port,
+      host: this.host,
       hideLabels,
       historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
       ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
@@ -212,7 +242,7 @@ export class RunCommand extends Command {
       environment: resolvedEnvironment?.id,
       withQualityGate,
       logs: this.logs,
-      silent: this.silent,
+      silent: this.silentOutput,
       ignoreLogs: this.ignoreLogs,
       maxRerun,
       resultsPatterns,
@@ -223,7 +253,7 @@ export class RunCommand extends Command {
 
     if (config.open) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

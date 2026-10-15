@@ -5,7 +5,7 @@ import {
   createStylesLinkTag,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
@@ -72,6 +72,11 @@ const template = `<!DOCTYPE html>
       }
     </script>
     ${createBaseUrlScript()}
+    {{#if reportOptions}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
+    {{/if}}
     {{#if analyticsEnable}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
     <script>
@@ -150,8 +155,18 @@ export const generateStaticFiles = async (payload: {
   reportFiles: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
+  overviewHref?: string;
 }) => {
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    reportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+    overviewHref,
+  } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
   const mainJs = manifest["main.js"];
@@ -189,6 +204,7 @@ export const generateStaticFiles = async (payload: {
       reportUuid,
       reportName,
       singleFile,
+      reportOptions: overviewHref ? stringifyForInlineScript({ overviewHref }) : undefined,
     });
 
     await reportFiles.addFile(
@@ -479,6 +495,7 @@ export const generateGlobalsData = async (
   attachmentMap: Map<string, string>,
   attachmentTimestamps: Record<string, number> = {},
   errorTimestamps: Array<number | undefined> = [],
+  exitCode?: ExitCode,
 ) => {
   const data: Allure2GlobalsData = {
     errors: globalErrors.map(({ message, trace, actual, expected }, index) => ({
@@ -507,6 +524,10 @@ export const generateGlobalsData = async (
       ];
     }),
   };
+
+  if (exitCode) {
+    data.exitCode = exitCode;
+  }
 
   await writer.writeWidget("globals.json", data);
 };

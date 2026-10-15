@@ -907,24 +907,84 @@ export const TYPES_BY_EXTENSION: Record<string, string> = Object.fromEntries(
 
 export const identity = <T>(value?: T) => value;
 
-export const injectLiveReloadScript = (html: string) => {
+const WILDCARD_HOSTS = new Set(["0.0.0.0", "::"]);
+
+/**
+ * Brings the user-provided host to the form `net.Server#listen` accepts:
+ * blank means "not set", IPv6 brackets (`[::1]`) are stripped
+ */
+export const normalizeHost = (host: string | undefined) => {
+  const trimmed = host?.trim().replace(/^\[(.*)\]$/, "$1");
+
+  return trimmed || undefined;
+};
+
+/**
+ * Builds the URL the server is reachable at from the machine it runs on.
+ * No host or a wildcard host (`0.0.0.0`, `::`) means "all interfaces", so `localhost` is used for the link
+ */
+export const resolveServerUrl = (host: string | undefined, port: number) => {
+  const normalizedHost = normalizeHost(host);
+  const linkHost = !normalizedHost || WILDCARD_HOSTS.has(normalizedHost) ? "localhost" : normalizedHost;
+
+  return `http://${linkHost.includes(":") ? `[${linkHost}]` : linkHost}:${port}`;
+};
+
+export const injectLiveReloadScript = (html: string, reloadId: string) => {
   const liveReloadScript = `
     <script>
-      const eventSource = new EventSource("/__live_reload");
-      
-      eventSource.onmessage = () => {
-        const newHash = Math.random().toString(36).slice(2, 10);
-        const reload = () => window.location.reload();
-        
-        window.localStorage.setItem("${ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY}", newHash);
+      (() => {
+        // every opened page would keep a permanent connection to the server and browsers limit the number of them per host,
+        // so the connection is closed while the page is hidden and the reloads missed in the meantime are caught up on return
+        let eventSource;
+        let lastReloadId = ${JSON.stringify(reloadId)};
 
-        if (typeof window.__allureLiveReload !== "function") {
-          reload();
-          return;
+        const applyReload = () => {
+          const newHash = Math.random().toString(36).slice(2, 10);
+          const reload = () => window.location.reload();
+
+          window.localStorage.setItem("${ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY}", newHash);
+
+          if (typeof window.__allureLiveReload !== "function") {
+            reload();
+            return;
+          }
+
+          Promise.resolve(window.__allureLiveReload()).catch(reload);
+        };
+        const connect = () => {
+          eventSource = new EventSource("/__live_reload");
+
+          eventSource.onmessage = (event) => {
+            lastReloadId = event.lastEventId;
+            applyReload();
+          };
+          eventSource.addEventListener("sync", (event) => {
+            if (lastReloadId === event.data) {
+              return;
+            }
+
+            lastReloadId = event.data;
+            applyReload();
+          });
+        };
+        const disconnect = () => {
+          eventSource?.close();
+          eventSource = undefined;
+        };
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            disconnect();
+          } else if (!eventSource) {
+            connect();
+          }
+        });
+
+        if (!document.hidden) {
+          connect();
         }
-
-        Promise.resolve(window.__allureLiveReload()).catch(reload);
-      };
+      })();
     </script>
   `;
 

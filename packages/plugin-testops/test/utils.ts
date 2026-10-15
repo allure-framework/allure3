@@ -36,6 +36,7 @@ AllureStoreMock.prototype = {
   allGlobalErrors: vi.fn().mockResolvedValue([]),
   allGlobalAttachments: vi.fn().mockResolvedValue([]),
   allCheckResults: vi.fn().mockResolvedValue([]),
+  globalExitCode: vi.fn().mockResolvedValue(undefined),
   attachmentsByTrId: vi.fn(),
   attachmentById: vi.fn(),
   attachmentContentById: vi.fn(),

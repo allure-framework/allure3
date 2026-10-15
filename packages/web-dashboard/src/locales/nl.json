@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Terug naar overzicht"
+  },
   "statuses": {
     "passed": "Geslaagd",
     "failed": "Mislukt",

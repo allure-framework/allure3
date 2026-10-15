@@ -421,6 +421,7 @@ export class AwesomePlugin implements Plugin {
         reportFiles: context.reportFiles,
         reportUuid: context.reportUuid,
         reportName: context.reportName,
+        overviewHref: context.overviewHref,
         ci: context.ci,
         executor,
         runSummary,

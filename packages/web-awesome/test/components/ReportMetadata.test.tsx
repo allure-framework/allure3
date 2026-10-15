@@ -1,4 +1,4 @@
-import { getReportOptions } from "@allurereport/web-commons";
+import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,7 +28,26 @@ const {
 vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   ...(await importOriginal()),
   getReportOptions: vi.fn(),
+  copyToClipboard: vi.fn(),
 }));
+
+vi.mock("@/stores/locale", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/stores/locale")>();
+
+  return {
+    ...actual,
+    // i18next is not initialised in unit tests, so the labels of the link actions are replaced with their keys
+    useI18n: (namespace: Parameters<typeof actual.useI18n>[0]) => {
+      const original = actual.useI18n(namespace);
+
+      return {
+        ...original,
+        t: (key: string, options?: Record<string, unknown>) =>
+          key === "open-link" || key === "copy-link" ? key : original.t(key, options),
+      };
+    },
+  };
+});
 
 vi.mock("@allurereport/web-components", () => {
   const Menu = Object.assign(
@@ -114,7 +133,7 @@ beforeEach(() => {
 });
 
 describe("components > ReportMetadata", () => {
-  it("should render executor metadata as a clickable build link", () => {
+  it("should offer the executor build link inside the metadata menu instead of opening it right away", () => {
     (getReportOptions as Mock).mockReturnValue({
       executor: {
         name: "TeamCity",
@@ -128,10 +147,19 @@ describe("components > ReportMetadata", () => {
     render(<ReportMetadata />);
 
     expect(screen.getByText("executor")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "TeamCity · Wrike #123" })).toHaveAttribute(
+    // the value is shown by the menu trigger and repeated inside the opened menu
+    expect(screen.getAllByText("TeamCity · Wrike #123")).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: "TeamCity · Wrike #123" })).not.toBeInTheDocument();
+    // the value is a focusable control, not a link that is followed right away
+    expect(screen.getByTestId("metadata-link-trigger").tagName).toBe("BUTTON");
+    expect(screen.getByRole("link", { name: "open-link" })).toHaveAttribute(
       "href",
       "https://teamcity.example/build/123",
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "copy-link" }));
+
+    expect(copyToClipboard).toHaveBeenCalledWith("https://teamcity.example/build/123");
   });
 
   it("should fall back to report url when executor build url is missing", () => {
@@ -145,10 +173,7 @@ describe("components > ReportMetadata", () => {
 
     render(<ReportMetadata />);
 
-    expect(screen.getByRole("link", { name: "TeamCity · Wrike #123" })).toHaveAttribute(
-      "href",
-      "https://teamcity.example/report/123",
-    );
+    expect(screen.getByRole("link")).toHaveAttribute("href", "https://teamcity.example/report/123");
   });
 
   it("should render executor metadata as plain text when url is unsafe", () => {
@@ -162,7 +187,7 @@ describe("components > ReportMetadata", () => {
 
     render(<ReportMetadata />);
 
-    expect(screen.queryByRole("link", { name: "TeamCity · Wrike #123" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByTestId("metadata-item")).toHaveTextContent("TeamCity · Wrike #123");
   });
 

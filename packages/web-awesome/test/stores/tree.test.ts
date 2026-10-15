@@ -5,10 +5,13 @@ import { collapsedEnvironments, currentEnvironment, environmentsStore } from "..
 import { flatTree } from "../../src/stores/keyboard";
 import {
   allTreesCollapsed,
+  allTreesExpanded,
+  canResetTreesToDefault,
   collapsedTrees,
   expandedTrees,
   hasCollapsibleTrees,
   isTreeOpened,
+  resetTreesToDefault,
   setAllTreesOpened,
   treeStore,
 } from "../../src/stores/tree";
@@ -108,10 +111,13 @@ describe("stores > tree > collapse all", () => {
     setEnvironments(["default"]);
 
     expect(hasCollapsibleTrees.value).toBe(true);
+    // only the groups that are opened by default are expanded
     expect(allTreesCollapsed.value).toBe(false);
+    expect(allTreesExpanded.value).toBe(false);
 
     setAllTreesOpened(false);
 
+    expect(allTreesExpanded.value).toBe(false);
     expect(allTreesCollapsed.value).toBe(true);
     expect(isTreeOpened("default-passed", false)).toBe(false);
     expect(isTreeOpened("default-failed", true)).toBe(false);
@@ -120,9 +126,43 @@ describe("stores > tree > collapse all", () => {
     setAllTreesOpened(true);
 
     expect(allTreesCollapsed.value).toBe(false);
+    expect(allTreesExpanded.value).toBe(true);
     expect(isTreeOpened("default-passed", false)).toBe(true);
     expect(isTreeOpened("default-failed", true)).toBe(true);
     expect(isTreeOpened("default-nested", true)).toBe(true);
+  });
+
+  it("goes back to the groups that are opened by default", () => {
+    setEnvironments(["default"]);
+
+    expect(canResetTreesToDefault.value).toBe(true);
+
+    setAllTreesOpened(true);
+    resetTreesToDefault();
+
+    expect(isTreeOpened("default-passed", false)).toBe(false);
+    expect(isTreeOpened("default-failed", true)).toBe(true);
+    expect(isTreeOpened("default-nested", true)).toBe(true);
+    expect(allTreesCollapsed.value).toBe(false);
+    expect(allTreesExpanded.value).toBe(false);
+
+    setAllTreesOpened(false);
+    resetTreesToDefault();
+
+    expect(isTreeOpened("default-failed", true)).toBe(true);
+  });
+
+  it("keeps the state of the nodes that do not belong to the rendered trees when going back to the default view", () => {
+    setEnvironments(["env-a", "env-b"]);
+    collapsedTrees.value = new Set(["step-1", "env-a:env-a-failed"]);
+    expandedTrees.value = new Set(["fixture-1", "env-a:env-a-passed"]);
+    collapsedEnvironments.value = ["env-a", "other-env"];
+
+    resetTreesToDefault();
+
+    expect([...collapsedTrees.value]).toEqual(["step-1"]);
+    expect([...expandedTrees.value]).toEqual(["fixture-1"]);
+    expect(collapsedEnvironments.value).toEqual(["other-env"]);
   });
 
   it("keeps the headerless root opened so the tree never disappears", () => {

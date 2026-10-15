@@ -151,4 +151,13 @@ export const fixtures = {
     attachmentContent: "Browser console remained clean throughout the test run",
     orderedAttachments: ["Beta setup log", "Zeta setup log", "Browser console log", "Alpha legacy log"],
   },
+  globalsExitFailed: {
+    name: "globals-exit-failed",
+    exitCode: 1,
+  },
+  globalsExitActualOk: {
+    name: "globals-exit-actual-ok",
+    originalExitCode: 1,
+    actualExitCode: 0,
+  },
 } as const;

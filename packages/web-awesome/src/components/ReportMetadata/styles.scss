@@ -67,9 +67,12 @@
     box-shadow: var(--shadow-raised);
   }
 
+  // the ring keeps the selected item readable, the soft shadow alone looks blurry
   &[aria-pressed="true"] {
     background: var(--color-bg-secondary);
-    box-shadow: var(--shadow-raised);
+    box-shadow:
+      0 0 0 1px var(--color-border-default),
+      var(--shadow-raised);
   }
 
   &:focus-visible {

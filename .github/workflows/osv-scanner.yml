@@ -1,0 +1,58 @@
+name: OSV Scanner
+
+# Direct scanner action so this repository does not need Code Scanning permissions.
+# OSV has no severity flag, so the JSON result is gated at CVSS >= 7.0 instead.
+# Findings without a published fix remain informational, like Trivy's ignore-unfixed mode.
+# This Yarn workspace has one repository-level lockfile.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "yarn.lock"
+      - ".github/workflows/osv-scanner.yml"
+      - ".github/scripts/enforce-osv-gate.mjs"
+  merge_group:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "yarn.lock"
+      - ".github/workflows/osv-scanner.yml"
+      - ".github/scripts/enforce-osv-gate.mjs"
+  schedule:
+    - cron: "30 12 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  osv-scan:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Run OSV Scanner
+        id: osv
+        continue-on-error: true
+        uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
+        with:
+          scan-args: |-
+            --format=json
+            --output-file=osv-results.json
+            --lockfile=./yarn.lock
+
+      - name: Enforce HIGH/CRITICAL gate
+        env:
+          OSV_OUTCOME: ${{ steps.osv.outcome }}
+        run: node .github/scripts/enforce-osv-gate.mjs

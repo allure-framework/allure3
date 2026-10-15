@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Вернуться к обзору"
+  },
   "statuses": {
     "passed": "Успешный",
     "failed": "Неуспешный",

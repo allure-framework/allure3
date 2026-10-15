@@ -123,6 +123,7 @@ export const fetchEnvTreesData = async (envs: string[], options?: { force?: bool
 const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeStore.value.data) : []));
 
 const alwaysTruePredicate = () => true;
+let searchIndexPrefetchTimer: ReturnType<typeof setTimeout> | undefined;
 
 const filterPredicate = computed(() => {
   if (treeNonQueryFilters.value.length === 0) {
@@ -145,6 +146,19 @@ effect(() => {
   }
 
   fetchEnvSearchIndexes(envsToFetch);
+});
+
+effect(() => {
+  const treeEnvIds = Object.keys(treeStore.value.data ?? {});
+
+  if (treeEnvIds.length === 0 || searchIndexPrefetchTimer) {
+    return;
+  }
+
+  searchIndexPrefetchTimer = setTimeout(() => {
+    searchIndexPrefetchTimer = undefined;
+    fetchEnvSearchIndexes(treeEnvIds);
+  }, 0);
 });
 
 const searchFilterPredicate = (env: string) => {
@@ -285,6 +299,37 @@ export const allTreesCollapsed = computed(() => {
     collapsibleTreeNodes.value.every((node) => !isTreeOpened(node.id, node.openedByDefault))
   );
 });
+
+export const allTreesExpanded = computed(() => {
+  const everyEnvironmentExpanded = environmentSectionIds.value.every(
+    (envId) => !collapsedEnvironments.value.includes(envId),
+  );
+
+  return (
+    everyEnvironmentExpanded && collapsibleTreeNodes.value.every((node) => isTreeOpened(node.id, node.openedByDefault))
+  );
+});
+
+// when every group is opened by default, there is no default view to go back to, so it is the same as expanded
+export const canResetTreesToDefault = computed(() => collapsibleTreeNodes.value.some((node) => !node.openedByDefault));
+
+// only the nodes of the rendered trees are touched, the same sets keep the state of steps, fixtures and filtered out groups
+export const resetTreesToDefault = () => {
+  const nextCollapsedTrees = new Set(collapsedTrees.peek());
+  const nextExpandedTrees = new Set(expandedTrees.peek());
+  const sectionIds = new Set(environmentSectionIds.peek());
+
+  expandableTreeNodes.peek().forEach(({ id }) => {
+    nextCollapsedTrees.delete(id);
+    nextExpandedTrees.delete(id);
+  });
+
+  batch(() => {
+    collapsedTrees.value = nextCollapsedTrees;
+    expandedTrees.value = nextExpandedTrees;
+    collapsedEnvironments.value = collapsedEnvironments.peek().filter((envId) => !sectionIds.has(envId));
+  });
+};
 
 export const setAllTreesOpened = (shouldBeOpened: boolean) => {
   const nextCollapsedTrees = new Set(collapsedTrees.peek());
