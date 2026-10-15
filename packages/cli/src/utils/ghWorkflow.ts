@@ -15,6 +15,7 @@ const DOWNLOAD_ARTIFACT_ACTION = "actions/download-artifact@v8";
 
 const DEFAULT_TEST_COMMAND: readonly string[] = ["npm", "test"];
 const ENVIRONMENT = "${{ matrix.environment }}";
+const NOT_CANCELLED = "${{ !cancelled() }}";
 
 export type GhWorkflowOptions = {
   environmentIds: readonly string[];
@@ -88,7 +89,7 @@ export const buildGhWorkflowYaml = ({
         run: |
           npx allure run${configOption} --environment=${ENVIRONMENT} --dump=${results} -- ${testCommandLine}
       - name: Upload Allure results
-        if: \${{ !cancelled() }}
+        if: ${NOT_CANCELLED}
         uses: ${UPLOAD_ARTIFACT_ACTION}
         with:
           name: ${results}
@@ -97,7 +98,7 @@ export const buildGhWorkflowYaml = ({
   report:
     name: Report
     needs: [test]
-    if: \${{ !cancelled() }}
+    if: ${NOT_CANCELLED}
     runs-on: ubuntu-latest
     steps:
       - uses: ${CHECKOUT_ACTION}
