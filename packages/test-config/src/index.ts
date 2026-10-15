@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import { basename } from "node:path";
 import { cwd, env } from "node:process";
 
+import type { PlaywrightTestConfig } from "@playwright/test";
 import { Label } from "allure-js-commons";
 import { type TestUserConfig, defineConfig } from "vite-plus";
 const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
+const packageName = basename(cwd());
 const epicByPackagePrefix = new Map([
   ["core", "core"],
   ["cli", "cli"],
@@ -17,7 +19,6 @@ export const defaultVitestConfig = (
   opts: { include?: string[]; globalLabels?: Label[]; coverageFiles?: string[] } = {},
 ) => {
   const ci = GITHUB_ACTIONS === "true";
-  const packageName = basename(cwd());
   const epic = epicByPackagePrefix.get(packageName.split("-")[0]) ?? packageName;
   const customLabels = opts.globalLabels ?? [];
   const labels: Label[] = [
@@ -61,3 +62,33 @@ export const defaultVitestConfig = (
     },
   });
 };
+
+export const defaultPlaywrightConfig = (options: {
+  resultsDir?: string;
+  reporter?: "line" | "list" | "github";
+  issueLinks?: boolean;
+}): PlaywrightTestConfig => ({
+  reporter: [
+    [options.reporter ?? "line"],
+    [
+      "allure-playwright",
+      {
+        resultsDir: options.resultsDir ?? "./out/allure-results",
+        globalLabels: [
+          { name: "module", value: packageName },
+          { name: "type", value: "playwright" },
+        ],
+        ...(options.issueLinks
+          ? {
+              links: {
+                issue: {
+                  urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
+                  nameTemplate: "Issue #%s",
+                },
+              },
+            }
+          : {}),
+      },
+    ],
+  ],
+});

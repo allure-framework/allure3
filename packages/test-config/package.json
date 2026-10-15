@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js"
-  },
+  "exports": "./dist/index.js",
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
@@ -21,11 +19,20 @@
     "vitest": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "catalog:",
     "@types/node": "^20",
     "allure-js-commons": "^3",
     "rimraf": "^6",
     "typescript": "^5",
     "vite": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.62.1"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    }
   }
 }
