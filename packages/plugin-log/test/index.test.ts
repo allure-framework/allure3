@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-import type { TestResult } from "@allurereport/core-api";
+import type { TestError, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogPlugin } from "../src/plugin.js";
-import { printQualityGateResults, printSummary, printTest } from "../src/utils.js";
+import { printGlobalErrors, printQualityGateResults, printSummary, printTest } from "../src/utils.js";
 
 beforeEach(async () => {
   await story("index");
@@ -48,6 +48,12 @@ const fixtures = {
       testResults: ["test-result-id"],
     },
   ] as QualityGateValidationResult[],
+  globalErrors: [
+    {
+      message: "Global setup failed",
+      trace: "Error: Global setup failed",
+    },
+  ] as TestError[],
 };
 
 const failedQualityGateResults = fixtures.qualityGateResults.filter(({ success }) => !success);
@@ -58,6 +64,7 @@ vi.mock("../src/utils.js", async () => {
     printTest: vi.fn(),
     printSummary: vi.fn(),
     printQualityGateResults: vi.fn(),
+    printGlobalErrors: vi.fn(),
   };
 });
 
@@ -68,6 +75,7 @@ beforeEach(() => {
 const createStore = (
   testResults = fixtures.testResults,
   qualityGateResults = fixtures.qualityGateResults,
+  globalErrors = fixtures.globalErrors,
 ): AllureStore =>
   ({
     allTestResults: vi.fn().mockResolvedValue(testResults),
@@ -75,13 +83,16 @@ const createStore = (
       _: [...testResults],
     }),
     qualityGateResults: vi.fn().mockResolvedValue(qualityGateResults),
+    allGlobalErrors: vi.fn().mockResolvedValue(globalErrors),
   }) as unknown as AllureStore;
 
-const expectQualityGateResultsAfterSummary = () => {
+const expectReportDetailsOrder = () => {
   const summaryCallOrder = vi.mocked(printSummary).mock.invocationCallOrder[0];
   const qualityGateCallOrder = vi.mocked(printQualityGateResults).mock.invocationCallOrder[0];
+  const globalErrorsCallOrder = vi.mocked(printGlobalErrors).mock.invocationCallOrder[0];
 
   expect(summaryCallOrder).toBeLessThan(qualityGateCallOrder);
+  expect(qualityGateCallOrder).toBeLessThan(globalErrorsCallOrder);
 };
 
 describe("plugin", () => {
@@ -98,7 +109,8 @@ describe("plugin", () => {
       filtered: fixtures.testResults.length,
     });
     expect(printQualityGateResults).toHaveBeenCalledWith(failedQualityGateResults);
-    expectQualityGateResultsAfterSummary();
+    expect(printGlobalErrors).toHaveBeenCalledWith(fixtures.globalErrors, {});
+    expectReportDetailsOrder();
   });
 
   it("prints all tests when filter is not provided and tests are not groupped", async () => {
@@ -212,5 +224,21 @@ describe("plugin", () => {
 
     expect(store.qualityGateResults).not.toHaveBeenCalled();
     expect(printQualityGateResults).not.toHaveBeenCalled();
+    expect(store.allGlobalErrors).toHaveBeenCalledTimes(1);
+    expect(printGlobalErrors).toHaveBeenCalledWith(fixtures.globalErrors, {
+      qualityGateResults: false,
+    });
+    expect(vi.mocked(printSummary).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(printGlobalErrors).mock.invocationCallOrder[0],
+    );
+  });
+
+  it("passes an empty global error list to the silent printer", async () => {
+    const store = createStore(fixtures.testResults, fixtures.qualityGateResults, []);
+    const plugin = new LogPlugin({});
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printGlobalErrors).toHaveBeenCalledWith([], {});
   });
 });
