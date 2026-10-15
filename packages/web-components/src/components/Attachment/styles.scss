@@ -182,6 +182,24 @@
   width: 100%;
 }
 
+.mermaid-attachment-preview {
+  overflow: auto;
+  padding: 16px;
+
+  svg {
+    display: block;
+    height: auto;
+    margin: 0 auto;
+  }
+}
+
+.mermaid-attachment-loading {
+  display: flex;
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px;
+}
+
 .test-result-attachment-table {
   border-collapse: collapse;
   font-size: 13px;

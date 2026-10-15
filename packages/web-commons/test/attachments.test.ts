@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { attachmentType, blobAttachment } from "../src/attachments.js";
+import { attachmentType, blobAttachment, isPreviewableContentType } from "../src/attachments.js";
 
 describe("attachmentType", () => {
   it("maps text/markdown to markdown", () => {
@@ -20,12 +20,24 @@ describe("attachmentType", () => {
     expect(attachmentType("application/vnd.allure.http+json; charset=utf-8")).toBe("http");
   });
 
+  it("recognizes Mermaid diagram attachments", () => {
+    expect(attachmentType("application/vnd.allure.diagrams.mermaid")).toBe("mermaid");
+    expect(attachmentType("application/vnd.allure.diagrams.mermaid; charset=utf-8")).toBe("mermaid");
+  });
+
   it("recognizes Playwright trace attachments as archives", () => {
     expect(attachmentType("application/vnd.allure.playwright-trace")).toBe("archive");
   });
 
   it("recognizes image attachments including webp", () => {
     expect(attachmentType("image/webp")).toBe("image");
+  });
+});
+
+describe("isPreviewableContentType", () => {
+  it("allows Mermaid diagrams in preview and source views", () => {
+    expect(isPreviewableContentType("application/vnd.allure.diagrams.mermaid")).toBe(true);
+    expect(isPreviewableContentType("application/vnd.allure.diagrams.mermaid; charset=utf-8")).toBe(true);
   });
 });
 

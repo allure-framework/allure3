@@ -57,8 +57,8 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.http+json": lineFilesFileAttachment2,
 };
 
-const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
-const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html"]);
+const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown", "mermaid"]);
+const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html", "mermaid"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
