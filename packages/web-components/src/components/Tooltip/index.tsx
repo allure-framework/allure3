@@ -19,6 +19,14 @@ interface TooltipWrapperProps {
   "isTriggerActive"?: boolean;
   "data-testid"?: string;
   "showDelay"?: number;
+  /**
+   * Class of the outer element of the wrapper, e.g. to let it shrink in a flex container
+   */
+  "className"?: string;
+  /**
+   * Class of the element that wraps the children and listens to the trigger events
+   */
+  "triggerClassName"?: string;
 }
 
 interface TooltipProps {
@@ -89,6 +97,8 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   showDelay = 200,
   isTriggerActive = true,
   "data-testid": dataTestId,
+  className,
+  triggerClassName,
 }) => {
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLDivElement | null>(null);
@@ -182,8 +192,10 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   );
 
   return (
-    <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>
-      <div ref={triggerRef}>{children}</div>
+    <div className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>
+      <div ref={triggerRef} className={triggerClassName}>
+        {children}
+      </div>
       <div ref={tooltipRef}>{isVisible && tooltipContent}</div>
     </div>
   );

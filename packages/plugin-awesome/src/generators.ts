@@ -799,6 +799,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -823,6 +824,7 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -884,6 +886,7 @@ export const generateStaticFiles = async (
     defaultSection,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   };
 
   try {

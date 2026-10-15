@@ -10,6 +10,7 @@ export default defineConfig({
         resultsDir: "./out/allure-results",
         globalLabels: [
           { name: "module", value: "static-server" },
+          { name: "type", value: "playwright" },
         ],
       },
     ],

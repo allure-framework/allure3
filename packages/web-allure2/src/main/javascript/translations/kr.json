@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "개요로 돌아가기",
     "backto": "돌아가기",
     "clipboard": "클립보드에 복사",
     "clipboardError": "클립보드에 복사가 되지 않습니다. 브러우저에 지원되지 않는 기능입니다.",

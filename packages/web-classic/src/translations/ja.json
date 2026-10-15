@@ -99,6 +99,7 @@
     "at": "時"
   },
   "controls": {
+    "backToOverview": "概要に戻る",
     "newTabAttachment": "新しいタブで開く",
     "nextTR": "次のテスト結果",
     "prevTR": "前のテスト結果",

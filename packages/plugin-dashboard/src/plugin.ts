@@ -36,6 +36,7 @@ export class DashboardPlugin implements Plugin {
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
+      overviewHref: context.overviewHref,
     });
   };
 

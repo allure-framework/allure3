@@ -1,6 +1,6 @@
 import console from "node:console";
 
-import type { DefaultTestStepResult, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult, TestError, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
 import { isStep } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, green, red, yellow } from "yoctocolors";
@@ -224,4 +224,32 @@ export const printQualityGateResults = (results: QualityGateValidationResult[]) 
   }
 
   console.info(`Quality gates: ${stats.join(" | ")}`);
+};
+
+export const printGlobalError = (error: TestError, options?: PrintFunctionOptions, indent: number = 0) => {
+  const indentSpaces = "  ".repeat(indent);
+  const message = error.message?.trim() ? error.message : "No message provided";
+
+  console.info(`${indentSpaces}${red("⨯")} ${red(message)}`);
+
+  if (options?.withTrace && error.trace) {
+    error.trace.split("\n").forEach((line) => {
+      console.info(`${indentSpaces}  ${gray(line)}`);
+    });
+  }
+};
+
+export const printGlobalErrors = (errors: TestError[], options?: PrintFunctionOptions) => {
+  if (errors.length === 0) {
+    return;
+  }
+
+  console.log("");
+  console.info("Global errors");
+
+  errors.forEach((error) => {
+    printGlobalError(error, options, 1);
+  });
+
+  console.info(`Global errors: ${red(`${errors.length} failed`)}`);
 };

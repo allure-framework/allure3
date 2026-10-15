@@ -33,6 +33,27 @@ describe("Button", () => {
     expect(link.getAttribute("href")).toBe("https://example.com");
   });
 
+  it("opens the links in a new tab without passing the opener and the referrer", () => {
+    render(<Button text="Blank Link" href="https://example.com" target="_blank" />);
+
+    const link = screen.getByRole("link", { name: /blank link/i });
+
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("doesn't set the relationship for the links that are opened in the same tab", () => {
+    render(<Button text="Same Tab Link" href="https://example.com" />);
+
+    expect(screen.getByRole("link", { name: /same tab link/i }).hasAttribute("rel")).toBe(false);
+  });
+
+  it("lets to override the relationship of the link", () => {
+    render(<Button text="Custom Link" href="https://example.com" target="_blank" rel="noopener" />);
+
+    expect(screen.getByRole("link", { name: /custom link/i }).getAttribute("rel")).toBe("noopener");
+  });
+
   it("handles disabled state correctly when rendered as a link", () => {
     render(<Button text="Disabled Link" href="https://example.com" isDisabled={true} />);
 

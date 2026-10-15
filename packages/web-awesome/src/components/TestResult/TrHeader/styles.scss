@@ -8,9 +8,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.test-result-home {
-  flex: none;
-}
 
 .test-result-breadcrumb-link {
   color: var(--color-text-secondary);
@@ -29,6 +26,18 @@
   align-items: center;
 }
 
+// the wrappers of the tooltip around a truncated label must be able to shrink as well
+.test-result-breadcrumb-tooltip {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+// the home icon must keep its size, so it is declared with the class of the crumb and doesn't depend on the order of the rules
+.test-result-breadcrumb.test-result-home {
+  flex: none;
+}
+
 .test-result-breadcrumb-more {
   flex: none;
   max-width: none;
@@ -41,6 +50,7 @@
 
 .test-result-breadcrumb-button {
   min-width: 0;
+  max-width: 100%;
   padding-left: 4px;
   padding-right: 4px;
   font-weight: 600;
@@ -51,7 +61,9 @@
   }
 }
 
+// a block, so the ellipsis works inside of the tooltip wrappers and the truncation can be measured
 .test-result-breadcrumb-title {
+  display: block;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;

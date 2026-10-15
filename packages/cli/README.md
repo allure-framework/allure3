@@ -73,6 +73,22 @@ Set `ALLURE_LOG_LEVEL=debug` to include details such as selected tests and tempo
 the generic `LOG_LEVEL` environment variable. Use `--silent` to hide the nested test process output while keeping
 Allure lifecycle messages visible.
 
+### Verbosity flags
+
+`-v/--verbose` and `-q/--quiet` are global flags accepted by every command (place them before `--` in `allure run`;
+everything after `--` is passed to your test command untouched).
+
+| Flag | Allure log level | `allure run` test process output |
+| --- | --- | --- |
+| _(none)_ | `ALLURE_LOG_LEVEL`, default `info` | printed |
+| `--verbose`, `-v` | `verbose` | printed |
+| `--quiet`, `-q` | `error` (errors only) | hidden, same as `--silent` |
+
+- The flags override `ALLURE_LOG_LEVEL`. `--verbose` and `--quiet` cannot be combined.
+- `--quiet` implies `--silent`. Logs are still collected into the report unless `--ignore-logs` is set.
+- `--silent` and `--ignore-logs` keep their meaning and are independent of `--verbose`.
+- A lone `allure -v` still prints the version.
+
 ### Running Tests In Agent Mode
 
 When you need agent-friendly markdown output for review, debugging, or scope validation, use the `agent` command:
@@ -175,6 +191,14 @@ To check your installed version of Allure 3, use:
 ```bash
 npx allure --version
 ```
+
+For direct interactive CLI invocations, Allure checks the npm registry for a newer version alongside the command.
+Each eligible invocation makes one request with a one-second timeout; no update state is stored on disk. Missing
+package metadata and network errors are silently ignored. The check is skipped for `allure agent`, help and version
+output, quiet mode, CI, non-interactive terminals, and invocations through npm or Yarn. Disable it with `--no-update-notifier`
+(for example, `allure --no-update-notifier generate ./allure-results`), or set `NO_UPDATE_NOTIFIER` for the environment.
+Numbered prerelease versions (such as `3.21.0-beta.2`) check their matching npm dist-tag instead of the stable `latest`
+tag. Unrecognized version formats are silently skipped.
 
 ## Configuration
 

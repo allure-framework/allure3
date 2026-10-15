@@ -1,9 +1,9 @@
 import type { AttachmentLink, TestFixtureResult, TestResult } from "@allurereport/core-api";
-import type { AllureStore, ResultFile } from "@allurereport/plugin-api";
+import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { generateAttachmentsFiles, generateTestResults } from "../src/generators.js";
+import { generateAttachmentsFiles, generateStaticFiles, generateTestResults } from "../src/generators.js";
 import type { ClassicDataWriter } from "../src/writer.js";
 
 beforeEach(async () => {
@@ -121,5 +121,42 @@ describe("generateAttachmentsFiles", () => {
     expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
     expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
     expect(result).toEqual(new Map([["written", "written.txt"]]));
+  });
+});
+
+const createReportFiles = () => {
+  const files = new Map<string, Buffer>();
+  const reportFiles: ReportFiles = {
+    addFile: async (path, data) => {
+      files.set(path, data);
+      return path;
+    },
+  };
+
+  return { files, reportFiles };
+};
+
+describe("generateStaticFiles", () => {
+  const payload = {
+    allureVersion: "1.0.0",
+    reportDataFiles: [],
+    reportName: "Test report",
+    reportUuid: "report-uuid",
+  };
+
+  it("should pass the link to the root overview to the report options", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({ ...payload, reportFiles, overviewHref: "../index.html" });
+
+    expect(files.get("index.html")?.toString("utf8")).toContain('"overviewHref":"../index.html"');
+  });
+
+  it("should not add the overview link to the report options when there is no overview", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({ ...payload, reportFiles });
+
+    expect(files.get("index.html")?.toString("utf8")).not.toContain("overviewHref");
   });
 });

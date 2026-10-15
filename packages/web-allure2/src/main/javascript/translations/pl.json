@@ -94,6 +94,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Wróć do przeglądu",
     "backto": "Powrót do",
     "clipboard": "Zapisz do schowka",
     "clipboardError": "Nie można skopiować do schowka. Najprawdopodobniej twoja przeglądarka nie obsługuje tej funkcji",

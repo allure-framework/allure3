@@ -221,7 +221,11 @@ export const Dashboard = () => {
     <ThemeProvider theme={currentTheme.value}>
       <Loadable
         source={dashboardStore}
-        renderLoader={() => <PageLoader />}
+        renderLoader={() => (
+          <div className={styles.loader}>
+            <PageLoader />
+          </div>
+        )}
         renderData={(data) => {
           const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
 

@@ -406,6 +406,18 @@
     }
   }
 
+  // the accent colour of the text and the icon without a filled background, e.g. for the navigation links
+  &.style_ghost.accent {
+    --allure-btn-text-color: var(--color-intent-primary-text);
+    --allure-btn-icon-color: var(--color-intent-primary-text);
+    --allure-btn-trailing-icon-color: var(--color-intent-primary-text);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--color-intent-primary-text);
+      --allure-btn-icon-color: var(--color-intent-primary-text);
+    }
+  }
+
   &.style_ghost.positive {
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
@@ -700,6 +712,8 @@
 .leadingIcon,
 .contentIcon,
 .dropdownIcon {
+  // the icon keeps its size when the text of the button is truncated
+  flex: none;
   width: var(--allure-btn-icon-size) !important;
   height: var(--allure-btn-icon-size) !important;
   transition: color var(--color-change-transition-duration);

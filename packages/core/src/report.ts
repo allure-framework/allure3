@@ -207,6 +207,7 @@ export class AllureReport {
   #executionStage: "init" | "running" | "done" = "init";
   #historyDataPoint?: HistoryDataPoint;
   #summaryPath?: string;
+  #overviewHref?: string;
   #testResultsRegistryPath?: string;
   #summariesByPluginId: Map<string, PluginSummary> = new Map();
   #publishedRemoteHrefs: Set<string> = new Set();
@@ -1157,6 +1158,31 @@ export class AllureReport {
       return restoredCount;
     });
 
+  /**
+   * Resolves the link from the plugin reports to the root overview.
+   * The overview page is written when several plugins provide a summary (see `#generateRootSummary`), and every
+   * summary, including the one with a remote link (TestOps), gets its own directory with `summary.json`, so the
+   * report is not moved to the output root (see `shouldFlattenOutput`). The root page is written when the report is
+   * done, so it isn't linked in real time
+   */
+  #resolveOverviewHref = async (): Promise<string | undefined> => {
+    if (this.#realTime) {
+      return undefined;
+    }
+
+    let summariesCount = 0;
+
+    await this.#eachPlugin(false, async (plugin, context) => {
+      const summary = await plugin.info?.(context, this.#store);
+
+      if (summary) {
+        summariesCount += 1;
+      }
+    });
+
+    return summariesCount > 1 ? "../index.html" : undefined;
+  };
+
   #getReportsToPublish = async (): Promise<PluginReportFile[]> => {
     const reports: PluginReportFile[] = [];
 
@@ -1316,6 +1342,8 @@ export class AllureReport {
 
       // resolve report url from available sources so it is available to plugins
       await this.#resolveReportUrl();
+
+      this.#overviewHref = await this.#resolveOverviewHref();
 
       // isolate logs of different reports dumps: done and summary
       await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
@@ -1516,6 +1544,7 @@ export class AllureReport {
             }
           : {}),
         reportUrl: this.reportUrl,
+        overviewHref: this.#overviewHref,
         realTime: !!this.#realTime,
         output: this.#output,
         ci: this.#ci,

@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Voltar para a visão geral"
+  },
   "statuses": {
     "passed": "Aprovado",
     "failed": "Falhou",

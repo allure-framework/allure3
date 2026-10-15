@@ -97,6 +97,7 @@
     "at": "в"
   },
   "controls": {
+    "backToOverview": "Вернуться к обзору",
     "newTabAttachment": "Открыть в новой вкладке",
     "downloadAttachment": "Загрузить вложение",
     "nextTR": "Следующий тест",

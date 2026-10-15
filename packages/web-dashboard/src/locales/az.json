@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "İcmala qayıt"
+  },
   "statuses": {
     "passed": "Uğurlu",
     "failed": "Uğursuz",

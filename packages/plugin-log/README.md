@@ -49,7 +49,7 @@ The plugin accepts the following options:
 | Option               | Description                                           | Type                                                | Default                         |
 |----------------------|-------------------------------------------------------|-----------------------------------------------------|---------------------------------|
 | `allSteps`           | Include all steps in the report                       | `boolean`                                           | `false`                         |
-| `withTrace`          | Include step trace in the report                      | `boolean`                                           | `false`                         |
+| `withTrace`          | Include test, step, and global error traces in logs   | `boolean`                                           | `false`                         |
 | `groupBy`            | Group tests by given label                            | `suite \| feature \| package \| suites \| features \| packages \| none` | `suite`                         |
 | `qualityGateResults` | Include quality gate validation results in logs       | `boolean`                                           | `true`                          |
 | `qualityGateFilter`  | Select quality gate validation results shown in logs  | `(result: QualityGateValidationResult) => boolean`  | `({ success }) => !success`     |

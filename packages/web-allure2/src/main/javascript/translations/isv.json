@@ -94,6 +94,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Back to overview",
     "backto": "Vzad do",
     "clipboard": "Kopiruj do klipborda",
     "clipboardError": "Pogrěška. Věrojetno, vaša prěgledka (brauzer) ne podpira kopirovanje do klipborda.",

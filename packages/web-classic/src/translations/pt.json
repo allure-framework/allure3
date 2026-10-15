@@ -99,6 +99,7 @@
     "at": "em"
   },
   "controls": {
+    "backToOverview": "Voltar para a visão geral",
     "newTabAttachment": "Abrir anexo em nova aba",
     "nextTR": "Próximo resultado de teste",
     "prevTR": "Resultado de teste anterior",
