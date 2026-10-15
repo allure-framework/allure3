@@ -1158,27 +1158,27 @@ export class AllureReport {
 
   /**
    * Resolves the link from the plugin reports to the root overview.
-   * The overview page is written only when several plugins provide a summary, and a single report directory is
-   * moved to the output root instead (see `shouldFlattenOutput`), so the link is passed to the plugins only when
-   * at least two of them generate a report of their own. Summaries with a remote link (TestOps) have no local
-   * directory and don't count. The root page is written when the report is done, so it isn't linked in real time
+   * The overview page is written when several plugins provide a summary (see `#generateRootSummary`), and every
+   * summary, including the one with a remote link (TestOps), gets its own directory with `summary.json`, so the
+   * report is not moved to the output root (see `shouldFlattenOutput`). The root page is written when the report is
+   * done, so it isn't linked in real time
    */
   #resolveOverviewHref = async (): Promise<string | undefined> => {
     if (this.#realTime) {
       return undefined;
     }
 
-    let localSummaries = 0;
+    let summariesCount = 0;
 
     await this.#eachPlugin(false, async (plugin, context) => {
       const summary = await plugin.info?.(context, this.#store);
 
-      if (summary && !summary.remoteHref) {
-        localSummaries += 1;
+      if (summary) {
+        summariesCount += 1;
       }
     });
 
-    return localSummaries > 1 ? "../index.html" : undefined;
+    return summariesCount > 1 ? "../index.html" : undefined;
   };
 
   #getReportsToPublish = async (): Promise<PluginReportFile[]> => {

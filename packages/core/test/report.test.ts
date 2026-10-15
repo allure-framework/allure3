@@ -248,13 +248,13 @@ describe("report", () => {
       expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
     });
 
-    it("should not count the summaries that point to a remote report, because they have no local directory", async () => {
+    it("should count the summaries that point to a remote report, they get a directory and the overview is written", async () => {
       const hrefs = await collectOverviewHrefs([
         withSummary(createPlugin("p1")),
         withSummary(createPlugin("remote"), { remoteHref: "https://example.org/launch/1" }),
       ]);
 
-      expect(hrefs).toStrictEqual({ p1: undefined, remote: undefined });
+      expect(hrefs).toStrictEqual({ p1: overviewHref, remote: overviewHref });
     });
 
     it("should not count the plugins that are disabled", async () => {
