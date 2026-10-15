@@ -102,5 +102,5 @@
   "browserslist": [
     "defaults"
   ],
-  "packageManager": "yarn@4.15.0"
+  "packageManager": "yarn@4.18.1"
 }
