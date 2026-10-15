@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "catalog:",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
