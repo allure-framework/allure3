@@ -19,6 +19,7 @@
   "devDependencies": {
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
+    "@allurereport/plugin-mail": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
     "@types/node": "^20",
     "@vitest/runner": "^4.0.18",
