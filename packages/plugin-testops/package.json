@@ -27,7 +27,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vp test run",
+    "test": "vp test run",
     "test:unit": "yarn test",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
@@ -47,7 +47,7 @@
     "yoctocolors": "^2"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/lodash-es": "^4",
     "@types/node": "^20",

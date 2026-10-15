@@ -15,7 +15,7 @@ export default defineConfig({
       "!package.json",
       "!vite.config.ts",
       "!**/package.json",
-      "!packages/**/*.{js,ts,tsx}",
+      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx}",
       "!packages/*/{src,test,features}/**/*.json",
       "!packages/web-allure2/src/main/javascript/**/*.{mts,css,scss}",
       "!packages/web-allure2/scripts/*.mts",
@@ -43,7 +43,7 @@ export default defineConfig({
     ignorePatterns: [
       "**/*",
       "!**/",
-      "!packages/**/*.{js,ts,tsx}",
+      "!{.github,packages,scripts}/**/*.{js,mjs,ts,tsx}",
       "**/.yarn/**",
       "**/node_modules/**",
       "**/dist/**",

@@ -8,14 +8,15 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "test": "playwright install chromium firefox webkit && playwright test",
-    "test:e2e": "playwright install chromium firefox webkit && playwright test",
+    "test": "playwright test",
+    "test:e2e": "playwright test",
     "test:ui": "playwright test --ui",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
     "@allurereport/charts-api": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
@@ -24,7 +25,6 @@
     "@allurereport/plugin-dashboard": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "@allurereport/test-config": "workspace:*",
     "@faker-js/faker": "^10.5.0",
     "@playwright/test": "catalog:",
     "@types/lodash.times": "^4.3.9",
@@ -34,6 +34,5 @@
     "lodash.times": "^4.3.2",
     "rimraf": "^6",
     "typescript": "^5"
-  },
-  "packageManager": "yarn@4.3.1"
+  }
 }

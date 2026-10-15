@@ -24,9 +24,7 @@ export default async function commentTrivyReport({ github, context }) {
     issue_number,
     per_page: 100,
   });
-  const existing = comments.find(
-    (comment) => comment.user.type === "Bot" && comment.body.includes(marker),
-  );
+  const existing = comments.find((comment) => comment.user.type === "Bot" && comment.body.includes(marker));
 
   if (findings?.length === 0) {
     if (existing) {
@@ -50,8 +48,7 @@ export default async function commentTrivyReport({ github, context }) {
           `| ${escapeCell(finding.Severity)} | \`${escapeCell(finding.PkgName)}\` | \`${escapeCell(finding.InstalledVersion)}\` | \`${escapeCell(finding.FixedVersion)}\` | [${escapeCell(finding.VulnerabilityID)}](${finding.PrimaryURL}) |`,
       )
       .join("\n");
-    if (findings.length > 50)
-      body += `\n\n_Only the first 50 of ${findings.length} findings are shown._`;
+    if (findings.length > 50) body += `\n\n_Only the first 50 of ${findings.length} findings are shown._`;
   }
 
   if (existing) {

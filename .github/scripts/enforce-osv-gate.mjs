@@ -1,5 +1,5 @@
-import { appendFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { appendFile, readFile } from "node:fs/promises";
 
 const [reportPath = "osv-results.json"] = process.argv.slice(2);
 const scannerOutcome = process.env.OSV_OUTCOME;

@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./vitest.config.ts", "./src", "./test/**/*.ts", "./test/**/*.tsx"],
+  "include": ["./vite.config.ts", "./src", "./test/**/*.ts", "./test/**/*.tsx"],
   "compilerOptions": {
     "composite": true,
     "noEmit": false,

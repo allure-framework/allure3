@@ -28,7 +28,7 @@
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
