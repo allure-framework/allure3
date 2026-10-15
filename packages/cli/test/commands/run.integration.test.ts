@@ -1552,6 +1552,77 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
     });
   }, 240_000);
 
+  it("checks for updates through the built CLI and accepts the notifier opt-out", async () => {
+    const fixtureDir = join(tempDir, "update-notifier");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const preloadPath = join(fixtureDir, "interactive.mjs");
+
+    await step("prepare an isolated interactive CLI and a deterministic npm response", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      // Only emulate the terminal and network. The CLI, parser, and notifier are real.
+      await writeFile(
+        preloadPath,
+        [
+          'Object.defineProperty(process.stderr, "isTTY", { value: true });',
+          'globalThis.fetch = async (url) => { if (url !== "https://registry.npmjs.org/allure/latest") throw new Error("Unexpected update URL"); process.stderr.write("test registry request\\n"); return { ok: true, json: async () => ({ version: "999.1.0" }) }; };',
+          'for (const name of ["CI", "NODE_ENV", "NO_UPDATE_NOTIFIER", "npm_config_user_agent", "npm_execpath"]) delete process.env[name];',
+        ].join("\n"),
+        "utf8",
+      );
+    });
+
+    await step("run the real command with the global opt-out", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "--no-update-notifier",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier disabled", result);
+      expect(result.stdout).toContain("the report successfully generated");
+      expect(result.stderr).not.toContain("Update available");
+      expect(result.stderr).not.toContain("test registry request");
+    });
+
+    await step("run the same command in verbose mode with update notifications enabled", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "-v",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier enabled", result);
+      expect(result.stdout).toContain("the report successfully generated");
+      expect(result.stdout).not.toContain("Update available");
+      expect(result.stderr).toContain("test registry request");
+      expect(result.stderr).toContain("→ 999.1.0");
+    });
+
+    await step("quiet mode suppresses update checks and notifications", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "--quiet",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier quiet", result);
+      expect(result.stderr).not.toContain("test registry request");
+      expect(result.stderr).not.toContain("Update available");
+    });
+  }, 60_000);
+
   it("does not rebuild shared workspace artifacts", async () => {
     const modificationTimes = await Promise.all(
       sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),

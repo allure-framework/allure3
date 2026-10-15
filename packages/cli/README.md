@@ -192,6 +192,14 @@ To check your installed version of Allure 3, use:
 npx allure --version
 ```
 
+For direct interactive CLI invocations, Allure checks the npm registry for a newer version alongside the command.
+Each eligible invocation makes one request with a one-second timeout; no update state is stored on disk. Missing
+package metadata and network errors are silently ignored. The check is skipped for `allure agent`, help and version
+output, quiet mode, CI, non-interactive terminals, and invocations through npm or Yarn. Disable it with `--no-update-notifier`
+(for example, `allure --no-update-notifier generate ./allure-results`), or set `NO_UPDATE_NOTIFIER` for the environment.
+Numbered prerelease versions (such as `3.21.0-beta.2`) check their matching npm dist-tag instead of the stable `latest`
+tag. Unrecognized version formats are silently skipped.
+
 ## Configuration
 
 Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
