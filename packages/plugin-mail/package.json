@@ -28,8 +28,8 @@
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
     "test:unit": "yarn test",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",

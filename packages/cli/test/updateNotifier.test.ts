@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import process from "node:process";
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { isNewerVersion, notifyAboutUpdate, parseUpdateNotifierArgs } from "../src/utils/updateNotifier.js";
 
