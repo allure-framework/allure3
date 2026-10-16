@@ -73,6 +73,9 @@
       ],
       "DurationDynamicsChartWidget": [
         "dist/DurationDynamicsChartWidget.d.ts"
+      ],
+      "ChartWidget": [
+        "dist/ChartWidget.d.ts"
       ]
     }
   },
@@ -159,6 +162,10 @@
     "./DurationDynamicsChartWidget": {
       "types": "./dist/DurationDynamicsChartWidget.d.ts",
       "import": "./dist/DurationDynamicsChartWidget.js"
+    },
+    "./ChartWidget": {
+      "types": "./dist/ChartWidget.d.ts",
+      "import": "./dist/ChartWidget.js"
     }
   },
   "scripts": {

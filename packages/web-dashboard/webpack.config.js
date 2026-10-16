@@ -17,6 +17,8 @@ export default (env, argv) => {
     output: {
       path: join(baseDir, "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
+      chunkFilename: devMode ? "[name].js" : "[name]-[contenthash].js",
+      publicPath: devMode ? "auto" : "",
       assetModuleFilename: "[name][ext]",
     },
     devtool: devMode ? "inline-source-map" : false,
@@ -92,14 +94,6 @@ export default (env, argv) => {
       "node:crypto": "crypto",
     },
   };
-
-  if (!devMode) {
-    config.plugins.push(
-      new webpack.optimize.LimitChunkCountPlugin({
-        maxChunks: 1,
-      }),
-    );
-  }
 
   if (devMode) {
     config.plugins.push(

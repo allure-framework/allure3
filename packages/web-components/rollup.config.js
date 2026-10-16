@@ -39,7 +39,8 @@ const onLog = (level, log, defaultHandler) => {
 const entries = {
   index: "src/index.ts",
   core: "src/core.ts",
-  Attachment: "src/components/Attachment/index.tsx",
+  Attachment: "src/components/Attachment/Attachment.tsx",
+  ChartWidget: "src/components/Charts/ChartWidget.tsx",
   CodeViewer: "src/components/Attachment/CodeViewer.tsx",
   Grid: "src/components/Grid/index.tsx",
   Timeline: "src/components/Timeline/index.ts",
@@ -72,6 +73,7 @@ export default defineConfig([
     external: [
       "preact",
       "preact/hooks",
+      "preact/compat",
       "@preact/compat",
       "@preact/signals",
       "@preact/signals/utils",
@@ -115,7 +117,8 @@ export default defineConfig([
           },
         },
       }),
-      terser(),
+      // Webpack consumes these imports after Rollup; retain their semantic chunk names.
+      terser({ format: { comments: /webpackChunkName|@preserve|@license|@cc_on|^!/i, preserve_annotations: true } }),
       copy({
         targets: [
           { src: "src/assets/fonts/**/*", dest: "dist/fonts" },
@@ -132,7 +135,7 @@ export default defineConfig([
         format: "es",
       },
     ],
-    external: ["preact", "preact/hooks", "react", "react-dom", /\.s?css$/],
+    external: ["preact", "preact/hooks", "preact/compat", "react", "react-dom", /\.s?css$/],
     plugins: [
       alias({
         entries: [
