@@ -26,6 +26,9 @@ import {
   type PluginReportFile,
   type PluginState,
   type PluginSummary,
+  type ReportPublication,
+  PUBLICATION_FILENAME,
+  PUBLICATION_FAILURE_MESSAGES,
   type ReportFiles,
   type ResultFile,
   createTestResultRegistry,
@@ -100,6 +103,7 @@ const ROOT_INTEGRATION_FILENAMES = new Set([
   TEST_RESULTS_REGISTRY_FILENAME,
   QUALITY_GATE_RESULTS_FILENAME,
   ARTIFACTS_MANIFEST_FILENAME,
+  PUBLICATION_FILENAME,
 ]);
 const WORKLOAD_PERF_METRIC = {
   group: "workload",
@@ -213,6 +217,8 @@ export class AllureReport {
   #publishedRemoteHrefs: Set<string> = new Set();
   #artifactFilesByPath: Map<string, ReportArtifact> = new Map();
   #published = false;
+  #publication: ReportPublication[] = [];
+  readonly #failedGenerationPlugins = new Set<string>();
   #endGeneratePerfSpan?: () => void;
   #resolvedReportUrl?: string;
   #reportUrl?: string;
@@ -430,16 +436,33 @@ export class AllureReport {
       throw new Error("report is not completed. Call the done() method first.");
     }
 
-    if (this.#realTime || !this.#allureServiceClient) {
+    if (this.#realTime) {
       this.#published = true;
       return;
     }
 
-    const reportsToPublish = (await this.#getReportsToPublish()).filter(
-      (report) => report.publish && Object.keys(report.files).length > 0,
-    );
+    const expectedReports = (await this.#getReportsToPublish()).filter((report) => report.publish);
 
-    if (reportsToPublish.length === 0) {
+    this.#publication = expectedReports.map(({ pluginId, files }) => ({
+      pluginId,
+      status: "not-published",
+      reason: this.#failedGenerationPlugins.has(pluginId)
+        ? "generation-failed"
+        : !Object.keys(files).some((filename) => filename !== "summary.json")
+          ? "no-report-files"
+          : !this.#allureServiceClient
+            ? "publisher-unavailable"
+            : "publication-failed",
+    }));
+
+    const publishableIds = new Set(
+      this.#publication
+        .filter((result) => result.status === "not-published" && result.reason === "publication-failed")
+        .map(({ pluginId }) => pluginId),
+    );
+    const reportsToPublish = expectedReports.filter(({ pluginId }) => publishableIds.has(pluginId));
+
+    if (!this.#allureServiceClient || reportsToPublish.length === 0) {
       this.#published = true;
       return;
     }
@@ -551,6 +574,10 @@ export class AllureReport {
         reportUuid: this.reportUuid,
         historyPoint: this.#historyDataPoint,
       });
+
+      this.#publication = this.#publication.map((result) =>
+        publishableIds.has(result.pluginId) ? { pluginId: result.pluginId, status: "published" } : result,
+      );
 
       Object.values(linksByPluginId)
         .filter(Boolean)
@@ -725,9 +752,10 @@ export class AllureReport {
       }
     }
 
-    await this.#eachPlugin(true, async (plugin, context) => {
+    const failedPlugins = await this.#eachPlugin(true, async (plugin, context) => {
       await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
     });
+    failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
 
     if (this.#realTime) {
       await this.#runRealtimeUpdate();
@@ -1344,13 +1372,14 @@ export class AllureReport {
       this.#overviewHref = await this.#resolveOverviewHref();
 
       // isolate logs of different reports dumps: done and summary
-      await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, async () => {
-        await this.#eachPlugin(false, async (plugin, context) => {
+      const failedPlugins = await measurePerf(PERF_METRIC_NAMES.generatePluginsDone, () =>
+        this.#eachPlugin(false, async (plugin, context) => {
           await measurePerf(`${PERF_METRIC_PREFIXES.generatePluginDone}${context.id}`, async () => {
             await plugin.done?.(context, this.#store);
           });
-        });
-      });
+        }),
+      );
+      failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
       this.#finishGeneratePerfSpan();
 
       await this.#ingestSelfPerfMetrics();
@@ -1401,6 +1430,7 @@ export class AllureReport {
       this.#historyDataPoint = await this.#createHistoryDataPoint(shouldFlattenOutput);
 
       await this.#publish();
+      await this.#finishPublication();
 
       if (this.#knownIssuesPath) {
         await writeKnownIssues(this.#store, this.#knownIssuesPath);
@@ -1466,6 +1496,27 @@ export class AllureReport {
     }
   };
 
+  #finishPublication = async (): Promise<void> => {
+    if (this.#realTime) {
+      return;
+    }
+
+    const missing = this.#publication.filter((result) => result.status === "not-published");
+
+    if (missing.length > 0) {
+      console.warn("Expected reports were not published:");
+      missing.forEach(({ pluginId, reason }) => {
+        console.warn(`- ${pluginId}: ${PUBLICATION_FAILURE_MESSAGES[reason]}`);
+      });
+    }
+
+    try {
+      await this.#reportFiles.addFile(PUBLICATION_FILENAME, Buffer.from(JSON.stringify(this.#publication)));
+    } catch (err) {
+      console.warn("Failed to write Allure publication results", errorDetails(err));
+    }
+  };
+
   #finishGeneratePerfSpan = () => {
     this.#endGeneratePerfSpan?.();
     this.#endGeneratePerfSpan = undefined;
@@ -1487,6 +1538,8 @@ export class AllureReport {
       this.#state = {};
     }
 
+    const failed = new Set<string>();
+
     for (const { enabled, id, plugin, options } of this.#plugins) {
       if (!enabled) {
         continue;
@@ -1495,6 +1548,7 @@ export class AllureReport {
       const pluginState = this.#getPluginState(initState, id);
 
       if (!pluginState) {
+        failed.add(id);
         console.error("plugin error: state is empty");
         continue;
       }
@@ -1562,9 +1616,12 @@ export class AllureReport {
           this.#state![id] = pluginState;
         }
       } catch (e) {
+        failed.add(id);
         console.error(`plugin ${id} error`, e);
       }
     }
+
+    return failed;
   };
 
   #getPluginState(init: boolean, id: string) {

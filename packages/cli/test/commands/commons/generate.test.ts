@@ -608,3 +608,24 @@ describe("generate function", () => {
     consoleErrorSpy.mockRestore();
   });
 });
+
+it("keeps a publication-only summary and the successful exit code", async () => {
+  vi.mocked(glob).mockResolvedValueOnce(["./allure-results/"]);
+  const publicationOnly: ReportContext = {
+    ...summary,
+    testResults: undefined,
+    reports: [],
+    publication: [{ pluginId: "awesome", status: "not-published", reason: "publication-failed" }],
+  };
+  vi.mocked(createReportContext).mockResolvedValueOnce(publicationOnly);
+
+  const result = await generate({
+    cwd: ".",
+    config: { output: "out" } as FullConfig,
+    resultsDir: ["./allure-results"],
+    collectSummary: true,
+  });
+
+  expect(result).toEqual({ exitCode: 0, summary: publicationOnly });
+  expect(exit).not.toHaveBeenCalled();
+});

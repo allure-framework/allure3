@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { PluginSummary, TestResultRegistry } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createReportContext, createReportContextFromData } from "../src/reportContext.js";
 
@@ -395,5 +395,50 @@ describe("report context", () => {
       ],
       windows: [{ success: true, expected: 1, actual: 1, rule: "minTestsCount", message: "ok", testResults: [] }],
     });
+  });
+});
+
+describe("publication context", () => {
+  it("reads outcomes without requiring plugin summaries or changing totals", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure-publication-context-"));
+    const publication = [
+      { pluginId: "awesome", status: "published" },
+      { pluginId: "dashboard", status: "not-published", reason: "generation-failed" },
+    ] as const;
+    await writeJson(join(output, "publication.json"), publication);
+
+    const context = await createReportContext(output);
+    expect(context.publication).toEqual(publication);
+    expect(context.reports).toEqual([]);
+    expect(context.totals.stats.total).toBe(0);
+    expect(createReportContextFromData({ publication: context.publication }).publication).toEqual(publication);
+  });
+
+  it.each([
+    "{",
+    "null",
+    JSON.stringify({ reports: [] }),
+    JSON.stringify([{ pluginId: "awesome", status: "not-published" }]),
+    JSON.stringify([{ pluginId: "awesome", status: "not-published", reason: "invalid" }]),
+    JSON.stringify([{ pluginId: "", status: "published" }]),
+  ])("reports invalid publication input through onError: %s", async (content) => {
+    const output = await mkdtemp(join(tmpdir(), "allure-invalid-publication-"));
+    await writeFile(join(output, "publication.json"), content);
+    const onError = vi.fn();
+
+    const context = await createReportContext(output, { onError });
+    expect(context.publication).toBeUndefined();
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps publication unknown for reports generated before the manifest existed", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure-legacy-publication-"));
+    const onError = vi.fn();
+    await writeJson(join(output, "summary.json"), createSummary());
+
+    const context = await createReportContext(output, { onError });
+    expect(context.publication).toBeUndefined();
+    expect(context.reports).toHaveLength(1);
+    expect(onError).not.toHaveBeenCalled();
   });
 });

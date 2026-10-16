@@ -1,8 +1,10 @@
+import nodeConsole from "node:console";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { renderReportSummaryMarkdown } from "@allurereport/ci";
 import { resolveConfig, type PluginInstance } from "@allurereport/core";
 import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { createPluginSummary } from "@allurereport/plugin-api";
@@ -180,4 +182,32 @@ describe("generated report summary", () => {
       resolutions: { issues: 0, muted: 0, accepted: 0 },
     });
   });
+});
+
+it("returns a successful CLI result and readable warning when remote publication has no client", async () => {
+  const { tempDir, resultsDir, config } = await setup();
+  await writeAllureResult(resultsDir, {
+    uuid: "passed",
+    testCaseId: "passed",
+    status: "passed",
+    start: 100,
+    duration: 10,
+  });
+  const reportPlugin = summaryPlugin("awesome");
+  reportPlugin.options.publish = true;
+  config.plugins = [reportPlugin];
+  const warning = vi.spyOn(nodeConsole, "warn").mockImplementation(() => {});
+
+  const result = await generate({ cwd: tempDir, config, resultsDir: [resultsDir], collectSummary: true });
+
+  expect(result?.exitCode).toBe(0);
+  expect(result?.summary?.publication).toEqual([
+    { pluginId: "awesome", status: "not-published", reason: "publisher-unavailable" },
+  ]);
+  expect(result?.summary?.totals.stats).toMatchObject({ total: 1, passed: 1, failed: 0 });
+  expect(result?.summary?.reports[0].status).toBe("passed");
+  expect(warning).toHaveBeenCalledWith("Expected reports were not published:");
+  expect(renderReportSummaryMarkdown(result!.summary!)).toContain(
+    "<code>awesome</code>: Publication client is unavailable",
+  );
 });

@@ -124,7 +124,7 @@ export const generate = async (params: {
         onError: (message) => console.warn(message),
       });
 
-      if (!summary.testResults && summary.reports.length === 0) {
+      if (!summary.testResults && summary.reports.length === 0 && !summary.publication?.length) {
         throw new Error("no report context data found");
       }
 
