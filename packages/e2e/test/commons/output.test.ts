@@ -88,9 +88,10 @@ test.describe("output", () => {
 
     const reportDirFiles = await readdir(bootstrap.reportDir, { withFileTypes: true });
 
-    // The output contains the shared test result registry, summary, and directories for each plugin.
-    expect(reportDirFiles.length).toBe(4);
+    // The output contains the shared integration files, summary, and directories for each plugin.
+    expect(reportDirFiles.length).toBe(5);
     expect(reportDirFiles.find((dirent) => dirent.name === "test-results.json" && dirent.isFile())).not.toBeUndefined();
+    expect(reportDirFiles.find((dirent) => dirent.name === "publication.json" && dirent.isFile())).not.toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "index.html" && dirent.isFile())).not.toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "awesome1" && !dirent.isFile())).not.toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "awesome2" && !dirent.isFile())).not.toBeUndefined();
@@ -129,9 +130,10 @@ test.describe("output", () => {
     });
     const reportDirFiles = await readdir(bootstrap.reportDir, { withFileTypes: true });
 
-    // The output contains the shared test result registry and directories for each plugin.
-    expect(reportDirFiles.length).toBe(3);
+    // The output contains the shared integration files and directories for each plugin.
+    expect(reportDirFiles.length).toBe(4);
     expect(reportDirFiles.find((dirent) => dirent.name === "test-results.json" && dirent.isFile())).not.toBeUndefined();
+    expect(reportDirFiles.find((dirent) => dirent.name === "publication.json" && dirent.isFile())).not.toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "index.html" && dirent.isFile())).toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "awesome1" && !dirent.isFile())).not.toBeUndefined();
     expect(reportDirFiles.find((dirent) => dirent.name === "awesome2" && !dirent.isFile())).not.toBeUndefined();

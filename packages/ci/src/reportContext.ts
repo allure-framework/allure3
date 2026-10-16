@@ -3,7 +3,13 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
 import type { TestStatus } from "@allurereport/core-api";
-import type { PluginSummary, QualityGateValidationResult, TestResultRegistry } from "@allurereport/plugin-api";
+import type {
+  PluginSummary,
+  QualityGateValidationResult,
+  TestResultRegistry,
+  ReportPublication,
+} from "@allurereport/plugin-api";
+import { PUBLICATION_FILENAME, PUBLICATION_FAILURE_MESSAGES } from "@allurereport/plugin-api";
 import { glob } from "glob";
 
 const TEST_RESULTS_REGISTRY_FILENAME = "test-results.json";
@@ -78,6 +84,7 @@ export type ReportContext = {
   environments: ReportContextEnvironment[];
   artifacts: ReportContextArtifact[];
   qualityGate?: ReportContextQualityGate;
+  publication?: ReportPublication[];
 };
 
 export type ReportContextData = {
@@ -86,6 +93,7 @@ export type ReportContextData = {
   testResults?: TestResultRegistry;
   artifacts?: ReportContextArtifact[];
   qualityGate?: ReportContextQualityGate;
+  publication?: ReportPublication[];
 };
 
 export type ReadReportContextFilesOptions = {
@@ -224,6 +232,31 @@ const findSummaryFiles = async (reportDir: string): Promise<string[]> =>
       nodir: true,
     })
   ).toSorted((left, right) => left.localeCompare(right));
+
+const normalizePublication = (value: unknown, onError?: (message: string) => void): ReportPublication[] | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (
+    !Array.isArray(value) ||
+    !value.every(
+      (entry: unknown): entry is ReportPublication =>
+        isRecord(entry) &&
+        typeof entry.pluginId === "string" &&
+        entry.pluginId.trim().length > 0 &&
+        (entry.status === "published" ||
+          (entry.status === "not-published" &&
+            typeof entry.reason === "string" &&
+            Object.hasOwn(PUBLICATION_FAILURE_MESSAGES, entry.reason))),
+    )
+  ) {
+    onError?.("Ignoring unsupported Allure publication results shape");
+    return undefined;
+  }
+
+  return value;
+};
 
 const normalizeTestResultRegistry = (
   value: unknown,
@@ -472,6 +505,7 @@ export const readReportContextFiles = async (
 
   return {
     reports,
+    publication: normalizePublication(await readOptionalJson(join(reportDir, PUBLICATION_FILENAME), onError), onError),
     testResults: registry,
     artifacts,
     qualityGate,
@@ -489,6 +523,7 @@ export const createReportContextFromData = (data: ReportContextData): ReportCont
 
   return {
     reports,
+    publication: data.publication,
     testResults: data.testResults,
     totals,
     environments: createEnvironmentContext(data.testResults, reports),

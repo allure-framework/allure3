@@ -383,3 +383,63 @@ describe("report markdown", () => {
     expect(markdown).toContain("- <code>a | b</code> &mdash; <code>&lt;path&gt;</code>");
   });
 });
+
+describe("publication warnings", () => {
+  it("keeps successful report links and statistics when another report is missing", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          {
+            name: "Awesome",
+            plugin: "awesome",
+            remoteHref: "https://example.org/report",
+            stats: { total: 1, passed: 1 },
+            status: "passed",
+            duration: 1,
+          },
+        ],
+        publication: [
+          { pluginId: "awesome", status: "published" },
+          { pluginId: "dashboard", status: "not-published", reason: "generation-failed" },
+        ],
+      }),
+    );
+
+    expect(markdown).toContain('href="https://example.org/report"');
+    expect(markdown).toContain("<code>dashboard</code>: Report generation failed");
+    expect(markdown).not.toContain("<code>awesome</code>");
+    expect(markdown).not.toContain('href="dashboard');
+    expect(markdown.match(/All tests/g)).toHaveLength(1);
+  });
+
+  it("lists unavailable reports after statistics while keeping published reports out of warnings", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        publication: [
+          { pluginId: "awesome", status: "published" },
+          { pluginId: "dashboard", status: "not-published", reason: "generation-failed" },
+          { pluginId: "csv", status: "not-published", reason: "no-report-files" },
+          { pluginId: "classic", status: "not-published", reason: "publisher-unavailable" },
+          { pluginId: "allure2", status: "not-published", reason: "publication-failed" },
+        ],
+      }),
+    );
+
+    expect(markdown).toContain("**⚠ Expected reports were not published**");
+    expect(markdown).toContain("<code>dashboard</code>: Report generation failed");
+    expect(markdown).toContain("<code>csv</code>: No report files were generated");
+    expect(markdown).toContain("<code>classic</code>: Publication client is unavailable");
+    expect(markdown).toContain("<code>allure2</code>: The remote publication operation failed");
+    expect(markdown).not.toContain("awesome");
+    expect(markdown).not.toContain("**Reports:**");
+    expect(markdown.indexOf("Expected reports")).toBeGreaterThan(markdown.indexOf("All tests"));
+  });
+
+  it("does not change legacy markdown or show a warning when every report is published", () => {
+    const legacy = renderReportSummaryMarkdown(context());
+    expect(renderReportSummaryMarkdown(context({ publication: [] }))).toBe(legacy);
+    expect(renderReportSummaryMarkdown(context({ publication: [{ pluginId: "awesome", status: "published" }] }))).toBe(
+      legacy,
+    );
+  });
+});
