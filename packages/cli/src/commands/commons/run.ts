@@ -33,6 +33,7 @@ export type TestProcessResult = {
   stderr: string;
   qualityGateResults: QualityGateValidationResult[];
   fastFailed: boolean;
+  interrupted?: boolean;
 };
 
 export type RunLogsMode = "pipe" | "inherit" | "ignore";
@@ -239,6 +240,17 @@ export const runTests = async (params: {
     code = await supervisor.exitCode;
     const afterProcess = Date.now();
 
+    if (supervisor.interrupted) {
+      allureReport.realtimeDispatcher.sendGlobalError({
+        environment,
+        message:
+          supervisor.interrupted == "stopped"
+            ? "The test run was interrupted. Some tests may not have run."
+            : "The test run was forcibly terminated. Some tests may not have run, and teardown hooks " +
+              "or fixture cleanup may not have completed.",
+      });
+    }
+
     if (logProcessExit && rerunsEnabled) {
       const duration = formatDuration(afterProcess - beforeProcess);
 
@@ -286,6 +298,7 @@ export const runTests = async (params: {
     stderr: await supervisor.stderr,
     qualityGateResults,
     fastFailed: fastFailTriggered,
+    interrupted: supervisor.interrupted !== undefined,
   };
 };
 
@@ -424,7 +437,7 @@ export const executeAllureRun = async (params: {
       });
     }
 
-    for (let rerun = 0; rerun < maxRerun && testProcessResult; rerun++) {
+    for (let rerun = 0; rerun < maxRerun && testProcessResult && !testProcessResult.interrupted; rerun++) {
       const nextAttempt: RunAttempt = {
         current: rerun + 2,
         total: totalAttempts,

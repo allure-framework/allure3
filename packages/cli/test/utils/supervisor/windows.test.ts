@@ -6,9 +6,10 @@ import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import type { SupervisedCommandOptions } from "../../../dist/utils/supervisor/model.js";
+import { ProcessSupervisorBase } from "../../../dist/utils/supervisor/ProcessSupervisorBase.js";
 import { WindowsProcessSupervisor } from "../../../dist/utils/supervisor/windows/WindowsProcessSupervisor.js";
 import { nodeScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
@@ -74,6 +75,102 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     await feature("cli-run");
     await story("windows-process-supervisor");
     await label("coverage", "cli-run");
+  });
+
+  describe("SIGINT", () => {
+    it.each([
+      { description: "gracefully stops on the first signal", force: false, code: 20, interruption: "stopped" },
+      { description: "forcibly terminates on the second signal", force: true, code: 1, interruption: "terminated" },
+    ])("$description", async ({ force, code, interruption }) => {
+      const fixture = await SupervisorFixture.create();
+      const supervisor = new WindowsProcessSupervisor(process.execPath, {
+        arguments: [fixture.resolvePath("target.mjs"), fixture.workingDirectory, String(force)],
+        silent: true,
+      });
+      const listenersBefore = process.listeners("SIGINT");
+      onTestFinished(() =>
+        fixture.cleanup({
+          beforeTerminate: async () => {
+            if (supervisor.started && !supervisor.completed) await supervisor.terminate();
+          },
+        }),
+      );
+      await fixture.writeScript(
+        "target.mjs",
+        `
+          import { writeFile, rename } from "node:fs/promises";
+          import { join } from "node:path";
+          const [directory, ignore] = process.argv.slice(2);
+          const publish = async (name) => {
+            const path = join(directory, name);
+            await writeFile(path + ".tmp", String(process.pid));
+            await rename(path + ".tmp", path);
+          };
+          setInterval(() => {}, 1000);
+          process.once("SIGINT", async () => {
+            await publish("sigint");
+            if (ignore === "false") process.exit(20);
+          });
+          await publish("ready");
+        `,
+      );
+      await start(supervisor);
+      const targetPid = await fixture.readProcessId("ready");
+      const hostPid = supervisor.process.pid!;
+      const listeners = process.listeners("SIGINT").filter((listener) => !listenersBefore.includes(listener));
+      expect(listeners).toHaveLength(1);
+
+      await step("Deliver the first SIGINT to the supervisor and verify target acknowledgment", async () => {
+        expect(targetPid).toBe(supervisor.startupInfo.pid);
+        expectProcesses([targetPid, hostPid]).toBeAlive();
+        listeners[0]!("SIGINT");
+        expect(supervisor.interrupted).toBe("stopped");
+        expect(await fixture.readProcessId("sigint")).toBe(targetPid);
+      });
+      if (force) {
+        await step("Deliver the second SIGINT while the target remains alive", async () => {
+          expectProcesses([targetPid, hostPid]).toBeAlive();
+          expect(supervisor.completed).toBe(false);
+          listeners[0]!("SIGINT");
+          expect(supervisor.interrupted).toBe("terminated");
+          expect(process.listeners("SIGINT")).not.toContain(listeners[0]);
+        });
+      }
+      await step("Verify interruption outcome, process cleanup, and signal listener removal", async () => {
+        const completion = await wait(supervisor);
+        expect(completion).toMatchObject({ code, signal: null, externalInterruption: interruption });
+        expect(supervisor.interrupted).toBe(interruption);
+        await Promise.all([targetPid, hostPid].map(waitProcessGone));
+        expectProcesses([targetPid, hostPid]).toBeDead();
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      });
+    });
+
+    it("cancels startup on SIGINT before the target reports startup", async ({ onTestFinished }) => {
+      const supervisor = superviseNodeScript("setInterval(() => {}, 1000);");
+      const listenersBefore = process.listeners("SIGINT");
+      const originalStart = ProcessSupervisorBase.prototype.start;
+      // Interrupt after spawning the host, before its asynchronous startup report.
+      const startMock = vi
+        .spyOn(ProcessSupervisorBase.prototype, "start")
+        .mockImplementation(async function (this: ProcessSupervisorBase) {
+          await originalStart.call(this);
+          const listeners = process.listeners("SIGINT").filter((listener) => !listenersBefore.includes(listener));
+          expect(listeners).toHaveLength(1);
+          listeners[0]!("SIGINT");
+        });
+      onTestFinished(() => startMock.mockRestore());
+
+      await step("Interrupt startup before the target reports its PID", async () => {
+        await expect(supervisor.start()).rejects.toThrow("Allure run startup cancelled by Ctrl+C.");
+      });
+      await step("Verify startup cancellation kills the host and removes the signal listener", async () => {
+        await expect(supervisor.completion).rejects.toThrow("Allure run startup cancelled by Ctrl+C.");
+        await waitProcessGone(supervisor.process.pid!);
+        expectProcesses([supervisor.process.pid!]).toBeDead();
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      });
+    });
   });
 
   it("launches a single process and reports its natural completion", async () => {
