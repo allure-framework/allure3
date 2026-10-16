@@ -142,13 +142,6 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
   return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
 };
 
-// every suite in this file drives the built CLI, and the build wipes `dist` first: it has to happen
-// once, before any of them starts, and never in parallel with a running CLI process
-beforeAll(async () => {
-  await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
-  await runYarnCommand(["workspace", "allure", "build"]);
-}, 240_000);
-
 describe("run command integration", () => {
   let tempDir: string;
   let sharedBuildModificationTimes: number[];
