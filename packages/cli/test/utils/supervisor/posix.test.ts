@@ -316,7 +316,7 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       supervisorSigintListeners[0]!("SIGINT");
 
-      await expect(supervisor.completion).resolves.toEqual({ code: 20, signal: null });
+      await expect(supervisor.completion).resolves.toEqual({ code: 20, signal: null, externalInterruption: "stopped" });
 
       const signalledProcessIds = await Promise.all(
         [0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.sigint`)),
@@ -367,7 +367,11 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       supervisorSigintListeners[0]!("SIGINT");
 
-      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      await expect(supervisor.completion).resolves.toEqual({
+        code: null,
+        signal: "SIGKILL",
+        externalInterruption: "terminated",
+      });
 
       expect(supervisor.completed).toBe(true);
       expectProcesses(processIds).toBeDead();
