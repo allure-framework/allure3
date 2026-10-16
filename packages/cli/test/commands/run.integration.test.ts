@@ -172,6 +172,96 @@ describe("run command integration", () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
+  it("persists a global error when SIGINT interrupts allure run", async () => {
+    const fixtureDir = join(tempDir, "sigint-global-error");
+    const outputDir = join(fixtureDir, "report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const preloadPath = join(fixtureDir, "interrupt.mjs");
+    const readyMarker = "sigint-global-error-target-ready";
+    const cleanupMarker = "sigint-global-error-target-cleaned-up";
+
+    await step("prepare a cooperative child and interrupt the CLI only after child readiness", async () => {
+      await mkdir(fixtureDir, { recursive: true });
+      await writeFile(
+        configPath,
+        `export default {
+          output: ${JSON.stringify(outputDir)},
+          plugins: { awesome: { options: { singleFile: false } } }
+        };`,
+        "utf-8",
+      );
+      await writeFile(
+        runnerPath,
+        `
+          const timeout = setTimeout(() => process.exit(42), 20000);
+          process.once("SIGINT", () => {
+            clearTimeout(timeout);
+            console.log(${JSON.stringify(cleanupMarker)});
+            process.exitCode = 20;
+          });
+          console.log(${JSON.stringify(readyMarker)});
+        `,
+        "utf-8",
+      );
+      // Windows cannot deliver SIGINT using child.kill(). Emit it inside the CLI
+      // after its real supervisor forwards the ready marker from the child.
+      await writeFile(
+        preloadPath,
+        `
+          const write = process.stdout.write.bind(process.stdout);
+          let output = "";
+          let interrupted = false;
+          process.stdout.write = (chunk, ...args) => {
+            const result = write(chunk, ...args);
+            output += chunk.toString();
+            if (!interrupted && output.includes(${JSON.stringify(readyMarker)})) {
+              interrupted = true;
+              setImmediate(() => process.emit("SIGINT", "SIGINT"));
+            }
+            return result;
+          };
+        `,
+        "utf-8",
+      );
+    });
+
+    await step("run the built CLI and verify the child handles SIGINT", async () => {
+      const result = await runCommandWithExitCode(
+        process.execPath,
+        [
+          "--import",
+          pathToFileURL(preloadPath).href,
+          cliPath,
+          "run",
+          "--cwd",
+          fixtureDir,
+          "--config",
+          configPath,
+          "--",
+          process.execPath,
+          runnerPath,
+        ],
+        { timeout: 40_000 },
+      );
+      await attachCommandOutput("SIGINT-interrupted allure run", result);
+      expect(result.stdout).toContain(readyMarker);
+      expect(result.stdout).toContain(cleanupMarker);
+      expect(result.stderr).toBe("");
+      expect(result.exitCode).toBe(20);
+    });
+
+    await step("verify a global error was added", async () => {
+      const globalsContent = await readFile(join(outputDir, "widgets", "globals.json"), "utf-8");
+      await attachment("interrupted run report globals", globalsContent, "application/json");
+      const globals = JSON.parse(globalsContent);
+      expect(globals.errors).toEqual([
+        expect.objectContaining({ message: "The test run was interrupted. Some tests may not have run." }),
+      ]);
+      await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
+    });
+  }, 60_000);
+
   it("prints the agent task map from built CLI help", async () => {
     let stdout = "";
     let stderr = "";
