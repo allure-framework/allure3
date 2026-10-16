@@ -10,7 +10,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "report:merge": "node dist/scripts/merge-blob-reports.js",
+    "report:merge": "node src/scripts/merge-blob-reports.ts",
     "report:coverage": "yarn report:merge && vp test run --merge-reports .vitest/merged-blob"
   },
   "dependencies": {

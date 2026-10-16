@@ -1,7 +1,7 @@
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { mergeBlobReports } from "../mergeBlobReports.js";
+import { mergeBlobReports } from "../mergeBlobReports.ts";
 
 const rootDirectory = fileURLToPath(new URL("../../../../", import.meta.url));
 const mergedDirectory = fileURLToPath(new URL("../../.vitest/merged-blob/", import.meta.url));
