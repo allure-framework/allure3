@@ -2,26 +2,54 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { AttachmentData, AttachmentType } from "@allurereport/web-commons";
 import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import { batch, useSignal } from "@preact/signals";
-import type { ComponentChildren } from "preact";
-import { useCallback, useEffect } from "preact/hooks";
+import type { ComponentChildren, ComponentType } from "preact";
+import { lazy, Suspense } from "preact/compat";
+import { useCallback, useEffect, useErrorBoundary } from "preact/hooks";
 
 import { Spinner } from "@/components/Spinner";
 
 import { IconButton } from "../Button";
 import { EmptyView } from "../EmptyView";
 import { allureIcons } from "../SvgIcon";
-import { AttachmentCode } from "./AttachmentCode";
 import { AttachmentImage } from "./AttachmentImage";
-import { AttachmentImageDiff } from "./AttachmentImageDiff";
-import { AttachmentTable } from "./AttachmentTable";
 import { AttachmentVideo } from "./AttachmentVideo";
-import { HtmlPreview } from "./HtmlPreview";
-import { HttpAttachment } from "./HttpAttachment";
-import { MarkdownPreview } from "./MarkdownPreview";
-import { MermaidPreview } from "./MermaidPreview";
 import type { AttachmentProps, I18nProp } from "./model";
 
 import styles from "./styles.scss";
+
+const AttachmentCode = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-code" */ "./AttachmentCode").then((module) => ({
+    default: module.AttachmentCode,
+  })),
+);
+const AttachmentImageDiff = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-image-diff" */ "./AttachmentImageDiff").then((module) => ({
+    default: module.AttachmentImageDiff,
+  })),
+);
+const AttachmentTable = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-table" */ "./AttachmentTable").then((module) => ({
+    default: module.AttachmentTable,
+  })),
+);
+const HtmlPreview = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-html" */ "./HtmlPreview").then((module) => ({ default: module.HtmlPreview })),
+);
+const HttpAttachment = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-http" */ "./HttpAttachment").then((module) => ({
+    default: module.HttpAttachment,
+  })),
+);
+const MarkdownPreview = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-markdown" */ "./MarkdownPreview").then((module) => ({
+    default: module.MarkdownPreview,
+  })),
+);
+const MermaidPreview = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "attachment-mermaid" */ "./MermaidPreview").then((module) => ({
+    default: module.MermaidPreview,
+  })),
+);
 
 const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProps) => ComponentChildren) | null> = {
   "image": AttachmentImage,
@@ -41,7 +69,9 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "archive": null,
 };
 
-const previewComponentsByAttachmentType: Record<string, any> = {
+const previewComponentsByAttachmentType: Partial<
+  Record<AttachmentType, ComponentType<{ attachment: { text: string } }>>
+> = {
   html: HtmlPreview,
   markdown: MarkdownPreview,
   mermaid: MermaidPreview,
@@ -56,6 +86,22 @@ export interface AttachmentTestStepResultProps {
   i18n?: I18nProp;
 }
 
+const AttachmentViewer = ({ children }: { children: ComponentChildren }) => {
+  const [error] = useErrorBoundary();
+  if (error) return <EmptyView description="Failed to load attachment viewer" size="xs" />;
+  return (
+    <Suspense
+      fallback={
+        <div className={styles["test-result-spinner"]}>
+          <Spinner />
+        </div>
+      }
+    >
+      {children}
+    </Suspense>
+  );
+};
+
 export const Attachment = (props: AttachmentTestStepResultProps) => {
   const { item, previewable, highlightCode = true, i18n } = props;
   const {
@@ -65,6 +111,7 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   const isLoading = useSignal<boolean>(true);
   const isError = useSignal<boolean>(false);
   const componentType = attachmentType(contentType);
+  const viewerKey = `${id}:${ext}:${contentType}`;
 
   const fetchData = useCallback(async () => {
     isLoading.value = true;
@@ -113,35 +160,38 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
   const CurrentComponent = componentsByAttachmentType[componentType];
+  const previewAttachment = attachment.value && "text" in attachment.value ? attachment.value : undefined;
   // @ts-expect-error TODO: add all translations for attachment types
   const typeI18n = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
   const i18nFor = (Component: unknown) => (Component === AttachmentCode ? i18n?.controls : typeI18n);
 
-  if (DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) && CurrentPreviewComponent && CurrentComponent) {
+  if (
+    DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) &&
+    CurrentPreviewComponent &&
+    CurrentComponent &&
+    previewAttachment
+  ) {
     const isCodeComponent = CurrentComponent === AttachmentCode;
     const showPreview = !!previewable;
 
     return (
       <div className={styles.attachmentViewStack}>
         <div className={styles.attachmentViewPane} hidden={showPreview}>
-          <CurrentComponent
-            attachment={attachment.value}
-            item={item}
-            i18n={i18nFor(CurrentComponent)}
-            {...(isCodeComponent ? { highlight: highlightCode } : {})}
-          />
+          <AttachmentViewer key={viewerKey}>
+            <CurrentComponent
+              attachment={attachment.value}
+              item={item}
+              i18n={i18nFor(CurrentComponent)}
+              {...(isCodeComponent ? { highlight: highlightCode } : {})}
+            />
+          </AttachmentViewer>
         </div>
         <div className={styles.attachmentViewPane} hidden={!showPreview}>
-          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
+          <AttachmentViewer key={viewerKey}>
+            <CurrentPreviewComponent attachment={previewAttachment} />
+          </AttachmentViewer>
         </div>
       </div>
-    );
-  }
-
-  // temp solution before modal component refactoring
-  if (previewable && CurrentPreviewComponent) {
-    return (
-      <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
     );
   }
 
@@ -152,11 +202,13 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   const isCodeComponent = CurrentComponent === AttachmentCode;
 
   return (
-    <CurrentComponent
-      attachment={attachment.value}
-      item={item}
-      i18n={i18nFor(CurrentComponent)}
-      {...(isCodeComponent ? { highlight: highlightCode } : {})}
-    />
+    <AttachmentViewer key={viewerKey}>
+      <CurrentComponent
+        attachment={attachment.value}
+        item={item}
+        i18n={i18nFor(CurrentComponent)}
+        {...(isCodeComponent ? { highlight: highlightCode } : {})}
+      />
+    </AttachmentViewer>
   );
 };

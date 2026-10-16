@@ -13,6 +13,7 @@ import {
 } from "@allurereport/core-api";
 import { type AllureStore, type ReportOptions, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
 import {
+  createSingleFileScripts,
   copyReportStaticAssets,
   getReportStaticAsset,
   readReportStaticAssets,
@@ -144,9 +145,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
-
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
+    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
   }
 
   const reportOptions: ReportOptions = {

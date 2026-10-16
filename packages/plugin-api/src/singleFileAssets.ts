@@ -11,11 +11,18 @@ export const createSingleFileScripts = (files: ReadonlyMap<string, Buffer>, main
       .map(([fileName, content]) => [fileName, gzipSync(content, { level: 9 }).toString("base64")]),
   );
 
+  const licenses = Object.fromEntries(
+    [...files]
+      .filter(([fileName]) => fileName.endsWith(".LICENSE.txt"))
+      .map(([fileName, content]) => [fileName, content.toString("utf8")]),
+  );
+
   if (!compressedScripts[mainJs]) {
     throw new Error(`The report static assets do not contain the main script: ${mainJs}`);
   }
 
   return `
+    <script id="allure-single-file-licenses" type="application/json">${stringifyForInlineScript(licenses)}</script>
     <script id="${embeddedAssetsElementId}" type="application/json">${stringifyForInlineScript(compressedScripts)}</script>
     <script>
       (function () {
@@ -45,7 +52,7 @@ export const createSingleFileScripts = (files: ReadonlyMap<string, Buffer>, main
             compressed[index] = binary.charCodeAt(index);
           }
 
-          const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+          const stream = new Response(compressed).body.pipeThrough(new DecompressionStream("gzip"));
 
           return new Response(stream).text();
         }

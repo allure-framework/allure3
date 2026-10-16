@@ -1,17 +1,40 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
 import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
+import {
+  Button,
+  Code,
+  EmptyView,
+  IconButton,
+  Spinner,
+  Text,
+  TooltipWrapper,
+  allureIcons,
+} from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
+import { lazy, Suspense } from "preact/compat";
+import { useErrorBoundary, useState } from "preact/hooks";
 
 import { hasErrorDiff } from "@/components/TestResult/bodyItems";
-import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
 
 import * as styles from "./styles.scss";
+
+const TrDiff = /*#__PURE__*/ lazy(() =>
+  import(/* webpackChunkName: "error-diff" */ "./TrDiff").then((module) => ({ default: module.TrDiff })),
+);
+
+const Comparison = ({ actual, expected }: Pick<TestError, "actual" | "expected">) => {
+  const [error] = useErrorBoundary();
+  if (error) return <EmptyView description="Failed to load comparison" size="xs" />;
+  return (
+    <Suspense fallback={<Spinner />}>
+      <TrDiff actual={actual} expected={expected} />
+    </Suspense>
+  );
+};
 
 const ansiStatusDetailsToHTML = (text: string) =>
   ansiToHTML(normalizeAnsiForegroundColors(text), {
@@ -47,7 +70,7 @@ export const TrError: FunctionalComponent<
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
-      component: <TrDiff actual={actual} expected={expected} />,
+      component: <Comparison actual={actual} expected={expected} />,
     });
   const sanitizedMessage = showMessage && message ? ansiStatusDetailsToHTML(message) : "";
 

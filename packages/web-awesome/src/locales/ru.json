@@ -533,7 +533,8 @@
       "slice": "{{count}} тестов ({{percent}}% всех тестов)",
       "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
-    }
+    },
+    "loadError": "Не удалось загрузить график"
   },
   "transitions": {
     "description": {

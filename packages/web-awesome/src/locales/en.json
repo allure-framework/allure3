@@ -527,7 +527,8 @@
       "layer": "Layer: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
       "slice": "{{count}} tests ({{percent}}% of all tests)"
-    }
+    },
+    "loadError": "Failed to load chart"
   },
   "transitions": {
     "description": {
