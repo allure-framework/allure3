@@ -239,6 +239,13 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow dynamicEnvironments", () => {
+    expect(validateConfig({ dynamicEnvironments: () => "alpha" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should allow historyBaseUrl", () => {
     expect(validateConfig({ historyBaseUrl: "https://bucket.example/runs/42" })).toEqual({
       valid: true,
@@ -876,6 +883,25 @@ describe("resolveConfig", () => {
       }),
     ).rejects.toThrow(
       'The provided Allure config contains invalid environments: config.environments["foo\\r\\nbar"]: id must contain only latin letters, digits, underscores, and hyphens',
+    );
+  });
+
+  it("should pass dynamicEnvironments through to the resolved config", async () => {
+    const dynamicEnvironments = () => "alpha";
+    const resolved = await resolveConfig({ dynamicEnvironments });
+
+    expect(resolved.dynamicEnvironments).toBe(dynamicEnvironments);
+  });
+
+  it("should turn the declarative dynamicEnvironments form into a resolver", async () => {
+    const resolved = await resolveConfig({ dynamicEnvironments: { label: "host", pattern: /^[\w-]+/ } });
+
+    expect(resolved.dynamicEnvironments?.({ labels: [{ name: "host", value: "srv1.example.com" }] })).toBe("srv1");
+  });
+
+  it("should reject an invalid declarative dynamicEnvironments", async () => {
+    await expect(resolveConfig({ dynamicEnvironments: { label: "" } })).rejects.toThrow(
+      /invalid dynamicEnvironments: label must be a non-empty string/,
     );
   });
 
