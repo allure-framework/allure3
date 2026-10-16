@@ -463,6 +463,17 @@ describe("generateTestResults", () => {
     expect(item.url).toBe("https://bucket.example/runs/42/");
   });
 
+  it("should pass ideaLinks option to the converter", async () => {
+    const { writer, store, testResult } = historyFixture([]);
+    testResult.labels = [{ name: "testClass", value: "org.example.FooTest" }];
+
+    const [withLink] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome", ideaLinks: true });
+    const [withoutLink] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
+
+    expect(withLink.links.map(({ type }) => type)).toEqual(["idea"]);
+    expect(withoutLink.links).toEqual([]);
+  });
+
   it("should sort setup and teardown fixtures by start time", async () => {
     const testResult = mockTestResult("tr-1", "test", "passed");
     const writer: AwesomeDataWriter = {
