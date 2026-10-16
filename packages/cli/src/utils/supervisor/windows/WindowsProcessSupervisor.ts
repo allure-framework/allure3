@@ -352,6 +352,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       this.requestRootStop(signal).catch((error) => {
         this.#reportHostError("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
       });
+      this.reportInterruption();
       return;
     }
 
@@ -366,6 +367,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     void this.terminate().catch((error) => {
       this.#fail(error);
     });
+    this.reportForcedInterruption();
   };
 
   #handleCompletedMessage(message: ShallowKnown<HostTargetCompletedEvent>) {

@@ -110,6 +110,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
       // First SIGINT is forwarded to the process group.
       this.#sigintReceived = true;
       this.sendSigintToGroup();
+      this.reportInterruption();
       return;
     }
 
@@ -122,6 +123,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     void this.terminate().catch((error) => {
       logError("Unable to terminate the test process group.", error);
     });
+    this.reportForcedInterruption();
   };
 
   readonly #onSigterm = () => {
