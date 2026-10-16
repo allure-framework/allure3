@@ -66,6 +66,7 @@ import {
   processTree,
 } from "@allurereport/plugin-api";
 import {
+  createSingleFileScripts,
   copyReportStaticAssets,
   getReportStaticAsset,
   readReportStaticAssets,
@@ -75,7 +76,6 @@ import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
-import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
