@@ -139,7 +139,7 @@ export type ReportTreeLeaf = Pick<
   | "retriesCount"
   | "retriesStatusChange"
   | "resolution"
-  | "resolutionDueDate"
+  | "resolutionExpiresAt"
 > & {
   nodeId: string;
   id?: string;
@@ -211,7 +211,7 @@ export type ReportResolutionGroup = {
   resolution: ResolutionCategory;
   name: string;
   comment?: string;
-  dueDate?: string;
+  expiresAt?: string;
   resolutionState?: MutedResolutionState;
   issue?: ResolutionIssue;
   testResults: ReportResolutionTestResult[];

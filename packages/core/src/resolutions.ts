@@ -12,7 +12,7 @@ import type {
   ResolutionsConfig,
   TestResult,
 } from "@allurereport/core-api";
-import { isIgnoredResolution, parseResolutionDueDate } from "@allurereport/core-api";
+import { isIgnoredResolution, parseResolutionExpiresAt } from "@allurereport/core-api";
 import type { AllureStore } from "@allurereport/plugin-api";
 
 import { isFileNotFoundError } from "./utils/misc.js";
@@ -131,16 +131,16 @@ const validateIgnoredRule = (rule: IgnoredResolutionRule, path: string, errors: 
     errors.push(`${path}.comment must be a non-empty string`);
   }
 
-  if (rule.resolution === "accepted" && rule.dueDate !== undefined) {
-    errors.push(`${path}.dueDate is only supported for muted resolutions`);
+  if (rule.resolution === "accepted" && rule.expiresAt !== undefined) {
+    errors.push(`${path}.expiresAt is only supported for muted resolutions`);
   }
 
   if (
     rule.resolution === "muted" &&
-    rule.dueDate !== undefined &&
-    (!nonEmpty(rule.dueDate) || parseResolutionDueDate(rule.dueDate) === undefined)
+    rule.expiresAt !== undefined &&
+    (!nonEmpty(rule.expiresAt) || parseResolutionExpiresAt(rule.expiresAt) === undefined)
   ) {
-    errors.push(`${path}.dueDate must be a JavaScript-compatible ISO 8601 timestamp with an explicit timezone`);
+    errors.push(`${path}.expiresAt must be a JavaScript-compatible ISO 8601 timestamp with an explicit timezone`);
   }
 };
 

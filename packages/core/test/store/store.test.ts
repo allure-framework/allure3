@@ -815,13 +815,13 @@ describe("test results", () => {
           {
             resolution: "muted",
             comment: "Temporary mute",
-            dueDate: "2999-01-01T00:00:00Z",
+            expiresAt: "2999-01-01T00:00:00Z",
             testCaseId: [md5("tc-active-muted")],
           },
           {
             resolution: "muted",
             comment: "Expired mute",
-            dueDate: "2000-01-01T00:00:00Z",
+            expiresAt: "2000-01-01T00:00:00Z",
             testCaseId: [md5("tc-outdated-muted")],
           },
           {
@@ -832,7 +832,7 @@ describe("test results", () => {
           {
             resolution: "muted",
             comment: "Malformed mute",
-            dueDate: "",
+            expiresAt: "",
             testCaseId: [md5("tc-malformed-muted")],
           },
         ],
@@ -862,34 +862,34 @@ describe("test results", () => {
     expect(active).toMatchObject({
       resolution: "muted",
       resolutionComment: "Temporary mute",
-      resolutionDueDate: "2999-01-01T00:00:00Z",
+      resolutionExpiresAt: "2999-01-01T00:00:00Z",
     });
     expect(outdated).toMatchObject({
       resolution: "muted",
       resolutionComment: "Expired mute",
-      resolutionDueDate: "2000-01-01T00:00:00Z",
+      resolutionExpiresAt: "2000-01-01T00:00:00Z",
     });
     expect(permanent).toMatchObject({
       resolution: "muted",
       resolutionComment: "Permanent mute",
     });
-    expect(permanent).not.toHaveProperty("resolutionDueDate");
+    expect(permanent).not.toHaveProperty("resolutionExpiresAt");
     expect(malformed).toMatchObject({
       resolution: "muted",
       resolutionComment: "Malformed mute",
-      resolutionDueDate: "",
+      resolutionExpiresAt: "",
     });
     await expect(store.blockingFailedTestResults()).resolves.toEqual([outdated, malformed]);
   });
 
-  it("should recompute muted deadlines when restoring state", async () => {
-    const resolutionsConfig = (dueDate?: string) => ({
+  it("should recompute muted expirations when restoring state", async () => {
+    const resolutionsConfig = (expiresAt?: string) => ({
       rules: [
         {
           resolution: "muted" as const,
           comment: "Temporary mute",
           testCaseId: [md5("tc-restored-muted")],
-          ...(dueDate === undefined ? {} : { dueDate }),
+          ...(expiresAt === undefined ? {} : { expiresAt }),
         },
       ],
     });
@@ -903,8 +903,10 @@ describe("test results", () => {
     );
 
     const dump = source.dumpState();
-    const restoreWith = async (dueDate: string | undefined, configured = true) => {
-      const target = new DefaultAllureStore(configured ? { resolutionsConfig: resolutionsConfig(dueDate) } : undefined);
+    const restoreWith = async (expiresAt: string | undefined, configured = true) => {
+      const target = new DefaultAllureStore(
+        configured ? { resolutionsConfig: resolutionsConfig(expiresAt) } : undefined,
+      );
 
       await target.restoreState(structuredClone(dump));
 
@@ -915,15 +917,15 @@ describe("test results", () => {
     const permanent = await restoreWith(undefined);
     const unconfigured = await restoreWith(undefined, false);
 
-    expect(active.testResult.resolutionDueDate).toBe("2999-01-01T00:00:00Z");
+    expect(active.testResult.resolutionExpiresAt).toBe("2999-01-01T00:00:00Z");
     await expect(active.target.blockingFailedTestResults()).resolves.toEqual([]);
-    expect(outdated.testResult.resolutionDueDate).toBe("2000-01-01T00:00:00Z");
+    expect(outdated.testResult.resolutionExpiresAt).toBe("2000-01-01T00:00:00Z");
     await expect(outdated.target.blockingFailedTestResults()).resolves.toEqual([outdated.testResult]);
     expect(permanent.testResult.resolution).toBe("muted");
-    expect(permanent.testResult).not.toHaveProperty("resolutionDueDate");
+    expect(permanent.testResult).not.toHaveProperty("resolutionExpiresAt");
     await expect(permanent.target.blockingFailedTestResults()).resolves.toEqual([]);
     expect(unconfigured.testResult.resolution).toBeUndefined();
-    expect(unconfigured.testResult).not.toHaveProperty("resolutionDueDate");
+    expect(unconfigured.testResult).not.toHaveProperty("resolutionExpiresAt");
     await expect(unconfigured.target.blockingFailedTestResults()).resolves.toEqual([unconfigured.testResult]);
   });
 

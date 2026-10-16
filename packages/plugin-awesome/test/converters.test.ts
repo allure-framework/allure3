@@ -80,13 +80,13 @@ describe("convertTestResult", () => {
     });
   });
 
-  it("derives muted resolution lifecycle from due date", () => {
+  it("derives muted resolution lifecycle from expiration timestamp", () => {
     const result = convertTestResult(
       createTestResult({
         status: "failed",
         resolution: "muted",
         resolutionComment: "Waiting for upstream fix",
-        resolutionDueDate: "2026-10-01T00:00:00Z",
+        resolutionExpiresAt: "2026-10-01T00:00:00Z",
       }),
       { resolutionEvaluatedAt: Date.parse("2026-10-01T00:00:00Z") },
     );
@@ -94,7 +94,7 @@ describe("convertTestResult", () => {
     expect(result).toMatchObject({
       resolution: "muted",
       resolutionComment: "Waiting for upstream fix",
-      resolutionDueDate: "2026-10-01T00:00:00Z",
+      resolutionExpiresAt: "2026-10-01T00:00:00Z",
       resolutionState: "outdated",
     });
   });

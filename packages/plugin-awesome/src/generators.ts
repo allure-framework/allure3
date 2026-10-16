@@ -30,7 +30,7 @@ import {
   joinPosixPath,
   nullsLast,
   ordinal,
-  parseResolutionDueDate,
+  parseResolutionExpiresAt,
   redactParameters,
   severityLabelName,
 } from "@allurereport/core-api";
@@ -477,7 +477,7 @@ const leafFactory = ({
   retriesCount,
   retriesStatusChange,
   resolution,
-  resolutionDueDate,
+  resolutionExpiresAt,
   resolutionState,
   transition,
   tooltips,
@@ -500,7 +500,7 @@ const leafFactory = ({
     retriesCount,
     retriesStatusChange,
     resolution,
-    resolutionDueDate,
+    resolutionExpiresAt,
     resolutionState,
     resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
@@ -565,14 +565,14 @@ export const generateResolutionCategories = async (
     .filter((test) => !test.isRetry && test.resolution)
     .forEach((test) => {
       const resolution = test.resolution!;
-      const mutedDeadlineKey =
-        test.resolutionDueDate === undefined
+      const mutedExpirationKey =
+        test.resolutionExpiresAt === undefined
           ? "forever"
-          : (parseResolutionDueDate(test.resolutionDueDate)?.toString() ?? `invalid:${test.resolutionDueDate}`);
+          : (parseResolutionExpiresAt(test.resolutionExpiresAt)?.toString() ?? `invalid:${test.resolutionExpiresAt}`);
       const groupId =
         resolution === "issue"
           ? `${resolution}:${test.resolutionIssue?.id ?? test.id}`
-          : [resolution, test.resolutionComment ?? test.id, resolution === "muted" ? mutedDeadlineKey : undefined]
+          : [resolution, test.resolutionComment ?? test.id, resolution === "muted" ? mutedExpirationKey : undefined]
               .filter(Boolean)
               .join(":");
       const group = groupsById.get(groupId) ?? {
@@ -580,7 +580,7 @@ export const generateResolutionCategories = async (
         resolution,
         name: getResolutionGroupName(test),
         comment: test.resolutionComment ?? test.resolutionIssue?.comment,
-        ...(test.resolutionDueDate ? { dueDate: test.resolutionDueDate } : {}),
+        ...(test.resolutionExpiresAt ? { expiresAt: test.resolutionExpiresAt } : {}),
         ...(test.resolutionState ? { resolutionState: test.resolutionState } : {}),
         issue: test.resolutionIssue,
         testResults: [],

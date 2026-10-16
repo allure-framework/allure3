@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import {
   getMutedResolutionState,
-  parseResolutionDueDate,
+  parseResolutionExpiresAt,
   type ResolutionCategory,
   type ResolutionRule,
   type TestResult,
@@ -118,17 +118,17 @@ describe("resolution rules", () => {
 
     expect(isIgnoredFailure({ resolution: "issue" } as any)).toBe(false);
     expect(isIgnoredFailure({ resolution: "muted" } as any, now)).toBe(true);
-    expect(isIgnoredFailure({ resolution: "muted", resolutionDueDate: "2026-10-01T00:00:00.001Z" } as any, now)).toBe(
+    expect(isIgnoredFailure({ resolution: "muted", resolutionExpiresAt: "2026-10-01T00:00:00.001Z" } as any, now)).toBe(
       true,
     );
-    expect(isIgnoredFailure({ resolution: "muted", resolutionDueDate: "2026-10-01T00:00:00Z" } as any, now)).toBe(
+    expect(isIgnoredFailure({ resolution: "muted", resolutionExpiresAt: "2026-10-01T00:00:00Z" } as any, now)).toBe(
       false,
     );
-    expect(isIgnoredFailure({ resolution: "muted", resolutionDueDate: "2026-09-30T23:59:59.999Z" } as any, now)).toBe(
+    expect(isIgnoredFailure({ resolution: "muted", resolutionExpiresAt: "2026-09-30T23:59:59.999Z" } as any, now)).toBe(
       false,
     );
-    expect(isIgnoredFailure({ resolution: "muted", resolutionDueDate: "invalid" } as any, now)).toBe(false);
-    expect(isIgnoredFailure({ resolution: "muted", resolutionDueDate: "" } as any, now)).toBe(false);
+    expect(isIgnoredFailure({ resolution: "muted", resolutionExpiresAt: "invalid" } as any, now)).toBe(false);
+    expect(isIgnoredFailure({ resolution: "muted", resolutionExpiresAt: "" } as any, now)).toBe(false);
     expect(isIgnoredFailure({ resolution: "accepted" } as any)).toBe(true);
   });
 
@@ -137,14 +137,14 @@ describe("resolution rules", () => {
 
     expect(getMutedResolutionState({ resolution: "accepted" }, now)).toBeUndefined();
     expect(getMutedResolutionState({ resolution: "muted" }, now)).toBe("permanent");
-    expect(getMutedResolutionState({ resolution: "muted", resolutionDueDate: "2026-10-01T00:00:00.001Z" }, now)).toBe(
+    expect(getMutedResolutionState({ resolution: "muted", resolutionExpiresAt: "2026-10-01T00:00:00.001Z" }, now)).toBe(
       "active",
     );
-    expect(getMutedResolutionState({ resolution: "muted", resolutionDueDate: "2026-10-01T00:00:00Z" }, now)).toBe(
+    expect(getMutedResolutionState({ resolution: "muted", resolutionExpiresAt: "2026-10-01T00:00:00Z" }, now)).toBe(
       "outdated",
     );
-    expect(getMutedResolutionState({ resolution: "muted", resolutionDueDate: "" }, now)).toBe("outdated");
-    expect(parseResolutionDueDate("2026-10-01T00:00:00Z")).toBe(now);
+    expect(getMutedResolutionState({ resolution: "muted", resolutionExpiresAt: "" }, now)).toBe("outdated");
+    expect(parseResolutionExpiresAt("2026-10-01T00:00:00Z")).toBe(now);
   });
 
   it("creates clickable issue links from configured templates", () => {
@@ -269,13 +269,13 @@ describe("resolution rules", () => {
     const outdated = {
       resolution: "muted",
       comment: "Expired mute",
-      dueDate: "2000-01-01T00:00:00Z",
+      expiresAt: "2000-01-01T00:00:00Z",
       testCaseId: ["tc-deadline"],
     } as const;
     const active = {
       ...outdated,
       comment: "Active mute",
-      dueDate: "2999-01-01T00:00:00Z",
+      expiresAt: "2999-01-01T00:00:00Z",
     } as const;
     const accepted = {
       resolution: "accepted",
@@ -292,7 +292,7 @@ describe("resolution rules", () => {
       isIgnoredFailure({
         ...result,
         resolution: outdated.resolution,
-        resolutionDueDate: outdated.dueDate,
+        resolutionExpiresAt: outdated.expiresAt,
       }),
     ).toBe(false);
   });
@@ -310,8 +310,8 @@ describe("resolution config validation", () => {
   });
 
   it.each(["2026-10-01T10:30:00+02:00", "2026-10-01T08:30:00Z"])(
-    "accepts JavaScript-compatible muted due date %s",
-    (dueDate) => {
+    "accepts JavaScript-compatible muted expiration timestamp %s",
+    (expiresAt) => {
       expect(() =>
         validateResolutionsConfig({
           rules: [
@@ -319,7 +319,7 @@ describe("resolution config validation", () => {
               resolution: "muted",
               comment: "Temporary noise",
               retryHash: ["hash"],
-              dueDate,
+              expiresAt,
             },
           ],
         }),
@@ -336,15 +336,15 @@ describe("resolution config validation", () => {
     "2026-10-01T24:00:00Z",
     "2999",
     "not-a-date",
-  ])("rejects invalid muted due date %j", (dueDate) => {
+  ])("rejects invalid muted expiration timestamp %j", (expiresAt) => {
     expect(() =>
       validateResolutionsConfig({
-        rules: [{ resolution: "muted", comment: "Temporary noise", retryHash: ["hash"], dueDate }],
+        rules: [{ resolution: "muted", comment: "Temporary noise", retryHash: ["hash"], expiresAt }],
       }),
-    ).toThrow(/dueDate must be a JavaScript-compatible ISO 8601 timestamp with an explicit timezone/);
+    ).toThrow(/expiresAt must be a JavaScript-compatible ISO 8601 timestamp with an explicit timezone/);
   });
 
-  it("allows due dates only for muted resolutions", () => {
+  it("allows expiration timestamps only for muted resolutions", () => {
     expect(() =>
       validateResolutionsConfig({
         rules: [
@@ -352,11 +352,11 @@ describe("resolution config validation", () => {
             resolution: "accepted",
             comment: "Accepted risk",
             retryHash: ["hash"],
-            dueDate: "2026-10-01T10:30:00Z",
+            expiresAt: "2026-10-01T10:30:00Z",
           },
         ],
       }),
-    ).toThrow(/dueDate is only supported for muted resolutions/);
+    ).toThrow(/expiresAt is only supported for muted resolutions/);
   });
 
   it("requires issue link type to exist", () => {

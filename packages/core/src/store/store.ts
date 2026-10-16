@@ -512,10 +512,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.resolution = rule.resolution;
     testResult.resolutionComment = rule.comment;
-    delete testResult.resolutionDueDate;
+    delete testResult.resolutionExpiresAt;
 
-    if (rule.resolution === "muted" && rule.dueDate !== undefined) {
-      testResult.resolutionDueDate = rule.dueDate;
+    if (rule.resolution === "muted" && rule.expiresAt !== undefined) {
+      testResult.resolutionExpiresAt = rule.expiresAt;
     }
 
     if (rule.resolution === "issue") {
@@ -1800,7 +1800,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     for (const testResult of this.#testResults.values()) {
       delete testResult.resolution;
       delete testResult.resolutionComment;
-      delete testResult.resolutionDueDate;
+      delete testResult.resolutionExpiresAt;
     }
 
     const normalizedEnvironments = environments
@@ -1868,7 +1868,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#removeResolutionIssueAssociation(testResult.id);
       delete testResult.resolution;
       delete testResult.resolutionComment;
-      delete testResult.resolutionDueDate;
+      delete testResult.resolutionExpiresAt;
       this.#testResults.set(testResult.id, testResult);
       const envId = this.#environmentIdByTestResult(testResult);
 

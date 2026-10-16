@@ -572,7 +572,7 @@ describe("AgentPlugin", () => {
       retryHash: "muted-resolution",
       status: "failed",
       resolution: "muted",
-      resolutionDueDate: "2000-01-01T00:00:00Z",
+      resolutionExpiresAt: "2000-01-01T00:00:00Z",
     });
     const store = createStore({
       allTestResults: vi.fn().mockResolvedValue([testResult]),
@@ -584,7 +584,7 @@ describe("AgentPlugin", () => {
     const testContent = await readText(join(outputDir, "tests", "default", "muted-resolution.md"), "text/markdown");
 
     expect(testContent).toContain("Resolution: muted");
-    expect(testContent).toContain("Resolution Due Date: 2000-01-01T00:00:00Z");
+    expect(testContent).toContain("Resolution Expires At: 2000-01-01T00:00:00Z");
     expect(testContent).toContain("Resolution State: outdated");
   });
 

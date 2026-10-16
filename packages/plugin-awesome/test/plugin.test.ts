@@ -370,7 +370,7 @@ describe("plugin", () => {
           name: "outdated muted test",
           status: "failed",
           resolution: "muted",
-          resolutionDueDate: "2000-01-01T00:00:00Z",
+          resolutionExpiresAt: "2000-01-01T00:00:00Z",
           labels: [],
         },
         {

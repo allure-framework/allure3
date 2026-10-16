@@ -31,7 +31,7 @@ export interface IgnoredResolutionRule extends ResolutionMatcher {
    * the mute is permanent.
    * Only supported when `resolution` is `"muted"`.
    */
-  dueDate?: string;
+  expiresAt?: string;
 }
 
 export interface MutedResolutionRule extends IgnoredResolutionRule {
@@ -44,9 +44,9 @@ export interface AcceptedResolutionRule extends IgnoredResolutionRule {
 
 export type ResolutionRule = IssueResolutionRule | IgnoredResolutionRule;
 
-type ResolutionStateSource = Pick<TestResult, "resolution" | "resolutionDueDate">;
+type ResolutionStateSource = Pick<TestResult, "resolution" | "resolutionExpiresAt">;
 
-export const parseResolutionDueDate = (value: string): number | undefined => {
+export const parseResolutionExpiresAt = (value: string): number | undefined => {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(value);
 
   if (!match) {
@@ -89,13 +89,13 @@ export const getMutedResolutionState = (
     return undefined;
   }
 
-  if (testResult.resolutionDueDate === undefined) {
+  if (testResult.resolutionExpiresAt === undefined) {
     return "permanent";
   }
 
-  const dueDate = parseResolutionDueDate(testResult.resolutionDueDate);
+  const expiresAt = parseResolutionExpiresAt(testResult.resolutionExpiresAt);
 
-  return dueDate === undefined || now >= dueDate ? "outdated" : "active";
+  return expiresAt === undefined || now >= expiresAt ? "outdated" : "active";
 };
 
 export const isIgnoredResolution = (testResult: ResolutionStateSource, now = Date.now()): boolean =>
