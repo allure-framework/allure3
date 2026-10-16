@@ -47,6 +47,11 @@ export type QualityGateRule<T = unknown, K = T> = {
   validate: (payload: {
     expected: T;
     trs: TestResult[];
+    /**
+     * Test results which have been left out of `trs` (e.g. by the rule set filter or because they are ignored
+     * failures). Rules which accumulate state across calls use them to forget tests whose latest attempt is excluded.
+     */
+    excluded?: TestResult[];
     state: QualityGateRuleState;
     metrics?: MetricSample[];
     previousHistory?: QualityGateMetricHistoryPoint[];

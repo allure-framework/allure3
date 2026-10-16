@@ -52,6 +52,17 @@ beforeEach(async () => {
   vi.clearAllMocks();
 });
 
+const createStatefulState = () => {
+  let value: unknown;
+
+  return {
+    getResult: () => value,
+    setResult: (next: unknown) => {
+      value = next;
+    },
+  };
+};
+
 describe("maxFailuresRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
@@ -75,7 +86,7 @@ describe("maxFailuresRule", () => {
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
     expect(result.testResults).toEqual(["3"]);
-    expect(setState).toHaveBeenCalledWith(1, ["3"]);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), ["3"]);
   });
 
   it("should fail when failures count is greater than expected", async () => {
@@ -94,7 +105,7 @@ describe("maxFailuresRule", () => {
     expect(result.success).toBe(false);
     expect(result.actual).toBe(2);
     expect(result.testResults).toEqual(["2", "3"]);
-    expect(setState).toHaveBeenCalledWith(2, ["2", "3"]);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), ["2", "3"]);
   });
 
   it("should count an unresolved failure", async () => {
@@ -114,6 +125,130 @@ describe("maxFailuresRule", () => {
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
     expect(result.testResults).toEqual(["1"]);
+  });
+
+  describe("with framework-level retries", () => {
+    it("should count several failed attempts of the same test once", async () => {
+      const state = createStatefulState();
+      const first = await maxFailuresRule.validate({
+        trs: [createTestResult("1", "failed", "foo")],
+        expected: 1,
+        state,
+      });
+      const second = await maxFailuresRule.validate({
+        trs: [createTestResult("2", "failed", "foo"), createTestResult("3", "failed", "foo")],
+        expected: 1,
+        state,
+      });
+
+      expect(first.actual).toBe(1);
+      expect(second.actual).toBe(1);
+      expect(second.success).toBe(true);
+    });
+
+    it("should not count a test that passed on a later attempt", async () => {
+      const state = createStatefulState();
+
+      await maxFailuresRule.validate({ trs: [createTestResult("1", "failed", "foo")], expected: 0, state });
+      const result = await maxFailuresRule.validate({
+        trs: [createTestResult("2", "passed", "foo")],
+        expected: 0,
+        state,
+      });
+
+      expect(result.actual).toBe(0);
+      expect(result.success).toBe(true);
+    });
+
+    it("should still count different tests separately", async () => {
+      const state = createStatefulState();
+      const result = await maxFailuresRule.validate({
+        trs: [createTestResult("1", "failed", "foo"), createTestResult("2", "failed", "bar")],
+        expected: 1,
+        state,
+      });
+
+      expect(result.actual).toBe(2);
+      expect(result.success).toBe(false);
+    });
+  });
+});
+
+describe("rules with framework-level retries", () => {
+  it("should treat attempts of one test as a single test in minTestsCount", async () => {
+    const state = createStatefulState();
+
+    await minTestsCountRule.validate({ trs: [createTestResult("1", "failed", "foo")], expected: 2, state });
+    const result = await minTestsCountRule.validate({
+      trs: [createTestResult("2", "passed", "foo"), createTestResult("3", "passed", "bar")],
+      expected: 2,
+      state,
+    });
+
+    expect(result.actual).toBe(2);
+    expect(result.success).toBe(true);
+  });
+
+  it("should use the latest attempt of a retried test in successRate", async () => {
+    const state = createStatefulState();
+
+    await successRateRule.validate({ trs: [createTestResult("1", "failed", "foo")], expected: 1, state });
+    const result = await successRateRule.validate({
+      trs: [createTestResult("2", "passed", "foo")],
+      expected: 1,
+      state,
+    });
+
+    expect(result.actual).toBe(1);
+    expect(result.success).toBe(true);
+  });
+
+  it("should use the duration of the latest attempt in maxDuration", async () => {
+    const state = createStatefulState();
+
+    await maxDurationRule.validate({
+      trs: [{ ...createTestResult("1", "failed", "foo", 5000), stop: 1 }],
+      expected: 1000,
+      state,
+    });
+    const result = await maxDurationRule.validate({
+      trs: [{ ...createTestResult("2", "passed", "foo", 100), stop: 2 }],
+      expected: 1000,
+      state,
+    });
+
+    expect(result.actual).toBe(100);
+  });
+
+  it("should ignore an older attempt which arrives after a newer one", async () => {
+    const state = createStatefulState();
+
+    await maxFailuresRule.validate({
+      trs: [{ ...createTestResult("2", "passed", "foo"), stop: 2 }],
+      expected: 0,
+      state,
+    });
+    const result = await maxFailuresRule.validate({
+      trs: [{ ...createTestResult("1", "failed", "foo"), stop: 1 }],
+      expected: 0,
+      state,
+    });
+
+    expect(result.actual).toBe(0);
+    expect(result.success).toBe(true);
+  });
+
+  it("should not merge the same test from different environments", async () => {
+    const result = await maxFailuresRule.validate({
+      trs: [
+        createTestResult("1", "failed", "foo", undefined, "a"),
+        createTestResult("2", "failed", "foo", undefined, "b"),
+      ],
+      expected: 1,
+      state: createStatefulState(),
+    });
+
+    expect(result.actual).toBe(2);
   });
 });
 
@@ -139,7 +274,7 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(3);
-    expect(setState).toHaveBeenCalledWith(3, []);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), []);
   });
 
   it("should fail when test count is less than expected", async () => {
@@ -153,7 +288,7 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
-    expect(setState).toHaveBeenCalledWith(1, []);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), []);
   });
 });
 
@@ -183,7 +318,7 @@ describe("newTestsRule", () => {
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2);
     expect(result.testResults).toEqual(["1", "3"]);
-    expect(setState).toHaveBeenCalledWith(2, ["1", "3"]);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), ["1", "3"]);
   });
 
   it("should fail when there are no new tests", async () => {
@@ -200,21 +335,19 @@ describe("newTestsRule", () => {
     expect(result.success).toBe(false);
     expect(result.actual).toBe(0);
     expect(result.testResults).toEqual([]);
-    expect(setState).toHaveBeenCalledWith(0, []);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), []);
   });
 
   it("should keep passing when previous batches already found new tests", async () => {
-    let count = 1;
-    const accumulatedState: QualityGateRuleState<number> = {
-      getResult: () => count,
-      setResult: (value, testResults) => {
-        count = value;
-        setState(value, testResults);
-      },
-    };
-    const testResults: TestResult[] = [{ ...createTestResult("1", "passed"), transition: "fixed" }];
+    const accumulatedState = createStatefulState();
+
+    await newTestsRule.validate({
+      trs: [{ ...createTestResult("1", "passed"), transition: "new" }],
+      expected: true,
+      state: accumulatedState,
+    });
     const result = await newTestsRule.validate({
-      trs: testResults,
+      trs: [{ ...createTestResult("2", "passed"), transition: "fixed" }],
       expected: true,
       state: accumulatedState,
     });
@@ -222,19 +355,25 @@ describe("newTestsRule", () => {
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
     expect(result.testResults).toEqual([]);
-    expect(setState).toHaveBeenCalledWith(1, []);
+  });
+
+  it("should count several attempts of the same new test once", async () => {
+    const result = await newTestsRule.validate({
+      trs: [
+        { ...createTestResult("1", "failed", "foo"), transition: "new" },
+        { ...createTestResult("2", "passed", "foo"), transition: "new" },
+      ],
+      expected: true,
+      state: createStatefulState(),
+    });
+
+    expect(result.actual).toBe(1);
   });
 });
 
 describe("successRateRule", () => {
   it("excludes skipped and unknown across batches and from failure evidence", async () => {
-    let counts = { totalCount: 0, passedCount: 0 };
-    const state = {
-      getResult: () => counts,
-      setResult: (value: typeof counts) => {
-        counts = value;
-      },
-    };
+    const state = createStatefulState();
     const first = await successRateRule.validate({
       trs: [createTestResult("pass", "passed"), createTestResult("skip", "skipped")],
       expected: 1,
@@ -247,7 +386,6 @@ describe("successRateRule", () => {
       state,
     });
     expect(second).toMatchObject({ success: false, actual: 0.5, testResults: ["broken"] });
-    expect(counts).toEqual({ totalCount: 2, passedCount: 1 });
   });
 
   it("fails a positive threshold when all results are excluded", async () => {
@@ -260,8 +398,8 @@ describe("successRateRule", () => {
   });
 
   const setState = vi.fn();
-  const state: QualityGateRuleState<{ totalCount: number; passedCount: number }> = {
-    getResult: () => ({ totalCount: 0, passedCount: 0 }),
+  const state: QualityGateRuleState<unknown> = {
+    getResult: () => undefined,
     setResult: (value, testResults) => setState(value, testResults),
   };
 
@@ -281,7 +419,7 @@ describe("successRateRule", () => {
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
     expect(result.testResults).toEqual(["3"]);
-    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 2 }, ["3"]);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), ["3"]);
   });
 
   it("should fail when success rate is less than expected", async () => {
@@ -300,7 +438,7 @@ describe("successRateRule", () => {
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
     expect(result.testResults).toEqual(["2", "3"]);
-    expect(setState).toHaveBeenCalledWith({ totalCount: 3, passedCount: 1 }, ["2", "3"]);
+    expect(setState).toHaveBeenCalledWith(expect.any(Object), ["2", "3"]);
   });
 
   it("should fail empty suite with zero success rate", async () => {
