@@ -1,4 +1,4 @@
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
 

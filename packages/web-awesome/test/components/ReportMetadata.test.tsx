@@ -49,7 +49,7 @@ vi.mock("@/stores/locale", async (importOriginal) => {
   };
 });
 
-vi.mock("@allurereport/web-components", () => {
+vi.mock("@allurereport/web-components/core", () => {
   const Menu = Object.assign(
     (props: { children: unknown; menuTrigger: (props: { onClick: () => void }) => unknown }) => (
       <>

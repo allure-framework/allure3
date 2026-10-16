@@ -21,7 +21,7 @@ vi.mock("@/components/ReportFilters/BaseFilters", () => ({
   },
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   allureIcons: new Proxy({} as Record<string, string>, {
     get: (_target, key) => String(key),
   }),

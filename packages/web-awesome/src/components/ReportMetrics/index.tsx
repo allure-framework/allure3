@@ -1,4 +1,4 @@
-import { ArrowButton, Loadable, PageLoader } from "@allurereport/web-components";
+import { ArrowButton, Loadable, PageLoader } from "@allurereport/web-components/core";
 import { filesize } from "filesize";
 import { Fragment } from "preact";
 import { useState } from "preact/hooks";

@@ -1,7 +1,7 @@
 import type { CategoryNode, CategoryNodeProps, Statistic, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
-import { ArrowButton, Button, Code, TreeStatusBar } from "@allurereport/web-components";
+import { ArrowButton, Button, Code, TreeStatusBar } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";

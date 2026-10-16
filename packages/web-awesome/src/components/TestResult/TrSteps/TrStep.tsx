@@ -5,7 +5,7 @@ import {
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import { allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 

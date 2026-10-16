@@ -1,4 +1,4 @@
-import { Button } from "@allurereport/web-components";
+import { Button } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 

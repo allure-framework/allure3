@@ -7,7 +7,7 @@ vi.mock("@/components/Footer/FooterLogo", () => ({
   FooterLogo: () => <div data-testid="footer-logo" />,
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   LanguagePicker: () => <div data-testid="footer-language-picker" />,
 }));
 

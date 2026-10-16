@@ -1,4 +1,4 @@
-import { Counter, Loadable } from "@allurereport/web-components";
+import { Counter, Loadable } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { useEffect } from "preact/hooks";
 
