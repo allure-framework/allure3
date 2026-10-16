@@ -44,6 +44,8 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
     "vitest": "catalog:"
   }
 }
