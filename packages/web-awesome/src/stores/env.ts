@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ENVIRONMENT,
   type EnvironmentIdentity,
   type TestEnvGroup,
   type TestResult,
@@ -11,7 +12,7 @@ import {
   migrateStoredEnvironmentSelection,
   normalizeEnvironmentsWidget,
 } from "@allurereport/web-commons";
-import { effect, signal } from "@preact/signals";
+import { computed, effect, signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
@@ -38,6 +39,19 @@ export const setCurrentEnvironment = (env: string) => {
 
 export const environmentNameById = (environmentId: string) =>
   resolveEnvironmentNameById(environmentsStore.peek().data, environmentId);
+
+/**
+ * Environment id of the bucket holding the report data which isn't bound to an environment.
+ *
+ * Such data is indexed under the default environment, so that bucket is shared by every environment
+ * - unless the report declares `default` as an environment of its own, in which case the bucket
+ * holds entries specific to it and there is nothing shared, hence `null`.
+ */
+export const sharedEnvironmentId = computed<string | null>(() =>
+  environmentsStore.value.data.some(({ id, configured }) => id === DEFAULT_ENVIRONMENT && configured)
+    ? null
+    : DEFAULT_ENVIRONMENT,
+);
 
 export const testEnvGroupId = (testResult?: Pick<TestResult, "testCaseHash" | "parametersHash">) =>
   testResult &&
