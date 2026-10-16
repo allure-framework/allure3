@@ -7,10 +7,11 @@ import { KnownError } from "@allurereport/service";
 
 import { logError } from "../logs.js";
 import type {
+  InterruptionLevel,
   JobMonitor,
+  ProcessGroupCompletion,
   ProcessStartupInfo,
   RootCompletion,
-  ProcessCompletion,
   SupervisedCommandOptions,
 } from "./model.js";
 
@@ -30,12 +31,14 @@ export abstract class ProcessSupervisorBase {
   #stdout: string = "";
   #stderr: string = "";
 
-  #completionPromise: Promise<ProcessCompletion> | undefined;
+  #completionPromise: Promise<ProcessGroupCompletion> | undefined;
   #stopPromise: Promise<void> | undefined;
   #terminationPromise: Promise<void> | undefined;
 
   #started: boolean = false;
   #completed: boolean = false;
+
+  #interrupted: InterruptionLevel | undefined;
 
   constructor(
     command: string,
@@ -90,6 +93,10 @@ export abstract class ProcessSupervisorBase {
 
   get completed(): boolean {
     return this.#completed;
+  }
+
+  get interrupted(): InterruptionLevel | undefined {
+    return this.#interrupted;
   }
 
   get stdout(): Promise<string> {
@@ -193,7 +200,7 @@ export abstract class ProcessSupervisorBase {
 
       this.#completed = true;
 
-      return { code, signal };
+      return { code, signal, externalInterruption: this.#interrupted };
     });
   }
 
@@ -220,6 +227,14 @@ export abstract class ProcessSupervisorBase {
   protected abstract requestRootStop(signal: AbortSignal): void | Promise<void>;
   protected abstract requestTermination(): void | Promise<void>;
   protected abstract getStartupInfo(): ProcessStartupInfo | undefined;
+
+  protected reportInterruption() {
+    this.#interrupted = "stopped";
+  }
+
+  protected reportForcedInterruption() {
+    this.#interrupted = "terminated";
+  }
 
   private resolveTargetEnvironment() {
     const configuredEnvironment = {

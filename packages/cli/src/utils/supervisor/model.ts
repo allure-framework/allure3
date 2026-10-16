@@ -12,9 +12,15 @@ export type ProcessStartupInfo = {
   pid: number;
 };
 
+export type InterruptionLevel = "stopped" | "terminated";
+
 export type ProcessCompletion = {
   code: number | null;
   signal: NodeJS.Signals | null;
+};
+
+export type ProcessGroupCompletion = ProcessCompletion & {
+  externalInterruption: "stopped" | "terminated" | undefined;
 };
 
 export type JobMonitor = {
