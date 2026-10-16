@@ -260,14 +260,14 @@ describe("components > ResolutionCategories", () => {
     expect(screen.getByTestId("resolution-state")).toHaveAttribute("data-skin", "warning-light");
   });
 
-  it("should render outdated muted resolution state and due date metadata", () => {
+  it("should render outdated muted resolution state and expiration metadata", () => {
     const testResult = {
       id: "tr-outdated",
       name: "checkout fails",
       status: "failed",
       resolution: "muted",
       resolutionComment: "Waiting for upstream fix",
-      resolutionDueDate: "2000-01-01T00:00:00Z",
+      resolutionExpiresAt: "2000-01-01T00:00:00Z",
       resolutionState: "outdated",
     } as ReportTestResult;
 

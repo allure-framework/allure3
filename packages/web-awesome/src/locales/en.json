@@ -77,7 +77,7 @@
         "outdated": "Outdated",
         "permanent": "Muted forever",
         "outdatedDescription": "The mute deadline passed on {{timestamp, timestamp_long_no_seconds}}. This failure is no longer ignored.",
-        "permanentDescription": "No due date is set. This failure will be ignored indefinitely and may hide a future problem."
+        "permanentDescription": "No expiration is set. This failure will be ignored indefinitely and may hide a future problem."
       }
     }
   },

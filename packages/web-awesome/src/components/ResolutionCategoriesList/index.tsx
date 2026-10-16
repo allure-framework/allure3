@@ -1,4 +1,4 @@
-import { parseResolutionDueDate, sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
+import { parseResolutionExpiresAt, sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
 import { ArrowButton, SvgIcon, Tag, Text, TreeItem, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
@@ -71,18 +71,18 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const linkName = group.issue?.link?.name ?? title;
   const accessibleName = safeIssueUrl ? linkName : title;
   const subtitle = group.comment ?? group.issue?.comment;
-  const dueDateTimestamp = group.dueDate === undefined ? undefined : parseResolutionDueDate(group.dueDate);
+  const expirationTimestamp = group.expiresAt === undefined ? undefined : parseResolutionExpiresAt(group.expiresAt);
   const resolutionStateLabel =
-    group.resolutionState === "active" && dueDateTimestamp !== undefined
-      ? t("resolutions.state.active", { timestamp: dueDateTimestamp })
+    group.resolutionState === "active" && expirationTimestamp !== undefined
+      ? t("resolutions.state.active", { timestamp: expirationTimestamp })
       : group.resolutionState
         ? t(`resolutions.state.${group.resolutionState}`)
         : undefined;
   const resolutionStateDescription =
     group.resolutionState === "permanent"
       ? t("resolutions.state.permanentDescription")
-      : group.resolutionState === "outdated" && dueDateTimestamp !== undefined
-        ? t("resolutions.state.outdatedDescription", { timestamp: dueDateTimestamp })
+      : group.resolutionState === "outdated" && expirationTimestamp !== undefined
+        ? t("resolutions.state.outdatedDescription", { timestamp: expirationTimestamp })
         : undefined;
   const resolutionStateSkin =
     group.resolutionState === "outdated"

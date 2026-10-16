@@ -53,7 +53,7 @@ export const convertTestResult = (
     known: tr.known,
     resolution: tr.resolution,
     resolutionComment: tr.resolutionComment,
-    resolutionDueDate: tr.resolutionDueDate,
+    resolutionExpiresAt: tr.resolutionExpiresAt,
     resolutionState: getMutedResolutionState(tr, options.resolutionEvaluatedAt),
     isRetry: tr.isRetry,
     labels,

@@ -740,14 +740,14 @@ describe("generateResolutionCategories", () => {
         ...mockTestResult("tr-outdated-muted", "outdated muted failure", "failed"),
         resolution: "muted",
         resolutionComment: "Muted while infra is unstable",
-        resolutionDueDate: "2000-01-01T00:00:00Z",
+        resolutionExpiresAt: "2000-01-01T00:00:00Z",
         resolutionState: "outdated",
       } as ReportTestResult,
       {
         ...mockTestResult("tr-equivalent-outdated-muted", "equivalent outdated muted failure", "failed"),
         resolution: "muted",
         resolutionComment: "Muted while infra is unstable",
-        resolutionDueDate: "2000-01-01T02:00:00+02:00",
+        resolutionExpiresAt: "2000-01-01T02:00:00+02:00",
         resolutionState: "outdated",
       } as ReportTestResult,
       {
@@ -808,7 +808,7 @@ describe("generateResolutionCategories", () => {
           resolution: "muted",
           name: "Muted while infra is unstable",
           comment: "Muted while infra is unstable",
-          dueDate: "2000-01-01T00:00:00Z",
+          expiresAt: "2000-01-01T00:00:00Z",
           resolutionState: "outdated",
           issue: undefined,
           testResults: [

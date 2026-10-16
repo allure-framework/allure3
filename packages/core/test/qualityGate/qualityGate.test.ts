@@ -644,12 +644,12 @@ describe("QualityGate", () => {
           {
             ...createTestResult("active-muted", "failed"),
             resolution: "muted",
-            resolutionDueDate: "2999-01-01T00:00:00Z",
+            resolutionExpiresAt: "2999-01-01T00:00:00Z",
           },
           {
             ...createTestResult("outdated-muted", "failed"),
             resolution: "muted",
-            resolutionDueDate: "2000-01-01T00:00:00Z",
+            resolutionExpiresAt: "2000-01-01T00:00:00Z",
           },
           { ...createTestResult("issue", "failed"), resolution: "issue" },
           createTestResult("unresolved", "broken"),

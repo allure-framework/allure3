@@ -13,14 +13,14 @@ export const TrResolutionCategoriesView: FunctionalComponent<TrViewProps> = ({ t
           id: [
             testResult.resolution,
             testResult.resolutionIssue?.id ?? testResult.id,
-            testResult.resolution === "muted" ? (testResult.resolutionDueDate ?? "forever") : undefined,
+            testResult.resolution === "muted" ? (testResult.resolutionExpiresAt ?? "forever") : undefined,
           ]
             .filter(Boolean)
             .join(":"),
           resolution: testResult.resolution,
           name: testResult.resolutionIssue?.id ?? testResult.resolution,
           comment: testResult.resolutionComment ?? testResult.resolutionIssue?.comment,
-          dueDate: testResult.resolutionDueDate,
+          expiresAt: testResult.resolutionExpiresAt,
           resolutionState: testResult.resolutionState,
           issue: testResult.resolutionIssue,
           testResults: [],
