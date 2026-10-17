@@ -28,25 +28,12 @@ jobs:
     name: Lint
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Build project
+        uses: ./.github/actions/build
         with:
-          node-version: "24.14.x"
-          cache: "yarn"
-      - name: Install dependencies
-        timeout-minutes: 10
-        run: yarn install --immutable --immutable-cache --check-cache
-      - &uses-build-cache
-        name: Cache build outputs
-        id: build-cache
-        uses: actions/cache@v5
-        with:
-          path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'vite.config.*', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/vite.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
-      - &uses-build
-        name: Build the project
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
+          save-cache: "true"
       - name: Lint Project
         run: yarn lint
       - name: Check formatting
@@ -63,38 +50,30 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
-      - &uses-node-setup
-        uses: actions/setup-node@v6
+      - name: Checkout project
+        uses: actions/checkout@v7
+      - name: Build project
+        uses: ./.github/actions/build
+        id: build
         with:
-          node-version: "24.14.x"
-          cache: '' # all dependencies are already committed in repository, skip unnecessary global folder cache
-      - &uses-yarn-install
-        name: Install dependencies
-        env:
-          # use lint job as a gate for dependency tampering detection
-          YARN_ENABLE_HARDENED_MODE: "0"
-          # ensure no cross drive links are being created (windows runners fail otherwise because global folder is on different disk)
-          YARN_GLOBAL_FOLDER: ${{ github.workspace }}/.yarn/ci-global
-        run: yarn install --immutable --immutable-cache
-      - *uses-build-cache
-      - *uses-build
-      - name: Install playwright for static server
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/static-server playwright install chromium
-      - name: Install playwright for e2e
-        timeout-minutes: 15
-        run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
-      - name: Install playwright for Allure 2 web
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/web-allure2 playwright install chromium
-      - name: Install playwright dependencies for e2e
-        timeout-minutes: 10
-        run: yarn workspace @allurereport/e2e playwright install-deps
+          yarn-hardened-mode: "0"
+          cache-type: test
+      - parallel:
+          - name: Install Playwright browsers
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install chromium firefox webkit
+          - name: Install playwright dependencies for e2e
+            timeout-minutes: 5
+            run: yarn workspace @allurereport/common-config playwright install-deps
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
+      - name: Save Vite Task cache
+        uses: actions/cache/save@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.build.outputs.cache-key }}
       - name: Upload test results
         timeout-minutes: 10
         uses: actions/upload-artifact@v7
@@ -104,7 +83,7 @@ jobs:
           path: ./allure-results-${{ matrix.os }}.zip
       - name: Upload blob reports
         uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() }}
+        if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() }}
         with:
           name: vitest-blobs-${{ matrix.os }}
           path: packages/*/.vitest/blob/*.json
@@ -120,25 +99,26 @@ jobs:
       contents: read
       code-quality: write
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout project
+        uses: actions/checkout@v7
+      - name: Set up node and install dependencies
+        uses: ./.github/actions/install
+        with:
+          yarn-hardened-mode: "0"
       - name: Download vitest blob reports
         uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: vitest-blobs-*
           path: ./
-      - *uses-node-setup
-      - *uses-yarn-install
-      - *uses-build-cache
-      - *uses-build
       - name: Generate test coverage report
         env:
-          VITEST_BLOB_PATTERN: vitest-blobs-*/*/.vitest/blob/*.json
+          VITEST_BLOB_PATTERN: "**/.vitest/blob/*.json"
         run: yarn coverage
       - name: Publish code coverage
         uses: clearlyip/code-coverage-report-action@v7
         with:
-          filename: packages/test-config/.vitest/coverage/cobertura-coverage.xml
+          filename: packages/common-config/.vitest/coverage/cobertura-coverage.xml
           badge: true
           togglable-report: true
           report-low-coverage-only: true
@@ -162,7 +142,8 @@ jobs:
       ALLURE_ENDPOINT: ${{ secrets.ALLURE_ENDPOINT }}
       ALLURE_LAUNCH_TAGS: "${{ secrets.ALLURE_LAUNCH_TAGS }}, ${{ github.event_name }}"
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout project
+        uses: actions/checkout@v7
       - name: Download allure results
         timeout-minutes: 10
         uses: actions/download-artifact@v8
@@ -170,10 +151,10 @@ jobs:
         with:
           pattern: allure-results-*
           path: ./
-      - *uses-node-setup
-      - *uses-yarn-install
-      - *uses-build-cache
-      - *uses-build
+      - name: Build project
+        uses: ./.github/actions/build
+        with:
+          yarn-hardened-mode: "0"
       - name: Measure report generation
         env:
           ALLURE_PERF_METRICS: "1"

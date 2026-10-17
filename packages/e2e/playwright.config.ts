@@ -1,6 +1,8 @@
+import { defaultPlaywrightConfig } from "@allurereport/common-config/playwright";
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
+  ...defaultPlaywrightConfig({ issueLinks: true }),
   testDir: "./test",
   timeout: 30_000,
   expect: {
@@ -38,25 +40,6 @@ export default defineConfig({
       name: "safari",
       use: { ...devices["Desktop Safari"] },
     },
-  ],
-  reporter: [
-    ["line"],
-    [
-      "allure-playwright",
-      {
-        resultsDir: "./out/allure-results",
-        globalLabels: [
-          { name: "module", value: "e2e" },
-          { name: "type", value: "playwright" },
-        ],
-        links: {
-          issue: {
-            urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
-            nameTemplate: "Issue #%s",
-          },
-        },
-      },
-    ],
   ],
   use: {
     trace: "retain-on-failure",

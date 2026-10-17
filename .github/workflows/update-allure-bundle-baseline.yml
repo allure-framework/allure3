@@ -137,13 +137,8 @@ jobs:
           ref: ${{ needs.gate.outputs.head_sha }}
           persist-credentials: false
 
-      - name: Install deps
-        run: |
-          corepack enable >/dev/null 2>&1 || true
-          yarn install --immutable
-
-      - name: Build
-        run: yarn build
+      - name: Build project
+        uses: ./.github/actions/build
 
       - name: Update baseline
         id: measure
