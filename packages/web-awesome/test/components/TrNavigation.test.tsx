@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import type { ReportTestResult } from "types";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(

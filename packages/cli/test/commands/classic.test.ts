@@ -6,7 +6,7 @@ import ClassicPlugin from "@allurereport/plugin-classic";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ClassicCommand } from "../../src/commands/classic.js";
 

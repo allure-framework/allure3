@@ -4,7 +4,7 @@ import { dirname } from "node:path";
 import { type TestResult } from "@allurereport/core-api";
 import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vite-plus/test";
 
 import { CsvPlugin } from "../src/plugin.js";
 

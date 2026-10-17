@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, it } from "vitest";
+import { beforeEach, it } from "vite-plus/test";
 
 beforeEach(async () => {
   await story("index");

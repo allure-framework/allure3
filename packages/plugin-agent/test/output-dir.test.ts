@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { AgentUsageError } from "../src/errors.js";
 import { assertExplicitAgentOutputDirIsSafe } from "../src/output-dir.js";

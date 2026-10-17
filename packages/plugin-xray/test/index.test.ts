@@ -2,7 +2,7 @@ import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
 import axios from "axios";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { collectStatuses, DEFAULT_STATUSES, getTestKey, mergeStatus } from "../src/helpers.js";
 import { XrayPlugin, type XrayPluginOptions } from "../src/plugin.js";

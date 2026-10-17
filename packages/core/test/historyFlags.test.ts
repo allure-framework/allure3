@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { type HistoryDataPoint, type TestResult, calculateRetryHash, md5Utf8 } from "@allurereport/core-api";
 import type { Plugin } from "@allurereport/plugin-api";
 import { epic, feature, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";

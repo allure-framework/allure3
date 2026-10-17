@@ -29,13 +29,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v6
-      - &uses-node-setup
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "24.14.x"
           cache: "yarn"
-      - &uses-yarn-install
-        name: Install dependencies
+      - name: Install dependencies
         timeout-minutes: 10
         run: yarn install --immutable --immutable-cache --check-cache
       - &uses-build-cache
@@ -44,7 +42,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: packages/*/dist
-          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.pnp.cjs', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
+          key: build-${{ runner.os }}-${{ runner.arch }}-node-24-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'vite.config.*', 'package.json', 'tsconfig*.json', 'scripts/pack-report-static.mjs', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'packages/*/*.d.ts', 'packages/*/.babelrc.*', 'packages/*/rollup.config.*', 'packages/*/vite.config.*', 'packages/*/webpack.config.*', 'packages/*/postcss.config.*', 'packages/*/src/**', 'packages/*/static/**') }}
       - &uses-build
         name: Build the project
         if: steps.build-cache.outputs.cache-hit != 'true'
@@ -66,8 +64,19 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
-      - *uses-node-setup
-      - *uses-yarn-install
+      - &uses-node-setup
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.14.x"
+          cache: '' # all dependencies are already committed in repository, skip unnecessary global folder cache
+      - &uses-yarn-install
+        name: Install dependencies
+        env:
+          # use lint job as a gate for dependency tampering detection
+          YARN_ENABLE_HARDENED_MODE: "0"
+          # ensure no cross drive links are being created (windows runners fail otherwise because global folder is on different disk)
+          YARN_GLOBAL_FOLDER: ${{ github.workspace }}/.yarn/ci-global
+        run: yarn install --immutable --immutable-cache
       - *uses-build-cache
       - *uses-build
       - name: Install playwright for static server

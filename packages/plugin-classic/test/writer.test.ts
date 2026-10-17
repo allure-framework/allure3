@@ -1,6 +1,6 @@
 import type { ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { InMemoryReportDataWriter } from "../src/writer.js";
 

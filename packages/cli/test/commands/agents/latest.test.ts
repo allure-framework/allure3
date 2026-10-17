@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { readLatestAgentState, resolveAgentStateDir } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AgentLatestCommand, AgentStateDirCommand } from "../../../src/commands/agents/index.js";
 

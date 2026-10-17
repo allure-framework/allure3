@@ -1,5 +1,5 @@
 import type { ReportTree, ReportTreeLeaf } from "types";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getUnresolvedStatusCounts } from "@/utils/statuses";
 

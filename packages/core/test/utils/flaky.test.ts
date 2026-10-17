@@ -1,6 +1,6 @@
 import type { HistoryTestResult, TestResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createFlakyDetector } from "../../src/utils/flaky.js";
 

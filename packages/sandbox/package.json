@@ -12,9 +12,9 @@
     "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
     "t": "yarn allure run -- vitest run",
-    "test": "vitest run",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "test": "vp test run",
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
     "@allurereport/plugin-awesome": "workspace:*",
@@ -27,8 +27,9 @@
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
-    "vite": "^8.0.9",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "packageManager": "yarn@4.3.1"
 }

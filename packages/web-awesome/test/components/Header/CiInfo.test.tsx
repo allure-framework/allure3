@@ -3,7 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import { h } from "preact";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

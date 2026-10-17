@@ -6,7 +6,7 @@ import { AllureReport, readConfig, stringifyQualityGateResults } from "@allurere
 import { KnownError } from "@allurereport/service";
 import { epic, feature, label, story } from "allure-js-commons";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../../src/commands/commons/generate.js";
 import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../../src/utils/cleanOutput.js";

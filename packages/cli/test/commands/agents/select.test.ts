@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { resolveAgentSelectionOutputDir, selectAgentTestPlan } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AgentSelectCommand } from "../../../src/commands/agents/index.js";
 

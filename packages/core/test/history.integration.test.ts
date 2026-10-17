@@ -6,7 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { attachment, epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const corePackageDir = resolve(testDir, "..");

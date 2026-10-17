@@ -14,7 +14,7 @@ import {
 } from "@allurereport/core-api";
 import { type AllureStore, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { generateCharts } from "../../src/charts/generators.js";
 

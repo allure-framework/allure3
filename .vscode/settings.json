@@ -9,7 +9,6 @@
   "oxc.typeAware": true,
   "eslint.enable": false,
   "oxc.enable.oxlint": true,
-  "js/ts.tsdk.path": ".yarn/sdks/typescript/lib",
-  "oxc.path.oxfmt": ".yarn/sdks/oxfmt/bin/oxfmt",
-  "oxc.path.oxlint": ".yarn/sdks/oxlint/bin/oxlint"
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "oxc.fmt.disableNestedConfig": true
 }
