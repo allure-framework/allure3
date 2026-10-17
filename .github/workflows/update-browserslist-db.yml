@@ -20,7 +20,6 @@ jobs:
     env:
       BASE_BRANCH: ${{ github.event.repository.default_branch }}
       GIT_COMMIT_AUTHOR: ${{ vars.ALLURE_CI_APP_SLUG }}[bot] <${{ vars.ALLURE_CI_APP_USER_ID }}+${{ vars.ALLURE_CI_APP_SLUG }}[bot]@users.noreply.github.com>
-      NODE_VERSION: "24.x"
       UPDATE_BRANCH: chore/update-browserslist-db
     steps:
       - name: Create GitHub App token
@@ -104,24 +103,15 @@ jobs:
             }
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "yarn"
-
-      - name: Install dependencies
-        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Build Project
+        uses: ./.github/actions/build
 
       - name: Update Browserslist DB
         run: yarn dlx -p update-browserslist-db@latest -p browserslist@latest update-browserslist-db
-
-      - name: Verify updated install
-        run: yarn install --immutable --immutable-cache --check-cache
 
       - name: Check for changes
         id: changes
@@ -132,10 +122,6 @@ jobs:
           else
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Build project
-        if: steps.changes.outputs.has_changes == 'true'
-        run: yarn build
 
       - name: Create or update pull request
         if: steps.changes.outputs.has_changes == 'true'

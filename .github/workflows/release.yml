@@ -41,14 +41,8 @@ jobs:
           git config --global user.name "${GIT_COMMIT_AUTHOR_NAME}"
           git config --global user.email "${GIT_COMMIT_AUTHOR_EMAIL}"
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
-
-      - name: "Yarn install"
-        run: |
-          yarn install --immutable --immutable-cache --check-cache
+      - name: Install dependencies
+        uses: ./.github/actions/install
 
       - name: "Set release version"
         run: |
