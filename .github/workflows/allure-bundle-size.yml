@@ -32,17 +32,8 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.x"
-          cache: "yarn"
-
-      - name: Install dependencies
-        timeout-minutes: 10
-        run: yarn install --immutable --immutable-cache --check-cache
-
-      - name: Build
-        run: yarn build
+      - name: Build project
+        uses: ./.github/actions/build
 
       - name: Enforce bundle size budgets (Self + Deps)
         id: budgets
