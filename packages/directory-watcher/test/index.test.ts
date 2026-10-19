@@ -21,7 +21,7 @@ describe("watchDirectory", () => {
 
     try {
       await mkdir(fixturesDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
 
   afterEach(async () => {

@@ -54,7 +54,7 @@ const match = (regex?: string, value?: string): boolean => {
   try {
     const b = new RegExp(regex, "s").test(value);
     return b;
-  } catch (ignored) {
+  } catch {
     return false;
   }
 };

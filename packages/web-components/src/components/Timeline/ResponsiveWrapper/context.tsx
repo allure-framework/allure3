@@ -13,11 +13,6 @@ export const useWidth = () => {
   return width;
 };
 
-export type Dimensions = {
-  width: number;
-  height: number;
-};
-
 export const WidthProvider: FunctionalComponent<{ width: number }> = (props) => {
   const { children, width } = props;
 

@@ -5,8 +5,6 @@ import Handlebars from "handlebars";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
-export type TemplateManifest = Record<string, string>;
-
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
 <head>
@@ -28,12 +26,6 @@ const template = `<!DOCTYPE html>
 </body>
 </html>
 `;
-
-export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
-};
 
 export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[] }) => {
   const compile = Handlebars.compile(template);

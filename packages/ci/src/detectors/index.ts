@@ -1,9 +1,0 @@
-export { amazon } from "./amazon.js";
-export { azure } from "./azure.js";
-export { bitbucket } from "./bitbucket.js";
-export { circle } from "./circle.js";
-export { drone } from "./drone.js";
-export { github } from "./github.js";
-export { gitlab } from "./gitlab.js";
-export { jenkins } from "./jenkins.js";
-export { local } from "./local.js";
