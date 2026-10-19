@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(

@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { attachment, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const localesDir = join(__dirname, "../src/locales");

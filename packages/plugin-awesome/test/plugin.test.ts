@@ -4,7 +4,7 @@ import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/c
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AllureCheckResult } from "../../core-api/src/model.js";
 import AwesomePlugin from "../src/index.js";

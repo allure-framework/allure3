@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 
 import { AllureServiceClient } from "../src/service.js";
 

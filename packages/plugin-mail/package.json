@@ -28,8 +28,8 @@
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
     "test:unit": "yarn test",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
@@ -40,12 +40,14 @@
     "@allurereport/test-config": "workspace:*",
     "@types/mjml": "^4",
     "@types/node": "^20",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

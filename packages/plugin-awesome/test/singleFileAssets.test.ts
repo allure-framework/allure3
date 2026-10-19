@@ -2,7 +2,7 @@ import { runInNewContext } from "node:vm";
 import { gunzipSync } from "node:zlib";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createSingleFileScripts } from "../src/singleFileAssets.js";
 

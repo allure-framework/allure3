@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";

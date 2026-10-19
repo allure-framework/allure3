@@ -7,7 +7,7 @@ import {
 } from "@allurereport/plugin-agent";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AgentQueryCommand } from "../../../src/commands/agents/index.js";
 

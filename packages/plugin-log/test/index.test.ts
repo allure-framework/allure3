@@ -2,7 +2,7 @@
 import type { TestError, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { LogPlugin } from "../src/plugin.js";
 import { printGlobalErrors, printQualityGateResults, printSummary, printTest } from "../src/utils.js";

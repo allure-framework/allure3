@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { statsByEnvStore } from "../../src/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "../../src/stores/env";

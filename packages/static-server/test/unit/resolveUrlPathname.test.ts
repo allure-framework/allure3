@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { resolveUrlPathnameUnderServeRoot } from "../../src/utils.js";
 

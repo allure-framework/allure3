@@ -1,7 +1,7 @@
 import { getPieChartValues } from "@allurereport/web-commons";
 import { fireEvent, render, cleanup, waitFor } from "@testing-library/preact";
 import { attachment, step } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { SuccessRatePieChart } from "./index";
 import { defaultSuccessRateI18n, formatAvailableSuccessRate } from "./successRate";

@@ -150,11 +150,11 @@ const parseTestCase = async (
   reportDir: string,
 ) => {
   const {
-    name: nameAttribute,
+    "name": nameAttribute,
     failure,
     error,
     skipped,
-    classname: classNameAttribute,
+    "classname": classNameAttribute,
     time,
     "system-out": systemOutAttribute,
     "system-err": systemErrAttribute,

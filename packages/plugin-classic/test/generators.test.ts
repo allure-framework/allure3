@@ -1,7 +1,7 @@
 import type { AttachmentLink, TestFixtureResult, TestResult } from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generateAttachmentsFiles, generateStaticFiles, generateTestResults } from "../src/generators.js";
 import type { ClassicDataWriter } from "../src/writer.js";

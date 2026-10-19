@@ -3,8 +3,8 @@ import { CiType, GitProvider, type CiDescriptor } from "@allurereport/core-api";
 import { collectGitFacts, isGitAvailable } from "@allurereport/git";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { attachment, step } from "allure-js-commons";
-import type { Mock } from "vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { TestOpsPluginOptions } from "../../src/model.js";
 import { TestOpsPlugin } from "../../src/plugin.js";

@@ -1,6 +1,6 @@
 import * as console from "node:console";
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { Logger, setGlobalLogLevel } from "../src/utils/logger.js";
 

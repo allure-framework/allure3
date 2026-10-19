@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 
 import { defaultVitestConfig } from "@allurereport/test-config";
-import { defineConfig, mergeConfig } from "vitest/config";
+import { defineConfig, mergeConfig } from "vite-plus";
 
 export default mergeConfig(
   defaultVitestConfig(),

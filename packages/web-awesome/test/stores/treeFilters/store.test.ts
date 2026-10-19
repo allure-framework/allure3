@@ -1,7 +1,7 @@
 import { type ResolutionCategory, type TestStatus, type TestStatusTransition } from "@allurereport/core-api";
 import { buildFilterPredicate, setParams } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import type { ResolutionFilterValue } from "../../../src/stores/treeFilters/constants.js";
 import type { AwesomeFilterGroupSimple } from "../../../src/stores/treeFilters/model.js";

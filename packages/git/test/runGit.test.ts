@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-import { afterEach, describe, it, vi, expect } from "vitest";
+import { afterEach, describe, it, vi, expect } from "vite-plus/test";
 
 import { runGit } from "../src/runGit.js";
 
