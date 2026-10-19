@@ -1,7 +1,7 @@
 import type { CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { TestOpsPlugin } from "../../src/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
@@ -24,6 +24,10 @@ beforeEach(async () => {
   await story("named-env-variables");
   await label("coverage", "testops-integration");
   handleBeforeEach();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 const context = {
@@ -158,8 +162,9 @@ describe("named environment variables", () => {
     expect(sessionIdOf("2")).toBe(3);
   });
 
-  test("should override process env by config ignoring case", async () => {
-    vi.stubEnv("BROWSER", "chrome");
+  test("should override process env by config with the same key", async () => {
+    vi.stubEnv("Browser", "ci-browser");
+    vi.stubEnv("BROWSER", "ci-browser-upper");
 
     const { store, sessionEnvironments, sessionIdOf } = setup({
       trs: [tr("2", "firefox")],
@@ -171,7 +176,7 @@ describe("named environment variables", () => {
     const firefox = sessionEnvironments()[sessionIdOf("2") - 1];
 
     expect(valueOf(firefox, "Browser")).toEqual([{ key: "Browser", value: "firefox" }]);
-    expect(valueOf(firefox, "BROWSER")).toEqual([]);
+    expect(valueOf(firefox, "BROWSER")).toEqual([{ key: "BROWSER", value: "ci-browser-upper" }]);
   });
 
   test("should upload results without environment into the base session", async () => {

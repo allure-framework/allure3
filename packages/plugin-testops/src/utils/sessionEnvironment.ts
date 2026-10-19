@@ -10,31 +10,12 @@ export const ownEnvironmentVariables = (
 ): ReportVariables =>
   Object.fromEntries(Object.entries(mergedVariables).filter(([key, value]) => reportVariables[key] !== value));
 
-const overrideIgnoringCase = (target: Record<string, unknown>, layer: ReportVariables) => {
-  for (const [key, value] of Object.entries(layer)) {
-    for (const existing of Object.keys(target)) {
-      if (existing.toLowerCase() === key.toLowerCase()) {
-        delete target[existing];
-      }
-    }
-
-    target[key] = value;
-  }
-};
-
 /**
  * Builds a TestOps session environment: process env, then report variables, then environment variables.
- * TestOps matches env var keys case-insensitively, so a stronger layer replaces keys that differ only in case.
+ * TestOps matches session keys against the project's env var schema case-sensitively, so keys are overridden as is.
  */
 export const mergeSessionEnvironment = (
   processEnv: Record<string, unknown>,
   reportVariables: ReportVariables,
   ownVariables: ReportVariables,
-): Record<string, unknown> => {
-  const result: Record<string, unknown> = { ...processEnv };
-
-  overrideIgnoringCase(result, reportVariables);
-  overrideIgnoringCase(result, ownVariables);
-
-  return result;
-};
+): Record<string, unknown> => ({ ...processEnv, ...reportVariables, ...ownVariables });

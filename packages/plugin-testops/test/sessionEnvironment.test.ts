@@ -11,26 +11,30 @@ beforeEach(async () => {
 });
 
 describe("mergeSessionEnvironment", () => {
-  it("should override process env by config ignoring case and keep config spelling", () => {
-    expect(mergeSessionEnvironment({ BROWSER: "chrome", CI: "true" }, {}, { Browser: "firefox" })).toEqual({
+  it("should override process env by config with the same key", () => {
+    expect(mergeSessionEnvironment({ browser: "chrome", CI: "true" }, {}, { browser: "firefox" })).toEqual({
       CI: "true",
-      Browser: "firefox",
+      browser: "firefox",
     });
   });
 
-  it("should override report variables by environment variables ignoring case", () => {
-    expect(mergeSessionEnvironment({}, { browser: "x", Stand: "staging" }, { Browser: "y" })).toEqual({
+  it("should override report variables by environment variables with the same key", () => {
+    expect(mergeSessionEnvironment({}, { browser: "x", Stand: "staging" }, { browser: "y" })).toEqual({
       Stand: "staging",
-      Browser: "y",
+      browser: "y",
     });
   });
 
   it("should override process env by report variables", () => {
-    expect(mergeSessionEnvironment({ stand: "prod" }, { Stand: "staging" }, {})).toEqual({ Stand: "staging" });
+    expect(mergeSessionEnvironment({ Stand: "prod" }, { Stand: "staging" }, {})).toEqual({ Stand: "staging" });
   });
 
-  it("should leave process env case duplicates untouched", () => {
-    expect(mergeSessionEnvironment({ foo: "1", FOO: "2" }, {}, {})).toEqual({ foo: "1", FOO: "2" });
+  it("should keep keys that differ only in case, as TestOps matches session keys case-sensitively", () => {
+    expect(mergeSessionEnvironment({ BROWSER: "ci" }, { stand: "x" }, { Browser: "firefox" })).toEqual({
+      BROWSER: "ci",
+      stand: "x",
+      Browser: "firefox",
+    });
   });
 });
 

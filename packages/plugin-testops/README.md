@@ -98,9 +98,10 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_GIT_ANCESTOR_LIMIT` | `ancestorLimit` |
 
 `ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).
+
 ## Environment variables
 
-Every upload session sends environment variables to Allure TestOps, which maps them to the project's env vars. A variable shows up on test results only if its key is configured in the project's env var schema in Allure TestOps; other keys are ignored.
+Every upload session sends environment variables to Allure TestOps, which maps them to the project's env vars. A variable shows up on test results only if its key matches a key of the project's env var schema in Allure TestOps exactly, including case: a schema key `browser` does not match a variable named `Browser`. Other keys are ignored.
 
 The plugin sends, from weakest to strongest:
 
@@ -108,7 +109,7 @@ The plugin sends, from weakest to strongest:
 2. the report-level `variables` from the Allure configuration;
 3. the `variables` of the environment (from `environments`) the test result belongs to.
 
-A stronger source overrides a weaker one even when the keys differ only in case (Allure TestOps matches env var keys case-insensitively), and the stronger key keeps its spelling.
+A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent.
 
 ```js
 import { defineConfig } from "allure";
@@ -120,11 +121,11 @@ export default defineConfig({
   environments: {
     chrome: {
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "chrome"),
-      variables: { Browser: "chrome" },
+      variables: { browser: "chrome" },
     },
     firefox: {
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "firefox"),
-      variables: { Browser: "firefox" },
+      variables: { browser: "firefox" },
     },
   },
   plugins: {
