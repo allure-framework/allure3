@@ -103,11 +103,6 @@ const statisticByTestResults = (
 
 type PluginPerformance = {
   measure<T>(name: string, fn: () => Promise<T>): Promise<T>;
-  count(
-    name: string,
-    value?: number,
-    metadata?: { title: string; unit: string; group: string; groupTitle: string; better: "neutral" },
-  ): void;
 };
 
 type PerfAwarePluginContext = PluginContext & {
@@ -174,29 +169,6 @@ export class AwesomePlugin implements Plugin {
         qualityGateResults: await store.qualityGateResultsByEnvironmentId(),
       };
     });
-    if (perf && attachments.length > 0) {
-      perf.count("attachments.count", attachments.length, {
-        title: "Attachments",
-        unit: "attachments",
-        group: "workload",
-        groupTitle: "Workload",
-        better: "neutral",
-      });
-      perf.count(
-        "attachmentBytes",
-        attachments.reduce(
-          (total, attachment) => total + ("contentLength" in attachment ? (attachment.contentLength ?? 0) : 0),
-          0,
-        ),
-        {
-          title: "Attachment bytes",
-          unit: "bytes",
-          group: "workload",
-          groupTitle: "Workload",
-          better: "neutral",
-        },
-      );
-    }
     const envIdByTrId = new Map<string, string>();
 
     await measure("environmentMap", async () => {
@@ -285,15 +257,6 @@ export class AwesomePlugin implements Plugin {
         resolutionEvaluatedAt,
       }),
     );
-    if (perf) {
-      perf.count("convertedTestResults.count", convertedTrs.length, {
-        title: "Converted test results",
-        unit: "test results",
-        group: "workload",
-        groupTitle: "Workload",
-        better: "neutral",
-      });
-    }
 
     await measure("categories", async () => {
       applyCategoriesToTestResults(convertedTrs, categories);

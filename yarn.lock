@@ -21,9 +21,11 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-tinybench: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
+    tinybench: "npm:6.2.2"
     tslib: "npm:^2"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -44,8 +46,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     d3-shape: "npm:^3.2.0"
     rimraf: "npm:^6"
     tslib: "npm:^2.7.0"
@@ -67,8 +69,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     glob: "npm:^13.0.6"
     rimraf: "npm:^6"
@@ -88,8 +90,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     lodash.debounce: "npm:^4.0.8"
     rimraf: "npm:^6"
     tslib: "npm:^2.7.0"
@@ -109,8 +111,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:4.1.8"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     glob: "npm:^13.0.6"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -135,8 +137,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     d3-shape: "npm:^3.2.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -178,8 +180,9 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-node-performance: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     glob: "npm:^13.0.6"
     handlebars: "npm:4.7.10"
     jiti: "npm:^2.5.1"
@@ -205,8 +208,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     chokidar: "npm:^5.0.0"
     rimraf: "npm:^6"
     ts-node: "npm:^10.9.2"
@@ -235,8 +238,8 @@ __metadata:
     "@playwright/test": "catalog:"
     "@types/lodash.times": "npm:^4.3.9"
     "@types/node": "npm:^20"
-    allure-js-commons: "npm:^3"
-    allure-playwright: "npm:^3.10.2"
+    allure-js-commons: "npm:^3.14.0"
+    allure-playwright: "npm:^3.14.0"
     lodash.times: "npm:^4.3.2"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -253,7 +256,7 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-vitest: "npm:^3"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -288,8 +291,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -310,8 +313,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     handlebars: "npm:4.7.10"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -332,8 +335,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     tar-stream: "npm:3.1.7"
     typescript: "npm:^5"
@@ -359,8 +362,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     d3-shape: "npm:^3.2.0"
     handlebars: "npm:4.7.10"
     markdown-it: "npm:^15.0.3"
@@ -387,8 +390,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     d3-shape: "npm:^3.2.0"
     handlebars: "npm:4.7.10"
     markdown-it: "npm:^15.0.3"
@@ -410,8 +413,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -434,8 +437,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     d3-shape: "npm:^3.2.0"
     handlebars: "npm:4.7.10"
     rimraf: "npm:^6"
@@ -457,8 +460,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -479,8 +482,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -501,8 +504,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     mjml: "npm:^5.4.1"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -521,8 +524,8 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -542,8 +545,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -564,8 +567,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -584,8 +587,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -612,8 +615,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     form-data: "npm:^4.0.6"
     lodash-es: "npm:^4.18.1"
@@ -637,8 +640,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -657,8 +660,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -679,8 +682,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     mime-types: "npm:^3.0.2"
     rimraf: "npm:^6"
     ts-node: "npm:^10.9.2"
@@ -704,8 +707,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     archiver: "npm:^7.0.1"
     fast-xml-parser: "npm:^5.11.1"
     rimraf: "npm:^6"
@@ -727,8 +730,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     open: "npm:^11.0.0"
     rimraf: "npm:^6"
@@ -750,9 +753,9 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-playwright: "npm:^3.10.2"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-playwright: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     axios: "npm:^1.20.0"
     get-port: "npm:^7.1.0"
     npm-run-all2: "npm:^7.0.1"
@@ -776,8 +779,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     handlebars: "npm:4.7.10"
     rimraf: "npm:^6"
     typescript: "npm:^5"
@@ -806,8 +809,8 @@ __metadata:
     "@types/d3-selection": "npm:^3.0.11"
     "@types/d3-shape": "npm:^3.1.8"
     "@types/node": "npm:^24.12.2"
-    allure-js-commons: "npm:^3"
-    allure-playwright: "npm:^3.10.2"
+    allure-js-commons: "npm:^3.14.0"
+    allure-playwright: "npm:^3.14.0"
     autoprefixer: "npm:^10.5.0"
     axe-core: "npm:^4.11.4"
     d3-array: "npm:^3.2.4"
@@ -865,8 +868,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^3.2.4"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -925,8 +928,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -976,8 +979,8 @@ __metadata:
     "@types/d3-shape": "npm:^3.1.8"
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     ansi-to-html: "npm:^0.7.2"
     d3-interpolate: "npm:^3.0.1"
     d3-scale: "npm:^4.0.2"
@@ -1059,8 +1062,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3.12.2"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     autoprefixer: "npm:^10.4.20"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
@@ -1131,8 +1134,8 @@ __metadata:
     "@vitest/coverage-istanbul": "catalog:"
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^10.1.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -8575,68 +8578,60 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.10.2":
-  version: 3.10.2
-  resolution: "allure-js-commons@npm:3.10.2"
+"allure-js-commons@npm:3.14.0, allure-js-commons@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "allure-js-commons@npm:3.14.0"
   dependencies:
     md5: "npm:^2.3.0"
   peerDependencies:
-    allure-playwright: 3.10.2
+    allure-playwright: 3.14.0
   peerDependenciesMeta:
     allure-playwright:
       optional: true
-  checksum: 10/afb8a946c1c9a36abf3b3493d669fa671743880ba9aa41bc8b5c152273569d3f657f88e072cd9eb2fa60b17eb6552fa794fd93ccf6bd3286855ddb25b56702d7
+  checksum: 10/5728fabda388b2fff6107c45193f3b0f42053b81b1f90937aac9abbe387e4da84a69139c2d94e42c044d8d6159fec51a7e160248c7042952e1bb7c9d1cd3ce1d
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.12.1":
-  version: 3.12.1
-  resolution: "allure-js-commons@npm:3.12.1"
+"allure-node-performance@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "allure-node-performance@npm:3.14.0"
   dependencies:
-    md5: "npm:^2.3.0"
+    allure-js-commons: "npm:3.14.0"
+  checksum: 10/4ad84a1f1f975181d156744d403b52f746e27c06def1e369a0616437a73731a491b36f154bbd9b733c28e032cea88ccc3774110c356104d7464c385a24c0b204
+  languageName: node
+  linkType: hard
+
+"allure-playwright@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "allure-playwright@npm:3.14.0"
+  dependencies:
+    allure-js-commons: "npm:3.14.0"
   peerDependencies:
-    allure-playwright: 3.12.1
-  peerDependenciesMeta:
-    allure-playwright:
-      optional: true
-  checksum: 10/7b5eb56dc325bd10dbd647c7b36ab0c492bca64356785ee16be2f413fbbb0e8021cad5072ed81cea3c46b488a18272bb7ef9c2e0c820a724641b0c22d37096f3
+    "@playwright/test": ">=1.62.0"
+  checksum: 10/89044a8dc7f0cdf5c2380af775172bd4d08bb2be4e98850214f74a0e0b2ea44de0bd2d6691a0813ce14a0e374252f1dffd5286d524839c3a206ab661562863dc
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:^3, allure-js-commons@npm:^3.12.2":
-  version: 3.12.2
-  resolution: "allure-js-commons@npm:3.12.2"
+"allure-tinybench@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "allure-tinybench@npm:3.14.0"
   dependencies:
-    md5: "npm:^2.3.0"
+    allure-js-commons: "npm:3.14.0"
   peerDependencies:
-    allure-playwright: 3.12.2
-  peerDependenciesMeta:
-    allure-playwright:
-      optional: true
-  checksum: 10/28cc7e6dbdb654376305dc8c1779a791b12c2e4f4b82aab8935315a3ac6a31618b40ff7661373a10cad00f98ddc3781c15273b391a983ebdee78c104f125db63
+    tinybench: ">=6 <7"
+  checksum: 10/06601d12df73e0a9745a91aa01c0b2a40cf2e14280672a4905f0c8c75b4e33877c398eff4978ccadbba6a18505c6779c448367658c4b80fcba4dd92ee8f53916
   languageName: node
   linkType: hard
 
-"allure-playwright@npm:^3.10.2":
-  version: 3.10.2
-  resolution: "allure-playwright@npm:3.10.2"
+"allure-vitest@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "allure-vitest@npm:3.14.0"
   dependencies:
-    allure-js-commons: "npm:3.10.2"
-  peerDependencies:
-    "@playwright/test": ">=1.53.0"
-  checksum: 10/e7270965dc888f439648a72ec0aaaaeddda0f0738942e9bea6001c0c440d60db6dd9057a6454121c25e1184780944fd311f415e64e9eea359fbc7407e9448d5b
-  languageName: node
-  linkType: hard
-
-"allure-vitest@npm:^3":
-  version: 3.12.1
-  resolution: "allure-vitest@npm:3.12.1"
-  dependencies:
-    allure-js-commons: "npm:3.12.1"
+    allure-js-commons: "npm:3.14.0"
   peerDependencies:
     "@vitest/runner": ">=1.3.0"
     vitest: ">=1.3.0"
-  checksum: 10/1be61311761d5e135cc4499f7f342cc783327879b5acc7b11debe81fb6f52fea39ce195872cd6452eea7601396f940cfeacb7685b5676e5c5d4ad57704d9f6ae
+  checksum: 10/02da82a42d4b1c86f6771199d8ecaac586c38def64face87421bba729a40849d40b6545c454a41b583d17414b4631b797a6f3bb9dd81c12d328fb6c31315c5af
   languageName: node
   linkType: hard
 
@@ -8676,8 +8671,8 @@ __metadata:
     "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
     adm-zip: "npm:0.6.1"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     clipanion: "npm:^4.0.0-rc.4"
     glob: "npm:^13.0.6"
     lodash.omit: "npm:^4.18.0"
@@ -17246,8 +17241,8 @@ __metadata:
     "@types/node": "npm:^20"
     "@vitest/runner": "npm:^4.0.18"
     allure: "workspace:*"
-    allure-js-commons: "npm:^3"
-    allure-vitest: "npm:^3"
+    allure-js-commons: "npm:^3.14.0"
+    allure-vitest: "npm:^3.14.0"
     rimraf: "npm:^6"
     vite: "catalog:"
     vite-plus: "catalog:"
@@ -18238,7 +18233,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinybench@npm:^6.2.2":
+"tinybench@npm:6.2.2, tinybench@npm:^6.2.2":
   version: 6.2.2
   resolution: "tinybench@npm:6.2.2"
   checksum: 10/66fc85c584761dba305f01781f3e579fe35a0067139c14e66d52eb7eaad5626e1e78eb3f2c5f8ece857b181dc0e1ec22f7e967ad49997b3818c8f53643d99b0a
