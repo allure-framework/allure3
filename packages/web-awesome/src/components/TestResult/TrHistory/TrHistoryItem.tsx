@@ -1,5 +1,12 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
-import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import {
+  ArrowButton,
+  IconButton,
+  Text,
+  TooltipWrapper,
+  TreeItemIcon,
+  allureIcons,
+} from "@allurereport/web-components/core";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 

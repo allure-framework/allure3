@@ -66,7 +66,7 @@ const setupQualityGateComponent = async (
     },
   });
 
-  vi.doMock("@allurereport/web-components", () => {
+  vi.doMock("@allurereport/web-components/core", () => {
     const Tree = ({
       tree,
       name,

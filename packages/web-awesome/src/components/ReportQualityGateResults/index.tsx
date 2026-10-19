@@ -1,5 +1,5 @@
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
-import { Loadable, SvgIcon, Text, Tree, allureIcons } from "@allurereport/web-components";
+import { Loadable, SvgIcon, Text, Tree, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { useMemo, useState } from "preact/hooks";
 import type { ReportQualityGateValidationResult, ReportTree, ReportTreeGroup } from "types";

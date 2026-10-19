@@ -1,4 +1,4 @@
-import { IconButton, allureIcons } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components/core";
 
 import { isSplitMode, toggleLayout } from "@/stores/layout";
 

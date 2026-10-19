@@ -1,5 +1,5 @@
 import { capitalize } from "@allurereport/core-api";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 
 import { useI18n } from "@/stores/locale";

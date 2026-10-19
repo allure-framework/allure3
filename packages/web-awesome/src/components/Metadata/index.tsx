@@ -1,6 +1,6 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";

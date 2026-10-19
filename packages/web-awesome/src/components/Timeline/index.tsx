@@ -1,4 +1,6 @@
-import { Timeline as AllureTimeline, Grid, GridItem, Loadable, PageLoader, Widget } from "@allurereport/web-components";
+import { Loadable, PageLoader, Widget } from "@allurereport/web-components/core";
+import { Grid, GridItem } from "@allurereport/web-components/Grid";
+import { Timeline as AllureTimeline } from "@allurereport/web-components/Timeline";
 import { computed } from "@preact/signals";
 import { useEffect, useMemo } from "preact/hooks";
 

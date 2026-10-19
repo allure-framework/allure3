@@ -1,5 +1,5 @@
 import type { SubtreeToggleAction } from "@allurereport/web-commons";
-import { IconButton, TooltipWrapper } from "@allurereport/web-components";
+import { IconButton, TooltipWrapper } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 
 import { useI18n } from "@/stores/locale";

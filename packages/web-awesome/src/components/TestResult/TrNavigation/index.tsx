@@ -1,5 +1,5 @@
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ReportTestResult } from "types";

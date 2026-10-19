@@ -7,7 +7,7 @@ import {
   TooltipWrapper,
   allureIcons,
   useElementTruncation,
-} from "@allurereport/web-components";
+} from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { Fragment } from "preact";
 import { useEffect, useRef } from "preact/hooks";

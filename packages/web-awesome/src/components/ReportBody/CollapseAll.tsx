@@ -1,4 +1,4 @@
-import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 
 import { useI18n } from "@/stores/locale";
 import {

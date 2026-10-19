@@ -12,7 +12,7 @@ beforeEach(async () => {
 
 import { OverviewLink } from "@/components/Header/OverviewLink";
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   OverviewLink: (props: { href: string; text: string }) => (
     <a href={props.href} data-testid="overview-link">
       {props.text}

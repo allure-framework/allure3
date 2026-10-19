@@ -1,4 +1,4 @@
-import { PageLoader } from "@allurereport/web-components";
+import { PageLoader } from "@allurereport/web-components/core";
 
 import * as styles from "./styles.scss";
 

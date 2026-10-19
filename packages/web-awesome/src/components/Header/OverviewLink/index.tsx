@@ -1,5 +1,5 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { OverviewLink as OverviewLinkButton } from "@allurereport/web-components";
+import { OverviewLink as OverviewLinkButton } from "@allurereport/web-components/core";
 
 import { useI18n } from "@/stores/locale";
 

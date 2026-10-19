@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TrInfo } from "@/components/TestResult/TrInfo";
 
-vi.mock("@allurereport/web-components", () => {
+vi.mock("@allurereport/web-components/core", () => {
   return {
     Counter: ({ count }: { count: number }) => <span>{count}</span>,
     Heading: ({ children, tag: Tag = "h1", ...rest }: { children?: ComponentChildren; tag?: any }) => (
