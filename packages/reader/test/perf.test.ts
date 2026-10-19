@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { allure2 } from "../src/allure2/index.js";
 import { readResults } from "./utils.js";

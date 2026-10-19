@@ -12,7 +12,7 @@ import {
 import { readConfig } from "@allurereport/core";
 import { CiType } from "@allurereport/core-api";
 import { run } from "clipanion";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../../src/commands/commons/generate.js";
 import { GitlabGenerateCommand } from "../../../src/commands/gitlab/generate.js";

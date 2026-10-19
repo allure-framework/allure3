@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { attachment, step } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { TreeList } from "@/components/Tree";
 import { reportStatsStore, statsByEnvStore, waitForI18next } from "@/stores";

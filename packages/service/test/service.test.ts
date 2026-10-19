@@ -3,7 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vitest";
+import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { AllureServiceClient } from "../src/service.js";
 

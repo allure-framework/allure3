@@ -6,7 +6,7 @@ import { pipeline } from "node:stream/promises";
 
 import { epic, feature, label, story } from "allure-js-commons";
 import { pack } from "tar-stream";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createReportStaticArchive } from "../src/packStaticAssets.js";
 import { readReportStaticAssets } from "../src/staticAssets.js";

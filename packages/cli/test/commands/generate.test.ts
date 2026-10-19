@@ -2,7 +2,7 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../src/commands/commons/generate.js";
 import { GenerateCommand } from "../../src/commands/generate.js";

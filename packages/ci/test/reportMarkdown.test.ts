@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import type { ReportContext } from "../src/reportContext.js";
 import { renderReportSummaryMarkdown } from "../src/reportMarkdown.js";

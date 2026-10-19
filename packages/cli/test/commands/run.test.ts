@@ -5,7 +5,7 @@ import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
-import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { executeAllureRun } from "../../src/commands/commons/run.js";
 import { RunCommand } from "../../src/commands/run.js";

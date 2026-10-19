@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createGitlabClient } from "../../../src/helpers/gitlab/client.js";
 import { artifactResponse, gitlabEnv, jsonResponse, mockEnv, stubRequest } from "./test-utils.js";

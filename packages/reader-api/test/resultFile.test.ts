@@ -1,6 +1,6 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { extension } from "mime-types";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { BufferResultFile, PathResultFile } from "../src/index.js";
 import { buildResourcePath, readResource, resources } from "./utils.js";

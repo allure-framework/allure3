@@ -1,7 +1,7 @@
 import { type TestResult, type TestStatus, fallbackTestCaseIdLabelName } from "@allurereport/core-api";
 import { type QualityGateRuleState, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   allTestsContainEnvRule,

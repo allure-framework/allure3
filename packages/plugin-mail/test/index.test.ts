@@ -1,6 +1,6 @@
 import type { CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { collectMailData } from "../src/data.js";
 import MailPlugin from "../src/index.js";

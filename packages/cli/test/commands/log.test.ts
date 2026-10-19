@@ -7,7 +7,7 @@ import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { LogCommand } from "../../src/commands/log.js";
 

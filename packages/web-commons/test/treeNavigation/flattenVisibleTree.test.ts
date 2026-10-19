@@ -1,5 +1,5 @@
 import { label } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { flattenVisibleTree } from "../../src/treeNavigation/flattenVisibleTree.js";
 import type { FlattenTreeInput } from "../../src/treeNavigation/types.js";

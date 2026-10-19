@@ -5,7 +5,7 @@ import { env } from "node:process";
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
 import { epic, feature, label, step, story } from "allure-js-commons";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

@@ -6,7 +6,7 @@ import type { Readable, Writable } from "node:stream";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const openedStreams: (Readable | Writable)[] = [];
 

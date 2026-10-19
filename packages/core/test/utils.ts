@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 export class AllureServiceMock {}
 

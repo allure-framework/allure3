@@ -1,6 +1,6 @@
 import type { TestResult } from "@allurereport/core-api";
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vite-plus/test";
 
 import { generateTimeline } from "../src/generateTimeline.js";
 

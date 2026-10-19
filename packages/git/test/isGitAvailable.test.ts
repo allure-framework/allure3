@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-import { type Mock, describe, it, vi, expect } from "vitest";
+import { type Mock, describe, it, vi, expect } from "vite-plus/test";
 
 import { isGitAvailable } from "../src/isGitAvailable.js";
 

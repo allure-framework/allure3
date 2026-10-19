@@ -6,9 +6,9 @@
   - changed-files:
       - any-glob-to-any-file:
           - ".editorconfig"
-          - ".oxlintrc.json"
-          - ".oxfmtrc.jsonc"
-          - ".oxfmtignore"
+          - "vite.config.*"
+          - ".yarnrc.yml"
+          - "lefthook.yml"
           - ".gitignore"
           - "package.json"
           - "tsconfig.json"
