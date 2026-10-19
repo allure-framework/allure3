@@ -9,20 +9,59 @@ import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
+import svgr from "@svgr/rollup";
 import autoprefixer from "autoprefixer";
 import postcssImport from "postcss-import";
 import { defineConfig } from "rollup";
 import copy from "rollup-plugin-copy";
 import dts from "rollup-plugin-dts";
 import postcss from "rollup-plugin-postcss";
-import svg from "rollup-plugin-svg-sprites";
+
+import { svgrOptions } from "./svgr.config.js";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
+const YARN_DEPENDENCY_PATH = /[/\\]\.yarn[/\\]/;
+
+const onLog = (level, log, defaultHandler) => {
+  if (log.code === "CIRCULAR_DEPENDENCY") {
+    if (log.ids?.length && log.ids.every((id) => YARN_DEPENDENCY_PATH.test(id))) {
+      return;
+    }
+
+    defaultHandler("error", log);
+    return;
+  }
+
+  defaultHandler(level, log);
+};
+
+const entries = {
+  index: "src/index.ts",
+  core: "src/core.ts",
+  Attachment: "src/components/Attachment/index.tsx",
+  CodeViewer: "src/components/Attachment/CodeViewer.tsx",
+  Grid: "src/components/Grid/index.tsx",
+  Timeline: "src/components/Timeline/index.ts",
+  SuccessRatePieChart: "src/components/Charts/SuccessRatePieChart/index.tsx",
+  TreeMapChartWidget: "src/components/Charts/TreeMapChartWidget/index.ts",
+  HeatMapWidget: "src/components/Charts/HeatMapWidget/index.ts",
+  StabilityDistributionWidget: "src/components/Charts/StabilityDistributionWidget/index.tsx",
+  TestBaseGrowthDynamicsChartWidget: "src/components/Charts/TestBaseGrowthDynamicsChartWidget/index.tsx",
+  StatusAgePyramidChartWidget: "src/components/Charts/StatusAgePyramidChartWidget/index.tsx",
+  TestingPyramidWidget: "src/components/Charts/TestingPyramidWidget/index.tsx",
+  CurrentStatusChartWidget: "src/components/Charts/CurrentStatusChartWidget/index.tsx",
+  StatusDynamicsChartWidget: "src/components/Charts/StatusDynamicsChartWidget/index.tsx",
+  StatusTransitionsChartWidget: "src/components/Charts/StatusTransitionsChartWidget/index.tsx",
+  DurationsChartWidget: "src/components/Charts/DurationsChartWidget/index.tsx",
+  TrSeveritiesChartWidget: "src/components/Charts/TrSeveritiesChartWidget/index.tsx",
+  DurationDynamicsChartWidget: "src/components/Charts/DurationDynamicsChartWidget/index.tsx",
+};
 
 export default defineConfig([
   {
-    input: "src/index.ts",
+    input: entries,
+    onLog,
     output: [
       {
         dir: "dist",
@@ -36,6 +75,7 @@ export default defineConfig([
       "@preact/compat",
       "@preact/signals",
       "@preact/signals/utils",
+      "mermaid",
       "react",
       "react-dom",
     ],
@@ -55,17 +95,17 @@ export default defineConfig([
         Prism: ["prismjs", "default"],
       }),
       typescript({
-        tsconfig: "./tsconfig.json",
+        tsconfig: "./tsconfig.build.json",
       }),
       babel({
         babelHelpers: "bundled",
         extensions: [".js", ".jsx", ".ts", ".tsx"],
         exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
-      svg(),
+      svgr(svgrOptions),
       postcss({
         modules: true,
-        extract: true,
+        extract: path.resolve(BASE_PATH, "dist/index.css"),
         minimize: true,
         extensions: [".scss", ".css"],
         plugins: [postcssImport(), autoprefixer()],
@@ -85,14 +125,24 @@ export default defineConfig([
     ],
   },
   {
-    input: "src/index.ts",
+    input: entries,
     output: [
       {
-        file: "dist/index.d.ts",
+        dir: "dist",
         format: "es",
       },
     ],
     external: ["preact", "preact/hooks", "react", "react-dom", /\.s?css$/],
-    plugins: [dts()],
+    plugins: [
+      alias({
+        entries: [
+          {
+            find: "@",
+            replacement: SRC_PATH,
+          },
+        ],
+      }),
+      dts(),
+    ],
   },
 ]);

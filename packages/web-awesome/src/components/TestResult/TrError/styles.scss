@@ -98,10 +98,17 @@
 }
 
 .test-result-error-message {
+  display: block;
+  width: 100%;
   padding: 8px;
+  border: 0;
   border-radius: 8px;
+  background: transparent;
+  color: inherit;
   cursor: pointer;
+  font: inherit;
   transition: background-color 300ms;
+  text-align: left;
   margin-bottom: 4px;
 
   &:hover {

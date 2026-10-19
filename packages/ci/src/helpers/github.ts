@@ -5,11 +5,30 @@ import { getEnv } from "../utils.js";
 const PULL_REQUEST_REF_NAME_RE = /^(\d+)\/merge$/;
 const PULL_REQUEST_MERGE_REF_RE = /^refs\/pull\/(\d+)\/merge$/;
 
-type GithubPullRequestEvent = {
+type GithubPullRequestEventFields = {
   number?: number | string;
-  pull_request?: {
-    number?: number | string;
+  head?: {
+    ref?: string;
   };
+  base?: {
+    ref?: string;
+  };
+};
+
+type GithubEvent = {
+  number?: number | string;
+  pull_request?: GithubPullRequestEventFields;
+  workflow_run?: {
+    event?: string;
+    head_branch?: string;
+    pull_requests?: GithubPullRequestEventFields[];
+  };
+};
+
+export type GithubPullRequestContext = {
+  number: string;
+  headRef?: string;
+  baseRef?: string;
 };
 
 const normalizePullRequestNumber = (value: number | string | undefined): string => {
@@ -20,53 +39,96 @@ const normalizePullRequestNumber = (value: number | string | undefined): string 
   return String(value);
 };
 
-export const parsePullRequestNumberFromEventJson = (content: string): string => {
-  try {
-    const event = JSON.parse(content) as GithubPullRequestEvent;
+const nonBlank = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
 
-    return normalizePullRequestNumber(event?.number ?? event?.pull_request?.number);
+  return trimmed ? trimmed : undefined;
+};
+
+const contextFromPullRequestFields = (
+  pullRequest: GithubPullRequestEventFields | undefined,
+  fallbackNumber?: number | string,
+): GithubPullRequestContext | undefined => {
+  const number = normalizePullRequestNumber(pullRequest?.number ?? fallbackNumber);
+
+  if (!number) {
+    return undefined;
+  }
+
+  return {
+    number,
+    headRef: nonBlank(pullRequest?.head?.ref),
+    baseRef: nonBlank(pullRequest?.base?.ref),
+  };
+};
+
+export const parsePullRequestContextFromEventJson = (content: string): GithubPullRequestContext | undefined => {
+  try {
+    const event = JSON.parse(content) as GithubEvent;
+    const fromPullRequest = contextFromPullRequestFields(event.pull_request, event.number);
+
+    if (fromPullRequest) {
+      return fromPullRequest;
+    }
+
+    const workflowPullRequests = event.workflow_run?.pull_requests;
+
+    if (!Array.isArray(workflowPullRequests) || workflowPullRequests.length === 0) {
+      return undefined;
+    }
+
+    return contextFromPullRequestFields(workflowPullRequests[0]);
   } catch {
-    return "";
+    return undefined;
   }
 };
 
-const readPullRequestNumberFromEventPath = (): string => {
+export const parsePullRequestNumberFromEventJson = (content: string): string => {
+  return parsePullRequestContextFromEventJson(content)?.number ?? "";
+};
+
+const readPullRequestContextFromEventPath = (): GithubPullRequestContext | undefined => {
   const eventPath = getEnv("GITHUB_EVENT_PATH");
 
   if (!eventPath) {
-    return "";
+    return undefined;
   }
 
   try {
     const content = readFileSync(eventPath, "utf-8");
 
-    return parsePullRequestNumberFromEventJson(content);
+    return parsePullRequestContextFromEventJson(content);
   } catch {
-    return "";
+    return undefined;
   }
 };
 
-export const resolveGithubPullRequestNumber = (): string => {
+export const resolveGithubPullRequestContext = (): GithubPullRequestContext | undefined => {
   const refName = getEnv("GITHUB_REF_NAME") || "";
   const refNameMatch = refName.match(PULL_REQUEST_REF_NAME_RE);
 
   if (refNameMatch) {
-    return refNameMatch[1];
+    return {
+      number: refNameMatch[1],
+      headRef: nonBlank(getEnv("GITHUB_HEAD_REF")),
+      baseRef: nonBlank(getEnv("GITHUB_BASE_REF")),
+    };
   }
 
   const githubRef = getEnv("GITHUB_REF") || "";
   const mergeRefMatch = githubRef.match(PULL_REQUEST_MERGE_REF_RE);
 
   if (mergeRefMatch) {
-    return mergeRefMatch[1];
+    return {
+      number: mergeRefMatch[1],
+      headRef: nonBlank(getEnv("GITHUB_HEAD_REF")),
+      baseRef: nonBlank(getEnv("GITHUB_BASE_REF")),
+    };
   }
 
-  const headRef = getEnv("GITHUB_HEAD_REF");
-  const baseRef = getEnv("GITHUB_BASE_REF");
+  return readPullRequestContextFromEventPath();
+};
 
-  if (headRef && baseRef) {
-    return readPullRequestNumberFromEventPath();
-  }
-
-  return "";
+export const resolveGithubPullRequestNumber = (): string => {
+  return resolveGithubPullRequestContext()?.number ?? "";
 };

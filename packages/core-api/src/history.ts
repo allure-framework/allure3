@@ -12,6 +12,7 @@ export interface HistoryTestResult {
   environment?: string;
 
   status: TestStatus;
+  retries?: TestStatus[];
   error?: TestError;
 
   start?: number;
@@ -22,7 +23,7 @@ export interface HistoryTestResult {
 
   url: string;
 
-  historyId?: string; // TODO: double check the necessity to have historyId in the history test result
+  retryHash?: string;
   reportLinks?: any[]; // TODO: add the correct type for previously missing report links
 }
 
@@ -39,10 +40,13 @@ export interface HistoryDataPoint {
   url: string;
 }
 
+export type HistoryTestResultUrlResolver = (historyUrl: string, pluginId: string, historicalResultId: string) => string;
+
 /**
- * Provides ability to load and update report history
+ * Provides ability to read immutable historical points and append a new report.
  */
 export interface AllureHistory {
   readHistory(params?: { repo?: string; branch?: string }): Promise<HistoryDataPoint[]>;
   appendHistory(history: HistoryDataPoint): Promise<void>;
+  resolveTestResultUrl?: HistoryTestResultUrlResolver;
 }

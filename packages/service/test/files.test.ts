@@ -6,6 +6,7 @@ describe("isReportDataFile", () => {
   it("should identify report data files", () => {
     expect(isReportDataFile("index.html")).toBe(true);
     expect(isReportDataFile("summary.json")).toBe(true);
+    expect(isReportDataFile("test-results.json")).toBe(true);
     expect(isReportDataFile("data/results.json")).toBe(true);
     expect(isReportDataFile("widgets/summary.json")).toBe(true);
     expect(isReportDataFile("history/history.json")).toBe(true);

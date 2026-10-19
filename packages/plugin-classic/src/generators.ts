@@ -1,7 +1,6 @@
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+import { randomUUID } from "node:crypto";
 
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -11,7 +10,8 @@ import {
   compareBy,
   createBaseUrlScript,
   createFontLinkTag,
-  createReportDataScript,
+  injectReportDataScript,
+  reportDataScriptPlaceholder,
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
@@ -21,20 +21,24 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ReportFixtureResult,
+  type ReportOptions,
+  type ReportTestResult,
+  type ReportTreeGroup,
+  type ReportTreeLeaf,
+  type PluginContext,
   type ReportFiles,
   type ResultFile,
   createTreeByCategories,
   createTreeByLabels,
   processTree,
 } from "@allurereport/plugin-api";
-import type {
-  ClassicFixtureResult,
-  ClassicReportOptions,
-  ClassicTestResult,
-  ClassicTreeGroup,
-  ClassicTreeLeaf,
-} from "@allurereport/web-classic";
-import { getPieChartValues } from "@allurereport/web-commons";
+import {
+  copyReportStaticAssets,
+  getReportStaticAsset,
+  readReportStaticAssets,
+} from "@allurereport/plugin-api/static-assets";
+import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { matchCategories } from "./categories.js";
@@ -42,7 +46,7 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
-const require = createRequire(import.meta.url);
+const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -89,16 +93,13 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
+  const { manifest } = await readReportStaticAssets(reportStaticArchive);
 
-  return JSON.parse(templateManifest);
+  return manifest;
 };
 
-const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
+const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc, label) => {
       if (!acc[label.name]) {
@@ -131,12 +132,14 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
   const allTr = await store.allTestResults({ includeRetries: true });
   const related = await store.relatedByTestResultIds(allTr.map(({ id }) => id));
   const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
-  let convertedTrs: ClassicTestResult[] = [];
+  let convertedTrs: ReportTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
-    const convertedTrFixtures: ClassicFixtureResult[] = trFixtures.map(convertFixtureResult);
-    const convertedTr: ClassicTestResult = convertTestResult(tr);
+    const convertedTrFixtures: ReportFixtureResult[] = [...trFixtures]
+      .sort(nullsLast(compareBy("start", ordinal())))
+      .map(convertFixtureResult);
+    const convertedTr: ReportTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
     const matchedCategories = matchCategories(categories, {
       message: error?.message,
@@ -182,10 +185,10 @@ export const generateTree = async (
   writer: ClassicDataWriter,
   treeName: string,
   labels: string[],
-  tests: ClassicTestResult[],
+  tests: ReportTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
-  const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
+  const tree = createTreeByLabels<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     visibleTests,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retries }) => {
@@ -231,6 +234,20 @@ export const generatePieChart = async (writer: ClassicDataWriter, statistic: Sta
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
 
+export const generateAllCharts = async (
+  writer: ClassicDataWriter,
+  store: AllureStore,
+  options: ClassicOptions,
+  context: PluginContext,
+) => {
+  const { filter } = options;
+  const generatedChartsData = await generateCharts(defaultChartsConfig, store, context.reportName, randomUUID, filter);
+
+  if (Object.keys(generatedChartsData.general).length > 0) {
+    await writer.writeWidget("charts.json", generatedChartsData);
+  }
+};
+
 export const generateAttachmentsFiles = async (
   writer: ClassicDataWriter,
   attachmentLinks: AttachmentLink[],
@@ -270,12 +287,12 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
     reportName = "Allure Report",
     reportLanguage = "en",
-    singleFile,
     logo = "",
     theme = "auto",
     groupBy,
@@ -283,17 +300,16 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const staticAssets = await readReportStaticAssets(reportStaticArchive);
+  const { manifest } = staticAssets;
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
       const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName),
-      );
 
       if (key.includes(".woff")) {
         headTags.push(createFontLinkTag(fileName));
@@ -305,26 +321,26 @@ export const generateStaticFiles = async (
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
-
-      // we don't need to handle another files in single file mode
-      if (singleFile) {
-        continue;
-      }
-
-      const fileContent = await readFile(filePath);
-
-      await reportFiles.addFile(basename(filePath), fileContent);
     }
+
+    await copyReportStaticAssets(staticAssets, reportFiles);
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-classic/dist/single/${mainJs}`);
-    const mainJsContentBuffer = await readFile(mainJsSource);
+    const mainCss = manifest["main.css"];
+
+    if (mainCss) {
+      const mainCssContent = getReportStaticAsset(staticAssets, mainCss);
+
+      headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
+    }
+
+    const mainJsContentBuffer = getReportStaticAsset(staticAssets, mainJs);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
   const now = Date.now();
-  const reportOptions: ClassicReportOptions = {
+  const reportOptions: ReportOptions = {
     reportName,
     logo,
     theme,
@@ -334,13 +350,14 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     allureVersion,
     cacheKey: now.toString(),
+    overviewHref,
   };
 
   try {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
@@ -349,7 +366,7 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    await reportFiles.addFile("index.html", injectReportDataScript(html, reportDataFiles));
   } catch (err) {
     if (err instanceof RangeError) {
       // eslint-disable-next-line no-console
@@ -364,13 +381,13 @@ export const generateStaticFiles = async (
 export const generateTreeByCategories = async (
   writer: ClassicDataWriter,
   treeName: string,
-  tests: ClassicTestResult[],
+  tests: ReportTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.isRetry);
 
-  const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
+  const tree = createTreeByCategories<ReportTestResult, ReportTreeLeaf, ReportTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, transition, start, retries }: ClassicTestResult) => {
+    ({ id, name, status, duration, flaky, transition, start, retries }: ReportTestResult) => {
       const retriesCount = retries?.length ?? 0;
 
       return {
@@ -386,14 +403,14 @@ export const generateTreeByCategories = async (
       };
     },
     undefined,
-    (group: TreeGroup<ClassicTreeGroup>, leaf: TreeLeaf<ClassicTreeLeaf>) => {
+    (group: TreeGroup<ReportTreeGroup>, leaf: TreeLeaf<ReportTreeLeaf>) => {
       incrementStatistic(group.statistic, leaf.status);
     },
   );
 
   processTree(tree, {
     sort: nullsLast(compareBy("start", ordinal())),
-    transform: (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
+    transform: (leaf: TreeLeaf<ReportTreeLeaf>, idx: number) => ({
       ...leaf,
       groupOrder: idx + 1,
     }),

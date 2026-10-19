@@ -120,6 +120,7 @@ export const DurationsChartWidget: FunctionalComponent<Props> = (props) => {
         }
         formatIndexBy={(arg) => i18n("tooltips.durationRange", { from: arg.from ?? 0, to: arg.to })}
         formatBottomTick={(_, item) => i18n("ticks.durationRange", { from: item.from ?? 0, to: item.to })}
+        bottomTickRotation={45}
         bottomTickSize={chartData.length > 4 ? 10 : 12}
         formatLegendValue={({ value }) => {
           // Don't show zero values in legend

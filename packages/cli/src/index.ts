@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import process, { argv } from "node:process";
 
-import { Builtins, Cli } from "clipanion";
+import { Builtins, Cli, UsageError } from "clipanion";
 
 import {
   AgentCommand,
@@ -19,22 +19,27 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
-  KnownIssueCommand,
   LogCommand,
+  MigrateCommand,
   OpenCommand,
   QualityGateCommand,
   ResultsPackCommand,
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsPlanCommand,
   TestPlanCommand,
   WatchCommand,
   isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
+import { ALLURE2_MIGRATE_REMINDER, getAllure2Hint } from "./utils/allure2Hints.js";
+import { notifyAboutUpdate, parseUpdateNotifierArgs } from "./utils/updateNotifier.js";
+import { applyVerbosity, extractVerbosityFlags } from "./utils/verbosity.js";
 
-const [node, app, ...args] = argv;
+const [node, app, ...rawArgs] = argv;
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -62,31 +67,56 @@ cli.register(DashboardCommand);
 cli.register(GenerateCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
-cli.register(KnownIssueCommand);
 cli.register(LogCommand);
+cli.register(MigrateCommand);
 cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
 cli.register(SlackCommand);
+cli.register(TestOpsPlanCommand);
 cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+cli.register(GitlabGenerateCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
-void cli
-  .run(args)
-  .then((exitCode) => {
-    if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
-      process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
-    }
+const printAllure2Hint = (args: string[]) => {
+  try {
+    cli.process(args);
+  } catch (error) {
+    const hint = getAllure2Hint(args, error instanceof Error ? error.message : String(error));
 
-    process.exitCode = exitCode;
-  })
-  .catch((error: unknown) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+    if (hint) {
+      console.error(`\nComing from Allure 2? ${hint}\n${ALLURE2_MIGRATE_REMINDER}`);
+    }
+  }
+};
+
+const main = async () => {
+  const { args: notifierArgs, disabled } = parseUpdateNotifierArgs(rawArgs);
+  const { args, verbosity } = extractVerbosityFlags(notifierArgs);
+
+  applyVerbosity(verbosity);
+  void notifyAboutUpdate(args, disabled || verbosity === "quiet");
+
+  const exitCode = await cli.run(args);
+
+  if (exitCode === 0 && isAgentTaskMapHelpRequest(args)) {
+    process.stdout.write(`\n${AGENT_TASK_MAP_HELP}`);
+  }
+
+  if (exitCode !== 0) {
+    printAllure2Hint(args);
+  }
+
+  process.exitCode = exitCode;
+};
+
+void main().catch((error: unknown) => {
+  console.error(error instanceof UsageError ? `Usage Error: ${error.message}` : error);
+  process.exitCode = 1;
+});
 
 export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";

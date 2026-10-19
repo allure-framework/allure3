@@ -1,4 +1,5 @@
 export * from "./utils.js";
+export * from "./config.js";
 export type * from "./types.js";
 export * from "./colors.js";
 export * from "./chart-utils.js";

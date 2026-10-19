@@ -1,19 +1,26 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
+import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { stopProcessTree, terminationOf } from "../../src/utils/process.js";
 
 const execFileAsync = promisify(execFile);
 const commandsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(commandsDir, "../../../..");
 const yarnRcPath = join(repoRoot, ".yarnrc.yml");
 const cliPath = join(repoRoot, "packages", "cli", "cli.js");
+const sharedBuildArtifacts = [
+  join(repoRoot, "packages", "cli", "dist", "index.js"),
+  join(repoRoot, "packages", "plugin-log", "dist", "index.js"),
+];
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
@@ -31,6 +38,29 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
     maxBuffer,
     ...restOptions,
   });
+};
+
+const runCommandWithExitCode = async (command: string, args: string[], options: RunCommandOptions = {}) => {
+  try {
+    const result = await runCommand(command, args, options);
+
+    return {
+      ...result,
+      exitCode: 0,
+    };
+  } catch (error) {
+    const commandError = error as Error & {
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+    };
+
+    return {
+      stdout: commandError.stdout ?? "",
+      stderr: commandError.stderr ?? "",
+      exitCode: commandError.code ?? 1,
+    };
+  }
 };
 
 const pathExists = async (filePath: string) => {
@@ -57,6 +87,8 @@ const writeJson = async (filePath: string, value: unknown) => {
 const writeJsonl = async (filePath: string, lines: unknown[]) => {
   await writeFile(filePath, lines.map((line) => JSON.stringify(line)).join("\n"), "utf-8");
 };
+
+const stripAnsi = (value: string) => value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 
 const resolveYarnInvocation = async () => {
   const yarnRc = await readFile(yarnRcPath, "utf-8");
@@ -110,8 +142,16 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
   return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
 };
 
+// every suite in this file drives the built CLI, and the build wipes `dist` first: it has to happen
+// once, before any of them starts, and never in parallel with a running CLI process
+beforeAll(async () => {
+  await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
+  await runYarnCommand(["workspace", "allure", "build"]);
+}, 240_000);
+
 describe("run command integration", () => {
   let tempDir: string;
+  let sharedBuildModificationTimes: number[];
 
   beforeEach(async () => {
     await epic("coverage");
@@ -121,10 +161,12 @@ describe("run command integration", () => {
   });
 
   beforeAll(async () => {
+    // Workspace builds run before tests. Rebuilding here would clean shared dist files while other packages use them.
+    sharedBuildModificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
-
-    await runYarnCommand(["workspace", "allure", "build"]);
-  }, 240_000);
+  });
 
   afterAll(async () => {
     await rm(tempDir, { recursive: true, force: true });
@@ -270,6 +312,535 @@ describe("run command integration", () => {
     });
   }, 240_000);
 
+  it("runs the built generate command with a TypeScript config", async () => {
+    const fixtureDir = join(tempDir, "typescript-config-generate");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "typed-report");
+    const configPath = join(fixtureDir, "allurerc.ts");
+    const resultPath = join(resultsDir, "simple-result.json");
+    const configSource = `
+import type { AllureConfig } from "allure";
+
+const config = {
+  name: "Typed CLI Report",
+  output: ${JSON.stringify(outputDir)},
+} satisfies AllureConfig;
+
+export default config;
+`.trimStart();
+
+    let stderr = "";
+
+    await step("prepare TypeScript config fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(resultPath, await readFile(simpleResultFixture, "utf-8"), "utf-8");
+      await attachment("typescript config", configSource, "text/plain");
+    });
+
+    await step("run built generate command with TypeScript config", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        resultsDir,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("generate with TypeScript config", result);
+    });
+
+    await step("verify generated report uses TypeScript config", async () => {
+      await expect(stat(join(outputDir, "index.html"))).resolves.toBeTruthy();
+      expect(stderr).toBe("");
+    });
+  }, 240_000);
+
+  it("stores per-environment quality gates in dumps without revalidating the combined report", async () => {
+    const fixtureDir = join(tempDir, "generate-quality-gate-dumps");
+    const linuxResultsDir = join(fixtureDir, "linux-results");
+    const windowsResultsDir = join(fixtureDir, "windows-results");
+    const linuxConfigPath = join(fixtureDir, "linux.mjs");
+    const windowsConfigPath = join(fixtureDir, "windows.mjs");
+    const finalConfigPath = join(fixtureDir, "final.mjs");
+    const linuxDump = join(fixtureDir, "linux-dump");
+    const windowsDump = join(fixtureDir, "windows-dump");
+    const outputDir = join(fixtureDir, "report");
+    const environmentsSource = `
+  environments: {
+    linux: { name: "Linux", matcher: () => false },
+    windows: { name: "Windows", matcher: () => false }
+  }`;
+    const environmentConfig = (environment: string, dump: string) =>
+      `
+export default {
+  name: "${environment} results",
+  environment: ${JSON.stringify(environment)},
+  dump: ${JSON.stringify(dump)},
+  qualityGate: {
+    rules: [{ maxFailures: 0 }]
+  },
+${environmentsSource}
+};
+`.trimStart();
+    const finalConfig = `
+export default {
+  name: "Combined report",
+  output: ${JSON.stringify(outputDir)},
+${environmentsSource}
+};
+`.trimStart();
+    const linuxResult = {
+      uuid: "linux-passed",
+      historyId: "linux-passed-history",
+      name: "Linux passed test",
+      fullName: "Quality Gate Suite > Linux passed test",
+      status: "passed",
+      start: 1,
+      stop: 2,
+    };
+    const windowsResult = {
+      uuid: "windows-failed",
+      historyId: "windows-failed-history",
+      name: "Windows failed test",
+      fullName: "Quality Gate Suite > Windows failed test",
+      status: "failed",
+      start: 1,
+      stop: 2,
+    };
+
+    await step("prepare per-environment result and config fixtures", async () => {
+      await mkdir(linuxResultsDir, { recursive: true });
+      await mkdir(windowsResultsDir, { recursive: true });
+      await writeJson(join(linuxResultsDir, "linux-result.json"), linuxResult);
+      await writeJson(join(windowsResultsDir, "windows-result.json"), windowsResult);
+      await writeFile(linuxConfigPath, environmentConfig("linux", linuxDump), "utf-8");
+      await writeFile(windowsConfigPath, environmentConfig("windows", windowsDump), "utf-8");
+      await writeFile(finalConfigPath, finalConfig, "utf-8");
+    });
+
+    await step("generate passing and failing environment dumps", async () => {
+      const linux = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        linuxConfigPath,
+        linuxResultsDir,
+      ]);
+      const windows = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        windowsConfigPath,
+        windowsResultsDir,
+      ]);
+
+      await attachCommandOutput("linux dump generation", linux);
+      await attachCommandOutput("windows dump generation", windows);
+
+      expect(linux.exitCode).toBe(0);
+      expect(windows.exitCode).toBe(1);
+      expect(stripAnsi(windows.stderr)).toContain("Quality Gate failed");
+      await expect(stat(`${linuxDump}.zip`)).resolves.toBeTruthy();
+      await expect(stat(`${windowsDump}.zip`)).resolves.toBeTruthy();
+    });
+
+    await step("combine dumps without an aggregate quality gate", async () => {
+      const combined = await runCommandWithExitCode(process.execPath, [
+        cliPath,
+        "generate",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        finalConfigPath,
+        "--dump",
+        `${linuxDump}.zip`,
+        "--dump",
+        `${windowsDump}.zip`,
+      ]);
+
+      await attachCommandOutput("combined report generation", combined);
+      expect(combined.exitCode).toBe(0);
+    });
+
+    await step("verify restored quality gates keep environment attribution", async () => {
+      const qualityGateWidget = JSON.parse(
+        await readFile(join(outputDir, "widgets", "quality-gate.json"), "utf-8"),
+      ) as Record<string, { success: boolean; environment?: string }[]>;
+
+      expect(Object.keys(qualityGateWidget).sort()).toEqual(["linux", "windows"]);
+      expect(qualityGateWidget.linux).toEqual([
+        expect.objectContaining({
+          success: true,
+          environment: "Linux",
+        }),
+      ]);
+      expect(qualityGateWidget.windows).toEqual([
+        expect.objectContaining({
+          success: false,
+          environment: "Windows",
+        }),
+      ]);
+      expect(Object.values(qualityGateWidget).flat()).toHaveLength(2);
+    });
+  }, 240_000);
+
+  it("restarts the full command after a fast-failing Quality Gate", async () => {
+    const fixtureDir = join(tempDir, "quality-gate-rerun");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "allure-report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const invocationsPath = join(fixtureDir, "invocations.jsonl");
+    const configSource = `
+export default {
+  output: ${JSON.stringify(outputDir)},
+  qualityGate: {
+    rules: [{ maxFailures: 0, fastFail: true }]
+  }
+};
+`.trimStart();
+    const runnerSource = `
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const invocationsPath = ${JSON.stringify(invocationsPath)};
+const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
+const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
+const rerun = process.env.ALLURE_RERUN;
+const isRerun = rerun !== undefined;
+
+await appendFile(invocationsPath, JSON.stringify({ rerun, testPlanPath, testPlan }) + "\\n", "utf-8");
+await writeFile(
+  join(resultsDir, isRerun ? "retry-result.json" : "initial-result.json"),
+  JSON.stringify({
+    uuid: isRerun ? "retry-result" : "initial-result",
+    historyId: "quality-gate-rerun",
+    name: "recovers after rerun",
+    fullName: "Quality Gate Suite > recovers after rerun",
+    status: isRerun ? "passed" : "failed",
+    start: isRerun ? 3 : 1,
+    stop: isRerun ? 4 : 2
+  }),
+  "utf-8"
+);
+
+if (isRerun) {
+  await writeFile(
+    join(resultsDir, "remaining-result.json"),
+    JSON.stringify({
+      uuid: "remaining-result",
+      historyId: "remaining-result",
+      name: "runs during the full rerun",
+      fullName: "Quality Gate Suite > runs during the full rerun",
+      status: "passed",
+      start: 5,
+      stop: 6
+    }),
+    "utf-8"
+  );
+}
+
+await new Promise((resolve) => setTimeout(resolve, isRerun ? 2500 : 30000));
+`.trimStart();
+    let stdout = "";
+    let stderr = "";
+
+    await step("prepare Quality Gate rerun fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(runnerPath, runnerSource, "utf-8");
+      await attachment("Quality Gate rerun config", configSource, "text/plain");
+      await attachment("Quality Gate rerun child process", runnerSource, "text/plain");
+    });
+
+    await step("run built command with Quality Gate rerun enabled", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "run",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--rerun",
+        "1",
+        "--results-dir",
+        resultsDir,
+        "--",
+        process.execPath,
+        runnerPath,
+      ]);
+
+      stdout = result.stdout;
+      stderr = result.stderr;
+      await attachCommandOutput("Quality Gate rerun", result);
+    });
+
+    await step("verify full rerun scope and final success", async () => {
+      const normalizedStdout = stripAnsi(stdout);
+      const normalizedStderr = stripAnsi(stderr);
+      const invocations = (await readFile(invocationsPath, "utf-8"))
+        .trim()
+        .split("\n")
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              rerun?: string;
+              testPlanPath?: string;
+              testPlan?: {
+                version: string;
+                tests: { selector?: string; id?: string }[];
+              };
+            },
+        );
+
+      expect(normalizedStdout).not.toContain("skipping quality gate validation");
+      expect(normalizedStdout).toContain("[QualityGate]: Fast-fail triggered: maxFailures; stopping attempt 1/2");
+      expect(normalizedStdout).toContain("[AllureRun]: Attempt 1/2 stopped by Quality Gate");
+      expect(normalizedStderr).toContain(
+        "[AllureRerun]: Attempt 2/2: Quality Gate fast-fail interrupted the previous attempt; restarting full test process",
+      );
+      expect(normalizedStdout).toContain("[AllureRun]: Completed with exit code 0");
+      expect(normalizedStdout).not.toContain("rerun number");
+      expect(normalizedStdout).not.toContain("Quality Gate Suite > recovers after rerun");
+      expect(invocations).toHaveLength(2);
+      expect(invocations[0]).toEqual({});
+      expect(invocations[1]?.rerun).toBe("0");
+      expect(invocations[1]?.testPlanPath).toBeUndefined();
+      expect(invocations[1]?.testPlan).toBeUndefined();
+    });
+  }, 240_000);
+
+  it("reruns passed tests related to failed Quality Gate rules after a completed run", async () => {
+    const fixtureDir = join(tempDir, "quality-gate-related-rerun");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const outputDir = join(fixtureDir, "allure-report");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const runnerPath = join(fixtureDir, "runner.mjs");
+    const invocationsPath = join(fixtureDir, "invocations.jsonl");
+    const configSource = `
+export default {
+  output: ${JSON.stringify(outputDir)},
+  qualityGate: {
+    rules: [{ maxDuration: 100 }]
+  }
+};
+`.trimStart();
+    const runnerSource = `
+import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const resultsDir = ${JSON.stringify(resultsDir)};
+const invocationsPath = ${JSON.stringify(invocationsPath)};
+const testPlanPath = process.env.ALLURE_TESTPLAN_PATH;
+const testPlan = testPlanPath ? JSON.parse(await readFile(testPlanPath, "utf-8")) : undefined;
+const isRerun = testPlan !== undefined;
+
+await appendFile(invocationsPath, JSON.stringify({ testPlanPath, testPlan }) + "\\n", "utf-8");
+await writeFile(
+  join(resultsDir, isRerun ? "retry-result.json" : "initial-result.json"),
+  JSON.stringify({
+    uuid: isRerun ? "duration-retry" : "duration-initial",
+    historyId: "quality-gate-duration",
+    name: "becomes fast enough after rerun",
+    fullName: "Quality Gate Suite > becomes fast enough after rerun",
+    status: "passed",
+    start: isRerun ? 300 : 1,
+    stop: isRerun ? 350 : 201
+  }),
+  "utf-8"
+);
+
+await new Promise((resolve) => setTimeout(resolve, 2500));
+`.trimStart();
+    let stderr = "";
+
+    await step("prepare completed Quality Gate rerun fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeFile(runnerPath, runnerSource, "utf-8");
+    });
+
+    await step("run built command with a non-fast Quality Gate", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "run",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--rerun",
+        "1",
+        "--results-dir",
+        resultsDir,
+        "--",
+        process.execPath,
+        runnerPath,
+      ]);
+
+      stderr = result.stderr;
+      await attachCommandOutput("completed Quality Gate rerun", result);
+    });
+
+    await step("verify related passed test uses a focused rerun", async () => {
+      const invocations = (await readFile(invocationsPath, "utf-8"))
+        .trim()
+        .split("\n")
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              testPlanPath?: string;
+              testPlan?: {
+                version: string;
+                tests: { selector?: string; id?: string }[];
+              };
+            },
+        );
+
+      expect(stderr).toBe("");
+      expect(invocations).toHaveLength(2);
+      expect(invocations[0]).toEqual({});
+      expect(invocations[1]?.testPlanPath).toEqual(expect.any(String));
+      expect(isAbsolute(invocations[1]!.testPlanPath!)).toBe(true);
+      expect(invocations[1]?.testPlan).toEqual({
+        version: "1.0",
+        tests: [{ selector: "Quality Gate Suite > becomes fast enough after rerun" }],
+      });
+    });
+  }, 240_000);
+
+  it("prints quality gate results from the built log command after test results", async () => {
+    const fixtureDir = join(tempDir, "log-quality-gates");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const configPath = join(fixtureDir, "allurerc.mjs");
+    const failedResultPath = join(resultsDir, "failed-result.json");
+    const configSource = `
+export default {
+  qualityGate: {
+    rules: [{ maxFailures: 0 }, { minTestsCount: 1 }]
+  }
+};
+`.trimStart();
+    const failedResult = {
+      uuid: "failed-result",
+      historyId: "failed-history",
+      name: "Failed test",
+      fullName: "Quality Gate Suite > Failed test",
+      status: "failed",
+      start: 1,
+      stop: 2,
+    };
+    let stdout = "";
+    let stderr = "";
+    let allStdout = "";
+    let allStderr = "";
+    let disabledStdout = "";
+    let disabledStderr = "";
+
+    await step("prepare log quality gate fixture", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      await writeFile(configPath, configSource, "utf-8");
+      await writeJson(failedResultPath, failedResult);
+      await attachment("log quality gate config", configSource, "text/plain");
+    });
+
+    await step("run built log command with default quality gate results", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "log",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        resultsDir,
+      ]);
+
+      stdout = stripAnsi(result.stdout);
+      stderr = result.stderr;
+      await attachCommandOutput("log with quality gates", result);
+    });
+
+    await step("run built log command with all quality gate results", async () => {
+      const result = await runCommand(
+        process.execPath,
+        [cliPath, "log", "--cwd", fixtureDir, "--config", configPath, "--all-quality-gate-results", resultsDir],
+        {
+          env: {
+            FORCE_COLOR: "1",
+          },
+        },
+      );
+
+      allStdout = result.stdout;
+      allStderr = result.stderr;
+      await attachCommandOutput("log with all quality gates", result);
+    });
+
+    await step("run built log command with quality gate results disabled", async () => {
+      const result = await runCommand(process.execPath, [
+        cliPath,
+        "log",
+        "--cwd",
+        fixtureDir,
+        "--config",
+        configPath,
+        "--no-quality-gate-results",
+        resultsDir,
+      ]);
+
+      disabledStdout = stripAnsi(result.stdout);
+      disabledStderr = result.stderr;
+      await attachCommandOutput("log without quality gates", result);
+    });
+
+    await step("verify default quality gate output prints only failures after tests", async () => {
+      expect(stderr).toBe("");
+      expect(stdout).toContain("Failed test");
+      expect(stdout).toContain("Total tests: 1");
+      expect(stdout).toContain("Tests: 1 failed");
+      expect(stdout).toContain("Quality gates");
+      expect(stdout).toContain("⨯ maxFailures");
+      expect(stdout).toContain("The number of failed tests 1 exceeds the allowed threshold value 0");
+      expect(stdout).toContain("Quality gates: 1 failed");
+      expect(stdout).not.toContain("✓ minTestsCount");
+      expect(stdout).not.toContain("The total number of tests 1 meets the expected threshold value 1");
+      expect(stdout.indexOf("Tests: 1 failed")).toBeLessThan(stdout.indexOf("Quality gates"));
+    });
+
+    await step("verify all quality gate output includes successes after failures", async () => {
+      const allStdoutWithoutAnsi = stripAnsi(allStdout);
+
+      expect(allStderr).toBe("");
+      expect(allStdoutWithoutAnsi).toContain("Quality gates");
+      expect(allStdoutWithoutAnsi).toContain("⨯ maxFailures");
+      expect(allStdoutWithoutAnsi).toContain("The number of failed tests 1 exceeds the allowed threshold value 0");
+      expect(allStdoutWithoutAnsi).toContain("✓ minTestsCount");
+      expect(allStdoutWithoutAnsi).toContain("The total number of tests 1 meets the expected threshold value 1");
+      expect(allStdoutWithoutAnsi.indexOf("maxFailures")).toBeLessThan(allStdoutWithoutAnsi.indexOf("minTestsCount"));
+      expect(allStdoutWithoutAnsi).toContain("Quality gates: 1 passed | 1 failed");
+      expect(allStdout).toContain("\u001B[31m⨯\u001B[39m maxFailures");
+      expect(allStdout).toContain("\u001B[32m✓\u001B[39m minTestsCount");
+      expect(allStdout).toContain("\u001B[31mThe number of failed tests ");
+      expect(allStdout).toContain("\u001B[32mThe total number of tests ");
+    });
+
+    await step("verify disabled quality gate output hides the section", async () => {
+      expect(disabledStdout).toContain("Tests: 1 failed");
+      expect(disabledStdout).not.toContain("Quality gates");
+      expect(disabledStdout).not.toContain("maxFailures");
+      expect(disabledStdout).not.toContain("minTestsCount");
+      expect(disabledStderr).toBe("");
+    });
+  }, 240_000);
+
   it("runs the built agent command with default human report output", async () => {
     const fixtureDir = join(tempDir, "built-agent");
     const homeDir = join(fixtureDir, "home");
@@ -407,6 +978,10 @@ console.log("emitted simple result");
         paths: {
           expected_manifest: string | null;
           human_report_manifest: string | null;
+          process_logs: {
+            stdout: string | null;
+            stderr: string | null;
+          };
         };
         human_report: {
           mode: string;
@@ -428,6 +1003,10 @@ console.log("emitted simple result");
       expect(runManifest.expectations_present).toBe(true);
       expect(runManifest.paths.expected_manifest).toBe("manifest/expected.json");
       expect(runManifest.paths.human_report_manifest).toBe("manifest/human-report.json");
+      expect(runManifest.paths.process_logs).toEqual({
+        stdout: `artifacts/global/${formatProcessLogAttachmentName(`node ${emitResultsPath} ${simpleResultFixture}`, "stdout")}`,
+        stderr: null,
+      });
       expect(runManifest.human_report).toEqual(humanReportManifest);
       expect(humanReportManifest).toEqual(
         expect.objectContaining({
@@ -445,20 +1024,7 @@ console.log("emitted simple result");
       expect(indexMarkdown).toContain("- Status: generated");
       expect(indexMarkdown).toContain("- Path: [awesome/index.html](awesome/index.html)");
       expect(await pathExists(join(outputDir, "project"))).toBe(false);
-      expect(
-        findingsContent
-          .trim()
-          .split("\n")
-          .filter(Boolean)
-          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            check_name: "missing-global-logs",
-            severity: "info",
-          }),
-        ]),
-      );
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(await pathExists(join(outputDir, "dashboard"))).toBe(false);
       expect(stdout).toContain(`node ${emitResultsPath} ${simpleResultFixture}`);
       expect(stdout).toContain(`agent output: ${outputDir}`);
@@ -468,12 +1034,12 @@ console.log("emitted simple result");
       // The test command's own stdout is captured into the agent artifacts, not echoed to the terminal.
       const globalArtifactsDir = join(outputDir, "artifacts", "global");
       const globalArtifactNames = await readdir(globalArtifactsDir);
-      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
-
-      if (stdoutArtifactName) {
-        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
-        expect(capturedStdout).toContain("emitted simple result");
-      }
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${simpleResultFixture}`,
+        "stdout",
+      );
+      expect(globalArtifactNames).toContain(stdoutArtifactName);
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain("emitted simple result");
       expect(stdout).not.toContain("process finished with code");
       expect(stdout).not.toContain("exit code ");
       expect(stdout).not.toContain("[DEP0190]");
@@ -515,6 +1081,7 @@ const outDir = join(process.cwd(), "allure-results");
 await mkdir(outDir, { recursive: true });
 await cp(fixture, join(outDir, \`\${randomUUID()}-result.json\`));
 console.log("emitted newly added test result");
+console.error("emitted newly added test diagnostic");
 `.trimStart();
 
     let stdout = "";
@@ -526,7 +1093,7 @@ console.log("emitted newly added test result");
       const expectedResult = {
         ...baseResult,
         uuid: "agent-expect-test-uuid",
-        historyId: "agent-expect-test-history",
+        retryHash: "agent-expect-test-history",
         name: "reports the newly added test",
         fullName: expectedFullName,
         status: "passed",
@@ -608,30 +1175,26 @@ console.log("emitted newly added test result");
           full_name: expectedFullName,
         }),
       ]);
-      expect(
-        findingsContent
-          .trim()
-          .split("\n")
-          .filter(Boolean)
-          .map((line) => JSON.parse(line) as { check_name: string; severity: string }),
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            check_name: "missing-global-logs",
-            severity: "info",
-          }),
-        ]),
-      );
+      expect(findingsContent).not.toContain('"check_name":"missing-global-logs"');
       expect(indexMarkdown).toContain(expectedFullName);
       expect(stdout).toContain("expectations: matched");
       const globalArtifactsDir = join(outputDir, "artifacts", "global");
       const globalArtifactNames = await readdir(globalArtifactsDir);
-      const stdoutArtifactName = globalArtifactNames.find((name) => /stdout/i.test(name));
-
-      if (stdoutArtifactName) {
-        const capturedStdout = await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8");
-        expect(capturedStdout).toContain("emitted newly added test result");
-      }
+      const stdoutArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stdout",
+      );
+      const stderrArtifactName = formatProcessLogAttachmentName(
+        `node ${emitResultsPath} ${resultFixturePath}`,
+        "stderr",
+      );
+      expect(globalArtifactNames).toEqual(expect.arrayContaining([stdoutArtifactName, stderrArtifactName]));
+      expect(await readFile(join(globalArtifactsDir, stdoutArtifactName), "utf-8")).toContain(
+        "emitted newly added test result",
+      );
+      expect(await readFile(join(globalArtifactsDir, stderrArtifactName), "utf-8")).toContain(
+        "emitted newly added test diagnostic",
+      );
       expect(stderr).toBe("");
     });
   }, 240_000);
@@ -695,7 +1258,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureAResult = {
         ...baseResult,
         uuid: "feature-a-uuid",
-        historyId: "feature-a-history",
+        retryHash: "feature-a-history",
         name: "feature A",
         fullName: "suite feature A",
         status: "passed",
@@ -708,7 +1271,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       const featureBResult = {
         ...baseResult,
         uuid: "feature-b-uuid",
-        historyId: "feature-b-history",
+        retryHash: "feature-b-history",
         name: "feature B",
         fullName: "suite feature B",
         status: "passed",
@@ -806,7 +1369,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       await writeJsonl(join(previousManifestDir, "tests.jsonl"), [
         {
           environment_id: "default",
-          history_id: "feature-a-history",
+          retry_hash: "feature-a-history",
           test_result_id: "feature-a-tr",
           full_name: "suite feature A",
           package: "suite",
@@ -830,7 +1393,7 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         },
         {
           environment_id: "default",
-          history_id: "feature-b-history",
+          retry_hash: "feature-b-history",
           test_result_id: "feature-b-tr",
           full_name: "suite feature B",
           package: "suite",
@@ -987,5 +1550,301 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
         }),
       ]);
     });
+  }, 240_000);
+
+  it("checks for updates through the built CLI and accepts the notifier opt-out", async () => {
+    const fixtureDir = join(tempDir, "update-notifier");
+    const resultsDir = join(fixtureDir, "allure-results");
+    const preloadPath = join(fixtureDir, "interactive.mjs");
+
+    await step("prepare an isolated interactive CLI and a deterministic npm response", async () => {
+      await mkdir(resultsDir, { recursive: true });
+      // Only emulate the terminal and network. The CLI, parser, and notifier are real.
+      await writeFile(
+        preloadPath,
+        [
+          'Object.defineProperty(process.stderr, "isTTY", { value: true });',
+          'globalThis.fetch = async (url) => { if (url !== "https://registry.npmjs.org/allure/latest") throw new Error("Unexpected update URL"); process.stderr.write("test registry request\\n"); return { ok: true, json: async () => ({ version: "999.1.0" }) }; };',
+          'for (const name of ["CI", "NODE_ENV", "NO_UPDATE_NOTIFIER", "npm_config_user_agent", "npm_execpath"]) delete process.env[name];',
+        ].join("\n"),
+        "utf8",
+      );
+    });
+
+    await step("run the real command with the global opt-out", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "--no-update-notifier",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier disabled", result);
+      expect(result.stdout).toContain("the report successfully generated");
+      expect(result.stderr).not.toContain("Update available");
+      expect(result.stderr).not.toContain("test registry request");
+    });
+
+    await step("run the same command in verbose mode with update notifications enabled", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "-v",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier enabled", result);
+      expect(result.stdout).toContain("the report successfully generated");
+      expect(result.stdout).not.toContain("Update available");
+      expect(result.stderr).toContain("test registry request");
+      expect(result.stderr).toContain("→ 999.1.0");
+    });
+
+    await step("quiet mode suppresses update checks and notifications", async () => {
+      const result = await runCommand(process.execPath, [
+        "--import",
+        pathToFileURL(preloadPath).href,
+        cliPath,
+        "--quiet",
+        "log",
+        resultsDir,
+        "--cwd",
+        fixtureDir,
+      ]);
+      await attachCommandOutput("notifier quiet", result);
+      expect(result.stderr).not.toContain("test registry request");
+      expect(result.stderr).not.toContain("Update available");
+    });
+  }, 60_000);
+
+  it("does not rebuild shared workspace artifacts", async () => {
+    const modificationTimes = await Promise.all(
+      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
+    );
+
+    expect(modificationTimes).toEqual(sharedBuildModificationTimes);
+  });
+});
+
+// the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from
+// the current directory; the PnP hooks are passed explicitly instead
+const resolveNodeOptions = async () => {
+  if (process.env.NODE_OPTIONS) {
+    return process.env.NODE_OPTIONS;
+  }
+
+  const pnpPath = join(repoRoot, ".pnp.cjs");
+  const pnpLoaderPath = join(repoRoot, ".pnp.loader.mjs");
+
+  if (!(await pathExists(pnpPath))) {
+    return "";
+  }
+
+  const options = [`--require ${pnpPath}`];
+
+  if (await pathExists(pnpLoaderPath)) {
+    options.push(`--experimental-loader ${pathToFileURL(pnpLoaderPath).href}`);
+  }
+
+  return options.join(" ");
+};
+
+const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>
+  new Promise<string>((resolvePromise, rejectPromise) => {
+    let output = "";
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+
+      for (const stream of streams) {
+        stream?.off("data", onData);
+        stream?.off("error", onError);
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      cleanup();
+      rejectPromise(new Error(`Timed out waiting for ${pattern}, got:\n${output || "<no output>"}`));
+    }, timeoutMs);
+
+    const onData = (chunk: Buffer | string) => {
+      output += chunk.toString();
+
+      if (pattern.test(output)) {
+        cleanup();
+        resolvePromise(output);
+      }
+    };
+
+    const onError = (error: Error) => {
+      cleanup();
+      rejectPromise(error);
+    };
+
+    for (const stream of streams) {
+      stream?.on("data", onData);
+      stream?.on("error", onError);
+    }
+  });
+
+// the report is written before the server starts, but the file may still be a few ticks away
+const readHistoryEntries = async (historyPath: string, timeoutMs = 10_000) => {
+  const deadline = Date.now() + timeoutMs;
+
+  while (true) {
+    try {
+      const content = await readFile(historyPath, "utf-8");
+      const entries = content
+        .split("\n")
+        .filter((line) => line.trim().length)
+        .map((line) => JSON.parse(line) as { uuid: string; testResults: Record<string, unknown> });
+
+      if (entries.length) {
+        return entries;
+      }
+    } catch (err) {
+      if (Date.now() > deadline) {
+        throw err;
+      }
+    }
+
+    if (Date.now() > deadline) {
+      throw new Error(`${historyPath} hasn't been written`);
+    }
+
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 250));
+  }
+};
+
+const terminate = async (child: ReturnType<typeof spawn>) => {
+  const closed = new Promise<void>((resolvePromise) => {
+    child.once("close", () => resolvePromise());
+  });
+
+  if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+    await Promise.race([closed, new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 5_000).unref())]);
+    return;
+  }
+
+  const exited = terminationOf(child);
+
+  // `serve` may have spawned children of its own; leaving them behind would keep the CI job busy
+  await stopProcessTree(child.pid);
+
+  const killed = await Promise.race([
+    exited.then(() => true),
+    new Promise<false>((resolvePromise) => setTimeout(() => resolvePromise(false), 5_000).unref()),
+  ]);
+
+  if (!killed) {
+    await stopProcessTree(child.pid, { signal: "SIGKILL" });
+    await exited;
+  }
+
+  await Promise.race([closed, new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 5_000).unref())]);
+};
+
+/**
+ * Regression test for https://github.com/allure-framework/allure3/issues/827: `allure serve` used to
+ * generate the report and then exit without ever starting the server when `historyPath` was
+ * configured. This only covers the symptom under Yarn PnP, whose patched `fs` hides the underlying
+ * FileHandle lifecycle bug; `packages/core/test/history.integration.test.ts` exercises the history
+ * code against the real Node implementation.
+ */
+describe("serve command integration", () => {
+  let workspace: string;
+
+  beforeEach(async () => {
+    await epic("coverage");
+    await feature("cli-commands");
+    await story("serve.integration");
+    await label("coverage", "cli-commands");
+
+    workspace = await mkdtemp(join(tmpdir(), "allure-serve-history-"));
+  });
+
+  afterEach(async () => {
+    await rm(workspace, { recursive: true, force: true });
+  });
+
+  it("keeps the HTTP server running when historyPath is configured", async () => {
+    const historyPath = join(workspace, "allure-history.jsonl");
+
+    await mkdir(join(workspace, "allure-results"), { recursive: true });
+    await writeJson(join(workspace, "allure-results", "x-result.json"), {
+      uuid: "11111111-1111-1111-1111-111111111111",
+      historyId: "abc",
+      name: "dummy test",
+      status: "passed",
+      stage: "finished",
+      start: 1_784_900_000_000,
+      stop: 1_784_900_001_000,
+      labels: [],
+      steps: [],
+      parameters: [],
+      links: [],
+    });
+    await writeFile(
+      join(workspace, "allurerc.mjs"),
+      `export default {
+  name: "repro",
+  historyPath: ${JSON.stringify(historyPath)},
+};
+`,
+      "utf-8",
+    );
+
+    const env = {
+      ...process.env,
+      NODE_OPTIONS: await resolveNodeOptions(),
+      NODE_NO_WARNINGS: "1",
+    };
+
+    // other suites in the same worker may have left it behind, and the CLI refuses nested commands
+    delete env.ALLURE_CLI_ACTIVE_COMMAND;
+
+    const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
+      cwd: workspace,
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    try {
+      const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
+      let earlyOutput = "";
+
+      child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+      child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+
+      const exited = new Promise<never>((_, rejectPromise) => {
+        child.once("exit", (code, signal) => {
+          rejectPromise(
+            new Error(
+              `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
+            ),
+          );
+        });
+      });
+      const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
+
+      await attachment("serve output", output, "text/plain");
+
+      expect(output).toMatch(serverPattern);
+      expect(child.exitCode).toBeNull();
+
+      const history = await readHistoryEntries(historyPath);
+
+      await attachment("history file", JSON.stringify(history, null, 2), "application/json");
+
+      expect(history).toHaveLength(1);
+    } finally {
+      await terminate(child);
+    }
   }, 240_000);
 });

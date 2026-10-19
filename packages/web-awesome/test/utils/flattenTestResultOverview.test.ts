@@ -54,4 +54,42 @@ describe("flattenTestResultOverview", () => {
 
     expect(flat.map((node) => node.id)).toEqual(["tr-2-steps"]);
   });
+
+  it("hides setup and teardown children when the step expansion policy is collapsed", () => {
+    const flat = flattenTestResultOverview({
+      testResultId: "tr-3",
+      hasSetup: true,
+      setupBodyItems: [
+        {
+          type: "step",
+          item: {
+            stepId: "setup-fixture",
+            name: "Setup fixture",
+            status: "passed",
+          },
+          bodyItems: [],
+          suppressInlineError: false,
+        },
+      ],
+      bodyItems: [],
+      hasTeardown: true,
+      teardownBodyItems: [
+        {
+          type: "step",
+          item: {
+            stepId: "teardown-fixture",
+            name: "Teardown fixture",
+            status: "passed",
+          },
+          bodyItems: [],
+          suppressInlineError: false,
+        },
+      ],
+      isGroupOpened: (_id, openedByDefault) => openedByDefault,
+      stepExpansionPolicy: "collapsed",
+    });
+
+    expect(flat.map((node) => node.id)).toEqual(["tr-3-setup", "tr-3-teardown"]);
+    expect(flat.map((node) => node.openedByDefault)).toEqual([false, false]);
+  });
 });

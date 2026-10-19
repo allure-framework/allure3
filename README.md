@@ -90,7 +90,7 @@ option writes the agentic output directory.
 
 `allure agent` and `allure agent inspect` use `--report auto` by default. This writes the agent-readable artifacts and, when the stored visible result count is 1000 or fewer, also writes a single-file Awesome report at `awesome/index.html` inside the agent output directory. Runs above that threshold skip the human report to avoid excessive output, and the status is recorded in `index.md`, `manifest/run.json`, and `manifest/human-report.json`.
 
-Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or TestOps are otherwise ignored for agent runs.
+Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or Allure TestOps are otherwise ignored for agent runs.
 
 If you need the human-readable report from the most recent agent run, first run `npx allure agent latest` when the output directory is unknown. Then check `<output>/manifest/human-report.json`; when its status is `generated`, open `<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
 
@@ -161,7 +161,7 @@ npx allure --version
 
 ## Configuration
 
-Allure 3 uses an `allurerc.mjs` or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
+Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > [!TIP]
 > We recommend using the **Awesome** plugin for the best experience.  
@@ -188,6 +188,21 @@ export default defineConfig({
 ```
 
 In this example, the generated report is named *Allure Report Example* and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
+
+### TypeScript Configuration File
+
+TypeScript configuration files are loaded directly by the Allure CLI, so you don't need to precompile them or install `tsx` or `ts-node`.
+
+```ts
+import type { AllureConfig } from "allure";
+
+export default {
+  name: "Allure Report Example",
+  output: "./out/allure-report",
+} satisfies AllureConfig;
+```
+
+For editor type checking, make sure the `allure` package is available to your project, for example as a local dev dependency. If you run Allure only as a global CLI, you can still use a TypeScript config without importing from `allure`.
 
 ### Configuration Options
 
@@ -314,13 +329,14 @@ To see categories in action, use the demo setup in the `packages/sandbox` folder
 
 ### Declarative configuration format
 
-You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
+You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a declarative way to configure Allure 3.
 
 > [!WARNING]  
 > Declarative formats don't support advanced features such as tests filtering or environments.
-> If you need these features, please consider using the `allurerc.mjs` or `allurerc.js` files.
+> If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
 
 ## Official CI/CD Integrations
 
 - [GitHub Actions](https://github.com/marketplace/actions/allure-report-official)
 - [Azure DevOps](https://marketplace.visualstudio.com/items?itemName=qameta.allure-azure-pipelines)
+- [GitLab CI/CD](https://gitlab.com/explore/catalog/allure-team/allure-report-publisher)

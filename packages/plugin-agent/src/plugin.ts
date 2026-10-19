@@ -35,6 +35,7 @@ import type {
   AgentPluginOptions,
 } from "./model.js";
 import { parseAgentExpectations } from "./model.js";
+import { isProcessLogAttachmentName } from "./paths.js";
 
 const AGENT_SCHEMA_VERSION = "allure-agent-output/v1";
 const MANAGED_ENTRIES = ["index.md", "AGENTS.md", "tests", "artifacts", "manifest"] as const;
@@ -1887,14 +1888,14 @@ const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
     `- Name: ${escapeInlineMarkdown(tr.name)}`,
     `- Full Name: ${escapeInlineMarkdown(tr.fullName ?? tr.name)}`,
     `- Environment: ${escapeInlineMarkdown(environmentId)}`,
-    `- History ID: ${escapeInlineMarkdown(tr.historyId ?? "n/a")}`,
+    `- Retry hash: ${escapeInlineMarkdown(tr.retryHash ?? "n/a")}`,
     `- Test Result ID: ${escapeInlineMarkdown(tr.id)}`,
     `- Status: ${statusLabel(tr.status)}`,
     `- Duration: ${formatDurationValue(tr.duration)}`,
     `- Started: ${formatTimestamp(tr.start)}`,
     `- Stopped: ${formatTimestamp(tr.stop)}`,
     `- Flaky: ${String(tr.flaky)}`,
-    `- Known: ${String(tr.known)}`,
+    `- Resolution: ${tr.resolution ?? "none"}`,
     `- Muted: ${String(tr.muted)}`,
     `- Retries in This Run: ${Math.max(attempts.length - 1, 0)}`,
   ];
@@ -1998,10 +1999,12 @@ const renderIndex = (params: {
     findings,
     humanReport,
   } = params;
-  const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stdout"));
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
   const remainingGlobalArtifacts = globalArtifacts.filter(
-    (artifact) => artifact.displayName !== "stdout.txt" && artifact.displayName !== "stderr.txt",
+    (artifact) =>
+      !isProcessLogAttachmentName(artifact.displayName, "stdout") &&
+      !isProcessLogAttachmentName(artifact.displayName, "stderr"),
   );
   const exitCodeSummary =
     globalExitCode?.actual !== undefined && globalExitCode.actual !== globalExitCode.original
@@ -2729,8 +2732,8 @@ const buildRunAndTestFindings = (params: {
 }) => {
   const { entries, expectations, globalArtifacts, modelingSummary, createFinding } = params;
   const runFindings: AgentFinding[] = [];
-  const stdoutArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stdout"));
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
 
   if (entries.length === 0 && expectations?.expected.testCount !== 0) {
     runFindings.push(
@@ -3138,11 +3141,11 @@ const buildRunAndTestFindings = (params: {
           severity: "warning",
           category: "metadata",
           checkName: "history-id-collision",
-          message: "Multiple visible tests shared the same history ID in this environment.",
+          message: "Multiple visible tests shared the same retry hash in this environment.",
           explanation:
             "The output had to suffix the markdown file name because the logical test key was not unique within the environment.",
           evidencePaths: [entry.relativePath],
-          remediationHint: "Ensure the test metadata produces unique history IDs for distinct logical tests.",
+          remediationHint: "Ensure the test metadata produces unique retry hashes for distinct logical tests.",
           confidence: 0.85,
         }),
       );
@@ -3301,7 +3304,7 @@ const listVisibleTestLayouts = async (params: { outputDir: string; store: Allure
     const rawEnvironmentId = (await store.environmentIdByTrId(tr.id)) ?? "default";
     const environmentId = rawEnvironmentId;
     const environmentPath = sanitizePathSegment(rawEnvironmentId, "default");
-    const slugSeed = sanitizePathSegment(tr.historyId ?? tr.id, sanitizePathSegment(tr.id, "test"));
+    const slugSeed = sanitizePathSegment(tr.retryHash ?? tr.id, sanitizePathSegment(tr.id, "test"));
     const usedSlugs = slugsByEnvironment.get(environmentPath) ?? new Set<string>();
 
     slugsByEnvironment.set(environmentPath, usedSlugs);
@@ -3441,7 +3444,7 @@ const buildSnapshot = async (params: {
   const globalErrors = await store.allGlobalErrors();
   const globalExitCode = await store.globalExitCode();
   const qualityGateResults = await store.qualityGateResults();
-  const stderrArtifact = globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stderrArtifact = globalArtifacts.find((artifact) => isProcessLogAttachmentName(artifact.displayName, "stderr"));
   const stderrContent = await readMaterializedArtifactText(outputDir, stderrArtifact);
   const modelingSummary = buildModelingSummary({
     entries,
@@ -3514,8 +3517,12 @@ const toRunManifest = (params: {
   humanReport?: AgentHumanReportStatus;
 }) => {
   const { context, command, agentContext, generatedAt, phase, expectations, snapshot, humanReport } = params;
-  const stdoutArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stdout.txt");
-  const stderrArtifact = snapshot.globalArtifacts.find((artifact) => artifact.displayName === "stderr.txt");
+  const stdoutArtifact = snapshot.globalArtifacts.find((artifact) =>
+    isProcessLogAttachmentName(artifact.displayName, "stdout"),
+  );
+  const stderrArtifact = snapshot.globalArtifacts.find((artifact) =>
+    isProcessLogAttachmentName(artifact.displayName, "stderr"),
+  );
   const originalExitCode = snapshot.globalExitCode?.original ?? null;
   const actualExitCode = snapshot.globalExitCode?.actual ?? snapshot.globalExitCode?.original ?? null;
   const expectationResult = buildExpectationResult({
@@ -3711,7 +3718,7 @@ const writeBootstrapFiles = async (runtime: AgentRuntimeState) => {
 
 const toTestsManifestLine = (entry: TestEntry) => ({
   environment_id: entry.environmentId,
-  history_id: entry.tr.historyId ?? null,
+  retry_hash: entry.tr.retryHash ?? null,
   test_result_id: entry.tr.id,
   full_name: entry.tr.fullName ?? entry.tr.name,
   package: entry.packageName ?? null,
@@ -4003,23 +4010,15 @@ export class AgentPlugin implements Plugin {
         { maxTimeout: 0 },
       ),
     );
-    runtime.unsubscribers.push(
-      realtime.onGlobalAttachment(async () => {
-        await queueRuntimeTask(runtime, async () => {
-          // Global artifacts are finalized from the store in done(). Live consumers should
-          // use test-events plus per-test markdown for fast feedback during the run.
+    const onGlobalError = async (error: { message?: string }) => {
+      await queueRuntimeTask(runtime, async () => {
+        await appendRuntimeEvent(runtime, "run_error", {
+          message: error.message ?? "Captured global error",
         });
-      }),
-    );
-    runtime.unsubscribers.push(
-      realtime.onGlobalError(async (error) => {
-        await queueRuntimeTask(runtime, async () => {
-          await appendRuntimeEvent(runtime, "run_error", {
-            message: error.message ?? "Captured global error",
-          });
-        });
-      }),
-    );
+      });
+    };
+
+    runtime.unsubscribers.push(realtime.onGlobalError(onGlobalError));
     runtime.unsubscribers.push(
       realtime.onGlobalExitCode(async (payload) => {
         await queueRuntimeTask(runtime, async () => {

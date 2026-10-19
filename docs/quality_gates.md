@@ -30,12 +30,100 @@ export default defineConfig({
 });
 ```
 
+## Command scope and dumps
+
+Commands that load test results evaluate the complete dataset handled by that invocation when `qualityGate` is present in
+their resolved configuration. This applies to both `allure run` and `allure generate`. The output format does not change
+the validation policy: quality gates are still evaluated when either command writes a dump.
+
+Allure finishes writing the report or dump before returning exit code `1` for a failed quality gate. Passed and failed
+rule results are stored in the artifact, while the terminal prints only failures.
+
+The `dump` configuration field and the `allure generate --dump` option serve opposite sides of the workflow:
+
+- `dump` in the configuration writes the invocation's state to a new archive.
+- `allure generate --dump <archive>` restores an existing archive as input.
+
+This enables per-environment validation followed by report assembly. Each environment can use a configuration containing
+`environment`, `dump`, and `qualityGate`:
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  environment: process.env.TEST_ENVIRONMENT,
+  dump: `allure-results-${process.env.TEST_ENVIRONMENT}`,
+  qualityGate: {
+    rules: [{ maxFailures: 0 }],
+  },
+});
+```
+
+The final job can then restore all environment dumps using a configuration without `qualityGate`:
+
+```sh
+allure generate \
+  --dump allure-results-linux.zip \
+  --dump allure-results-windows.zip \
+  --output allure-report
+```
+
+In this form, final generation preserves and renders the quality-gate results stored by each environment without running
+an additional aggregate validation. Adding `qualityGate` to the final generation configuration intentionally evaluates
+the combined dataset and appends that invocation's validation results.
+
 ## Compatibility with rerun
 
-Quality gate validation doesn't work with `allure run --rerun` when the rerun count is greater than `0`.
-If `qualityGate` is configured and `--rerun` is enabled, Allure runs the test command and prints a warning that quality gate validation is skipped for that run.
+Quality gate validation works with `allure run --rerun`. The rerun count is a shared restart budget: every failed-test
+rerun, focused Quality Gate rerun, or full Quality Gate rerun consumes one slot.
 
-Use `--rerun=0` or remove `--rerun` when the quality gate should validate the run.
+When a Quality Gate fast-fails, Allure stops the current test process and restarts the full test command. The interrupted
+result set is incomplete, so related tests alone aren't sufficient to build the next execution scope.
+
+When the test process completes, Allure creates a temporary test plan containing the current blocking failed and broken
+tests together with tests related to failed Quality Gate rules. The process restarts with `ALLURE_TESTPLAN_PATH` pointing
+to that plan. Rules without related tests don't trigger a focused rerun unless blocking failures are present.
+
+Use `--rerun=0` or omit `--rerun` to keep immediate fast-fail behavior without restarting the test process.
+
+## Generated artifacts
+
+When quality gates are enabled, Allure writes `quality-gate.json` to the generated report root. The file contains a flat
+list of rule results and keeps related tests as report-scoped IDs in `testResults`.
+
+```json
+[
+  {
+    "success": false,
+    "expected": 0,
+    "actual": 1,
+    "rule": "maxFailures",
+    "message": "The number of failed tests 1 exceeds the allowed threshold value 0",
+    "environment": "chrome",
+    "testResults": ["4f1c2d"]
+  }
+]
+```
+
+Use the generated report root `test-results.json` to resolve these IDs. The registry contains compact test details that
+are enough to list and link related tests.
+
+```json
+{
+  "byId": {
+    "4f1c2d": {
+      "id": "4f1c2d",
+      "name": "checkout rejects expired card",
+      "status": "failed",
+      "duration": 1234,
+      "environment": "chrome"
+    }
+  }
+}
+```
+
+Together, these files allow CI integrations to show which rule failed and which tests are related to it without reading
+the full per-test result files.
 
 ## Using external rules
 
@@ -200,3 +288,11 @@ export default defineConfig({
   },
 });
 ```
+
+## Success rate
+
+The `successRate` rule compares an unrounded ratio from 0 to 1 against the configured minimum. For example, `successRate: 0.9` requires at least 90%.
+
+The ratio is `passed / (passed + failed + broken)`. Skipped and unknown results are excluded from this metric, but remain in report totals and status distributions. A run with no eligible results has a numeric success rate of zero and fails any positive success-rate threshold. Existing retry and resolution exclusions still apply before quality gate evaluation.
+
+Report success-rate charts use the same denominator. Displayed percentages are truncated to at most two decimal places. Pie slices and test-count proportions use all five statuses, so the passed slice percentage can differ from the success-rate caption. Empty pies display `???`; nonempty pies with no passed results display `0%`, with an explanation when no eligible results exist.

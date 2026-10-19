@@ -10,3 +10,8 @@
 .chart {
   position: relative;
 }
+
+.target:focus-visible {
+  outline: 2px solid var(--color-intent-primary-bg);
+  outline-offset: 3px;
+}

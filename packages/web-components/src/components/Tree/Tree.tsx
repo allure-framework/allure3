@@ -3,18 +3,21 @@ import {
   applySubtreeToggleState,
   collectExpandableSubtreeNodes,
   getNextSubtreeToggleState,
+  getSubtreeToggleAction,
   getSubtreeToggleIcon,
   hasExpandableTreeChildren,
   isSubtreeExpandedAll,
   isSubtreeFirstLevelOnlyOpened,
+  type SubtreeToggleAction,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
 import cx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 
-import { IconButton } from "@/components/Button";
+import { Button, IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
+import { TooltipWrapper } from "@/components/Tooltip";
 import { TreeItem } from "@/components/Tree/TreeItem";
 
 import type { RecursiveTree, Status } from "../../../global";
@@ -38,7 +41,28 @@ interface TreeProps {
   focusIdPrefix?: string;
   /** When set, must match keyboard navigation open state (e.g. awesome `isTreeOpened`). */
   isGroupOpened?: (scopedNodeId: string, openedByDefault: boolean) => boolean;
+  showMoreLabel?: string;
+  /** Labels of the subtree toggle by the action of the next click, they are shown in the tooltip of the toggle. */
+  subtreeToggleLabels?: Record<SubtreeToggleAction, string>;
 }
+
+const PAGE_SIZE = 30;
+
+const subtreeContainsFocus = (
+  tree: RecursiveTree,
+  focusedId: string,
+  toScopedId: (nodeId: string) => string,
+): boolean => {
+  if (toScopedId(tree.nodeId) === focusedId) {
+    return true;
+  }
+
+  if (tree.leaves.some((leaf) => toScopedId(leaf.nodeId) === focusedId || leaf.nodeId === focusedId)) {
+    return true;
+  }
+
+  return tree.trees.some((subTree) => subtreeContainsFocus(subTree, focusedId, toScopedId));
+};
 
 const isFailedOrBrokenNode = (statistic?: Statistic) =>
   statistic === undefined || Boolean(statistic?.failed || statistic?.broken);
@@ -72,6 +96,8 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   focusIdPrefix,
   isGroupOpened,
   navigateTo,
+  showMoreLabel = "Show more",
+  subtreeToggleLabels,
 }) => {
   const rootNodeId = tree.nodeId as string;
   const toScopedId = (nodeId: string) => (focusIdPrefix ? `${focusIdPrefix}${nodeId}` : nodeId);
@@ -95,20 +121,21 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     isSubtreeExpandedAll(expandableSubtreeNodes, (id, openedByDefault) =>
       resolveIsOpened(toScopedId(id), openedByDefault),
     );
-  const subtreeToggleIcon =
-    subtreeToggleIconByState[
-      getSubtreeToggleIcon({
-        hasOnlyLeafResults,
-        isSubtreeCollapsedAll,
-        isSubtreeFirstLevelOnly,
-      })
-    ];
+  const subtreeToggleState = {
+    hasOnlyLeafResults,
+    isSubtreeCollapsedAll,
+    isSubtreeFirstLevelOnly,
+    isSubtreeExpandedAll: isSubtreeFullyExpanded,
+    lastSubtreeToggle,
+  };
+  const subtreeToggleIcon = subtreeToggleIconByState[getSubtreeToggleIcon(subtreeToggleState)];
   const canRenderHeader = Boolean(name);
   const hasRenderableChildren = tree.trees.length > 0 || tree.leaves.length > 0;
   const contentClassName = cx({
     [styles["tree-content"]]: true,
     [styles.root]: root,
   });
+  const treeClassName = cx(styles.tree, root && styles["tree-root"]);
 
   const toggleTreeHeader = () => {
     toggleTree(toScopedId(rootNodeId), defaultOpened);
@@ -129,15 +156,27 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     });
   };
 
+  const totalChildren = tree.trees.length + tree.leaves.length;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const focusChildIndex = focusedId
+    ? tree.trees.findIndex((subTree) => subtreeContainsFocus(subTree, focusedId, toScopedId))
+    : -1;
+  const focusedLeafIndex =
+    focusChildIndex < 0 && focusedId
+      ? tree.leaves.findIndex((leaf) => toScopedId(leaf.nodeId) === focusedId || leaf.nodeId === focusedId)
+      : -1;
+  const focusedIndex =
+    focusChildIndex >= 0 ? focusChildIndex : focusedLeafIndex >= 0 ? tree.trees.length + focusedLeafIndex : -1;
+
+  useLayoutEffect(() => {
+    if (focusedIndex >= visibleCount) {
+      setVisibleCount(focusedIndex + 1);
+    }
+  }, [focusedIndex, visibleCount]);
+
   const toggleSubtree = (event: MouseEvent) => {
     event.stopPropagation();
-    const nextState = getNextSubtreeToggleState({
-      hasOnlyLeafResults,
-      isSubtreeCollapsedAll,
-      isSubtreeFirstLevelOnly,
-      isSubtreeExpandedAll: isSubtreeFullyExpanded,
-      lastSubtreeToggle,
-    });
+    const nextState = getNextSubtreeToggleState(subtreeToggleState);
     setSubtreeState(nextState);
     if (nextState !== "first") {
       setLastSubtreeToggle(nextState);
@@ -148,7 +187,11 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     return null;
   }
 
-  const renderedSubtrees = tree.trees.map((subTree) => (
+  const visibleTreeCount = Math.min(tree.trees.length, visibleCount);
+  const visibleTrees = tree.trees.slice(0, visibleTreeCount);
+  const visibleLeaves = tree.leaves.slice(0, Math.max(0, visibleCount - tree.trees.length));
+
+  const renderedSubtrees = visibleTrees.map((subTree) => (
     <Tree
       key={subTree.nodeId}
       name={subTree.name}
@@ -163,10 +206,12 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       focusIdPrefix={focusIdPrefix}
       isGroupOpened={isGroupOpened}
       navigateTo={navigateTo}
+      showMoreLabel={showMoreLabel}
+      subtreeToggleLabels={subtreeToggleLabels}
     />
   ));
 
-  const renderedLeaves = tree.leaves.map((leaf) => (
+  const renderedLeaves = visibleLeaves.map((leaf) => (
     <TreeItem
       data-testid="tree-leaf"
       key={leaf.nodeId}
@@ -176,9 +221,12 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       groupOrder={leaf.groupOrder as number}
       duration={leaf.duration}
       retriesCount={leaf.retriesCount}
+      retriesStatusChange={leaf.retriesStatusChange}
+      resolution={leaf.resolution}
       transition={leaf.transition}
       transitionTooltip={leaf.transitionTooltip}
       tooltips={leaf.tooltips}
+      parameters={leaf.parameters}
       flaky={leaf.flaky}
       marked={leaf.nodeId === routeId}
       focused={toScopedId(leaf.nodeId) === focusedId}
@@ -187,26 +235,48 @@ export const Tree: FunctionalComponent<TreeProps> = ({
     />
   ));
 
-  const headerActions = hasChildren ? (
+  const subtreeToggleLabel = subtreeToggleLabels?.[getSubtreeToggleAction(subtreeToggleState)];
+  const subtreeToggle = (
     <IconButton
       size="xs"
       style="ghost"
       icon={subtreeToggleIcon}
+      aria-label={subtreeToggleLabel}
       onClick={toggleSubtree}
       className={styles["tree-subtree-toggle"]}
       data-testid="tree-subtree-toggle"
     />
+  );
+  const headerActions = hasChildren ? (
+    subtreeToggleLabel ? (
+      <TooltipWrapper tooltipText={subtreeToggleLabel} placement="bottom">
+        {subtreeToggle}
+      </TooltipWrapper>
+    ) : (
+      subtreeToggle
+    )
   ) : undefined;
 
   const treeContent = isOpened ? (
     <div data-testid="tree-content" className={contentClassName}>
       {renderedSubtrees}
       {renderedLeaves}
+      {visibleCount < totalChildren && (
+        <div className={styles["tree-show-more"]} data-testid="tree-show-more">
+          <Button
+            type="button"
+            style="outline"
+            size="s"
+            text={showMoreLabel}
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+          />
+        </div>
+      )}
     </div>
   ) : null;
 
   return (
-    <div className={styles.tree}>
+    <div className={treeClassName}>
       {canRenderHeader ? (
         <TreeHeader
           statusFilter={statusFilter}

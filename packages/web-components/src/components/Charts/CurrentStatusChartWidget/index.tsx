@@ -15,19 +15,11 @@ import { AdditionalStats } from "./AdditionalStats";
 import { ADD_STATS_KEYS, EMPTY_ARC, GAP, MAX_ADDITIONAL_STATS_WIDTH, MAX_PIE_WIDTH, PIE_PADDING } from "./constants";
 import { CenteredMetric } from "./parts";
 import type { ChartDatum, Props } from "./types";
-import { toChartData } from "./utils";
+import { getChartSize, toChartData } from "./utils";
 
 import styles from "./styles.scss";
 
 const noop = (key: string) => key;
-
-const getSize = (width: number) => {
-  if (width >= MAX_PIE_WIDTH) {
-    return MAX_PIE_WIDTH - PIE_PADDING * 2;
-  }
-
-  return width - PIE_PADDING * 2;
-};
 
 const statsHasAdditionalStats = (stats: Statistic) => {
   return ADD_STATS_KEYS.some((key) => key in stats);
@@ -54,8 +46,8 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
           <div className={styles.wrapper} data-layout={width > shiftWidth ? "vertical" : "horizontal"}>
             <div className={styles.pie}>
               <Pie
-                width={getSize(hasAdditionalStats ? width - (MAX_ADDITIONAL_STATS_WIDTH + GAP) : width)}
-                height={getSize(hasAdditionalStats ? width - (MAX_ADDITIONAL_STATS_WIDTH + GAP) : width)}
+                width={getChartSize(hasAdditionalStats ? width - (MAX_ADDITIONAL_STATS_WIDTH + GAP) : width)}
+                height={getChartSize(hasAdditionalStats ? width - (MAX_ADDITIONAL_STATS_WIDTH + GAP) : width)}
                 data={isEmpty ? [EMPTY_ARC] : chartData}
                 margin={MARGIN}
                 colors={colors}

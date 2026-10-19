@@ -1,27 +1,3 @@
-import { createRequire } from "node:module";
+import { defaultVitestConfig } from "@allurereport/test-config";
 
-import { defineConfig } from "vitest/config";
-
-const require = createRequire(import.meta.url);
-
-export default defineConfig({
-  test: {
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
-    reporters: [
-      "default",
-      [
-        "allure-vitest/reporter",
-        {
-          resultsDir: "./out/allure-results",
-          globalLabels: [
-            { name: "module", value: "plugin-slack" },
-            { name: "coverage", value: "plugin-slack" },
-            { name: "epic", value: "coverage" },
-            { name: "feature", value: "plugin-slack" },
-          ],
-        },
-      ],
-    ],
-  },
-});
+export default defaultVitestConfig();

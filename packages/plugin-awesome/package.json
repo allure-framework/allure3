@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-awesome",
-  "version": "3.14.3",
+  "version": "3.21.0",
   "description": "Allure Awesome Plugin – brand new HTML report with modern design and new features",
   "keywords": [
     "allure",
@@ -23,9 +23,10 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-awesome/dist/multi ./dist/static/report.tar --allow-chunks",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -33,16 +34,18 @@
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/web-awesome": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
-    "handlebars": "^4.7.9",
-    "markdown-it": "^14.2.0"
+    "handlebars": "4.7.10",
+    "markdown-it": "^15.0.2"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
+    "@allurereport/web-awesome": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

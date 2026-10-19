@@ -93,16 +93,28 @@
   line-height: 16px;
 }
 
+// the pill of a value with a link is a button that opens the menu, so the native button look is reset
 .report-metadata-keyvalue-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
+  border: 0;
+  font: inherit;
   color: inherit;
-  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
 
-  &:hover {
-    text-decoration: underline;
+  .report-metadata-keyvalue-value {
+    width: auto;
+    min-width: 0;
   }
+}
+
+// the icon must keep its size, otherwise its fixed-width stroke turns into a blob when the link text is truncated
+.report-metadata-keyvalue-link-icon {
+  flex: none;
 }
 
 .report-metadata-keyvalue-value {

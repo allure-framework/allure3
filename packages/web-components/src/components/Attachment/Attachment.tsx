@@ -13,10 +13,12 @@ import { allureIcons } from "../SvgIcon";
 import { AttachmentCode } from "./AttachmentCode";
 import { AttachmentImage } from "./AttachmentImage";
 import { AttachmentImageDiff } from "./AttachmentImageDiff";
+import { AttachmentTable } from "./AttachmentTable";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
 import { HttpAttachment } from "./HttpAttachment";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { MermaidPreview } from "./MermaidPreview";
 import type { AttachmentProps, I18nProp } from "./model";
 
 import styles from "./styles.scss";
@@ -28,22 +30,24 @@ const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProp
   "code": AttachmentCode,
   "uri": AttachmentCode,
   "css": AttachmentCode,
-  "table": AttachmentCode,
+  "table": AttachmentTable,
   "html": AttachmentCode,
   "markdown": AttachmentCode,
   "text": AttachmentCode,
   "video": AttachmentVideo,
   "image-diff": AttachmentImageDiff,
   "http": HttpAttachment,
+  "mermaid": AttachmentCode,
   "archive": null,
 };
 
 const previewComponentsByAttachmentType: Record<string, any> = {
   html: HtmlPreview,
   markdown: MarkdownPreview,
+  mermaid: MermaidPreview,
 };
 
-const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown"]);
+const DUAL_VIEW_ATTACHMENT_TYPES = new Set<AttachmentType>(["html", "markdown", "mermaid"]);
 
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
@@ -109,9 +113,9 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
   const CurrentComponent = componentsByAttachmentType[componentType];
-
   // @ts-expect-error TODO: add all translations for attachment types
-  const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+  const typeI18n = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+  const i18nFor = (Component: unknown) => (Component === AttachmentCode ? i18n?.controls : typeI18n);
 
   if (DUAL_VIEW_ATTACHMENT_TYPES.has(componentType) && CurrentPreviewComponent && CurrentComponent) {
     const isCodeComponent = CurrentComponent === AttachmentCode;
@@ -123,12 +127,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
           <CurrentComponent
             attachment={attachment.value}
             item={item}
-            i18n={i18nProp}
+            i18n={i18nFor(CurrentComponent)}
             {...(isCodeComponent ? { highlight: highlightCode } : {})}
           />
         </div>
         <div className={styles.attachmentViewPane} hidden={!showPreview}>
-          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />
+          <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
         </div>
       </div>
     );
@@ -136,7 +140,9 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   // temp solution before modal component refactoring
   if (previewable && CurrentPreviewComponent) {
-    return <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
+    return (
+      <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nFor(CurrentPreviewComponent)} />
+    );
   }
 
   if (!CurrentComponent) {
@@ -149,7 +155,7 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     <CurrentComponent
       attachment={attachment.value}
       item={item}
-      i18n={i18nProp}
+      i18n={i18nFor(CurrentComponent)}
       {...(isCodeComponent ? { highlight: highlightCode } : {})}
     />
   );

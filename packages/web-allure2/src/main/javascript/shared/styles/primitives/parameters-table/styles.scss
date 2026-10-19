@@ -1,0 +1,23 @@
+@use "../../../../theme/spacing.scss" as *;
+.parameters-table {
+  display: table;
+  font-size: var(--font-size-s);
+  width: 100%;
+  padding-inline-end: gap(1);
+  table-layout: fixed;
+  &__row {
+    display: table-row;
+  }
+  &__cell {
+    display: table-cell;
+    padding: gap(1);
+    cursor: pointer;
+    word-wrap: break-word;
+    &_name {
+      width: 25%;
+    }
+    &_value {
+      width: 75%;
+    }
+  }
+}

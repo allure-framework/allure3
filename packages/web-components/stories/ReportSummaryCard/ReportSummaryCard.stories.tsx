@@ -1,5 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { ReportSummaryCard } from "@/components/ReportSummaryCard";
+import type { ReportSummary } from "@/components/ReportSummaryCard";
 
 const meta: Meta<typeof ReportSummaryCard> = {
   title: "Components/ReportSummaryCard",
@@ -9,7 +11,7 @@ const meta: Meta<typeof ReportSummaryCard> = {
 export default meta;
 type Story = StoryObj<typeof ReportSummaryCard>;
 
-const defaultSummary = {
+const defaultSummary: ReportSummary = {
   name: "First sample report",
   href: "#",
   stats: {
@@ -22,48 +24,9 @@ const defaultSummary = {
   },
   duration: 1240812,
   status: "failed",
-  newTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 2",
-      id: "2",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 3",
-      id: "3",
-      status: "passed",
-      duration: 100,
-    },
-  ],
-  flakyTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-  ],
-  retryTests: [
-    {
-      name: "New test 1",
-      id: "1",
-      status: "passed",
-      duration: 100,
-    },
-    {
-      name: "New test 2",
-      id: "2",
-      status: "passed",
-      duration: 100,
-    },
-  ],
+  newTests: ["1", "2", "3"],
+  flakyTests: ["1"],
+  retryTests: ["1", "2"],
   createdAt: Date.now(),
 };
 
@@ -80,7 +43,7 @@ const enLocales: Record<string, string> = {
   "metadata.retry": "retry",
 };
 
-const enI18n = (key: string, props: Record<string, any>) => {
+const enI18n = (key: string, props?: Record<string, any>) => {
   if (key === "createdAt") {
     return new Date(props?.createdAt as number).toLocaleDateString("en-US", {
       month: "long",

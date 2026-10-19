@@ -1,8 +1,16 @@
 allure-results/
 allure-results-*/
 allure-results*/
+!allure-results/
+allure-results/*
+!allure-results/00000000-0000-4000-8000-000000000101-perf.json
+!allure-results/00000000-0000-4000-8000-000000000102-perf.json
+!allure-results/00000000-0000-4000-8000-000000000103-perf.json
 allure-report/
 node_modules/
 history.jsonl
 .DS_Store
 foo.zip
+
+# local TestOps credentials, never commit
+.env.testops

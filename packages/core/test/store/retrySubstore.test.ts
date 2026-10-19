@@ -204,19 +204,41 @@ describe("RetrySubstore", () => {
       expect(rs.retriesByTr(latestAttempt).map(({ id }) => id)).toEqual(["mid", "old"]);
     });
 
-    it("returns no retries for a non-latest attempt", () => {
+    it("returns sibling attempts for a non-latest attempt", () => {
       const rs = new RetrySubstore();
       const first = makeTr("first");
       const second = makeTr("second");
 
       upsertInOrder(rs, first, second);
 
-      expect(rs.retriesByTr(first)).toEqual([]);
+      expect(rs.retriesByTr(first).map(({ id }) => id)).toEqual(["second"]);
+    });
+
+    it("returns all sibling attempts latest-first for a middle attempt", () => {
+      const rs = new RetrySubstore();
+      const latestAttempt = { ...makeTr("latest"), start: 3000 };
+      const midRetry = { ...makeTr("mid"), start: 2000 };
+      const oldRetry = { ...makeTr("old"), start: 1000 };
+
+      upsertInOrder(rs, oldRetry, latestAttempt, midRetry);
+
+      expect(rs.retriesByTr(midRetry).map(({ id }) => id)).toEqual(["latest", "old"]);
+    });
+
+    it("returns no retries for a single attempt with retryHash", () => {
+      const rs = new RetrySubstore();
+      const tr = makeTr("solo");
+
+      upsertInOrder(rs, tr);
+
+      expect(tr.retryHash).toBe("same-retry");
+      expect(rs.retriesByTr(tr)).toEqual([]);
+      expect(tr.isRetry).toBe(false);
     });
 
     it("returns no retries without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       rs.recordIngestOrder(tr.id);
       rs.upsert(tr);
@@ -253,9 +275,23 @@ describe("RetrySubstore", () => {
       expect(other.isRetry).toBe(true);
     });
 
+    it("does not return a duplicate retry when the same id is upserted again", () => {
+      const rs = new RetrySubstore();
+      const first = { ...makeTr("same"), start: 100 };
+      const other = { ...makeTr("other"), start: 200 };
+
+      upsertInOrder(rs, first, other);
+
+      const updated = { ...first, start: 500 };
+
+      rs.upsert(updated);
+
+      expect(rs.retriesByTr(updated).map(({ id }) => id)).toEqual(["other"]);
+    });
+
     it("does not index attempts without retryHash", () => {
       const rs = new RetrySubstore();
-      const tr = { ...makeTr("solo"), retryHash: undefined };
+      const tr = { ...makeTr("solo"), retryHash: null };
 
       upsertInOrder(rs, tr);
 
@@ -297,13 +333,25 @@ describe("RetrySubstore", () => {
       expect(rs.ingestOrderIdsForDump()).toEqual([second.id, first.id]);
     });
 
-    it("clears ingest order on restore", () => {
+    it("resetIngestOrder clears recorded ingest order", () => {
       const rs = new RetrySubstore();
 
       rs.recordIngestOrder("a");
-      rs.restoreIngestOrder([], () => true);
+      rs.resetIngestOrder();
 
       expect(rs.ingestOrderIdsForDump()).toEqual([]);
+    });
+
+    it("accumulates ingest order across multiple restoreIngestOrder calls", () => {
+      const rs = new RetrySubstore();
+      const first = makeTr("first");
+      const second = makeTr("second");
+      const third = makeTr("third");
+
+      rs.restoreIngestOrder([first.id], () => true);
+      rs.restoreIngestOrder([second.id, third.id], () => true);
+
+      expect(rs.ingestOrderIdsForDump()).toEqual([first.id, second.id, third.id]);
     });
 
     it("keeps ingest order across retry substore reset", () => {

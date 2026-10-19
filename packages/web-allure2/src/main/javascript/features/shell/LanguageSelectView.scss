@@ -1,0 +1,48 @@
+@use "../../theme/spacing.scss" as *;
+.language-select {
+  z-index: 1;
+  &.popover {
+    padding: 0;
+  }
+  &__menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  &__item {
+    align-items: center;
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: gap(3) 1fr;
+    min-inline-size: gap(16);
+    padding: gap(1) gap(1.5);
+    &::before {
+      content: " ";
+      background: var(--color-intent-primary-text);
+      block-size: gap(2);
+      display: block;
+      inline-size: gap(2);
+      -webkit-mask: url(checkmark.svg) center / contain no-repeat;
+      mask: url(checkmark.svg) center / contain no-repeat;
+      opacity: 0;
+      transition: opacity var(--interaction-transition-duration);
+    }
+    &_active,
+    &_active:hover {
+      background: var(--color-row-bg-selected);
+      color: var(--color-text-primary);
+    }
+    &_active::before {
+      opacity: 1;
+    }
+    &:hover {
+      background: var(--color-row-bg-hover);
+      color: var(--color-text-primary);
+    }
+    &_active:hover {
+      background: var(--color-row-bg-selected-hover);
+    }
+  }
+}

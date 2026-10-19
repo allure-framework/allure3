@@ -1,11 +1,11 @@
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { useComputed } from "@preact/signals";
 import { type ComponentChildren } from "preact";
 import { useCallback } from "preact/hooks";
 
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
 
-import type { AwesomeStatus } from "../../../types.js";
+import type { ReportStatus } from "../../../types.js";
 
 import * as styles from "./styles.scss";
 
@@ -13,7 +13,7 @@ export const ReportTabsList = (props: { children: ComponentChildren }) => {
   return <div className={styles.tabsList}>{props.children}</div>;
 };
 
-export const ReportTab = (props: { id: AwesomeStatus; children: ComponentChildren }) => {
+export const ReportTab = (props: { id: ReportStatus; children: ComponentChildren }) => {
   const { id, children, ...rest } = props;
   const isCurrentTab = useComputed(() => treeStatus.value === id);
 

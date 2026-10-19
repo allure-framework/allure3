@@ -1,18 +1,9 @@
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-opacity="0.32" stroke-width="1.5"
     vector-effect="non-scaling-stroke" />
-  <path d="M 15 8 A 7 7 0 0 1 8 15" stroke="currentColor" stroke-opacity="1" stroke-width="1.5" class="allure-spinner"
-    vector-effect="non-scaling-stroke" />
-  <style>
-    .allure-spinner {
-      transform-origin: center;
-      animation: allure-spinner-spin 0.75s infinite ease-in-out;
-    }
-
-    @keyframes allure-spinner-spin {
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
+  <path d="M 15 8 A 7 7 0 0 1 8 15" stroke="currentColor" stroke-opacity="1" stroke-width="1.5"
+    vector-effect="non-scaling-stroke">
+    <animateTransform attributeName="transform" type="rotate" from="0 8 8" to="360 8 8" dur="0.75s"
+      repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.42 0 0.58 1" />
+  </path>
 </svg>

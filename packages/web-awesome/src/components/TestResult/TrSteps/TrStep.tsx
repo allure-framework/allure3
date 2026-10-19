@@ -1,10 +1,11 @@
 import {
   getNextSubtreeToggleState,
+  getSubtreeToggleAction,
   getSubtreeToggleIcon,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import { IconButton, allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 
@@ -16,10 +17,10 @@ import {
   collectExpandableStepNodes,
   hasStepContent,
   getStepTreeExpansionPolicy,
-  isOpenByDefaultForPolicy,
   isStepOpenedByDefault,
   type SubtreeNode,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
+import { SubtreeToggleButton } from "@/components/TestResult/TrSteps/SubtreeToggleButton";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { TrStepHeader } from "@/components/TestResult/TrSteps/TrStepHeader";
 import { TrStepInfo } from "@/components/TestResult/TrSteps/TrStepInfo";
@@ -71,25 +72,11 @@ export const TrStepsContent = (props: { item: TrStepItem }) => {
 export const TrStep: FunctionComponent<{
   item: TrStepItem;
   stepIndex?: number;
-  isTopLevel?: boolean;
-}> = ({ item, stepIndex, isTopLevel }) => {
-  const { item: stepData, bodyItems, suppressInlineError } = item;
-  const inlineError = {
-    message: stepData.message ?? stepData.error?.message,
-    trace: stepData.trace ?? stepData.error?.trace,
-    actual: stepData.error?.actual,
-    expected: stepData.error?.expected,
-  };
-  const hasInlineError = Boolean(
-    (inlineError.message || inlineError.trace || hasErrorDiff(inlineError)) &&
-    !stepData.hasSimilarErrorInSubSteps &&
-    !suppressInlineError,
-  );
+}> = ({ item, stepIndex }) => {
+  const { item: stepData, bodyItems } = item;
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
-  const openedByDefault = isTopLevel
-    ? isOpenByDefaultForPolicy(policy, true)
-    : isStepOpenedByDefault(policy, stepData.status, bodyItems);
+  const openedByDefault = isStepOpenedByDefault(policy, stepData.status, bodyItems);
   const isOpened = isTreeOpened(stepData.stepId, openedByDefault);
   const expandableDescendantNodes = collectExpandableStepNodes(bodyItems, policy);
   const hasExpandableDescendants = expandableDescendantNodes.length > 0;
@@ -111,14 +98,6 @@ export const TrStep: FunctionComponent<{
   const isSubtreeExpandedAll =
     hasExpandableDescendants && subtreeNodes.every((node) => isTreeOpened(node.id, node.openedByDefault));
   const hasOnlyLeafResults = hasExpandableDescendants && subtreeNodes.every((node) => node.isRoot);
-  const subtreeToggleIcon =
-    iconBySubtreeState[
-      getSubtreeToggleIcon({
-        hasOnlyLeafResults,
-        isSubtreeCollapsedAll,
-        isSubtreeFirstLevelOnly,
-      })
-    ];
 
   const setSubtreeState = (state: SubtreeToggleState) => {
     subtreeNodes.forEach((node) => {
@@ -127,15 +106,19 @@ export const TrStep: FunctionComponent<{
     });
   };
 
+  const subtreeToggleState = {
+    hasOnlyLeafResults,
+    isSubtreeCollapsedAll,
+    isSubtreeFirstLevelOnly,
+    isSubtreeExpandedAll,
+    lastSubtreeToggle,
+  };
+
+  const subtreeToggleIcon = iconBySubtreeState[getSubtreeToggleIcon(subtreeToggleState)];
+
   const toggleSubtree = (event: MouseEvent) => {
     event.stopPropagation();
-    const nextState = getNextSubtreeToggleState({
-      hasOnlyLeafResults,
-      isSubtreeCollapsedAll,
-      isSubtreeFirstLevelOnly,
-      isSubtreeExpandedAll,
-      lastSubtreeToggle,
-    });
+    const nextState = getNextSubtreeToggleState(subtreeToggleState);
     setSubtreeState(nextState);
     if (nextState !== "first") {
       setLastSubtreeToggle(nextState);
@@ -160,13 +143,13 @@ export const TrStep: FunctionComponent<{
         onToggle={toggleStep}
         subtreeToggle={
           hasExpandableDescendants ? (
-            <IconButton
-              style="ghost"
-              size="xs"
+            <SubtreeToggleButton
+              action={getSubtreeToggleAction(subtreeToggleState)}
               icon={subtreeToggleIcon}
               onClick={toggleSubtree}
               data-testid="test-result-step-subtree-toggle"
               className={styles["test-result-step-subtree-toggle"]}
+              wrapperClassName={styles["test-result-step-subtree-toggle-wrapper"]}
             />
           ) : null
         }

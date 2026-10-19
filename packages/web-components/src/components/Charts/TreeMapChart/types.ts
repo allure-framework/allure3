@@ -31,6 +31,7 @@ export interface TreeMapChartProps<
   legendMinValue?: number;
   legendMaxValue?: number;
   colors: (value: number, domain?: number[]) => string;
+  missingValueColor?: string;
   formatLegend?: (value: number) => string;
   legendDomain?: number[];
   tooltipRows?: TreeMapTooltipAccessor;

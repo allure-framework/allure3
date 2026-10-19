@@ -20,6 +20,17 @@
       "retry_zero": "无重试测试",
       "retry_one": "{{count}} 个重试测试",
       "retry_other": "{{count}} 个重试测试"
+    },
+    "successRate": {
+      "successRate": "成功率：{{rate}}",
+      "successRateDescription": "根据通过、失败和损坏的测试计算。跳过和状态未知的测试不计入。",
+      "noResults": "没有测试结果。",
+      "noEligibleResults": "没有通过、失败或损坏的测试。跳过和状态未知的测试不计入成功率。",
+      "slice_one": "{{count}} 个测试（占全部测试的 {{percent}}%）",
+      "slice_other": "{{count}} 个测试（占全部测试的 {{percent}}%）",
+      "layer": "层级：{{layer}}",
+      "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
+      "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
     }
   },
   "ui": {

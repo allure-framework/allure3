@@ -141,6 +141,8 @@ body {
   font-family: var(--font-family);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  // the report scrolls inside its own layout, hidden a11y nodes appended to body must not add a page scroll
+  overflow: hidden;
 }
 
 button {

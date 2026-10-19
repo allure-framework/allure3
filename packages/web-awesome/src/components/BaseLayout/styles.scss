@@ -5,6 +5,7 @@
   color: var(--color-text-primary);
   font-size: 14px;
   height: 100%;
+  min-height: 0;
   overflow: auto;
   scrollbar-width: thin;
 }
@@ -16,6 +17,11 @@
   flex-direction: column;
   margin: 0 auto;
   min-height: 100%;
+}
+
+// room for the card shadow, which would be clipped by the scroll container otherwise
+.layout-card {
+  padding-bottom: 12px;
 }
 
 .content {

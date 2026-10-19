@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import type { ClassicTestResult } from "types";
+import type { ReportTestResult } from "types";
 
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultError } from "@/components/TestResult/TestResultError";
@@ -13,7 +13,7 @@ import { TestResultTeardown } from "@/components/TestResult/TestResultTeardown";
 import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TestResultOverviewProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {

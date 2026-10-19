@@ -8,7 +8,7 @@ import CsvPlugin, { type CsvPluginOptions } from "@allurereport/plugin-csv";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class CsvCommand extends Command {
   static paths = [["csv"]];
@@ -32,11 +32,11 @@ export class CsvCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -56,19 +56,11 @@ export class CsvCommand extends Command {
   });
 
   knownIssues = Option.String("--known-issues", {
-    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+    description: "Path to known issues file",
   });
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
-    if (!resultDirectories.length) {
-      console.error(red(`No test results directories found matching pattern: ${patterns}`));
-      exit(1);
-      return;
-    }
-
     const before = new Date().getTime();
     const defaultCsvOptions = {
       separator: this.separator ?? ",",
@@ -77,8 +69,15 @@ export class CsvCommand extends Command {
       fileName: this.output && isAbsolute(this.output) ? this.output : this.output ? join(cwd, this.output) : undefined,
     } as CsvPluginOptions;
     const config = await readConfig(cwd, this.config, {
-      knownIssuesPath: this.knownIssues,
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
+
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
+      exit(1);
+      return;
+    }
 
     config.plugins = [
       {

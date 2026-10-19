@@ -1,0 +1,18 @@
+{
+  "history-id": {
+    "statistic": {
+      "failed": 1,
+      "passed": 2,
+      "total": 3
+    },
+    "items": [
+      {
+        "uid": "previous",
+        "status": "passed",
+        "time": {
+          "duration": 10
+        }
+      }
+    ]
+  }
+}

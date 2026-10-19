@@ -1,7 +1,8 @@
 import console from "node:console";
 
-import type { DefaultTestStepResult, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult, TestError, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
 import { isStep } from "@allurereport/core-api";
+import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, green, red, yellow } from "yoctocolors";
 
 import type { LogPluginOptions } from "./model.js";
@@ -62,6 +63,13 @@ export const stringifyStepResultTitle = (result: DefaultTestStepResult) => {
   const duration = result.duration ? `${yellow(`${result.duration}ms`)}` : "";
 
   return [status, result.name, duration].filter(Boolean).join(" ");
+};
+
+export const stringifyQualityGateResultTitle = (result: QualityGateValidationResult) => {
+  const status = result.success ? green("✓") : red("⨯");
+  const environment = result.environment ? gray(`[${result.environment}]`) : "";
+
+  return [status, result.rule, environment].filter(Boolean).join(" ");
 };
 
 export const printTest = (test: TestResult, options?: PrintFunctionOptions, indent: number = 0) => {
@@ -179,4 +187,69 @@ export const printSummary = (results: TestResult[], options: { total: number; fi
 
   console.info(`Tests: ${stringifiedCounters.join(" | ")}`);
   console.info(`Duration: ${yellow((totalDuration / 1000).toString())}s`);
+};
+
+export const printQualityGateResult = (result: QualityGateValidationResult, indent: number = 0) => {
+  const indentSpaces = "  ".repeat(indent);
+  const message = result.success ? green(result.message) : red(result.message);
+
+  console.info(`${indentSpaces}${stringifyQualityGateResultTitle(result)}`);
+  console.info(`${indentSpaces}  ${message}`);
+};
+
+export const printQualityGateResults = (results: QualityGateValidationResult[]) => {
+  if (results.length === 0) {
+    return;
+  }
+
+  console.log("");
+  console.info("Quality gates");
+
+  const orderedResults = [...results.filter(({ success }) => !success), ...results.filter(({ success }) => success)];
+
+  orderedResults.forEach((result) => {
+    printQualityGateResult(result, 1);
+  });
+
+  const passed = results.filter(({ success }) => success).length;
+  const failed = results.length - passed;
+  const stats: string[] = [];
+
+  if (passed > 0) {
+    stats.push(green(`${passed} passed`));
+  }
+
+  if (failed > 0) {
+    stats.push(red(`${failed} failed`));
+  }
+
+  console.info(`Quality gates: ${stats.join(" | ")}`);
+};
+
+export const printGlobalError = (error: TestError, options?: PrintFunctionOptions, indent: number = 0) => {
+  const indentSpaces = "  ".repeat(indent);
+  const message = error.message?.trim() ? error.message : "No message provided";
+
+  console.info(`${indentSpaces}${red("⨯")} ${red(message)}`);
+
+  if (options?.withTrace && error.trace) {
+    error.trace.split("\n").forEach((line) => {
+      console.info(`${indentSpaces}  ${gray(line)}`);
+    });
+  }
+};
+
+export const printGlobalErrors = (errors: TestError[], options?: PrintFunctionOptions) => {
+  if (errors.length === 0) {
+    return;
+  }
+
+  console.log("");
+  console.info("Global errors");
+
+  errors.forEach((error) => {
+    printGlobalError(error, options, 1);
+  });
+
+  console.info(`Global errors: ${red(`${errors.length} failed`)}`);
 };

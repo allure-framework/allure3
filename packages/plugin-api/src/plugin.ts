@@ -47,6 +47,12 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
+  /**
+   * Relative link from the plugin report to the root overview page.
+   * Defined only when the report is generated (not in real time) and at least two plugins
+   * generate a report of their own, so the root overview page exists.
+   */
+  overviewHref?: string;
   realTime?: boolean;
   output: string;
   ci?: CiDescriptor;
@@ -55,9 +61,13 @@ export interface PluginContext {
 }
 
 /**
- * Reduced test result information that can be used in the summary
+ * Reduced test result information shared by report integrations.
  */
-export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+export type TestResultSummary = Pick<TestResult, "id" | "name" | "duration" | "environment" | "status">;
+
+export interface TestResultRegistry {
+  byId: Record<string, TestResultSummary>;
+}
 
 /**
  * Reduced check result information that can be used in the summary
@@ -77,11 +87,24 @@ export interface PluginSummary {
   duration: number;
   plugin?: string;
   pluginId?: string;
-  newTests?: SummaryTestResult[];
-  flakyTests?: SummaryTestResult[];
-  retryTests?: SummaryTestResult[];
+  newTests?: string[];
+  flakyTests?: string[];
+  retryTests?: string[];
   checks?: SummaryCheckResult[];
   createdAt?: number;
+  /**
+   * Process exit code for the run. Omitted when the store has no exit code.
+   */
+  exitCode?: ExitCode;
+  /**
+   * Number of global (runner-level) errors. Omitted when zero.
+   */
+  globalErrorsCount?: number;
+  /**
+   * Marks summaries produced from a filtered test result subset. Unfiltered summaries describe the same
+   * generation-wide result set and CI integrations may aggregate their stats instead of repeating them per report.
+   */
+  filtered?: boolean;
   /**
    * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
    * The field can be used in integrations to make better experience
@@ -148,9 +171,17 @@ export interface RealtimeSubscriber {
     listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
+  onProcessGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
+  ): () => void;
+
   onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
   onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
+
+  onProcessGlobalsReset(listener: () => RealtimeListenerResult): () => void;
 
   onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
@@ -164,9 +195,15 @@ export interface RealtimeSubscriber {
 export interface RealtimeEventsDispatcher {
   sendGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
 
+  sendProcessGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
+
   sendGlobalExitCode(payload: ExitCode): void;
 
   sendGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalError(error: PluginGlobalError): void;
+
+  sendProcessGlobalsReset(): void;
 
   sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 

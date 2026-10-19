@@ -1,0 +1,31 @@
+.screen-diff__switchers {
+  color: var(--color-text-secondary);
+  margin-bottom: 1em;
+}
+
+.screen-diff__switchers label + label {
+  margin-left: 1em;
+}
+
+.screen-diff__overlay {
+  position: relative;
+  cursor: col-resize;
+}
+
+.screen-diff__container {
+  overflow-x: auto;
+}
+
+.screen-diff__image-over {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--color-bg-primary);
+  position: absolute;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--color-border-medium);
+}
+
+.screen-diff-error {
+  color: var(--color-intent-danger-text);
+}

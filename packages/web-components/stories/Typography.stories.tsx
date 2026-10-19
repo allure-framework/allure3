@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Code, Heading, Text } from "@/components/Typography";
 
 const meta: Meta<typeof Text> = {
@@ -93,5 +94,47 @@ export const HeadingLarge: HeadingStory = {
     <Heading size="l" tag="h1">
       Large Heading
     </Heading>
+  ),
+};
+
+export const HeadingSizes: HeadingStory = {
+  render: () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <Heading size="l">Large heading</Heading>
+      <Heading size="m">Medium heading</Heading>
+      <Heading size="s">Small heading</Heading>
+    </div>
+  ),
+};
+
+export const TextScale: TextStory = {
+  render: () => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, max-content)", gap: "8px 32px" }}>
+      {(["l", "m", "s"] as const).map((size) => (
+        <>
+          <Text key={`p-${size}`} size={size}>{`Paragraph ${size}`}</Text>
+          <Text key={`pb-${size}`} size={size} bold>{`Paragraph ${size} bold`}</Text>
+        </>
+      ))}
+      {(["l", "m", "s", "xs"] as const).map((size) => (
+        <>
+          <Text key={`u-${size}`} type="ui" size={size}>{`UI ${size}`}</Text>
+          <Text key={`ub-${size}`} type="ui" size={size} bold>{`UI ${size} bold`}</Text>
+        </>
+      ))}
+    </div>
+  ),
+};
+
+export const CodeScale: CodeStory = {
+  render: () => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, max-content)", gap: "8px 32px" }}>
+      {(["m", "s"] as const).map((size) => (
+        <>
+          <Code key={`c-${size}`} size={size}>{`Code ${size}`}</Code>
+          <Code key={`cu-${size}`} type="ui" size={size} bold>{`UI code ${size} bold`}</Code>
+        </>
+      ))}
+    </div>
   ),
 };

@@ -2,7 +2,7 @@ import { join } from "node:path/posix";
 
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
-import { resolveGithubPullRequestNumber } from "../helpers/github.js";
+import { resolveGithubPullRequestContext, resolveGithubPullRequestNumber } from "../helpers/github.js";
 import { stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
@@ -37,7 +37,23 @@ const getSourceBranch = (): string => {
     return headRef;
   }
 
+  const pullRequestHeadRef = resolveGithubPullRequestContext()?.headRef;
+
+  if (pullRequestHeadRef) {
+    return pullRequestHeadRef;
+  }
+
   return isTagRef() ? "" : getBranchFromRef();
+};
+
+const getTargetBranch = (): string => {
+  const baseRef = getEnv("GITHUB_BASE_REF");
+
+  if (baseRef) {
+    return baseRef;
+  }
+
+  return resolveGithubPullRequestContext()?.baseRef ?? "";
 };
 
 export const github: CiDescriptor = {
@@ -131,7 +147,7 @@ export const github: CiDescriptor = {
   },
 
   get targetBranch() {
-    return getEnv("GITHUB_BASE_REF") || undefined;
+    return getTargetBranch() || undefined;
   },
 
   get pullRequest() {

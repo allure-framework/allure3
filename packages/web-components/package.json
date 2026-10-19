@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-components",
-  "version": "3.14.3",
+  "version": "3.21.0",
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",
@@ -18,6 +18,64 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "core": [
+        "dist/core.d.ts"
+      ],
+      "Attachment": [
+        "dist/Attachment.d.ts"
+      ],
+      "CodeViewer": [
+        "dist/CodeViewer.d.ts"
+      ],
+      "Grid": [
+        "dist/Grid.d.ts"
+      ],
+      "Timeline": [
+        "dist/Timeline.d.ts"
+      ],
+      "SuccessRatePieChart": [
+        "dist/SuccessRatePieChart.d.ts"
+      ],
+      "TreeMapChartWidget": [
+        "dist/TreeMapChartWidget.d.ts"
+      ],
+      "HeatMapWidget": [
+        "dist/HeatMapWidget.d.ts"
+      ],
+      "StabilityDistributionWidget": [
+        "dist/StabilityDistributionWidget.d.ts"
+      ],
+      "TestBaseGrowthDynamicsChartWidget": [
+        "dist/TestBaseGrowthDynamicsChartWidget.d.ts"
+      ],
+      "StatusAgePyramidChartWidget": [
+        "dist/StatusAgePyramidChartWidget.d.ts"
+      ],
+      "TestingPyramidWidget": [
+        "dist/TestingPyramidWidget.d.ts"
+      ],
+      "CurrentStatusChartWidget": [
+        "dist/CurrentStatusChartWidget.d.ts"
+      ],
+      "StatusDynamicsChartWidget": [
+        "dist/StatusDynamicsChartWidget.d.ts"
+      ],
+      "StatusTransitionsChartWidget": [
+        "dist/StatusTransitionsChartWidget.d.ts"
+      ],
+      "DurationsChartWidget": [
+        "dist/DurationsChartWidget.d.ts"
+      ],
+      "TrSeveritiesChartWidget": [
+        "dist/TrSeveritiesChartWidget.d.ts"
+      ],
+      "DurationDynamicsChartWidget": [
+        "dist/DurationDynamicsChartWidget.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -29,7 +87,79 @@
       "import": "./dist/fonts/*",
       "default": "./dist/fonts/*"
     },
-    "./mixins.scss": "./dist/mixins.scss"
+    "./mixins.scss": "./dist/mixins.scss",
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./Attachment": {
+      "types": "./dist/Attachment.d.ts",
+      "import": "./dist/Attachment.js"
+    },
+    "./CodeViewer": {
+      "types": "./dist/CodeViewer.d.ts",
+      "import": "./dist/CodeViewer.js"
+    },
+    "./Grid": {
+      "types": "./dist/Grid.d.ts",
+      "import": "./dist/Grid.js"
+    },
+    "./Timeline": {
+      "types": "./dist/Timeline.d.ts",
+      "import": "./dist/Timeline.js"
+    },
+    "./SuccessRatePieChart": {
+      "types": "./dist/SuccessRatePieChart.d.ts",
+      "import": "./dist/SuccessRatePieChart.js"
+    },
+    "./TreeMapChartWidget": {
+      "types": "./dist/TreeMapChartWidget.d.ts",
+      "import": "./dist/TreeMapChartWidget.js"
+    },
+    "./HeatMapWidget": {
+      "types": "./dist/HeatMapWidget.d.ts",
+      "import": "./dist/HeatMapWidget.js"
+    },
+    "./StabilityDistributionWidget": {
+      "types": "./dist/StabilityDistributionWidget.d.ts",
+      "import": "./dist/StabilityDistributionWidget.js"
+    },
+    "./TestBaseGrowthDynamicsChartWidget": {
+      "types": "./dist/TestBaseGrowthDynamicsChartWidget.d.ts",
+      "import": "./dist/TestBaseGrowthDynamicsChartWidget.js"
+    },
+    "./StatusAgePyramidChartWidget": {
+      "types": "./dist/StatusAgePyramidChartWidget.d.ts",
+      "import": "./dist/StatusAgePyramidChartWidget.js"
+    },
+    "./TestingPyramidWidget": {
+      "types": "./dist/TestingPyramidWidget.d.ts",
+      "import": "./dist/TestingPyramidWidget.js"
+    },
+    "./CurrentStatusChartWidget": {
+      "types": "./dist/CurrentStatusChartWidget.d.ts",
+      "import": "./dist/CurrentStatusChartWidget.js"
+    },
+    "./StatusDynamicsChartWidget": {
+      "types": "./dist/StatusDynamicsChartWidget.d.ts",
+      "import": "./dist/StatusDynamicsChartWidget.js"
+    },
+    "./StatusTransitionsChartWidget": {
+      "types": "./dist/StatusTransitionsChartWidget.d.ts",
+      "import": "./dist/StatusTransitionsChartWidget.js"
+    },
+    "./DurationsChartWidget": {
+      "types": "./dist/DurationsChartWidget.d.ts",
+      "import": "./dist/DurationsChartWidget.js"
+    },
+    "./TrSeveritiesChartWidget": {
+      "types": "./dist/TrSeveritiesChartWidget.d.ts",
+      "import": "./dist/TrSeveritiesChartWidget.js"
+    },
+    "./DurationDynamicsChartWidget": {
+      "types": "./dist/DurationDynamicsChartWidget.d.ts",
+      "import": "./dist/DurationDynamicsChartWidget.js"
+    }
   },
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
@@ -41,13 +171,14 @@
     "dev:ds": "storybook dev -p 6006",
     "lint": "oxlint --import-plugin src test features stories",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
-    "@floating-ui/dom": "^1.7.4",
+    "@floating-ui/dom": "^1.8.0",
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/funnel": "^0.99.0",
@@ -67,15 +198,16 @@
     "d3-brush": "^3.0.0",
     "d3-format": "^3.1.0",
     "d3-interpolate": "^3.0.1",
-    "d3-regression": "^1.3.10",
+    "d3-regression": "^2.2.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-shape": "^3.2.0",
     "d3-tip": "^0.9.1",
     "d3-transition": "^3.0.1",
     "lodash": "^4.18.1",
-    "markdown-it": "^14.2.0",
-    "preact": "^10.28.2",
+    "markdown-it": "^15.0.2",
+    "mermaid": "^11.17.2",
+    "preact": "^10.29.8",
     "prismjs": "^1.30.0",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
@@ -84,35 +216,27 @@
   },
   "devDependencies": {
     "@allurereport/core-api": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@babel/core": "^7.27.4",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^7.27.1",
-    "@chromatic-com/storybook": "^5.2.1",
     "@nivo/axes": "^0.99.0",
     "@nivo/legends": "^0.99.0",
     "@nivo/scales": "^0.99.0",
     "@preact/preset-vite": "^2.9.4",
     "@rollup/plugin-alias": "^6.0.0",
-    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
-    "@storybook/addon-essentials": "^8.6.18",
-    "@storybook/addon-interactions": "^8.6.18",
-    "@storybook/addon-webpack5-compiler-swc": "^1.0.5",
-    "@storybook/blocks": "^8.6.17",
-    "@storybook/manager-api": "^8.6.17",
-    "@storybook/preact": "^8.6.17",
-    "@storybook/preact-webpack5": "^8.6.17",
-    "@storybook/preset-scss": "^1.0.3",
-    "@storybook/react": "^8.6.17",
-    "@storybook/test": "^8.6.17",
-    "@storybook/theming": "^8.6.17",
-    "@storybook/types": "^8.6.17",
+    "@storybook/addon-docs": "^10.6.1",
+    "@storybook/preact-vite": "^10.6.1",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
     "@svgr/rollup": "^8.1.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/preact": "^3.2.4",
@@ -129,41 +253,35 @@
     "@types/d3-transition": "^3",
     "@types/lodash": "^4",
     "@types/markdown-it": "^14.1.2",
-    "@types/md5": "^2.3.5",
+    "@types/md5": "^2.3.6",
     "@types/node": "^20",
-    "@types/prismjs": "^1.26.5",
+    "@types/prismjs": "^1.26.6",
     "@types/sortablejs": "^1.15.9",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2.1.9",
-    "@vitest/snapshot": "^2.1.9",
-    "allure-js-commons": "^3.9.0",
-    "allure-vitest": "3.8.0",
+    "@vitest/snapshot": "^5.0.1",
+    "allure-js-commons": "^3.12.2",
+    "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
-    "babel-loader": "^10.1.1",
     "babel-plugin-prismjs": "^2.1.0",
     "clsx": "^2.1.1",
-    "css-loader": "^7.1.4",
     "globals": "^15.9.0",
-    "html-webpack-plugin": "^5.6.3",
     "jsdom": "^26.0.0",
-    "mini-css-extract-plugin": "^2.9.1",
     "npm-run-all2": "^7.0.1",
     "postcss": "^8.5.10",
-    "postcss-import": "^16.1.0",
-    "postcss-loader": "^8.2.0",
+    "postcss-import": "^17.0.0",
     "rimraf": "^6",
-    "rollup": "^4.59.0",
+    "rollup": "^4.63.4",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-svg-sprites": "^1.2.5",
     "sass": "^1.83.1",
-    "sass-loader": "^16.0.4",
-    "storybook": "^8.6.17",
-    "style-loader": "^4.0.0",
-    "svg-sprite-loader": "^6.0.11",
+    "storybook": "^10.6.1",
     "ts-node": "^10.9.2",
     "tslib": "^2.7.0",
     "typescript": "^5",
+    "vite": "^8.0.9",
+    "vite-plugin-svgr": "^5.2.0",
     "vitest": "^4.1.0"
   }
 }

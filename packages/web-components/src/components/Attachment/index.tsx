@@ -1,7 +1,9 @@
 export { Attachment } from "./Attachment";
 export { AttachmentCode } from "./AttachmentCode";
+export { AttachmentTable } from "./AttachmentTable";
 export { HtmlPreview } from "./HtmlPreview";
 export { MarkdownPreview } from "./MarkdownPreview";
+export { MermaidPreview } from "./MermaidPreview";
 export { AttachmentImage } from "./AttachmentImage";
 export { AttachmentVideo } from "./AttachmentVideo";
 export { AttachmentEmpty } from "./AttachmentEmpty";

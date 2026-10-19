@@ -4,6 +4,43 @@ import { getAttachmentIdsFromTestStepsResults } from "../src/utils/attachments.j
 import { toUploadFixtureResultDto } from "../src/utils/fixtures.js";
 import { normalizeTestStepsResults, toUploadTestResultDto } from "../src/utils/testResults.js";
 
+describe("uploader DTO step serialization", () => {
+  it("serializes the same nested step tree for test results and fixtures", () => {
+    const steps = [
+      {
+        type: "step",
+        name: "parent",
+        status: "failed",
+        start: 10,
+        stop: 20,
+        duration: 10,
+        message: { ignored: true },
+        trace: 42,
+        parameters: [{ name: "parameter", value: "value" }],
+        steps: [{ type: "attachment", link: { id: "attachment", name: "log.txt" } }],
+      },
+    ] as any;
+    const result = toUploadTestResultDto({ id: "result", name: "Result", steps } as any);
+    const fixture = toUploadFixtureResultDto({ type: "BEFORE", id: "fixture", name: "Fixture", steps } as any);
+
+    expect(result.steps).toEqual([
+      {
+        type: "body",
+        body: "parent",
+        status: "failed",
+        start: 10,
+        stop: 20,
+        duration: 10,
+        message: undefined,
+        trace: undefined,
+        parameters: [{ name: "parameter", value: "value" }],
+        steps: [{ type: "attachment", attachment: { name: "log.txt" } }],
+      },
+    ]);
+    expect(fixture.steps).toEqual(result.steps);
+  });
+});
+
 describe("uploader DTO executable names", () => {
   it("maps projected nested step trees while preserving attachments", () => {
     const steps = normalizeTestStepsResults([
@@ -55,6 +92,32 @@ describe("uploader DTO executable names", () => {
 
     expect(toUploadTestResultDto({ id: "result", name } as any).name).toBe(name);
     expect(toUploadFixtureResultDto({ type: "AFTER", id: "fixture", name } as any).name).toBe(name);
+  });
+
+  it("uploads the legacy history ID instead of canonical retryHash", () => {
+    const result = toUploadTestResultDto({
+      id: "result",
+      name: "Result",
+      retryHash: "canonical.retry.hash",
+      testCase: { allureId: "123" },
+      parameters: [],
+      sourceMetadata: { legacyTestCaseHash: "361dc45aacd2d2a1961554d12a2d666b" },
+    } as any);
+
+    expect(result.historyId).toBe("361dc45aacd2d2a1961554d12a2d666b.d41d8cd98f00b204e9800998ecf8427e");
+    expect(result).not.toHaveProperty("retryHash");
+  });
+
+  it("preserves a restored top-level legacy history ID", () => {
+    const result = toUploadTestResultDto({
+      id: "result",
+      name: "Result",
+      historyId: "existing-legacy-history-id",
+      sourceMetadata: { legacyTestCaseHash: "ignored-test-case-hash" },
+      parameters: [],
+    } as any);
+
+    expect(result.historyId).toBe("existing-legacy-history-id");
   });
 
   it("projects invalid step subtrees and keeps attachment allowlist", () => {

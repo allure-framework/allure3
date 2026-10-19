@@ -1,0 +1,88 @@
+@use "../../../theme/spacing.scss" as *;
+.test-result-execution {
+  &__title {
+    margin: gap(2) gap(2) gap(1);
+  }
+  &__stage-title {
+    margin: gap(2) gap(2) gap(1);
+  }
+}
+
+.step {
+  &__main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  &__name {
+    display: inline;
+  }
+  &__status {
+    inset-inline-start: gap(1);
+    inset-block-start: gap(1);
+    position: absolute;
+    top: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: gap(2);
+    height: gap(2);
+  }
+  &__arrow {
+    inset-inline-start: gap(1);
+    inset-block-start: gap(1);
+    position: absolute;
+    top: auto;
+    width: gap(2);
+    height: gap(2);
+    display: none;
+  }
+  &__title {
+    align-items: flex-start;
+    display: flex;
+    gap: gap(1);
+    line-height: var(--line-height-s);
+    margin-block: gap(0.25);
+    min-block-size: gap(4);
+    position: relative;
+    border-radius: var(--radius-0-5);
+    padding-block: gap(1);
+    padding-inline-end: gap(2);
+    padding-inline-start: gap(4);
+    transition:
+      background-color var(--color-change-transition-duration),
+      color var(--color-change-transition-duration);
+    &_hasContent {
+      cursor: pointer;
+    }
+    &_hasContent > .step__arrow {
+      display: block;
+    }
+    &:hover {
+      background-color: var(--color-row-bg-hover);
+      &::before {
+        background-color: var(--color-row-bg-hover);
+      }
+    }
+    &_stage {
+      font-weight: var(--font-weight-bold);
+    }
+  }
+  &__content {
+    margin-inline-start: gap(3);
+    display: none;
+  }
+  &_expanded > &__title > &__arrow {
+    transform: rotate(90deg);
+  }
+  &_expanded > &__content {
+    display: block;
+  }
+}
+
+.parameters {
+  display: inline;
+  white-space: nowrap;
+  &_separator:last-child {
+    display: none;
+  }
+}

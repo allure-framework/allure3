@@ -1,13 +1,16 @@
 import { once } from "node:events";
+import { WriteStream } from "node:fs";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
+import type { Readable, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 import {
   type AllureHistory,
   type HistoryDataPoint,
   type HistoryTestResult,
+  type MetricSample,
   normalizeHistoryDataPointUrls,
   type TestCase,
   type TestResult,
@@ -17,15 +20,16 @@ import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
-    .filter((tr) => tr.historyId)
+    .filter((tr) => tr.retryHash)
     .map(
       ({
         id,
         name,
         fullName,
         environment,
-        historyId,
+        retryHash,
         status,
+        retries = [],
         error: { message, trace } = {},
         start,
         stop,
@@ -38,6 +42,7 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           fullName,
           environment,
           status,
+          retries: retries.map((retry) => retry.status).reverse(),
           message,
           trace,
           start,
@@ -45,19 +50,60 @@ const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
           duration,
           labels,
           url: remoteUrl,
-          historyId: historyId!,
+          retryHash: retryHash!,
           reportLinks: [],
         } as HistoryTestResult;
       },
     )
     .reduce(
       (acc, item) => {
-        acc[item.historyId!] = item;
+        acc[item.retryHash!] = item;
 
         return acc;
       },
       {} as Record<string, HistoryTestResult>,
     );
+};
+
+const metricsToHistoryValues = (metrics: MetricSample[]): Record<string, number> => {
+  const grouped = new Map<string, number[]>();
+
+  for (const metric of metrics) {
+    if (!metric.key || !Number.isFinite(metric.value)) {
+      continue;
+    }
+
+    grouped.set(metric.key, [...(grouped.get(metric.key) ?? []), metric.value]);
+  }
+
+  return Object.fromEntries(
+    [...grouped.entries()].map(([key, values]) => [key, values.reduce((acc, value) => acc + value, 0) / values.length]),
+  );
+};
+
+export const normalizeHistoryBaseUrl = (historyBaseUrl: string): string => {
+  let url: URL;
+
+  try {
+    url = new URL(historyBaseUrl);
+  } catch (cause) {
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected an absolute URL`, { cause });
+  }
+
+  if (url.href.includes("#")) {
+    throw new Error(`Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: fragments are not allowed`);
+  }
+
+  if (/\.html\/?$/iu.test(url.pathname)) {
+    throw new Error(
+      `Invalid historyBaseUrl ${JSON.stringify(historyBaseUrl)}: expected a base URL, not an HTML document`,
+    );
+  }
+
+  // Always add trailing / at the end of pathname
+  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/`;
+
+  return url.toString();
 };
 
 export const createHistory = (
@@ -66,6 +112,7 @@ export const createHistory = (
   testCases: TestCase[],
   testResults: TestResult[],
   remoteUrl: string = "",
+  metrics: MetricSample[] = [],
 ): HistoryDataPoint => {
   const knownTestCaseIds = testCases.map((tc) => tc.id);
 
@@ -75,9 +122,44 @@ export const createHistory = (
     timestamp: new Date().getTime(),
     knownTestCaseIds,
     testResults: createHistoryItems(testResults, remoteUrl),
-    metrics: {},
+    metrics: metricsToHistoryValues(metrics),
     url: remoteUrl,
   };
+};
+
+/**
+ * Streams opened on a `FileHandle` with `autoClose: false` are never destroyed on their own, and
+ * the handle stays referenced until they emit "close". `FileHandle.close()` waits for that
+ * reference to be released, so leaving such a stream behind makes the close never settle: the
+ * awaiting code hangs and the process may exit silently with code 0. Destroy them explicitly.
+ */
+const closeStream = async (stream: Readable | Writable): Promise<void> => {
+  if (stream.closed) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    // only "close" tells us the handle reference has been released; an "error" is emitted before
+    // it, so it must not end the wait -- but it still has to be swallowed, because releasing the
+    // resources must not fail the operation the stream has already completed
+    stream.once("error", () => {});
+    stream.once("close", () => resolve());
+    stream.destroy();
+  });
+};
+
+/**
+ * Depending on the runtime, destroying a stream may also close the descriptor it was opened on,
+ * so the handle can already be gone by the time we close it ourselves.
+ */
+const closeFileHandle = async (file: FileHandle): Promise<void> => {
+  try {
+    await file.close();
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code !== "EBADF") {
+      throw err;
+    }
+  }
 };
 
 export class AllureLocalHistory implements AllureHistory {
@@ -89,6 +171,24 @@ export class AllureLocalHistory implements AllureHistory {
       limit?: number;
     },
   ) {}
+
+  resolveTestResultUrl(historyUrl: string, pluginId: string, historicalResultId: string): string {
+    if (!historyUrl) {
+      return "";
+    }
+
+    const url = new URL(historyUrl);
+
+    // for local history, url entries end with / in case of multi report configuration, thus plugin id and index.html is added
+    // if url pathname does not end with /, it assumes single flattened report structure without plugin id
+    if (url.pathname.endsWith("/")) {
+      url.pathname = `${url.pathname}${pluginId}/index.html`;
+    }
+
+    url.hash = historicalResultId;
+
+    return url.toString();
+  }
 
   async readHistory() {
     if (this.#cachedHistory.length > 0) {
@@ -102,9 +202,14 @@ export class AllureLocalHistory implements AllureHistory {
       return [];
     }
 
+    const openedStreams: (Readable | Writable)[] = [];
+
     try {
       const start = await this.#findFirstEntryAddress(historyFile, this.params.limit);
       const stream = historyFile.createReadStream({ start, encoding: "utf-8", autoClose: false });
+
+      openedStreams.push(stream);
+
       const historyPoints: HistoryDataPoint[] = [];
       const readlineInterface = readline
         .createInterface({ input: stream, terminal: false, crlfDelay: Infinity })
@@ -122,7 +227,8 @@ export class AllureLocalHistory implements AllureHistory {
 
       return this.#cachedHistory;
     } finally {
-      await historyFile.close();
+      await this.#closeStreams(openedStreams);
+      await closeFileHandle(historyFile);
     }
   }
 
@@ -135,23 +241,26 @@ export class AllureLocalHistory implements AllureHistory {
     await mkdir(parentDir, { recursive: true });
 
     const { file: historyFile, exists: historyExists } = await this.#ensureFileOpenedToAppend(fullPath);
+    const openedStreams: (Readable | Writable)[] = [];
+
+    let dst: WriteStream | undefined;
 
     try {
-      const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
-
-      if (limit === 0 && historyExists) {
-        await historyFile.truncate(0);
+      if (limit === 0) {
+        if (historyExists) await historyFile.truncate(0);
         return;
       }
 
-      if (limit === 0 && !historyExists) {
-        return;
-      }
+      dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
+
+      openedStreams.push(dst);
 
       if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
         const start = await this.#findFirstEntryAddress(historyFile, limit ? limit - 1 : undefined);
         const src = historyFile.createReadStream({ start, autoClose: false });
+
+        openedStreams.push(src);
 
         await pipeline(src, dst, { end: false });
       }
@@ -165,7 +274,8 @@ export class AllureLocalHistory implements AllureHistory {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
-      await historyFile.close();
+      await this.#closeStreams(openedStreams);
+      await closeFileHandle(historyFile);
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {
@@ -177,6 +287,15 @@ export class AllureLocalHistory implements AllureHistory {
       }
     }
   }
+
+  // the streams have to be released in the order they were opened in: destroying a reader that
+  // shares its handle with a still open writer never completes, while destroying the writer
+  // closes the reader along with it
+  #closeStreams = async (streams: (Readable | Writable)[]) => {
+    for (const stream of streams) {
+      await closeStream(stream);
+    }
+  };
 
   #openFileToReadIfExists = async (filePath: string) => {
     try {

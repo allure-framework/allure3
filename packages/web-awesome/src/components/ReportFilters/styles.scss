@@ -33,6 +33,10 @@
 }
 
 .tooltip {
+  // portaled into body, so it must not take part in the page layout while it is hidden
+  position: absolute;
+  top: 0;
+  left: 0;
   opacity: 0;
   pointer-events: none;
   user-select: none;
@@ -56,4 +60,19 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px;
+  background-color: var(--color-bg-raised);
 }

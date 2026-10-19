@@ -152,6 +152,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   hasValueFn={hasValueFn}
                   indexBy={indexBy}
                   layout={layout}
+                  onBarClick={onBarClick}
                   tooltip={({ value }) =>
                     (
                       <BarChartTooltip

@@ -1,7 +1,6 @@
-import { createHash } from "node:crypto";
-
 import type { Statistic } from "@allurereport/core-api";
 import { byStatistic, compareBy } from "@allurereport/core-api";
+import { md5 } from "@allurereport/plugin-api";
 
 import type { Allure2Status, Allure2TestResult, Allure2Time } from "./model.js";
 import { calculateStatisticByLeafs } from "./utils.js";
@@ -27,6 +26,7 @@ export interface TreeLeaf extends TreeNode {
   newPassed: boolean;
   retriesCount: number;
   retriesStatusChange: boolean;
+  retry: boolean;
   tags: string[];
   parameters: string[];
 }
@@ -61,6 +61,7 @@ const createLeaf = (endNode: TreeGroup, test: Allure2TestResult) => {
     newPassed: test.newPassed,
     retriesCount: test.retriesCount,
     retriesStatusChange: test.retriesStatusChange,
+    retry: test.retry,
     parameters: test.parameters.filter((p) => p.value).map((p) => p.value!),
     tags: test.extra.tags ?? [],
   };
@@ -141,8 +142,6 @@ const groupByLabels = (test: Allure2TestResult, labelNames: string[]): TreeLayer
 const groupUid = (parentUid: string | undefined, groupName: string) => {
   return md5(parentUid ? `${parentUid}.${groupName}` : groupName);
 };
-
-const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
 export const collapseTree = (treeGroup: TreeGroup, separator: string = "."): TreeGroup => {
   const newChildren = treeGroup.children.map((c) => {

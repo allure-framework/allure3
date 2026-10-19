@@ -1,6 +1,7 @@
-import { sanitize } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+
+import { HTML_PREVIEW_RESIZE_MESSAGE_TYPE, createHtmlPreviewDocument } from "./htmlPreviewDocument";
 
 import styles from "./styles.scss";
 
@@ -12,51 +13,59 @@ const isDarkTheme = (): boolean => {
   if (theme === "light") {
     return false;
   }
-  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return typeof window !== "undefined" && (window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
 };
-
-const DARK_STYLE =
-  "<style data-allure-preview-theme>:root,html,body{background:#1c1c1e !important;color:#e5e5e7 !important;}body *{border-color:rgba(255,255,255,0.12) !important;}</style>";
 
 export type HtmlAttachmentPreviewProps = {
   attachment: { text: string };
 };
 
 export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ attachment }) => {
-  const [blobUrl, setBlobUrl] = useState<string>("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const token = useMemo(() => Math.random().toString(36).slice(2), []);
+  const [height, setHeight] = useState(0);
 
   const rawText = attachment.text ?? "";
-  const sanitizedText = rawText.length > 0 ? sanitize(rawText) : "";
+  const srcDoc = useMemo(
+    () => (rawText.length > 0 ? createHtmlPreviewDocument(rawText, token, isDarkTheme()) : ""),
+    [rawText, token],
+  );
 
   useEffect(() => {
-    if (sanitizedText) {
-      let wrapped = sanitizedText;
-      if (isDarkTheme()) {
-        if (/<head(\s[^>]*)?>/i.test(sanitizedText)) {
-          wrapped = sanitizedText.replace(/<head(\s[^>]*)?>/i, (m) => m + DARK_STYLE);
-        } else if (/<body(\s[^>]*)?>/i.test(sanitizedText)) {
-          wrapped = sanitizedText.replace(/<body(\s[^>]*)?>/i, (m) => m + DARK_STYLE);
-        } else {
-          wrapped = DARK_STYLE + sanitizedText;
-        }
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: unknown; token?: unknown; height?: unknown } | null;
+      const isOwnMessage =
+        event.source === iframeRef.current?.contentWindow &&
+        data?.type === HTML_PREVIEW_RESIZE_MESSAGE_TYPE &&
+        data.token === token;
+      const nextHeight = Number(data?.height);
+
+      if (isOwnMessage && Number.isFinite(nextHeight) && nextHeight > 0) {
+        setHeight(nextHeight);
       }
-      const blob = new Blob([wrapped], { type: "text/html; charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      setBlobUrl(url);
+    };
 
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-  }, [sanitizedText]);
+    window.addEventListener("message", handleMessage);
 
-  if (!sanitizedText) {
+    return () => window.removeEventListener("message", handleMessage);
+  }, [token]);
+
+  if (!srcDoc) {
     return null;
   }
 
   return (
-    <div className={styles["html-attachment-preview"]}>
-      <iframe src={blobUrl} width="100%" height="100%" frameBorder="0" sandbox="allow-same-origin" />
+    <div className={styles["html-attachment-preview"]} data-testid="html-attachment-preview">
+      <iframe
+        ref={iframeRef}
+        title="HTML attachment"
+        srcDoc={srcDoc}
+        width="100%"
+        height={height || undefined}
+        frameBorder="0"
+        referrerPolicy="no-referrer"
+        sandbox="allow-scripts"
+      />
     </div>
   );
 };

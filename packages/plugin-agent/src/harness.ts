@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
 
 import { AgentUsageError } from "./errors.js";
+import { findingSubjectRef } from "./findings.js";
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 import type { AgentHumanReportStatus } from "./model.js";
 import { isPathInside } from "./paths.js";
@@ -222,7 +223,7 @@ export type AgentRunManifest = {
 
 export type AgentTestManifestLine = {
   environment_id: string;
-  history_id: string | null;
+  retry_hash: string | null;
   test_result_id: string;
   full_name: string;
   package: string | null;
@@ -409,23 +410,11 @@ const uniqueValues = (values: string[]) => Array.from(new Set(values));
 
 const checkNameForFinding = (finding: AgentFindingManifestLine) => finding.check_id ?? finding.check_name;
 
-const subjectRefForFinding = (finding: AgentFindingManifestLine) => {
-  if (finding.subject_ref) {
-    return finding.subject_ref;
-  }
-
-  if (typeof finding.subject === "string") {
-    return finding.subject;
-  }
-
-  return finding.subject.path ?? finding.subject.id ?? finding.subject.type;
-};
-
 const subjectTypeForFinding = (finding: AgentFindingManifestLine): "run" | "test" =>
   finding.subject_type ??
   (typeof finding.subject === "object" && finding.subject.type === "test"
     ? "test"
-    : subjectRefForFinding(finding) === "run"
+    : findingSubjectRef(finding) === "run"
       ? "run"
       : "test");
 
@@ -480,6 +469,21 @@ const readJsonl = async <T>(path: string): Promise<T[]> =>
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line) as T);
+
+type AgentTestManifestLineInput = Omit<AgentTestManifestLine, "retry_hash"> & {
+  retry_hash?: string | null;
+  history_id?: string | null;
+};
+
+const normalizeAgentTestManifestLine = (input: AgentTestManifestLineInput): AgentTestManifestLine => {
+  const { history_id: legacyHistoryId, retry_hash: retryHash, ...test } = input;
+  const canonicalRetryHash = "retry_hash" in input ? (retryHash ?? null) : (legacyHistoryId ?? null);
+
+  return {
+    ...test,
+    retry_hash: canonicalRetryHash,
+  };
+};
 
 const countByActionCategory = (items: AgentEnrichmentPlanItem[]) =>
   items.reduce<Record<AgentEnrichmentActionCategory, number>>(
@@ -623,7 +627,9 @@ export const loadAgentOutput = async (outputDir: string): Promise<AgentOutputBun
   let findings: AgentFindingManifestLine[];
 
   try {
-    tests = await readJsonl<AgentTestManifestLine>(join(absoluteOutputDir, "manifest", "tests.jsonl"));
+    tests = (await readJsonl<AgentTestManifestLineInput>(join(absoluteOutputDir, "manifest", "tests.jsonl"))).map(
+      normalizeAgentTestManifestLine,
+    );
     findings = await readJsonl<AgentFindingManifestLine>(join(absoluteOutputDir, "manifest", "findings.jsonl"));
   } catch {
     throw new AgentUsageError(
@@ -664,7 +670,7 @@ export const planAgentEnrichmentReview = (
   const plan = sortPlan(
     output.findings.map((finding) => {
       const action = mapFindingToEnrichmentAction(finding);
-      const subject = subjectRefForFinding(finding);
+      const subject = findingSubjectRef(finding);
       const matchedTest = testsByPath.get(subject);
 
       return {

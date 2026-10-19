@@ -1,0 +1,132 @@
+@use "../../../../theme/spacing.scss" as *;
+.attachment-row {
+  align-items: flex-start;
+  border-radius: var(--radius-0-5);
+  cursor: pointer;
+  display: flex;
+  gap: gap(1);
+  line-height: var(--line-height-s);
+  min-block-size: gap(4);
+  margin-block: gap(0.25);
+  padding-block: gap(1);
+  padding-inline-end: gap(2);
+  padding-inline-start: gap(4);
+  position: relative;
+  position: sticky;
+  top: 0;
+
+  &:hover {
+    background: var(--color-row-bg-hover);
+  }
+  &_selected {
+    background: var(--color-row-bg-selected);
+  }
+  &_selected:hover {
+    background: var(--color-row-bg-selected-hover);
+  }
+  &_selected > &__arrow {
+    transform: rotate(90deg);
+  }
+  &__arrow {
+    inset-inline-start: gap(1);
+    inset-block-start: gap(1);
+    position: absolute;
+    top: auto;
+    width: gap(2);
+    height: gap(2);
+  }
+  &__label {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  &__details {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-s);
+    margin-block-start: gap(0.25);
+  }
+  &__control {
+    padding-inline-start: gap(2);
+    display: inline-block;
+  }
+  &__icon {
+    align-items: center;
+    color: var(--color-text-secondary);
+    display: inline-flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    min-width: gap(2);
+
+    .a-icon {
+      pointer-events: none;
+    }
+  }
+  &__preview {
+    display: none;
+  }
+  &_selected + &__preview {
+    display: block;
+    margin-bottom: gap(1);
+  }
+  &__content {
+    background-color: var(--color-bg-secondary);
+  }
+  &__content > div {
+    padding: gap(1);
+  }
+}
+
+.hljs {
+  background: inherit;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--color-text-muted);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: var(--color-syntax-keyword);
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: var(--color-syntax-number);
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: var(--color-syntax-string);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: var(--color-syntax-function);
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: var(--color-syntax-type);
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-name,
+.hljs-tag {
+  color: var(--color-syntax-property);
+}
+
+.hljs-deletion {
+  color: var(--color-intent-danger-text);
+}
+
+.hljs-addition {
+  color: var(--color-intent-success-text);
+}

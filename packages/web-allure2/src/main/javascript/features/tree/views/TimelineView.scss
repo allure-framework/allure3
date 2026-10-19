@@ -1,0 +1,167 @@
+@use "../../../theme/spacing.scss" as *;
+.timeline {
+  background: var(--color-bg-primary);
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  padding: gap(2);
+  position: absolute;
+  right: 0;
+  top: 0;
+
+  &__body {
+    background: var(--color-bg-primary);
+    padding: gap(2);
+    position: relative;
+  }
+
+  &__chart {
+    padding-bottom: gap(2);
+  }
+
+  &__chart_svg,
+  &__brush_svg {
+    display: block;
+    width: 100%;
+  }
+
+  &__chart {
+    &__axis_x {
+      .tick {
+        opacity: 0.3;
+        stroke-dasharray: 1, 4;
+        shape-rendering: crispEdges;
+      }
+    }
+  }
+  &__item:hover {
+    opacity: 0.7;
+  }
+
+  &__item {
+    fill: var(--color-status-unknown-chart-fill);
+
+    &_status_failed {
+      fill: var(--color-status-failed-chart-fill);
+    }
+
+    &_status_broken {
+      fill: var(--color-status-broken-chart-fill);
+    }
+
+    &_status_passed {
+      fill: var(--color-status-passed-chart-fill);
+    }
+
+    &_status_skipped {
+      fill: var(--color-status-skipped-chart-fill);
+    }
+
+    &_status_unknown {
+      fill: var(--color-status-unknown-chart-fill);
+    }
+
+    &_retry {
+      fill: url("#timeline-retry-unknown");
+    }
+
+    &_retry.timeline__item_status_failed {
+      fill: url("#timeline-retry-failed");
+    }
+
+    &_retry.timeline__item_status_broken {
+      fill: url("#timeline-retry-broken");
+    }
+
+    &_retry.timeline__item_status_passed {
+      fill: url("#timeline-retry-passed");
+    }
+
+    &_retry.timeline__item_status_skipped {
+      fill: url("#timeline-retry-skipped");
+    }
+
+    &_retry.timeline__item_status_unknown {
+      fill: url("#timeline-retry-unknown");
+    }
+  }
+
+  &__retry-pattern-base {
+    fill: var(--color-bg-primary);
+  }
+
+  &__retry-pattern-stripe {
+    fill: var(--color-status-unknown-chart-fill);
+  }
+
+  &__retry-pattern_status_failed &__retry-pattern-stripe {
+    fill: var(--color-status-failed-chart-fill);
+  }
+
+  &__retry-pattern_status_broken &__retry-pattern-stripe {
+    fill: var(--color-status-broken-chart-fill);
+  }
+
+  &__retry-pattern_status_passed &__retry-pattern-stripe {
+    fill: var(--color-status-passed-chart-fill);
+  }
+
+  &__retry-pattern_status_skipped &__retry-pattern-stripe {
+    fill: var(--color-status-skipped-chart-fill);
+  }
+
+  &__retry-pattern_status_unknown &__retry-pattern-stripe {
+    fill: var(--color-status-unknown-chart-fill);
+  }
+
+  &__group_title {
+    font-size: var(--font-size-s);
+    fill: var(--color-text-muted);
+    dominant-baseline: central;
+  }
+
+  &__host-bg {
+    fill: var(--color-control-bg);
+    stroke: var(--color-border-default);
+    rx: 3;
+    ry: 9;
+  }
+
+  &__brush {
+    background: var(--color-bg-primary);
+    width: 100%;
+
+    .selection {
+      fill: var(--color-bg-overlay);
+      fill-opacity: 0.3;
+    }
+    &__axis_bg {
+      fill: var(--color-bg-primary);
+    }
+    .handle {
+      fill: var(--color-bg-raised);
+      stroke: var(--color-border-strong);
+      stroke-opacity: 0.5;
+      stroke-width: 1px;
+    }
+  }
+
+  &__slider {
+    &_track {
+      stroke-linecap: round;
+      stroke: var(--color-border-strong);
+      stroke-opacity: 0.3;
+      stroke-width: 10px;
+    }
+    &_handle {
+      fill: var(--color-bg-raised);
+      stroke: var(--color-border-strong);
+      stroke-opacity: 0.5;
+      stroke-width: 1px;
+      cursor: pointer;
+    }
+    &_text {
+      text-anchor: middle;
+    }
+  }
+}

@@ -23,7 +23,7 @@ When enabled, the plugin writes:
 
 - `index.md` with run summary, advisory findings, expected-scope overview, and links to every logical test
 - `manifest/test-events.jsonl` as the append-only live event stream while the run is active
-- one markdown file per logical test under `tests/<environment>/<historyId-or-trId>.md`
+- one markdown file per logical test under `tests/<environment>/<retryHash-or-trId>.md`
 - `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl` for machine-readable review
 - copied run logs and other artifacts under `artifacts/`
 - `AGENTS.md` with guidance for consuming the directory
@@ -158,7 +158,7 @@ npx allure agent \
 ```
 
 That command uses the default `--report auto` policy. Configured presentation or
-export plugins such as Dashboard or TestOps are otherwise ignored for agent runs
+export plugins such as Dashboard or Allure TestOps are otherwise ignored for agent runs
 unless you explicitly use `--report config`.
 
 ## Options
@@ -297,7 +297,7 @@ Acceptance should stay strict even though the plugin itself is advisory:
 
 When agent output does not fully model runner-visible failures:
 
-- inspect `artifacts/global/stderr.txt` and global errors before concluding the run is complete
+- inspect process-log paths in `manifest/run.json` (or command-qualified artifacts under `artifacts/global/`) and global errors before concluding the run is complete
 - treat the review as partial when suite-load, import, or setup failures are visible outside logical test files
 - keep console-only conclusions provisional until the missing modeling is understood
 

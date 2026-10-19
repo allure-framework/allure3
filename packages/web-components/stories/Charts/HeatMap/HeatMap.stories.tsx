@@ -1,13 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/preact";
-import { HeatMap } from "@allurereport/web-components";
-import type { HeatMapProps } from "@allurereport/web-components";
-import { mockData } from "./mocks";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
 
-const colorsSchema: HeatMapProps["colors"] = {
-  type: "diverging",
-  colors: ["red", "#ffffff", "green"],
-  divergeAt: 0.5,
-};
+import { HeatMap } from "@/components/Charts/HeatMap";
+import type { HeatMapProps } from "@/components/Charts/HeatMap/types";
+
+import { mockData } from "./mocks";
 
 const meta: Meta<HeatMapProps> = {
   title: "Charts/HeatMap",
@@ -16,7 +12,6 @@ const meta: Meta<HeatMapProps> = {
     layout: "centered",
   },
   args: {
-    colors: colorsSchema,
     width: 900,
     height: 500,
   },
@@ -25,7 +20,6 @@ const meta: Meta<HeatMapProps> = {
 export default meta;
 type Story = StoryObj<HeatMapProps>;
 
-// Placeholder story - will be filled with mock data after types are finalized
 export const Default: Story = {
   args: {
     data: mockData,

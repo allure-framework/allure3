@@ -1,10 +1,10 @@
 import { CiDescriptor, CiType, sanitizeExternalUrl } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 
-import type { AwesomeReportOptions } from "../../../../types";
+import type { ReportOptions } from "../../../../types";
 
 import * as styles from "./styles.scss";
 
@@ -45,7 +45,7 @@ export const CiIcon = ({ type }: CiIconProps) => {
 };
 
 export const CiInfo = ({ className }: CiInfoProps) => {
-  const { ci } = getReportOptions<AwesomeReportOptions>();
+  const { ci } = getReportOptions<ReportOptions>();
 
   const ciLink = ci ? ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl : undefined;
   const ciLabel = getCiLabel(ci, ciLink);

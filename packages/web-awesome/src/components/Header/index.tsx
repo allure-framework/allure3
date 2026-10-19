@@ -10,6 +10,7 @@ import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 
 import { CiInfo } from "./CiInfo";
+import { OverviewLink } from "./OverviewLink";
 
 import * as styles from "./styles.scss";
 
@@ -25,6 +26,7 @@ const testResult = computed(() => testResultStore.value?.data?.[currentTrId.valu
 export const Header = ({ className }: HeaderProps) => {
   return (
     <div className={clsx(styles.above, className)}>
+      <OverviewLink />
       <SectionPicker />
       {!isTestResultRoute.value && <CiInfo />}
       {isTestResultRoute.value && <TrBreadcrumbs testResult={testResult.value} />}

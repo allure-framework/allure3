@@ -73,6 +73,12 @@ const buildAqlFromFieldFilter = (
       valueType = "STRING";
       break;
     }
+    case "null": {
+      expressionValue = "null";
+      valueType = "NULL";
+      operator = "EQ";
+      break;
+    }
     default: {
       // This should never happen with proper TypeScript typing
       const exhaustiveCheck: never = type;

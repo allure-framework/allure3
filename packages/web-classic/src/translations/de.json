@@ -99,6 +99,7 @@
     "at": "bei"
   },
   "controls": {
+    "backToOverview": "Zurück zur Übersicht",
     "newTabAttachment": "Anhang in neuem Tab öffnen",
     "nextTR": "Nächstes Testergebnis",
     "prevTR": "Vorheriges Testergebnis",
@@ -123,6 +124,7 @@
     "graphs": "Grafiken",
     "packages": "Pakete",
     "suites": "Suiten",
-    "timeline": "Zeitleiste"
+    "timeline": "Zeitleiste",
+    "comingSoon": "Demnächst"
   }
 }

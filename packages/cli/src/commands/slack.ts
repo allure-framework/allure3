@@ -4,10 +4,10 @@ import process, { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin, { type SlackPluginOptions } from "@allurereport/plugin-slack";
-import { Command, Option } from "clipanion";
+import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
-import { findAllureResultDirectories } from "../utils/fileSystem.js";
+import { resolveAndFindResultsDirs } from "../utils/resultsPatterns.js";
 
 export class SlackCommand extends Command {
   static paths = [["slack"]];
@@ -22,6 +22,10 @@ export class SlackCommand extends Command {
         "Post test results from the ./allure-results directory to the specified Slack channel",
       ],
       [
+        "slack ./allure-results --webhook https://hooks.slack.com/services/...",
+        "Post test results using a Slack incoming webhook",
+      ],
+      [
         "slack ./packages/*/allure-results --token xoxb-token --channel C12345",
         "Post test results from all Allure result directories matching the pattern",
       ],
@@ -33,11 +37,11 @@ export class SlackCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   cwd = Option.String("--cwd", {
@@ -45,31 +49,40 @@ export class SlackCommand extends Command {
   });
 
   token = Option.String("--token,-t", {
-    description: "Slack Bot User OAuth Token",
-    required: true,
+    description: "Slack Bot User OAuth Token (default: ALLURE_SLACK_TOKEN environment variable)",
+    env: "ALLURE_SLACK_TOKEN",
   });
 
   channel = Option.String("--channel", {
-    description: "Slack channelId",
-    required: true,
+    description: "Slack channelId (default: ALLURE_SLACK_CHANNEL environment variable)",
+    env: "ALLURE_SLACK_CHANNEL",
+  });
+
+  webhook = Option.String("--webhook", {
+    description: "Slack incoming webhook URL (default: ALLURE_SLACK_WEBHOOK environment variable)",
+    env: "ALLURE_SLACK_WEBHOOK",
   });
 
   async execute() {
-    const cwd = await realpath(this.cwd ?? process.cwd());
+    if (!this.webhook && (!this.token || !this.channel)) {
+      throw new UsageError("Provide either --webhook or both --token and --channel");
+    }
 
-    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
+    const cwd = await realpath(this.cwd ?? process.cwd());
+    const before = new Date().getTime();
+    const defaultSlackOptions = {
+      token: this.token,
+      channel: this.channel,
+      webhook: this.webhook,
+    } as SlackPluginOptions;
+    const config = await readConfig(cwd, this.config);
+    const { resultDirectories, patterns } = await resolveAndFindResultsDirs(cwd, this.resultsDir, config.resultsDir);
+
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }
-
-    const before = new Date().getTime();
-    const defaultSlackOptions = {
-      token: this.token,
-      channel: this.channel,
-    } as SlackPluginOptions;
-    const config = await readConfig(cwd, this.config);
 
     config.plugins = [
       {

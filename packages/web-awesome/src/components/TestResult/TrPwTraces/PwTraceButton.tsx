@@ -1,6 +1,6 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { fetchFromUrl } from "@allurereport/web-commons";
-import { Button, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Button, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 
 import { openPlaywrightTraceInNewTab } from "@/components/TestResult/TrPwTraces/openPwTraceInNewTab";
 import { useI18n } from "@/stores";
@@ -29,14 +29,16 @@ export const PwTraceButton = ({ link }: Pick<AttachmentTestStepResult, "link">) 
   const { t } = useI18n("ui");
   const traceTitle = `Playwright Trace Viewer | ${link.name}${link.ext}`;
 
-  const openPw = async () => {
+  const openPw = () => {
     // Use a top-level tab for Playwright Trace to avoid third-party blob/storage partitioning issues.
     // - https://bugzilla.mozilla.org/show_bug.cgi?id=1917842
     // - https://privacysandbox.google.com/cookies/storage-partitioning
     try {
-      const hasPw = await fetchFromUrl(link);
-      const blob = await hasPw.blob();
-      const opened = openPlaywrightTraceInNewTab(blob);
+      const opened = openPlaywrightTraceInNewTab(async () => {
+        const hasPw = await fetchFromUrl(link);
+
+        return hasPw.blob();
+      });
 
       if (!opened) {
         openModal({

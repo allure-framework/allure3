@@ -5,6 +5,7 @@ import {
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
+import { validateChartsOptions } from "@allurereport/web-commons";
 
 import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
@@ -13,7 +14,17 @@ import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashbo
 export class DashboardPlugin implements Plugin {
   #writer: DashboardDataWriter | undefined;
 
-  constructor(readonly options: DashboardPluginOptions = {}) {}
+  constructor(readonly options: DashboardPluginOptions = {}) {
+    validateChartsOptions(options.layout ?? []);
+  }
+
+  #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
+    if (!this.#writer) {
+      throw new Error("call start first");
+    }
+
+    await this.#generate(context, store);
+  };
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context, this.options.filter);
@@ -28,6 +39,7 @@ export class DashboardPlugin implements Plugin {
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
+      overviewHref: context.overviewHref,
     });
   };
 
@@ -40,19 +52,11 @@ export class DashboardPlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   done = async (context: PluginContext, store: AllureStore) => {
-    if (!this.#writer) {
-      throw new Error("call start first");
-    }
-
-    await this.#generate(context, store);
+    await this.#generateAfterStart(context, store);
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader",
-  "version": "3.14.3",
+  "version": "3.21.0",
   "description": "Collection of utilities which helps to process different kind of test results as Allure Results",
   "keywords": [
     "allure",
@@ -22,6 +22,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -29,11 +30,13 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
-    "fast-xml-parser": "^5.7.0"
+    "fast-xml-parser": "^5.11.1"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@types/archiver": "^6.0.3",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

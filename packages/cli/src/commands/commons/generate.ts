@@ -1,28 +1,84 @@
-import { exit } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
+import { createReportContext, type ReportContext } from "@allurereport/ci";
 import type { FullConfig } from "@allurereport/core";
-import { AllureReport } from "@allurereport/core";
+import { AllureReport, filterFailedQualityGateResults, stringifyQualityGateResults } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
-import { red } from "yoctocolors";
+import { red, yellow } from "yoctocolors";
 
-import { findAllureResultDirectories, findFilesByGlobs } from "../../utils/fileSystem.js";
+import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../utils/cleanOutput.js";
+import { findFilesByGlobs } from "../../utils/fileSystem.js";
 import { logError } from "../../utils/logs.js";
+import { resolveAndFindResultsDirs, resolveResultsPatterns } from "../../utils/resultsPatterns.js";
 
-export const generate = async (params: { cwd: string; config: FullConfig; resultsDir: string[]; dump?: string[] }) => {
+export type GenerateResult = {
+  summary?: ReportContext;
+  exitCode: 0 | 1;
+};
+
+export const generate = async (params: {
+  cwd: string;
+  config: FullConfig;
+  resultsDir?: string[];
+  dump?: string[];
+  collectSummary?: boolean;
+  clean?: boolean;
+}): Promise<GenerateResult | undefined> => {
   const dumpFiles: string[] = params?.dump?.length ? await findFilesByGlobs(params.cwd, params.dump) : [];
-
-  // don't read allure results directories without the parameter when dump file has been found
-  // or read allure results directory when it is explicitly provided
-  const { resultDirectories = [], patterns = params.resultsDir } =
-    !!params?.resultsDir || dumpFiles.length === 0
-      ? await findAllureResultDirectories(params.cwd, params.resultsDir)
-      : {};
+  const cliPatterns = params.resultsDir ?? [];
+  const resolvedPatterns = resolveResultsPatterns(cliPatterns, params.config.resultsDir);
+  // dumps-only: skip default results read only when CLI empty AND config unset AND dumps present
+  const shouldReadResults = resolvedPatterns.length > 0 || dumpFiles.length === 0;
+  const { resultDirectories = [], patterns = resolvedPatterns } = shouldReadResults
+    ? await resolveAndFindResultsDirs(params.cwd, cliPatterns, params.config.resultsDir)
+    : {};
 
   if (resultDirectories.length === 0 && dumpFiles.length === 0) {
     // eslint-disable-next-line no-console
     console.error(red(`No test results directories found matching pattern: ${patterns}`));
     exit(1);
     return;
+  }
+
+  if (params.clean) {
+    try {
+      // the report reads these files later, so they must be resolved before the output is removed,
+      // with the same base and glob options as the core, so only files the report really reads are protected
+      const globalAttachments = await findFilesByGlobs(
+        params.config.cwd ?? processCwd(),
+        params.config.globalAttachments ?? [],
+        { dot: false, windowsPathsNoEscape: false },
+      );
+
+      await cleanOutputDirectory({
+        output: params.config.output,
+        cwd: params.cwd,
+        resultsDirs: resultDirectories,
+        inputs: [
+          ...dumpFiles,
+          ...globalAttachments,
+          params.config.historyPath,
+          params.config.resolutions?.knownIssuesPath,
+        ].filter((path): path is string => !!path),
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(red(error instanceof Error ? error.message : String(error)));
+      exit(1);
+      return;
+    }
+  }
+
+  if (!params.clean && params.config.output && (await isOutputDirectoryNotEmpty(params.cwd, params.config.output))) {
+    // a previous report left in the output changes how the new one is laid out (e.g. it ends up in a nested
+    // directory next to the stale root index), so the history of the new report looks missing
+    // eslint-disable-next-line no-console
+    console.warn(
+      yellow(
+        `The output directory "${params.config.output}" is not empty. Files of a previous report may break the layout ` +
+          "of the new one. Use the --clean option to remove the directory before generating.",
+      ),
+    );
   }
 
   try {
@@ -35,7 +91,50 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
       await allureReport.readDirectory(dir);
     }
 
+    let exitCode: GenerateResult["exitCode"] = 0;
+
+    if (allureReport.hasQualityGate) {
+      const trs = await allureReport.store.allTestResults({ includeRetries: false });
+      const { results } = await allureReport.validate({
+        trs,
+        environment: params.config.environment,
+      });
+      const qualityGateMessage = stringifyQualityGateResults(results);
+
+      if (qualityGateMessage) {
+        // eslint-disable-next-line no-console
+        console.error(qualityGateMessage);
+      }
+
+      allureReport.realtimeDispatcher.sendQualityGateResults(results);
+      exitCode = filterFailedQualityGateResults(results).length > 0 ? 1 : 0;
+    }
+
     await allureReport.done();
+
+    if (!params.collectSummary) {
+      return { exitCode };
+    }
+
+    const result: GenerateResult = { exitCode };
+
+    try {
+      const summary = await createReportContext(params.config.output, {
+        // eslint-disable-next-line no-console
+        onError: (message) => console.warn(message),
+      });
+
+      if (!summary.testResults && summary.reports.length === 0) {
+        throw new Error("no report context data found");
+      }
+
+      result.summary = summary;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(`Report summary skipped: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return result;
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console

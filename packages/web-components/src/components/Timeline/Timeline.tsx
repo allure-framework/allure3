@@ -84,6 +84,7 @@ type TimelineProps = {
   data?: TimelineData;
   width?: number;
   enableAnimations?: boolean;
+  onTestResultClick?: (testResultId: string) => void;
   translations: {
     empty: string;
     selected: (props: { count: number; percentage: string; minDuration: string; maxDuration: string }) => string;
@@ -108,7 +109,7 @@ const GAP = 2;
 const ROW_HEIGHT = SEGMENT_HEIGHT + GAP * 2;
 
 const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) => {
-  const { data = [], translations } = props;
+  const { data = [], translations, onTestResultClick } = props;
   const innerId = useId();
 
   const { durationRange, handleDurationChange, durationDomain } = useDurationRange(data);
@@ -617,6 +618,9 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
         .enter()
         .append("rect")
         .attr("class", styles.segment)
+        .attr("data-testid", "timeline-segment")
+        .attr("data-test-result-id", (d) => d.segment.testResultId)
+        .attr("data-test-result-name", (d) => d.segment.label)
         .attr("rx", 1)
         .attr("ry", 1)
         .attr("x", (d) => xScale(d.timeRange[0]))
@@ -676,6 +680,9 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       timelines = timelines.merge(newSegments);
 
       timelines
+        .on("click", (_event: MouseEvent, d: FlatDataItem) => {
+          onTestResultClick?.(d.segment.testResultId);
+        })
         .attr("rx", (d) => {
           const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
           return getBorderRadius(w);
@@ -716,7 +723,18 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
 
     render();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segments, graphW, graphH, graphW, animationDuration, zoomX, xScale, transitionDuration, yScale, innerId]);
+  }, [
+    segments,
+    graphW,
+    graphH,
+    animationDuration,
+    zoomX,
+    xScale,
+    transitionDuration,
+    yScale,
+    innerId,
+    onTestResultClick,
+  ]);
 
   // Update SVG dimensions
   useEffect(() => {

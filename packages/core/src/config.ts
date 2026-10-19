@@ -2,13 +2,14 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { validateEnvironmentName } from "@allurereport/core-api";
+import { parseIntegerConfigValue, validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, Plugin, PluginConstructorContext, PluginDescriptor } from "@allurereport/plugin-api";
+import { createJiti } from "jiti";
 import { parse } from "yaml";
 
 import type { FullConfig, PluginInstance } from "./api.js";
-import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
+import { DEFAULT_KNOWN_ISSUES_PATH, resolveExactIssuesFilePath, validateResolutionsConfig } from "./resolutions.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
@@ -18,19 +19,23 @@ import {
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
+import { normalizeResultsDir } from "./utils/resultsDir.js";
 import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
 
 type PluginConstructor = new (options?: Record<string, any>, context?: PluginConstructorContext) => Plugin;
 
 export interface ConfigOverride {
+  cwd?: string;
   name?: Config["name"];
   output?: Config["output"];
   open?: Config["open"];
   port?: Config["port"];
+  host?: Config["host"];
   hideLabels?: Config["hideLabels"];
   historyPath?: Config["historyPath"];
+  historyBaseUrl?: Config["historyBaseUrl"];
   historyLimit?: Config["historyLimit"];
-  knownIssuesPath?: Config["knownIssuesPath"];
+  resolutions?: Pick<NonNullable<Config["resolutions"]>, "knownIssuesPath">;
   plugins?: Config["plugins"];
 }
 
@@ -38,24 +43,16 @@ const CONFIG_FILENAMES = [
   "allurerc.js",
   "allurerc.mjs",
   "allurerc.cjs",
+  "allurerc.ts",
+  "allurerc.mts",
+  "allurerc.cts",
   "allurerc.json",
   "allurerc.yaml",
   "allurerc.yml",
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
-const DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY = 100;
 const DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS = 5;
 const DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES = 5;
-
-export const parseIntegerConfigValue = (value: unknown, defaultValue: number, minValue: number): number => {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return defaultValue;
-  }
-
-  const normalized = Math.floor(value);
-
-  return normalized >= minValue ? normalized : defaultValue;
-};
 
 export const isAgentDescriptor = (value: string | undefined) => {
   return value === "agent" || value === "@allurereport/plugin-agent";
@@ -135,7 +132,7 @@ export const findConfig = async (cwd: string, configPath?: string) => {
       if (stats.isFile()) {
         return resolved;
       }
-    } catch (ignored) {
+    } catch {
       // ignore
     }
   }
@@ -157,10 +154,13 @@ export const validateConfig = (config: Config) => {
     "output",
     "open",
     "port",
+    "host",
     "hideLabels",
     "historyPath",
+    "historyBaseUrl",
     "historyLimit",
-    "knownIssuesPath",
+    "flakyDetection",
+    "resolutions",
     "plugins",
     "defaultLabels",
     "variables",
@@ -169,9 +169,12 @@ export const validateConfig = (config: Config) => {
     "environments",
     "appendHistory",
     "qualityGate",
+    "performance",
     "allureService",
     "categories",
     "globalAttachments",
+    "resultsDir",
+    "dump",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -229,6 +232,16 @@ export const loadJsonConfig = async (configPath: string): Promise<Config> => {
  */
 export const loadJsConfig = async (configPath: string): Promise<Config> => {
   return (await import(normalizeImportPath(configPath))).default;
+};
+
+/**
+ * Loads the TypeScript config from the given path
+ * @param configPath
+ */
+export const loadTsConfig = async (configPath: string): Promise<Config> => {
+  const jiti = createJiti(import.meta.url);
+
+  return await jiti.import<Config>(resolve(configPath), { default: true });
 };
 
 const resolveConfigEnvironments = (config: Config) => {
@@ -290,6 +303,26 @@ const resolveConfigEnvironments = (config: Config) => {
   };
 };
 
+const validateFlakyDetectionConfig = (config: Config["flakyDetection"]) => {
+  if (config === undefined) {
+    return;
+  }
+
+  const { historyDepth, includePassedTests, stabilizationPeriod } = config;
+
+  if (historyDepth !== undefined && (!Number.isInteger(historyDepth) || historyDepth < -1)) {
+    throw new Error("flakyDetection.historyDepth must be an integer greater than or equal to -1");
+  }
+
+  if (stabilizationPeriod !== undefined && (!Number.isInteger(stabilizationPeriod) || stabilizationPeriod < 1)) {
+    throw new Error("flakyDetection.stabilizationPeriod must be a positive integer");
+  }
+
+  if (includePassedTests !== undefined && typeof includePassedTests !== "boolean") {
+    throw new TypeError("flakyDetection.includePassedTests must be a boolean");
+  }
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
@@ -297,19 +330,33 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
   }
 
+  validateResolutionsConfig(config.resolutions);
+  validateFlakyDetectionConfig(config.flakyDetection);
+
   const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
+  const host = override.host ?? config.host ?? undefined;
   const hideLabels = override.hideLabels ?? config.hideLabels;
   const historyPath = override.historyPath ?? config.historyPath;
+  const historyBaseUrl = override.historyBaseUrl ?? config.historyBaseUrl;
   const historyLimit = override.historyLimit ?? config.historyLimit;
+  const dump = config.dump;
   const appendHistory = config.appendHistory ?? true;
-  const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
+  const configuredKnownIssuesPath = override.resolutions?.knownIssuesPath ?? config.resolutions?.knownIssuesPath;
+  const knownIssuesPathInput =
+    configuredKnownIssuesPath ?? (config.resolutions ? DEFAULT_KNOWN_ISSUES_PATH : undefined);
+  const knownIssuesPath = await resolveExactIssuesFilePath(knownIssuesPathInput, "known issues");
+  const resolutions =
+    config.resolutions || override.resolutions?.knownIssuesPath !== undefined
+      ? { ...(config.resolutions ?? { rules: [] }), knownIssuesPath }
+      : undefined;
   const output = resolve(override.output ?? config.output ?? "./allure-report");
-  const known = await readKnownIssues(knownIssuesPath);
+  const cwd = resolve(override.cwd ?? process.cwd());
   const variables = config.variables ?? {};
+  const resultsDir = normalizeResultsDir(config.resultsDir);
   let pluginInstances: PluginInstance[] = [];
   const hasPluginsOverride = override.plugins !== undefined;
 
@@ -335,55 +382,55 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     pluginInstances = await resolvePlugins(pluginsWithAgent);
   }
 
+  const uploadConcurrency = parseIntegerConfigValue(config.allureService?.uploadConcurrency, 1);
+
   return {
     name,
+    cwd,
     output,
     open,
     port,
+    host,
     hideLabels,
-    knownIssuesPath,
-    known,
+    resolutions,
     environment,
     allowedEnvironments,
     variables,
     environments,
     appendHistory,
     historyLimit,
+    flakyDetection: config.flakyDetection,
     historyPath: historyPath ? resolve(historyPath) : undefined,
+    historyBaseUrl,
+    dump,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
+    performance: config.performance,
     allureService: config.allureService
       ? {
           accessToken: config.allureService.accessToken,
           private: config.allureService.private,
-          uploadConcurrency: parseIntegerConfigValue(
-            config.allureService.uploadConcurrency,
-            DEFAULT_ALLURE_SERVICE_UPLOAD_CONCURRENCY,
-            1,
-          ),
-          uploadMaxAttempts: parseIntegerConfigValue(
-            config.allureService.uploadMaxAttempts,
+          ...(uploadConcurrency === undefined ? {} : { uploadConcurrency }),
+          uploadMaxAttempts:
+            parseIntegerConfigValue(config.allureService.uploadMaxAttempts, 1) ??
             DEFAULT_ALLURE_SERVICE_UPLAOD_MAX_ATTEMPTS,
-            1,
-          ),
-          uploadMaxSimultaneousFailures: parseIntegerConfigValue(
-            config.allureService.uploadMaxSimultaneousFailures,
+          uploadMaxSimultaneousFailures:
+            parseIntegerConfigValue(config.allureService.uploadMaxSimultaneousFailures, 0) ??
             DEFAULT_ALLURE_SERVICE_UPLOAD_MAX_SIMULTANEOUS_FAILURES,
-            0,
-          ),
         }
       : undefined,
     categories: config.categories,
     globalAttachments: config.globalAttachments,
+    ...(resultsDir.length ? { resultsDir } : {}),
   };
 };
 
 /**
  * Tries to read Allure Runtime configuration file in given cwd
  * If config path is not provided, tries to find well-known config file
- * Supports javascript, json and yaml config files
+ * Supports javascript, typescript, json and yaml config files
  * If nothing is found returns an empty config
  * @param cwd
  * @param configPath
@@ -410,11 +457,16 @@ export const readConfig = async (
     case ".mjs":
       config = await loadJsConfig(cfg);
       break;
+    case ".ts":
+    case ".cts":
+    case ".mts":
+      config = await loadTsConfig(cfg);
+      break;
     default:
       config = DEFAULT_CONFIG;
   }
 
-  const fullConfig = await resolveConfig(config, override);
+  const fullConfig = await resolveConfig(config, { ...override, cwd });
 
   return fullConfig;
 };
@@ -432,6 +484,10 @@ export const readRawConfig = async (cwd: string = process.cwd(), configPath?: st
     case ".cjs":
     case ".mjs":
       return loadJsConfig(cfg);
+    case ".ts":
+    case ".cts":
+    case ".mts":
+      return loadTsConfig(cfg);
     default:
       return DEFAULT_CONFIG;
   }

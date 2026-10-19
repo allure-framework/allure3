@@ -111,7 +111,8 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
   "history-id-collision": {
     category: "repair-test-metadata",
     title: "Repair logical test identity",
-    guidance: "Use stable, unique history IDs so distinct logical tests do not collapse into one file.",
+    guidance:
+      "Retry hashes are computed automatically. When retryHash is absent, the agent uses the test-result ID for the filename, not the legacy historyId; do not set hashes manually.",
   },
   "expected-step-containing-missing": {
     category: "add-meaningful-steps",
@@ -214,7 +215,7 @@ Commands:
 Done when:
 
 - failing, broken, or unmodeled runner-visible failures are represented in agent artifacts, or partial modeling is called out explicitly
-- \`artifacts/global/stderr.txt\` and global errors were checked when failures are missing from \`manifest/tests.jsonl\`
+- command-named stderr process log under \`artifacts/global/\` and global errors were checked when failures are missing from \`manifest/tests.jsonl\`
 - reruns use prior agent output instead of hand-built runner test names whenever the runner can consume the generated test plan
 
 ### Rerun A Prior Scope
@@ -317,7 +318,7 @@ export const AGENT_REVIEW_COMPLETENESS_CHECKLIST = [
 ] as const;
 
 export const AGENT_PARTIAL_RUNTIME_REVIEW_RULES = [
-  "Suite-load, import, or setup failures may appear only in `artifacts/global/stderr.txt` or global errors instead of `manifest/tests.jsonl`.",
+  "Suite-load, import, or setup failures may appear only in command-named stderr under `artifacts/global/` or global errors instead of `manifest/tests.jsonl`.",
   "If runner-visible failures are not represented as logical tests, inspect global stderr and treat the run as a partial runtime review, not a clean result set.",
   "Console-only conclusions stay provisional when agent output is missing, incomplete, or partially modeled.",
 ] as const;
@@ -365,8 +366,8 @@ export const renderAgentsGuide = () =>
 2. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 3. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
 4. If a human-readable report is needed, read \`manifest/human-report.json\`; when status is \`generated\`, open the recorded path such as \`awesome/index.html\`.
-5. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
-6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.
+5. Open the relevant file under \`tests/<environment>/<retryHash-or-trId>.md\` for evidence review.
+6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for command-named process logs such as stdout and stderr.
 
 ## Directory Contract
 

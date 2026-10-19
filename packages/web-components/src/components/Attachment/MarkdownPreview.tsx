@@ -3,18 +3,11 @@ import MarkdownIt from "markdown-it";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
+import { getIframeContentHeight } from "./iframe";
+
 import styles from "./styles.scss";
 
 const md = new MarkdownIt();
-
-const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
-  const documentElement = iframe.contentDocument?.documentElement;
-  const body = iframe.contentDocument?.body;
-  const bodyRectHeight = body?.getBoundingClientRect().height ?? 0;
-  const scrollHeight = Math.max(body?.scrollHeight ?? 0, documentElement?.scrollHeight ?? 0);
-
-  return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
-};
 
 export type MarkdownAttachmentPreviewProps = {
   attachment: { text: string };

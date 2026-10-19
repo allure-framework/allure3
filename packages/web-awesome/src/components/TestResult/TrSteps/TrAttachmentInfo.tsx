@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { downloadAttachment } from "@allurereport/web-commons";
-import { Attachment, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Attachment } from "@allurereport/web-components/Attachment";
+import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import cx from "clsx";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
@@ -52,7 +53,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         <Attachment
           item={item}
           previewable={isPreviewable}
-          i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+          i18n={{ controls: tooltip, imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
         />
       ),
     });
@@ -68,12 +69,12 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
           <Attachment
             item={item}
             previewable={isPreviewable}
-            i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+            i18n={{ controls: tooltip, imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
           />
         ),
       });
     }
-  }, [item, isPreviewable, tAttachments]);
+  }, [item, isPreviewable, tAttachments, tooltip]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -148,6 +149,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>
             <IconButton
+              data-testId="attachment-expand-button"
               className={styles["item-button"]}
               style={"ghost"}
               size={"s"}

@@ -1,6 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { ClassicStatus, ClassicTree, ClassicTreeGroup } from "types";
+import type { ReportStatus, ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
@@ -10,13 +10,13 @@ export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
 export type TreeFiltersState = {
   query: string;
-  status: ClassicStatus;
+  status: ReportStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
 };
 
-export const packagesStore = signal<StoreSignalState<ClassicTree>>({
+export const packagesStore = signal<StoreSignalState<ReportTree>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -40,7 +40,7 @@ export const filteredPackages = computed(() => {
   const { root, leavesById, groupsById } = packagesStore.value.data;
 
   return createRecursiveTree({
-    group: root as ClassicTreeGroup,
+    group: root as ReportTreeGroup,
     leavesById,
     groupsById,
     filterOptions: packagesFiltersStore.value,
@@ -65,41 +65,10 @@ export const clearPackagesFilters = () => {
   };
 };
 
-export const setPackagesQuery = (query: string) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    query,
-  };
-};
-
-export const setPackagesStatus = (status: ClassicStatus) => {
+export const setPackagesStatus = (status: ReportStatus) => {
   packagesFiltersStore.value = {
     ...packagesFiltersStore.value,
     status,
-  };
-};
-
-export const setPackagesSortBy = (sortBy: TreeSortBy) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setPackagesDirection = (direction: TreeDirection) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    direction,
-  };
-};
-
-export const setPackagesFilter = (filterKey: TreeFilters, value: boolean) => {
-  packagesFiltersStore.value = {
-    ...packagesFiltersStore.value,
-    filter: {
-      ...packagesFiltersStore.value.filter,
-      [filterKey]: value,
-    },
   };
 };
 
@@ -111,7 +80,7 @@ export const fetchPackagesData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<ClassicTree>("widgets/packages.json", { bustCache: true });
+    const res = await fetchReportJsonData<ReportTree>("widgets/packages.json", { bustCache: true });
 
     packagesStore.value = {
       data: res,

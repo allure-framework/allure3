@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-agent",
-  "version": "3.14.3",
+  "version": "3.21.0",
   "description": "Allure Agent Plugin – AI-friendly markdown report generator",
   "keywords": [
     "agent",
@@ -27,17 +27,20 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "yarn run -T oxlint --import-plugin src test features stories",
     "lint:fix": "yarn run -T oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "yaml": "^2.8.1"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@allurereport/reader-api": "workspace:*",
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

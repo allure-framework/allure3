@@ -5,7 +5,9 @@
   max-width: 1920px;
   justify-content: space-between;
   height: 100%;
-  padding: 0 8px;
+  // bottom room for the panes shadow, which is clipped by the scroll container otherwise
+  padding: 0 8px 12px;
+  box-sizing: border-box;
 }
 
 .wrapper {

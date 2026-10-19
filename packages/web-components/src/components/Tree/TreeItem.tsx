@@ -1,4 +1,4 @@
-import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 
@@ -13,7 +13,9 @@ interface TreeItemProps {
   status?: TestStatus;
   duration?: number;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   flaky?: boolean;
+  resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   id: string;
@@ -24,6 +26,7 @@ interface TreeItemProps {
   focused?: boolean;
   navigateTo: (id: string) => void;
   tooltips?: Record<string, string>;
+  parameters?: string[];
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -32,7 +35,9 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   status,
   duration,
   retriesCount,
+  retriesStatusChange,
   flaky,
+  resolution,
   transition,
   transitionTooltip,
   id,
@@ -41,19 +46,23 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   focused,
   navigateTo,
   tooltips,
+  parameters,
   ...rest
 }) => {
   const treeNodeId = focusNodeId ?? id;
+  const handleClick = () => navigateTo(id);
+  const parameterText = parameters?.join(",");
 
   return (
-    <div
+    <button
       {...rest}
+      type="button"
       className={clsx(
         styles["tree-item"],
         marked ? styles["tree-item-marked"] : "",
         focused ? styles["tree-item-focused"] : "",
       )}
-      onClick={() => navigateTo(id)}
+      onClick={handleClick}
       id={id}
       data-tree-node-id={treeNodeId}
       aria-current={focused ? "true" : undefined}
@@ -62,18 +71,27 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
         {groupOrder}
       </Code>
-      <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
-        {name}
-      </Text>
+      <div className={styles["item-text"]}>
+        <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
+          {name}
+        </Text>
+        {parameterText && (
+          <Text data-testid="tree-leaf-parameters" className={styles["item-parameters"]} title={parameterText}>
+            {parameterText}
+          </Text>
+        )}
+      </div>
       <TreeItemInfo
         data-testid="tree-leaf-info"
         duration={duration}
         flaky={flaky}
+        resolution={resolution}
         retriesCount={retriesCount}
+        retriesStatusChange={retriesStatusChange}
         transition={transition}
         transitionTooltip={transitionTooltip}
         tooltips={tooltips}
       />
-    </div>
+    </button>
   );
 };

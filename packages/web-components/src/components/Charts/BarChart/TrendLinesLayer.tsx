@@ -4,7 +4,7 @@ import { computeXYScalesForSeries } from "@nivo/scales";
 import { animated, useSpring } from "@react-spring/web";
 import { regressionLinear } from "d3-regression";
 import { line } from "d3-shape";
-import { toNumber } from "lodash";
+import toNumber from "lodash/toNumber.js";
 import { useId, useMemo } from "preact/hooks";
 
 import type { LegendItemValue } from "../Legend/LegendItem/types";

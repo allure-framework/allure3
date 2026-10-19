@@ -4,6 +4,7 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 
+import { serverOptionsFromConfig } from "../utils/serverOptions.js";
 import { generate } from "./commons/generate.js";
 
 export class GenerateCommand extends Command {
@@ -11,12 +12,22 @@ export class GenerateCommand extends Command {
 
   static usage = Command.Usage({
     description: "Generates the report in the specified directory.",
-    details: "This command generates a report from the provided Allure Results directories.",
+    details:
+      "This command generates a report from the provided Allure Results directories. " +
+      "When a quality gate is configured, the command validates the loaded results and finishes writing the report or dump before returning its status.",
     examples: [
+      [
+        "generate ./allure-results --open --host 0.0.0.0",
+        "Generate a report and serve it on all network interfaces after generation",
+      ],
       ["generate ./allure-results", "Generate a report from the ./allure-results directory"],
       [
         "generate ./allure-results --output custom-report",
         "Generate a report from the ./allure-results directory to the custom-report directory",
+      ],
+      [
+        "generate ./allure-results --clean",
+        "Remove the existing report directory before generating a fresh report from ./allure-results",
       ],
       [
         "generate --dump=windows.zip --dump=macos.zip ./allure-results",
@@ -34,11 +45,11 @@ export class GenerateCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Patterns to match test results directories. Overrides config.resultsDir. Defaults to ./**/allure-results when neither is set.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   output = Option.String("--output,-o", {
@@ -60,6 +71,12 @@ export class GenerateCommand extends Command {
       "This option can be specified multiple times.",
   });
 
+  clean = Option.Boolean("--clean", {
+    description:
+      "Remove the output directory before generating the report (default: false). " +
+      "Refuses to remove the working directory, the home directory, a filesystem root, or the results directories",
+  });
+
   open = Option.Boolean("--open", {
     description: "Open the report in the default browser after generation (default: false)",
   });
@@ -68,12 +85,27 @@ export class GenerateCommand extends Command {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
   });
 
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
+  });
+
   historyLimit = Option.String("--history-limit", {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  historyBaseUrl = Option.String("--history-base-url", {
+    description: "The public base URL of the generated report directory",
+  });
+
   hideLabels = Option.Array("--hide-labels", {
     description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
+  knownIssues = Option.String("--known-issues", {
+    description:
+      "Path to known issues file. " +
+      "Allure loads the file and updates it every time with the actual resolutions data of type `issue`",
   });
 
   async execute() {
@@ -84,23 +116,33 @@ export class GenerateCommand extends Command {
       output: this.output,
       open: this.open,
       port: this.port,
+      host: this.host,
       hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+      historyLimit: this.historyLimit !== undefined ? parseInt(this.historyLimit, 10) : undefined,
+      ...(this.historyBaseUrl !== undefined ? { historyBaseUrl: this.historyBaseUrl } : {}),
+      resolutions: { knownIssuesPath: this.knownIssues },
     });
 
-    await generate({
+    const result = await generate({
       dump: this.dump,
       resultsDir: this.resultsDir,
       cwd,
       config,
+      clean: this.clean,
     });
+
+    if (!result) {
+      return;
+    }
 
     if (config.open) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });
     }
+
+    return result.exitCode;
   }
 }

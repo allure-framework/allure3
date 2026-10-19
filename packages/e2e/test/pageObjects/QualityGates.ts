@@ -12,6 +12,8 @@ export class QualityGatesPage extends CommonPage {
   qualityGatesResultLocator: Locator;
   qualityGatesResultRuleLocator: Locator;
   qualityGatesResultMessageLocator: Locator;
+  qualityGatesPassedResultLocator: Locator;
+  qualityGatesFailedResultLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -21,6 +23,8 @@ export class QualityGatesPage extends CommonPage {
     this.qualityGatesResultLocator = page.getByTestId("quality-gate-result");
     this.qualityGatesResultRuleLocator = page.getByTestId("quality-gate-result-rule");
     this.qualityGatesResultMessageLocator = page.getByTestId("quality-gate-result-message");
+    this.qualityGatesPassedResultLocator = page.getByTestId("quality-gate-result-passed-icon");
+    this.qualityGatesFailedResultLocator = page.getByTestId("quality-gate-result-failed-icon");
 
     this.qualityGatesSectionLocator = page.getByTestId("quality-gate-results-section");
     this.qualityGatesSectionEnvButton = page.getByTestId("quality-gate-results-section-env-button");

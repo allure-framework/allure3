@@ -119,11 +119,14 @@ const createAgentOutput = (outputDir: string): AgentOutputBundle => ({
   tests: [
     {
       environment_id: "default",
-      history_id: "history-1",
+      retry_hash: "history-1",
       test_result_id: "tr-1",
       full_name: "suite should fail",
       package: "pkg-a",
-      labels: [{ name: "module", value: "cli" }],
+      labels: [
+        { name: "module", value: "cli" },
+        { name: "layer", value: "unit" },
+      ],
       status: "failed",
       duration_ms: 20,
       retries: 0,
@@ -140,7 +143,7 @@ const createAgentOutput = (outputDir: string): AgentOutputBundle => ({
     },
     {
       environment_id: "default",
-      history_id: "history-2",
+      retry_hash: "history-2",
       test_result_id: "tr-2",
       full_name: "suite should pass",
       package: "pkg-b",
@@ -249,7 +252,10 @@ describe("agent query payloads", () => {
 
   it("should build filtered test payloads", async () => {
     const payload = await buildAgentQueryPayload(createAgentOutput(tempDir!), "tests", {
-      labelFilters: [{ name: "module", value: "cli" }],
+      labelFilters: [
+        { name: "module", value: "cli" },
+        { name: "layer", value: "unit" },
+      ],
       statuses: ["failed"],
       limit: 1,
     });
@@ -299,6 +305,29 @@ describe("agent query payloads", () => {
         test: expect.objectContaining({ full_name: "suite should fail" }),
         findings: [expect.objectContaining({ finding_id: "finding-1" })],
         markdown: expect.stringContaining("Runtime evidence."),
+      }),
+    );
+  });
+
+  it.each([
+    ["subject_ref", { type: "test", path: "conflicting-path" }, "tests/default/suite-should-fail.md"],
+    ["legacy string subject", "tests/default/suite-should-fail.md", undefined],
+    ["object path", { type: "test", path: "tests/default/suite-should-fail.md" }, undefined],
+    ["object id", { type: "test", id: "tests/default/suite-should-fail.md" }, undefined],
+  ])("should associate findings through %s normalization", async (_name, subject, subjectRef) => {
+    const output = createAgentOutput(tempDir!);
+
+    output.findings[0].subject = subject as AgentOutputBundle["findings"][number]["subject"];
+    output.findings[0].subject_ref = subjectRef;
+
+    const payload = await buildAgentQueryPayload(output, "test", {
+      labelFilters: [],
+      test: "suite should fail",
+    });
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        findings: [expect.objectContaining({ finding_id: "finding-1" })],
       }),
     );
   });

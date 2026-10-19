@@ -1,18 +1,21 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { getParamValue, getParamValues } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { AwesomeStatus } from "types";
+import type { ReportStatus } from "types";
 
 import {
+  clearTreeFilterParams,
   setCategoriesFilter,
   setFlakyFilter,
   setQueryFilter,
+  setResolutionFilter,
   setRetryFilter,
+  setSeverityFilter,
   setStatusFilter,
   setTagsFilter,
   setTransitionFilter,
 } from "./actions";
-import { PARAMS } from "./constants";
+import { NO_RESOLUTION, PARAMS, type ResolutionFilterValue } from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -21,17 +24,24 @@ import type {
   AwesomeStringFieldFilter,
 } from "./model";
 import {
+  hasActiveFilters,
   isCategoryFilter,
   isFlakyFilter,
+  isResolutionFilter,
   isRetryFilter,
+  isSeverityFilter,
   isTagFilter,
   isTransitionFilter,
+  toSeverityPredicateFilter,
+  validateSeverity,
   validateStatus,
   validateTransition,
+  validateResolution,
 } from "./utils";
 
 export const treeTags = signal<string[]>([]);
 export const treeCategories = signal<string[]>([]);
+export const treeFiltersResetNonce = signal(0);
 
 const hasTreeTags = computed(() => treeTags.value.length > 0);
 const hasTreeCategories = computed(() => treeCategories.value.length > 0);
@@ -59,6 +69,18 @@ const urlStatusFilter = computed<TestStatus | undefined>(() => {
 const urlFlakyFilter = computed(() => getParamValue(PARAMS.FLAKY) === "true");
 const urlRetryFilter = computed(() => getParamValue(PARAMS.RETRY) === "true");
 
+const EMPTY_RESOLUTIONS: ResolutionFilterValue[] = [];
+
+const urlResolutionFilter = computed(() => {
+  const resolutions = getParamValues(PARAMS.RESOLUTION) ?? EMPTY_RESOLUTIONS;
+
+  if (resolutions.length === 0) {
+    return EMPTY_RESOLUTIONS;
+  }
+
+  return resolutions.filter((resolution) => validateResolution(resolution));
+});
+
 const EMPTY_TRANSITIONS: TestStatusTransition[] = [];
 
 const urlTransitionFilter = computed(() => {
@@ -69,6 +91,18 @@ const urlTransitionFilter = computed(() => {
   }
 
   return transitions.filter((transition) => validateTransition(transition));
+});
+
+const EMPTY_SEVERITIES: string[] = [];
+
+const urlSeverityFilter = computed<string[]>(() => {
+  const severities = getParamValues(PARAMS.SEVERITY) ?? EMPTY_SEVERITIES;
+
+  if (severities.length === 0) {
+    return EMPTY_SEVERITIES;
+  }
+
+  return severities.filter((severity) => validateSeverity(severity));
 });
 
 const EMPTY_TAGS: string[] = [];
@@ -103,16 +137,41 @@ const urlCategoriesFilter = computed<string[]>(() => {
   return categories.filter((category) => treeCategories.value.includes(category));
 });
 
-const treeStatusFilter = computed<AwesomeStringFieldFilter>(() => ({
-  type: "field",
-  logicalOperator: "AND",
-  value: {
-    key: "status",
-    value: urlStatusFilter.value,
-    type: "string",
-    strict: false,
-  },
-}));
+const treeStatusFilter = computed<AwesomeFilter>(() => {
+  const status = urlStatusFilter.value;
+  const statusFilter: AwesomeStringFieldFilter = {
+    type: "field",
+    logicalOperator: "AND",
+    value: {
+      key: "status",
+      value: status,
+      type: "string",
+      strict: false,
+    },
+  };
+
+  if ((status !== "failed" && status !== "broken") || urlResolutionFilter.value.length > 0) {
+    return statusFilter;
+  }
+
+  return {
+    type: "group",
+    logicalOperator: "AND",
+    value: [
+      statusFilter,
+      {
+        type: "field",
+        logicalOperator: "AND",
+        value: {
+          key: "resolutionStatus",
+          value: NO_RESOLUTION,
+          type: "string",
+          strict: true,
+        },
+      },
+    ],
+  };
+});
 
 export const treeQueryFilterValue = computed(() => urlQueryFilter.value);
 
@@ -142,17 +201,49 @@ const treeFlakyFilter = computed<AwesomeBooleanFieldFilter>(() => ({
   },
 }));
 
+const treeResolutionFilter = computed<AwesomeFilterGroupSimple>(() => ({
+  type: "group",
+  logicalOperator: "AND",
+  fieldKey: "resolutionStatus",
+  value: urlResolutionFilter.value.map((resolution) => ({
+    type: "field",
+    logicalOperator: "OR",
+    value: {
+      key: "resolutionStatus",
+      value: resolution,
+      type: "string",
+      strict: true,
+    },
+  })),
+}));
+
 const treeTransitionFilter = computed<AwesomeFilterGroupSimple>(() => ({
   type: "group",
   logicalOperator: "AND",
   fieldKey: "transition",
   value: urlTransitionFilter.value.map((transition) => ({
     type: "field",
+    logicalOperator: "OR",
     value: {
       key: "transition",
       value: transition,
       type: "string",
-      logicalOperator: "OR",
+      strict: true,
+    },
+  })),
+}));
+
+const treeSeverityFilter = computed<AwesomeFilterGroupSimple>(() => ({
+  type: "group",
+  logicalOperator: "AND",
+  fieldKey: "severity",
+  value: urlSeverityFilter.value.map((severity) => ({
+    type: "field",
+    logicalOperator: "OR",
+    value: {
+      key: "severity",
+      value: severity,
+      type: "string",
       strict: true,
     },
   })),
@@ -183,37 +274,61 @@ const treeCategoriesFilter = computed<AwesomeArrayFieldFilter>(() => ({
 export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
   treeRetryFilter.value,
   treeFlakyFilter.value,
+  treeResolutionFilter.value,
   treeTransitionFilter.value,
+  treeSeverityFilter.value,
   treeTagsFilter.value,
   treeCategoriesFilter.value,
 ]);
 
+export const hasActiveTreeFilters = computed(() =>
+  hasActiveFilters({
+    query: urlQueryFilter.value,
+    status: urlStatusFilter.value,
+    flaky: urlFlakyFilter.value,
+    retry: urlRetryFilter.value,
+    resolution: urlResolutionFilter.value,
+    transition: urlTransitionFilter.value,
+    tags: urlTagsFilter.value,
+    categories: urlCategoriesFilter.value,
+    severity: urlSeverityFilter.value,
+  }),
+);
+
 export const treeNonQueryFilters = computed(() => {
   const filters: AwesomeFilter[] = [];
+  const markerFilters: AwesomeFilter[] = [];
 
-  const hasBothRetryAndFlaky = urlRetryFilter.value && urlFlakyFilter.value;
+  if (urlRetryFilter.value) {
+    markerFilters.push(treeRetryFilter.value);
+  }
 
-  if (hasBothRetryAndFlaky) {
+  if (urlFlakyFilter.value) {
+    markerFilters.push(treeFlakyFilter.value);
+  }
+
+  if (urlResolutionFilter.value.length > 0) {
+    markerFilters.push(...treeResolutionFilter.value.value);
+  }
+
+  if (markerFilters.length === 1) {
+    filters.push({ ...markerFilters[0], logicalOperator: "AND" });
+  }
+
+  if (markerFilters.length > 1) {
     filters.push({
       type: "group",
       logicalOperator: "AND",
-      value: [
-        { ...treeRetryFilter.value, logicalOperator: "OR" },
-        { ...treeFlakyFilter.value, logicalOperator: "OR" },
-      ],
+      value: markerFilters.map((filter) => ({ ...filter, logicalOperator: "OR" })),
     });
-  }
-
-  if (!hasBothRetryAndFlaky && urlRetryFilter.value) {
-    filters.push({ ...treeRetryFilter.value, logicalOperator: "AND" });
-  }
-
-  if (!hasBothRetryAndFlaky && urlFlakyFilter.value) {
-    filters.push({ ...treeFlakyFilter.value, logicalOperator: "AND" });
   }
 
   if (urlTransitionFilter.value.length > 0) {
     filters.push(treeTransitionFilter.value);
+  }
+
+  if (urlSeverityFilter.value.length > 0) {
+    filters.push(toSeverityPredicateFilter(treeSeverityFilter.value));
   }
 
   if (urlTagsFilter.value.length > 0) {
@@ -244,12 +359,36 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
     setTransitionFilter(transitions);
   }
 
+  if (isSeverityFilter(filter)) {
+    const severities: string[] = [];
+
+    for (const v of filter.value) {
+      if (v.type === "field" && v.value.type === "string" && v.value.key === "severity") {
+        severities.push(v.value.value);
+      }
+    }
+
+    setSeverityFilter(severities);
+  }
+
   if (isRetryFilter(filter)) {
     setRetryFilter(filter.value.value);
   }
 
   if (isFlakyFilter(filter)) {
     setFlakyFilter(filter.value.value);
+  }
+
+  if (isResolutionFilter(filter)) {
+    const resolutions: ResolutionFilterValue[] = [];
+
+    for (const v of filter.value) {
+      if (v.type === "field" && v.value.type === "string" && v.value.key === "resolutionStatus") {
+        resolutions.push(v.value.value as ResolutionFilterValue);
+      }
+    }
+
+    setResolutionFilter(resolutions);
   }
 
   if (
@@ -269,18 +408,28 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
   }
 };
 
-export const treeStatus = computed<AwesomeStatus>(() => urlStatusFilter.value ?? "total");
+export const treeStatus = computed<ReportStatus>(() => urlStatusFilter.value ?? "total");
+export const treeRetry = computed(() => urlRetryFilter.value);
+export const treeFlaky = computed(() => urlFlakyFilter.value);
+export const treeTransitions = computed(() => urlTransitionFilter.value);
 
-export const setTreeStatus = (status: AwesomeStatus) => {
+export const setTreeStatus = (status: ReportStatus) => {
   setStatusFilter(status === "total" ? undefined : status);
 };
 
+export const setTreeRetry = (retry: boolean) => {
+  setRetryFilter(retry);
+};
+
+export const setTreeFlaky = (flaky: boolean) => {
+  setFlakyFilter(flaky);
+};
+
+export const setTreeTransitions = (transitions: TestStatusTransition[]) => {
+  setTransitionFilter(transitions);
+};
+
 export const clearTreeFilters = () => {
-  setQueryFilter("");
-  setRetryFilter(false);
-  setFlakyFilter(false);
-  setTransitionFilter([]);
-  setTagsFilter([]);
-  setCategoriesFilter([]);
-  setStatusFilter();
+  treeFiltersResetNonce.value += 1;
+  clearTreeFilterParams();
 };

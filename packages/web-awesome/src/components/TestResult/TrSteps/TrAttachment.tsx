@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
-import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Attachment } from "@allurereport/web-components/Attachment";
+import { ArrowButton, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -46,6 +47,7 @@ const iconMap: Record<string, string> = {
   "text/uri-list": lineFilesFileAttachment2,
   "image/svg+xml": lineImagesImage,
   "image/png": lineImagesImage,
+  "image/webp": lineImagesImage,
   "application/json": lineFilesFileAttachment2,
   "application/zip": lineFilesFileAttachment2,
   "video/webm": lineImagesImage,
@@ -56,8 +58,8 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.http+json": lineFilesFileAttachment2,
 };
 
-const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
-const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html"]);
+const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown", "mermaid"]);
+const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html", "mermaid"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
@@ -71,6 +73,7 @@ export const TrAttachment: FunctionComponent<{
   const [showPreview, setShowPreview] = useState(() => DEFAULT_PREVIEW_TYPES.has(componentTypeForPreview ?? ""));
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
+  const { t: tControls } = useI18n("controls");
   const { missed } = link;
   const componentType = componentTypeForPreview;
   const isValidComponentType = !["archive", null].includes(componentType);
@@ -85,6 +88,10 @@ export const TrAttachment: FunctionComponent<{
   const supportsSyntaxHighlightToggle =
     isSyntaxHighlightable &&
     (componentType === "code" || componentType === "text" || componentType === "markdown" || componentType === "html");
+  const attachmentI18n = {
+    controls: tControls,
+    imageDiff: (key: string) => tAttachments(`imageDiff.${key}`),
+  };
 
   const handleHighlightToggle = () => {
     if (isPreviewable && showPreview) {
@@ -105,17 +112,12 @@ export const TrAttachment: FunctionComponent<{
     openModal({
       data: item,
       preview: isPreviewable,
-      component: <Attachment item={item} previewable={isPreviewable} />,
+      component: <Attachment item={item} previewable={isPreviewable} i18n={attachmentI18n} />,
     });
   };
 
   const content = (
-    <Attachment
-      item={item}
-      previewable={showPreview}
-      highlightCode={highlightCode}
-      i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
-    />
+    <Attachment item={item} previewable={showPreview} highlightCode={highlightCode} i18n={attachmentI18n} />
   );
 
   const attachmentHeaderContent = (

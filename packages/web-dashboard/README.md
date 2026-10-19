@@ -12,16 +12,5 @@
 
 ## Overview
 
-Allure Dashboard report web-implementation.
-
-The package is utilized by Dashboard Plugin.
-
-## Install
-
-Use your favorite package manager to install the package:
-
-```shell
-npm add @allurereport/web-dashboard
-yarn add @allurereport/web-dashboard
-pnpm add @allurereport/web-dashboard
-```
+Internal Allure Dashboard report web implementation. Its production assets are built and archived into
+`@allurereport/plugin-dashboard`; this workspace is not published or installed by CLI users.

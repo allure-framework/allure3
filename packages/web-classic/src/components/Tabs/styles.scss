@@ -1,5 +1,5 @@
 .tabsList {
-  background-color: var(--bg-base-secondary);
+  background-color: var(--color-bg-secondary);
   padding: 2px;
   border-radius: 8px;
   display: flex;
@@ -9,8 +9,8 @@
 }
 
 .tab {
-  background-color: var(--bg-control-flat);
-  color: var(--on-text-primary);
+  background-color: var(--color-control-bg);
+  color: var(--color-text-primary);
   border-radius: 6px;
   border: 1px solid transparent;
   padding: 2px 8px;
@@ -28,17 +28,17 @@
     border-color var(--color-change-transition-duration);
 
   &[aria-current] {
-    background-color: var(--bg-base-modal);
-    border-color: var(--on-border-primary);
+    background-color: var(--color-bg-primary);
+    border-color: var(--color-border-subtle);
     cursor: default;
   }
 
   &:hover:not([aria-current]) {
-    background-color: var(--bg-control-flat-medium);
+    background-color: var(--color-control-bg-hover);
   }
 
   &:active:not([aria-current]) {
-    background-color: var(--bg-control-flat-heavy);
+    background-color: var(--color-control-bg-active);
     transform: scale(0.94);
   }
 
@@ -47,10 +47,10 @@
   }
 
   &:focus-visible {
-    outline: 1px solid var(--ad-other-focus);
+    outline: 1px solid var(--color-focus-ring);
 
     &:not([aria-current]) {
-      background-color: var(--bg-control-flat-medium);
+      background-color: var(--color-control-bg-hover);
     }
   }
 }

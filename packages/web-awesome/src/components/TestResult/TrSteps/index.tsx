@@ -1,10 +1,11 @@
 import {
   getNextSubtreeToggleState,
+  getSubtreeToggleAction,
   getSubtreeToggleIcon,
   isSubtreeFirstLevelOnlyOpened,
   type SubtreeToggleState,
 } from "@allurereport/web-commons";
-import { IconButton, allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 
@@ -16,6 +17,7 @@ import {
   isOpenByDefaultForPolicy,
   type SubtreeNode,
 } from "@/components/TestResult/TrSteps/stepTreeExpansion";
+import { SubtreeToggleButton } from "@/components/TestResult/TrSteps/SubtreeToggleButton";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { useI18n } from "@/stores/locale";
 import { isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
@@ -57,14 +59,6 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
       : false;
   const isSubtreeExpandedAll = hasChildren && subtreeNodes.every((node) => isTreeOpened(node.id, node.openedByDefault));
   const hasOnlyLeafResults = hasChildren && subtreeNodes.every((node) => node.isRoot);
-  const subtreeToggleIcon =
-    iconBySubtreeState[
-      getSubtreeToggleIcon({
-        hasOnlyLeafResults,
-        isSubtreeCollapsedAll,
-        isSubtreeFirstLevelOnly,
-      })
-    ];
 
   const setSubtreeState = (state: SubtreeToggleState) => {
     subtreeNodes.forEach((node) => {
@@ -73,15 +67,19 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
     });
   };
 
+  const subtreeToggleState = {
+    hasOnlyLeafResults,
+    isSubtreeCollapsedAll,
+    isSubtreeFirstLevelOnly,
+    isSubtreeExpandedAll,
+    lastSubtreeToggle,
+  };
+
+  const subtreeToggleIcon = iconBySubtreeState[getSubtreeToggleIcon(subtreeToggleState)];
+
   const handleToggleSubtree = (event: MouseEvent) => {
     event.stopPropagation();
-    const nextState = getNextSubtreeToggleState({
-      hasOnlyLeafResults,
-      isSubtreeCollapsedAll,
-      isSubtreeFirstLevelOnly,
-      isSubtreeExpandedAll,
-      lastSubtreeToggle,
-    });
+    const nextState = getNextSubtreeToggleState(subtreeToggleState);
     setSubtreeState(nextState);
     if (nextState !== "first") {
       setLastSubtreeToggle(nextState);
@@ -109,9 +107,8 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
         title={t("body")}
         actions={
           hasChildren ? (
-            <IconButton
-              style="ghost"
-              size="xs"
+            <SubtreeToggleButton
+              action={getSubtreeToggleAction(subtreeToggleState)}
               icon={subtreeToggleIcon}
               onClick={handleToggleSubtree}
               data-testid="test-result-steps-subtree-toggle"
@@ -121,7 +118,7 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
       />
       {isOpened && (
         <div data-testid="test-result-steps-root" className={styles["test-result-steps-root"]}>
-          <TrBodyItems bodyItems={bodyItems} isTopLevel={true} />
+          <TrBodyItems bodyItems={bodyItems} />
         </div>
       )}
     </div>

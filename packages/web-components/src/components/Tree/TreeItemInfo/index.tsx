@@ -1,4 +1,4 @@
-import { type TestStatusTransition, formatDuration } from "@allurereport/core-api";
+import { type ResolutionCategory, type TestStatusTransition, formatDuration } from "@allurereport/core-api";
 import type { FunctionComponent } from "preact";
 
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
@@ -13,16 +13,26 @@ import styles from "./styles.scss";
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   flaky?: boolean;
+  resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
 }
 
+const resolutionToIcon: Record<ResolutionCategory, string> = {
+  issue: allureIcons.lineDevBug2,
+  muted: allureIcons.lineGeneralEye,
+  accepted: allureIcons.lineGeneralCheckCircle,
+};
+
 export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   duration,
   retriesCount,
+  retriesStatusChange,
   flaky,
+  resolution,
   transition,
   tooltips,
 }) => {
@@ -38,6 +48,19 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
       {Boolean(retriesCount) && (
         <TooltipWrapper data-testid="tree-leaf-retries-tooltip" tooltipText={tooltips?.retries}>
           <TreeItemRetries retriesCount={retriesCount} />
+        </TooltipWrapper>
+      )}
+      {retriesStatusChange && (
+        <TooltipWrapper
+          data-testid="tree-leaf-retries-status-change-tooltip"
+          tooltipText={tooltips?.retriesStatusChange}
+        >
+          <SvgIcon data-testid="tree-leaf-retries-status-change" id={allureIcons.lineArrowsSwitchVertical1} />
+        </TooltipWrapper>
+      )}
+      {resolution && (
+        <TooltipWrapper data-testid="tree-leaf-resolution-tooltip" tooltipText={tooltips?.resolution}>
+          <SvgIcon data-testid={`tree-leaf-resolution-${resolution}`} id={resolutionToIcon[resolution]} />
         </TooltipWrapper>
       )}
       {transition && (

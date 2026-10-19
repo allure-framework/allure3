@@ -1,5 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Menu } from "@/components/Menu";
+import { allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 
 const meta: Meta<typeof Menu> = {
@@ -47,6 +49,28 @@ export const DefaultMenu: Story = {
         <Menu.ItemWithCheckmark isChecked={false} onClick={() => alert("Unchecked Item clicked")}>
           Unchecked Item
         </Menu.ItemWithCheckmark>
+      </Menu.Section>
+    </Menu>
+  ),
+};
+
+export const ItemsWithIconAndSlot: Story = {
+  args: {
+    isInitialOpened: false,
+    size: "m",
+    placement: "bottom-start",
+    // @ts-ignore
+    menuTrigger: ({ onClick, isOpened }) => <button onClick={onClick}>{isOpened ? "Close Menu" : "Open Menu"}</button>,
+  },
+  render: (args) => (
+    <Menu {...args}>
+      <Menu.Section>
+        <Menu.Item leadingIcon={allureIcons.lineGeneralCopy3} rightSlot={<span>⌘C</span>} onClick={() => {}}>
+          Copy
+        </Menu.Item>
+        <Menu.Item leadingIcon={allureIcons.lineGeneralDownloadCloud} closeMenuOnClick={false} onClick={() => {}}>
+          Download (keeps menu open)
+        </Menu.Item>
       </Menu.Section>
     </Menu>
   ),

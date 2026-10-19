@@ -36,6 +36,15 @@ export type AttachmentData =
 
 type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
 
+const PLAYWRIGHT_TRACE_CONTENT_TYPE = "application/vnd.allure.playwright-trace";
+const PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE = "application/zip";
+
+const downloadContentType = (contentType: string) => {
+  return contentType.split(";")[0].trim().toLowerCase() === PLAYWRIGHT_TRACE_CONTENT_TYPE
+    ? PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE
+    : contentType;
+};
+
 export const fetchFromUrl = async ({ id, ext, contentType }: AttachmentPayload) => {
   const fileName = `${id || "-"}${ext || ""}`;
 
@@ -68,6 +77,7 @@ export const fetchAttachment = async (
     case "code":
     case "html":
     case "markdown":
+    case "mermaid":
     case "table":
     case "text": {
       const text = await response.text();
@@ -92,7 +102,7 @@ export const fetchAttachment = async (
 };
 
 export const blobAttachment = async (id: string, ext: string, contentType: string) => {
-  const response = await fetchFromUrl({ id, ext, contentType });
+  const response = await fetchFromUrl({ id, ext, contentType: downloadContentType(contentType) });
   return await response.blob();
 };
 
@@ -134,9 +144,13 @@ export type AttachmentType =
   | "uri"
   | "archive"
   | "image-diff"
-  | "http";
+  | "http"
+  | "mermaid";
+
+export const MERMAID_CONTENT_TYPE = "application/vnd.allure.diagrams.mermaid";
 
 export const PREVIEWABLE_CONTENT_TYPES = [
+  MERMAID_CONTENT_TYPE,
   "text/html",
   "text/csv",
   "text/markdown",
@@ -145,7 +159,7 @@ export const PREVIEWABLE_CONTENT_TYPES = [
 ] as const;
 
 export const isPreviewableContentType = (type?: string): boolean =>
-  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type);
+  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type.split(";")[0].trim().toLowerCase());
 
 const HIGHLIGHT_EXTS = new Set([
   "js",
@@ -275,6 +289,7 @@ export const attachmentType = (type?: string): AttachmentType | null => {
     case "image/jpeg":
     case "image/jpg":
     case "image/png":
+    case "image/webp":
     case "image/*":
       return "image";
     case "text/xml":
@@ -330,11 +345,14 @@ export const attachmentType = (type?: string): AttachmentType | null => {
     case "application/x-bzip2":
     case "application/gzip":
     case "application/zip":
+    case PLAYWRIGHT_TRACE_CONTENT_TYPE:
       return "archive";
     case "application/vnd.allure.image.diff":
       return "image-diff";
     case "application/vnd.allure.http+json":
       return "http";
+    case MERMAID_CONTENT_TYPE:
+      return "mermaid";
     default:
       return null;
   }

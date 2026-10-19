@@ -10,6 +10,9 @@ import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 import { findFilesByGlobs } from "./../utils/fileSystem.js";
+import { resolveResultsPatterns } from "./../utils/resultsPatterns.js";
+import { serverOptionsFromConfig } from "./../utils/serverOptions.js";
+import { notifySignals, waitForAbort } from "./../utils/signals.js";
 import { generate } from "./commons/generate.js";
 
 export class OpenCommand extends Command {
@@ -22,6 +25,10 @@ export class OpenCommand extends Command {
       ["open ./allure-results", "Generate and serve the report based on given test results directory"],
       ["open --port 8080 ./allure-report", "Serve the report on port 8080"],
       [
+        "open --host 0.0.0.0 ./allure-report",
+        "Serve the report on all network interfaces, so it is reachable remotely",
+      ],
+      [
         "open ./packages/*/allure-results",
         "Generate and serve the report from all Allure result directories matching the pattern",
       ],
@@ -33,15 +40,20 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.Rest({
-    name: "A report to open or a pattern to match test results directories in the current working directory (default: configured output)",
+    name: "A report path to open, or results patterns. Overrides config.resultsDir. Empty Rest serves the configured output.",
   });
 
   config = Option.String("--config,-c", {
-    description: "The path Allure config file",
+    description: "The path to Allure config file",
   });
 
   port = Option.String("--port", {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
+  host = Option.String("--host", {
+    description:
+      "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
   });
 
   cwd = Option.String("--cwd", {
@@ -58,24 +70,26 @@ export class OpenCommand extends Command {
 
     const config = await readConfig(cwd, this.config, {
       port: this.port,
+      host: this.host,
     });
     const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
+    const resolvedPatterns = resolveResultsPatterns(this.resultsDir, config.resultsDir);
 
     if (await this.reportExists(servePath)) {
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
+        ...serverOptionsFromConfig(config),
         servePath,
         open: true,
       });
-    } else if (this.resultsDir.length) {
+    } else if (resolvedPatterns.length) {
       const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
+        host: this.host,
         output: tmpDir,
         hideLabels,
       });
 
-      // At this point, resultsDir contains at least one pattern
       await generate({
         resultsDir: this.resultsDir,
         cwd,
@@ -83,16 +97,18 @@ export class OpenCommand extends Command {
       });
 
       // clean up temp report directory on ctrl-c
-      process.on("SIGINT", async () => {
+      const notifier = notifySignals(["SIGINT", "SIGTERM"]);
+
+      void waitForAbort(notifier.signal).then(async () => {
         try {
           await rm(config.output, { recursive: true });
         } catch {}
 
-        process.exit(0);
+        process.exit(notifier.info()?.code ?? 0);
       });
 
       await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
+        ...serverOptionsFromConfig(config),
         servePath: config.output,
         open: true,
       });

@@ -14,6 +14,7 @@
     "total": "Totalt",
     "flaky": "Ostadiga tester",
     "retries": "Omtagna tester",
+    "retriesStatusChange": "Ändrat vid nytt försök",
     "new": "Nya tester"
   },
   "tabs": {
@@ -22,7 +23,8 @@
     "globalAttachments": "Globala Bilagor",
     "globalErrors": "Globala Fel",
     "qualityGates": "Kvalitetsportar",
-    "categories": "Kategorier"
+    "categories": "Kategorier",
+    "resolutionCategories": "Resolutions"
   },
   "search": {
     "search": "Sök",
@@ -56,7 +58,20 @@
       "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
       "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status",
       "tags": "Visa testresultat som har de angivna taggarna",
-      "categories": "Visa testresultat som har de angivna kategorierna"
+      "categories": "Visa testresultat som har de angivna kategorierna",
+      "resolution": {
+        "issue": "Show issue-linked test results",
+        "muted": "Show muted test results",
+        "accepted": "Show accepted test results",
+        "none": "Visa misslyckade eller trasiga testresultat utan lösning"
+      }
+    },
+    "resolution": "Resolution",
+    "resolutions": {
+      "issue": "Issue",
+      "muted": "Muted",
+      "accepted": "Accepted",
+      "none": "Ingen lösning"
     }
   },
   "sort-by": {
@@ -111,14 +126,17 @@
     "no-test-steps-results": "Ingen information om teststeg tillgänglig",
     "no-test-case-results": "Inga testfallresultat",
     "no-environments-results": "Ingen miljöinformation tillgänglig",
-    "no-categories-results": "Inga kategoriresultat tillgängliga"
+    "no-categories-results": "Inga kategoriresultat tillgängliga",
+    "no-metrics-results": "Inga mått tillgängliga",
+    "no-resolution-categories-results": "No resolution categories available"
   },
   "severity": {
     "blocker": "blockerare",
     "critical": "kritisk",
     "normal": "normal",
     "minor": "mindre",
-    "trivial": "obetydlig"
+    "trivial": "obetydlig",
+    "none": "ingen allvarlighetsgrad"
   },
   "execution": {
     "name": "Utförande",
@@ -138,18 +156,23 @@
     "category": "Kategori",
     "description": "Beskrivning",
     "links": "Länkar",
+    "relatedTestResults": "Relaterade testresultat ({{count}})",
     "overview": "Översikt",
     "history": "Historik",
     "attachments": "Bilagor",
     "retries": "Omtagningar",
     "environments": "Miljöer",
     "error": "Fel",
+    "success": "Lyckat",
     "goToStep": "Gå till steg",
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "copy-email": "Kopiera e-post",
+    "open-link": "Öppna länk",
+    "copy-link": "Kopiera länk",
     "attempt": "Försök {{attempt}} av {{total}}",
+    "retry": "Omförsök {{attempt}} av {{total}}",
     "at": "vid",
     "generated": "Genererad",
     "variables": "Variabler",
@@ -157,7 +180,10 @@
     "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
     "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})",
+    "resolutionCategories": "Resolutions",
+    "breadcrumbs": "Brödsmulor",
+    "breadcrumbs-hidden": "Visa dolda brödsmulor"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",
@@ -168,11 +194,18 @@
     "viewCode": "Visa kod",
     "syntaxHighlight": "Syntaxmarkering",
     "backto": "Tillbaka till",
+    "backToOverview": "Tillbaka till översikten",
     "clipboard": "Kopiera till urklipp",
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som om den här funktionen inte stöds av din webbläsare",
     "clipboardSuccess": "Kopierat framgångsrikt",
     "collapse": "Minimera",
+    "collapseAll": "Fäll ihop alla",
+    "collapseAllPartial": "Fäll ihop alla (vissa grupper är utfällda)",
+    "collapseToDefault": "Fäll ihop till standardvyn",
+    "expandFirstLevel": "Fäll ut första nivån",
+    "collapseToFirstLevel": "Fäll ihop till första nivån",
     "expand": "Expandera",
+    "expandAll": "Expandera alla",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",
@@ -196,7 +229,8 @@
   "sections": {
     "report": "Report",
     "charts": "Grafer",
-    "timeline": "Tidslinje"
+    "timeline": "Tidslinje",
+    "metrics": "Mått"
   },
   "timeline": {
     "empty": "Inga data",
@@ -392,6 +426,44 @@
         "duration": "{{duration, format_duration}}",
         "speedup": "{{speedup}}x"
       }
+    },
+    "metrics": {
+      "title": "Prestandamått",
+      "phaseSummary": "Måttsammanfattning",
+      "currentValues": "Aktuella värden",
+      "historyTitle": "Måtthistorik",
+      "noHistory": "Ingen historik för detta mått ännu",
+      "date": "{{timestamp, timestamp_long_no_seconds}}",
+      "table": {
+        "metric": "Mått",
+        "phase": "Måttuppsättning",
+        "count": "Antal",
+        "total": "Totalt",
+        "avg": "Snitt",
+        "min": "Min.",
+        "max": "Max.",
+        "value": "Värde",
+        "delta": "Förändring",
+        "trend": "Trend",
+        "source": "Källa",
+        "report": "Rapport",
+        "date": "Datum"
+      },
+      "summary": "{{groups}} sammanfattningsrader / {{metrics}} mått",
+      "groups": {
+        "other": "Övrigt"
+      }
+    },
+    "successRate": {
+      "successRate": "Andel godkända: {{rate}}",
+      "successRateDescription": "Beräknas från godkända, underkända och trasiga tester. Överhoppade tester och tester med okänd status utesluts.",
+      "noResults": "Det finns inga testresultat.",
+      "noEligibleResults": "Det finns inga godkända, underkända eller trasiga tester. Överhoppade tester och tester med okänd status utesluts från andelen godkända.",
+      "slice_one": "{{count}} test ({{percent}}% av alla tester)",
+      "slice_other": "{{count}} tester ({{percent}}% av alla tester)",
+      "layer": "Nivå: {{layer}}",
+      "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
+      "slice": "{{count}} tester ({{percent}}% av alla tester)"
     }
   },
   "transitions": {
@@ -401,7 +473,13 @@
       "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
       "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
       "retries": "{{count}} omkörningar",
-      "flaky": "Inkonsekvent mellan körningar"
+      "retriesStatusChange": "Status ändrades efter ett nytt försök",
+      "flaky": "Inkonsekvent mellan körningar",
+      "resolution": {
+        "issue": "Linked to an issue",
+        "muted": "Muted test result",
+        "accepted": "Accepted test result"
+      }
     },
     "new": "Ny",
     "fixed": "Åtgärdad",
@@ -473,13 +551,10 @@
       "reportTabQualityGate": "Rapportflik: Quality gate",
       "reportTabGlobalAttachments": "Rapportflik: Globala bilagor",
       "reportTabGlobalErrors": "Rapportflik: Globala fel",
-      "reportTabNext": "Nästa rapportflik",
-      "reportTabPrev": "Föregående rapportflik",
       "nextTest": "Nästa testresultat",
       "prevTest": "Föregående testresultat",
-      "testTabNext": "Nästa testflik",
-      "testTabPrev": "Föregående testflik",
       "tabOverview": "Flik översikt",
+      "tabResolutionCategories": "Resolutions tab",
       "tabHistory": "Flik historik",
       "tabRetries": "Flik omförsök",
       "tabAttachments": "Flik bilagor",
@@ -487,7 +562,8 @@
       "toggleLabels": "Visa/dölj etiketter",
       "toggleParameters": "Visa/dölj parametrar",
       "toggleLinks": "Visa/dölj länkar",
-      "backToTree": "Tillbaka till trädet"
+      "backToTree": "Tillbaka till trädet",
+      "reportTabResolutionCategories": "Report tab: Resolutions"
     }
   }
 }

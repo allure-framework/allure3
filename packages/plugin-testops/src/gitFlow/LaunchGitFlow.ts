@@ -2,6 +2,7 @@ import type { CiDescriptor } from "@allurereport/core-api";
 import { collectGitFacts, isGitAvailable } from "@allurereport/git";
 
 import type { Logger } from "../logger.js";
+import { applyGitFactsOverrides } from "../utils/ciOverrides.js";
 import { buildGitFlowContext, shouldAttachGitFlow } from "./context.js";
 import { projectLaunchGitContext, type ClassifiedGitFlowContext } from "./projection.js";
 import type { GitFlowContext, LaunchGitContextDto } from "./types.js";
@@ -31,12 +32,19 @@ export class LaunchGitFlow {
       return undefined;
     }
 
-    if (!isGitAvailable()) {
-      this.#logger.warn("git CLI is not available; continuing upload without git context");
+    const gitAvailable = isGitAvailable();
+    const collected = gitAvailable ? collectGitFacts({ ancestorLimit: this.#ancestorLimit }) : undefined;
+    const facts = applyGitFactsOverrides(collected);
+
+    if (!facts?.commit) {
+      if (!gitAvailable) {
+        this.#logger.warn("git CLI is not available; continuing upload without git context");
+      } else {
+        this.#logger.warn("Git Flow metadata could not be collected; continuing upload without git context");
+      }
       return undefined;
     }
 
-    const facts = collectGitFacts({ ancestorLimit: this.#ancestorLimit });
     const gitFlowContext = buildGitFlowContext({
       ci: this.#ci,
       facts,

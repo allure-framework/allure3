@@ -1,5 +1,5 @@
 import { scrollFocusIntoView, scrollTreePaneToTop } from "@allurereport/web-commons";
-import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { useLayoutEffect, useMemo } from "preact/hooks";
 
@@ -33,6 +33,7 @@ const treeNavigateTo = (testResultId: string) => {
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
+  const { t: tControls } = useI18n("controls");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tooltip } = useI18n("transitions");
   const trId = currentTrId.value;
@@ -124,6 +125,13 @@ export const TreeList = () => {
           );
         }
 
+        const showMoreLabel = tControls("showMore");
+        const subtreeToggleLabels = {
+          "expand-first-level": tControls("expandFirstLevel"),
+          "collapse-to-first-level": tControls("collapseToFirstLevel"),
+          "expand-all": tControls("expandAll"),
+          "collapse-all": tControls("collapseAll"),
+        };
         const treeLocalizer = createTreeLocalizer(localizers);
 
         // render single tree for single environment
@@ -146,6 +154,8 @@ export const TreeList = () => {
                 statusFilter={currentTreeStatus}
                 routeId={trId}
                 focusedId={focusedId}
+                showMoreLabel={showMoreLabel}
+                subtreeToggleLabels={subtreeToggleLabels}
                 root
               />
             </div>
@@ -168,6 +178,8 @@ export const TreeList = () => {
                 statusFilter={currentTreeStatus}
                 routeId={trId}
                 focusedId={focusedId}
+                showMoreLabel={showMoreLabel}
+                subtreeToggleLabels={subtreeToggleLabels}
                 root
               />
             </div>
@@ -229,6 +241,8 @@ export const TreeList = () => {
                         tree={treeLocalizer(value)}
                         routeId={trId}
                         focusedId={focusedId}
+                        showMoreLabel={showMoreLabel}
+                        subtreeToggleLabels={subtreeToggleLabels}
                         focusIdPrefix={`${key}:`}
                         root
                       />

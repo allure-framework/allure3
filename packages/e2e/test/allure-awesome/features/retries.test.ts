@@ -85,19 +85,25 @@ test.describe("retries", () => {
       await expect(treePage.leafLocator).toHaveCount(3);
     });
 
-    test("should show retry icon in the tree for tests with retries", async ({ page }) => {
+    test("should show retry count and status change icons in the tree for tests with retries", async ({ page }) => {
       await page.goto(bootstrap.url);
 
       const retryIcons = page.getByTestId("tree-leaf-retries");
+      const retriesStatusChangeIcons = page.getByTestId("tree-leaf-retries-status-change");
 
       await expect(retryIcons).toHaveCount(2);
+      await expect(retriesStatusChangeIcons).toHaveCount(1);
 
-      const firstTestWithRetriesIcon = treePage.getLeafByTitle(firstTestWithRetries).getByTestId("tree-leaf-retries");
+      const firstTestWithRetriesIcon = treePage
+        .getLeafByTitle(firstTestWithRetries)
+        .getByTestId("tree-leaf-retries-status-change");
+      const firstTestWithRetriesCount = treePage.getLeafByTitle(firstTestWithRetries).getByTestId("tree-leaf-retries");
       const anotherTestWithRetriesIcon = treePage
         .getLeafByTitle(secondTestWithRetriesName)
         .getByTestId("tree-leaf-retries");
 
-      await expect(firstTestWithRetriesIcon).toContainText("2");
+      await expect(firstTestWithRetriesIcon).toBeVisible();
+      await expect(firstTestWithRetriesCount).toContainText("2");
       await expect(anotherTestWithRetriesIcon).toContainText("1");
     });
 
@@ -208,8 +214,8 @@ test.describe("retries", () => {
         const retryAt0 = testResultPage.getRetry(0);
         const retryAt1 = testResultPage.getRetry(1);
 
-        await expect(retryAt0.textLocator).toHaveText(/^Attempt 2 of 3 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
-        await expect(retryAt1.textLocator).toHaveText(/^Attempt 1 of 3 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
+        await expect(retryAt0.textLocator).toHaveText(/^Retry 2 of 2 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
+        await expect(retryAt1.textLocator).toHaveText(/^Retry 1 of 2 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
       });
 
       test("retry titles of tests with no timestampts have prefixes", async () => {
@@ -219,8 +225,8 @@ test.describe("retries", () => {
         const retryAt0 = testResultPage.getRetry(0);
         const retryAt1 = testResultPage.getRetry(1);
 
-        await expect(retryAt0.textLocator).toHaveText("Attempt 2 of 3");
-        await expect(retryAt1.textLocator).toHaveText("Attempt 1 of 3");
+        await expect(retryAt0.textLocator).toHaveText("Retry 2 of 2");
+        await expect(retryAt1.textLocator).toHaveText("Retry 1 of 2");
       });
     });
   });

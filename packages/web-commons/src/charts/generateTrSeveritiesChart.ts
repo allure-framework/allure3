@@ -24,10 +24,10 @@ export const generateTrSeveritiesChart = (props: {
   const { options, storeData } = props;
   const { levels, statuses, includeUnset = true } = options;
 
-  let trSeverityLevels: (SeverityLevel | "unset")[] = levels as any;
+  let trSeverityLevels: (SeverityLevel | "unset")[] = levels ? [...levels] : [];
   let trStatuses = statuses;
 
-  if (!trSeverityLevels || trSeverityLevels.length === 0) {
+  if (trSeverityLevels.length === 0) {
     trSeverityLevels = DEFAULT_SEVERITY_LEVELS;
   }
 

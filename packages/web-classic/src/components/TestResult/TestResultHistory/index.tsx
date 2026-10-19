@@ -3,12 +3,12 @@ import type { FunctionalComponent } from "preact";
 import { TestResultHistoryItem } from "@/components/TestResult/TestResultHistory/TestResultHistoryItem";
 import { useI18n } from "@/stores";
 
-import { type ClassicTestResult } from "../../../../types";
+import { type ReportTestResult } from "../../../../types";
 
 import * as styles from "./styles.scss";
 
 export type TestResultHistoryViewProps = {
-  testResult?: ClassicTestResult;
+  testResult?: ReportTestResult;
 };
 
 const TestResultHistoryView: FunctionalComponent<TestResultHistoryViewProps> = ({ testResult }) => {

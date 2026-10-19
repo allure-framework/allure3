@@ -1,17 +1,18 @@
 import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
-import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
+import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 
-import { TrInfoStatuses } from "@/components/TestResult/TrInfo/TrInfoStatuses";
+import { TrFlaky } from "@/components/TestResult/TrInfo/TrFlaky";
+import { TrRetriesStatusChange } from "@/components/TestResult/TrInfo/TrRetriesStatusChange";
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
 import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
-import { testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupId, testEnvGroupsStore } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
@@ -19,18 +20,29 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 export type TrInfoProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ReportTestResult;
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
-  const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop, categories } =
-    testResult ?? {};
+  const {
+    name,
+    status,
+    flaky,
+    retriesStatusChange,
+    resolution,
+    duration,
+    labels,
+    history,
+    retries,
+    attachments,
+    stop,
+    categories,
+  } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const categoryName = categories?.[0]?.name;
   const { t } = useI18n("ui");
-  const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);
 
   const Content = () => {
     return (
@@ -43,8 +55,9 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-info-data"]}>
           {Boolean(status) && <TrStatus status={status} />}
           {Boolean(history?.length) && <TrPrevStatuses history={history} />}
+          {retriesStatusChange && <TrRetriesStatusChange />}
           <TrSeverity severity={severity} />
-          {Boolean(statuses.length) && <TrInfoStatuses statuses={statuses} />}
+          {flaky && <TrFlaky />}
           {categoryName && (
             <Text tag={"div"} size={"s"} className={styles["test-result-category"]}>
               {t("category")}: {categoryName}
@@ -59,6 +72,14 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-tabs"]}>
           <TrTabsList>
             <TrTab id="overview">{t("overview")}</TrTab>
+            {resolution && (
+              <TrTab id="resolutionCategories">
+                <div className={styles["test-result-tab"]}>
+                  {t("resolutionCategories")}
+                  <Counter size={"s"} count={1} />
+                </div>
+              </TrTab>
+            )}
             <TrTab id="history">
               <div className={styles["test-result-tab"]}>
                 {t("history")}
@@ -79,7 +100,11 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             </TrTab>
             <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
-              transformData={(groups) => groups?.[testResult?.testCase?.id]}
+              transformData={(groups) => {
+                const groupId = testEnvGroupId(testResult);
+
+                return groupId ? groups?.[groupId] : undefined;
+              }}
               renderData={(group) => {
                 const envsCount = getRealEnvsCount(group);
 

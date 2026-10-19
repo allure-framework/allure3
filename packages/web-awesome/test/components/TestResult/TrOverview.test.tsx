@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { AwesomeTestResult } from "types";
+import type { ReportTestResult } from "types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 beforeEach(async () => {
@@ -63,7 +63,7 @@ vi.mock("@/stores/testResult", () => ({
   trCurrentTab: { value: "overview" },
 }));
 
-const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
+const makeTestResult = (overrides: Partial<ReportTestResult> = {}): ReportTestResult =>
   ({
     id: "test-result-id",
     name: "test",
@@ -91,7 +91,7 @@ const makeTestResult = (overrides: Partial<AwesomeTestResult> = {}): AwesomeTest
     titlePath: [],
     attachments: [],
     ...overrides,
-  }) as AwesomeTestResult;
+  }) as ReportTestResult;
 
 describe("components > TestResult > TrOverview", () => {
   beforeEach(() => {
@@ -121,6 +121,21 @@ describe("components > TestResult > TrOverview", () => {
       />,
     );
 
+    expect(screen.getByTestId("tr-steps")).toBeInTheDocument();
+    expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
+  });
+
+  it("should render skipped status details in the overview and test body", () => {
+    render(
+      <TrOverview
+        testResult={makeTestResult({
+          status: "skipped",
+          error: { message: "Temporarily disabled until the upstream fix lands" },
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("test-result-error")).toBeInTheDocument();
     expect(screen.getByTestId("tr-steps")).toBeInTheDocument();
     expect(screen.queryByTestId("test-steps-empty")).not.toBeInTheDocument();
   });

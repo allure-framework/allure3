@@ -1,6 +1,24 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.hoisted(() => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation(() => ({
+      matches: false,
+      media: "",
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
+});
+
+import { EnvironmentPicker } from "@/components/EnvironmentPicker";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -110,8 +128,6 @@ describe("components > EnvironmentPicker", () => {
   });
 
   it("should show tooltip on hover after resize truncates selected value", async () => {
-    const { EnvironmentPicker } = await import("@/components/EnvironmentPicker");
-
     render(<EnvironmentPicker />);
     const getPickerButton = () => screen.getByTestId("environment-picker-button");
     const getTooltipTrigger = () => getPickerButton().parentElement?.parentElement as HTMLElement;
@@ -122,30 +138,27 @@ describe("components > EnvironmentPicker", () => {
     await act(async () => {
       setNarrowViewport(true);
       fireEvent(window, new Event("resize"));
-      vi.advanceTimersByTime(16);
+      await vi.advanceTimersByTimeAsync(16);
     });
 
-    await waitFor(() => {
-      expect(getTooltipTrigger().childElementCount).toBe(2);
-    });
+    expect(getTooltipTrigger().childElementCount).toBe(2);
 
     const tooltipTrigger = getTooltipTrigger();
     fireEvent.mouseEnter(tooltipTrigger);
     await act(async () => {
-      vi.advanceTimersByTime(200);
+      await vi.advanceTimersByTimeAsync(200);
     });
-    await waitFor(() => {
-      expect(queryTooltip()).toBeInTheDocument();
-    });
+    expect(queryTooltip()).toBeInTheDocument();
 
-    fireEvent.mouseLeave(tooltipTrigger);
-    await waitFor(() => {
-      expect(queryTooltip()).not.toBeInTheDocument();
+    await act(async () => {
+      fireEvent.mouseLeave(tooltipTrigger);
+      await vi.advanceTimersByTimeAsync(0);
     });
+    expect(queryTooltip()).not.toBeInTheDocument();
 
     fireEvent.click(getPickerButton());
     fireEvent.mouseEnter(getTooltipTrigger());
 
     expect(queryTooltip()).not.toBeInTheDocument();
-  }, 15000);
+  });
 });

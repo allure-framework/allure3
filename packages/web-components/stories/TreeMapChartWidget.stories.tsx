@@ -1,9 +1,14 @@
-import { TreeMapChartWidget } from "@/components/Charts/TreeMapChartWidget";
-import type { TreeMapChartWidgetProps } from "@allurereport/web-components";
-import type { Meta, StoryObj } from "@storybook/react";
-import { createTreeMapData, getColor, getColorWithDomain } from "./TreeMapChart/mocks";
+import { ChartType } from "@allurereport/charts-api";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+import type { ComponentProps } from "preact";
 
-const meta: Meta<typeof TreeMapChartWidget> = {
+import { TreeMapChartWidget } from "@/components/Charts/TreeMapChartWidget";
+
+import { createEmptyTreeMapData, createTreeMapData, getColor } from "./TreeMapChart/mocks";
+
+type WidgetProps = ComponentProps<typeof TreeMapChartWidget>;
+
+const meta: Meta<WidgetProps> = {
   title: "Charts/TreeMapChartWidget",
   component: TreeMapChartWidget,
   parameters: {
@@ -12,48 +17,39 @@ const meta: Meta<typeof TreeMapChartWidget> = {
   args: {
     width: 900,
     height: 500,
-  }
-};
-
-export default meta;
-
-const rootData = createTreeMapData();
-
-type Story = StoryObj<TreeMapChartWidgetProps>;
-
-export const Default: Story = {
-  args: {
-    title: "Default",
-    data: rootData,
-    rootAriaLabel: "Feature Success Rate Tree",
     colors: getColor,
     translations: {
       "no-results": "No features available for testing",
     },
+  },
+};
+
+export default meta;
+
+type Story = StoryObj<WidgetProps>;
+
+export const SuccessRateDistribution: Story = {
+  args: {
+    title: "Success rate distribution",
+    chartType: ChartType.SuccessRateDistribution,
+    data: createTreeMapData(),
+    rootAriaLabel: "Feature Success Rate Tree",
+  },
+};
+
+export const CoverageDiff: Story = {
+  args: {
+    title: "Coverage diff",
+    chartType: ChartType.CoverageDiff,
+    data: createTreeMapData(),
+    rootAriaLabel: "Feature Coverage Diff Tree",
   },
 };
 
 export const EmptyData: Story = {
   args: {
     title: "Empty Feature Set",
-    data: [],
-    colors: getColor,
-    translations: {
-      "no-results": "No features available for testing",
-    },
-  },
-};
-
-export const CustomGradient: Story = {
-  args: {
-    title: "Custom Gradient Legend",
-    data: rootData,
-    rootAriaLabel: "Feature Success Rate Tree with Custom Gradient",
-    colors: getColorWithDomain,
-    formatLegend: (value: number) => `${(value * 100).toFixed(0)}%`,
-    legendDomain: [0, 0.5, 1], // Three points: 0%, 50%, 100% - minValue/maxValue auto-calculated
-    translations: {
-      "no-results": "No features available for testing",
-    },
+    chartType: ChartType.SuccessRateDistribution,
+    data: createEmptyTreeMapData(),
   },
 };

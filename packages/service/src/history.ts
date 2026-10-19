@@ -13,6 +13,19 @@ export class AllureRemoteHistory implements AllureHistory {
     },
   ) {}
 
+  resolveTestResultUrl(historyUrl: string, pluginId: string, historicalResultId: string): string {
+    if (!historyUrl) {
+      return "";
+    }
+
+    const { origin, pathname } = new URL(historyUrl);
+    // Service history does not perform folder flattening, always add pluginId to the constructed url
+    const navigateUrl = new URL([pathname, pluginId].join("/"), origin);
+    navigateUrl.hash = historicalResultId;
+
+    return navigateUrl.toString();
+  }
+
   async readHistory(params?: { repo?: string; branch?: string }) {
     const { limit } = this.params;
 

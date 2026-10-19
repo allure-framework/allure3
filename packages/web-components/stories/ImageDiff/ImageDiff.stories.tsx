@@ -1,5 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { ImageDiff } from "@/components/ImageDiff";
+
 // @ts-ignore this is fine
 import diff from "./diff.example.json";
 // @ts-ignore this is fine

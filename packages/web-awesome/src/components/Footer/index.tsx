@@ -1,4 +1,4 @@
-import { LanguagePicker } from "@allurereport/web-components";
+import { LanguagePicker } from "@allurereport/web-components/core";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 

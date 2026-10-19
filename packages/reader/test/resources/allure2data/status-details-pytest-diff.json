@@ -1,0 +1,9 @@
+{
+  "name": "Test with Pytest diff",
+  "fullName": "Test with Pytest diff",
+  "status": "failed",
+  "statusDetails": {
+    "message": "AssertionError: assert {'id': 'actual'} == {'id': 'expected'}",
+    "trace": "E       AssertionError: assert {'id': 'actual'} == {'id': 'expected'}\nE         Differing items:\nE         {'id': 'actual'} != {'id': 'expected'}"
+  }
+}

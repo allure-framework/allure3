@@ -313,5 +313,22 @@ describe("comparator", () => {
       const result = [statistic1, statistic1, statistic2].sort(byStatistic());
       expect(result).toEqual([statistic2, statistic1, statistic1]);
     });
+
+    it("should ignore nested resolution counters", () => {
+      const statistic1: Statistic = {
+        failed: 1,
+        total: 1,
+        resolutions: { issues: 1 },
+      };
+      const statistic2: Statistic = {
+        failed: 2,
+        total: 2,
+        resolutions: { accepted: 2, muted: 1 },
+      };
+
+      const result = [statistic1, statistic2].sort(byStatistic());
+
+      expect(result).toEqual([statistic2, statistic1]);
+    });
   });
 });

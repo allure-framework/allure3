@@ -2,25 +2,20 @@
 import { ChartType } from "@allurereport/charts-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import { themeStore } from "@allurereport/web-commons";
-import {
-  CurrentStatusChartWidget,
-  DurationDynamicsChartWidget,
-  DurationsChartWidget,
-  Grid,
-  GridItem,
-  HeatMapWidget,
-  Loadable,
-  PageLoader,
-  StabilityDistributionWidget,
-  StatusAgePyramidChartWidget,
-  StatusDynamicsChartWidget,
-  StatusTransitionsChartWidget,
-  TestBaseGrowthDynamicsChartWidget,
-  TestingPyramidWidget,
-  ThemeProvider,
-  TrSeveritiesChartWidget,
-  TreeMapChartWidget,
-} from "@allurereport/web-components";
+import { Loadable, PageLoader, ThemeProvider } from "@allurereport/web-components/core";
+import { CurrentStatusChartWidget } from "@allurereport/web-components/CurrentStatusChartWidget";
+import { DurationDynamicsChartWidget } from "@allurereport/web-components/DurationDynamicsChartWidget";
+import { DurationsChartWidget } from "@allurereport/web-components/DurationsChartWidget";
+import { Grid, GridItem } from "@allurereport/web-components/Grid";
+import { HeatMapWidget } from "@allurereport/web-components/HeatMapWidget";
+import { StabilityDistributionWidget } from "@allurereport/web-components/StabilityDistributionWidget";
+import { StatusAgePyramidChartWidget } from "@allurereport/web-components/StatusAgePyramidChartWidget";
+import { StatusDynamicsChartWidget } from "@allurereport/web-components/StatusDynamicsChartWidget";
+import { StatusTransitionsChartWidget } from "@allurereport/web-components/StatusTransitionsChartWidget";
+import { TestBaseGrowthDynamicsChartWidget } from "@allurereport/web-components/TestBaseGrowthDynamicsChartWidget";
+import { TestingPyramidWidget } from "@allurereport/web-components/TestingPyramidWidget";
+import { TreeMapChartWidget } from "@allurereport/web-components/TreeMapChartWidget";
+import { TrSeveritiesChartWidget } from "@allurereport/web-components/TrSeveritiesChartWidget";
 import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 
@@ -171,6 +166,7 @@ const getChartWidgetByType = (
       return (
         <TreeMapChartWidget
           chartType={ChartType.SuccessRateDistribution}
+          i18n={(key, values) => t(`successRate.${key}`, values)}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -195,6 +191,7 @@ const getChartWidgetByType = (
 
       return (
         <TestingPyramidWidget
+          i18n={(key, values) => t(`successRate.${key}`, values)}
           title={chartData.title}
           data={isDataEmpty ? [] : chartData.data}
           translations={{ "no-results": empty("no-results") }}

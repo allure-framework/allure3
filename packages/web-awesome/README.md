@@ -12,19 +12,8 @@
 
 ## Overview
 
-Allure Awesome report web-implementation.
-
-The package is utilized by Awesome Plugin.
-
-## Install
-
-Use your favorite package manager to install the package:
-
-```shell
-npm add @allurereport/web-awesome
-yarn add @allurereport/web-awesome
-pnpm add @allurereport/web-awesome
-```
+Internal Allure Awesome report web implementation. Its production assets are built and archived into
+`@allurereport/plugin-awesome`; this workspace is not published or installed by CLI users.
 
 ## Keyboard navigation
 

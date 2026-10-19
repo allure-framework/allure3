@@ -25,7 +25,7 @@ const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvi
     data,
   });
 
-  vi.doMock("@allurereport/web-components", () => ({
+  vi.doMock("@allurereport/web-components/core", () => ({
     Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>
       renderData(source.value.data),
   }));

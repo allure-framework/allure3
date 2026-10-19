@@ -1,6 +1,7 @@
 import { type Statistic, type TestStatus, statusesList } from "@allurereport/core-api";
 
 import { getColorFromStatus } from "../utils";
+import { MAX_PIE_WIDTH, PIE_PADDING } from "./constants";
 import type { ChartData, I18nProp } from "./types";
 
 const UNITS = [
@@ -166,6 +167,8 @@ export const formatDescriptionToFitWidth = ({
 
   return result;
 };
+
+export const getChartSize = (width: number) => Math.max(Math.min(width, MAX_PIE_WIDTH) - PIE_PADDING * 2, 0);
 
 export const toChartData = (props: { data: Statistic; i18n: I18nProp; statuses?: TestStatus[] }): ChartData => {
   const { data, i18n, statuses = statusesList } = props;

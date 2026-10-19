@@ -1,0 +1,75 @@
+name: "Allure bundle size budgets"
+
+on:
+  pull_request:
+    paths:
+      - "packages/**"
+      - "scripts/**"
+      - "yarn.lock"
+      - "package.json"
+      - ".github/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  GIT_DEPTH: 1
+
+jobs:
+  bundle-size:
+    runs-on: ubuntu-latest
+    container:
+      image: node:24-bookworm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check baseline exists
+        run: |
+          if [ ! -f ".github/allure-bundle-size.baseline.json" ]; then
+            echo "Missing baseline: .github/allure-bundle-size.baseline.json"
+            echo "Generate it on a known-good commit with:"
+            echo "  bash ./scripts/run-allure-bundle-size-docker.sh --ci --update-baseline .github/allure-bundle-size.baseline.json"
+            exit 1
+          fi
+
+      - name: Install deps
+        run: |
+          corepack enable >/dev/null 2>&1 || true
+          yarn install --immutable
+
+      - name: Build
+        run: yarn build
+
+      - name: Enforce bundle size budgets (Self + Deps)
+        id: budgets
+        run: |
+          node ./scripts/allure-bundle-size.mjs --ci \
+            --progress \
+            --include-closure \
+            --baseline .github/allure-bundle-size.baseline.json \
+            --max-self-delta-mb 0.25 \
+            --max-deps-delta-mb 0.15 \
+            --output .github/allure-bundle-size.report.json
+
+      - name: Hint baseline update command
+        if: failure() && steps.budgets.conclusion == 'failure' && !cancelled()
+        run: |
+          {
+            echo ""
+            echo "### Accept new baseline"
+            echo "Maintainers with write access can comment \`/update-bundle-baseline\` on this PR"
+            echo "to measure in CI and commit an updated \`.github/allure-bundle-size.baseline.json\`."
+            echo "Manual alternative:"
+            echo "\`\`\`bash"
+            echo "bash ./scripts/run-allure-bundle-size-docker.sh --ci --update-baseline .github/allure-bundle-size.baseline.json"
+            echo "\`\`\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-bundle-size-report
+          path: .github/allure-bundle-size.report.json

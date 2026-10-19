@@ -8,7 +8,7 @@ import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory, createHistory } from "../src/history.js";
+import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 beforeEach(async () => {
@@ -63,6 +63,44 @@ describe("AllureLocalHistory", () => {
         const [historyPoint] = await history.readHistory();
 
         expect(historyPoint.testResults.primary.url).toBe("https://service.allurereport.org/report/1");
+      } finally {
+        await rm(historyPath, { force: true });
+      }
+    });
+
+    it("should normalize missing and invalid history metrics", async () => {
+      const historyPath = join(tmpdir(), randomUUID());
+
+      try {
+        await writeFile(
+          historyPath,
+          `${JSON.stringify({
+            uuid: "1",
+            name: "Entry 1",
+            timestamp: 1,
+            knownTestCaseIds: [],
+            testResults: {},
+          })}\n${JSON.stringify({
+            uuid: "2",
+            name: "Entry 2",
+            timestamp: 2,
+            knownTestCaseIds: [],
+            testResults: {},
+            metrics: {
+              "generate.total.avgMs": 120,
+              "broken.string": "120",
+              "broken.null": null,
+            },
+          })}\n`,
+          "utf-8",
+        );
+
+        const history = new AllureLocalHistory({ historyPath });
+
+        expect(await history.readHistory()).toEqual([
+          expect.objectContaining({ metrics: {} }),
+          expect.objectContaining({ metrics: { "generate.total.avgMs": 120 } }),
+        ]);
       } finally {
         await rm(historyPath, { force: true });
       }
@@ -310,6 +348,46 @@ describe("AllureLocalHistory", () => {
       await checkHistoryFile(["New entry"]);
     });
 
+    it("should preserve legacy history keys byte-for-byte while appending canonical entries", async () => {
+      const legacyEntry: HistoryDataPoint = {
+        ...entry,
+        name: "Legacy entry",
+        testResults: {
+          legacy: {
+            id: "historical-result",
+            name: "historical test",
+            status: "passed",
+            url: "",
+          },
+        },
+      };
+      const legacyLine = `${JSON.stringify(legacyEntry)}\n`;
+
+      await writeFile(historyPath, legacyLine, "utf8");
+
+      const history = new AllureLocalHistory({ historyPath });
+
+      await history.appendHistory({
+        ...entry,
+        name: "Canonical entry",
+        testResults: {
+          canonical: {
+            id: "current-result",
+            name: "current test",
+            status: "passed",
+            url: "",
+          },
+        },
+      });
+
+      const [persistedLegacyLine, persistedCanonicalLine] = (await readFile(historyPath, "utf8")).split("\n");
+      expect(`${persistedLegacyLine}\n`).toBe(legacyLine);
+      expect(JSON.parse(persistedCanonicalLine)).toMatchObject({
+        name: "Canonical entry",
+        testResults: { canonical: { id: "current-result" } },
+      });
+    });
+
     describe("existing file", () => {
       beforeEach(async () => {
         await writeFile(historyPath, "", { encoding: "utf-8", flag: "wx" });
@@ -553,6 +631,39 @@ describe("AllureLocalHistory", () => {
 });
 
 describe("createHistory", () => {
+  it("should store earlier attempt statuses in history retries", async () => {
+    const retries = [
+      { id: "retry-1", status: "broken" },
+      { id: "retry-0", status: "failed" },
+    ] as TestResult[];
+
+    const testResults = [
+      {
+        id: "latest-result-id",
+        name: "latest result",
+        retryHash: "retry-hash",
+        status: "passed",
+        start: 300,
+        stop: 400,
+        duration: 100,
+        labels: [],
+        retries,
+      },
+      {
+        id: "single-result-id",
+        name: "single result",
+        retryHash: "single-retry-hash",
+        status: "passed",
+        labels: [],
+      },
+    ] as unknown as TestResult[];
+
+    const history = createHistory("report-id", "Report", [], testResults, "https://example.com/report");
+
+    expect(history.testResults["retry-hash"].retries).toEqual(["failed", "broken"]);
+    expect(history.testResults["single-retry-hash"].retries).toEqual([]);
+  });
+
   it("should set nested history test result url from remote url", () => {
     const remoteUrl = "https://service.allurereport.org/report/1";
     const testCases = [{ id: "test-case-id" }] as TestCase[];
@@ -560,15 +671,54 @@ describe("createHistory", () => {
       {
         id: "test-result-id",
         name: "test result",
-        historyId: "history-id",
+        retryHash: "retry-hash",
         status: "passed",
         labels: [],
-      } as TestResult,
+      } as unknown as TestResult,
     ];
 
     const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
 
     expect(history.url).toBe(remoteUrl);
-    expect(history.testResults["history-id"].url).toBe(remoteUrl);
+    expect(history.testResults["retry-hash"].url).toBe(remoteUrl);
+  });
+});
+
+describe("local history URLs", () => {
+  it.each([
+    ["https://bucket.example/runs/42", "https://bucket.example/runs/42/"],
+    ["https://bucket.example/runs/42/?token=x", "https://bucket.example/runs/42/?token=x"],
+    ["file:///tmp/reports/42", "file:///tmp/reports/42/"],
+  ])("should normalize a run-directory base: %s", (input, expected) => {
+    expect(normalizeHistoryBaseUrl(input)).toBe(expected);
+  });
+
+  it("should reject a relative base", () => {
+    expect(() => normalizeHistoryBaseUrl("runs/42")).toThrow(/Invalid historyBaseUrl.*absolute URL/u);
+  });
+
+  it("should reject a base fragment", () => {
+    expect(() => normalizeHistoryBaseUrl("https://bucket.example/runs/42#current")).toThrow(
+      /Invalid historyBaseUrl.*fragment/u,
+    );
+  });
+
+  it.each([
+    {
+      name: "url with base directory",
+      url: "https://bucket.example/runs/42/?token=x",
+      expected: "https://bucket.example/runs/42/custom-awesome/index.html?token=x#old-result",
+    },
+    {
+      name: "url with exact report",
+      url: "https://bucket.example/runs/42/index.html?token=x",
+      expected: "https://bucket.example/runs/42/index.html?token=x#old-result",
+    },
+    { name: "blank URL", url: "", expected: "" },
+  ])("should resolve $name", ({ url, expected }) => {
+    const historyPath = getDataPath("empty.jsonl");
+    const history = new AllureLocalHistory({ historyPath });
+
+    expect(history.resolveTestResultUrl(url, "custom-awesome", "old-result")).toBe(expected);
   });
 });
