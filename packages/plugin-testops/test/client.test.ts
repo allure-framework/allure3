@@ -1201,6 +1201,26 @@ describe("testops http client", () => {
       );
     });
 
+    it("should return the created session", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: { id: 42 } });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+
+      expect(await client.createSession()).toEqual({ id: 42 });
+    });
+
     it("should pass environment variables as key-value pairs to the session", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") {
@@ -1802,6 +1822,51 @@ describe("testops http client", () => {
   });
 
   describe("uploadTestResults", () => {
+    it("should upload test results into the given session", async () => {
+      let sessionId = 0;
+
+      AxiosMock.post.mockImplementation((url: string, data: any) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          sessionId += 1;
+          return Promise.resolve({ data: { id: sessionId } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({
+            data: { results: data.results.map((r: { uuid: string }, idx: number) => ({ id: idx + 1, uuid: r.uuid })) },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      const firstSession = await client.createSession();
+      await client.createSession();
+
+      await client.uploadTestResults({
+        session: firstSession,
+        trs: [{ id: "tr-1", name: "Test", status: "passed", steps: [] } as any as TestResult],
+        environments: [],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+
+      expect((uploadCall?.[1] as any).testSessionId).toBe(1);
+    });
+
     it("should throw an error when session hasn't been initialized before", async () => {
       const client = new TestOpsClient({
         accessToken: fixtures.accessToken,
