@@ -1632,29 +1632,6 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
   }, 60_000);
 });
 
-// the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from
-// the current directory; the PnP hooks are passed explicitly instead
-const resolveNodeOptions = async () => {
-  if (process.env.NODE_OPTIONS) {
-    return process.env.NODE_OPTIONS;
-  }
-
-  const pnpPath = join(repoRoot, ".pnp.cjs");
-  const pnpLoaderPath = join(repoRoot, ".pnp.loader.mjs");
-
-  if (!(await pathExists(pnpPath))) {
-    return "";
-  }
-
-  const options = [`--require ${pnpPath}`];
-
-  if (await pathExists(pnpLoaderPath)) {
-    options.push(`--experimental-loader ${pathToFileURL(pnpLoaderPath).href}`);
-  }
-
-  return options.join(" ");
-};
-
 const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>
   new Promise<string>((resolvePromise, rejectPromise) => {
     let output = "";
@@ -1753,9 +1730,7 @@ const terminate = async (child: ReturnType<typeof spawn>) => {
 /**
  * Regression test for https://github.com/allure-framework/allure3/issues/827: `allure serve` used to
  * generate the report and then exit without ever starting the server when `historyPath` was
- * configured. This only covers the symptom under Yarn PnP, whose patched `fs` hides the underlying
- * FileHandle lifecycle bug; `packages/core/test/history.integration.test.ts` exercises the history
- * code against the real Node implementation.
+ * configured.
  */
 describe("serve command integration", () => {
   let workspace: string;
@@ -1800,11 +1775,7 @@ describe("serve command integration", () => {
       "utf-8",
     );
 
-    const env = {
-      ...process.env,
-      NODE_OPTIONS: await resolveNodeOptions(),
-      NODE_NO_WARNINGS: "1",
-    };
+    const env = { ...process.env };
 
     // other suites in the same worker may have left it behind, and the CLI refuses nested commands
     delete env.ALLURE_CLI_ACTIVE_COMMAND;

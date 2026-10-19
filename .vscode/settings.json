@@ -1,7 +1,6 @@
 {
   "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
+    "**/.yarn": true
   },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
