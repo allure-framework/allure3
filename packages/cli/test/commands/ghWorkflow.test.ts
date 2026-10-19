@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 
 import { readConfig } from "@allurereport/core";
 import { type BaseContext, Cli } from "clipanion";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { GhWorkflowCommand } from "../../src/commands/ghWorkflow.js";
 
