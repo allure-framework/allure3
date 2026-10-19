@@ -1,11 +1,16 @@
+import { execFile } from "node:child_process";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
+
+import { isDefined } from "@allurereport/reader-api";
 
 import { logError } from "../logs.js";
 import type { JobMonitor, SupervisedCommandOptions } from "./model.js";
 import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
 
 const MONITOR_INTERVAL_MS = 100;
+const inspectProcesses = promisify(execFile);
 
 export class PosixProcessSupervisor extends ProcessSupervisorBase {
   protected readonly shell: boolean = false;
@@ -74,6 +79,32 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     }
 
     return { pid };
+  }
+
+  protected override async diagnoseRemainingProcesses() {
+    const pgid = this.process.pid;
+
+    const { stdout } = await inspectProcesses("ps", ["-A", "-ww", "-o", "pid=,ppid=,pgid=,stat=,args="], {
+      timeout: 2_000,
+      maxBuffer: 4 * 1024 * 1024,
+      env: { ...process.env, LC_ALL: "C" },
+    });
+
+    const processes = stdout
+      .split("\n")
+      .map((line) => {
+        const match = /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.*)$/.exec(line);
+        if (!match || Number(match[3]) !== pgid) {
+          return undefined;
+        }
+        return { pid: Number(match[1]), ppid: Number(match[2]), pgid, state: match[4], commandLine: match[5] };
+      })
+      .filter(isDefined);
+
+    this.diagnostic("process group snapshot after root exit", { pgid, listed: processes.length });
+    for (const details of processes) {
+      this.diagnostic("remaining process group member", details);
+    }
   }
 
   protected override requestRootStop(_: AbortSignal) {

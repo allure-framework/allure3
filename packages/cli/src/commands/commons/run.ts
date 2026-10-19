@@ -24,7 +24,7 @@ import { KnownError } from "@allurereport/service";
 
 import { runProcess, terminationOf } from "../../utils/index.js";
 import { logError } from "../../utils/logs.js";
-import { logSupervisorDiagnostic } from "../../utils/supervisor/diagnostics.js";
+import { supervisorDiagnosticsEnabled } from "../../utils/supervisor/diagnostics.js";
 import { ProcessSupervisor } from "../../utils/supervisor/index.js";
 import { allureResultsDirectoriesGlobWatcher } from "./resultsDiscovery.js";
 
@@ -47,6 +47,12 @@ type RunAttempt = {
 const runLogger = new Logger("AllureRun");
 const qualityGateLogger = new Logger("QualityGate");
 const rerunLogger = new Logger("AllureRerun");
+
+const logRunDiagnostic = (message: string) => {
+  if (supervisorDiagnosticsEnabled()) {
+    runLogger.debug(message);
+  }
+};
 
 export const executeNestedAllureCommand = async (params: {
   command: string;
@@ -171,6 +177,7 @@ export const runTests = async (params: {
     await allureResultsWatch.initialScan();
 
     supervisor = new ProcessSupervisor(command, {
+      logger: runLogger,
       arguments: commandArgs,
       workingDirectory: cwd,
       environmentVariables,
@@ -239,7 +246,7 @@ export const runTests = async (params: {
     }
 
     code = await supervisor.exitCode;
-    logSupervisorDiagnostic(`supervisor exitCode resolved: code=${code}`);
+    logRunDiagnostic(`supervisor exitCode resolved: code=${code}`);
     const afterProcess = Date.now();
 
     if (supervisor.interrupted) {
@@ -276,17 +283,17 @@ export const runTests = async (params: {
     };
 
     // Stop discovery before draining directory watchers and queued result files.
-    logSupervisorDiagnostic("stopping results discovery");
+    logRunDiagnostic("stopping results discovery");
     await cleanup(() => allureResultsWatch?.abort());
-    logSupervisorDiagnostic(`draining results directory watchers: count=${allureResultsWatchers.size}`);
+    logRunDiagnostic(`draining results directory watchers: count=${allureResultsWatchers.size}`);
     for (const watcher of allureResultsWatchers.values()) {
       await cleanup(() => watcher.abort());
     }
     allureResultsWatchers.clear();
-    logSupervisorDiagnostic("draining result file processing");
+    logRunDiagnostic("draining result file processing");
     await cleanup(() => processWatcher.abort());
     await cleanup(() => qualityGateUnsub?.());
-    logSupervisorDiagnostic("results watcher cleanup complete");
+    logRunDiagnostic("results watcher cleanup complete");
   }
 
   if (errors.length) {
@@ -621,9 +628,9 @@ export const executeAllureRun = async (params: {
 
   allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
-  logSupervisorDiagnostic("finalizing report");
+  logRunDiagnostic("finalizing report");
   await allureReport.done();
-  logSupervisorDiagnostic("report finalization complete");
+  logRunDiagnostic("report finalization complete");
 
   return {
     globalExitCode,
