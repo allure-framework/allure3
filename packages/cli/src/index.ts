@@ -19,6 +19,7 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GhWorkflowCommand,
   GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
@@ -65,6 +66,7 @@ cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);
 cli.register(GenerateCommand);
+cli.register(GhWorkflowCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
 cli.register(LogCommand);
