@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { hasOwnVariables, toSessionVariables } from "../src/utils/sessionEnvironment.js";
+import { toSessionVariables } from "../src/utils/sessionEnvironment.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -11,6 +11,12 @@ beforeEach(async () => {
 });
 
 describe("toSessionVariables", () => {
+  it("should drop variables that aren't strings, numbers or booleans", () => {
+    expect(toSessionVariables({ Matrix: { os: "linux" }, List: ["a", "b"], Browser: "chrome" })).toEqual({
+      Browser: "chrome",
+    });
+  });
+
   it("should drop variables with an empty value", () => {
     expect(toSessionVariables({ Stand: "", Region: "  ", Browser: "chrome" })).toEqual({ Browser: "chrome" });
   });
@@ -21,23 +27,5 @@ describe("toSessionVariables", () => {
       Debug: "false",
       Browser: "chrome",
     });
-  });
-});
-
-describe("hasOwnVariables", () => {
-  it("should be true when an environment overrides a report variable", () => {
-    expect(hasOwnVariables({ browser: "x" }, { browser: "y" })).toBe(true);
-  });
-
-  it("should be true when an environment adds a variable that differs only in case", () => {
-    expect(hasOwnVariables({ browser: "x" }, { browser: "x", Browser: "y" })).toBe(true);
-  });
-
-  it("should be true when an environment unsets a report variable", () => {
-    expect(hasOwnVariables({ Stand: "staging" }, {})).toBe(true);
-  });
-
-  it("should be false when an environment only repeats report variables", () => {
-    expect(hasOwnVariables({ Stand: "staging" }, { Stand: "staging" })).toBe(false);
   });
 });

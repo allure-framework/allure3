@@ -10,6 +10,8 @@ TestOpsClientMock.prototype = {
   createLaunch: vi.fn(),
   attachToLaunch: vi.fn(),
   createSession: vi.fn(),
+  ensureLaunchOpen: vi.fn(),
+  createSessionInOpenLaunch: vi.fn(),
   createNamedEnvs: vi.fn(),
   uploadTestResults: vi.fn().mockImplementation(async ({ trs }) => trs),
   uploadGlobalAttachments: vi.fn(),

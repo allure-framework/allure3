@@ -2690,4 +2690,41 @@ describe("testops http client", () => {
       );
     });
   });
+
+  describe("uploadQualityGateResults", () => {
+    it("should attach the named env of a quality gate result that references the environment name", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: [{ id: 7, externalId: "chrome" }] });
+        }
+
+        return Promise.resolve({ data: { id: 1 } });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }]);
+      await client.uploadQualityGateResults([
+        { rule: "maxFailures", message: "too many failures", success: false, environment: "Chrome" } as any,
+      ]);
+
+      const qualityGateCall = AxiosMock.post.mock.calls.find(
+        (call: any[]) => call[0] === "/api/launch/quality-gate/bulk",
+      );
+
+      expect((qualityGateCall![1] as any).items).toEqual([
+        { name: "maxFailures", message: "too many failures", namedEnvId: 7 },
+      ]);
+    });
+  });
 });
