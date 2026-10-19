@@ -125,7 +125,7 @@ describe("AllureReport.restoreState (dump zip)", () => {
     delete process.env.ALLURE_PERF_METRICS;
     resetPerfMetrics();
     await Promise.all(zipPaths.splice(0).map((p) => unlink(p).catch(() => {})));
-    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true })));
+    await Promise.all(tempDirs.splice(0).map((p) => rm(p, { recursive: true, force: true, maxRetries: 3 })));
   });
 
   const tempZipPath = (): string => {
@@ -387,7 +387,8 @@ describe("AllureReport.restoreState (dump zip)", () => {
 
     await writeDumpZip(zipPath, [{ name: "safe-attachment-id-1", data: Buffer.from("hello") }]);
 
-    const config = await resolveConfig({ name: "Allure Report", output });
+    // Restoring dump metrics does not require rendering a report.
+    const config = await resolveConfig({ name: "Allure Report", output }, { plugins: {} });
     const report = new AllureReport(config);
 
     await report.restoreState([zipPath]);
