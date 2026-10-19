@@ -75,6 +75,7 @@ import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
+import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -247,7 +248,9 @@ export const generateNav = async (writer: AwesomeDataWriter, trs: ReportTestResu
 
 const SEARCHABLE_LABELS = new Set([
   "owner",
+  "parentSuite",
   "suite",
+  "subSuite",
   "package",
   "testClass",
   "testMethod",
@@ -292,6 +295,7 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
     id: test.id,
     nodeId: test.id,
     name: test.name,
+    titlePath: joinSearchValues(test.titlePath ?? []),
     fullName: test.fullName,
     retryHash: test.retryHash,
     labels: joinSearchValues(labels),
@@ -796,6 +800,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -820,6 +825,7 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -855,9 +861,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
-
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
+    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
   }
 
   const now = Date.now();
@@ -881,6 +885,7 @@ export const generateStaticFiles = async (
     defaultSection,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   };
 
   try {

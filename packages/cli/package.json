@@ -1,6 +1,6 @@
 {
   "name": "allure",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
@@ -28,6 +28,7 @@
     "clean": "rimraf ./dist",
     "start": "node ./cli.js",
     "test": "vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -47,13 +48,15 @@
     "@allurereport/plugin-dashboard": "workspace:*",
     "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
+    "@allurereport/plugin-metrics": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-server-reload": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
+    "@allurereport/plugin-xray": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "adm-zip": "^0.6.0",
+    "adm-zip": "0.6.1",
     "clipanion": "^4.0.0-rc.4",
     "glob": "^13.0.6",
     "lodash.omit": "^4.18.0",
@@ -62,10 +65,12 @@
     "yoctocolors": "^2.2.0"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@types/adm-zip": "^0",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20",
     "@types/prompts": "^2",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",

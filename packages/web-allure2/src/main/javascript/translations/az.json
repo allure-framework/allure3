@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "İcmala qayıt",
     "backto": "Geri",
     "clipboard": "Mübadilə buferinə kopyala",
     "clipboardError": "Mübadilə buferinə kopyalamaq mümkün olmadı. Bu özəllik browseriniz tərəfindən dəstəklənmir",

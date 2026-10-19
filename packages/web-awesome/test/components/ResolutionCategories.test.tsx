@@ -22,7 +22,7 @@ const resolutionCategoriesStoreMock = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@allurereport/web-components", () => {
+vi.mock("@allurereport/web-components/core", () => {
   return {
     ArrowButton: ({ isOpened }: { isOpened: boolean }) => <span aria-label={isOpened ? "collapse" : "expand"} />,
     Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>

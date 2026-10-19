@@ -1,5 +1,5 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { useState } from "preact/hooks";
 import type { ReportOptions } from "types";
 

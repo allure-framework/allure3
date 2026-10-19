@@ -1,6 +1,6 @@
 import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
-import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
+import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";

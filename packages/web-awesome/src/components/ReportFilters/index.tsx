@@ -1,4 +1,4 @@
-import { Button } from "@allurereport/web-components";
+import { Button } from "@allurereport/web-components/core";
 import { For } from "@preact/signals/utils";
 
 import { useI18n } from "@/stores/locale";

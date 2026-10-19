@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Terug naar overzicht",
     "backto": "Terug naar",
     "clipboard": "Kopieer naar klembord",
     "clipboardError": "Kan niet kopiëren naar klembord. De browser lijkt deze functionaliteit niet te ondersteunen.",

@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Tillbaka till översikten",
     "backto": "Tillbaka till",
     "clipboard": "Kopiera till urklipp",
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som urklippsfunktionen inte stöds för din webbläsare",

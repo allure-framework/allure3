@@ -1,5 +1,5 @@
 import { themeStore, toggleUserTheme } from "@allurereport/web-commons";
-import { ThemeButton } from "@allurereport/web-components";
+import { ThemeButton } from "@allurereport/web-components/core";
 import { computed } from "@preact/signals";
 
 import { EnvironmentPicker } from "@/components/EnvironmentPicker";

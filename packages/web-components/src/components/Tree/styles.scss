@@ -93,7 +93,12 @@
 }
 
 .tree-item {
+  // the line of the title is the base of the row: the order is aligned with its baseline,
+  // the icons and the info stay at the top, so they don't jump when the title takes several lines
+  --tree-item-line-height: 20px;
+
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   width: 100%;
   max-width: 100%;
@@ -163,6 +168,7 @@
 }
 
 .tree-item-icon {
+  align-self: flex-start;
   --tree-item-icon-bg: var(--color-status-unknown-bg);
   --tree-item-icon-fg: var(--color-status-unknown-on-bg);
   --tree-item-icon-stroke-width: 2;
@@ -296,8 +302,6 @@
   min-width: 16px;
   text-align: center;
   box-sizing: content-box;
-  padding-top: 2px;
-  line-height: 16px;
 }
 
 .tree-item-marked {

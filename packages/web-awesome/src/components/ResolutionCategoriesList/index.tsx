@@ -1,5 +1,5 @@
 import { sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
-import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";

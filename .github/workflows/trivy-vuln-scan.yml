@@ -1,0 +1,84 @@
+name: Trivy vulnerability scan
+
+# Trivy scans this Yarn workspace's lockfile and fails only for fixed CRITICAL/HIGH findings.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "yarn.lock"
+      - ".github/workflows/trivy-vuln-scan.yml"
+      - ".github/scripts/comment-trivy-report.mjs"
+  merge_group:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "yarn.lock"
+      - ".github/workflows/trivy-vuln-scan.yml"
+      - ".github/scripts/comment-trivy-report.mjs"
+  schedule:
+    - cron: "30 12 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  trivy-fs:
+    name: Trivy fs (yarn.lock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Generate Trivy vulnerability report
+        id: report
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: yarn.lock
+          scanners: vuln
+          format: json
+          output: trivy-results.json
+          exit-code: "0"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+        env:
+          TRIVY_INCLUDE_DEV_DEPS: true
+          TRIVY_DISABLE_VEX_NOTICE: true
+
+      - name: Comment Trivy report on pull request
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { default: commentTrivyReport } = await import(
+              `${process.env.GITHUB_WORKSPACE}/.github/scripts/comment-trivy-report.mjs`,
+            );
+            await commentTrivyReport({ github, context });
+
+      - name: Enforce HIGH/CRITICAL vulnerability gate
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: yarn.lock
+          scanners: vuln
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          skip-setup-trivy: true
+        env:
+          TRIVY_INCLUDE_DEV_DEPS: true
+          TRIVY_DISABLE_VEX_NOTICE: true

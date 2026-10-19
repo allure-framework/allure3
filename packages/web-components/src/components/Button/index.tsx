@@ -44,10 +44,11 @@ type BaseBtnProps = {
   /**
    * - `danger` - Indicates if the button is a danger button
    * - `positive` - Indicates if the button is a positive button
+   * - `accent` - Colours the text and the icon of the ghost button with the accent colour
    *
    * @default "default"
    */
-  action?: "default" | "danger" | "positive";
+  action?: "default" | "danger" | "positive" | "accent";
   /**
    * Icon to be displayed on the button
    */
@@ -108,6 +109,10 @@ type BaseBtnProps = {
   href?: string;
   rounded?: boolean;
   target?: HTMLAnchorElement["target"];
+  /**
+   * Relationship of the linked page, `noopener noreferrer` is applied to the links that are opened in a new tab by default
+   */
+  rel?: HTMLAnchorElement["rel"];
   className?: string;
   dataTestId?: string;
   leadingSlot?: ComponentChild;
@@ -136,6 +141,7 @@ const BaseBtn = (props: BaseBtnProps) => {
     focusable = true,
     href,
     target = "_self",
+    rel = target === "_blank" ? "noopener noreferrer" : undefined,
     className,
     leadingSlot,
     trailingSlot,
@@ -160,6 +166,7 @@ const BaseBtn = (props: BaseBtnProps) => {
       styles[`style_${style}`],
       action === "danger" && styles.danger,
       action === "positive" && styles.positive,
+      action === "accent" && styles.accent,
       isPending && styles.pending,
       isTextTruncated && styles.textTruncatedButton,
       fullWidth && styles.fullWidth,
@@ -196,6 +203,7 @@ const BaseBtn = (props: BaseBtnProps) => {
         {...commonProps}
         href={href}
         target={target}
+        rel={rel}
         aria-disabled={isButtonDisabled ? "true" : undefined}
         style={isButtonDisabled ? { pointerEvents: "none" } : undefined}
       >

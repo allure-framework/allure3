@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/summary",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Allure Summary Plugin – dashboard page generator with charts for Allure Report",
   "keywords": [
     "allure",
@@ -26,17 +26,20 @@
     "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-summary/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "handlebars": "^4.7.9"
+    "handlebars": "4.7.10"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@allurereport/web-summary": "workspace:*",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

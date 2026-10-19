@@ -1,4 +1,4 @@
-import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import { type FunctionalComponent } from "preact";
 
 import { useI18n } from "@/stores/locale";

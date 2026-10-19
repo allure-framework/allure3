@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "概要に戻る",
     "backto": "戻る",
     "clipboard": "クリップボードにコピー",
     "clipboardError": "クリップボードにコピーできませんでした。ブラウザがサポートしていないようです。",

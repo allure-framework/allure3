@@ -1,4 +1,4 @@
-import { ReportLogoFull, Text } from "@allurereport/web-components";
+import { ReportLogoFull, Text } from "@allurereport/web-components/core";
 
 import * as styles from "./styles.scss";
 

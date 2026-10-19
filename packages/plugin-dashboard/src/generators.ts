@@ -97,6 +97,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
@@ -108,6 +109,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const compile = Handlebars.compile(template);
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
@@ -155,6 +157,7 @@ export const generateStaticFiles = async (
     createdAt: Date.now(),
     reportUuid,
     allureVersion,
+    overviewHref,
   };
 
   try {

@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Վերադառնալ ակնարկին"
+  },
   "statuses": {
     "passed": "Անցած",
     "failed": "Ձախողված",

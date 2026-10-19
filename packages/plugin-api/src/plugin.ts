@@ -47,6 +47,12 @@ export interface PluginContext {
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
+  /**
+   * Relative link from the plugin report to the root overview page.
+   * Defined only when the report is generated (not in real time) and at least two plugins
+   * generate a report of their own, so the root overview page exists.
+   */
+  overviewHref?: string;
   realTime?: boolean;
   output: string;
   ci?: CiDescriptor;

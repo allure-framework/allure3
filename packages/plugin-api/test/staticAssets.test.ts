@@ -79,6 +79,18 @@ describe("report static archives", () => {
     );
   });
 
+  it("packs additional runtime chunks for multi-file reports", async () => {
+    const sourceDir = await createFixtureBuild();
+    const archivePath = join(fixtureRoot, "report.tar");
+
+    await writeFile(join(sourceDir, "123.app.js"), "chunk");
+    await createReportStaticArchive(sourceDir, archivePath, { singleFileCompatible: false });
+
+    const assets = await readReportStaticAssets(archivePath);
+
+    expect(assets.files.get("123.app.js")?.toString("utf8")).toBe("chunk");
+  });
+
   it("rejects unsafe archive paths before exposing their contents", async () => {
     const archivePath = join(fixtureRoot, "unsafe.tar");
 

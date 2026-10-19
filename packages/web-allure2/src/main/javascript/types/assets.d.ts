@@ -29,4 +29,5 @@ interface Window {
   dataLayer?: unknown[];
   reportData?: Record<string, string>;
   reportDataReady?: boolean;
+  allureReportOptions?: { overviewHref?: string };
 }

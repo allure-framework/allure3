@@ -32,7 +32,7 @@ change the resolved environment or its hashes.
 
 Retries and history use environment-specific `retryHash`. Features explicitly
 grouping executions across environments (Awesome categories and environment
-tabs, TestOps categories, and Jira entries) use
+tabs, Allure TestOps categories, and Jira entries) use
 `testCaseHash + "." + parametersHash` instead.
 
 ## Reading old history
@@ -90,7 +90,7 @@ Generated report data uses canonical identity fields:
 - `plugin-testops` temporarily reconstructs the pre-canonical `historyId` at
   its upload boundary. Core retains only the deprecated per-result
   `legacyTestCaseHash` seed needed after label normalization and test-case
-  interning. Remove both when TestOps accepts `retryHash` directly.
+  interning. Remove both when Allure TestOps accepts `retryHash` directly.
 
 Rereading raw result files calculates new identities regardless of which legacy
 fields those files contain.

@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { downloadAttachment } from "@allurereport/web-commons";
-import { Attachment, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Attachment } from "@allurereport/web-components/Attachment";
+import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import cx from "clsx";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
@@ -148,6 +149,7 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>
             <IconButton
+              data-testId="attachment-expand-button"
               className={styles["item-button"]}
               style={"ghost"}
               size={"s"}

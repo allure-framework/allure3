@@ -54,4 +54,21 @@ describe("awesome locales", () => {
       });
     });
   });
+  it("defines the labels of the overview and metadata link actions for every locale", () => {
+    const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+
+    return step("verify link labels in every awesome locale", async () => {
+      localeFiles.forEach((file) => {
+        const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+
+        expect(locale.controls.backToOverview, file).toEqual(expect.any(String));
+        expect(locale.controls.collapseAllPartial, file).toEqual(expect.any(String));
+        expect(locale.controls.collapseToDefault, file).toEqual(expect.any(String));
+        expect(locale.controls.expandFirstLevel, file).toEqual(expect.any(String));
+        expect(locale.controls.collapseToFirstLevel, file).toEqual(expect.any(String));
+        expect(locale.ui["open-link"], file).toEqual(expect.any(String));
+        expect(locale.ui["copy-link"], file).toEqual(expect.any(String));
+      });
+    });
+  });
 });

@@ -23,7 +23,7 @@ const fixtures = {
   jobRunName: "Run #456",
 };
 
-vi.mock("@allurereport/web-components", async () => {
+vi.mock("@allurereport/web-components/core", async () => {
   const { CiType } = await import("@allurereport/core-api");
 
   return {

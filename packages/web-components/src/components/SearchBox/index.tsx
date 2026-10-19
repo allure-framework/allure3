@@ -1,5 +1,5 @@
 import type { ComponentChild } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { IconButton } from "@/components/Button";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
@@ -22,12 +22,27 @@ export const SearchBox = (props: Props) => {
   const { placeholder, value, onChange, changeDebounce = 300, leadingSlot, trailingSlot, error } = props;
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const onChangeDebounced = useDebouncedCallback(onChange, changeDebounce);
+  const lastEmittedValueRef = useRef(value ?? "");
+  const emitChange = useCallback(
+    (newValue: string) => {
+      lastEmittedValueRef.current = newValue;
+      onChange(newValue);
+    },
+    [onChange],
+  );
+  const onChangeDebounced = useDebouncedCallback(emitChange, changeDebounce);
   const onChangeDebouncedRef = useRef(onChangeDebounced);
   onChangeDebouncedRef.current = onChangeDebounced;
 
   useEffect(() => {
-    setLocalValue(value ?? "");
+    const nextValue = value ?? "";
+
+    if (nextValue === lastEmittedValueRef.current) {
+      return;
+    }
+
+    lastEmittedValueRef.current = nextValue;
+    setLocalValue(nextValue);
     onChangeDebouncedRef.current.cancel();
   }, [value]);
 
@@ -42,7 +57,7 @@ export const SearchBox = (props: Props) => {
     e.stopPropagation();
     setLocalValue("");
     onChangeDebounced.cancel();
-    onChange("");
+    emitChange("");
   };
   const handleWrapClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;

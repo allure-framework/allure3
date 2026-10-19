@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Retour à l'aperçu"
+  },
   "statuses": {
     "passed": "Réussi",
     "failed": "Échoué",

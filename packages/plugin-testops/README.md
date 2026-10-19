@@ -16,7 +16,7 @@ The plugin can create a new launch in Allure TestOps with all the tests data fro
 
 ## CI and local runs
 
-The plugin is intended to run in a **CI environment**. When a supported CI is detected, upload to TestOps starts automatically (as long as `accessToken`, `endpoint`, and `projectId` are configured).
+The plugin is intended to run in a **CI environment**. When a supported CI is detected, upload to Allure TestOps starts automatically (as long as `accessToken`, `endpoint`, and `projectId` are configured).
 
 On a **local machine** (no CI detected), upload is disabled by default.
 
@@ -24,7 +24,7 @@ To upload from your machine anyway, opt in with one of these environment variabl
 
 | Environment variable       | Purpose |
 |----------------------------|---------|
-| `ALLURE_TESTOPS_ENABLED`   | Explicitly enable TestOps upload outside CI |
+| `ALLURE_TESTOPS_ENABLED`   | Explicitly enable Allure TestOps upload outside CI |
 | `CI`                       | Same effect; useful if your tooling already sets `CI` in non-CI workflows |
 
 Example:
@@ -55,7 +55,7 @@ export default defineConfig({
   plugins: {
 +    testops: {
 +      options: {
-+        launchName: "Hello, TestOps!",
++        launchName: "Hello, Allure TestOps!",
 +        launchTags: ["tag1", "tag2"],
 +        accessToken: "your_testops_access_token",
 +        endpoint: "https://your-testops-instance.com",
@@ -74,14 +74,14 @@ The plugin accepts the following options:
 |--------------------|-----------------------------------------------------------------------------|-----------|-----------------|
 | `launchName`       | Name of the report which will be assigned to the new launch                 | `string`  | `Allure Report` |
 | `launchTags`       | Tags to be assigned to the new launch                                      | `string[]`| `[]`            |
-| `accessToken`      | Access token for TestOps API                                               | `string`  | `undefined`     |
-| `endpoint`         | TestOps API endpoint                                                       | `string`  | `undefined`     |
-| `projectId`        | TestOps project ID                                                         | `string`  | `undefined`     |
+| `accessToken`      | Access token for Allure TestOps API                                        | `string`  | `undefined`     |
+| `endpoint`         | Allure TestOps API endpoint                                                | `string`  | `undefined`     |
+| `projectId`        | Allure TestOps project ID                                                  | `string`  | `undefined`     |
 | `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
-| `gitFlow`          | When `true`, collect Git metadata for TestOps Git Flow on CI uploads (opt-in)                                 | `boolean` | `false`         |
-| `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in TestOps | `number`  | `100`           |
-| `uploadRateLimit`  | Caps how fast uploads are sent to TestOps within a rolling time window (requests/files/bytes per window); pass `false` to disable pacing entirely | `{ windowMs: number; maxRequestsPerWindow?: number; maxFilesPerWindow?: number; maxBytesPerWindow?: number } \| false` | `20` req/s, `1000` files/s, `1 GiB`/s |
-| `reopenClosedLaunch` | When `true`, a launch that TestOps reports as closed is reopened automatically instead of failing the upload | `boolean` | `false`         |
+| `gitFlow`          | When `true`, collect Git metadata for Allure TestOps Git Flow on CI uploads (opt-in) | `boolean` | `false`         |
+| `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in Allure TestOps | `number`  | `100`           |
+| `uploadRateLimit`  | Caps how fast uploads are sent to Allure TestOps within a rolling time window (requests/files/bytes per window); pass `false` to disable pacing entirely | `{ windowMs: number; maxRequestsPerWindow?: number; maxFilesPerWindow?: number; maxBytesPerWindow?: number } \| false` | `20` req/s, `1000` files/s, `1 GiB`/s |
+| `reopenClosedLaunch` | When `true`, a launch that Allure TestOps reports as closed is reopened automatically instead of failing the upload | `boolean` | `false`         |
 
 ### Using options from environment variables
 

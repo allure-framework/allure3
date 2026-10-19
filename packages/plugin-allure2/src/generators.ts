@@ -72,6 +72,11 @@ const template = `<!DOCTYPE html>
       }
     </script>
     ${createBaseUrlScript()}
+    {{#if reportOptions}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
+    {{/if}}
     {{#if analyticsEnable}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
     <script>
@@ -150,8 +155,18 @@ export const generateStaticFiles = async (payload: {
   reportFiles: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
+  overviewHref?: string;
 }) => {
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    reportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+    overviewHref,
+  } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
   const mainJs = manifest["main.js"];
@@ -189,6 +204,7 @@ export const generateStaticFiles = async (payload: {
       reportUuid,
       reportName,
       singleFile,
+      reportOptions: overviewHref ? stringifyForInlineScript({ overviewHref }) : undefined,
     });
 
     await reportFiles.addFile(

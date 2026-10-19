@@ -1,4 +1,5 @@
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { type Stats, createReadStream } from "node:fs";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { type ServerResponse, createServer } from "node:http";
@@ -8,7 +9,14 @@ import { cwd } from "node:process";
 import watchDirectory from "@allurereport/directory-watcher";
 import openUrl from "open";
 
-import { TYPES_BY_EXTENSION, identity, injectLiveReloadScript, resolveUrlPathnameUnderServeRoot } from "./utils.js";
+import {
+  TYPES_BY_EXTENSION,
+  identity,
+  injectLiveReloadScript,
+  normalizeHost,
+  resolveServerUrl,
+  resolveUrlPathnameUnderServeRoot,
+} from "./utils.js";
 
 export type AllureStaticServer = {
   url: string;
@@ -70,7 +78,7 @@ export const renderDirectory = async (entries: string[], dirPath?: boolean) => {
  * ```ts
  * import { serve } from "@allurereport/static-server";
  *
- * const server = await serve({ port: 3000, live: true, servePath: "public" });
+ * const server = await serve({ port: 3000, host: "127.0.0.1", live: true, servePath: "public" });
  * // trigger reload manually
  * await server.reload();
  *
@@ -81,13 +89,25 @@ export const renderDirectory = async (entries: string[], dirPath?: boolean) => {
  */
 export const serve = async (options?: {
   port?: number;
+  /**
+   * The host (interface) to bind the server to, e.g. `127.0.0.1` or `0.0.0.0`
+   * By default, the server listens on all interfaces
+   */
+  host?: string;
   live?: boolean;
   servePath?: string;
   open?: boolean;
 }): Promise<AllureStaticServer> => {
   const { port, live = false, servePath, open = false } = options ?? {};
+  const host = normalizeHost(options?.host);
   const pathToServe = servePath ? resolve(cwd(), servePath) : cwd();
   const clients = new Set<ServerResponse>();
+  // Lets the pages that were not connected to the server for a while (hidden tabs, restarted server) detect the reloads
+  // they have missed: the page gets the current reload id with the html and compares it with the one the server reports
+  // on connect. The id contains an identifier of the server instance, because the counter restarts with the server
+  const instanceId = randomUUID();
+  let reloadsCount = 0;
+  const currentReloadId = () => `${instanceId}:${reloadsCount}`;
   const server = createServer(async (req, res) => {
     const hostHeaderIdx = req.rawHeaders.findIndex((header) => header === "Host") + 1;
     const host = req.rawHeaders[hostHeaderIdx];
@@ -107,6 +127,8 @@ export const serve = async (options?: {
       req.on("close", () => {
         clients.delete(res);
       });
+
+      res.write(`event: sync\ndata: ${currentReloadId()}\n\n`);
       return;
     }
 
@@ -152,7 +174,7 @@ export const serve = async (options?: {
           files.map((file) => resolve(fsPath, file)),
           pathname !== "/",
         );
-        const htmlContent = injectLiveReloadScript(html);
+        const htmlContent = injectLiveReloadScript(html, currentReloadId());
         const byteLength = Buffer.byteLength(htmlContent);
 
         res.writeHead(200, {
@@ -171,7 +193,7 @@ export const serve = async (options?: {
     // temp fix to prevent live reload script injection to html attachments
     if (contentType === "text/html" && !query.has("attachment")) {
       const html = await readFile(fsPath, "utf-8");
-      const htmlContent = injectLiveReloadScript(html);
+      const htmlContent = injectLiveReloadScript(html, currentReloadId());
       const byteLength = Buffer.byteLength(htmlContent);
 
       res.writeHead(200, {
@@ -193,12 +215,19 @@ export const serve = async (options?: {
       .on("close", () => res.end());
   });
   const triggerReload = () => {
+    reloadsCount += 1;
+
+    const message = `id: ${currentReloadId()}\ndata: reload\n\n`;
+
     clients.forEach((client) => {
-      client.write("data: reload\n\n");
+      client.write(message);
     });
   };
-  const serverPort = await new Promise<number>((res) => {
-    server.listen(port, () => {
+  const serverPort = await new Promise<number>((res, rej) => {
+    server.once("error", rej);
+    server.listen(port, host, () => {
+      server.off("error", rej);
+
       const address = server.address();
       if (!address || typeof address === "string") {
         throw new Error("could not start a server: invalid server address is returned");
@@ -213,14 +242,16 @@ export const serve = async (options?: {
       })
     : identity;
 
-  console.info(`Allure is running on http://localhost:${serverPort}`);
+  const serverUrl = resolveServerUrl(host, serverPort);
+
+  console.info(`Allure is running on ${serverUrl}`);
 
   if (open) {
-    openUrl(`http://localhost:${serverPort}`);
+    openUrl(serverUrl);
   }
 
   return {
-    url: `http://localhost:${serverPort}`,
+    url: serverUrl,
     port: serverPort,
     // eslint-disable-next-line @typescript-eslint/require-await
     reload: async () => {
@@ -228,7 +259,7 @@ export const serve = async (options?: {
     },
     open: async (url) => {
       if (url.startsWith("/")) {
-        await openUrl(new URL(url, `http://localhost:${serverPort}`).toString());
+        await openUrl(new URL(url, serverUrl).toString());
         return;
       }
 
