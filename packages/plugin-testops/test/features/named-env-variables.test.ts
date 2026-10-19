@@ -270,8 +270,8 @@ describe("named environment variables", () => {
     expect(sessionIdOf("1")).toBe(1);
   });
 
-  test("should resolve variables of results that keep the environment name", async () => {
-    const { store, storeMock, sessionEnvironmentOf } = setup({
+  test("should resolve variables and the named environment of results that keep the environment name", async () => {
+    const { store, storeMock, createNamedEnvsRequest, uploadTestResultsRequest, sessionEnvironmentOf } = setup({
       trs: [tr("1", "Chrome")],
       envVariables: { chrome: { Browser: "chrome" } },
     });
@@ -280,6 +280,10 @@ describe("named environment variables", () => {
 
     expect(storeMock.envVariablesByEnvironmentId).toHaveBeenCalledWith("chrome");
     expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+    expect(createNamedEnvsRequest.mock.calls.flatMap(([, data]) => data.items)).toEqual([
+      { externalId: "chrome", name: "Chrome" },
+    ]);
+    expect(uploadTestResultsRequest.mock.calls[0][1].results[0].namedEnv).toEqual({ id: 1 });
   });
 
   test("should upload other environments and keep launch open when an environment session fails", async () => {

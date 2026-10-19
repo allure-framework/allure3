@@ -622,7 +622,17 @@ export class TestOpsPlugin implements Plugin {
       environmentVariables: Record<string, string>;
       trs: TestOpsPluginTestResult[];
     }[] = [];
-    const trsByEnvironment = groupBy(trs, (tr) => this.#environmentIdOf(tr, environments));
+    // the client keys named environments by tr.environment, so it must carry the resolved id too
+    const trsByEnvironment = groupBy(
+      trs.map((tr) => {
+        const environmentId = this.#environmentIdOf(tr, environments);
+
+        return tr.environment === undefined || tr.environment === environmentId
+          ? tr
+          : { ...tr, environment: environmentId };
+      }),
+      (tr) => tr.environment ?? DEFAULT_ENVIRONMENT,
+    );
 
     for (const [environmentId, environmentTrs] of Object.entries(trsByEnvironment)) {
       const environmentVariables = await this.#environmentVariables(store, environmentId, reportVariables);

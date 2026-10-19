@@ -11,6 +11,10 @@ beforeEach(async () => {
 });
 
 describe("toSessionVariables", () => {
+  it("should drop variables with an empty value", () => {
+    expect(toSessionVariables({ Stand: "", Region: "  ", Browser: "chrome" })).toEqual({ Browser: "chrome" });
+  });
+
   it("should drop variables without a value and stringify the rest", () => {
     expect(toSessionVariables({ Stand: undefined, Region: null, Shard: 3, Debug: false, Browser: "chrome" })).toEqual({
       Shard: "3",

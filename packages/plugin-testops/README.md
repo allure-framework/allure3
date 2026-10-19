@@ -109,7 +109,7 @@ The plugin sends, from weakest to strongest:
 2. the report-level `variables` from the Allure configuration;
 3. the `variables` of the environment (from `environments`) the test result belongs to.
 
-A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent. Configuration variables without a value (for example, `process.env.STAND` when `STAND` is unset) are not sent, so they don't override the process environment.
+A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent. Configuration variables without a value (for example, `process.env.STAND` when `STAND` is unset, or an empty string) are not sent, so they don't override the process environment.
 
 ```js
 import { defineConfig } from "allure";
