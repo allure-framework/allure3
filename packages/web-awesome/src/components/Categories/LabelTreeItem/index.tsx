@@ -6,7 +6,7 @@ import type {
   TestStatusTransition,
 } from "@allurereport/core-api";
 import { capitalize } from "@allurereport/core-api";
-import { SvgIcon, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";

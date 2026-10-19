@@ -1,4 +1,5 @@
-import { Loadable, SuccessRatePieChart } from "@allurereport/web-components";
+import { Loadable } from "@allurereport/web-components/core";
+import { SuccessRatePieChart } from "@allurereport/web-components/SuccessRatePieChart";
 
 import { pieChartStore } from "@/stores/chart";
 import { useI18n } from "@/stores/locale";

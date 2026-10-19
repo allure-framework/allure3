@@ -1,5 +1,5 @@
 import { capitalize, statusesList } from "@allurereport/core-api";
-import { Counter, Loadable } from "@allurereport/web-components";
+import { Counter, Loadable } from "@allurereport/web-components/core";
 
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";

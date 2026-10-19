@@ -880,12 +880,12 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-xray", "workspace:packages/plugin-xray"],\
           ["@types/node", "npm:20.19.41"],\
           ["@vitest/runner", "npm:2.1.9"],\
-          ["allure-js-commons", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.9.0"],\
-          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.12.1"],\
+          ["allure-js-commons", "virtual:4a14190750ec482ef1ed508456f3acd331a91cb77f9b55b5d8b8ea527b3ccbf25b011f968171132092a949e0972d25facd0bbe791dd54a4be83e1a7e1d7cd39d#npm:3.9.0"],\
+          ["allure-vitest", "virtual:535d473c49100cca5cc4f21142f93c756bf23c719816f3549e27fd475726e1cd16113cbde32649eee2818e98acdff0a24e83effa305e08681ca6836168e8e3b1#npm:3.12.1"],\
           ["axios", "npm:1.20.0"],\
           ["rimraf", "npm:6.1.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
-          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:4.1.8"]\
+          ["vitest", "virtual:535d473c49100cca5cc4f21142f93c756bf23c719816f3549e27fd475726e1cd16113cbde32649eee2818e98acdff0a24e83effa305e08681ca6836168e8e3b1#npm:4.1.11"]\
         ],\
         "linkType": "SOFT"\
       }]\

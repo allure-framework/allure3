@@ -1,4 +1,4 @@
-import { allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import { useMemo } from "preact/hooks";
 
 import { useI18n } from "@/stores";

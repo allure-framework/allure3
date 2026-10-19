@@ -1,4 +1,4 @@
-import { Loadable, PageLoader } from "@allurereport/web-components";
+import { Loadable, PageLoader } from "@allurereport/web-components/core";
 
 import { CategoriesTree } from "@/components/Categories/CategoriesTree";
 import { useI18n } from "@/stores";

@@ -1,5 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { ArrowButton, Code, LinkifiedText, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Code, LinkifiedText, TreeItemIcon, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 

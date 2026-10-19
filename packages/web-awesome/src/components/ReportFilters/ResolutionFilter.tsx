@@ -1,4 +1,4 @@
-import { allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import { useComputed } from "@preact/signals";
 import type { AwesomeTree } from "types";
 

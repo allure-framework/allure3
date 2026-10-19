@@ -9,7 +9,7 @@ vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   getReportOptions: vi.fn(),
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   Heading: (props: { children: string }) => <h2>{props.children}</h2>,
   Loadable: (props: { renderData: (data: unknown) => unknown }) => props.renderData({}),
   Text: (props: { "children": unknown; "data-testid"?: string }) => (

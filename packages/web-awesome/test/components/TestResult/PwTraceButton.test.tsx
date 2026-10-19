@@ -35,7 +35,7 @@ const setup = async ({ canOpenInNewTab, failFetch }: SetupOptions) => {
   vi.doMock("@allurereport/web-commons", () => ({
     fetchFromUrl,
   }));
-  vi.doMock("@allurereport/web-components", () => ({
+  vi.doMock("@allurereport/web-components/core", () => ({
     Button: ({ onClick, text }: { onClick?: () => void; text?: string }) => <button onClick={onClick}>{text}</button>,
     Text: ({ children }: { children: unknown }) => <div>{children}</div>,
     TooltipWrapper: ({ children }: { children: unknown }) => <div>{children}</div>,

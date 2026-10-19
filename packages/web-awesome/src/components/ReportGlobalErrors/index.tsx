@@ -1,6 +1,6 @@
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import type { PluginGlobalError } from "@allurereport/plugin-api";
-import { Loadable } from "@allurereport/web-components";
+import { Loadable } from "@allurereport/web-components/core";
 import { useState } from "preact/hooks";
 
 import { MetadataButton } from "@/components/MetadataButton";
