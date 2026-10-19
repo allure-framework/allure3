@@ -1,6 +1,6 @@
 import type { HistoryDataPoint } from "@allurereport/core-api";
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vite-plus/test";
 
 import { DefaultAllureStore } from "../src/store/store.js";
 

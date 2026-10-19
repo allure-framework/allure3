@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { layer, story } from "allure-js-commons";
 import axios from "axios";
 import getPort from "get-port";
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vite-plus/test";
 
 import { type AllureStaticServer, serve } from "../../src/index.js";
 

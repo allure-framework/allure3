@@ -1,6 +1,6 @@
 import { copyToClipboard, getReportOptions } from "@allurereport/web-commons";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";

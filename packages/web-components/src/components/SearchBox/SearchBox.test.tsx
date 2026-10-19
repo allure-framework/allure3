@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { SearchBox } from "@/components/SearchBox";
 

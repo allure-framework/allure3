@@ -1,5 +1,5 @@
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const STORAGE_KEY = "ALLURE_REPORT_SORT_BY";
 

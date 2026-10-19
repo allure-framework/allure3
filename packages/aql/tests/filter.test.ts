@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { filterByAql } from "../src/filter/index.js";
 import { parseAql } from "../src/parser/index.js";

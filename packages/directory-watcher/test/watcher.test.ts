@@ -1,12 +1,13 @@
 import console from "node:console";
 import { createHash, randomUUID } from "node:crypto";
+import { once } from "node:events";
 import { Dirent, createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   delayedFileProcessingWatcher,
@@ -500,6 +501,7 @@ describe("delayedFileProcessingWatcher", () => {
     });
     const file = join(fixturesDir, "changing-file.txt");
     const writeStream = createWriteStream(file, { flags: "a", encoding: "utf-8" });
+    await once(writeStream, "open");
     writeStream.write("first\n");
     await watcher.addFile(file);
     for (let i = 0; i < 10; i++) {
@@ -507,6 +509,7 @@ describe("delayedFileProcessingWatcher", () => {
       writeStream.write(`line${i}\n`);
     }
     writeStream.end();
+    await once(writeStream, "finish");
 
     expect(handler).toBeCalledTimes(0);
 
@@ -526,6 +529,7 @@ describe("delayedFileProcessingWatcher", () => {
     });
     const file = join(fixturesDir, "changing-file.txt");
     const writeStream = createWriteStream(file, { flags: "a", encoding: "utf-8" });
+    await once(writeStream, "open");
     writeStream.write("first\n");
     await watcher.addFile(file);
     for (let i = 0; i < 10; i++) {
@@ -533,6 +537,7 @@ describe("delayedFileProcessingWatcher", () => {
       writeStream.write(`line${i}\n`);
     }
     writeStream.end();
+    await once(writeStream, "finish");
     await watcher.abort();
 
     expect(handler).toBeCalledTimes(1);

@@ -6,7 +6,10 @@ const featCount = 10;
 const createMockItem = (id: string, count: number) => {
   return {
     id,
-    data: Array.from({ length: count }, (_, index) => ({ x: `feat ${index + 1}`, y: Math.floor(Math.random() * count) + 1 })),
+    data: Array.from({ length: count }, (_, index) => ({
+      x: `feat ${index + 1}`,
+      y: Math.floor(Math.random() * count) + 1,
+    })),
   };
 };
 

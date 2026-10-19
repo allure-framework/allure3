@@ -20,7 +20,7 @@ import {
 import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createAgentHumanReportConfig } from "../../../src/commands/agents/human-report.js";
 import {

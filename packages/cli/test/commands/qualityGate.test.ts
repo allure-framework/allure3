@@ -5,7 +5,7 @@ import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { type Mock, type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { QualityGateCommand } from "../../src/commands/qualityGate.js";
 import { AllureReportMock } from "../utils.js";

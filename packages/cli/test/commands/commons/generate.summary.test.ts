@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { resolveConfig, type PluginInstance } from "@allurereport/core";
 import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { createPluginSummary } from "@allurereport/plugin-api";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../../src/commands/commons/generate.js";
 

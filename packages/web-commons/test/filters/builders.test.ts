@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { buildFieldFilters, buildFilterPredicate } from "../../src/filters/builders.js";
 import type { Filter } from "../../src/filters/model.js";

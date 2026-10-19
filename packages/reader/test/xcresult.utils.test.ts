@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { findBundleInfoFile, followsXcResultNaming, isMostProbablyXcResultBundle } from "../src/xcresult/bundle.js";
 import { createAttachmentFileFactory, mapWellKnownAttachmentName } from "../src/xcresult/xcresulttool/utils.js";

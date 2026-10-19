@@ -6,7 +6,7 @@ import { join } from "node:path/posix";
 
 import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { AllureLocalHistory, createHistory, normalizeHistoryBaseUrl } from "../src/history.js";
 import { getDataPath } from "./utils.js";

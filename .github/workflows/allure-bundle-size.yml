@@ -19,8 +19,6 @@ env:
 jobs:
   bundle-size:
     runs-on: ubuntu-latest
-    container:
-      image: node:24-bookworm
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -34,10 +32,14 @@ jobs:
             exit 1
           fi
 
-      - name: Install deps
-        run: |
-          corepack enable >/dev/null 2>&1 || true
-          yarn install --immutable
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24.14.x"
+          cache: "yarn"
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: yarn install --immutable --immutable-cache --check-cache
 
       - name: Build
         run: yarn build
