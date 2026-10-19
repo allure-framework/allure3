@@ -1,7 +1,7 @@
 import type { CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test";
 
 import { TestOpsPlugin } from "../../src/plugin.js";
 import { handleBeforeEach, mockAllureStore, mockRequests } from "./helpers.js";
