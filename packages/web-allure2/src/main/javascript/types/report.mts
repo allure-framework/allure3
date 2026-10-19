@@ -43,7 +43,13 @@ export type GlobalAttachment = Attachment & {
   timestamp?: number;
 };
 
+export type ExitCode = {
+  actual?: number;
+  original: number;
+};
+
 export type GlobalsData = {
+  exitCode?: ExitCode;
   errors: GlobalError[];
   attachments: GlobalAttachment[];
 };

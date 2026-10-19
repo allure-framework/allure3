@@ -20,6 +20,8 @@ vi.mock("@allurereport/plugin-api", () => ({
 
 vi.mock("@allurereport/core-api", () => {
   const EMPTY_VALUE = "<Empty>";
+  const calculateRetryHash = ({ testCaseHash, parametersHash }: { testCaseHash?: string; parametersHash?: string }) =>
+    testCaseHash ? `${testCaseHash}.${parametersHash ?? ""}` : undefined;
 
   const findLastByLabelName = (labels: any[] | undefined, name: string) => {
     if (!Array.isArray(labels)) {
@@ -117,9 +119,28 @@ vi.mock("@allurereport/core-api", () => {
     return orderMap;
   };
 
-  const compareChildNodes = (leftNodeId: string, rightNodeId: string, nodesById: any) => {
+  const compareChildNodes = (
+    leftNodeId: string,
+    rightNodeId: string,
+    nodesById: any,
+    environmentOrderMap?: Map<string, number>,
+  ) => {
     const leftNode = nodesById[leftNodeId];
     const rightNode = nodesById[rightNodeId];
+
+    if (
+      leftNode?.type === "tr" &&
+      rightNode?.type === "tr" &&
+      leftNode.key === "environment" &&
+      rightNode.key === "environment"
+    ) {
+      const leftRank = environmentOrderMap?.get(leftNode.value) ?? 1000;
+      const rightRank = environmentOrderMap?.get(rightNode.value) ?? 1000;
+
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+    }
 
     const leftName = leftNode?.name ?? "";
     const rightName = rightNode?.name ?? "";
@@ -134,6 +155,7 @@ vi.mock("@allurereport/core-api", () => {
 
   return {
     EMPTY_VALUE,
+    calculateRetryHash,
     extractErrorMatchingData,
     findLastByLabelName,
     incrementStatistic,
@@ -190,7 +212,7 @@ const mkTest = (partial: Partial<ReportTestResult> = {}): ReportTestResult =>
     transition: undefined,
     tooltips: undefined,
     environment: "prod",
-    historyId: undefined,
+    retryHash: null,
     error: { message: "boom", trace: "stack" },
     groupedLabels: {},
     ...partial,
@@ -241,7 +263,7 @@ describe("generateCategories", () => {
     ];
 
     const tests: ReportTestResult[] = [
-      mkTest({ id: "a", name: "A", status: "failed" as any }),
+      mkTest({ id: "a", name: "A", status: "failed" as any, retriesStatusChange: true }),
       mkTest({ id: "b", name: "B", status: "broken" as any }),
       mkTest({ id: "c", name: "C", status: "passed" as any }),
       mkTest({ id: "h", name: "Hidden", isRetry: true, status: "failed" as any }),
@@ -266,6 +288,7 @@ describe("generateCategories", () => {
     expect(store.nodes["cat:h(Failed)"].type).toBe("category");
 
     expect(store.nodes.a.type).toBe("tr");
+    expect(store.nodes.a.retriesStatusChange).toBe(true);
     expect(store.nodes.b.type).toBe("tr");
 
     expect(store.nodes.c).toBeUndefined();
@@ -402,7 +425,7 @@ describe("generateCategories", () => {
     expect(hasNoTransition).toBe(true);
   });
 
-  it("should default groupEnvironments=true when environmentCount>1 and groupBy has no environment; history level is added; leaves are env-labelled", async () => {
+  it("should group matching test cases across environments by their environment-neutral retry hash", async () => {
     const { writer, written } = mkWriter();
 
     const categories: CategoryDefinition[] = [
@@ -421,21 +444,25 @@ describe("generateCategories", () => {
         name: "Original",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "case.params.environment-prod",
+        testCaseHash: "case",
+        parametersHash: "params",
       }),
       mkTest({
         id: "t2",
         name: "Original",
         status: "failed" as any,
         environment: "staging",
-        historyId: "H1",
+        retryHash: "case.params.environment-staging",
+        testCaseHash: "case",
+        parametersHash: "params",
       }),
       mkTest({
         id: "t3",
         name: "Original",
         status: "failed" as any,
         environment: "   ",
-        historyId: "H1",
+        retryHash: "dynamic.environment-none",
       }),
     ];
 
@@ -451,13 +478,59 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
-    expect(historyNodes.length).toBeGreaterThan(0);
+    expect(historyNodes).toHaveLength(2);
 
     expect(store.nodes.t1.name).toBe("environment: prod");
     expect(store.nodes.t2.name).toBe("environment: staging");
     expect(store.nodes.t3.name).toBe("environment: No environment");
+  });
+
+  it("should sort category environments by stable ids", async () => {
+    const { writer, written } = mkWriter();
+    const categories: CategoryDefinition[] = [
+      mkCategory({
+        name: "Failed",
+        matchers: [{ statuses: ["failed"] }],
+        groupBy: [],
+        groupByMessage: false,
+        index: 0,
+      }),
+    ];
+    const tests: ReportTestResult[] = [
+      mkTest({
+        id: "qa",
+        name: "QA Display Name",
+        status: "failed" as any,
+        environment: "qa-id",
+        testCaseHash: "case",
+        parametersHash: "params",
+      }),
+      mkTest({
+        id: "staging",
+        name: "Staging Display Name",
+        status: "failed" as any,
+        environment: "staging-id",
+        testCaseHash: "case",
+        parametersHash: "params",
+      }),
+    ];
+
+    await generateCategories(writer, {
+      tests,
+      categories,
+      environmentCount: 2,
+      environments: ["staging-id", "qa-id"],
+      defaultEnvironment: "default",
+      selectedEnvironmentCount: 2,
+    });
+
+    const store = written[0].data as any;
+    const category = store.nodes["cat:h(Failed)"];
+    const history = store.nodes[category.childrenIds[0]];
+
+    expect(history.childrenIds).toEqual(["staging", "qa"]);
   });
 
   it("should ignore groupEnvironments when a single env is selected; no history level is added; leaf name stays original", async () => {
@@ -479,7 +552,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -495,7 +568,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -521,7 +594,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -537,7 +610,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -570,7 +643,7 @@ describe("generateCategories", () => {
         name: "Original Name",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -586,7 +659,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes).toHaveLength(0);
 
@@ -618,14 +691,14 @@ describe("generateCategories", () => {
         name: "Original",
         status: "failed" as any,
         environment: "prod",
-        historyId: "H1",
+        retryHash: "H1",
       }),
       mkTest({
         id: "t2",
         name: "Original",
         status: "failed" as any,
         environment: "   ",
-        historyId: "H1",
+        retryHash: "H1",
       }),
     ];
 
@@ -641,7 +714,7 @@ describe("generateCategories", () => {
     const store = written[0].data as any;
 
     const historyNodes = Object.values(store.nodes).filter(
-      (node: any) => node.type === "history" && node.key === "historyId",
+      (node: any) => node.type === "history" && node.key === "retryHash",
     );
     expect(historyNodes.length).toBeGreaterThan(0);
 

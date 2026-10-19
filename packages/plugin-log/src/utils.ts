@@ -1,6 +1,6 @@
 import console from "node:console";
 
-import type { DefaultTestStepResult, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult, TestError, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
 import { isStep } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, green, red, yellow } from "yoctocolors";
@@ -191,9 +191,10 @@ export const printSummary = (results: TestResult[], options: { total: number; fi
 
 export const printQualityGateResult = (result: QualityGateValidationResult, indent: number = 0) => {
   const indentSpaces = "  ".repeat(indent);
+  const message = result.success ? green(result.message) : red(result.message);
 
   console.info(`${indentSpaces}${stringifyQualityGateResultTitle(result)}`);
-  console.info(`${indentSpaces}  ${red(result.message)}`);
+  console.info(`${indentSpaces}  ${message}`);
 };
 
 export const printQualityGateResults = (results: QualityGateValidationResult[]) => {
@@ -204,11 +205,51 @@ export const printQualityGateResults = (results: QualityGateValidationResult[]) 
   console.log("");
   console.info("Quality gates");
 
-  results.forEach((result) => {
+  const orderedResults = [...results.filter(({ success }) => !success), ...results.filter(({ success }) => success)];
+
+  orderedResults.forEach((result) => {
     printQualityGateResult(result, 1);
   });
 
-  const failures = `${results.length} ${results.length === 1 ? "failure" : "failures"}`;
+  const passed = results.filter(({ success }) => success).length;
+  const failed = results.length - passed;
+  const stats: string[] = [];
 
-  console.info(`Quality gates: ${red(failures)}`);
+  if (passed > 0) {
+    stats.push(green(`${passed} passed`));
+  }
+
+  if (failed > 0) {
+    stats.push(red(`${failed} failed`));
+  }
+
+  console.info(`Quality gates: ${stats.join(" | ")}`);
+};
+
+export const printGlobalError = (error: TestError, options?: PrintFunctionOptions, indent: number = 0) => {
+  const indentSpaces = "  ".repeat(indent);
+  const message = error.message?.trim() ? error.message : "No message provided";
+
+  console.info(`${indentSpaces}${red("⨯")} ${red(message)}`);
+
+  if (options?.withTrace && error.trace) {
+    error.trace.split("\n").forEach((line) => {
+      console.info(`${indentSpaces}  ${gray(line)}`);
+    });
+  }
+};
+
+export const printGlobalErrors = (errors: TestError[], options?: PrintFunctionOptions) => {
+  if (errors.length === 0) {
+    return;
+  }
+
+  console.log("");
+  console.info("Global errors");
+
+  errors.forEach((error) => {
+    printGlobalError(error, options, 1);
+  });
+
+  console.info(`Global errors: ${red(`${errors.length} failed`)}`);
 };

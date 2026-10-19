@@ -7,7 +7,13 @@ import {
   calculateRunDuration,
   createPluginSummary,
   createTestResultRegistry,
+  resolveReportStatus,
 } from "../src/utils/summary.js";
+
+const emptyStoreGlobals = () => ({
+  globalExitCode: vi.fn().mockResolvedValue(undefined),
+  allGlobalErrors: vi.fn().mockResolvedValue([]),
+});
 
 const testResult = (args: Partial<TestResult> = {}): TestResult => ({
   id: "test-id",
@@ -94,23 +100,24 @@ describe("summary utils", () => {
         status: "failed",
         duration: 10,
         stop: 100,
+        retryHash: "retry-1",
       }),
       testResult({ id: "t2", name: "two", status: "broken", duration: 20, stop: 250, flaky: true }),
       testResult({ id: "t3", name: "three", status: "passed", duration: 5, stop: 0 }),
     ];
-    const newTrs = [
-      testResult({ id: "n1", name: "new", status: "passed", duration: 7 }),
-      testResult({ id: "n2", name: "new-2", status: "failed", duration: 9 }),
-    ];
+    const allTrsWithRetries = [...allTrs, testResult({ id: "r1", retryHash: "retry-1", isRetry: true })];
+    const newTrs = allTrs.slice(0, 2);
     const stats = { total: 3, resolutions: { issues: 1, muted: 1, accepted: 1 } } as any;
     const historyReadHistory = vi.fn().mockResolvedValue([{ branch: "main" }]);
     const history = { readHistory: historyReadHistory } as unknown as AllureHistory;
+    const retriesByTr = vi.fn().mockResolvedValue([]);
     const store = {
       allCheckResults: vi.fn().mockResolvedValue(allChecks),
-      allTestResults: vi.fn().mockResolvedValue(allTrs),
+      allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? allTrsWithRetries : allTrs)),
       allNewTestResults: vi.fn().mockResolvedValue(newTrs),
       testsStatistic: vi.fn().mockResolvedValue(stats),
-      retriesByTr: vi.fn((tr: TestResult) => Promise.resolve(tr.id === "t1" ? [{ id: "r1" } as TestResult] : [])),
+      retriesByTr,
+      ...emptyStoreGlobals(),
     };
     const summary = await createPluginSummary({
       name: "summary-name",
@@ -123,13 +130,15 @@ describe("summary utils", () => {
 
     expect(store.allCheckResults).toHaveBeenCalledTimes(1);
     expect(store.allTestResults).toHaveBeenCalledWith({ filter });
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
     expect(historyReadHistory).toHaveBeenCalledWith({ branch: "" });
     expect(store.allNewTestResults).toHaveBeenCalledWith(filter, [{ branch: "main" }]);
     expect(store.testsStatistic).toHaveBeenCalledWith(filter);
+    expect(retriesByTr).not.toHaveBeenCalled();
     expect(summary).toEqual({
       stats,
       status: getWorstStatus(allTrs.map(({ status }) => status)),
-      newTests: ["n1", "n2"],
+      newTests: ["t1", "t2"],
       flakyTests: ["t2"],
       retryTests: ["t1"],
       checks: [{ name: "lint", status: "passed" }],
@@ -140,6 +149,8 @@ describe("summary utils", () => {
       plugin: "summary-plugin",
       meta: { build: 1 },
     });
+    expect(summary).not.toHaveProperty("exitCode");
+    expect(summary).not.toHaveProperty("globalErrorsCount");
   });
 
   it("calculateRunDuration uses the wall clock span of parallel test results", () => {
@@ -165,6 +176,46 @@ describe("summary utils", () => {
     expect(calculateRunDuration([testResult({ duration: 100 }), testResult({ duration: 90 })])).toEqual(190);
   });
 
+  it("excludes retry attempts and results outside the report filter from new test IDs", async () => {
+    const current = testResult({ id: "current", retryHash: "retry-current" });
+    const existing = testResult({ id: "existing" });
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn(({ includeRetries } = {}) =>
+        Promise.resolve(
+          includeRetries
+            ? [
+                current,
+                existing,
+                testResult({ id: "current-retry", status: "failed", retryHash: "retry-current", isRetry: true }),
+              ]
+            : [current, existing],
+        ),
+      ),
+      allNewTestResults: vi
+        .fn()
+        .mockResolvedValue([
+          testResult({ id: "retry", status: "failed", isRetry: true }),
+          current,
+          testResult({ id: "excluded", status: "skipped" }),
+        ]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 2, passed: 2 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      ...emptyStoreGlobals(),
+    };
+    const summary = await createPluginSummary({
+      name: "Passed tests",
+      plugin: "awesome",
+      store: store as any,
+      filter: (tr) => tr.status === "passed",
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.newTests).toEqual(["current"]);
+    expect(summary.retryTests).toEqual(["current"]);
+  });
+
   it("createPluginSummary falls back to passed when status is empty", async () => {
     const store = {
       allCheckResults: vi.fn().mockResolvedValue([]),
@@ -172,6 +223,7 @@ describe("summary utils", () => {
       allNewTestResults: vi.fn().mockResolvedValue([]),
       testsStatistic: vi.fn().mockResolvedValue({ total: 1 }),
       retriesByTr: vi.fn().mockResolvedValue([]),
+      ...emptyStoreGlobals(),
     };
     const history = { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory;
     const summary = await createPluginSummary({
@@ -184,6 +236,162 @@ describe("summary utils", () => {
 
     expect(summary.status).toBe("passed");
     expect(summary.filtered).toBeUndefined();
+    expect(summary).not.toHaveProperty("exitCode");
+    expect(summary).not.toHaveProperty("globalErrorsCount");
     expect(store.allNewTestResults).toHaveBeenCalledWith(undefined, []);
+    expect(store.allTestResults).toHaveBeenCalledWith({ includeRetries: true });
+  });
+
+  it("createPluginSummary marks failed when global errors exist even with passed tests and exit 0", async () => {
+    const exitCode = { original: 0, actual: 0 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "runner crashed" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(1);
+  });
+
+  it("createPluginSummary marks failed when exit code is nonzero", async () => {
+    const exitCode = { original: 1 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "passed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary).not.toHaveProperty("globalErrorsCount");
+  });
+
+  it("createPluginSummary applies report-wide globals and exit to filtered summaries", async () => {
+    const exitCode = { original: 1 };
+    const passedOnly = testResult({ id: "passed-1", status: "passed" });
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn(({ includeRetries } = {}) => Promise.resolve(includeRetries ? [passedOnly] : [passedOnly])),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, passed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "env setup failed" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "Passed tests",
+      plugin: "awesome",
+      store: store as any,
+      filter: (tr) => tr.status === "passed",
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.filtered).toBe(true);
+    expect(summary.status).toBe("failed");
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(1);
+  });
+
+  it("createPluginSummary includes exitCode and globalErrorsCount when set", async () => {
+    const exitCode = { original: 0, actual: 0 };
+    const store = {
+      allCheckResults: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue([testResult({ status: "failed" })]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      testsStatistic: vi.fn().mockResolvedValue({ total: 1, failed: 1 }),
+      retriesByTr: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(exitCode),
+      allGlobalErrors: vi.fn().mockResolvedValue([{ message: "err-1" }, { message: "err-2" }]),
+    };
+    const summary = await createPluginSummary({
+      name: "summary-name",
+      plugin: "summary-plugin",
+      store: store as any,
+      history: { readHistory: vi.fn().mockResolvedValue([]) } as unknown as AllureHistory,
+      meta: {},
+    });
+
+    expect(summary.exitCode).toEqual(exitCode);
+    expect(summary.globalErrorsCount).toBe(2);
+    expect(summary.status).toBe("failed");
+  });
+
+  describe("resolveReportStatus", () => {
+    it("returns failed when global errors exist", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 1,
+          exitCode: { original: 0, actual: 0 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns failed when exit code is nonzero", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 2 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns worst test status when exit is zero or missing", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 0 },
+          testStatuses: ["passed", "broken"],
+        }),
+      ).toBe("broken");
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          testStatuses: ["passed", "failed"],
+        }),
+      ).toBe("failed");
+    });
+
+    it("returns passed when there are no signals of failure", () => {
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          exitCode: { original: 0, actual: 0 },
+          testStatuses: ["passed"],
+        }),
+      ).toBe("passed");
+      expect(
+        resolveReportStatus({
+          globalErrorsCount: 0,
+          testStatuses: [],
+        }),
+      ).toBe("passed");
+    });
   });
 });

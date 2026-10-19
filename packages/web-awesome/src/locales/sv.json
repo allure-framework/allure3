@@ -14,6 +14,7 @@
     "total": "Totalt",
     "flaky": "Ostadiga tester",
     "retries": "Omtagna tester",
+    "retriesStatusChange": "Ändrat vid nytt försök",
     "new": "Nya tester"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Visa misslyckade eller trasiga testresultat utan lösning"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Ingen lösning"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "copy-email": "Kopiera e-post",
+    "open-link": "Öppna länk",
+    "copy-link": "Kopiera länk",
     "attempt": "Försök {{attempt}} av {{total}}",
     "retry": "Omförsök {{attempt}} av {{total}}",
     "at": "vid",
@@ -189,11 +194,18 @@
     "viewCode": "Visa kod",
     "syntaxHighlight": "Syntaxmarkering",
     "backto": "Tillbaka till",
+    "backToOverview": "Tillbaka till översikten",
     "clipboard": "Kopiera till urklipp",
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som om den här funktionen inte stöds av din webbläsare",
     "clipboardSuccess": "Kopierat framgångsrikt",
     "collapse": "Minimera",
+    "collapseAll": "Fäll ihop alla",
+    "collapseAllPartial": "Fäll ihop alla (vissa grupper är utfällda)",
+    "collapseToDefault": "Fäll ihop till standardvyn",
+    "expandFirstLevel": "Fäll ut första nivån",
+    "collapseToFirstLevel": "Fäll ihop till första nivån",
     "expand": "Expandera",
+    "expandAll": "Expandera alla",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",
@@ -461,6 +473,7 @@
       "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
       "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
       "retries": "{{count}} omkörningar",
+      "retriesStatusChange": "Status ändrades efter ett nytt försök",
       "flaky": "Inkonsekvent mellan körningar",
       "resolution": {
         "issue": "Linked to an issue",

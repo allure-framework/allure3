@@ -1,7 +1,9 @@
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { TreeMapChart } from "@/components/Charts/TreeMapChart";
-import type { TreeMapChartProps } from "@allurereport/web-components";
-import type { Meta, StoryObj } from "@storybook/react";
-import { createTreeMapData, getColor, getColorWithDomain } from "./TreeMapChart/mocks";
+import type { TreeMapChartProps } from "@/components/Charts/TreeMapChart/types";
+
+import { createEmptyTreeMapData, createTreeMapData, getColor, getColorWithDomain } from "./TreeMapChart/mocks";
 
 const meta: Meta<typeof TreeMapChart> = {
   title: "Charts/TreeMapChart",
@@ -31,8 +33,7 @@ export const Default: Story = {
 
 export const EmptyData: Story = {
   args: {
-    title: "Empty Feature Set",
-    data: [],
+    data: createEmptyTreeMapData(),
     colors: getColor,
   },
 };

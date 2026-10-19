@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Genel bakışa dön"
+  },
   "statuses": {
     "passed": "Başarılı",
     "failed": "Başarısız",

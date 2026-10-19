@@ -70,6 +70,7 @@ export const fixtures = {
       jpeg: "image/jpeg",
       json: "application/json",
       png: "image/png",
+      zip: "archive.zip",
       svg: "image/svg+xml",
       tsv: "text/tab-separated-values",
       uri: "text/uri-list",
@@ -96,6 +97,7 @@ export const fixtures = {
       jpeg: "image/jpeg",
       json: "application/json",
       png: "image/png",
+      zip: "archive.zip",
       svg: "image/svg+xml",
       tsv: "text/tab-separated-values",
       uri: "text/uri-list",
@@ -148,5 +150,14 @@ export const fixtures = {
     attachment: "Browser console log",
     attachmentContent: "Browser console remained clean throughout the test run",
     orderedAttachments: ["Beta setup log", "Zeta setup log", "Browser console log", "Alpha legacy log"],
+  },
+  globalsExitFailed: {
+    name: "globals-exit-failed",
+    exitCode: 1,
+  },
+  globalsExitActualOk: {
+    name: "globals-exit-actual-ok",
+    originalExitCode: 1,
+    actualExitCode: 0,
   },
 } as const;

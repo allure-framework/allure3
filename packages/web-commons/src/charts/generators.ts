@@ -7,7 +7,6 @@ import {
 import {
   DEFAULT_ENVIRONMENT,
   emptyStatistic,
-  getFallbackHistoryId,
   incrementStatistic,
   type EnvironmentIdentity,
   type HistoryDataPoint,
@@ -28,79 +27,6 @@ import { generateTestingPyramidChart } from "./generateTestingPyramidChart.js";
 import { generateTrSeveritiesChart } from "./generateTrSeveritiesChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTreeMapChart } from "./treeMap.js";
-
-const buildFallbackHistoryAliases = (testResults: TestResult[]): Map<string, string> => {
-  const aliases = new Map<string, string>();
-  const ambiguousAliases = new Set<string>();
-
-  for (const testResult of testResults) {
-    if (!testResult.historyId) {
-      continue;
-    }
-
-    const fallbackHistoryId = getFallbackHistoryId(testResult);
-
-    if (!fallbackHistoryId || fallbackHistoryId === testResult.historyId) {
-      continue;
-    }
-
-    const existingAlias = aliases.get(fallbackHistoryId);
-
-    if (existingAlias && existingAlias !== testResult.historyId) {
-      aliases.delete(fallbackHistoryId);
-      ambiguousAliases.add(fallbackHistoryId);
-      continue;
-    }
-
-    if (!ambiguousAliases.has(fallbackHistoryId)) {
-      aliases.set(fallbackHistoryId, testResult.historyId);
-    }
-  }
-
-  return aliases;
-};
-
-const normalizeHistoryDataPointsByAliases = (
-  historyDataPoints: HistoryDataPoint[],
-  aliases: Map<string, string>,
-): HistoryDataPoint[] => {
-  if (aliases.size === 0) {
-    return historyDataPoints;
-  }
-
-  return historyDataPoints.map((historyDataPoint) => {
-    let testResults = historyDataPoint.testResults;
-
-    for (const [legacyHistoryId, primaryHistoryId] of aliases) {
-      if (!Object.prototype.hasOwnProperty.call(testResults, legacyHistoryId)) {
-        continue;
-      }
-
-      if (Object.prototype.hasOwnProperty.call(testResults, primaryHistoryId)) {
-        continue;
-      }
-
-      if (testResults === historyDataPoint.testResults) {
-        testResults = { ...testResults };
-      }
-
-      testResults[primaryHistoryId] = {
-        ...testResults[legacyHistoryId],
-        historyId: primaryHistoryId,
-      };
-      delete testResults[legacyHistoryId];
-    }
-
-    if (testResults === historyDataPoint.testResults) {
-      return historyDataPoint;
-    }
-
-    return {
-      ...historyDataPoint,
-      testResults,
-    };
-  });
-};
 
 const generateChartData = async (props: {
   envId?: string;
@@ -129,6 +55,22 @@ const generateChartData = async (props: {
     return trs;
   };
 
+  const getAllTrs = async (): Promise<TestResult[]> => {
+    let trs: TestResult[] = [];
+
+    if (envId) {
+      trs = await store.testResultsByEnvironmentId(envId, { includeRetries: true });
+    } else {
+      trs = await store.allTestResults({ includeRetries: true });
+    }
+
+    if (filter) {
+      trs = trs.filter(filter);
+    }
+
+    return trs;
+  };
+
   const getHistoryDataPoints = async (): Promise<HistoryDataPoint[]> => {
     let historyDataPoints: HistoryDataPoint[] = [];
 
@@ -146,7 +88,7 @@ const generateChartData = async (props: {
             // Just in case filter accesses some property
             // that is not present in the history test result
             return filter(tr as unknown as TestResult);
-          } catch (error) {
+          } catch {
             return false;
           }
         });
@@ -171,17 +113,17 @@ const generateChartData = async (props: {
     return statistic;
   };
 
-  const storeData: AllureChartsStoreData = await Promise.all([getHistoryDataPoints(), getTrs(), getStatistic()]).then(
-    ([historyDataPoints, testResults, statistic]) => {
-      const fallbackHistoryAliases = buildFallbackHistoryAliases(testResults);
-
-      return {
-        historyDataPoints: normalizeHistoryDataPointsByAliases(historyDataPoints, fallbackHistoryAliases),
-        testResults,
-        statistic,
-      };
-    },
-  );
+  const storeData: AllureChartsStoreData = await Promise.all([
+    getHistoryDataPoints(),
+    getTrs(),
+    getStatistic(),
+    getAllTrs(),
+  ]).then(([historyDataPoints, testResults, statistic, allTestResults]) => ({
+    historyDataPoints,
+    testResults,
+    statistic,
+    allTestResults,
+  }));
 
   for (const chartOption of chartsOptions) {
     const chartId = generateUuid();

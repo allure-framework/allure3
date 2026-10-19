@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "მიმოხილვაზე დაბრუნება"
+  },
   "statuses": {
     "passed": "გავლილი",
     "failed": "ჩაჭრილი",

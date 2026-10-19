@@ -14,6 +14,7 @@
     "total": "סה\"כ",
     "flaky": "בדיקות לא יציבות",
     "retries": "בדיקות חוזרות",
+    "retriesStatusChange": "השתנה בניסיון חוזר",
     "new": "בדיקות חדשות"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "הצג תוצאות בדיקה שנכשלו או נשברו ללא פתרון"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "ללא פתרון"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "copy-email": "העתק אימייל",
+    "open-link": "פתח קישור",
+    "copy-link": "העתק קישור",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "retry": "ניסיון חוזר {{attempt}} מתוך {{total}}",
     "at": "ב-",
@@ -189,11 +194,18 @@
     "viewCode": "הצג קוד",
     "syntaxHighlight": "הדגשת תחביר",
     "backto": "חזור ל",
+    "backToOverview": "חזרה לסקירה",
     "clipboard": "העתק ללוח",
     "clipboardError": "לא ניתן להעתיק ללוח. ייתכן שהתכונה לא נתמכת בדפדפן שלך",
     "clipboardSuccess": "הועתק בהצלחה",
     "collapse": "כווץ",
+    "collapseAll": "כווץ הכל",
+    "collapseAllPartial": "כווץ הכל (חלק מהקבוצות מורחבות)",
+    "collapseToDefault": "כווץ לתצוגת ברירת המחדל",
+    "expandFirstLevel": "הרחב את הרמה הראשונה",
+    "collapseToFirstLevel": "כווץ לרמה הראשונה",
     "expand": "הרחב",
+    "expandAll": "הרחב הכל",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
     "openInNewTab": "פתח בכרטיסייה חדשה",
@@ -462,6 +474,7 @@
       "regressed": "בדיקה שהייתה קודם \"עברה\" או \"שבורה\" ועכשיו \"נכשלה\"",
       "malfunctioned": "בדיקה שהייתה קודם \"עברה\" או \"נכשלה\" ועכשיו \"שבורה\"",
       "retries": "{{count}} ניסיונות חוזרים",
+      "retriesStatusChange": "הסטטוס השתנה לאחר ניסיון חוזר",
       "flaky": "לא עקבי בין הרצות",
       "resolution": {
         "issue": "Linked to an issue",

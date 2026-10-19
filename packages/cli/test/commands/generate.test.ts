@@ -211,9 +211,19 @@ describe("generate command", () => {
     expect(serve).not.toHaveBeenCalled();
   });
 
+  it("should return the quality gate exit code from generate", async () => {
+    (readConfig as Mock).mockResolvedValue({ open: false });
+    (generate as Mock).mockResolvedValue({ exitCode: 1 });
+
+    const code = await run(GenerateCommand, ["generate", "foo"]);
+
+    expect(code).toBe(1);
+    expect(serve).not.toHaveBeenCalled();
+  });
+
   it("should call serve when open flag is true", async () => {
     (readConfig as Mock).mockResolvedValue({ output: "foo", open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(GenerateCommand, ["generate", "--open", "bar"]);
@@ -242,13 +252,49 @@ describe("generate command", () => {
     );
   });
 
+  it("should start the server before returning a failed quality gate status", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "foo", open: true });
+    (generate as Mock).mockResolvedValue({ exitCode: 1 });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    const code = await run(GenerateCommand, ["generate", "--open", "bar"]);
+
+    expect(serve).toHaveBeenCalled();
+    expect(code).toBe(1);
+  });
+
+  it("should pass host to serve when open flag is true and host is specified", async () => {
+    (readConfig as Mock).mockResolvedValue({
+      output: "foo",
+      open: true,
+      host: "127.0.0.1",
+    });
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "--open", "--host", "127.0.0.1", "bar"]);
+
+    expect(readConfig).toHaveBeenCalledWith(
+      expect.any(String),
+      undefined,
+      expect.objectContaining({ open: true, host: "127.0.0.1" }),
+    );
+    expect(serve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: "127.0.0.1",
+        servePath: "foo",
+        open: true,
+      }),
+    );
+  });
+
   it("should pass port to serve when open flag is true and port is specified", async () => {
     (readConfig as Mock).mockResolvedValue({
       output: "foo",
       open: true,
       port: 10202,
     });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(GenerateCommand, ["generate", "--open", "--port", "10201", "bar"]);
@@ -290,7 +336,7 @@ describe("generate command", () => {
   it("should handle errors from serve function when open is true", async () => {
     const error = new Error("Serve failed");
     (readConfig as Mock).mockResolvedValue({ open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue({ exitCode: 0 });
     (serve as Mock).mockRejectedValue(error);
 
     const code = await run(GenerateCommand, ["generate", "--open", "foo"]);
@@ -338,5 +384,25 @@ describe("generate command", () => {
         resultsDir: ["foo", "bar"],
       }),
     );
+  });
+});
+
+describe("generate command --clean", () => {
+  it("should pass clean flag to generate", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report", open: false });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "--clean", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ clean: true }));
+  });
+
+  it("should not clean by default", async () => {
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report", open: false });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ clean: undefined }));
   });
 });

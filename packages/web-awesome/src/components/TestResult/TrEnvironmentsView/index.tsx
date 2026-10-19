@@ -1,12 +1,12 @@
 import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
-import { Loadable } from "@allurereport/web-components";
+import { Loadable } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
 import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
-import { environmentNameById, testEnvGroupsStore } from "@/stores/env";
+import { environmentNameById, testEnvGroupId, testEnvGroupsStore } from "@/stores/env";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 
 import * as styles from "./styles.scss";
@@ -63,7 +63,11 @@ export const TrEnvironmentsView: FunctionalComponent<{
             </ul>
           );
         }}
-        transformData={(groups) => groups[testResult?.testCase?.id]}
+        transformData={(groups) => {
+          const groupId = testEnvGroupId(testResult);
+
+          return groupId ? groups[groupId] : undefined;
+        }}
       />
     </div>
   );

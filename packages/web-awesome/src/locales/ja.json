@@ -14,6 +14,7 @@
     "total": "合計",
     "flaky": "不安定なテスト",
     "retries": "再実行テスト",
+    "retriesStatusChange": "再試行で変更",
     "new": "新しいテスト"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "解決がない失敗または破損したテスト結果を表示"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "解決なし"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "copy-email": "メールをコピー",
+    "open-link": "リンクを開く",
+    "copy-link": "リンクをコピー",
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "retry": "リトライ {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
@@ -189,11 +194,18 @@
     "viewCode": "コードを表示",
     "syntaxHighlight": "シンタックスハイライト",
     "backto": "戻る",
+    "backToOverview": "概要に戻る",
     "clipboard": "クリップボードにコピー",
     "clipboardError": "エラー。この機能はお使いのブラウザでサポートされていない可能性があります",
     "clipboardSuccess": "コピー成功",
     "collapse": "折りたたむ",
+    "collapseAll": "すべて折りたたむ",
+    "collapseAllPartial": "すべて折りたたむ（一部のグループは展開されています）",
+    "collapseToDefault": "既定の表示まで折りたたむ",
+    "expandFirstLevel": "第1階層を展開",
+    "collapseToFirstLevel": "第1階層まで折りたたむ",
     "expand": "展開",
+    "expandAll": "すべて展開",
     "fullscreen": "全画面",
     "language": "言語を変更",
     "openInNewTab": "新しいタブで開く",
@@ -461,6 +473,7 @@
       "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
       "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった",
       "retries": "{{count}} 回の再試行",
+      "retriesStatusChange": "再試行後にステータスが変更されました",
       "flaky": "実行ごとに結果が不安定",
       "resolution": {
         "issue": "Linked to an issue",

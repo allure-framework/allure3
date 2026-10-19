@@ -38,6 +38,40 @@ beforeEach(async () => {
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 });
 
+describe("flaky detection configuration", () => {
+  it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
+    const input = { flakyDetection: { stabilizationPeriod } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection?.stabilizationPeriod).toBe(stabilizationPeriod);
+  });
+  it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects stabilizationPeriod=%s",
+    async (stabilizationPeriod) => {
+      const input = { flakyDetection: { stabilizationPeriod } };
+
+      const resolution = resolveConfig(input, { plugins: {} });
+
+      await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+    },
+  );
+  it.each([-2, 1.5, Number.NaN, Number.POSITIVE_INFINITY])("rejects historyDepth=%s", async (historyDepth) => {
+    const input = { flakyDetection: { historyDepth } };
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it("rejects a non-boolean includePassedTests", async () => {
+    const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.includePassedTests");
+  });
+});
+
 describe("findConfig", () => {
   let fixturesDir: string;
 
@@ -264,6 +298,13 @@ describe("validateConfig", () => {
     });
   });
 
+  it("should allow host", () => {
+    expect(validateConfig({ host: "127.0.0.1" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
   it("should return array of unsupported fields if the config contains them", () => {
     // @ts-ignore
     expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
@@ -388,6 +429,24 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture);
 
     expect(resolved.name).toEqual(fixture.name);
+  });
+
+  it("should have no host by default", async () => {
+    const resolved = await resolveConfig({});
+
+    expect(resolved.host).toBeUndefined();
+  });
+
+  it("should return host from the config", async () => {
+    const resolved = await resolveConfig({ host: "0.0.0.0" });
+
+    expect(resolved.host).toBe("0.0.0.0");
+  });
+
+  it("should prefer host override over the config value", async () => {
+    const resolved = await resolveConfig({ host: "0.0.0.0" }, { host: "127.0.0.1" });
+
+    expect(resolved.host).toBe("127.0.0.1");
   });
 
   it("should return provided environment name", async () => {

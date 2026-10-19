@@ -10,6 +10,7 @@ export const mockAllureStore = () => {
     allTestResults = vi.fn().mockResolvedValue([]);
     allGlobalAttachments = vi.fn().mockResolvedValue([]);
     allGlobalErrors = vi.fn().mockResolvedValue([]);
+    globalExitCode = vi.fn().mockResolvedValue(undefined);
     allEnvironmentIdentities = vi.fn().mockResolvedValue([]);
     environmentIdByTrId = vi.fn().mockResolvedValue(undefined);
     attachmentsByTrId = vi.fn().mockResolvedValue([]);

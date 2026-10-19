@@ -65,31 +65,10 @@ export const clearCategoriesFilters = () => {
   };
 };
 
-export const setCategoriesQuery = (query: string) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    query,
-  };
-};
-
 export const setCategoriesStatus = (status: ReportStatus) => {
   categoriesFiltersStore.value = {
     ...categoriesFiltersStore.value,
     status,
-  };
-};
-
-export const setCategoriesSortBy = (sortBy: TreeSortBy) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setCategoriesDirection = (direction: TreeDirection) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    direction,
   };
 };
 

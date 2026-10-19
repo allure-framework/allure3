@@ -7,6 +7,7 @@ import type {
   KnownIssueRecord,
   KnownIssuesFile,
   ResolutionLinkTemplate,
+  ResolutionIssue,
   ResolutionRule,
   ResolutionsConfig,
   TestResult,
@@ -85,7 +86,7 @@ const validateIssueUrl = (rule: IssueResolutionRule, template: ResolutionLinkTem
   let url: URL;
 
   try {
-    url = new URL(template.urlTemplate.replace("%s", encodeURIComponent(rule.issue.id)));
+    url = new URL(template.urlTemplate.replace("%s", () => encodeURIComponent(rule.issue.id)));
   } catch {
     errors.push(`resolutions.links.${rule.issue.type}.urlTemplate must resolve to an absolute URL`);
     return;
@@ -240,6 +241,24 @@ export const getResolutionByRules = (
 
 export const isIgnoredFailure = (testResult: TestResult): boolean =>
   testResult.resolution === "muted" || testResult.resolution === "accepted";
+
+export const createResolutionIssue = (rule: IssueResolutionRule, config?: ResolutionsConfig): ResolutionIssue => {
+  const template = config?.links?.[rule.issue.type];
+  const issue: ResolutionIssue = { ...rule.issue, comment: rule.comment };
+
+  if (!template) {
+    return issue;
+  }
+
+  return {
+    ...issue,
+    link: {
+      name: template.nameTemplate?.replace("%s", () => rule.issue.id) ?? rule.issue.id,
+      url: template.urlTemplate.replace("%s", () => encodeURIComponent(rule.issue.id)),
+      type: rule.issue.type,
+    },
+  };
+};
 
 export const resolveExactIssuesFilePath = async (pathOrDir: string | undefined, label: string) => {
   if (!pathOrDir) return undefined;

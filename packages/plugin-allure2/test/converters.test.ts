@@ -58,6 +58,22 @@ describe("convertTestResult", () => {
     });
   });
 
+  it("serializes canonical retry identity without a legacy historyId alias", () => {
+    const result = convertTestResult(
+      {
+        attachmentMap: new Map(),
+        fixtures: [],
+        categories: [],
+        retries: [],
+        history: [],
+      },
+      createTestResult({ retryHash: "retry-hash" }),
+    );
+
+    expect(result.retryHash).toBe("retry-hash");
+    expect(result).not.toHaveProperty("historyId");
+  });
+
   it("should redact hidden and masked parameters", () => {
     const result = convertTestResult(
       {
@@ -259,4 +275,26 @@ describe("convertTestResult", () => {
       },
     });
   });
+
+  it.each([
+    ["passed", ["passed", "passed"]],
+    ["passed", ["skipped", "unknown"]],
+    ["unknown", ["passed", "failed"]],
+  ] satisfies [TestResult["status"], TestResult["status"][]][])(
+    "should not mark current status %s as changed for retries %j",
+    (currentStatus, retryStatuses) => {
+      const result = convertTestResult(
+        {
+          attachmentMap: new Map(),
+          fixtures: [],
+          categories: [],
+          retries: retryStatuses.map((status, index) => createTestResult({ id: `retry-${index}`, status })),
+          history: [],
+        },
+        createTestResult({ status: currentStatus }),
+      );
+
+      expect(result.retriesStatusChange).toBe(false);
+    },
+  );
 });

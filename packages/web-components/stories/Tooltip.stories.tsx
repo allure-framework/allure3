@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Text } from "@/components/Typography";
 

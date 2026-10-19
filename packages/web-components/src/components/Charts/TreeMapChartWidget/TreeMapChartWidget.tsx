@@ -1,5 +1,6 @@
 import type { TreeMapNode } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
+import { resolveCSSVarColor } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 
 import { useTheme } from "@/components/ThemeProvider/index.js";
@@ -7,6 +8,7 @@ import { useTheme } from "@/components/ThemeProvider/index.js";
 import { Widget } from "../../Widget/index.js";
 import {
   defaultSuccessRateI18n,
+  formatAvailableSuccessRate,
   formatChartPercentage,
   successRateDescription,
   type SuccessRateI18n,
@@ -26,6 +28,7 @@ export const TreeMapChartWidget: FunctionalComponent<
   const coverageDiffColors = useCoverageDiffColors(currentTheme);
   const successRateDistributionColors = useSuccessRateDistributionColors(currentTheme);
   const coverageDiffTextColors = useCoverageDiffTextColors(currentTheme);
+  const successRateMissingValueColor = resolveCSSVarColor("var(--color-status-skipped-chart-fill)");
 
   type SuccessRateNode = TreeMapNode<{
     passedTests?: number;
@@ -38,13 +41,14 @@ export const TreeMapChartWidget: FunctionalComponent<
   const reportTotal = (root.passedTests ?? 0) + (root.failedTests ?? 0) + (root.otherTests ?? 0);
   const describeNode = (node: SuccessRateNode): SuccessRateNode => {
     const total = (node.passedTests ?? 0) + (node.failedTests ?? 0) + (node.otherTests ?? 0);
+    const eligibleCount = node.eligibleCount ?? total;
     const label = i18n("successRate", {
-      rate: total ? `${formatChartPercentage((node.colorValue ?? 0) * 100)}%` : "???",
+      rate: total ? formatAvailableSuccessRate((node.colorValue ?? 0) * 100, eligibleCount, i18n) : "???",
     });
 
     return {
       ...node,
-      successRateText: `${node.id}: ${label}\n${i18n("slice", { count: total, percent: formatChartPercentage(reportTotal ? (total / reportTotal) * 100 : 0) })}\n${successRateDescription(total, node.eligibleCount ?? total, i18n)}`,
+      successRateText: `${node.id}: ${label}\n${i18n("slice", { count: total, percent: formatChartPercentage(reportTotal ? (total / reportTotal) * 100 : 0) })}\n${successRateDescription(total, eligibleCount, i18n)}`,
       children: node.children?.map(describeNode),
     };
   };
@@ -58,6 +62,7 @@ export const TreeMapChartWidget: FunctionalComponent<
         {...restProps}
         isInteractive={chartType !== ChartType.SuccessRateDistribution}
         colors={chartType === ChartType.CoverageDiff ? coverageDiffColors : successRateDistributionColors}
+        missingValueColor={chartType === ChartType.SuccessRateDistribution ? successRateMissingValueColor : undefined}
         showLegend={false}
         labelColor={
           chartType === ChartType.CoverageDiff

@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import { defaultChartsConfig, defineConfig } from "allure";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
@@ -36,6 +38,10 @@ const chartLayout = [
   {
     type: "durationDynamics",
     title: "Durations dynamics",
+  },
+  {
+    type: "successRateDistribution",
+    title: "Success rate distribution",
   },
   {
     type: "testingPyramid",
@@ -129,7 +135,7 @@ export default defineConfig({
       sample: {
         urlTemplate: "https://allurereport.org/tasks/%s",
         nameTemplate: "Sample issue %s",
-      }
+      },
     },
     rules: [
       {
@@ -241,6 +247,15 @@ export default defineConfig({
     csv: {
       options: {
         fileName: "allure-report.csv",
+      },
+    },
+    mail: {
+      // The plugin is loaded by path: it is not a dependency of "@allurereport/core" (mjml is too heavy for the bundle)
+      import: fileURLToPath(new URL("../plugin-mail/dist/index.js", import.meta.url)),
+      options: {
+        title: "HelloWorld",
+        reportUrl: "http://localhost:3000/",
+        maxFailed: 10,
       },
     },
     log: {

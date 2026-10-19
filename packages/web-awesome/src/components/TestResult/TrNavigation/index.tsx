@@ -1,5 +1,5 @@
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Code, IconButton, Menu, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import { computed, useComputed } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
@@ -43,7 +43,7 @@ const NavArrow = (props: { trId: string | undefined; type: "prev" | "next" }) =>
 
 const HOVER_CLOSE_DELAY = 300;
 
-const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string }) => {
+const TestResultCopyMenu = (props: { fullName?: string; testCaseId?: string; retryHash?: string | null }) => {
   const { fullName, testCaseId, retryHash } = props;
   const [copied, setCopied] = useState(false);
   const { t } = useI18n("ui");

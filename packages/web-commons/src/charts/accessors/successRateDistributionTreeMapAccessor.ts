@@ -53,8 +53,8 @@ const addLeafToGroupFn = (group: Group, leaf: Leaf): void => {
   group.otherTests += leaf?.status && !["passed", "failed"].includes(leaf.status) ? 1 : 0;
 };
 
-const calculateColorValue = ({ eligibleCount, passedTests }: SubtreeMetrics): number =>
-  getSuccessRate({ passed: passedTests, failed: eligibleCount - passedTests });
+const calculateColorValue = ({ eligibleCount, passedTests }: SubtreeMetrics): number | undefined =>
+  eligibleCount > 0 ? getSuccessRate({ passed: passedTests, failed: eligibleCount - passedTests }) : undefined;
 
 // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
 const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {

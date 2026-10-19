@@ -145,6 +145,19 @@
     },
     {
       "status": "passed",
+      "name": "archive.zip",
+      "start": 1710000186360,
+      "stop": 1710000186400,
+      "attachments": [
+        {
+          "name": "archive.zip",
+          "type": "application/zip",
+          "source": "attachment-archive.zip"
+        }
+      ]
+    },
+    {
+      "status": "passed",
       "name": "HTTP Exchange",
       "start": 1710000186400,
       "stop": 1710000186680,

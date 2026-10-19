@@ -1,14 +1,18 @@
 import { glob } from "glob";
 
-export const findFilesByGlobs = async (basePath: string, patterns: readonly string[]) => {
+export const findFilesByGlobs = async (
+  basePath: string,
+  patterns: readonly string[],
+  { dot = true, windowsPathsNoEscape = true }: { dot?: boolean; windowsPathsNoEscape?: boolean } = {},
+) => {
   const files: string[] = [];
 
   for (const pattern of patterns) {
     const searchResults = await glob(pattern, {
       nodir: true,
-      dot: true,
+      dot,
       absolute: true,
-      windowsPathsNoEscape: true,
+      windowsPathsNoEscape,
       cwd: basePath,
     });
 

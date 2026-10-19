@@ -14,6 +14,7 @@
     "total": "총계",
     "flaky": "불안정한 테스트들",
     "retries": "재시도 테스트",
+    "retriesStatusChange": "재시도 시 변경됨",
     "new": "새로운 테스트들"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "해결이 없는 실패 또는 중단된 테스트 결과 표시"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "해결 없음"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "더 보기",
     "copy": "복사",
     "copy-email": "이메일 복사",
+    "open-link": "링크 열기",
+    "copy-link": "링크 복사",
     "attempt": "시도 {{attempt}}/{{total}}",
     "retry": "재시도 {{attempt}}/{{total}}",
     "at": "에서",
@@ -189,11 +194,18 @@
     "viewCode": "코드 보기",
     "syntaxHighlight": "구문 강조",
     "backto": "돌아가기",
+    "backToOverview": "개요로 돌아가기",
     "clipboard": "클립보드에 복사",
     "clipboardError": "값을 클립보드에 복사할 수 없습니다. 이 기능이 브라우저에서 지원되지 않을 수 있습니다",
     "clipboardSuccess": "성공적으로 복사됨",
     "collapse": "접기",
+    "collapseAll": "모두 접기",
+    "collapseAllPartial": "모두 접기 (일부 그룹이 펼쳐져 있음)",
+    "collapseToDefault": "기본 보기로 접기",
+    "expandFirstLevel": "첫 번째 수준 펼치기",
+    "collapseToFirstLevel": "첫 번째 수준으로 접기",
     "expand": "펼치기",
+    "expandAll": "모두 펼치기",
     "fullscreen": "전체 화면",
     "language": "언어 변경",
     "openInNewTab": "새 탭에서 열기",
@@ -461,6 +473,7 @@
       "regressed": "이전에 \"통과\" 또는 \"손상됨\"이었던 테스트가 이제 \"실패\"됨",
       "malfunctioned": "이전에 \"통과\" 또는 \"실패\"였던 테스트가 이제 \"손상됨\"됨",
       "retries": "{{count}}회 재시도",
+      "retriesStatusChange": "재시도 후 상태가 변경됨",
       "flaky": "실행마다 결과가 불안정함",
       "resolution": {
         "issue": "Linked to an issue",

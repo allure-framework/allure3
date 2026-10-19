@@ -14,6 +14,7 @@
     "total": "Ընդհանուր",
     "flaky": "Անհուսալի թեստեր",
     "retries": "Կրկնված թեստեր",
+    "retriesStatusChange": "Փոխվել է կրկնափորձի ժամանակ",
     "new": "Նոր թեստեր"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Ցույց տալ ձախողված կամ խափանված թեստերի արդյունքները առանց լուծման"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Առանց լուծման"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "copy-email": "Պատճենել էլ. փոստը",
+    "open-link": "Բացել հղումը",
+    "copy-link": "Պատճենել հղումը",
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "retry": "Կրկնական փորձ {{attempt}} {{total}}-ից",
     "at": "է",
@@ -189,11 +194,18 @@
     "viewCode": "Ցուցադրել կոդ",
     "syntaxHighlight": "Շարահյուսության ընդգծում",
     "backto": "Վերադառնալ",
+    "backToOverview": "Վերադառնալ ակնարկին",
     "clipboard": "Պատճենել սեղմատախտակին",
     "clipboardError": "Սխալ. Հավանաբար ձեր զննարկիչը չի աջակցում այս գործառույթին",
     "clipboardSuccess": "Հաջողությամբ պատճենվեց",
     "collapse": "Կծկել",
+    "collapseAll": "Ծալել բոլորը",
+    "collapseAllPartial": "Ծալել բոլորը (որոշ խմբեր բացված են)",
+    "collapseToDefault": "Ծալել լռելյայն տեսքի",
+    "expandFirstLevel": "Բացել առաջին մակարդակը",
+    "collapseToFirstLevel": "Ծալել մինչև առաջին մակարդակը",
     "expand": "Ընդլայնել",
+    "expandAll": "Բացել բոլորը",
     "fullscreen": "Լրիվ էկրան",
     "language": "Փոխել լեզուն",
     "openInNewTab": "Բացել նոր ներդիրում",
@@ -461,6 +473,7 @@
       "regressed": "Նախկինում \"անցած\" կամ \"կոտրված\" թեստ, որը այժմ \"ձախողվել\" է",
       "malfunctioned": "Նախկինում \"անցած\" կամ \"ձախողված\" թեստ, որը այժմ \"կոտրված\" է",
       "retries": "{{count}} կրկնափորձ",
+      "retriesStatusChange": "Կարգավիճակը փոխվեց կրկնելուց հետո",
       "flaky": "Անհետևողական տարբեր գործարկումների ընթացքում",
       "resolution": {
         "issue": "Linked to an issue",

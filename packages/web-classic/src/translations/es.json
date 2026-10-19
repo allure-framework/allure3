@@ -99,6 +99,7 @@
     "at": "a las"
   },
   "controls": {
+    "backToOverview": "Volver al resumen",
     "newTabAttachment": "Abrir adjunto en nueva pestaña",
     "nextTR": "Siguiente resultado de prueba",
     "prevTR": "Resultado de prueba anterior",

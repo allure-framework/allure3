@@ -6,7 +6,7 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
-import { isStep, redactParameters } from "@allurereport/core-api";
+import { hasRetriesStatusChange, isStep, redactParameters } from "@allurereport/core-api";
 
 import { matchCategories } from "./categories.js";
 import type {
@@ -240,9 +240,7 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     },
   }));
 
-  const retriesStatusChange =
-    isImportantStatus(status) &&
-    retries.find((retry) => isImportantStatus(retry.status) && retry.status !== status) !== undefined;
+  const retriesStatusChange = hasRetriesStatusChange(test, context.retries);
 
   const historyItems: Allure2HistoryItem[] = context.legacyHistory
     ? context.legacyHistory.items.map((item) => ({
@@ -287,8 +285,8 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     uid: test.id,
     name: test.name,
     fullName: test.fullName,
-    historyId: test.historyId,
     testId: test.testCase?.id,
+    retryHash: test.retryHash,
     time: {
       start: test.start,
       stop: test.stop,

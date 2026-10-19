@@ -10,6 +10,7 @@ import ModalView from "../../../shared/ui/ModalView.mts";
 import TooltipView from "../../../shared/ui/TooltipView.mts";
 import { AttachmentView } from "../../attachments/runtime.mts";
 import { createAttachmentRow } from "../../attachments/views/renderAttachmentRow.mts";
+import { effectiveExitCode, hasBadExitCode } from "../model/runStatus.mts";
 
 type GlobalAttachment = import("../../../types/report.mts").GlobalAttachment;
 type GlobalError = import("../../../types/report.mts").GlobalError;
@@ -125,7 +126,21 @@ class RunViewElement extends BaseElement {
 
   renderElement() {
     const errorCount = this.data.errors.length;
-    const failed = errorCount > 0;
+    const exitCodeValue = effectiveExitCode(this.data.exitCode);
+    const badExit = hasBadExitCode(this.data.exitCode);
+    const failed = errorCount > 0 || badExit;
+    const outcomeTitle =
+      errorCount > 0
+        ? translate("run.failed")
+        : badExit
+          ? translate("run.failedWithExitCode", { hash: { code: exitCodeValue } })
+          : translate("run.noErrors");
+    const outcomeDescription =
+      errorCount > 0
+        ? translate("run.failureExplanation")
+        : badExit
+          ? translate("run.exitCodeUnsuccessful", { hash: { code: exitCodeValue } })
+          : translate("run.noErrorsExplanation");
 
     this.className = "run-view";
     this.replaceChildren(
@@ -146,11 +161,11 @@ class RunViewElement extends BaseElement {
             children: [
               createElement("h2", {
                 className: "run-view__outcome-title",
-                text: translate(failed ? "run.failed" : "run.noErrors"),
+                text: outcomeTitle,
               }),
               createElement("p", {
                 className: "run-view__outcome-description",
-                text: translate(failed ? "run.failureExplanation" : "run.noErrorsExplanation"),
+                text: outcomeDescription,
               }),
             ],
           }),

@@ -1,7 +1,15 @@
-import type { ResolutionCategory, TestStatus, TestStatusTransition } from "@allurereport/core-api";
-import { MAX_ARRAY_FIELD_VALUES, getCurrentUrl, goTo } from "@allurereport/web-commons";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import { getCurrentUrl, goTo } from "@allurereport/web-commons";
 
-import { NO_SEVERITY, PARAMS, RESOLUTIONS, SEVERITIES, STATUSES, TRANSITIONS } from "./constants";
+import {
+  NO_SEVERITY,
+  PARAMS,
+  RESOLUTIONS,
+  SEVERITIES,
+  STATUSES,
+  TRANSITIONS,
+  type ResolutionFilterValue,
+} from "./constants";
 import type {
   AwesomeArrayFieldFilter,
   AwesomeBooleanFieldFilter,
@@ -9,10 +17,6 @@ import type {
   AwesomeFilterGroupSimple,
   Filters,
 } from "./model";
-
-export const truncateArrayFieldValues = (values: string[]): string[] => {
-  return values.slice(0, MAX_ARRAY_FIELD_VALUES);
-};
 
 export const getTagsFilterUrl = (tags: string[]): string => {
   const url = new URL(getCurrentUrl());
@@ -39,8 +43,8 @@ export const validateSeverity = (severity: string): boolean => {
   return SEVERITIES.includes(severity);
 };
 
-export const validateResolution = (resolution: string): resolution is ResolutionCategory => {
-  return RESOLUTIONS.includes(resolution as ResolutionCategory);
+export const validateResolution = (resolution: string): resolution is ResolutionFilterValue => {
+  return RESOLUTIONS.includes(resolution as ResolutionFilterValue);
 };
 
 export const migrateFilterParam = () => {
@@ -167,7 +171,7 @@ export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFi
 };
 
 export const isResolutionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {
-  return filter.type === "group" && filter.fieldKey === "resolution";
+  return filter.type === "group" && filter.fieldKey === "resolutionStatus";
 };
 
 export const isTagFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {

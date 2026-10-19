@@ -100,6 +100,7 @@
     "at": "saat"
   },
   "controls": {
+    "backToOverview": "İcmala qayıt",
     "newTabAttachment": "Qoşmanı yeni tabda aç",
     "nextTR": "Növbəti test nəticəsi",
     "prevTR": "Əvvəlki test nəticəsi",

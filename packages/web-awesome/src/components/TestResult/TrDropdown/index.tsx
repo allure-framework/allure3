@@ -1,4 +1,4 @@
-import { ArrowButton, Counter, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Counter, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";

@@ -77,6 +77,7 @@ export class ClassicPlugin implements Plugin {
       reportDataFiles,
       reportUuid: context.reportUuid,
       reportName: context.reportName,
+      overviewHref: context.overviewHref,
     });
   };
 

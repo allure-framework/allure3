@@ -14,6 +14,7 @@
     "total": "总计",
     "flaky": "不稳定的测试",
     "retries": "重跑测试",
+    "retriesStatusChange": "重试时已变更",
     "new": "新的测试"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "显示没有解决方案的失败或损坏测试结果"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "无解决方案"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "显示更多",
     "copy": "复制",
     "copy-email": "复制邮箱",
+    "open-link": "打开链接",
+    "copy-link": "复制链接",
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "retry": "第 {{attempt}} 次重试，共 {{total}} 次",
     "at": "在",
@@ -189,11 +194,18 @@
     "viewCode": "查看代码",
     "syntaxHighlight": "语法高亮",
     "backto": "返回",
+    "backToOverview": "返回概览",
     "clipboard": "复制到剪贴板",
     "clipboardError": "无法复制到剪贴板。可能是浏览器不支持此功能",
     "clipboardSuccess": "复制成功",
     "collapse": "折叠",
+    "collapseAll": "全部折叠",
+    "collapseAllPartial": "全部折叠（部分分组已展开）",
+    "collapseToDefault": "折叠到默认视图",
+    "expandFirstLevel": "展开第一层",
+    "collapseToFirstLevel": "折叠到第一层",
     "expand": "展开",
+    "expandAll": "全部展开",
     "fullscreen": "全屏",
     "language": "更改语言",
     "openInNewTab": "在新标签页中打开",
@@ -461,6 +473,7 @@
       "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
       "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了",
       "retries": "{{count}} 次重试",
+      "retriesStatusChange": "重试后状态改变",
       "flaky": "多次运行结果不一致",
       "resolution": {
         "issue": "Linked to an issue",

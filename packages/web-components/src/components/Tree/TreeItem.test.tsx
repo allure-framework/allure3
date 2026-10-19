@@ -19,4 +19,19 @@ describe("TreeItem", () => {
 
     expect(navigateTo).toHaveBeenCalledWith("test-result-1");
   });
+
+  it("renders parameter values next to the test name", () => {
+    render(
+      <TreeItem
+        id="test-result-1"
+        name="parameterized test"
+        parameters={["chromium", "admin"]}
+        groupOrder={1}
+        navigateTo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("tree-leaf-title").textContent).toBe("parameterized test");
+    expect(screen.getByTestId("tree-leaf-parameters").textContent).toBe("chromium,admin");
+  });
 });

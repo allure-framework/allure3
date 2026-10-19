@@ -1,5 +1,5 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
-import { TreeHeader } from "@allurereport/web-components";
+import { TreeHeader } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren, FC } from "preact/compat";
 
@@ -33,8 +33,6 @@ export const GroupTreeItem: FC<GroupTreeItemProps> = ({
   subtreeToggle,
 }) => {
   const { t: tEmpty } = useI18n("empty");
-  const { t: tFilters } = useI18n("filters");
-  const { t: tEnvironments } = useI18n("environments");
   const stickyStyle = createCategoriesStickyStyle(depth);
   const emptyKeyByGroup: Partial<Record<string, string>> = {
     transition: "no-transition",

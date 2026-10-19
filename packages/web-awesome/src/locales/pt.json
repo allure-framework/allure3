@@ -14,6 +14,7 @@
     "total": "Total",
     "flaky": "Testes instáveis",
     "retries": "Testes repetidos",
+    "retriesStatusChange": "Mudou na nova tentativa",
     "new": "Testes novos"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mostrar resultados de testes com falha ou quebrados sem resolução"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Sem resolução"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Mostrar mais",
     "copy": "Copiar",
     "copy-email": "Copiar e-mail",
+    "open-link": "Abrir link",
+    "copy-link": "Copiar link",
     "attempt": "Tentativa {{attempt}} de {{total}}",
     "retry": "Nova tentativa {{attempt}} de {{total}}",
     "at": "em",
@@ -189,11 +194,18 @@
     "viewCode": "Ver código",
     "syntaxHighlight": "Realce de sintaxe",
     "backto": "Voltar para",
+    "backToOverview": "Voltar para a visão geral",
     "clipboard": "Copiar para a área de transferência",
     "clipboardError": "Erro. Parece que esta funcionalidade não é suportada pelo seu navegador",
     "clipboardSuccess": "Copiado com sucesso",
     "collapse": "Recolher",
+    "collapseAll": "Recolher tudo",
+    "collapseAllPartial": "Recolher tudo (alguns grupos estão expandidos)",
+    "collapseToDefault": "Recolher para a visualização padrão",
+    "expandFirstLevel": "Expandir o primeiro nível",
+    "collapseToFirstLevel": "Recolher até o primeiro nível",
     "expand": "Expandir",
+    "expandAll": "Expandir tudo",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",
@@ -462,6 +474,7 @@
       "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
       "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\"",
       "retries": "{{count}} tentativas",
+      "retriesStatusChange": "Status alterado após nova tentativa",
       "flaky": "Inconsistente entre execuções",
       "resolution": {
         "issue": "Linked to an issue",

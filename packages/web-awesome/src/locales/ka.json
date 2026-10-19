@@ -14,6 +14,7 @@
     "total": "ჯამი",
     "flaky": "არასტაბილური ტესტები",
     "retries": "ხელახალი ტესტები",
+    "retriesStatusChange": "შეიცვალა ხელახლა ცდისას",
     "new": "ახალი ტესტები"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "აჩვენე ჩავარდნილი ან დაზიანებული ტესტის შედეგები გადაწყვეტის გარეშე"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "გადაწყვეტის გარეშე"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "copy-email": "ელფოსტის კოპირება",
+    "open-link": "ბმულის გახსნა",
+    "copy-link": "ბმულის კოპირება",
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "retry": "გამეორება {{attempt}} {{total}}-დან",
     "at": "ზე",
@@ -189,11 +194,18 @@
     "viewCode": "კოდის ჩვენება",
     "syntaxHighlight": "სინტაქსის მონიშვნა",
     "backto": "უკან დაბრუნება",
+    "backToOverview": "მიმოხილვაზე დაბრუნება",
     "clipboard": "კოპირება ბუფერში",
     "clipboardError": "ბუფერში კოპირება ვერ მოხერხდა. შესაძლოა, ფუნქცია არ იყოს მხარდაჭერილი თქვენს ბრაუზერში",
     "clipboardSuccess": "წარმატებით დაკოპირდა",
     "collapse": "ჩაკეცვა",
+    "collapseAll": "ყველას ჩაკეცვა",
+    "collapseAllPartial": "ყველას ჩაკეცვა (ზოგი ჯგუფი გაშლილია)",
+    "collapseToDefault": "ნაგულისხმევ ხედამდე ჩაკეცვა",
+    "expandFirstLevel": "პირველი დონის გაშლა",
+    "collapseToFirstLevel": "პირველ დონემდე ჩაკეცვა",
     "expand": "გახსნა",
+    "expandAll": "ყველას გაშლა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
     "openInNewTab": "გახსნა ახალ ჩანართში",
@@ -461,6 +473,7 @@
       "regressed": "ადრე \"წარმატებული\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარუმატებელი\"ა",
       "malfunctioned": "ადრე \"წარმატებული\" ან \"წარუმატებელი\" ტესტი, რომელიც ახლა \"დამტვრეული\"ა",
       "retries": "{{count}} ხელახალი ცდა",
+      "retriesStatusChange": "სტატუსი შეიცვალა ხელახლა მცდელობისას",
       "flaky": "შედეგები არასტაბილურია გაშვებებს შორის",
       "resolution": {
         "issue": "Linked to an issue",

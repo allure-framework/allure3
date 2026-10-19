@@ -57,6 +57,7 @@ export type ReportOptions = {
   stepTreeExpansion?: StepTreeExpansion;
   defaultSortBy?: string;
   attachmentsBasePath?: string;
+  overviewHref?: string;
 };
 
 export type ReportFixtureResult = Omit<
@@ -103,6 +104,7 @@ export type ReportTestResult = Omit<
   history: HistoryTestResult[];
   retries?: TestResult[];
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: ReportBreadcrumbItem[];
@@ -128,6 +130,7 @@ export type ReportTreeLeaf = Pick<
   | "transition"
   | "retry"
   | "retriesCount"
+  | "retriesStatusChange"
   | "resolution"
 > & {
   nodeId: string;
@@ -140,6 +143,14 @@ export type ReportTreeLeaf = Pick<
    * Value of the test result's `severity` label. Absent when the test result has no severity label.
    */
   severity?: string;
+  /**
+   * Resolution filter bucket. Present for resolved test results and for unresolved failed/broken test results.
+   */
+  resolutionStatus?: ResolutionCategory | "none";
+  /**
+   * Non-empty, redacted parameter values displayed next to the test name in report trees.
+   */
+  parameters?: string[];
 };
 
 export type ReportTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
@@ -156,8 +167,9 @@ export type ReportSearchDocument = {
   id: string;
   nodeId: string;
   name: string;
+  titlePath?: string;
   fullName?: string;
-  historyId?: string;
+  retryHash?: string | null;
   labels?: string;
   owner?: string;
   tags?: string;
@@ -178,6 +190,7 @@ export type ReportResolutionTestResult = Pick<
   | "transition"
   | "retry"
   | "retriesCount"
+  | "retriesStatusChange"
   | "resolution"
   | "tooltips"
 > & {

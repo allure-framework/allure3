@@ -19,6 +19,14 @@ interface TooltipWrapperProps {
   "isTriggerActive"?: boolean;
   "data-testid"?: string;
   "showDelay"?: number;
+  /**
+   * Class of the outer element of the wrapper, e.g. to let it shrink in a flex container
+   */
+  "className"?: string;
+  /**
+   * Class of the element that wraps the children and listens to the trigger events
+   */
+  "triggerClassName"?: string;
 }
 
 interface TooltipProps {
@@ -52,35 +60,29 @@ export const useTooltip = <
   }, [triggerRefProp, tooltipRefProp]);
 
   useEffect(() => {
-    const updatePosition = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        computePosition(triggerRef.current, tooltipRef.current, {
-          placement,
-          middleware: [offset(6), flip(), shift({ padding: 5 })],
-        }).then(({ x, y }) => {
-          if (tooltipRef.current) {
-            Object.assign(tooltipRef.current.style, {
-              "left": `${x}px`,
-              "top": `${y}px`,
-              "position": "absolute",
-              "z-index": 100,
-            });
-          }
-        });
-      }
-    };
-
-    const cleanup = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        autoUpdate(triggerRef.current, tooltipRef.current, updatePosition);
-      }
-    };
-
-    if (isVisible) {
-      updatePosition();
+    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+      return;
     }
 
-    return cleanup();
+    const trigger = triggerRef.current;
+    const tooltip = tooltipRef.current;
+    const updatePosition = () => {
+      computePosition(trigger, tooltip, {
+        placement,
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
+      }).then(({ x, y }) => {
+        Object.assign(tooltip.style, {
+          "left": `${x}px`,
+          "top": `${y}px`,
+          "position": "absolute",
+          "z-index": 100,
+        });
+      });
+    };
+
+    updatePosition();
+
+    return autoUpdate(trigger, tooltip, updatePosition);
   }, [isVisible, placement]);
 };
 
@@ -95,6 +97,8 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   showDelay = 200,
   isTriggerActive = true,
   "data-testid": dataTestId,
+  className,
+  triggerClassName,
 }) => {
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLDivElement | null>(null);
@@ -105,34 +109,32 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
 
   useEffect(() => {
     setCurrentText(tooltipText);
-    const updatePosition = () => {
-      if (triggerRef.current && tooltipRef.current) {
-        computePosition(triggerRef.current, tooltipRef.current, {
-          placement,
-          middleware: [offset(6), flip(), shift({ padding: 5 })],
-        }).then(({ x, y }) => {
-          if (tooltipRef.current) {
-            Object.assign(tooltipRef.current.style, {
-              "left": `${x}px`,
-              "top": `${y}px`,
-              "position": "absolute",
-              "z-index": 100,
-            });
-          }
-        });
-      }
-    };
+  }, [tooltipText]);
 
-    const cleanup = () =>
-      triggerRef.current && tooltipRef.current
-        ? autoUpdate(triggerRef.current, tooltipRef.current, updatePosition)
-        : () => {};
-
-    if (isVisible) {
-      updatePosition();
+  useEffect(() => {
+    if (!isVisible || !triggerRef.current || !tooltipRef.current) {
+      return;
     }
 
-    return cleanup();
+    const trigger = triggerRef.current;
+    const tooltip = tooltipRef.current;
+    const updatePosition = () => {
+      computePosition(trigger, tooltip, {
+        placement,
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
+      }).then(({ x, y }) => {
+        Object.assign(tooltip.style, {
+          "left": `${x}px`,
+          "top": `${y}px`,
+          "position": "absolute",
+          "z-index": 100,
+        });
+      });
+    };
+
+    updatePosition();
+
+    return autoUpdate(trigger, tooltip, updatePosition);
   }, [isVisible, placement, tooltipText]);
 
   const onMouseEnter = () => {
@@ -190,8 +192,10 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   );
 
   return (
-    <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>
-      <div ref={triggerRef}>{children}</div>
+    <div className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>
+      <div ref={triggerRef} className={triggerClassName}>
+        {children}
+      </div>
       <div ref={tooltipRef}>{isVisible && tooltipContent}</div>
     </div>
   );

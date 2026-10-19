@@ -68,6 +68,27 @@ Repeat `--results-dir` for multiple patterns. CLI overrides `config.resultsDir`.
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
 
+Allure operational messages use scoped prefixes such as `[AllureRun]:`, `[QualityGate]:`, and `[AllureRerun]:`.
+Set `ALLURE_LOG_LEVEL=debug` to include details such as selected tests and temporary test plan paths. Allure ignores
+the generic `LOG_LEVEL` environment variable. Use `--silent` to hide the nested test process output while keeping
+Allure lifecycle messages visible.
+
+### Verbosity flags
+
+`-v/--verbose` and `-q/--quiet` are global flags accepted by every command (place them before `--` in `allure run`;
+everything after `--` is passed to your test command untouched).
+
+| Flag | Allure log level | `allure run` test process output |
+| --- | --- | --- |
+| _(none)_ | `ALLURE_LOG_LEVEL`, default `info` | printed |
+| `--verbose`, `-v` | `verbose` | printed |
+| `--quiet`, `-q` | `error` (errors only) | hidden, same as `--silent` |
+
+- The flags override `ALLURE_LOG_LEVEL`. `--verbose` and `--quiet` cannot be combined.
+- `--quiet` implies `--silent`. Logs are still collected into the report unless `--ignore-logs` is set.
+- `--silent` and `--ignore-logs` keep their meaning and are independent of `--verbose`.
+- A lone `allure -v` still prints the version.
+
 ### Running Tests In Agent Mode
 
 When you need agent-friendly markdown output for review, debugging, or scope validation, use the `agent` command:
@@ -98,7 +119,7 @@ option writes the agentic output directory.
 
 `allure agent` and `allure agent inspect` use `--report auto` by default. This writes the agent-readable artifacts and, when the stored visible result count is 1000 or fewer, also writes a single-file Awesome report at `awesome/index.html` inside the agent output directory. Runs above that threshold skip the human report to avoid excessive output, and the status is recorded in `index.md`, `manifest/run.json`, and `manifest/human-report.json`.
 
-Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or TestOps are otherwise ignored for agent runs.
+Use `--report off` for agent-only artifacts, `--report awesome` to force the single-file Awesome report regardless of result count, or `--report config` to force the configured non-agent report plugins inside the agent output directory. Configured presentation or export plugins such as Dashboard or Allure TestOps are otherwise ignored for agent runs.
 
 If you need the human-readable report from the most recent agent run, first run `npx allure agent latest` when the output directory is unknown. Then check `<output>/manifest/human-report.json`; when its status is `generated`, open `<output>/<path>` from that manifest, usually `<output>/awesome/index.html`.
 
@@ -170,6 +191,14 @@ To check your installed version of Allure 3, use:
 ```bash
 npx allure --version
 ```
+
+For direct interactive CLI invocations, Allure checks the npm registry for a newer version alongside the command.
+Each eligible invocation makes one request with a one-second timeout; no update state is stored on disk. Missing
+package metadata and network errors are silently ignored. The check is skipped for `allure agent`, help and version
+output, quiet mode, CI, non-interactive terminals, and invocations through npm or Yarn. Disable it with `--no-update-notifier`
+(for example, `allure --no-update-notifier generate ./allure-results`), or set `NO_UPDATE_NOTIFIER` for the environment.
+Numbered prerelease versions (such as `3.21.0-beta.2`) check their matching npm dist-tag instead of the stable `latest`
+tag. Unrecognized version formats are silently skipped.
 
 ## Configuration
 

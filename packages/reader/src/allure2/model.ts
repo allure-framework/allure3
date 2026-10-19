@@ -53,6 +53,7 @@ export interface Parameter {
 export interface StatusDetails {
   message?: string;
   trace?: string;
+  errors?: StatusDetails[];
   known?: boolean;
   muted?: boolean;
   flaky?: boolean;

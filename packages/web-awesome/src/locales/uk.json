@@ -14,6 +14,7 @@
     "total": "Всього",
     "flaky": "Нестабільні тести",
     "retries": "Повторні тести",
+    "retriesStatusChange": "Змінився під час повтору",
     "new": "Нові тести"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Показати невдалі або зламані результати тестів без рішення"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Без рішення"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Показати більше",
     "copy": "Скопіювати",
     "copy-email": "Скопіювати email",
+    "open-link": "Відкрити посилання",
+    "copy-link": "Скопіювати посилання",
     "attempt": "Спроба {{attempt}} з {{total}}",
     "retry": "Повтор {{attempt}} з {{total}}",
     "at": "в",
@@ -189,11 +194,18 @@
     "viewCode": "Показати код",
     "syntaxHighlight": "Підсвітка синтаксису",
     "backto": "Повернутися на",
+    "backToOverview": "Повернутися до огляду",
     "clipboard": "Скопіювати в буфер обміну",
     "clipboardError": "Помилка. Швидше за все ваш браузер не підтримує дану функціональність",
     "clipboardSuccess": "Значення успішно скопійовано",
     "collapse": "Згорнути",
+    "collapseAll": "Згорнути все",
+    "collapseAllPartial": "Згорнути все (частина груп розгорнута)",
+    "collapseToDefault": "Згорнути до типового вигляду",
+    "expandFirstLevel": "Розгорнути перший рівень",
+    "collapseToFirstLevel": "Згорнути до першого рівня",
     "expand": "Розгорнути",
+    "expandAll": "Розгорнути все",
     "fullscreen": "На весь екран",
     "language": "Змінити мову",
     "openInNewTab": "Відкрити в новій вкладці",
@@ -414,6 +426,7 @@
       "regressed": "Раніше \"успішний\" або \"зламаний\" тест, який тепер \"неуспішний\"",
       "malfunctioned": "Раніше \"успішний\" або \"неуспішний\" тест, який тепер \"зламаний\"",
       "retries": "{{count}} повторних спроб",
+      "retriesStatusChange": "Статус змінився між повторними спробами",
       "flaky": "Нестабільний між запусками",
       "resolution": {
         "issue": "Linked to an issue",

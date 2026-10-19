@@ -75,7 +75,8 @@ $side-nav-control-size: gap(4);
   &__link,
   &__collapse,
   &__theme,
-  &__language {
+  &__language,
+  &__overview {
     align-items: center;
     border: 0;
     box-sizing: border-box;
@@ -242,6 +243,7 @@ $side-nav-control-size: gap(4);
     .side-nav__brand,
     .side-nav__collapse,
     .side-nav__link,
+    .side-nav__overview,
     .side-nav__theme,
     .side-nav__language {
       white-space: nowrap;
@@ -255,6 +257,7 @@ $side-nav-control-size: gap(4);
 
     .side-nav__collapse,
     .side-nav__link,
+    .side-nav__overview,
     .side-nav__theme,
     .side-nav__language {
       inline-size: $side-nav-collapsed-item-width;

@@ -1,13 +1,15 @@
 import console from "node:console";
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
+import { detect } from "@allurereport/ci";
 import type { TestResult } from "@allurereport/core-api";
 import { type Plugin, type QualityGateRule, md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
-import { BufferResultFile, type ResultsReader } from "@allurereport/reader-api";
+import MetricsPlugin from "@allurereport/plugin-metrics";
+import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
 import type { Mock, Mocked } from "vitest";
@@ -99,6 +101,10 @@ beforeEach(async () => {
   await label("coverage", "report-engine");
   previousCwd = process.cwd();
   vi.clearAllMocks();
+  (detect as Mock).mockReturnValue({
+    repoName: "allure3",
+    jobRunBranch: "main",
+  });
   (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(
     new URL("https://allurereport.com/reports"),
   );
@@ -180,6 +186,260 @@ describe("report", () => {
     expect(registryEntry).not.toHaveProperty("attachments");
     expect(registryEntry).not.toHaveProperty("error");
     await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
+  describe("overview link", () => {
+    const summary = {
+      name: "Summary",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed",
+      duration: 0,
+    } as const;
+    const overviewHref = "../index.html";
+    type TestPlugin = ReturnType<typeof createPlugin>;
+
+    const collectOverviewHrefs = async (plugins: TestPlugin[], options: { realTime?: boolean } = {}) => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-overview-href-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const hrefs: Record<string, string | undefined> = {};
+
+      config.plugins = plugins;
+      plugins.forEach(({ id, plugin }) => {
+        (plugin.done as Mock).mockImplementation(async (context) => {
+          hrefs[id] = context.overviewHref;
+          await context.reportFiles.addFile("index.html", Buffer.from(id));
+        });
+      });
+
+      const allureReport = new AllureReport({ ...config, ...options });
+
+      await allureReport.start();
+      await allureReport.done();
+
+      return hrefs;
+    };
+    const withSummary = (plugin: TestPlugin, override: Record<string, unknown> = {}) => {
+      (plugin.plugin.info as Mock).mockResolvedValue({ ...summary, ...override });
+
+      return plugin;
+    };
+
+    it("should pass the overview link to every plugin when at least two plugins generate a report", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), withSummary(createPlugin("p2"))]);
+
+      expect(hrefs).toStrictEqual({ p1: overviewHref, p2: overviewHref });
+    });
+
+    it("should not pass the overview link when only one plugin provides a summary", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), createPlugin("p2")]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
+
+    it("should not pass the overview link when plugins have no info method", async () => {
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+
+      delete (p1.plugin as Partial<typeof p1.plugin>).info;
+      delete (p2.plugin as Partial<typeof p2.plugin>).info;
+
+      const hrefs = await collectOverviewHrefs([p1, p2]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
+
+    it("should count the summaries that point to a remote report, they get a directory and the overview is written", async () => {
+      const hrefs = await collectOverviewHrefs([
+        withSummary(createPlugin("p1")),
+        withSummary(createPlugin("remote"), { remoteHref: "https://example.org/launch/1" }),
+      ]);
+
+      expect(hrefs).toStrictEqual({ p1: overviewHref, remote: overviewHref });
+    });
+
+    it("should not count the plugins that are disabled", async () => {
+      const disabled = withSummary(createPlugin("p2", false));
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), disabled]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined });
+    });
+
+    it("should not pass the overview link in the real time mode, the overview is written when the report is done", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), withSummary(createPlugin("p2"))], {
+        realTime: true,
+      });
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
+  });
+
+  describe("flattening of the output directory", () => {
+    const visitFailedTest = async (allureReport: AllureReport) => {
+      await allureReport.start();
+      await allureReport.store.visitTestResult(
+        { uuid: "result-1", name: "failed test", status: "failed", duration: 123 },
+        { readerId: "report.test.ts" },
+      );
+    };
+
+    it("should keep the metrics export directory when metrics is the only report plugin", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-only-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [{ id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+      await expect(readFile(join(output, "export", "influxDbData.txt"), "utf8")).resolves.toContain(
+        "launch_status failed=1 ",
+      );
+      await expect(readFile(join(output, "prometheusData.txt"), "utf8")).rejects.toThrow();
+    });
+
+    it("should keep a single plugin report in the root next to the metrics export directory", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-with-plugin-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1, { id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+    });
+
+    it("should keep every plugin report directory next to the metrics export directory", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-metrics-with-plugins-"));
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1, p2, { id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      for (const plugin of [p1, p2]) {
+        (plugin.plugin.done as Mock).mockImplementation(async (context) => {
+          await context.reportFiles.addFile("index.html", Buffer.from(context.id));
+        });
+      }
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).resolves.toBe("p1");
+      await expect(readFile(join(output, "p2", "index.html"), "utf8")).resolves.toBe("p2");
+      await expect(readFile(join(output, "export", "prometheusData.txt"), "utf8")).resolves.toContain(
+        "launch_status_failed 1\n",
+      );
+    });
+
+    it("should not move a plugin report to the root when the output has other directories", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-other-directories-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      await mkdir(join(output, "other"), { recursive: true });
+      await writeFile(join(output, "other", "keep.txt"), "keep");
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "other", "keep.txt"), "utf8")).resolves.toBe("keep");
+    });
+
+    it("should keep the history base url as is when the output is not flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-not-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [{ id: "metrics", enabled: true, options: {}, plugin: new MetricsPlugin() }];
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/");
+    });
+
+    it("should point the history url to the root report when the output is flattened", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-history-url-flattened-"));
+      const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-history-url-data-")), "history.jsonl");
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+        historyPath,
+        appendHistory: true,
+        historyBaseUrl: "https://bucket.example/runs/42",
+      });
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      const [historyPoint] = await readHistoryEntries(historyPath);
+
+      expect(historyPoint.url).toBe("https://bucket.example/runs/42/index.html");
+    });
+
+    it("should still move a single plugin report directory to the root", async () => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-single-plugin-"));
+      const p1 = createPlugin("p1");
+      const config = await resolveConfig({ name: "Allure Report", output });
+
+      config.plugins = [p1];
+      (p1.plugin.done as Mock).mockImplementation(async (context) => {
+        await context.reportFiles.addFile("index.html", Buffer.from("index"));
+      });
+
+      const allureReport = new AllureReport(config);
+
+      await visitFailedTest(allureReport);
+      await allureReport.done();
+
+      await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+      await expect(readFile(join(output, "p1", "index.html"), "utf8")).rejects.toThrow();
+    });
   });
 
   it("should write quality gate results with related test ids", async () => {
@@ -332,9 +592,9 @@ describe("report", () => {
         },
       ],
     });
-    expect(Object.values(parsed.resolutionIssues[0].testResults)).toEqual([
-      expect.objectContaining({ name: "failed test", status: "failed" }),
-    ]);
+    expect(parsed.resolutionIssues[0].testResults).toEqual({
+      [`${md5("tc-1")}.${md5("")}`]: expect.objectContaining({ name: "failed test", status: "failed" }),
+    });
   });
 
   it("should skip readers whose matcher rejects the result file", async () => {
@@ -363,6 +623,77 @@ describe("report", () => {
     expect(rejectedReader.matches).toHaveBeenCalledWith(resultFile);
     expect(rejectedReader.read).not.toHaveBeenCalled();
     expect(acceptedReader.read).toHaveBeenCalledWith(allureReport.store, resultFile);
+  });
+
+  it("should serialize earlier attempt statuses in history retries", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "allure3-history-retries-"));
+    const historyPath = join(directory, "history.jsonl");
+    const existingEntry = {
+      uuid: "existing",
+      name: "Existing run",
+      timestamp: 1,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "",
+      testResults: {
+        "existing-retry-hash": {
+          id: "existing-result",
+          name: "existing test",
+          status: "passed",
+          retryHash: "existing-retry-hash",
+          url: "",
+        },
+      },
+    };
+
+    try {
+      await writeFile(historyPath, `${JSON.stringify(existingEntry)}\n`, "utf-8");
+      const config = await resolveConfig(
+        { name: "Allure Report", output: join(directory, "report"), historyPath },
+        { plugins: {} },
+      );
+      const allureReport = new AllureReport(config);
+      const attempts = [
+        { status: "failed", start: 100 },
+        { status: "passed", start: 300 },
+        { status: "broken", start: 200 },
+      ] as const;
+
+      await allureReport.start();
+      await step("ingest attempts for one retryHash group", async () => {
+        for (const [index, attempt] of attempts.entries()) {
+          await allureReport.store.visitTestResult(
+            {
+              uuid: `attempt-${index}`,
+              testId: "retried-test",
+              name: `attempt ${index}`,
+              fullName: "suite.retried-test",
+              ...attempt,
+            },
+            { readerId: "test" },
+          );
+        }
+      });
+      await allureReport.done();
+
+      await step("verify history retries in the serialized file", async () => {
+        const [historicalPoint, currentPoint] = await readHistoryEntries(historyPath);
+        const historyTestResults = Object.values(currentPoint.testResults);
+
+        expect(historicalPoint).toEqual(existingEntry);
+        expect(historyTestResults).toHaveLength(1);
+        expect(historyTestResults[0]).toEqual(
+          expect.objectContaining({
+            name: "attempt 1",
+            fullName: "suite.retried-test",
+            status: "passed",
+            retries: ["failed", "broken"],
+          }),
+        );
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("should not touch the history file when appendHistory is false", async () => {
@@ -416,7 +747,6 @@ describe("report", () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-executor-history-url-"));
     const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-executor-history-url-data-")), "history.jsonl");
     const reportUrl = "https://jenkins.example/job/demo/42/allure";
-    const expectedReportUrl = `${reportUrl}/`;
     const config = await resolveConfig({
       name: "Allure Report",
       output,
@@ -446,9 +776,9 @@ describe("report", () => {
     const [historyPoint] = await readHistoryEntries(historyPath);
     const [historyTestResult] = Object.values(historyPoint.testResults);
 
-    expect(allureReport.reportUrl).toBe(expectedReportUrl);
-    expect(historyPoint.url).toBe(expectedReportUrl);
-    expect(historyTestResult).toEqual(expect.objectContaining({ url: expectedReportUrl }));
+    expect(allureReport.reportUrl).toBe(reportUrl);
+    expect(historyPoint.url).toBe(reportUrl);
+    expect(historyTestResult).toEqual(expect.objectContaining({ url: reportUrl }));
   });
 
   it("should prefer plugin reportUrl over allure2 executor reportUrl for appended history", async () => {
@@ -502,7 +832,6 @@ describe("report", () => {
   it("should expose allure2 executor reportUrl to plugin done hooks when no plugin overrides it", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-plugin-context-executor-url-"));
     const reportUrl = "https://jenkins.example/job/demo/42/allure";
-    const expectedReportUrl = `${reportUrl}/`;
     const p1 = createPlugin("p1");
     const config = await resolveConfig({
       name: "Allure Report",
@@ -525,76 +854,8 @@ describe("report", () => {
     });
     await allureReport.done();
 
-    expect(pluginDoneReportUrl).toBe(expectedReportUrl);
-    expect(allureReport.reportUrl).toBe(expectedReportUrl);
-  });
-
-  it("should expose executor reportUrl to generated single-plugin Awesome history", async () => {
-    const historyPath = join(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-data-")), "history.jsonl");
-    const reportUrl = "http://127.0.0.1:58888/job/demo/42/allure";
-    const createConfig = async (output: string) => {
-      const config = await resolveConfig({
-        name: "Allure Report",
-        output,
-        historyPath,
-        appendHistory: true,
-      });
-
-      config.plugins = [
-        {
-          id: "awesome",
-          enabled: true,
-          options: {},
-          plugin: new AwesomePlugin({}),
-        },
-      ];
-
-      return config;
-    };
-    const runReport = async (output: string, uuid: string, status: TestResult["status"]) => {
-      const allureReport = new AllureReport(await createConfig(output));
-
-      await allureReport.start();
-      await allureReport.store.visitMetadata({
-        allure2_executor: {
-          reportUrl,
-        },
-      });
-      await allureReport.store.visitTestResult(
-        {
-          uuid,
-          name: "AdditionWorks",
-          testId: "addition-works",
-          status,
-        },
-        { readerId: "test" },
-      );
-      await allureReport.done();
-
-      return allureReport;
-    };
-
-    await runReport(await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-first-")), "first-result", "failed");
-
-    const secondOutput = await mkdtemp(join(tmpdir(), "allure3-awesome-history-url-second-"));
-
-    await runReport(secondOutput, "second-result", "passed");
-
-    const generatedTestResultFiles = await readdir(join(secondOutput, "data", "test-results"));
-    const generatedTestResults = await Promise.all(
-      generatedTestResultFiles.map(async (file) =>
-        JSON.parse(await readFile(join(secondOutput, "data", "test-results", file), "utf8")),
-      ),
-    );
-    const generatedTestResult = generatedTestResults.find((testResult) => testResult.name === "AdditionWorks");
-
-    expect(generatedTestResult.history[0].url).toEqual(
-      `${reportUrl}/awesome/index.html#${generatedTestResult.history[0].id}`,
-    );
-    await expect(readFile(join(secondOutput, "index.html"), "utf8")).resolves.toContain("Allure Report");
-    await expect(readFile(join(secondOutput, "awesome", "index.html"), "utf8")).rejects.toMatchObject({
-      code: "ENOENT",
-    });
+    expect(pluginDoneReportUrl).toBe(reportUrl);
+    expect(allureReport.reportUrl).toBe(reportUrl);
   });
 
   it("should validate historyBaseUrl only for the effective local provider", async () => {
@@ -1049,6 +1310,7 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const reader: ResultsReader = {
       read: vi.fn(async () => true),
+      readerId: () => "fixture",
     };
     const config = await resolveConfig({
       name: "Allure Report",
@@ -1072,13 +1334,23 @@ describe("report", () => {
     await allureReport.done();
 
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
+    const readMock = reader.read as Mock<ResultsReader["read"]>;
+    const [, readData] = readMock.mock.calls[0]!;
 
+    expect(readData).toBeInstanceOf(PathResultFile);
+    expect((readData as PathResultFile).path).toBe(join(resultsDir, "result.json"));
     expect(metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateTotal, value: expect.any(Number) }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults, value: expect.any(Number) }),
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResultsFiles, value: 1 }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
+          value: expect.any(Number),
+        }),
         expect.objectContaining({ key: PERF_METRIC_NAMES.generatePluginsDone, value: expect.any(Number) }),
         expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.generatePluginDone}p1`, value: expect.any(Number) }),
+        expect.objectContaining({ key: `${PERF_METRIC_PREFIXES.generatePlugin}p1.generatedFiles`, value: 1 }),
       ]),
     );
   });
@@ -1090,6 +1362,7 @@ describe("report", () => {
     const resultsFile = join(await mkdtemp(join(tmpdir(), "allure3-perf-read-file-input-")), "result.json");
     const reader: ResultsReader = {
       read: vi.fn(async () => true),
+      readerId: () => "fixture",
     };
     const config = await resolveConfig({
       name: "Allure Report",
@@ -1110,7 +1383,13 @@ describe("report", () => {
     const metrics = await readPerfMetrics(output, allureReport.reportUuid);
 
     expect(metrics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults })]),
+      expect.arrayContaining([
+        expect.objectContaining({ key: PERF_METRIC_NAMES.generateReadResults }),
+        expect.objectContaining({
+          key: `${PERF_METRIC_NAMES.generateReadResultsReaderRead}.totalMs`,
+          value: expect.any(Number),
+        }),
+      ]),
     );
   });
 
@@ -1154,6 +1433,7 @@ describe("report", () => {
     const p1 = createPlugin("p1", true, { publish: true });
     const p2 = createPlugin("p2", true, { publish: false });
     const p3 = createPlugin("p3", true);
+    const reportUrl = "https://allure.example/reports/published";
     const config = await resolveConfig({
       name: "Allure Report",
     });
@@ -1168,6 +1448,10 @@ describe("report", () => {
     (p3.plugin.done as Mock).mockImplementation(async (context) => {
       await context.reportFiles.addFile("index.html", Buffer.from("p3"));
     });
+    p1.plugin.info.mockImplementation(async (context) => {
+      context.reportUrl = reportUrl;
+      return undefined;
+    });
 
     const allureReport = new AllureReport({
       ...config,
@@ -1175,6 +1459,10 @@ describe("report", () => {
     });
 
     await allureReport.start();
+    await allureReport.store.visitTestResult(
+      { uuid: "published-result", name: "Published test", testId: "published-test", status: "passed" },
+      { readerId: "test" },
+    );
     await allureReport.done();
 
     expect(AllureServiceClientMock.prototype.createReport).toBeCalledTimes(1);
@@ -1191,6 +1479,89 @@ describe("report", () => {
       }),
     );
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.completeReport).toHaveBeenCalledWith({
+      reportUuid: allureReport.reportUuid,
+      historyPoint: expect.objectContaining({ uuid: allureReport.reportUuid, url: reportUrl }),
+    });
+    const { historyPoint } = (AllureServiceClientMock.prototype.completeReport as Mock).mock.calls[0][0];
+    expect(Object.values(historyPoint.testResults)).toEqual([
+      expect.objectContaining({ name: "Published test", status: "passed", url: reportUrl }),
+    ]);
+  });
+
+  it("should read remote history from targetBranch on PR CI while creating report on jobRunBranch", async () => {
+    (detect as Mock).mockReturnValue({
+      repoName: "allure3",
+      jobRunBranch: "feature/pr-branch",
+      targetBranch: "main",
+    });
+    (AllureServiceClientMock.prototype.downloadHistory as Mock).mockResolvedValue([]);
+
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("p1"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(AllureServiceClientMock.prototype.downloadHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "feature/pr-branch",
+      }),
+    );
+  });
+
+  it("should read remote history from jobRunBranch when targetBranch is absent", async () => {
+    (detect as Mock).mockReturnValue({
+      repoName: "allure3",
+      jobRunBranch: "main",
+    });
+    (AllureServiceClientMock.prototype.downloadHistory as Mock).mockResolvedValue([]);
+
+    const p1 = createPlugin("p1", true, { publish: true });
+    const config = await resolveConfig({ name: "Allure Report" });
+
+    config.plugins = [p1];
+    (p1.plugin.done as Mock).mockImplementation(async (context) => {
+      await context.reportFiles.addFile("index.html", Buffer.from("p1"));
+    });
+
+    const allureReport = new AllureReport({
+      ...config,
+      allureService: allureServiceConfig(),
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(AllureServiceClientMock.prototype.downloadHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
+    expect(AllureServiceClientMock.prototype.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "allure3",
+        branch: "main",
+      }),
+    );
   });
 
   it("should skip publish in realtime mode", async () => {

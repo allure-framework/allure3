@@ -70,6 +70,19 @@ const getRepositoryFromUrl = () => {
   return repositoryUrl ? resolveRepositoryFromGitUrl(repositoryUrl) : undefined;
 };
 
+const getBrowserRepositoryUrl = (repositoryUrl: string): string => {
+  try {
+    const url = new URL(repositoryUrl);
+
+    url.username = "";
+    url.password = "";
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return repositoryUrl;
+  }
+};
+
 export const azure: CiDescriptor = {
   type: CiType.Azure,
 
@@ -141,7 +154,7 @@ export const azure: CiDescriptor = {
     }
 
     if (repositoryProvider === "TfsGit" || repositoryProvider === "TfsVersionControl") {
-      return `${repositoryUrl}/pullrequest/${pullRequestId}`;
+      return `${getBrowserRepositoryUrl(repositoryUrl)}/pullrequest/${pullRequestId}`;
     }
 
     return "";

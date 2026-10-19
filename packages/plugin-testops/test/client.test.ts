@@ -446,7 +446,7 @@ describe("testops http client", () => {
 
   describe("startUpload", () => {
     it("should throw an error when launch hasn't been created before", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -846,7 +846,7 @@ describe("testops http client", () => {
 
   describe("startUpload with an existing job run id", () => {
     it("should not require a launch to already exist", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: { launchId: 777 } });
       });
 
@@ -860,7 +860,7 @@ describe("testops http client", () => {
     });
 
     it("should throw when TestOps doesn't return a launch id for the job run", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -976,7 +976,7 @@ describe("testops http client", () => {
 
   describe("stopUpload", () => {
     it("should throw an error when upload hasn't been started before", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -1335,7 +1335,7 @@ describe("testops http client", () => {
     });
 
     it("should throw an error when launch hasn't been created before", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -1427,7 +1427,7 @@ describe("testops http client", () => {
     });
 
     it("should throw an error when launch hasn't been created before", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -1446,7 +1446,13 @@ describe("testops http client", () => {
       ).rejects.toThrow();
     });
 
-    it("should upload attachments to /api/launch/attachment", async () => {
+    it.each([
+      { scenario: "stdout display name", names: ["npm_test.stdout.txt"] },
+      { scenario: "stderr display name", names: ["npm_test.stderr.txt"] },
+      { scenario: "missing display name", names: [undefined] },
+      { scenario: "empty display name", names: [""] },
+      { scenario: "multiple attachments", names: ["npm_test.stdout.txt", "npm_test.stderr.txt", undefined, ""] },
+    ])("should upload attachments using $scenario", async ({ names }) => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
@@ -1464,19 +1470,36 @@ describe("testops http client", () => {
         projectId: fixtures.projectId,
         baseUrl: fixtures.endpoint,
       });
-      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
-      const attachmentsResolver = vi.fn().mockImplementation(async (attachmentLink: AttachmentLink) => ({
-        originalFileName: (attachmentLink as any).name ?? attachmentLink.originalFileName,
-        contentType: attachmentLink.contentType,
-        content: Buffer.from("test content"),
+      const attachments: AttachmentLink[] = names.map((name, index) => ({
+        id: `att-${index}`,
+        originalFileName: `source-uuid-${index}`,
+        ext: "",
+        used: false,
+        missed: false,
+        ...(name === undefined ? {} : { name }),
+      }));
+      const attachmentsResolver = vi.fn().mockImplementation(async (link: AttachmentLink) => ({
+        originalFileName: link.originalFileName,
+        contentType: "text/plain",
+        content: Buffer.from(`content for ${link.id}`),
       }));
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
 
-      expect(attachmentsResolver).toHaveBeenCalledTimes(1);
-      expect(attachmentsResolver).toHaveBeenCalledWith(attachments[0]);
+      expect(attachmentsResolver).toHaveBeenCalledTimes(attachments.length);
+      const upload = AxiosMock.post.mock.calls.find(([url]) => url === "/api/launch/attachment");
+      const formData = upload![1] as FormData;
+      const multipart = formData.getBuffer().toString("utf8");
+      expect(multipart.match(/name="file";/g)).toHaveLength(attachments.length);
+      attachments.forEach((link, index) => {
+        expect(attachmentsResolver).toHaveBeenNthCalledWith(index + 1, link);
+        expect(multipart).toContain(
+          `Content-Disposition: form-data; name="file"; filename="${names[index] || link.originalFileName}"\r\n` +
+            `Content-Type: text/plain\r\n\r\ncontent for ${link.id}\r\n`,
+        );
+      });
       expect(AxiosMock.post).toHaveBeenCalledWith(
         "/api/launch/attachment",
         expect.any(FormData),
@@ -1648,7 +1671,7 @@ describe("testops http client", () => {
     });
 
     it("should throw an error when launch hasn't been created before", async () => {
-      AxiosMock.post.mockImplementation((url: string) => {
+      AxiosMock.post.mockImplementation(() => {
         return Promise.resolve({ data: {} });
       });
 
@@ -1958,7 +1981,8 @@ describe("testops http client", () => {
       const attachmentUploadCall = AxiosMock.post.mock.calls.find(
         (call: any[]) => call[0] === "/api/upload/test-result/1/attachment",
       );
-      const multipartBody = (attachmentUploadCall?.[1] as FormData).getBuffer();
+      expect(attachmentUploadCall).toBeDefined();
+      const multipartBody = (attachmentUploadCall![1] as FormData).getBuffer();
       const multipartText = multipartBody.toString("latin1");
       const contentStart = multipartBody.indexOf(Buffer.from("\r\n\r\n")) + 4;
       const contentEnd = multipartBody.indexOf(Buffer.from("\r\n--"), contentStart);

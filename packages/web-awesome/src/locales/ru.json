@@ -14,6 +14,7 @@
     "total": "Всего",
     "flaky": "Нестабильные тесты",
     "retries": "Повторные тесты",
+    "retriesStatusChange": "Изменилось при повторе",
     "new": "Новые тесты"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Показать упавшие или сломанные результаты тестов без решения"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Без решения"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "copy-email": "Скопировать email",
+    "open-link": "Открыть ссылку",
+    "copy-link": "Скопировать ссылку",
     "attempt": "Попытка {{attempt}} из {{total}}",
     "retry": "Повтор {{attempt}} из {{total}}",
     "at": "в",
@@ -247,11 +252,19 @@
     "viewCode": "Показать код",
     "syntaxHighlight": "Подсветка синтаксиса",
     "backto": "Вернуться на",
+    "backToOverview": "Вернуться к обзору",
     "clipboard": "Скопировать в буфер обмена",
     "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",
     "clipboardSuccess": "Значение успешно скопировано",
     "collapse": "Свернуть",
+    "collapseAll": "Свернуть все",
+    "collapseAllPartial": "Свернуть все (часть групп развёрнута)",
+    "collapseToDefault": "Свернуть до вида по умолчанию",
+    "expandFirstLevel": "Развернуть первый уровень",
+    "collapseToFirstLevel": "Свернуть до первого уровня",
+    "showMore": "Показать ещё",
     "expand": "Развернуть",
+    "expandAll": "Развернуть все",
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
     "openInNewTab": "Открыть в новой вкладке",
@@ -529,6 +542,7 @@
       "regressed": "Ранее \"успешный\" или \"сломанный\" тест, который теперь \"неуспешный\"",
       "malfunctioned": "Ранее \"успешный\" или \"неуспешный\" тест, который теперь \"сломанный\"",
       "retries": "{{count}} повторов",
+      "retriesStatusChange": "Статус менялся между попытками",
       "flaky": "Нестабилен между запусками",
       "resolution": {
         "issue": "Linked to an issue",

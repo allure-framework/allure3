@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { ChartType } from "@allurereport/charts-api";
 import type {
   AttachmentLink,
@@ -40,6 +44,7 @@ beforeEach(async () => {
   await label("coverage", "report-output");
 });
 import type { AwesomeDataWriter } from "../src/writer.js";
+import { FileSystemReportDataWriter } from "../src/writer.js";
 
 const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
   const trsToProcess = trs.filter(filter);
@@ -429,6 +434,7 @@ describe("generateTestResults", () => {
         attachmentsByTrId: new Map([["tr-1", []]]),
         fixturesByTrId: new Map([["tr-1", []]]),
         historyByTrId: new Map([["tr-1", history]]),
+        resolutionIssuesByTrId: new Map([["tr-1", undefined]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
       resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
@@ -480,6 +486,7 @@ describe("generateTestResults", () => {
           ],
         ]),
         historyByTrId: new Map([["tr-1", []]]),
+        resolutionIssuesByTrId: new Map([["tr-1", undefined]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
       resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
@@ -498,22 +505,31 @@ describe("generateTestResults", () => {
       resolutionComment: "BUG-1 still fails in checkout",
     } satisfies TestResult;
     const { writer } = createWriter();
+    const resolutionIssue = {
+      id: "BUG-1",
+      type: "jira",
+      comment: "BUG-1 still fails in checkout",
+      link: {
+        name: "Jira BUG-1",
+        url: "https://jira.example/browse/BUG-1",
+        type: "jira",
+      },
+    };
+    const resolutionIssueByTestResultId = vi.fn().mockResolvedValue(undefined);
     const store = {
       relatedByTestResultIds: vi.fn().mockResolvedValue({
         attachmentsByTrId: new Map([["tr-1", []]]),
         fixturesByTrId: new Map([["tr-1", []]]),
         historyByTrId: new Map([["tr-1", []]]),
+        resolutionIssuesByTrId: new Map([["tr-1", resolutionIssue]]),
         retriesByTrId: new Map([["tr-1", []]]),
       }),
-      resolutionIssueByTestResultId: vi.fn().mockResolvedValue({
-        id: "BUG-1",
-        type: "jira",
-        comment: "BUG-1 still fails in checkout",
-      }),
+      resolutionIssueByTestResultId,
     } as unknown as AllureStore;
 
     const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
 
+    expect(resolutionIssueByTestResultId).not.toHaveBeenCalled();
     expect(converted).toMatchObject({
       resolution: "issue",
       resolutionComment: "BUG-1 still fails in checkout",
@@ -521,8 +537,90 @@ describe("generateTestResults", () => {
         id: "BUG-1",
         type: "jira",
         comment: "BUG-1 still fails in checkout",
+        link: {
+          name: "Jira BUG-1",
+          url: "https://jira.example/browse/BUG-1",
+          type: "jira",
+        },
       },
     });
+  });
+
+  it("should fall back to per-result resolution issue lookup when related data does not include batch issues", async () => {
+    const testResult = {
+      ...mockTestResult("tr-1", "failed test", "failed"),
+      resolution: "issue",
+    } satisfies TestResult;
+    const { writer } = createWriter();
+    const resolutionIssue = {
+      id: "BUG-1",
+      type: "jira",
+    };
+    const resolutionIssueByTestResultId = vi.fn().mockResolvedValue(resolutionIssue);
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([["tr-1", []]]),
+        fixturesByTrId: new Map([["tr-1", []]]),
+        historyByTrId: new Map([["tr-1", []]]),
+        retriesByTrId: new Map([["tr-1", []]]),
+      }),
+      resolutionIssueByTestResultId,
+    } as unknown as AllureStore;
+
+    const [converted] = await generateTestResults(writer, store, [testResult], { pluginId: "awesome" });
+
+    expect(resolutionIssueByTestResultId).toHaveBeenCalledWith("tr-1");
+    expect(converted.resolutionIssue).toEqual(resolutionIssue);
+  });
+
+  it("should distinguish retries with changed and unchanged significant statuses", async () => {
+    const changed = mockTestResult("tr-changed", "changed", "passed");
+    const unchanged = mockTestResult("tr-unchanged", "unchanged", "failed");
+    const { writer } = createWriter();
+    const store = {
+      relatedByTestResultIds: vi.fn().mockResolvedValue({
+        attachmentsByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        fixturesByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        historyByTrId: new Map([
+          ["tr-changed", []],
+          ["tr-unchanged", []],
+        ]),
+        resolutionIssuesByTrId: new Map([
+          ["tr-changed", undefined],
+          ["tr-unchanged", undefined],
+        ]),
+        retriesByTrId: new Map([
+          ["tr-changed", [mockTestResult("retry-changed", "changed", "failed")]],
+          ["tr-unchanged", [mockTestResult("retry-unchanged", "unchanged", "failed")]],
+        ]),
+      }),
+      resolutionIssueByTestResultId: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    const converted = await generateTestResults(writer, store, [changed, unchanged], { pluginId: "awesome" });
+
+    expect(converted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "tr-changed",
+          retry: true,
+          retriesCount: 1,
+          retriesStatusChange: true,
+        }),
+        expect.objectContaining({
+          id: "tr-unchanged",
+          retry: true,
+          retriesCount: 1,
+          retriesStatusChange: false,
+        }),
+      ]),
+    );
   });
 });
 
@@ -534,19 +632,64 @@ describe("generateTree", () => {
         ...mockTestResult("tr-issue", "issue test", "failed"),
         groupedLabels: {},
         resolution: "issue",
+        retriesStatusChange: true,
       } as ReportTestResult,
       {
         ...mockTestResult("tr-clean", "clean test", "passed"),
+        groupedLabels: {},
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-unresolved", "unresolved failure", "failed"),
         groupedLabels: {},
       } as ReportTestResult,
     ];
 
     await generateTree(writer, "tree.json", [], tests);
 
-    const tree = writtenWidgets.get("tree.json") as { leavesById: Record<string, { resolution?: string }> };
+    const tree = writtenWidgets.get("tree.json") as {
+      leavesById: Record<string, { resolution?: string; resolutionStatus?: string; retriesStatusChange?: boolean }>;
+    };
 
-    expect(tree.leavesById["tr-issue"]).toMatchObject({ resolution: "issue" });
+    expect(tree.leavesById["tr-issue"]).toMatchObject({
+      resolution: "issue",
+      resolutionStatus: "issue",
+      retriesStatusChange: true,
+    });
     expect(tree.leavesById["tr-clean"]?.resolution).toBeUndefined();
+    expect(tree.leavesById["tr-clean"]?.resolutionStatus).toBeUndefined();
+    expect(tree.leavesById["tr-unresolved"]).toMatchObject({ resolutionStatus: "none" });
+  });
+
+  it("should include non-empty redacted parameter values in tree leaves", async () => {
+    const { writer, writtenWidgets } = createWriter();
+    const tests = [
+      {
+        ...mockTestResult("tr-parameterized", "parameterized test", "passed"),
+        groupedLabels: {},
+        parameters: [
+          { name: "visible", value: "value", hidden: false, masked: false, excluded: false },
+          { name: "empty", value: "", hidden: false, masked: false, excluded: false },
+          { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false },
+          { name: "internal", value: "hidden-value", hidden: true, masked: false, excluded: false },
+        ],
+      } as ReportTestResult,
+      {
+        ...mockTestResult("tr-without-parameters", "plain test", "passed"),
+        groupedLabels: {},
+      } as ReportTestResult,
+    ];
+
+    await generateTree(writer, "tree.json", [], tests);
+
+    const tree = writtenWidgets.get("tree.json") as {
+      leavesById: Record<string, { parameters?: string[] }>;
+    };
+    const serializedTree = JSON.stringify(tree);
+
+    expect(tree.leavesById["tr-parameterized"]?.parameters).toEqual(["value", "<masked>"]);
+    expect(tree.leavesById["tr-without-parameters"]?.parameters).toBeUndefined();
+    expect(serializedTree).not.toContain("secret-token");
+    expect(serializedTree).not.toContain("hidden-value");
   });
 });
 
@@ -556,17 +699,36 @@ describe("generateResolutionCategories", () => {
     const tests = [
       {
         ...mockTestResult("tr-issue-1", "checkout fails", "failed"),
-        historyId: "history-1",
+        retryHash: "history-1",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
-        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+        resolutionIssue: {
+          id: "BUG-1",
+          type: "jira",
+          comment: "Checkout discount is not applied",
+          link: {
+            name: "Jira BUG-1",
+            url: "https://jira.example/browse/BUG-1",
+            type: "jira",
+          },
+        },
+        retriesStatusChange: true,
       } as ReportTestResult,
       {
         ...mockTestResult("tr-issue-2", "checkout fails again", "failed"),
-        historyId: "history-2",
+        retryHash: "history-2",
         resolution: "issue",
         resolutionComment: "Checkout discount is not applied",
-        resolutionIssue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+        resolutionIssue: {
+          id: "BUG-1",
+          type: "jira",
+          comment: "Checkout discount is not applied",
+          link: {
+            name: "Jira BUG-1",
+            url: "https://jira.example/browse/BUG-1",
+            type: "jira",
+          },
+        },
       } as ReportTestResult,
       {
         ...mockTestResult("tr-muted", "muted failure", "broken"),
@@ -596,9 +758,24 @@ describe("generateResolutionCategories", () => {
           resolution: "issue",
           name: "BUG-1",
           comment: "Checkout discount is not applied",
-          issue: { id: "BUG-1", type: "jira", comment: "Checkout discount is not applied" },
+          issue: {
+            id: "BUG-1",
+            type: "jira",
+            comment: "Checkout discount is not applied",
+            link: {
+              name: "Jira BUG-1",
+              url: "https://jira.example/browse/BUG-1",
+              type: "jira",
+            },
+          },
           testResults: [
-            expect.objectContaining({ nodeId: "tr-issue-1", id: "history-1", resolution: "issue", groupOrder: 1 }),
+            expect.objectContaining({
+              nodeId: "tr-issue-1",
+              id: "history-1",
+              resolution: "issue",
+              retriesStatusChange: true,
+              groupOrder: 1,
+            }),
             expect.objectContaining({ nodeId: "tr-issue-2", id: "history-2", resolution: "issue", groupOrder: 2 }),
           ],
         },
@@ -648,6 +825,31 @@ describe("generateStatistic", () => {
 });
 
 describe("generateGlobals", () => {
+  it("should write duplicate global destinations once while preserving payload entries", async () => {
+    const attachment = { id: "shared", ext: ".txt", originalFileName: "shared.txt", missed: false, used: true };
+    const attachments = Array.from({ length: 65 }, () => attachment);
+    const content = { kind: "attachment" } as ResultFile;
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn(),
+      writeWidget: vi.fn(),
+      writeTestCase: vi.fn(),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await generateGlobals(writer, {
+      globalAttachments: attachments,
+      globalAttachmentsByEnv: { qa: attachments },
+      contentFunction: async () => content,
+    });
+
+    expect(writer.writeAttachment).toHaveBeenCalledExactlyOnceWith("shared.txt", content);
+    expect(writer.writeWidget).toHaveBeenCalledExactlyOnceWith("globals.json", {
+      errors: [],
+      attachments,
+      attachmentsByEnv: { qa: attachments },
+    });
+  });
+
   it("should keep grouped globals by environment and exclude unwritten attachments from grouped payloads", async () => {
     const writtenWidgets = new Map<string, unknown>();
     const writtenContent = { kind: "attachment" } as any;
@@ -739,8 +941,9 @@ describe("generateSearchIndex", () => {
     };
     const visibleTest = {
       id: "tr-visible",
-      historyId: "history-visible",
+      retryHash: "history-visible",
       name: "visible test",
+      titlePath: ["tests", "visible.spec.ts", "visible test"],
       fullName: "com.acme.VisibleTest.visible",
       status: "failed",
       isRetry: false,
@@ -748,7 +951,10 @@ describe("generateSearchIndex", () => {
       muted: false,
       labels: [
         { name: "owner", value: "Igor Martynov" },
+        { name: "parentSuite", value: "Device Sheet" },
         { name: "feature", value: "Checkout" },
+        { name: "suite", value: "API" },
+        { name: "subSuite", value: "Smoke" },
         { name: "tag", value: "smoke" },
         { name: "ignored", value: "not searchable" },
       ],
@@ -765,6 +971,7 @@ describe("generateSearchIndex", () => {
       error: {
         message: "Assertion error: Expected 1 to be 2",
       },
+      errors: [{ message: "Assertion error: Expected 1 to be 2" }, { message: "Second soft assertion failed" }],
       categories: [{ name: "Product defects" }],
     } as ReportTestResult;
     const retryTest = {
@@ -784,14 +991,16 @@ describe("generateSearchIndex", () => {
       id: "tr-visible",
       nodeId: "tr-visible",
       name: "visible test",
+      titlePath: "tests visible.spec.ts visible test",
       fullName: "com.acme.VisibleTest.visible",
-      historyId: "history-visible",
-      labels: "owner:Igor Martynov Igor Martynov feature:Checkout Checkout tag:smoke smoke",
+      retryHash: "history-visible",
+      labels:
+        "owner:Igor Martynov Igor Martynov parentSuite:Device Sheet Device Sheet feature:Checkout Checkout suite:API API subSuite:Smoke Smoke tag:smoke smoke",
       owner: "Igor Martynov",
       tags: "smoke",
       parameters: "browser:chromium browser chromium token",
       categories: "Product defects",
-      statusMessage: "Assertion error: Expected 1 to be 2",
+      statusMessage: "Assertion error: Expected 1 to be 2 Second soft assertion failed",
       links: "Issue 42 https://example.com/ISSUE-42 issue",
     });
     expect(documents[0]?.labels).not.toContain("ignored");
@@ -942,6 +1151,14 @@ describe("generateAttachmentsFiles", () => {
         used: true,
       },
       {
+        id: "missing-content",
+        ext: ".txt",
+        originalFileName: "missing-content.txt",
+        name: "missing content",
+        missed: false,
+        used: true,
+      },
+      {
         id: "written",
         ext: ".txt",
         originalFileName: "written.txt",
@@ -951,14 +1168,134 @@ describe("generateAttachmentsFiles", () => {
       },
     ];
 
-    const result = await generateAttachmentsFiles(
-      writer,
-      attachmentLinks,
-      vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined)),
-    );
+    const contentFunction = vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined));
+    const result = await generateAttachmentsFiles(writer, attachmentLinks, contentFunction);
 
+    expect(contentFunction).not.toHaveBeenCalledWith("missed");
     expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
     expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
     expect(result).toEqual(new Map([["written", "written.txt"]]));
+  });
+});
+
+describe.each(["attachments", "globals"] as const)("concurrent %s writing", (kind) => {
+  it("should write attachment bytes to a real filesystem output directory", async () => {
+    const output = await mkdtemp(join(tmpdir(), "awesome concurrent output "));
+    try {
+      const writer = new FileSystemReportDataWriter(output);
+      const attachments: AttachmentLink[] = Array.from({ length: 65 }, (_, index) => ({
+        id: `attachment-${index}`,
+        ext: ".txt",
+        originalFileName: `attachment-${index}.txt`,
+        name: `attachment ${index}`,
+        missed: false,
+        used: true,
+      }));
+      const contentFunction = async (id: string): Promise<ResultFile> => ({
+        readContent: async () => undefined,
+        getOriginalFileName: () => `${id}.txt`,
+        getExtension: () => ".txt",
+        getContentType: () => "text/plain",
+        getContentLength: () => Buffer.byteLength(id),
+        asBuffer: async () => Buffer.from(id),
+        asJson: async () => undefined,
+        asUtf8String: async () => id,
+        writeTo: async (path) => writeFile(path, id),
+      });
+      if (kind === "attachments") {
+        await generateAttachmentsFiles(writer, attachments, contentFunction);
+      } else {
+        await generateGlobals(writer, { globalAttachments: attachments, contentFunction });
+        expect(JSON.parse(await readFile(join(output, "widgets", "globals.json"), "utf8"))).toEqual({
+          errors: [],
+          attachments,
+        });
+      }
+      for (const { id, ext } of attachments) {
+        expect(await readFile(join(output, "data", "attachments", `${id}${ext}`), "utf8")).toBe(id);
+      }
+    } finally {
+      await rm(output, { recursive: true, force: true });
+    }
+  });
+
+  it("should limit writes to 8 and preserve input order when writes finish in reverse order", async () => {
+    const attachments: AttachmentLink[] = Array.from({ length: 9 }, (_, index) => ({
+      id: `attachment-${index}`,
+      ext: ".txt",
+      originalFileName: `attachment-${index}.txt`,
+      name: `attachment ${index}`,
+      missed: false,
+      used: true,
+    }));
+    const content = { kind: "attachment" } as ResultFile;
+    const pendingWrites: (() => void)[] = [];
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn().mockResolvedValue(undefined),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn(() => new Promise<void>((resolve) => pendingWrites.push(resolve))),
+    };
+    const contentFunction = vi.fn(async () => content);
+    const generation =
+      kind === "attachments"
+        ? generateAttachmentsFiles(writer, attachments, contentFunction)
+        : generateGlobals(writer, {
+            globalAttachments: attachments,
+            globalAttachmentsByEnv: { qa: attachments },
+            contentFunction,
+          });
+
+    await vi.waitUntil(() => pendingWrites.length === 8);
+    expect(pendingWrites).toHaveLength(8);
+    expect(contentFunction).toHaveBeenCalledTimes(8);
+    expect(writer.writeWidget).not.toHaveBeenCalled();
+    pendingWrites
+      .slice()
+      .reverse()
+      .forEach((resolve) => resolve());
+    await vi.waitUntil(() => pendingWrites.length === 9);
+    expect(pendingWrites).toHaveLength(9);
+    pendingWrites[8]();
+    const result = await generation;
+
+    expect(vi.mocked(writer.writeAttachment).mock.calls.map(([src]) => src)).toEqual(
+      attachments.map(({ id, ext }) => `${id}${ext}`),
+    );
+    if (kind === "attachments") {
+      expect([...(result as Map<string, string>)]).toEqual(attachments.map(({ id, ext }) => [id, `${id}${ext}`]));
+    } else {
+      expect(writer.writeWidget).toHaveBeenCalledExactlyOnceWith("globals.json", {
+        errors: [],
+        attachments,
+        attachmentsByEnv: { qa: attachments },
+      });
+    }
+  });
+
+  it("should propagate attachment write failures", async () => {
+    const attachment: AttachmentLink = {
+      id: "failed",
+      ext: ".txt",
+      originalFileName: "failed.txt",
+      name: "failed",
+      missed: false,
+      used: true,
+    };
+    const error = new Error("write failed");
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn(),
+      writeWidget: vi.fn(),
+      writeTestCase: vi.fn(),
+      writeAttachment: vi.fn().mockRejectedValue(error),
+    };
+    const contentFunction = async () => ({ kind: "attachment" }) as ResultFile;
+    const generation =
+      kind === "attachments"
+        ? generateAttachmentsFiles(writer, [attachment], contentFunction)
+        : generateGlobals(writer, { globalAttachments: [attachment], contentFunction });
+
+    await expect(generation).rejects.toBe(error);
+    expect(writer.writeWidget).not.toHaveBeenCalled();
   });
 });

@@ -14,6 +14,7 @@
     "total": "Totaal",
     "flaky": "Onstabiele tests",
     "retries": "Herhaalde tests",
+    "retriesStatusChange": "Gewijzigd bij nieuwe poging",
     "new": "Nieuwe tests"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mislukte of gebroken testresultaten zonder resolutie weergeven"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Geen resolutie"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "copy-email": "E-mail kopiëren",
+    "open-link": "Link openen",
+    "copy-link": "Link kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
     "retry": "Nieuwe poging {{attempt}} van {{total}}",
     "at": "om",
@@ -189,11 +194,18 @@
     "viewCode": "Code bekijken",
     "syntaxHighlight": "Syntaxmarkering",
     "backto": "Terug naar",
+    "backToOverview": "Terug naar overzicht",
     "clipboard": "Kopiëren naar klembord",
     "clipboardError": "Kan waarde niet naar klembord kopiëren. Mogelijk wordt deze functie niet ondersteund door uw browser",
     "clipboardSuccess": "Succesvol gekopieerd",
     "collapse": "Samenvouwen",
+    "collapseAll": "Alles inklappen",
+    "collapseAllPartial": "Alles inklappen (sommige groepen zijn uitgeklapt)",
+    "collapseToDefault": "Inklappen naar de standaardweergave",
+    "expandFirstLevel": "Eerste niveau uitklappen",
+    "collapseToFirstLevel": "Inklappen tot eerste niveau",
     "expand": "Uitvouwen",
+    "expandAll": "Alles uitklappen",
     "fullscreen": "Volledig scherm",
     "language": "Taal wijzigen",
     "openInNewTab": "Openen in een nieuw tabblad",
@@ -461,6 +473,7 @@
       "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
       "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
       "retries": "{{count}} pogingen",
+      "retriesStatusChange": "Status gewijzigd na opnieuw proberen",
       "flaky": "Inconsistent tussen runs",
       "resolution": {
         "issue": "Linked to an issue",

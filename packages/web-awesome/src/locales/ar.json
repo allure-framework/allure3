@@ -14,6 +14,7 @@
     "total": "الإجمالي",
     "flaky": "اختبارات غير مستقرة",
     "retries": "اختبارات مُعاد محاولتها",
+    "retriesStatusChange": "تغيّر عند إعادة المحاولة",
     "new": "اختبارات جديدة"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "عرض نتائج الاختبارات الفاشلة أو المعطلة بدون حل"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "بدون حل"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "عرض المزيد",
     "copy": "نسخ",
     "copy-email": "نسخ البريد الإلكتروني",
+    "open-link": "فتح الرابط",
+    "copy-link": "نسخ الرابط",
     "attempt": "المحاولة {{attempt}} من {{total}}",
     "retry": "إعادة المحاولة {{attempt}} من {{total}}",
     "at": "في",
@@ -184,11 +189,18 @@
     "prevTR": "نتيجة الاختبار السابقة",
     "downloadAttachment": "تحميل المرفق",
     "backto": "العودة إلى",
+    "backToOverview": "العودة إلى النظرة العامة",
     "clipboard": "نسخ إلى الحافظة",
     "clipboardError": "لا يمكن نسخ القيمة إلى الحافظة. يبدو أن هذه الميزة غير مدعومة في متصفحك",
     "clipboardSuccess": "تم النسخ بنجاح",
     "collapse": "طي",
+    "collapseAll": "طي الكل",
+    "collapseAllPartial": "طي الكل (بعض المجموعات موسّعة)",
+    "collapseToDefault": "الطي إلى العرض الافتراضي",
+    "expandFirstLevel": "توسيع المستوى الأول",
+    "collapseToFirstLevel": "الطي إلى المستوى الأول",
     "expand": "توسيع",
+    "expandAll": "توسيع الكل",
     "fullscreen": "ملء الشاشة",
     "language": "اللغة",
     "openInNewTab": "فتح في علامة تبويب جديدة",
@@ -460,6 +472,7 @@
       "regressed": "اختبار كان \"ناجح\" أو \"معطل\" سابقاً وأصبح الآن \"فشل\"",
       "malfunctioned": "اختبار كان \"ناجح\" أو \"فشل\" سابقاً وأصبح الآن \"معطل\"",
       "retries": "{{count}} محاولات إعادة",
+      "retriesStatusChange": "تغيّرت الحالة بين محاولات إعادة التشغيل",
       "flaky": "غير مستقر عبر التشغيلات",
       "resolution": {
         "issue": "Linked to an issue",

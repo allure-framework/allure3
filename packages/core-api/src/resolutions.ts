@@ -1,3 +1,4 @@
+import type { TestLink } from "./metadata.js";
 import type { TestError, TestStatus } from "./model.js";
 
 export type ResolutionCategory = "issue" | "muted" | "accepted";
@@ -37,6 +38,7 @@ export interface ResolutionIssue {
   id: string;
   type: string;
   comment?: string;
+  link?: TestLink;
 }
 
 export interface KnownIssueTestResult {

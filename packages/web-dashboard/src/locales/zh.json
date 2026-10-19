@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "返回概览"
+  },
   "statuses": {
     "passed": "通过",
     "failed": "失败",

@@ -1,4 +1,4 @@
-import { ArrowButton, Counter, Text, TooltipWrapper, useElementTruncation } from "@allurereport/web-components";
+import { ArrowButton, Counter, Text, TooltipWrapper, useElementTruncation } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren, FunctionalComponent } from "preact";
 

@@ -3,6 +3,7 @@ import { defineMountableElement } from "../../../core/view/elementView.mts";
 import translate from "../../../helpers/t.mts";
 import { createElement } from "../../../shared/dom.mts";
 import { createIconElement } from "../../../shared/icon/index.mts";
+import { effectiveExitCode } from "../model/runStatus.mts";
 
 type GlobalsData = import("../../../types/report.mts").GlobalsData;
 type SummaryData = import("../../../types/report.mts").SummaryData;
@@ -22,12 +23,24 @@ const RunStatusBannerView = ({ globals, summary }: RunStatusBannerOptions) => {
       const passed = summary.statistic?.passed || 0;
       const firstError = globals.errors[0];
       const remainingErrors = Math.max(0, errorCount - 1);
-      const description =
-        total > 0 && passed === total
+      const exitCodeValue = effectiveExitCode(globals.exitCode);
+      const hasErrors = errorCount > 0;
+
+      const title = hasErrors
+        ? translate(total === 0 ? "run.failedBeforeTests" : "run.completedWithErrors")
+        : translate("run.failedWithExitCode", { hash: { code: exitCodeValue } });
+
+      const description = hasErrors
+        ? total > 0 && passed === total
           ? translate("run.allTestsPassedWithErrors", {
               hash: { count: errorCount, tests: total },
             })
-          : translate("run.errorsOutsideTests", { hash: { count: errorCount } });
+          : translate("run.errorsOutsideTests", { hash: { count: errorCount } })
+        : total > 0 && passed === total
+          ? translate("run.allTestsPassedWithExitCode", {
+              hash: { code: exitCodeValue, tests: total },
+            })
+          : translate("run.exitCodeUnsuccessful", { hash: { code: exitCodeValue } });
 
       el.className = "run-status-banner island";
       el.setAttribute("role", "alert");
@@ -41,13 +54,13 @@ const RunStatusBannerView = ({ globals, summary }: RunStatusBannerOptions) => {
           children: [
             createElement("h2", {
               className: "run-status-banner__title",
-              text: translate(total === 0 ? "run.failedBeforeTests" : "run.completedWithErrors"),
+              text: title,
             }),
             createElement("p", {
               className: "run-status-banner__description",
               text: description,
             }),
-            firstError?.message
+            hasErrors && firstError?.message
               ? createElement("p", {
                   className: "run-status-banner__first-error",
                   children: [

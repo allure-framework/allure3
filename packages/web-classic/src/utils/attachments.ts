@@ -39,35 +39,6 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
   }
 };
 
-export const blobAttachment = async (id: string, ext: string, contentType: string) => {
-  const response = await fetchFromUrl({ id, ext, contentType });
-  return await response.blob();
-};
-
-export const downloadAttachment = async (id: string, ext: string, contentType: string) => {
-  if (!id && !ext) {
-    return;
-  }
-
-  const fileName = `${id}${ext}`;
-  const blob = await blobAttachment(id, ext, contentType);
-  const linkUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = linkUrl;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(linkUrl);
-};
-
-export const openAttachmentInNewTab = async (id: string, ext: string, contentType: string) => {
-  if (!id && !ext) {
-    return;
-  }
-  const blob = await blobAttachment(id, ext, contentType);
-  const linkUrl = URL.createObjectURL(blob);
-  globalThis.open(linkUrl, "_blank");
-};
-
 export const attachmentType = (type: string) => {
   const normalizedType = type?.split(";")[0].trim().toLowerCase();
 

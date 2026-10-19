@@ -43,6 +43,35 @@ describe("generateStaticFiles", () => {
     expect(indexHtml).toContain(`src="${scriptFile}"`);
   });
 
+  it("should pass the link to the root overview to the report options", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({
+      allureVersion: "1.0.0",
+      reportDataFiles: [],
+      reportFiles,
+      reportName: "Test report",
+      reportUuid: "report-uuid",
+      overviewHref: "../index.html",
+    });
+
+    expect(files.get("index.html")?.toString("utf8")).toContain('"overviewHref":"../index.html"');
+  });
+
+  it("should not add the overview link to the report options when there is no overview", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({
+      allureVersion: "1.0.0",
+      reportDataFiles: [],
+      reportFiles,
+      reportName: "Test report",
+      reportUuid: "report-uuid",
+    });
+
+    expect(files.get("index.html")?.toString("utf8")).not.toContain("overviewHref");
+  });
+
   it("should embed the packaged bundle for single-file reports", async () => {
     const { files, reportFiles } = createReportFiles();
 

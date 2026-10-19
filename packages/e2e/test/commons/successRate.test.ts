@@ -8,9 +8,15 @@ import { Status, type TestResult } from "allure-js-commons";
 import { bootstrapReport, type ReportBootstrap } from "../utils/index.js";
 
 const scenarios = [
-  { name: "issue 3489", counts: { passed: 493, failed: 45, skipped: 95 }, rate: "91.63%", total: 633 },
-  { name: "all excluded", counts: { skipped: 2, unknown: 1 }, rate: "0%", total: 3 },
-  { name: "empty", counts: {}, rate: "???", total: 0 },
+  {
+    name: "issue 3489",
+    counts: { passed: 493, failed: 45, skipped: 95 },
+    rate: "91.63%",
+    distributionRate: "91.63%",
+    total: 633,
+  },
+  { name: "all excluded", counts: { skipped: 2, unknown: 1 }, rate: "0%", distributionRate: "N/A", total: 3 },
+  { name: "empty", counts: {}, rate: "???", distributionRate: "???", total: 0 },
 ];
 const charts: ChartOptions[] = [
   { type: ChartType.SuccessRateDistribution, title: "Success rate distribution" },
@@ -133,10 +139,34 @@ for (const scenario of scenarios) {
           // Classic displays these charts on its overview route.
           const node = page.locator("rect[aria-label]");
           const target = page.getByRole("img", {
-            name: new RegExp(`^Checkout: Success rate: ${scenario.rate.replace(".", "\\.")}`),
+            name: new RegExp(`^Checkout: Success rate: ${scenario.distributionRate.replace(".", "\\.")}`),
           });
 
           await expect(target).toBeVisible();
+
+          if (scenario.name === "all excluded") {
+            await expect
+              .poll(() =>
+                target.evaluate((element) => {
+                  const probe = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+                  element.ownerSVGElement?.append(probe);
+                  probe.setAttribute("fill", "var(--color-status-skipped-chart-fill)");
+
+                  const neutral = getComputedStyle(probe).fill;
+
+                  probe.setAttribute("fill", "var(--color-status-failed-chart-fill)");
+
+                  const failed = getComputedStyle(probe).fill;
+                  const actual = getComputedStyle(element).fill;
+
+                  probe.remove();
+
+                  return { isNeutral: actual === neutral, isFailed: actual === failed };
+                }),
+              )
+              .toEqual({ isNeutral: true, isFailed: false });
+          }
 
           await target.focus();
 

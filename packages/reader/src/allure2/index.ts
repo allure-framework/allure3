@@ -8,6 +8,7 @@ import type {
   RawFixtureResult,
   RawStep,
   RawTestAttachment,
+  RawError,
   RawTestLabel,
   RawTestLink,
   RawTestParameter,
@@ -20,7 +21,7 @@ import { XMLParser } from "fast-xml-parser";
 
 import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
-import { ensureBoolean, ensureInt, ensureString } from "../utils.js";
+import { ensureArray, ensureBoolean, ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 import type {
   Attachment,
@@ -32,6 +33,7 @@ import type {
   Link,
   Parameter,
   Status,
+  StatusDetails,
   StepResult,
   TestResult,
   TestResultContainer,
@@ -315,6 +317,25 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     ensureString(result?.statusDetails?.actual, ""),
     ensureString(result?.statusDetails?.expected, ""),
   );
+  const errors = ensureArray<StatusDetails>(result?.statusDetails?.errors)
+    ?.filter(notNull)
+    .map<RawError>((error) => {
+      const errorMessage = ensureString(error.message);
+      const errorTrace = ensureString(error.trace);
+      const errorDiff = inferAssertionDiff(
+        errorMessage,
+        errorTrace,
+        ensureString(error.actual, ""),
+        ensureString(error.expected, ""),
+      );
+
+      return {
+        message: errorMessage,
+        trace: errorTrace,
+        actual: errorDiff.actual,
+        expected: errorDiff.expected,
+      };
+    });
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
     titlePath: result?.titlePath?.length ? result.titlePath : [],
@@ -334,6 +355,7 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     trace,
     actual: diff.actual,
     expected: diff.expected,
+    errors,
     flaky: ensureBoolean(result?.statusDetails?.flaky),
     known: ensureBoolean(result?.statusDetails?.known),
     muted: ensureBoolean(result?.statusDetails?.muted),

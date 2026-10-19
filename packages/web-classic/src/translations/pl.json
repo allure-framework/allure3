@@ -97,6 +97,7 @@
     "at": "w"
   },
   "controls": {
+    "backToOverview": "Wróć do przeglądu",
     "newTabAttachment": "Otwórz w nowej zakładce",
     "downloadAttachment": "Załaduj załącznik",
     "nextTR": "Następny test",

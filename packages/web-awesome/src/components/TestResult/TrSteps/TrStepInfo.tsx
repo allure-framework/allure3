@@ -4,7 +4,7 @@ import {
   type TestStepResult,
   formatDuration,
 } from "@allurereport/core-api";
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";

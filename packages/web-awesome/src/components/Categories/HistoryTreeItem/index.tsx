@@ -1,6 +1,6 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
 import { copyToClipboard } from "@allurereport/web-commons";
-import { IconButton, TooltipWrapper, TreeHeader, allureIcons } from "@allurereport/web-components";
+import { IconButton, TooltipWrapper, TreeHeader, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";
@@ -36,7 +36,7 @@ export const HistoryTreeItem: FC<HistoryTreeItemProps> = ({
     <div className={styles["tree-item-history-title"]}>
       <div className={styles["tree-item-history-main"]}>
         <span className={styles["tree-item-history-name"]}>{node.name}</span>
-        {node.historyId && (
+        {node.retryHash && (
           <span className={styles["tree-item-history-copy"]}>
             <TooltipWrapper tooltipText={t("clipboard")} tooltipTextAfterClick={t("clipboardSuccess")}>
               <IconButton
@@ -45,7 +45,7 @@ export const HistoryTreeItem: FC<HistoryTreeItemProps> = ({
                 icon={allureIcons.lineGeneralCopy3}
                 onClick={(event) => {
                   event.stopPropagation();
-                  copyToClipboard(node.historyId ?? "");
+                  copyToClipboard(node.retryHash ?? "");
                 }}
               />
             </TooltipWrapper>

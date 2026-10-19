@@ -14,6 +14,7 @@
     "total": "Gesamt",
     "flaky": "Instabile Tests",
     "retries": "Wiederholte Tests",
+    "retriesStatusChange": "Bei Wiederholung geändert",
     "new": "Neue Tests"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Fehlgeschlagene oder fehlerhafte Testergebnisse ohne Lösung anzeigen"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Keine Lösung"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
     "copy-email": "E-Mail kopieren",
+    "open-link": "Link öffnen",
+    "copy-link": "Link kopieren",
     "attempt": "Versuch {{attempt}} von {{total}}",
     "retry": "Wiederholung {{attempt}} von {{total}}",
     "at": "bei",
@@ -189,11 +194,18 @@
     "viewCode": "Code anzeigen",
     "syntaxHighlight": "Syntaxhervorhebung",
     "backto": "Zurück zu",
+    "backToOverview": "Zurück zur Übersicht",
     "clipboard": "In die Zwischenablage kopieren",
     "clipboardError": "Fehler. Diese Funktion wird von Ihrem Browser wahrscheinlich nicht unterstützt",
     "clipboardSuccess": "Erfolgreich kopiert",
     "collapse": "Einklappen",
+    "collapseAll": "Alle einklappen",
+    "collapseAllPartial": "Alle einklappen (einige Gruppen sind aufgeklappt)",
+    "collapseToDefault": "Auf die Standardansicht einklappen",
+    "expandFirstLevel": "Erste Ebene aufklappen",
+    "collapseToFirstLevel": "Auf erste Ebene einklappen",
     "expand": "Ausklappen",
+    "expandAll": "Alle ausklappen",
     "fullscreen": "Vollbild",
     "language": "Sprache ändern",
     "openInNewTab": "In neuem Tab öffnen",
@@ -461,6 +473,7 @@
       "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
       "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist",
       "retries": "{{count}} Wiederholungen",
+      "retriesStatusChange": "Status nach erneutem Versuch geändert",
       "flaky": "Inkonsistent über mehrere Läufe",
       "resolution": {
         "issue": "Linked to an issue",

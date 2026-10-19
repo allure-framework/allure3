@@ -14,6 +14,7 @@
     "total": "Wszystkie",
     "flaky": "Niestabilne testy",
     "retries": "Powtórzone testy",
+    "retriesStatusChange": "Zmieniono przy ponowieniu",
     "new": "Nowe testy"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Pokaż nieudane lub uszkodzone wyniki testów bez rozwiązania"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Brak rozwiązania"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
     "copy-email": "Kopiuj e-mail",
+    "open-link": "Otwórz link",
+    "copy-link": "Kopiuj link",
     "attempt": "Próba {{attempt}} z {{total}}",
     "retry": "Ponowienie {{attempt}} z {{total}}",
     "at": "w",
@@ -189,11 +194,18 @@
     "viewCode": "Pokaż kod",
     "syntaxHighlight": "Podświetlanie składni",
     "backto": "Wróć do",
+    "backToOverview": "Wróć do przeglądu",
     "clipboard": "Skopuj do schowka",
     "clipboardError": "Błąd. Najprawdopodobniej Twoja przeglądarka nie obsługuje tej funkcji",
     "clipboardSuccess": "Zawartość została skopiowana",
     "collapse": "Skrócić",
+    "collapseAll": "Zwiń wszystko",
+    "collapseAllPartial": "Zwiń wszystko (niektóre grupy są rozwinięte)",
+    "collapseToDefault": "Zwiń do widoku domyślnego",
+    "expandFirstLevel": "Rozwiń pierwszy poziom",
+    "collapseToFirstLevel": "Zwiń do pierwszego poziomu",
     "expand": "Poszerzyć",
+    "expandAll": "Rozwiń wszystko",
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
     "openInNewTab": "Otwórz w nowej karcie",
@@ -471,6 +483,7 @@
       "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
       "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\"",
       "retries": "{{count}} ponowień",
+      "retriesStatusChange": "Status zmieniony po ponownej próbie",
       "flaky": "Niespójny pomiędzy uruchomieniami",
       "resolution": {
         "issue": "Linked to an issue",

@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Tillbaka till översikten"
+  },
   "statuses": {
     "passed": "Godkänd",
     "failed": "Misslyckad",

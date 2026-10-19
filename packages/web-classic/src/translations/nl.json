@@ -99,6 +99,7 @@
     "at": "om"
   },
   "controls": {
+    "backToOverview": "Terug naar overzicht",
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
     "nextTR": "Volgende testresultaat",
     "prevTR": "Vorige testresultaat",

@@ -20,14 +20,17 @@ import {
   createBaseUrlScript,
   createFaviconLinkTag,
   createFontLinkTag,
-  createReportDataScript,
+  injectReportDataScript,
+  reportDataScriptPlaceholder,
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
+  hasRetriesStatusChange,
   incrementStatistic,
   joinPosixPath,
   nullsLast,
   ordinal,
+  redactParameters,
   severityLabelName,
 } from "@allurereport/core-api";
 import {
@@ -54,6 +57,7 @@ import {
   ReportResolutionCategories,
   ReportResolutionGroup,
   ReportResolutionTestResult,
+  TestResultRelatedData,
 } from "@allurereport/plugin-api";
 import {
   collapseTreeGroups,
@@ -73,6 +77,7 @@ import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
+import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -159,6 +164,14 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   }
 };
 
+const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
+  }
+  return results;
+};
+
 export const generateTestResults = async (
   _writer: AwesomeDataWriter,
   store: AllureStore,
@@ -166,11 +179,13 @@ export const generateTestResults = async (
   options: {
     pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
+    related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
   },
 ) => {
   let convertedTrs: ReportTestResult[] = [];
-  const related = await store.relatedByTestResultIds(trs.map(({ id }) => id));
+  const related = options.related ?? (await store.relatedByTestResultIds(trs.map(({ id }) => id)));
+  const resolutionIssuesByTrId = related.resolutionIssuesByTrId;
 
   for (const tr of trs) {
     const trFixtures = related.fixturesByTrId.get(tr.id) ?? [];
@@ -180,7 +195,6 @@ export const generateTestResults = async (
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
     });
-    const resolutionIssue = await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTr.history = (related.historyByTrId.get(tr.id) ?? []).map((item) => ({
       ...item,
@@ -189,6 +203,7 @@ export const generateTestResults = async (
     convertedTr.retries = related.retriesByTrId.get(tr.id) ?? [];
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
+    convertedTr.retriesStatusChange = hasRetriesStatusChange(tr, convertedTr.retries);
     convertedTr.isRetry = tr.isRetry;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
@@ -199,7 +214,9 @@ export const generateTestResults = async (
       type: "attachment",
     }));
     convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
-    convertedTr.resolutionIssue = resolutionIssue;
+    convertedTr.resolutionIssue = resolutionIssuesByTrId
+      ? resolutionIssuesByTrId.get(tr.id)
+      : await store.resolutionIssueByTestResultId(tr.id);
 
     convertedTrs.push(convertedTr);
   }
@@ -233,7 +250,9 @@ export const generateNav = async (writer: AwesomeDataWriter, trs: ReportTestResu
 
 const SEARCHABLE_LABELS = new Set([
   "owner",
+  "parentSuite",
   "suite",
+  "subSuite",
   "package",
   "testClass",
   "testMethod",
@@ -270,19 +289,23 @@ const searchDocumentFactory = (test: ReportTestResult): ReportSearchDocument => 
 
   const links = (test.links ?? []).flatMap(({ name, url, type }) => [name, url, type]);
   const categories = test.categories?.map((category: ReportCategory) => category.name);
+  const statusMessages = (test.errors?.length ? test.errors : test.error ? [test.error] : [])
+    .map((error) => error.message)
+    .filter(Boolean);
 
   return {
     id: test.id,
     nodeId: test.id,
     name: test.name,
+    titlePath: joinSearchValues(test.titlePath ?? []),
     fullName: test.fullName,
-    historyId: test.historyId,
+    retryHash: test.retryHash,
     labels: joinSearchValues(labels),
     owner: joinSearchValues(test.groupedLabels.owner ?? []),
     tags: joinSearchValues(tags),
     parameters: joinSearchValues(parameters),
     categories: joinSearchValues(categories ?? []),
-    statusMessage: test.error?.message,
+    statusMessage: joinSearchValues(statusMessages),
     links: joinSearchValues(links),
   };
 };
@@ -469,16 +492,20 @@ const leafFactory = ({
   start,
   retry,
   retriesCount,
+  retriesStatusChange,
   resolution,
   transition,
   tooltips,
-  historyId,
+  retryHash,
   groupedLabels,
   categories,
+  parameters,
 }: ReportTestResult): ReportTreeLeaf => {
+  const unresolvedFailure = (status === "failed" || status === "broken") && !resolution;
+  const parameterValues = redactParameters(parameters).flatMap(({ value }) => (value ? [value] : []));
   const leaf: ReportTreeLeaf = {
     nodeId: id,
-    id: historyId ?? id,
+    id: retryHash ?? id,
     name,
     status,
     duration,
@@ -486,10 +513,16 @@ const leafFactory = ({
     start,
     retry,
     retriesCount,
+    retriesStatusChange,
     resolution,
+    resolutionStatus: resolution ?? (unresolvedFailure ? "none" : undefined),
     transition,
     tooltips,
   };
+
+  if (parameterValues.length) {
+    leaf.parameters = parameterValues;
+  }
 
   const severity = groupedLabels[severityLabelName]?.[0];
 
@@ -520,7 +553,7 @@ const getResolutionGroupName = (test: ReportTestResult): string => {
 
 const resolutionTestResultFactory = (test: ReportTestResult, index: number): ReportResolutionTestResult => ({
   nodeId: test.id,
-  id: test.historyId ?? test.id,
+  id: test.retryHash ?? test.id,
   name: test.name,
   status: test.status,
   duration: test.duration,
@@ -528,6 +561,7 @@ const resolutionTestResultFactory = (test: ReportTestResult, index: number): Rep
   transition: test.transition,
   retry: test.retry,
   retriesCount: test.retriesCount,
+  retriesStatusChange: test.retriesStatusChange,
   resolution: test.resolution,
   groupOrder: index + 1,
   tooltips: test.tooltips,
@@ -628,21 +662,20 @@ export const generateAttachmentsFiles = async (
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
+  const writtenAttachments = await mapConcurrently(attachmentLinks, async ({ id, ext, ...link }) => {
     if (link.missed) {
-      continue;
+      return;
     }
     const content = await contentFunction(id);
 
     if (!content) {
-      continue;
+      return;
     }
     const src = `${id}${ext}`;
     await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
+    return [id, src] as const;
+  });
+  return new Map(writtenAttachments.filter((attachment) => attachment !== undefined));
 };
 
 export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
@@ -685,18 +718,25 @@ export const generateGlobals = async (
     globals.exitCode = globalExitCode;
   }
 
-  for (const attachment of globalAttachments) {
+  const attachmentWrites = new Map<string, Promise<void>>();
+  const writtenAttachments = await mapConcurrently(globalAttachments, async (attachment) => {
     const src = `${attachment.id}${attachment.ext}`;
     const content = await contentFunction(attachment.id);
 
     if (!content) {
-      continue;
+      return;
     }
 
-    await writer.writeAttachment(src, content);
+    let write = attachmentWrites.get(src);
+    if (!write) {
+      write = writer.writeAttachment(src, content);
+      attachmentWrites.set(src, write);
+    }
+    await write;
 
-    globals.attachments.push(attachment);
-  }
+    return attachment;
+  });
+  globals.attachments = writtenAttachments.filter((attachment) => attachment !== undefined);
 
   Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
     const attachmentIds = new Set(globals.attachments.map(({ id }) => id));
@@ -765,6 +805,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -790,6 +831,7 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -828,9 +870,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
-
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
+    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
   }
 
   const now = Date.now();
@@ -857,13 +897,14 @@ export const generateStaticFiles = async (
     stepTreeExpansion,
     defaultSortBy,
     attachmentsBasePath,
+    overviewHref,
   };
 
   try {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
@@ -872,7 +913,7 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    const htmlBuffer = Buffer.from(html, "utf8");
+    const htmlBuffer = injectReportDataScript(html, reportDataFiles);
 
     if (payload.singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
       const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);

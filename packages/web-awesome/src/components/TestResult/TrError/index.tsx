@@ -1,7 +1,7 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
 import { ansiSemanticColors, ansiToHTML, normalizeAnsiForegroundColors } from "@allurereport/web-commons";
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";

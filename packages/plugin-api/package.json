@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-api",
-  "version": "3.18.0",
+  "version": "3.21.0",
   "description": "Allure Plugin API",
   "keywords": [
     "allure"
@@ -25,6 +25,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "test": "rimraf ./out && vitest run",
+    "test:unit": "yarn test",
     "lint": "oxlint --import-plugin src test features stories",
     "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
@@ -33,10 +34,12 @@
     "tar-stream": "3.1.7"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
     "@types/tar-stream": "^3.1.4",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",

@@ -6,7 +6,13 @@ import {
   joinPosixPath,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import { ATTACHMENTS_DIR, SHARED_DIR, type ReportFiles, type ResultFile } from "@allurereport/plugin-api";
+import {
+  ATTACHMENTS_DIR,
+  SHARED_DIR,
+  type ExitCode,
+  type ReportFiles,
+  type ResultFile,
+} from "@allurereport/plugin-api";
 import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
@@ -73,6 +79,11 @@ const template = `<!DOCTYPE html>
       }
     </script>
     ${createBaseUrlScript()}
+    {{#if reportOptions}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
+    {{/if}}
     {{#if analyticsEnable}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
     <script>
@@ -92,16 +103,21 @@ const template = `<!DOCTYPE html>
 `;
 
 const compiledTemplate = Handlebars.compile(template);
+const reportDataScriptPlaceholder = "<!-- allure2-report-data -->";
 
 const createAttachmentsBasePathScript = (basePath: string) =>
   `<script>window.allureAttachmentsBasePath = ${stringifyForInlineScript(basePath)};</script>`;
 
-const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
-  const reportFilesDeclaration = reportFiles
-    .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
-    .join(",");
+const injectEmbeddedReportDataScript = (html: string, reportFiles: ReportFile[]): Buffer => {
+  const placeholderIndex = html.indexOf(reportDataScriptPlaceholder);
 
-  return `
+  if (placeholderIndex === -1) {
+    throw new Error("Report data script placeholder is missing from the Allure 2 HTML template");
+  }
+
+  const chunks = [
+    Buffer.from(html.slice(0, placeholderIndex), "utf8"),
+    Buffer.from(`
     <script>
       window.reportDataReady = false;
       window.reportData = window.reportData || {};
@@ -114,11 +130,25 @@ const createEmbeddedReportDataScript = (reportFiles: ReportFile[]) => {
       }
     </script>
     <script>
-      Promise.allSettled([${reportFilesDeclaration}]).then(function () {
+      Promise.allSettled([`),
+  ];
+
+  reportFiles.forEach(({ name, value }, index) => {
+    chunks.push(
+      Buffer.from(`${index === 0 ? "" : ","}d(${stringifyForInlineScript(name)},${stringifyForInlineScript(value)})`),
+    );
+  });
+
+  chunks.push(
+    Buffer.from(`]).then(function () {
         window.reportDataReady = true;
       });
     </script>
-  `;
+  `),
+    Buffer.from(html.slice(placeholderIndex + reportDataScriptPlaceholder.length), "utf8"),
+  );
+
+  return Buffer.concat(chunks);
 };
 
 export const readTemplateManifest = async (): Promise<TemplateManifest> => {
@@ -138,6 +168,7 @@ export const generateStaticFiles = async (payload: {
   sharedReportFiles?: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
+  overviewHref?: string;
 }) => {
   const {
     reportName,
@@ -148,6 +179,7 @@ export const generateStaticFiles = async (payload: {
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -187,16 +219,17 @@ export const generateStaticFiles = async (payload: {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: singleFile ? createEmbeddedReportDataScript(reportDataFiles) : "",
+      reportFilesScript: singleFile ? reportDataScriptPlaceholder : "",
       analyticsEnable: process.env.ALLURE_NO_ANALYTICS?.toLowerCase() !== "true",
       allureVersion,
       reportLanguage,
       reportUuid,
       reportName,
       singleFile,
+      reportOptions: overviewHref ? stringifyForInlineScript({ overviewHref }) : undefined,
     });
 
-    const htmlBuffer = Buffer.from(html, "utf8");
+    const htmlBuffer = singleFile ? injectEmbeddedReportDataScript(html, reportDataFiles) : Buffer.from(html, "utf8");
 
     if (singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
       const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);
@@ -495,6 +528,7 @@ export const generateGlobalsData = async (
   attachmentMap: Map<string, string>,
   attachmentTimestamps: Record<string, number> = {},
   errorTimestamps: Array<number | undefined> = [],
+  exitCode?: ExitCode,
 ) => {
   const data: Allure2GlobalsData = {
     errors: globalErrors.map(({ message, trace, actual, expected }, index) => ({
@@ -523,6 +557,10 @@ export const generateGlobalsData = async (
       ];
     }),
   };
+
+  if (exitCode) {
+    data.exitCode = exitCode;
+  }
 
   await writer.writeWidget("globals.json", data);
 };

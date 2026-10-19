@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.18.0",
+  "version": "3.21.0",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
@@ -36,10 +36,12 @@
     "open": "^11.0.0"
   },
   "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
     "@playwright/test": "^1.62.1",
     "@types/node": "^20",
+    "@vitest/coverage-istanbul": "^4.1.0",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^2.1.9",
+    "@vitest/snapshot": "^5.0.1",
     "allure-js-commons": "^3",
     "allure-playwright": "^3.10.2",
     "allure-vitest": "^3",

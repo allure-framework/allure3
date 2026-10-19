@@ -1,7 +1,13 @@
 import { attachment, label, step } from "allure-js-commons";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { ansiSemanticColors, ansiToHTML, isAnsi, normalizeAnsiForegroundColors } from "../src/strings.js";
+import {
+  ansiSemanticColors,
+  ansiToHTML,
+  isAnsi,
+  normalizeAnsiForegroundColors,
+  normalizeEscapedAnsiSequences,
+} from "../src/strings.js";
 
 const renderAnsiHtml = async (name: string, ansiText: string) =>
   step(name, async () => {
@@ -25,6 +31,10 @@ describe("strings", () => {
   test("detects ANSI escape sequences", () => {
     expect(isAnsi("\u001B[31mError\u001B[39m")).toBe(true);
     expect(isAnsi("plain output")).toBe(false);
+  });
+
+  test("normalizes escaped ANSI sequences", () => {
+    expect(normalizeEscapedAnsiSequences("\\u001b[31mError\\x1b[39m")).toBe("\u001B[31mError\u001B[39m");
   });
 
   test("renders standard ANSI colors with theme semantic variables", async () => {
@@ -62,6 +72,39 @@ describe("strings", () => {
       usesSuccessToken: true,
       usesInlineRgbRed: false,
       usesRawXtermGreen: false,
+    });
+  });
+
+  test("drops ANSI background colors while preserving foreground colors", async () => {
+    expect(normalizeAnsiForegroundColors("\u001B[31;48;2;255;0;0mRGB background\u001B[39;49m")).toBe(
+      "\u001B[31mRGB background\u001B[39m",
+    );
+    expect(normalizeAnsiForegroundColors("\u001B[31;48;5;1mXterm background\u001B[39;49m")).toBe(
+      "\u001B[31mXterm background\u001B[39m",
+    );
+    expect(normalizeAnsiForegroundColors("\u001B[48;5;1mBackground only\u001B[49m")).toBe("Background only");
+    expect(normalizeAnsiForegroundColors("\u001B[48;2;1;2;3mBackground only\u001B[49m")).toBe("Background only");
+    expect(normalizeAnsiForegroundColors("\u001B[48;5;999mInvalid background\u001B[49m")).toBe(
+      "\u001B[48;5;999mInvalid background",
+    );
+
+    const html = await renderAnsiHtml(
+      "render ANSI foreground colors without background fills",
+      "\u001B[30;42mPassed\u001B[39;49m \u001B[31;48;5;2mFailed\u001B[39;49m \u001B[31;48;2;255;0;0mErrored\u001B[39;49m",
+    );
+
+    expect({
+      keepsForeground: html.includes("color:var(--color-intent-danger-text)"),
+      keepsTextAfterRgbBackground: html.includes("Errored"),
+      hasBackgroundColor: html.includes("background-color"),
+      hasXtermBackground: html.includes("#00ff00"),
+      hasRgbBackground: html.includes("rgb(255,0,0)"),
+    }).toEqual({
+      keepsForeground: true,
+      keepsTextAfterRgbBackground: true,
+      hasBackgroundColor: false,
+      hasXtermBackground: false,
+      hasRgbBackground: false,
     });
   });
 });

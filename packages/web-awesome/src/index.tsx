@@ -1,5 +1,5 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
-import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
+import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import "@allurereport/web-components/index.css";
 import { computed, useSignalEffect } from "@preact/signals";
@@ -51,6 +51,21 @@ const isTestResultRoute = computed(
 
 const removeInitialLoader = () => {
   document.getElementById("allure-app-loader")?.remove();
+};
+
+window.__allureLiveReload = async () => {
+  const testResultId = currentTrId.value;
+
+  if (!isTestResultRoute.value || !testResultId) {
+    window.location.reload();
+    return;
+  }
+
+  await Promise.all([
+    fetchTestResult(testResultId, { force: true }),
+    fetchTestResultNav(currentEnvironment.value),
+    fetchEnvTreesData([currentEnvironment.value], { force: true }),
+  ]);
 };
 
 const App = () => {

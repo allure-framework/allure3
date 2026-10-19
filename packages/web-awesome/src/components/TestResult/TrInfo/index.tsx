@@ -1,17 +1,18 @@
 import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
-import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
+import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
 
 import { TrFlaky } from "@/components/TestResult/TrInfo/TrFlaky";
+import { TrRetriesStatusChange } from "@/components/TestResult/TrInfo/TrRetriesStatusChange";
 import { TrNavigation } from "@/components/TestResult/TrNavigation";
 import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
-import { testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupId, testEnvGroupsStore } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
@@ -23,8 +24,20 @@ export type TrInfoProps = {
 };
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
-  const { name, status, flaky, resolution, duration, labels, history, retries, attachments, stop, categories } =
-    testResult ?? {};
+  const {
+    name,
+    status,
+    flaky,
+    retriesStatusChange,
+    resolution,
+    duration,
+    labels,
+    history,
+    retries,
+    attachments,
+    stop,
+    categories,
+  } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
@@ -42,6 +55,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-info-data"]}>
           {Boolean(status) && <TrStatus status={status} />}
           {Boolean(history?.length) && <TrPrevStatuses history={history} />}
+          {retriesStatusChange && <TrRetriesStatusChange />}
           <TrSeverity severity={severity} />
           {flaky && <TrFlaky />}
           {categoryName && (
@@ -86,7 +100,11 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             </TrTab>
             <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
-              transformData={(groups) => groups?.[testResult?.testCase?.id]}
+              transformData={(groups) => {
+                const groupId = testEnvGroupId(testResult);
+
+                return groupId ? groups?.[groupId] : undefined;
+              }}
               renderData={(group) => {
                 const envsCount = getRealEnvsCount(group);
 

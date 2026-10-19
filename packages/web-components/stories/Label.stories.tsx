@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
 import { Label } from "@/components/Label";
 
 const meta: Meta<typeof Label> = {

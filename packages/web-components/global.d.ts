@@ -21,10 +21,12 @@ export type TreeLeaf = {
   flaky?: boolean;
   retry?: boolean;
   retriesCount?: number;
+  retriesStatusChange?: boolean;
   resolution?: ResolutionCategory;
   transition?: TestStatusTransition;
   transitionTooltip?: string;
   tooltips?: Record<string, string>;
+  parameters?: string[];
 };
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";

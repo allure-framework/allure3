@@ -111,7 +111,8 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
   "history-id-collision": {
     category: "repair-test-metadata",
     title: "Repair logical test identity",
-    guidance: "Use stable, unique history IDs so distinct logical tests do not collapse into one file.",
+    guidance:
+      "Retry hashes are computed automatically. When retryHash is absent, the agent uses the test-result ID for the filename, not the legacy historyId; do not set hashes manually.",
   },
   "expected-step-containing-missing": {
     category: "add-meaningful-steps",
@@ -365,7 +366,7 @@ export const renderAgentsGuide = () =>
 2. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 3. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
 4. If a human-readable report is needed, read \`manifest/human-report.json\`; when status is \`generated\`, open the recorded path such as \`awesome/index.html\`.
-5. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
+5. Open the relevant file under \`tests/<environment>/<retryHash-or-trId>.md\` for evidence review.
 6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for command-named process logs such as stdout and stderr.
 
 ## Directory Contract

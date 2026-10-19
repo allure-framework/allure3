@@ -14,6 +14,7 @@
     "total": "總計",
     "flaky": "不穩定的測試",
     "retries": "重跑測試",
+    "retriesStatusChange": "重試時已變更",
     "new": "新的測試"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "顯示沒有解決方案的失敗或損壞測試結果"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "無解決方案"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "顯示更多",
     "copy": "複製",
     "copy-email": "複製電子郵件",
+    "open-link": "開啟連結",
+    "copy-link": "複製連結",
     "attempt": "第 {{attempt}} 次嘗試，共 {{total}} 次",
     "retry": "第 {{attempt}} 次重試，共 {{total}} 次",
     "at": "於",
@@ -189,11 +194,18 @@
     "viewCode": "查看程式碼",
     "syntaxHighlight": "語法醒目提示",
     "backto": "返回",
+    "backToOverview": "返回總覽",
     "clipboard": "複製到剪貼簿",
     "clipboardError": "無法複製到剪貼簿。可能是瀏覽器不支援此功能",
     "clipboardSuccess": "複製成功",
     "collapse": "折疊",
+    "collapseAll": "全部摺疊",
+    "collapseAllPartial": "全部摺疊（部分群組已展開）",
+    "collapseToDefault": "摺疊至預設檢視",
+    "expandFirstLevel": "展開第一層",
+    "collapseToFirstLevel": "摺疊至第一層",
     "expand": "展開",
+    "expandAll": "全部展開",
     "fullscreen": "全螢幕",
     "language": "更改語言",
     "openInNewTab": "在新分頁中開啟",
@@ -461,6 +473,7 @@
       "regressed": "之前「通過」或「損壞」的測試現在「失敗」了",
       "malfunctioned": "之前「通過」或「失敗」的測試現在「損壞」了",
       "retries": "{{count}} 次重試",
+      "retriesStatusChange": "重試後狀態已變更",
       "flaky": "多次執行結果不一致",
       "resolution": {
         "issue": "Linked to an issue",

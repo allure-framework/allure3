@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
-import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Attachment } from "@allurereport/web-components/Attachment";
+import { ArrowButton, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -57,8 +58,8 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.http+json": lineFilesFileAttachment2,
 };
 
-const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown"]);
-const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html"]);
+const HAS_PREVIEW_COMPONENT = new Set(["html", "markdown", "mermaid"]);
+const DEFAULT_PREVIEW_TYPES = new Set(["markdown", "html", "mermaid"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;

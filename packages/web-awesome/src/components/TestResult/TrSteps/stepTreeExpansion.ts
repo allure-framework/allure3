@@ -47,26 +47,6 @@ export type ExpandableStepNode = {
 
 export type SubtreeNode = SubtreeNodeState;
 
-export const findStepBodyItems = (bodyItems: TrBodyItem[], stepId: string): TrBodyItem[] | null => {
-  for (const bodyItem of bodyItems) {
-    if (bodyItem.type !== "step") {
-      continue;
-    }
-
-    if (bodyItem.item.stepId === stepId) {
-      return bodyItem.bodyItems;
-    }
-
-    const nested = findStepBodyItems(bodyItem.bodyItems, stepId);
-
-    if (nested) {
-      return nested;
-    }
-  }
-
-  return null;
-};
-
 export const collectExpandableStepNodes = (
   bodyItems: TrBodyItem[],
   policy: StepTreeExpansion,
@@ -96,12 +76,7 @@ export const collectExpandableStepNodes = (
   return nodes;
 };
 
-export {
-  getNextSubtreeToggleState,
-  getSubtreeToggleIcon,
-  isSubtreeFirstLevelOnlyOpened,
-  type SubtreeToggleState,
-} from "@allurereport/web-commons";
+export { getNextSubtreeToggleState, getSubtreeToggleIcon, type SubtreeToggleState } from "@allurereport/web-commons";
 
 export const getStepTreeExpansionPolicy = (): StepTreeExpansion =>
   getReportOptions<ReportOptions>()?.stepTreeExpansion ?? DEFAULT_STEP_TREE_EXPANSION_POLICY;

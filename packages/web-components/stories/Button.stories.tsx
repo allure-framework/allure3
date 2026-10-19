@@ -1,6 +1,7 @@
-import { Button, DropdownButton, IconButton } from "@/components/Button";
+import type { Meta, StoryObj } from "@storybook/preact-vite";
+
+import { Button, ButtonLink, DropdownButton, IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
-import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof Button> = {
   title: "Commons/Button",
@@ -12,7 +13,7 @@ const meta: Meta<typeof Button> = {
     },
     size: {
       control: { type: "select" },
-      options: ["s", "m", "l"],
+      options: ["xs", "s", "m", "l"],
       description: "Size of the button.",
     },
     style: {
@@ -28,6 +29,11 @@ const meta: Meta<typeof Button> = {
     icon: {
       control: "text",
       description: "Icon to display on the button (provide the icon ID).",
+    },
+    iconColor: {
+      control: { type: "select" },
+      options: ["primary", "secondary"],
+      description: "Color of the icon.",
     },
     isPending: {
       control: "boolean",
@@ -118,4 +124,57 @@ export const Dropdown: StoryObj<typeof DropdownButton> = {
       description: "Whether the dropdown is expanded.",
     },
   },
+};
+
+export const Sizes: Story = {
+  render: (args) => (
+    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+      <Button {...args} size="xs" text="XS" />
+      <Button {...args} size="s" text="S" />
+      <Button {...args} size="m" text="M" />
+      <Button {...args} size="l" text="L" />
+    </div>
+  ),
+};
+
+export const StylesAndActions: Story = {
+  render: (args) => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, max-content)", gap: "8px" }}>
+      {(["default", "danger", "positive"] as const).flatMap((action) =>
+        (["primary", "outline", "ghost", "flat", "raised"] as const).map((style) => (
+          <Button {...args} key={`${action}-${style}`} action={action} style={style} text={`${style} ${action}`} />
+        )),
+      )}
+    </div>
+  ),
+};
+
+export const FullWidth: Story = {
+  args: { fullWidth: true, text: "Full width button" },
+  parameters: { layout: "padded" },
+};
+
+export const IconColors: Story = {
+  render: (args) => (
+    <div style={{ display: "flex", gap: "8px" }}>
+      <Button
+        {...args}
+        style="outline"
+        icon={allureIcons.lineArrowsChevronDown}
+        iconColor="primary"
+        text="Primary icon"
+      />
+      <Button
+        {...args}
+        style="outline"
+        icon={allureIcons.lineArrowsChevronDown}
+        iconColor="secondary"
+        text="Secondary icon"
+      />
+    </div>
+  ),
+};
+
+export const AsLink: StoryObj<typeof ButtonLink> = {
+  render: () => <ButtonLink href="https://allurereport.org" text="Open documentation" style="outline" />,
 };

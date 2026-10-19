@@ -14,6 +14,7 @@
     "total": "Cəmi",
     "flaky": "Qeyri-sabit testlər",
     "retries": "Təkrar testlər",
+    "retriesStatusChange": "Təkrar cəhddə dəyişdi",
     "new": "Yeni testlər"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Həlli olmayan uğursuz və ya pozulmuş test nəticələrini göstər"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Həll yoxdur"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "copy-email": "E-poçtu kopyala",
+    "open-link": "Linki aç",
+    "copy-link": "Linki kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "retry": "Təkrar cəhd {{attempt}} / {{total}}",
     "at": "tarixində",
@@ -189,11 +194,18 @@
     "viewCode": "Kodu göstər",
     "syntaxHighlight": "Sintaksis vurğulama",
     "backto": "Geri dön",
+    "backToOverview": "İcmala qayıt",
     "clipboard": "Mübadilə buferinə kopyala",
     "clipboardError": "Dəyər kopyalana bilmir. Brauzeriniz bu funksiyanı dəstəkləmir",
     "clipboardSuccess": "Uğurla kopyalandı",
     "collapse": "Yığ",
+    "collapseAll": "Hamısını yığ",
+    "collapseAllPartial": "Hamısını yığ (bəzi qruplar açıqdır)",
+    "collapseToDefault": "Defolt görünüşə yığ",
+    "expandFirstLevel": "Birinci səviyyəni aç",
+    "collapseToFirstLevel": "Birinci səviyyəyə qədər yığ",
     "expand": "Genişləndir",
+    "expandAll": "Hamısını aç",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
@@ -461,6 +473,7 @@
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
       "retries": "{{count}} təkrar cəhd",
+      "retriesStatusChange": "Yenidən cəhd etdikdən sonra status dəyişib",
       "flaky": "İşəsalınmalar arasında qeyri-sabitdir",
       "resolution": {
         "issue": "Linked to an issue",

@@ -89,7 +89,7 @@ vi.mock("@/stores/treeFilters/utils", () => ({ migrateFilterParam: migrateFilter
 
 // Stubs for the UI rendered by the App — only the loader and the data fetching effects matter here.
 // Keep the shared UI bundle out of the timed app import; the real loader shell stays in App.
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   Spinner: () => null,
   SvgIcon: () => null,
   allureIcons: { reportLogo: "report-logo" },
@@ -178,5 +178,22 @@ describe("App", () => {
     expect(fetchResolutionCategoriesDataMock).toHaveBeenCalledWith("");
     expect(fetchEnvTreesDataMock).not.toHaveBeenCalled();
     expect(fetchEnvStatsMock).not.toHaveBeenCalled();
+  });
+
+  it("should force-refresh open test result data and the current environment tree on live reload", async () => {
+    const { navigateToPlainTestResult } = await import("@/stores/router");
+
+    await selectEnvironment("env-1");
+
+    await act(async () => {
+      navigateToPlainTestResult({ testResultId: "tr-1" });
+    });
+    vi.clearAllMocks();
+
+    await window.__allureLiveReload?.();
+
+    expect(fetchTestResultMock).toHaveBeenCalledWith("tr-1", { force: true });
+    expect(fetchTestResultNavMock).toHaveBeenCalledWith("env-1");
+    expect(fetchEnvTreesDataMock).toHaveBeenCalledWith(["env-1"], { force: true });
   });
 });

@@ -3,6 +3,7 @@ import { buildFilterPredicate, setParams } from "@allurereport/web-commons";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import type { ResolutionFilterValue } from "../../../src/stores/treeFilters/constants.js";
 import type { AwesomeFilterGroupSimple } from "../../../src/stores/treeFilters/model.js";
 import {
   hasActiveTreeFilters,
@@ -127,11 +128,11 @@ describe("stores > treeFilters > severity", () => {
 
       const predicate = buildFilterPredicate(treeNonQueryFilters.value);
       const statusLeaves: { nodeId: string; severity?: string; status: string }[] = [
-        { nodeId: "1", severity: "blocker", status: "failed" },
+        { nodeId: "1", severity: "blocker", status: "failed", resolutionStatus: "none" },
         { nodeId: "2", severity: "blocker", status: "passed" },
-        { nodeId: "3", status: "failed" },
-        { nodeId: "4", severity: "normal", status: "failed" },
-      ];
+        { nodeId: "3", status: "failed", resolutionStatus: "none" },
+        { nodeId: "4", severity: "normal", status: "failed", resolutionStatus: "none" },
+      ] as { nodeId: string; severity?: string; status: string; resolutionStatus?: string }[];
 
       expect(statusLeaves.filter(predicate).map(({ nodeId }) => nodeId)).toEqual(["1", "3"]);
     });
@@ -170,6 +171,7 @@ const leaf = (params: {
   flaky?: boolean;
   retry?: boolean;
   resolution?: ResolutionCategory;
+  resolutionStatus?: ResolutionFilterValue;
   transition?: TestStatusTransition;
 }) => ({
   nodeId: "node",
@@ -188,23 +190,58 @@ describe("stores > treeFilters > store", () => {
     setParams({ key: "resolution", value: ["issue"] });
 
     expect(hasActiveTreeFilters.value).toBe(true);
-    expect(matchesActiveFilters(leaf({ resolution: "issue" }))).toBe(true);
-    expect(matchesActiveFilters(leaf({ resolution: "muted" }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ resolution: "muted", resolutionStatus: "muted" }))).toBe(false);
     expect(matchesActiveFilters(leaf({}))).toBe(false);
+  });
+
+  it("should activate no-resolution filters only for unresolved failures", () => {
+    setParams({ key: "resolution", value: ["none"] });
+
+    expect(hasActiveTreeFilters.value).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "broken", resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "passed" }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
+      false,
+    );
   });
 
   it("should combine resolution category with status as AND", () => {
     setParams({ key: "resolution", value: ["issue"] }, { key: "status", value: "failed" });
 
-    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue" }))).toBe(true);
-    expect(matchesActiveFilters(leaf({ status: "passed", resolution: "issue" }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "passed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
+      false,
+    );
     expect(matchesActiveFilters(leaf({ status: "failed" }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(false);
+  });
+
+  it("should combine the failed status with the no-resolution filter", () => {
+    setParams({ key: "resolution", value: ["none"] }, { key: "status", value: "failed" });
+
+    expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "broken", resolutionStatus: "none" }))).toBe(false);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
+      false,
+    );
+  });
+
+  it("should exclude resolved failures from the failed status filter", () => {
+    setParams({ key: "status", value: "failed" });
+
+    expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
+      false,
+    );
+    expect(matchesActiveFilters(leaf({ status: "broken", resolutionStatus: "none" }))).toBe(false);
   });
 
   it("should combine resolution category with retry and flaky markers as OR", () => {
     setParams({ key: "resolution", value: ["issue"] }, { key: "flaky", value: "true" });
 
-    expect(matchesActiveFilters(leaf({ resolution: "issue", flaky: false }))).toBe(true);
+    expect(matchesActiveFilters(leaf({ resolution: "issue", resolutionStatus: "issue", flaky: false }))).toBe(true);
     expect(matchesActiveFilters(leaf({ flaky: true }))).toBe(true);
     expect(matchesActiveFilters(leaf({ flaky: false }))).toBe(false);
   });

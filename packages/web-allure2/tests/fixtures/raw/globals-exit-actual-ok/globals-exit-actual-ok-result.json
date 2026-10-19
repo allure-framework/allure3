@@ -1,0 +1,20 @@
+{
+  "uuid": "globals-exit-actual-ok-result",
+  "historyId": "globals-exit-actual-ok-history",
+  "name": "reported test remains passed",
+  "fullName": "io.qameta.allure.GlobalsExitTest.reportedTestRemainsPassedWithActualExit",
+  "status": "passed",
+  "stage": "finished",
+  "start": 1724662799000,
+  "stop": 1724662800000,
+  "steps": [],
+  "attachments": [],
+  "parameters": [],
+  "labels": [
+    {
+      "name": "suite",
+      "value": "GlobalsExit"
+    }
+  ],
+  "links": []
+}

@@ -1,4 +1,10 @@
-import { ChartType, type StatusAgePyramidChartData, type TrSeveritiesChartData } from "@allurereport/charts-api";
+import {
+  ChartType,
+  type DurationDynamicsChartData,
+  type DurationsChartData,
+  type StatusAgePyramidChartData,
+  type TrSeveritiesChartData,
+} from "@allurereport/charts-api";
 import {
   DEFAULT_ENVIRONMENT,
   type HistoryDataPoint,
@@ -59,16 +65,20 @@ const createTestResult = (overrides: Partial<TestResult> & { status: TestResult[
 const createStore = (params: {
   environments?: string[];
   testResults: TestResult[];
+  allTestResults?: TestResult[];
   historyDataPoints: HistoryDataPoint[];
   testResultsByEnvironment?: Record<string, TestResult[]>;
+  allTestResultsByEnvironment?: Record<string, TestResult[]>;
   historyDataPointsByEnvironment?: Record<string, HistoryDataPoint[]>;
   statistic?: Statistic;
 }): AllureStore => {
   const {
     environments,
     testResults,
+    allTestResults,
     historyDataPoints,
     testResultsByEnvironment,
+    allTestResultsByEnvironment,
     historyDataPointsByEnvironment,
     statistic,
   } = params;
@@ -80,9 +90,16 @@ const createStore = (params: {
   return {
     allEnvironments: async () => environments ?? [DEFAULT_ENVIRONMENT],
     allEnvironmentIdentities: async () => environmentIdentities,
-    allTestResults: async () => testResults,
-    testResultsByEnvironment: async (env: string) => testResultsByEnvironment?.[env] ?? [],
-    testResultsByEnvironmentId: async (envId: string) => testResultsByEnvironment?.[envId] ?? [],
+    allTestResults: async (options?: { includeRetries?: boolean }) =>
+      options?.includeRetries ? (allTestResults ?? testResults) : testResults,
+    testResultsByEnvironment: async (env: string, options?: { includeRetries?: boolean }) =>
+      options?.includeRetries
+        ? (allTestResultsByEnvironment?.[env] ?? testResultsByEnvironment?.[env] ?? [])
+        : (testResultsByEnvironment?.[env] ?? []),
+    testResultsByEnvironmentId: async (envId: string, options?: { includeRetries?: boolean }) =>
+      options?.includeRetries
+        ? (allTestResultsByEnvironment?.[envId] ?? testResultsByEnvironment?.[envId] ?? [])
+        : (testResultsByEnvironment?.[envId] ?? []),
     allHistoryDataPoints: async () => historyDataPoints,
     allHistoryDataPointsByEnvironment: async (env: string) => historyDataPointsByEnvironment?.[env] ?? [],
     allHistoryDataPointsByEnvironmentId: async (envId: string) => historyDataPointsByEnvironment?.[envId] ?? [],
@@ -91,10 +108,10 @@ const createStore = (params: {
 };
 
 describe("generateCharts", () => {
-  it("should map fallback history alias to current historyId for status age pyramid", async () => {
+  it("should ignore fallback identity without a cross-report catalog", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
-    const currentHistoryId = "new-history-id";
+    const fallbackRetryHash = `${fallbackTestCaseId}.${md5("")}`;
+    const currentRetryHash = "new-history-id";
     const store = createStore({
       historyDataPoints: [
         {
@@ -104,9 +121,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [fallbackHistoryId]: {
+            [fallbackRetryHash]: {
               id: "legacy-result-id",
-              historyId: fallbackHistoryId,
+              retryHash: fallbackRetryHash,
               name: "legacy test name",
               status: "failed",
             },
@@ -118,7 +135,7 @@ describe("generateCharts", () => {
           id: "tr-current",
           name: "migrated test",
           status: "failed",
-          historyId: currentHistoryId,
+          retryHash: currentRetryHash,
           stop: 1_700_000_001_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -137,13 +154,13 @@ describe("generateCharts", () => {
 
     expect(historyPoint).toBeDefined();
     expect(currentPoint).toBeDefined();
-    expect(historyPoint?.failed).toBe(1);
+    expect(historyPoint?.failed).toBe(0);
     expect(currentPoint?.failed).toBe(1);
   });
 
   it("should not map ambiguous fallback aliases to current history ids", async () => {
     const fallbackTestCaseId = md5("legacy-test-case-id");
-    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const fallbackRetryHash = `${fallbackTestCaseId}.${md5("")}`;
     const store = createStore({
       historyDataPoints: [
         {
@@ -153,9 +170,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [fallbackHistoryId]: {
+            [fallbackRetryHash]: {
               id: "legacy-result-id",
-              historyId: fallbackHistoryId,
+              retryHash: fallbackRetryHash,
               name: "legacy test name",
               status: "failed",
             },
@@ -167,7 +184,7 @@ describe("generateCharts", () => {
           id: "tr-current-1",
           name: "migrated test #1",
           status: "failed",
-          historyId: "new-history-id-1",
+          retryHash: "new-history-id-1",
           stop: 1_700_000_001_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -175,7 +192,7 @@ describe("generateCharts", () => {
           id: "tr-current-2",
           name: "migrated test #2",
           status: "failed",
-          historyId: "new-history-id-2",
+          retryHash: "new-history-id-2",
           stop: 1_700_000_002_000,
           labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
         }),
@@ -199,13 +216,13 @@ describe("generateCharts", () => {
   });
 
   it("should use environment-specific history data for environment charts", async () => {
-    const chromeHistoryId = "chrome-history-id";
-    const firefoxHistoryId = "firefox-history-id";
+    const chromeRetryHash = "chrome-history-id";
+    const firefoxRetryHash = "firefox-history-id";
     const chromeTestResult = createTestResult({
       id: "chrome-tr",
       name: "chrome test",
       status: "failed",
-      historyId: chromeHistoryId,
+      retryHash: chromeRetryHash,
       environment: "chrome",
       stop: 1_700_000_001_000,
     });
@@ -213,7 +230,7 @@ describe("generateCharts", () => {
       id: "firefox-tr",
       name: "firefox test",
       status: "failed",
-      historyId: firefoxHistoryId,
+      retryHash: firefoxRetryHash,
       environment: "firefox",
       stop: 1_700_000_002_000,
     });
@@ -232,9 +249,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [chromeHistoryId]: {
+            [chromeRetryHash]: {
               id: "chrome-history-result",
-              historyId: chromeHistoryId,
+              retryHash: chromeRetryHash,
               name: "chrome test",
               status: "failed",
             },
@@ -247,9 +264,9 @@ describe("generateCharts", () => {
           knownTestCaseIds: [],
           metrics: {},
           testResults: {
-            [firefoxHistoryId]: {
+            [firefoxRetryHash]: {
               id: "firefox-history-result",
-              historyId: firefoxHistoryId,
+              retryHash: firefoxRetryHash,
               name: "firefox test",
               status: "failed",
             },
@@ -265,9 +282,9 @@ describe("generateCharts", () => {
             knownTestCaseIds: [],
             metrics: {},
             testResults: {
-              [chromeHistoryId]: {
+              [chromeRetryHash]: {
                 id: "chrome-history-result",
-                historyId: chromeHistoryId,
+                retryHash: chromeRetryHash,
                 name: "chrome test",
                 status: "failed",
               },
@@ -282,9 +299,9 @@ describe("generateCharts", () => {
             knownTestCaseIds: [],
             metrics: {},
             testResults: {
-              [firefoxHistoryId]: {
+              [firefoxRetryHash]: {
                 id: "firefox-history-result",
-                historyId: firefoxHistoryId,
+                retryHash: firefoxRetryHash,
                 name: "firefox test",
                 status: "failed",
               },
@@ -304,6 +321,151 @@ describe("generateCharts", () => {
 
     expect(chromeChart.data.map(({ id }) => id)).toEqual(["chrome-run", "current"]);
     expect(chromeChart.data.find(({ id }) => id === "chrome-run")?.failed).toBe(1);
+  });
+
+  it("should include retry attempts in duration buckets", async () => {
+    const retryHash = "same-retry";
+    const retry = createTestResult({
+      id: "old-attempt",
+      name: "Retried test",
+      status: "failed",
+      retryHash,
+      isRetry: true,
+      start: 1_700_000_000_000,
+      stop: 1_700_000_010_000,
+      duration: 10_000,
+    });
+    const latest = createTestResult({
+      id: "latest-attempt",
+      name: "Retried test",
+      status: "passed",
+      retryHash,
+      isRetry: false,
+      start: 1_700_000_015_000,
+      stop: 1_700_000_020_000,
+      duration: 5_000,
+    });
+    const store = createStore({
+      testResults: [latest],
+      allTestResults: [retry, latest],
+      historyDataPoints: [],
+    });
+
+    const charts = await generateCharts([{ type: ChartType.Durations }], store, "Sample report", () => "chart-1");
+    const chart = charts.general["chart-1"] as DurationsChartData;
+    const valueKey = Object.keys(chart.keys)[0];
+
+    expect(chart.data.reduce((sum, bucket) => sum + (bucket[valueKey] ?? 0), 0)).toBe(2);
+  });
+
+  it("should include only environment-scoped retry attempts in environment duration buckets", async () => {
+    const retryHash = "same-retry";
+    const chromeRetry = createTestResult({
+      id: "chrome-old-attempt",
+      name: "Chrome retried test",
+      status: "failed",
+      retryHash,
+      isRetry: true,
+      environment: "chrome",
+      start: 1_700_000_000_000,
+      stop: 1_700_000_010_000,
+      duration: 10_000,
+    });
+    const chromeLatest = createTestResult({
+      id: "chrome-latest-attempt",
+      name: "Chrome retried test",
+      status: "passed",
+      retryHash,
+      isRetry: false,
+      environment: "chrome",
+      start: 1_700_000_015_000,
+      stop: 1_700_000_020_000,
+      duration: 5_000,
+    });
+    const firefoxRetry = createTestResult({
+      id: "firefox-old-attempt",
+      name: "Firefox retried test",
+      status: "failed",
+      retryHash,
+      isRetry: true,
+      environment: "firefox",
+      start: 1_700_000_001_000,
+      stop: 1_700_000_008_000,
+      duration: 7_000,
+    });
+    const store = createStore({
+      environments: ["chrome", "firefox"],
+      testResults: [chromeLatest],
+      allTestResults: [chromeRetry, chromeLatest, firefoxRetry],
+      testResultsByEnvironment: {
+        chrome: [chromeLatest],
+        firefox: [],
+      },
+      allTestResultsByEnvironment: {
+        chrome: [chromeRetry, chromeLatest],
+        firefox: [firefoxRetry],
+      },
+      historyDataPoints: [],
+    });
+
+    const charts = await generateCharts([{ type: ChartType.Durations }], store, "Sample report", () => "chart-1");
+    const chart = charts.byEnv.chrome["chart-1"] as DurationsChartData;
+    const valueKey = Object.keys(chart.keys)[0];
+
+    expect(chart.data.reduce((sum, bucket) => sum + (bucket[valueKey] ?? 0), 0)).toBe(2);
+  });
+
+  it("should include retry attempts in duration dynamics", async () => {
+    const retryHash = "same-retry";
+    const retry = createTestResult({
+      id: "old-attempt",
+      name: "Retried test",
+      status: "failed",
+      retryHash,
+      isRetry: true,
+      start: 1_700_000_000_000,
+      stop: 1_700_000_010_000,
+      duration: 10_000,
+    });
+    const latest = createTestResult({
+      id: "latest-attempt",
+      name: "Retried test",
+      status: "passed",
+      retryHash,
+      isRetry: false,
+      start: 1_700_000_015_000,
+      stop: 1_700_000_020_000,
+      duration: 5_000,
+    });
+    const store = createStore({
+      testResults: [latest],
+      allTestResults: [retry, latest],
+      historyDataPoints: [
+        {
+          uuid: "run-1",
+          name: "run-1",
+          timestamp: 1_700_000_000_000,
+          knownTestCaseIds: [],
+          metrics: {},
+          testResults: {},
+        },
+      ],
+    });
+
+    const charts = await generateCharts(
+      [{ type: ChartType.DurationDynamics }],
+      store,
+      "Sample report",
+      () => "chart-1",
+    );
+    const chart = charts.general["chart-1"] as DurationDynamicsChartData;
+    const current = chart.data.find(({ id }) => id === "current");
+
+    expect(current).toMatchObject({
+      duration: 15_000,
+      sequentialDuration: 15_000,
+      speedup: 1,
+    });
   });
 
   it("should not mutate severity chart options during chart generation", async () => {

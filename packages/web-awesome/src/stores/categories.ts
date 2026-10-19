@@ -1,6 +1,6 @@
 import type { CategoryNode, TestCategories } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
-import { computed, signal } from "@preact/signals";
+import { signal } from "@preact/signals";
 
 import { collapsedTrees } from "@/stores/tree";
 import type { StoreSignalState } from "@/stores/types";
@@ -10,8 +10,6 @@ export const categoriesStore = signal<StoreSignalState<TestCategories>>({
   error: undefined,
   data: undefined,
 });
-
-export const noCategories = computed(() => categoriesStore?.value?.data.roots.length);
 
 let lastCategoriesEnv: string | undefined;
 
@@ -36,7 +34,7 @@ export const fetchCategoriesData = async (env?: string) => {
       error: undefined,
       loading: false,
     };
-  } catch (e) {
+  } catch {
     categoriesStore.value = {
       ...categoriesStore.value,
       error: undefined,

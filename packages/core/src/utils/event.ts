@@ -125,10 +125,12 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
  */
 export class RealtimeSubscriber implements RealtimeSubscriberType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
+  readonly #beforeTestResults?: () => void;
   #handlers: BatchHandler[] = [];
 
-  constructor(emitter: EventEmitter<AllureStoreEvents>) {
+  constructor(emitter: EventEmitter<AllureStoreEvents>, beforeTestResults?: () => void) {
     this.#emitter = emitter;
+    this.#beforeTestResults = beforeTestResults;
   }
 
   onGlobalAttachment(
@@ -171,7 +173,15 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
    * next batch.
    */
   onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options: BatchOptions = {}) {
-    return this.#onBatchedEvent(RealtimeEvents.TestResult, listener, options);
+    return this.#onBatchedEvent(
+      RealtimeEvents.TestResult,
+      (trIds) => {
+        this.#beforeTestResults?.();
+
+        return listener(trIds);
+      },
+      options,
+    );
   }
 
   /**

@@ -99,6 +99,7 @@
     "at": "tarihinde"
   },
   "controls": {
+    "backToOverview": "Genel bakışa dön",
     "newTabAttachment": "Eki yeni sekmede aç",
     "nextTR": "Sonraki test sonucu",
     "prevTR": "Önceki test sonucu",

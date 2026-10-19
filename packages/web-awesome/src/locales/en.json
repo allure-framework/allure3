@@ -14,6 +14,7 @@
     "total": "Total",
     "flaky": "Flaky tests",
     "retries": "Retried tests",
+    "retriesStatusChange": "Changed on retry",
     "new": "New tests"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Show failed or broken test results without a resolution"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "No resolution"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Show more",
     "copy": "Copy",
     "copy-email": "Copy email",
+    "open-link": "Open link",
+    "copy-link": "Copy link",
     "fullname": "Fullname",
     "retry-hash": "Retry hash",
     "test-case-id": "Test case ID",
@@ -250,11 +255,19 @@
     "viewCode": "View code",
     "syntaxHighlight": "Syntax highlighting",
     "backto": "Back to",
+    "backToOverview": "Back to overview",
     "clipboard": "Copy to clipboard",
     "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",
     "clipboardSuccess": "Successfully copied",
     "collapse": "Collapse",
+    "collapseAll": "Collapse all",
+    "collapseAllPartial": "Collapse all (some groups are expanded)",
+    "collapseToDefault": "Collapse to the default view",
+    "expandFirstLevel": "Expand first level",
+    "collapseToFirstLevel": "Collapse to first level",
+    "showMore": "Show more",
     "expand": "Expand",
+    "expandAll": "Expand all",
     "fullscreen": "Full screen",
     "language": "Change language",
     "openInNewTab": "Open in new tab",
@@ -508,6 +521,7 @@
       "successRateDescription": "Calculated from passed, failed, and broken tests. Skipped and unknown tests are excluded.",
       "noResults": "There are no test results.",
       "noEligibleResults": "There are no passed, failed, or broken tests. Skipped and unknown tests are excluded from the success rate.",
+      "notAvailable": "N/A",
       "slice_one": "{{count}} test ({{percent}}% of all tests)",
       "slice_other": "{{count}} tests ({{percent}}% of all tests)",
       "layer": "Layer: {{layer}}",
@@ -522,6 +536,7 @@
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
       "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
       "retries": "{{count}} retries",
+      "retriesStatusChange": "Status changed across retry attempts",
       "flaky": "Inconsistent across runs",
       "resolution": {
         "issue": "Linked to an issue",

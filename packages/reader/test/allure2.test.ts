@@ -766,6 +766,30 @@ describe("allure2 reader", () => {
     });
   });
 
+  it("should parse multiple status detail errors", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/status-details-errors.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    const tr = visitor.visitTestResult.mock.calls[0][0];
+
+    expect(tr).toMatchObject({
+      errors: [
+        {
+          message: "first assertion",
+          trace: "first trace",
+          actual: "1",
+          expected: "2",
+        },
+        {
+          message: "second assertion",
+          trace: "second trace",
+        },
+      ],
+    });
+  });
+
   it("should infer assertion diff from Playwright-style expected and received lines", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/status-details-playwright-diff.json": generateTestResultName(),

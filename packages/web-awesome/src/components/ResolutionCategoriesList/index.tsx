@@ -1,5 +1,5 @@
-import { type ResolutionCategory } from "@allurereport/core-api";
-import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components";
+import { sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
+import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -67,67 +67,95 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const [isOpened, setIsOpened] = useState(true);
   const { t } = useI18n("filters");
   const title = getResolutionTitle(group, t);
+  const safeIssueUrl = group.issue?.link?.url ? sanitizeExternalUrl(group.issue.link.url) : undefined;
+  const linkName = group.issue?.link?.name ?? title;
+  const accessibleName = safeIssueUrl ? linkName : title;
   const subtitle = group.comment ?? group.issue?.comment;
+  const testsId = `resolution-category-tests-${group.id}`;
   const toggle = () => setIsOpened((value) => !value);
+  const content = (
+    <>
+      {safeIssueUrl ? (
+        <Text
+          className={clsx(styles["resolution-categories-name"], styles["resolution-categories-name-link"])}
+          tag="a"
+          href={safeIssueUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          size="m"
+          bold
+        >
+          {linkName}
+        </Text>
+      ) : (
+        <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
+          {title}
+        </Text>
+      )}
+      {group.issue?.type && (
+        <Text tag="span" size="s" className={styles["resolution-categories-type"]}>
+          {group.issue.type}
+        </Text>
+      )}
+      {subtitle && (
+        <Text tag="span" size="s" className={styles["resolution-categories-comment"]}>
+          {subtitle}
+        </Text>
+      )}
+    </>
+  );
   const headerContent = (
     <>
       <div className={styles["resolution-categories-header-icons"]}>
         {hasTests ? (
-          <ArrowButton
-            tag="span"
-            buttonSize="s"
-            className={styles["resolution-categories-arrow"]}
-            isOpened={isOpened}
-          />
+          <button
+            className={styles["resolution-categories-arrow-button"]}
+            onClick={toggle}
+            type="button"
+            aria-label={accessibleName}
+            aria-expanded={isOpened}
+            aria-controls={testsId}
+          >
+            <ArrowButton
+              tag="span"
+              buttonSize="s"
+              className={styles["resolution-categories-arrow"]}
+              isOpened={isOpened}
+            />
+          </button>
         ) : (
           <span className={styles["resolution-categories-arrow-spacer"]} />
         )}
         <SvgIcon className={styles["resolution-categories-icon"]} id={resolutionIcons[group.resolution]} />
       </div>
-      <span className={styles["resolution-categories-content"]}>
-        <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
-          {title}
-        </Text>
-        {group.issue?.type && (
-          <Text tag="span" size="s" className={styles["resolution-categories-type"]}>
-            {group.issue.type}
-          </Text>
-        )}
-        {subtitle && (
-          <Text tag="span" size="s" className={styles["resolution-categories-comment"]}>
-            {subtitle}
-          </Text>
-        )}
-      </span>
+      {hasTests && !safeIssueUrl ? (
+        <button
+          className={clsx(styles["resolution-categories-content"], styles["resolution-categories-content-button"])}
+          onClick={toggle}
+          type="button"
+          aria-expanded={isOpened}
+          aria-controls={testsId}
+        >
+          {content}
+        </button>
+      ) : (
+        <span className={styles["resolution-categories-content"]}>{content}</span>
+      )}
     </>
   );
 
   return (
     <li className={styles["resolution-categories-item"]}>
-      {hasTests ? (
-        <button
-          className={clsx(
-            styles["resolution-categories-header"],
-            compact && styles["resolution-categories-header-compact"],
-            styles["resolution-categories-header-clickable"],
-          )}
-          onClick={toggle}
-          type="button"
-        >
-          {headerContent}
-        </button>
-      ) : (
-        <div
-          className={clsx(
-            styles["resolution-categories-header"],
-            compact && styles["resolution-categories-header-compact"],
-          )}
-        >
-          {headerContent}
-        </div>
-      )}
+      <div
+        className={clsx(
+          styles["resolution-categories-header"],
+          compact && styles["resolution-categories-header-compact"],
+        )}
+      >
+        {headerContent}
+      </div>
       {hasTests && isOpened && (
-        <ul className={styles["resolution-categories-tests"]}>
+        <ul className={styles["resolution-categories-tests"]} id={testsId}>
           {group.testResults.map((testResult, index) => (
             <ResolutionCategoriesTestResult testResult={testResult} index={index} key={testResult.nodeId} />
           ))}
@@ -150,6 +178,9 @@ const ResolutionCategoriesTestResult: FunctionalComponent<{
     retries:
       testResult.tooltips?.retries ??
       (testResult.retriesCount ? tTransitions("description.retries", { count: testResult.retriesCount }) : undefined),
+    retriesStatusChange:
+      testResult.tooltips?.retriesStatusChange ??
+      (testResult.retriesStatusChange ? tTransitions("description.retriesStatusChange") : undefined),
     resolution: testResult.resolution ? tTransitions(`description.resolution.${testResult.resolution}`) : undefined,
   };
 
@@ -163,6 +194,7 @@ const ResolutionCategoriesTestResult: FunctionalComponent<{
         flaky={testResult.flaky}
         transition={testResult.transition}
         retriesCount={testResult.retriesCount}
+        retriesStatusChange={testResult.retriesStatusChange}
         resolution={testResult.resolution}
         groupOrder={testResult.groupOrder ?? index + 1}
         navigateTo={() => navigateToTestResult({ testResultId: testResult.nodeId })}

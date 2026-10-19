@@ -10,7 +10,8 @@ import {
   compareBy,
   createBaseUrlScript,
   createFontLinkTag,
-  createReportDataScript,
+  injectReportDataScript,
+  reportDataScriptPlaceholder,
   stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
@@ -292,6 +293,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
@@ -305,6 +307,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -360,13 +363,14 @@ export const generateStaticFiles = async (
     allureVersion,
     cacheKey: now.toString(),
     attachmentsBasePath,
+    overviewHref,
   };
 
   try {
     const html = compiledTemplate({
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportFilesScript: reportDataScriptPlaceholder,
       reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
@@ -375,7 +379,7 @@ export const generateStaticFiles = async (
       singleFile: payload.singleFile,
     });
 
-    const htmlBuffer = Buffer.from(html, "utf8");
+    const htmlBuffer = injectReportDataScript(html, reportDataFiles);
 
     if (payload.singleFile && htmlBuffer.byteLength > SINGLE_FILE_SIZE_WARNING_THRESHOLD) {
       const sizeMb = (htmlBuffer.byteLength / (1024 * 1024)).toFixed(1);

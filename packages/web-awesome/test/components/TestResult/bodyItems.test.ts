@@ -14,6 +14,7 @@ import {
   fixtureResultToTrStepItem,
   getBodyItems,
   getStepBodyItems,
+  getTestLevelErrorItemId,
   getTestLevelErrorId,
 } from "@/components/TestResult/bodyItems";
 
@@ -41,12 +42,13 @@ const sampleAttachment: AttachmentTestStepResult = {
 };
 
 const makeTestResult = (
-  overrides: Partial<Pick<ReportTestResult, "id" | "status" | "steps" | "error">> = {},
-): Pick<ReportTestResult, "id" | "status" | "steps" | "error"> => ({
+  overrides: Partial<Pick<ReportTestResult, "id" | "status" | "steps" | "error" | "errors">> = {},
+): Pick<ReportTestResult, "id" | "status" | "steps" | "error" | "errors"> => ({
   id: "test-result-id",
   status: "failed",
   steps: [sampleStep],
   error: undefined,
+  errors: undefined,
   ...overrides,
 });
 
@@ -96,6 +98,38 @@ describe("components > TestResult > bodyItems", () => {
         title: "Temporarily disabled until the upstream fix lands",
         status: "skipped",
         error: { message: "Temporarily disabled until the upstream fix lands" },
+      },
+    ]);
+  });
+
+  it("should append every displayable test-level error item separately", () => {
+    const bodyItems = getBodyItems(
+      makeTestResult({
+        errors: [{ message: "first assertion" }, { message: "second assertion", trace: "second trace" }],
+      }),
+      "Error",
+    );
+
+    expect(bodyItems).toEqual([
+      {
+        type: "step",
+        item: sampleStep,
+        bodyItems: [],
+        suppressInlineError: false,
+      },
+      {
+        type: "error",
+        id: getTestLevelErrorItemId("test-result-id", 0),
+        title: "first assertion",
+        status: "failed",
+        error: { message: "first assertion" },
+      },
+      {
+        type: "error",
+        id: getTestLevelErrorItemId("test-result-id", 1),
+        title: "second assertion",
+        status: "failed",
+        error: { message: "second assertion", trace: "second trace" },
       },
     ]);
   });
@@ -171,6 +205,127 @@ describe("components > TestResult > bodyItems", () => {
           },
         ],
         suppressInlineError: false,
+      },
+    ]);
+  });
+
+  it("should nest matching errors and keep unmatched errors at the top level", () => {
+    const failedStep: DefaultTestStepResult = {
+      type: "step",
+      stepId: "failed-step-id",
+      name: "failed step",
+      status: "failed",
+      parameters: [],
+      steps: [],
+      message: "nested assertion",
+    };
+
+    const bodyItems = getBodyItems(
+      makeTestResult({
+        steps: [failedStep],
+        errors: [{ message: "nested assertion" }, { message: "top-level assertion" }],
+      }),
+      "Error",
+    );
+
+    expect(bodyItems).toEqual([
+      {
+        type: "step",
+        item: failedStep,
+        bodyItems: [
+          {
+            type: "error",
+            id: getTestLevelErrorItemId("test-result-id", 0),
+            title: "nested assertion",
+            status: "failed",
+            error: { message: "nested assertion" },
+          },
+        ],
+        suppressInlineError: true,
+      },
+      {
+        type: "error",
+        id: getTestLevelErrorItemId("test-result-id", 1),
+        title: "top-level assertion",
+        status: "failed",
+        error: { message: "top-level assertion" },
+      },
+    ]);
+  });
+
+  it("should host a matching error under only the first matching sibling step", () => {
+    const firstStep: DefaultTestStepResult = {
+      type: "step",
+      stepId: "first-step-id",
+      name: "first step",
+      status: "failed",
+      parameters: [],
+      steps: [],
+      message: "same assertion",
+    };
+    const secondStep: DefaultTestStepResult = {
+      type: "step",
+      stepId: "second-step-id",
+      name: "second step",
+      status: "failed",
+      parameters: [],
+      steps: [],
+      message: "same assertion",
+    };
+
+    const bodyItems = getBodyItems(
+      makeTestResult({
+        steps: [firstStep, secondStep],
+        errors: [{ message: "same assertion" }],
+      }),
+      "Error",
+    );
+
+    expect(bodyItems).toEqual([
+      {
+        type: "step",
+        item: firstStep,
+        bodyItems: [
+          {
+            type: "error",
+            id: getTestLevelErrorItemId("test-result-id", 0),
+            title: "same assertion",
+            status: "failed",
+            error: { message: "same assertion" },
+          },
+        ],
+        suppressInlineError: true,
+      },
+      {
+        type: "step",
+        item: secondStep,
+        bodyItems: [],
+        suppressInlineError: false,
+      },
+    ]);
+  });
+
+  it("should skip non-displayable entries in the errors array", () => {
+    const bodyItems = getBodyItems(
+      makeTestResult({
+        errors: [{}, { message: "displayable assertion" }],
+      }),
+      "Error",
+    );
+
+    expect(bodyItems).toEqual([
+      {
+        type: "step",
+        item: sampleStep,
+        bodyItems: [],
+        suppressInlineError: false,
+      },
+      {
+        type: "error",
+        id: getTestLevelErrorItemId("test-result-id", 1),
+        title: "displayable assertion",
+        status: "failed",
+        error: { message: "displayable assertion" },
       },
     ]);
   });

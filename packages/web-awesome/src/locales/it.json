@@ -14,6 +14,7 @@
     "total": "Totale",
     "flaky": "Test instabili",
     "retries": "Test ripetuti",
+    "retriesStatusChange": "Cambiato al nuovo tentativo",
     "new": "Nuovi test"
   },
   "tabs": {
@@ -61,14 +62,16 @@
       "resolution": {
         "issue": "Show issue-linked test results",
         "muted": "Show muted test results",
-        "accepted": "Show accepted test results"
+        "accepted": "Show accepted test results",
+        "none": "Mostra i risultati dei test falliti o interrotti senza risoluzione"
       }
     },
     "resolution": "Resolution",
     "resolutions": {
       "issue": "Issue",
       "muted": "Muted",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "none": "Nessuna risoluzione"
     }
   },
   "sort-by": {
@@ -166,6 +169,8 @@
     "showMore": "Mostra di più",
     "copy": "Copia",
     "copy-email": "Copia email",
+    "open-link": "Apri il link",
+    "copy-link": "Copia il link",
     "attempt": "Tentativo {{attempt}} di {{total}}",
     "retry": "Ripetizione {{attempt}} di {{total}}",
     "at": "a",
@@ -189,11 +194,18 @@
     "viewCode": "Visualizza codice",
     "syntaxHighlight": "Evidenziazione sintassi",
     "backto": "Torna a",
+    "backToOverview": "Torna alla panoramica",
     "clipboard": "Copia negli appunti",
     "clipboardError": "Errore. Sembra che questa funzionalità non sia supportata dal tuo browser",
     "clipboardSuccess": "Copiato con successo",
     "collapse": "Comprimi",
+    "collapseAll": "Comprimi tutto",
+    "collapseAllPartial": "Comprimi tutto (alcuni gruppi sono espansi)",
+    "collapseToDefault": "Comprimi alla vista predefinita",
+    "expandFirstLevel": "Espandi il primo livello",
+    "collapseToFirstLevel": "Comprimi al primo livello",
     "expand": "Espandi",
+    "expandAll": "Espandi tutto",
     "fullscreen": "Schermo intero",
     "language": "Cambia lingua",
     "openInNewTab": "Apri in una nuova scheda",
@@ -462,6 +474,7 @@
       "regressed": "Test precedentemente \"superato\" o \"danneggiato\" che ora è \"fallito\"",
       "malfunctioned": "Test precedentemente \"superato\" o \"fallito\" che ora è \"danneggiato\"",
       "retries": "{{count}} tentativi",
+      "retriesStatusChange": "Stato cambiato dopo un tentativo",
       "flaky": "Incoerente tra le esecuzioni",
       "resolution": {
         "issue": "Linked to an issue",

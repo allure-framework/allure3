@@ -99,6 +99,7 @@
     "at": "a"
   },
   "controls": {
+    "backToOverview": "Torna alla panoramica",
     "newTabAttachment": "Apri in una nuova scheda",
     "nextTR": "Risultato del test successivo",
     "prevTR": "Risultato del test precedente",

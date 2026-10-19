@@ -1,4 +1,5 @@
-import type { Preview } from "@storybook/preact";
+import type { Preview } from "@storybook/preact-vite";
+
 import "@/assets/scss/index.scss";
 import "./styles.scss";
 

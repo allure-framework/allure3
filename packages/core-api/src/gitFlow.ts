@@ -1,6 +1,6 @@
 /**
- * Git Flow client contracts (Allure 3 → TestOps upload).
- * Wire field names on TestOps API may change; types stay stable in monorepo.
+ * Git Flow client contracts (Allure 3 -> Allure TestOps upload).
+ * Wire field names on Allure TestOps API may change; types stay stable in monorepo.
  */
 
 export enum GitProvider {

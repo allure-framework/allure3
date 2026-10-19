@@ -7,6 +7,7 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  createResolutionIssue,
   getResolutionByRules,
   isIgnoredFailure,
   KNOWN_FROM_RESULT_RESOLUTION,
@@ -110,6 +111,39 @@ describe("resolution rules", () => {
     expect(isIgnoredFailure({ resolution: "issue" } as any)).toBe(false);
     expect(isIgnoredFailure({ resolution: "muted" } as any)).toBe(true);
     expect(isIgnoredFailure({ resolution: "accepted" } as any)).toBe(true);
+  });
+
+  it("creates clickable issue links from configured templates", () => {
+    const rule = {
+      resolution: "issue",
+      issue: { id: "SHOP $& 42", type: "jira" },
+      testCaseId: ["tc-1"],
+    } as const;
+
+    expect(createResolutionIssue(rule, config)).toEqual({
+      id: "SHOP $& 42",
+      type: "jira",
+      link: {
+        name: "Jira SHOP $& 42",
+        url: "https://jira.example/browse/SHOP%20%24%26%2042",
+        type: "jira",
+      },
+    });
+  });
+
+  it("keeps issue metadata plain when a link template is unavailable", () => {
+    const rule = {
+      resolution: "issue",
+      issue: { id: "SHOP-42", type: "jira" },
+      comment: "Tracked elsewhere",
+      testCaseId: ["tc-1"],
+    } as const;
+
+    expect(createResolutionIssue(rule)).toEqual({
+      id: "SHOP-42",
+      type: "jira",
+      comment: "Tracked elsewhere",
+    });
   });
 
   it("accepts known failed/broken results without config rules", () => {

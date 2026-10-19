@@ -34,11 +34,6 @@ export const navigateToCategoriesRoot = () => {
   routerNavigateTo({ path: "/categories", keepSearchParams: true });
 };
 
-export const navigateToCategoriesTestResult = (params: { testResultId: string; tab?: string }) => {
-  const normalized = { ...params, tab: normalizeTab(params.tab) };
-  routerNavigateTo({ path: "/categories/:testResultId/:tab?", params: normalized, keepSearchParams: true });
-};
-
 export const navigateToRootTabRoot = (params: { rootTab: string }) => {
   routerNavigateTo({ path: "/:rootTab", params, keepSearchParams: true });
 };
@@ -79,8 +74,6 @@ export const testResultRoute = computed(() =>
     );
   }),
 );
-
-export const rootRoute = computed(() => createRoute<{}>("/"));
 
 export const sectionRoute = computed(() =>
   createRoute<{ section: SectionRouteName }>("/:section", ({ params }) => {
