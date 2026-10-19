@@ -78,11 +78,11 @@ Allure lifecycle messages visible.
 `-v/--verbose` and `-q/--quiet` are global flags accepted by every command (place them before `--` in `allure run`;
 everything after `--` is passed to your test command untouched).
 
-| Flag | Allure log level | `allure run` test process output |
-| --- | --- | --- |
-| _(none)_ | `ALLURE_LOG_LEVEL`, default `info` | printed |
-| `--verbose`, `-v` | `verbose` | printed |
-| `--quiet`, `-q` | `error` (errors only) | hidden, same as `--silent` |
+| Flag              | Allure log level                   | `allure run` test process output |
+| ----------------- | ---------------------------------- | -------------------------------- |
+| _(none)_          | `ALLURE_LOG_LEVEL`, default `info` | printed                          |
+| `--verbose`, `-v` | `verbose`                          | printed                          |
+| `--quiet`, `-q`   | `error` (errors only)              | hidden, same as `--silent`       |
 
 - The flags override `ALLURE_LOG_LEVEL`. `--verbose` and `--quiet` cannot be combined.
 - `--quiet` implies `--silent`. Logs are still collected into the report unless `--ignore-logs` is set.
@@ -312,6 +312,30 @@ You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a 
 > [!WARNING]
 > Declarative formats don't support advanced features such as tests filtering or environments.
 > If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
+
+## Troubleshooting
+
+### `allure run` or `allure agent` hangs
+
+Allure waits for the command processes to finish before completing the run. A
+background process left running by your test command can keep Allure waiting even
+after the tests have finished:
+
+- **Linux and macOS:** Allure starts the command in a new process group and waits
+  until every process in that group exits.
+- **Windows:** Allure places the command and its descendants in a Windows job
+  object, which tracks them together. The run completes when the job is empty.
+
+Set `ALLURE_LOG_LEVEL=debug` and rerun the command to identify processes keeping
+the group or job alive. After the root process exits, diagnostic messages list
+remaining processes, including their IDs and command lines where available.
+Check that your test command shuts down any background workers or servers it starts.
+
+To stop a hung run, prefer **Ctrl+C** or, on Linux and macOS, send **SIGTERM** to
+Allure so it can stop the supervised processes. Forcefully killing Allure on
+Linux or macOS may leave those processes running. On Windows, killing Allure is
+safe for process cleanup: Windows automatically terminates the job and its
+remaining processes. A forced exit can still prevent report finalization.
 
 ## Official CI/CD Integrations
 

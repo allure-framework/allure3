@@ -3,9 +3,11 @@ import type { ChildProcess } from "node:child_process";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { Logger } from "@allurereport/cli-commons";
 import { KnownError } from "@allurereport/service";
 
 import { logError } from "../logs.js";
+import { supervisorDiagnosticsEnabled } from "./diagnostics.js";
 import type {
   InterruptionLevel,
   JobMonitor,
@@ -18,6 +20,7 @@ import type {
 const DEFAULT_STOP_TIMEOUT = 30_000;
 
 export abstract class ProcessSupervisorBase {
+  #logger?: Logger;
   #command: string;
   #arguments: readonly string[];
   #workingDirectory: string;
@@ -40,9 +43,12 @@ export abstract class ProcessSupervisorBase {
 
   #interrupted: InterruptionLevel | undefined;
 
+  protected readonly diagnosticsEnabled: boolean;
+
   constructor(
     command: string,
     {
+      logger,
       arguments: args = [],
       workingDirectory = process.cwd(),
       environmentVariables = {},
@@ -56,6 +62,7 @@ export abstract class ProcessSupervisorBase {
       throw new KnownError(`Invalid stop timeout ${stopTimeout}.`);
     }
 
+    this.#logger = logger;
     this.#command = command;
     this.#arguments = args;
     this.#workingDirectory = workingDirectory;
@@ -64,6 +71,7 @@ export abstract class ProcessSupervisorBase {
     this.#outputEncoding = outputEncoding;
     this.#silent = silent;
     this.#stopTimeout = stopTimeout;
+    this.diagnosticsEnabled = Boolean(logger?.debugEnabled) && supervisorDiagnosticsEnabled();
   }
 
   get process(): ChildProcess {
@@ -163,6 +171,8 @@ export abstract class ProcessSupervisorBase {
     this.#process = target;
     this.#started = true;
 
+    const stopDiagnostics = this.diagnoseRootProcess(target);
+
     this.#completionPromise = this.observeRootProcess(target).then(async ({ error, spawned, code, signal }) => {
       const errors: unknown[] = [];
 
@@ -174,7 +184,9 @@ export abstract class ProcessSupervisorBase {
 
       try {
         if (spawned) {
+          this.diagnostic("waiting for process group completion");
           const jobCompletion = await monitor.wait();
+          this.diagnostic("process group completed");
           if (jobCompletion) {
             code = jobCompletion.code;
             signal = jobCompletion.signal;
@@ -202,6 +214,8 @@ export abstract class ProcessSupervisorBase {
 
       return { code, signal, externalInterruption: this.#interrupted };
     });
+
+    void this.#completionPromise.then(stopDiagnostics, stopDiagnostics);
   }
 
   stop() {
@@ -236,6 +250,18 @@ export abstract class ProcessSupervisorBase {
     this.#interrupted = "terminated";
   }
 
+  protected diagnostic(message: string, details?: Record<string, unknown>) {
+    if (!this.diagnosticsEnabled || !this.#logger) {
+      return;
+    }
+    try {
+      const suffix = details === undefined ? "" : `: ${JSON.stringify(details)}`;
+      this.#logger.debug(`${new Date().toISOString()} node pid=${process.pid} ${message}${suffix}`);
+    } catch {}
+  }
+
+  protected async diagnoseRemainingProcesses(): Promise<void> {}
+
   private resolveTargetEnvironment() {
     const configuredEnvironment = {
       ...process.env,
@@ -257,6 +283,59 @@ export abstract class ProcessSupervisorBase {
       ...process.env,
       ...colorDefaults,
       ...this.#environmentVariables,
+      // Suppress supervisor diagnostics in nested Allure invocations.
+      // The outer invocation will report the entire process group anyway.
+      ALLURE_SUPERVISOR_DIAGNOSTICS: "0",
+    };
+  }
+
+  private diagnoseRootProcess(target: ChildProcess): () => void {
+    let diagnosticTimer: ReturnType<typeof setInterval> | undefined;
+    let inspecting = false;
+    const inspect = async () => {
+      if (inspecting) {
+        return;
+      }
+      inspecting = true;
+      try {
+        await this.diagnoseRemainingProcesses();
+      } catch (error) {
+        this.diagnostic("process inspection failed", { error: String(error) });
+      } finally {
+        inspecting = false;
+      }
+    };
+    const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
+      this.diagnostic("supervised process exited", { pid: target.pid, code, signal });
+      if (this.diagnosticsEnabled) {
+        // Descendants can keep stdio open, delaying close and monitor.wait().
+        void inspect();
+        diagnosticTimer = setInterval(() => void inspect(), 30_000);
+        diagnosticTimer.unref();
+      }
+    };
+
+    const onSpawn = () => {
+      this.diagnostic("supervised process started", { pid: target.pid });
+    };
+    const onError = (error: Error) => {
+      this.diagnostic("supervised process error", { pid: target.pid, error: error.message });
+    };
+    const onClose = (code: number | null, signal: NodeJS.Signals | null) => {
+      this.diagnostic("supervised process stdio closed", { pid: target.pid, code, signal });
+    };
+
+    target.once("spawn", onSpawn);
+    target.on("error", onError);
+    target.once("exit", onExit);
+    target.once("close", onClose);
+
+    return () => {
+      clearInterval(diagnosticTimer);
+      target.off("spawn", onSpawn);
+      target.off("error", onError);
+      target.off("exit", onExit);
+      target.off("close", onClose);
     };
   }
 
@@ -292,6 +371,7 @@ export abstract class ProcessSupervisorBase {
   }
 
   private async stopOnce() {
+    this.diagnostic("requesting graceful stop", { timeout: this.#stopTimeout });
     const controller = new AbortController();
     const { signal } = controller;
 
@@ -330,6 +410,7 @@ export abstract class ProcessSupervisorBase {
       ]);
 
       if (result === "timeout") {
+        this.diagnostic("graceful stop timed out");
         await this.terminate();
       }
     } finally {
@@ -338,6 +419,7 @@ export abstract class ProcessSupervisorBase {
   }
 
   private async terminateOnce() {
+    this.diagnostic("requesting forced termination");
     await this.requestTermination();
     await this.completion;
   }

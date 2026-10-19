@@ -1,4 +1,7 @@
+import type { Logger } from "@allurereport/cli-commons";
+
 export type SupervisedCommandOptions = {
+  logger?: Logger;
   arguments?: readonly string[];
   workingDirectory?: string;
   environmentVariables?: Record<string, string>;

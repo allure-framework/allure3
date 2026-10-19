@@ -43,6 +43,14 @@ export type HostTargetCompletedEvent = {
   reason: "normal" | "stopped" | "terminated";
 };
 
+export type HostDiagnosticsEvent = {
+  type: "diagnostics";
+  hostPid: number;
+  timestamp: string;
+  stage: string;
+  details: Record<string, unknown>;
+};
+
 export type HostResultType = "stopResult" | "terminationResult";
 
 export type HostRequestResultBase<T extends HostResultType> = {
@@ -64,6 +72,7 @@ export type HostTerminationResult = HostRequestResultBase<"terminationResult">;
 export type HostRequestResult = HostStopResult | HostTerminationResult;
 
 export type HostResponse =
+  | HostDiagnosticsEvent
   | HostReadyEvent
   | HostTargetStartedEvent
   | HostTargetCompletedEvent
