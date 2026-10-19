@@ -1,5 +1,5 @@
 import { displayName, epic, feature, label, parameter, story } from "allure-js-commons";
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

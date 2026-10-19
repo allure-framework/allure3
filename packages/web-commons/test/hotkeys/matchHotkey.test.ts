@@ -1,5 +1,5 @@
 import { label } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { matchHotkey } from "../../src/hotkeys/matchHotkey.js";
 import type { HotkeyBinding } from "../../src/hotkeys/types.js";

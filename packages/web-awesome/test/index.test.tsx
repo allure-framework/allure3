@@ -1,6 +1,6 @@
 import { act, screen, waitFor } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

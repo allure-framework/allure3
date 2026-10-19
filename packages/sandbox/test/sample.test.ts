@@ -1,4 +1,4 @@
-import { it, expect } from "vitest";
+import { it, expect } from "vite-plus/test";
 
 it("always pass 1", () => {
   expect(1).toBe(1);

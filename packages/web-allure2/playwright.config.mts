@@ -25,7 +25,7 @@ export default defineConfig({
     command: "tsx ./scripts/e2e-static-server.mts",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
-    url: "http://127.0.0.1:4173/health",
+    url: `${process.env.PLAYWRIGHT_E2E_SERVER_ORIGIN || "http://127.0.0.1:4173"}/health`,
   },
   use: {
     viewport: { width: 1440, height: 960 },

@@ -16,6 +16,7 @@ export * from "./open.js";
 export * from "./qualityGate.js";
 export * from "./log.js";
 export * from "./generate.js";
+export * from "./ghWorkflow.js";
 export * from "./dashboard.js";
 export * from "./results/index.js";
 export * from "./jira/index.js";

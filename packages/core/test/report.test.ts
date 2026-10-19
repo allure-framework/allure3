@@ -12,8 +12,8 @@ import MetricsPlugin from "@allurereport/plugin-metrics";
 import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
-import type { Mock, Mocked } from "vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock, Mocked } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";

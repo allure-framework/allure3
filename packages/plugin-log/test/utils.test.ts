@@ -4,7 +4,7 @@ import tty from "node:tty";
 import type { DefaultTestStepResult, TestError, TestResult } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from "vite-plus/test";
 
 import {
   hasResultFailedSteps,

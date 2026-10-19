@@ -2,7 +2,7 @@
 import type { CategoryDefinition } from "@allurereport/core-api";
 import type { ReportTestResult } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");

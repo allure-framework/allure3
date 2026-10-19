@@ -1,0 +1,17 @@
+# Trivy identifies the Vite+ core alias as vite-plus and uses it's version
+vulnerabilities:
+  - id: CVE-2022-35204
+    paths: [yarn.lock]
+    statement: Vite+ core alias;
+
+  - id: CVE-2023-34092
+    paths: [yarn.lock]
+    statement: Vite+ core alias
+
+  - id: CVE-2024-52011
+    paths: [yarn.lock]
+    statement: Vite+ core alias
+
+  - id: CVE-2026-53571
+    paths: [yarn.lock]
+    statement: Vite+ core alias

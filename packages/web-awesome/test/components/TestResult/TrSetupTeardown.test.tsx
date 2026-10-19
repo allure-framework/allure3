@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render } from "@testing-library/preact";
 import type { ReportFixtureResult } from "types";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(

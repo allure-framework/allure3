@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite-plus";
 
 const require = createRequire(import.meta.url);
 

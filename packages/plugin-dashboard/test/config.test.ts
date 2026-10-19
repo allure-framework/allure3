@@ -1,5 +1,5 @@
 import { ChartType, type ChartOptions } from "@allurereport/charts-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { DashboardPlugin } from "../src/plugin.js";
 

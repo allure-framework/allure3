@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { KnownError } from "../src/utils/http.js";
 import { encodeUploadPath, normalizeUploadPath, uploadStorageReport } from "../src/utils/storage.js";

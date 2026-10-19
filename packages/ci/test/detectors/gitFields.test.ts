@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 
 import { GitProvider } from "@allurereport/core-api";
 import { story } from "allure-js-commons";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { amazon } from "../../src/detectors/amazon.js";
 import { azure } from "../../src/detectors/azure.js";

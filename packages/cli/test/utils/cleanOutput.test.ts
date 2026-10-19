@@ -5,7 +5,7 @@ import { join, parse } from "node:path";
 import { cwd as processCwd } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { cleanOutputDirectory, getUnsafeCleanReason, isOutputDirectoryNotEmpty } from "../../src/utils/cleanOutput.js";
 

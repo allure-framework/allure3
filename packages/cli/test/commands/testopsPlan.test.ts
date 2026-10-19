@@ -4,7 +4,7 @@ import { exit } from "node:process";
 
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TestOpsPlanCommand } from "../../src/commands/testopsPlan.js";
 

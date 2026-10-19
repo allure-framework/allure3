@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { collectMetrics } from "../src/collect.js";
 import type { MetricsInput } from "../src/model.js";
