@@ -1,7 +1,7 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { mergeSessionEnvironment, ownEnvironmentVariables } from "../src/utils/sessionEnvironment.js";
+import { hasOwnVariables, toSessionVariables } from "../src/utils/sessionEnvironment.js";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -10,42 +10,30 @@ beforeEach(async () => {
   await label("coverage", "testops-integration");
 });
 
-describe("mergeSessionEnvironment", () => {
-  it("should override process env by config with the same key", () => {
-    expect(mergeSessionEnvironment({ browser: "chrome", CI: "true" }, {}, { browser: "firefox" })).toEqual({
-      CI: "true",
-      browser: "firefox",
-    });
-  });
-
-  it("should override report variables by environment variables with the same key", () => {
-    expect(mergeSessionEnvironment({}, { browser: "x", Stand: "staging" }, { browser: "y" })).toEqual({
-      Stand: "staging",
-      browser: "y",
-    });
-  });
-
-  it("should override process env by report variables", () => {
-    expect(mergeSessionEnvironment({ Stand: "prod" }, { Stand: "staging" }, {})).toEqual({ Stand: "staging" });
-  });
-
-  it("should keep keys that differ only in case, as TestOps matches session keys case-sensitively", () => {
-    expect(mergeSessionEnvironment({ BROWSER: "ci" }, { stand: "x" }, { Browser: "firefox" })).toEqual({
-      BROWSER: "ci",
-      stand: "x",
-      Browser: "firefox",
+describe("toSessionVariables", () => {
+  it("should drop variables without a value and stringify the rest", () => {
+    expect(toSessionVariables({ Stand: undefined, Region: null, Shard: 3, Debug: false, Browser: "chrome" })).toEqual({
+      Shard: "3",
+      Debug: "false",
+      Browser: "chrome",
     });
   });
 });
 
-describe("ownEnvironmentVariables", () => {
-  it("should return only entries that differ from report variables", () => {
-    expect(
-      ownEnvironmentVariables({ Stand: "staging", browser: "x" }, { Stand: "staging", browser: "x", Browser: "y" }),
-    ).toEqual({ Browser: "y" });
+describe("hasOwnVariables", () => {
+  it("should be true when an environment overrides a report variable", () => {
+    expect(hasOwnVariables({ browser: "x" }, { browser: "y" })).toBe(true);
   });
 
-  it("should be empty when environment only repeats report variables", () => {
-    expect(ownEnvironmentVariables({ Stand: "staging" }, { Stand: "staging" })).toEqual({});
+  it("should be true when an environment adds a variable that differs only in case", () => {
+    expect(hasOwnVariables({ browser: "x" }, { browser: "x", Browser: "y" })).toBe(true);
+  });
+
+  it("should be true when an environment unsets a report variable", () => {
+    expect(hasOwnVariables({ Stand: "staging" }, {})).toBe(true);
+  });
+
+  it("should be false when an environment only repeats report variables", () => {
+    expect(hasOwnVariables({ Stand: "staging" }, { Stand: "staging" })).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import type { CiDescriptor, TestResult } from "@allurereport/core-api";
+import type { CiDescriptor, EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, PluginState } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test";
@@ -57,34 +57,48 @@ const tr = (id: string, environment?: string) =>
     ...(environment ? { environment } : {}),
   }) as unknown as TestResult;
 
-const createPlugin = (autocloseLaunch = true) =>
+const createPlugin = (options: { reopenClosedLaunch?: boolean } = {}) =>
   new TestOpsPlugin({
     accessToken: "test",
     endpoint: "http://example.com",
     projectId: "12345",
     launchName: "Test Launch",
     launchTags: [],
-    autocloseLaunch,
+    autocloseLaunch: true,
     filter: () => true,
+    ...options,
   });
 
 type EnvItem = { key: string; value: string };
 
+/** Returns the HTTP status a request of the session with the given `Browser` env var should fail with. */
+type Failure = ((browser: string | undefined) => number | undefined) | undefined;
+
+const httpError = (status: number) => ({ isAxiosError: true, response: { status, data: {} } });
+
+const identities: EnvironmentIdentity[] = [
+  { id: "chrome", name: "Chrome" },
+  { id: "firefox", name: "Firefox" },
+];
+
 const setup = (params: {
   trs: TestResult[];
-  reportVariables?: Record<string, string>;
-  envVariables?: Record<string, Record<string, string>>;
+  reportVariables?: Record<string, unknown>;
+  envVariables?: Record<string, Record<string, unknown>>;
 }) => {
   const requests = mockRequests();
   const store = mockAllureStore();
   const reportVariables = params.reportVariables ?? {};
-  let sessionId = 0;
+  const environments = new Map<number, EnvItem[]>();
+  const failures: { session: Failure; upload: Failure } = { session: undefined, upload: undefined };
+  const uploaded: { testSessionId: number; uuids: string[] }[] = [];
+  let trs = params.trs;
 
-  store.allTestResults.mockResolvedValue(params.trs);
-  store.allEnvironmentIdentities.mockResolvedValue([
-    { id: "chrome", name: "Chrome" },
-    { id: "firefox", name: "Firefox" },
-  ]);
+  // the plugin skips already uploaded results through the store filter
+  store.allTestResults.mockImplementation(async (options?: { filter?: (tr: TestResult) => boolean }) =>
+    trs.filter((item) => options?.filter?.(item) ?? true),
+  );
+  store.allEnvironmentIdentities.mockResolvedValue(identities);
   store.allVariables.mockResolvedValue(reportVariables);
   store.envVariablesByEnvironmentId.mockImplementation(async (envId: string) => ({
     ...reportVariables,
@@ -93,23 +107,57 @@ const setup = (params: {
   requests.createNamedEnvsRequest.mockImplementation(async (_url, data) => ({
     data: data.items.map(({ externalId }: { externalId: string }, idx: number) => ({ id: idx + 1, externalId })),
   }));
-  requests.createSessionRequest.mockImplementation(async () => {
-    sessionId += 1;
 
-    return { data: { id: sessionId } } as any;
+  const browserOf = (environment: EnvItem[]) => environment.find(({ key }) => key === "Browser")?.value;
+
+  requests.createSessionRequest.mockImplementation(async (_url, data) => {
+    const status = failures.session?.(browserOf(data.environment));
+
+    if (status) {
+      throw httpError(status);
+    }
+
+    const id = environments.size + 1;
+
+    environments.set(id, data.environment);
+
+    return { data: { id } } as any;
+  });
+  requests.uploadTestResultsRequest.mockImplementation((_url, data) => {
+    const status = failures.upload?.(browserOf(environments.get(data.testSessionId) ?? []));
+
+    if (status) {
+      return Promise.reject(httpError(status));
+    }
+
+    uploaded.push({ testSessionId: data.testSessionId, uuids: data.results.map(({ uuid }: { uuid: string }) => uuid) });
+
+    return undefined;
   });
 
-  const sessionEnvironments = () =>
-    requests.createSessionRequest.mock.calls.map(([, data]) => data.environment as EnvItem[]);
-  const sessionIdOf = (trId: string) =>
-    requests.uploadTestResultsRequest.mock.calls
-      .map(([, data]) => data)
-      .find((body) => body.results.some(({ uuid }: { uuid: string }) => uuid === trId))?.testSessionId;
+  const sessionEnvironments = () => [...environments.values()];
+  const sessionIdOf = (trId: string): number | undefined =>
+    uploaded.find(({ uuids }) => uuids.includes(trId))?.testSessionId;
+  const sessionEnvironmentOf = (trId: string) => environments.get(sessionIdOf(trId) ?? -1);
 
-  return { ...requests, store: store as unknown as AllureStore, storeMock: store, sessionEnvironments, sessionIdOf };
+  return {
+    ...requests,
+    store: store as unknown as AllureStore,
+    storeMock: store,
+    failures,
+    setTestResults: (next: TestResult[]) => {
+      trs = next;
+    },
+    sessionEnvironments,
+    sessionIdOf,
+    sessionEnvironmentOf,
+  };
 };
 
-const valueOf = (environment: EnvItem[], key: string) => environment.filter((item) => item.key === key);
+const valueOf = (environment: EnvItem[] | undefined, key: string) =>
+  (environment ?? []).filter((item) => item.key === key);
+
+const bothBrowsers = { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } };
 
 describe("named environment variables", () => {
   test("should create one session per cycle when there are no variables", async () => {
@@ -141,42 +189,59 @@ describe("named environment variables", () => {
     expect(valueOf(sessionEnvironments()[0], "Stand")).toEqual([{ key: "Stand", value: "staging" }]);
   });
 
-  test("should create own session for every environment with own variables", async () => {
-    const { store, createSessionRequest, sessionEnvironments, sessionIdOf } = setup({
+  test("should upload every environment with own variables into its own session and close the launch", async () => {
+    const { store, createSessionRequest, closeLaunchRequest, sessionEnvironments, sessionEnvironmentOf } = setup({
       trs: [tr("1", "chrome"), tr("2", "firefox")],
       reportVariables: { Stand: "staging" },
-      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+      envVariables: bothBrowsers,
     });
+    const plugin = createPlugin();
 
-    await createPlugin().start(context, store);
+    await plugin.start(context, store);
 
     expect(createSessionRequest).toHaveBeenCalledTimes(3);
+    expect(valueOf(sessionEnvironments()[0], "Browser")).toEqual([]);
+    expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+    expect(valueOf(sessionEnvironmentOf("1"), "Stand")).toEqual([{ key: "Stand", value: "staging" }]);
+    expect(valueOf(sessionEnvironmentOf("2"), "Browser")).toEqual([{ key: "Browser", value: "firefox" }]);
 
-    const [base, chrome, firefox] = sessionEnvironments();
+    await plugin.done(context, store);
 
-    expect(valueOf(base, "Browser")).toEqual([]);
-    expect(valueOf(chrome, "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
-    expect(valueOf(chrome, "Stand")).toEqual([{ key: "Stand", value: "staging" }]);
-    expect(valueOf(firefox, "Browser")).toEqual([{ key: "Browser", value: "firefox" }]);
-    expect(sessionIdOf("1")).toBe(2);
-    expect(sessionIdOf("2")).toBe(3);
+    expect(closeLaunchRequest).toHaveBeenCalledTimes(1);
   });
 
-  test("should override process env by config with the same key", async () => {
+  test("should override process env by config with the same key and keep other process env", async () => {
     vi.stubEnv("Browser", "ci-browser");
-    vi.stubEnv("BROWSER", "ci-browser-upper");
+    vi.stubEnv("CI_ONLY_VARIABLE", "kept");
 
-    const { store, sessionEnvironments, sessionIdOf } = setup({
+    const { store, sessionEnvironmentOf } = setup({
       trs: [tr("2", "firefox")],
       envVariables: { firefox: { Browser: "firefox" } },
     });
 
     await createPlugin().start(context, store);
 
-    const firefox = sessionEnvironments()[sessionIdOf("2") - 1];
+    expect(valueOf(sessionEnvironmentOf("2"), "Browser")).toEqual([{ key: "Browser", value: "firefox" }]);
+    expect(valueOf(sessionEnvironmentOf("2"), "CI_ONLY_VARIABLE")).toEqual([
+      { key: "CI_ONLY_VARIABLE", value: "kept" },
+    ]);
+  });
 
-    expect(valueOf(firefox, "Browser")).toEqual([{ key: "Browser", value: "firefox" }]);
-    expect(valueOf(firefox, "BROWSER")).toEqual([{ key: "BROWSER", value: "ci-browser-upper" }]);
+  test("should not send config variables without a value", async () => {
+    vi.stubEnv("Stand", "prod");
+
+    const { store, sessionEnvironments } = setup({
+      trs: [tr("1")],
+      reportVariables: { Stand: undefined, Region: null, Shard: 3 },
+    });
+
+    await createPlugin().start(context, store);
+
+    const [base] = sessionEnvironments();
+
+    expect(valueOf(base, "Stand")).toEqual([{ key: "Stand", value: "prod" }]);
+    expect(valueOf(base, "Region")).toEqual([]);
+    expect(valueOf(base, "Shard")).toEqual([{ key: "Shard", value: "3" }]);
   });
 
   test("should upload results without environment into the base session", async () => {
@@ -205,22 +270,26 @@ describe("named environment variables", () => {
     expect(sessionIdOf("1")).toBe(1);
   });
 
-  test("should upload other environments and keep launch open when one environment session keeps failing", async () => {
-    const { store, createSessionRequest, closeLaunchRequest, sessionIdOf } = setup({
+  test("should resolve variables of results that keep the environment name", async () => {
+    const { store, storeMock, sessionEnvironmentOf } = setup({
+      trs: [tr("1", "Chrome")],
+      envVariables: { chrome: { Browser: "chrome" } },
+    });
+
+    await createPlugin().start(context, store);
+
+    expect(storeMock.envVariablesByEnvironmentId).toHaveBeenCalledWith("chrome");
+    expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+  });
+
+  test("should upload other environments and keep launch open when an environment session fails", async () => {
+    const { store, failures, closeLaunchRequest, sessionIdOf } = setup({
       trs: [tr("1", "chrome"), tr("2", "firefox")],
-      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+      envVariables: bothBrowsers,
     });
-    const defaultImplementation = createSessionRequest.getMockImplementation()!;
-
-    createSessionRequest.mockImplementation(async (url, data, config) => {
-      if (data.environment.some(({ key, value }: EnvItem) => key === "Browser" && value === "chrome")) {
-        throw { isAxiosError: true, response: { status: 503, data: {} } };
-      }
-
-      return defaultImplementation(url, data, config);
-    });
-
     const plugin = createPlugin();
+
+    failures.session = (browser) => (browser === "chrome" ? 400 : undefined);
 
     await plugin.start(context, store);
     await plugin.done(context, store);
@@ -230,22 +299,14 @@ describe("named environment variables", () => {
     expect(closeLaunchRequest).not.toHaveBeenCalled();
   });
 
-  test("should keep launch open when an environment session fails with a non-retryable error", async () => {
-    const { store, createSessionRequest, closeLaunchRequest, sessionIdOf } = setup({
+  test("should keep launch open when environment results fail with a non-retryable error", async () => {
+    const { store, failures, closeLaunchRequest, sessionIdOf } = setup({
       trs: [tr("1", "chrome"), tr("2", "firefox")],
-      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+      envVariables: bothBrowsers,
     });
-    const defaultImplementation = createSessionRequest.getMockImplementation()!;
-
-    createSessionRequest.mockImplementation(async (url, data, config) => {
-      if (data.environment.some(({ key, value }: EnvItem) => key === "Browser" && value === "chrome")) {
-        throw { isAxiosError: true, response: { status: 400, data: {} } };
-      }
-
-      return defaultImplementation(url, data, config);
-    });
-
     const plugin = createPlugin();
+
+    failures.upload = (browser) => (browser === "chrome" ? 400 : undefined);
 
     await plugin.start(context, store);
     await plugin.done(context, store);
@@ -255,60 +316,115 @@ describe("named environment variables", () => {
     expect(closeLaunchRequest).not.toHaveBeenCalled();
   });
 
-  test("should retry every suspended environment group at done", async () => {
-    const { store, createSessionRequest, sessionIdOf } = setup({
+  test("should close launch when a failed environment group is uploaded in a later cycle", async () => {
+    const { store, failures, closeLaunchRequest, sessionEnvironmentOf } = setup({
+      trs: [tr("1", "chrome")],
+      envVariables: bothBrowsers,
+    });
+    const plugin = createPlugin();
+
+    failures.session = (browser) => (browser === "chrome" ? 400 : undefined);
+    await plugin.start(context, store);
+
+    failures.session = undefined;
+    await plugin.done(context, store);
+
+    expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+    expect(closeLaunchRequest).toHaveBeenCalledTimes(1);
+  });
+
+  test("should retry every suspended environment group at done and close the launch", async () => {
+    const { store, failures, closeLaunchRequest, sessionIdOf } = setup({
       trs: [tr("1", "chrome"), tr("2", "firefox")],
-      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+      envVariables: bothBrowsers,
     });
-    const defaultImplementation = createSessionRequest.getMockImplementation()!;
-    let failures = 0;
+    const plugin = createPlugin();
 
-    // the first environment session fails with a resource error until the queue suspends
-    createSessionRequest.mockImplementation(async (url, data, config) => {
-      const isChrome = data.environment.some(({ key, value }: EnvItem) => key === "Browser" && value === "chrome");
-
-      if (isChrome && failures < 4) {
-        failures += 1;
-        throw { isAxiosError: true, response: { status: 423, data: {} } };
-      }
-
-      return defaultImplementation(url, data, config);
-    });
-
-    // closing the launch polls its progress with real delays; not needed here
-    const plugin = createPlugin(false);
-
+    // a resource error suspends the queue, so the firefox group is deferred too
+    failures.session = (browser) => (browser === "chrome" ? 423 : undefined);
     await plugin.start(context, store);
 
     expect(sessionIdOf("1")).toBeUndefined();
     expect(sessionIdOf("2")).toBeUndefined();
 
+    failures.session = undefined;
     await plugin.done(context, store);
 
     expect(sessionIdOf("1")).toBeDefined();
     expect(sessionIdOf("2")).toBeDefined();
+    expect(closeLaunchRequest).toHaveBeenCalledTimes(1);
   });
 
-  test("should create environment sessions only for environments with new results in real-time update", async () => {
-    const { store, storeMock, createSessionRequest, sessionEnvironments } = setup({
+  test("should upload deferred base results into a base session after environment sessions", async () => {
+    const { store, failures, closeLaunchRequest, sessionEnvironmentOf } = setup({
+      trs: [tr("0"), tr("1", "chrome")],
+      envVariables: { chrome: { Browser: "chrome" } },
+    });
+    const plugin = createPlugin();
+
+    failures.upload = () => 423;
+    await plugin.start(context, store);
+
+    failures.upload = undefined;
+    await plugin.done(context, store);
+
+    expect(valueOf(sessionEnvironmentOf("0"), "Browser")).toEqual([]);
+    expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+    expect(closeLaunchRequest).toHaveBeenCalledTimes(1);
+  });
+
+  test("should reuse the environment session when its upload is retried", async () => {
+    const { store, failures, sessionEnvironments, sessionIdOf } = setup({
       trs: [tr("1", "chrome")],
-      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+      envVariables: { chrome: { Browser: "chrome" } },
+    });
+    let failedUploads = 0;
+
+    // fails every chunk attempt of the first task run, so the whole task is retried
+    failures.upload = (browser) => (browser === "chrome" && failedUploads++ < 4 ? 503 : undefined);
+
+    await createPlugin().start(context, store);
+
+    expect(sessionIdOf("1")).toBeDefined();
+    expect(sessionEnvironments().filter((environment) => valueOf(environment, "Browser").length > 0)).toHaveLength(1);
+  });
+
+  test("should reuse environment sessions and create new ones only for new environments in real-time updates", async () => {
+    const { store, createSessionRequest, sessionEnvironments, setTestResults, sessionEnvironmentOf } = setup({
+      trs: [tr("1", "chrome")],
+      envVariables: bothBrowsers,
     });
     const plugin = createPlugin();
 
     await plugin.start(realTimeContext, store);
 
-    // the plugin skips already uploaded results through the store filter
-    storeMock.allTestResults.mockImplementation(async (options?: { filter?: (tr: TestResult) => boolean }) =>
-      [tr("1", "chrome"), tr("2", "firefox")].filter((item) => options?.filter?.(item) ?? true),
-    );
+    setTestResults([tr("1", "chrome"), tr("2", "firefox"), tr("3", "chrome")]);
     createSessionRequest.mockClear();
 
     await plugin.update(realTimeContext, store);
 
-    const browsers = sessionEnvironments().flatMap((environment) => valueOf(environment, "Browser"));
+    const updateSessions = sessionEnvironments().slice(-createSessionRequest.mock.calls.length);
 
-    expect(createSessionRequest).toHaveBeenCalledTimes(2);
-    expect(browsers).toEqual([{ key: "Browser", value: "firefox" }]);
+    expect(updateSessions.flatMap((environment) => valueOf(environment, "Browser"))).toEqual([
+      { key: "Browser", value: "firefox" },
+    ]);
+    expect(valueOf(sessionEnvironmentOf("3"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
+  });
+
+  test("should reopen a closed launch when creating an environment session", async () => {
+    const { store, getLaunchRequest, reopenLaunchRequest, sessionEnvironmentOf } = setup({
+      trs: [tr("1", "chrome")],
+      envVariables: { chrome: { Browser: "chrome" } },
+    });
+
+    // the launch gets closed after the base session is created
+    getLaunchRequest
+      .mockResolvedValueOnce({ data: { closed: false } } as any)
+      .mockResolvedValueOnce({ data: { closed: true } } as any);
+
+    await createPlugin({ reopenClosedLaunch: true }).start(context, store);
+
+    expect(reopenLaunchRequest).toHaveBeenCalledTimes(1);
+    expect(valueOf(sessionEnvironmentOf("1"), "Browser")).toEqual([{ key: "Browser", value: "chrome" }]);
   });
 });

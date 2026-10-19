@@ -1,21 +1,22 @@
-import type { ReportVariables } from "@allurereport/core-api";
+/**
+ * Prepares config variables for a TestOps session: drops the ones without a value (e.g. an unset `process.env.X`
+ * in a JS config, an empty YAML value) and stringifies the rest, so TestOps never gets "undefined" or "null".
+ */
+export const toSessionVariables = (variables: Record<string, unknown>): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(variables)
+      .filter(([, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => [key, String(value)]),
+  );
 
 /**
- * Picks the variables an environment defines on top of the report-level ones.
- * `mergedVariables` is what the store returns for the environment (report variables spread with its own).
+ * Whether an environment's variables (report variables merged with its own) differ from the report-level ones.
+ * TestOps matches session keys case-sensitively, so keys are compared as is.
  */
-export const ownEnvironmentVariables = (
-  reportVariables: ReportVariables,
-  mergedVariables: ReportVariables,
-): ReportVariables =>
-  Object.fromEntries(Object.entries(mergedVariables).filter(([key, value]) => reportVariables[key] !== value));
-
-/**
- * Builds a TestOps session environment: process env, then report variables, then environment variables.
- * TestOps matches session keys against the project's env var schema case-sensitively, so keys are overridden as is.
- */
-export const mergeSessionEnvironment = (
-  processEnv: Record<string, unknown>,
-  reportVariables: ReportVariables,
-  ownVariables: ReportVariables,
-): Record<string, unknown> => ({ ...processEnv, ...reportVariables, ...ownVariables });
+export const hasOwnVariables = (
+  reportVariables: Record<string, string>,
+  environmentVariables: Record<string, string>,
+): boolean =>
+  Object.keys({ ...reportVariables, ...environmentVariables }).some(
+    (key) => reportVariables[key] !== environmentVariables[key],
+  );

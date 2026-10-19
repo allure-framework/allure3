@@ -493,15 +493,10 @@ export class TestOpsClient {
     onProgress?: () => void;
     onRetry?: RetryOptions["onRetry"];
     onChunkUploaded?: (uploadedChunkTrs: TestResult[]) => void;
-    session?: TestOpsSession;
+    session: TestOpsSession;
   }) {
-    const session = params.session ?? this.#session;
-
-    if (!session) {
-      throw new Error("Session isn't created! Call createSession first");
-    }
-
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } = params;
+    const { session, trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } =
+      params;
     const projectedTrs = trs.map((tr) => ({
       ...tr,
       ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),

@@ -74,6 +74,19 @@ describe("UploadQueue", () => {
       expect(onDeferred).toHaveBeenCalledWith();
     });
 
+    it("drops an older pending task when a newer run of the same name fails terminally", async () => {
+      const queue = new UploadQueue();
+
+      await queue.run("test-results", vi.fn().mockRejectedValue(axiosError(503)), { baseDelayMs: 0, maxRetries: 0 });
+
+      expect(queue.pendingNames).toEqual(["test-results"]);
+
+      await expect(
+        queue.run("test-results", vi.fn().mockRejectedValue(axiosError(400)), { baseDelayMs: 0, maxRetries: 0 }),
+      ).rejects.toEqual(axiosError(400));
+      expect(queue.pendingNames).toEqual([]);
+    });
+
     it("replaces a pending task for the same name instead of appending", async () => {
       const queue = new UploadQueue();
       const closedLaunchError = axiosError(423, "Launch is closed");

@@ -6,7 +6,6 @@ import type {
   CiDescriptor,
   EnvironmentIdentity,
   GlobalAttachmentLink,
-  ReportVariables,
   TestError,
   TestStatus,
 } from "@allurereport/core-api";
@@ -18,11 +17,11 @@ import {
   type PluginContext,
   createPluginSummary,
 } from "@allurereport/plugin-api";
-import { uniqBy, stubTrue } from "lodash-es";
+import { groupBy, uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import { isClosedLaunchError, shouldRetryUpload } from "./errors.js";
+import { isClosedLaunchError } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, TestOpsSession } from "./model.js";
@@ -32,7 +31,7 @@ import { applyCiOverrides } from "./utils/ciOverrides.js";
 import { enrichWithCategories, syncLaunchCategories } from "./utils/launchCategories.js";
 import { resolvePluginOptions, toPositiveInteger } from "./utils/options.js";
 import { attachmentsResolverFactory, fixturesResolverFactory } from "./utils/resolvers.js";
-import { mergeSessionEnvironment, ownEnvironmentVariables } from "./utils/sessionEnvironment.js";
+import { hasOwnVariables, toSessionVariables } from "./utils/sessionEnvironment.js";
 import { validateExecutableName } from "./utils/validation.js";
 
 const LAUNCH_PROGRESS_POLL_DELAY_MS = 500;
@@ -53,6 +52,10 @@ export class TestOpsPlugin implements Plugin {
   #launchStarted: boolean = false;
   #reopenClosedLaunch: boolean = false;
   #skippedUploadCycle: boolean = false;
+  // test result groups whose last upload failed for good, by upload queue name
+  #failedTestResultUploads: Set<string> = new Set();
+  // one session per environment with own variables, reused for the whole run
+  #environmentSessions: Map<string, Promise<TestOpsSession>> = new Map();
   #launchId?: number;
   #gitFlow!: LaunchGitFlow;
   #enabledByConfig: boolean = false;
@@ -388,21 +391,22 @@ export class TestOpsPlugin implements Plugin {
     options: {
       silent?: boolean;
       queueName: string;
-      session?: TestOpsSession;
-      sessionEnvironment?: Record<string, unknown>;
+      session: () => Promise<TestOpsSession>;
       environmentName?: string;
     },
   ) {
     const totalCount = trsToUpload.length;
-    const environmentSuffix = options.environmentName ? ` for environment ${bold(options.environmentName)}` : "";
+    const label = options.environmentName ? `test results for environment ${options.environmentName}` : "test results";
 
     this.#logger.verbose(
-      `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}${environmentSuffix}`,
+      `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}${
+        options.environmentName ? ` for environment ${bold(options.environmentName)}` : ""
+      }`,
     );
 
     const progressLogger = createProgressLogger({
       total: totalCount,
-      message: "Uploading test results",
+      message: `Uploading ${label}`,
       unitLabel: totalCount === 1 ? "test result uploaded" : "test results uploaded",
       prefix: "[TestOpsPlugin]",
       silent: !!options.silent,
@@ -411,15 +415,13 @@ export class TestOpsPlugin implements Plugin {
     try {
       progressLogger.log(true);
 
-      const { onRetry, onDeferred } = this.#retryHooks("test results");
-      const { sessionEnvironment } = options;
+      const { onRetry, onDeferred } = this.#retryHooks(label);
 
       const result = await this.#uploadQueue.run(
         options.queueName,
         async () =>
           this.#client.uploadTestResults({
-            // an environment with own variables gets its own session; it's created inside the task so retries recreate it
-            session: sessionEnvironment ? await this.#createEnvironmentSession(sessionEnvironment) : options.session,
+            session: await options.session(),
             attachmentsResolver: attachmentsResolverFactory(store),
             fixturesResolver: fixturesResolverFactory(store),
             environments,
@@ -437,6 +439,8 @@ export class TestOpsPlugin implements Plugin {
         return;
       }
 
+      this.#failedTestResultUploads.delete(options.queueName);
+
       const uploadedTrs = result.value;
 
       progressLogger.log(true);
@@ -452,25 +456,41 @@ export class TestOpsPlugin implements Plugin {
         return;
       }
 
-      this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+      this.#logger.info(
+        `Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}${
+          options.environmentName ? ` for environment ${options.environmentName}` : ""
+        }`,
+      );
     } catch (error) {
-      this.#logUploadFailure("test results", error);
+      // the group isn't retried at finalization, so the launch must not be closed as complete
+      this.#failedTestResultUploads.add(options.queueName);
+      this.#logUploadFailure(label, error);
     } finally {
       progressLogger.cancel?.();
     }
   }
 
-  async #createEnvironmentSession(sessionEnvironment: Record<string, unknown>) {
-    try {
-      return await this.#client.createSession(sessionEnvironment, this.#reopenClosedLaunch);
-    } catch (error) {
-      // retryable errors leave the task pending; any other one drops the whole group, so the launch is incomplete
-      if (!shouldRetryUpload(error)) {
-        this.#skippedUploadCycle = true;
-      }
+  /**
+   * Returns the session of an environment with own variables, creating it on first use.
+   * A failed creation is forgotten, so the next attempt creates the session again.
+   */
+  #environmentSession(environmentId: string, sessionEnvironment: Record<string, unknown>) {
+    const cached = this.#environmentSessions.get(environmentId);
 
-      throw error;
+    if (cached) {
+      return cached;
     }
+
+    const session = this.#client.createSession(sessionEnvironment, this.#reopenClosedLaunch);
+
+    this.#environmentSessions.set(environmentId, session);
+    session.catch(() => {
+      if (this.#environmentSessions.get(environmentId) === session) {
+        this.#environmentSessions.delete(environmentId);
+      }
+    });
+
+    return session;
   }
 
   async #upload(
@@ -517,14 +537,11 @@ export class TestOpsPlugin implements Plugin {
       );
     }
 
-    const reportVariables = await store.allVariables();
+    const reportVariables = toSessionVariables(await store.allVariables());
     let baseSession: TestOpsSession;
 
     try {
-      baseSession = await this.#client.createSession(
-        mergeSessionEnvironment(env, reportVariables, {}),
-        this.#reopenClosedLaunch,
-      );
+      baseSession = await this.#client.createSession({ ...env, ...reportVariables }, this.#reopenClosedLaunch);
     } catch (error) {
       this.#skippedUploadCycle = true;
 
@@ -561,21 +578,29 @@ export class TestOpsPlugin implements Plugin {
       this.#logger.warn(`Uploading test results without launch categories: ${categoriesError.message}`);
     }
     const silent = !!context?.realTime;
-    const groups = await this.#groupByOwnVariables(store, trsEnrichedWithCategories, reportVariables);
+    const groups = await this.#groupByEnvironmentVariables(
+      store,
+      trsEnrichedWithCategories,
+      environments,
+      reportVariables,
+    );
 
     if (groups.base.length > 0) {
       await this.#uploadTestResults(store, groups.base, environments, {
         silent,
         queueName: "test-results",
-        session: baseSession,
+        session: async () => baseSession,
       });
     }
 
-    for (const { environmentId, ownVariables, trs } of groups.withOwnVariables) {
+    for (const { environmentId, environmentVariables, trs } of groups.withOwnVariables) {
+      // TestOps matches session keys case-sensitively, so config variables override process env keys as is
+      const sessionEnvironment = { ...env, ...environmentVariables };
+
       await this.#uploadTestResults(store, trs, environments, {
         silent,
         queueName: `test-results:${environmentId}`,
-        sessionEnvironment: mergeSessionEnvironment(env, reportVariables, ownVariables),
+        session: () => this.#environmentSession(environmentId, sessionEnvironment),
         environmentName: environments.find(({ id }) => id === environmentId)?.name ?? environmentId,
       });
     }
@@ -583,53 +608,55 @@ export class TestOpsPlugin implements Plugin {
 
   /**
    * Splits test results into the ones that go into the base session and per-environment groups
-   * for environments that define variables on top of the report-level ones.
+   * for environments whose variables differ from the report-level ones.
    */
-  async #groupByOwnVariables(
+  async #groupByEnvironmentVariables(
     store: AllureStore,
     trs: TestOpsPluginTestResult[],
-    reportVariables: ReportVariables,
-  ): Promise<{
-    base: TestOpsPluginTestResult[];
-    withOwnVariables: { environmentId: string; ownVariables: ReportVariables; trs: TestOpsPluginTestResult[] }[];
-  }> {
+    environments: EnvironmentIdentity[],
+    reportVariables: Record<string, string>,
+  ) {
     const base: TestOpsPluginTestResult[] = [];
-    const groups = new Map<string, { ownVariables: ReportVariables; trs: TestOpsPluginTestResult[] }>();
-    const ownVariablesById = new Map<string, ReportVariables>();
+    const withOwnVariables: {
+      environmentId: string;
+      environmentVariables: Record<string, string>;
+      trs: TestOpsPluginTestResult[];
+    }[] = [];
+    const trsByEnvironment = groupBy(trs, (tr) => this.#environmentIdOf(tr, environments));
 
-    for (const tr of trs) {
-      const environmentId = tr.environment ?? DEFAULT_ENVIRONMENT;
+    for (const [environmentId, environmentTrs] of Object.entries(trsByEnvironment)) {
+      const environmentVariables = await this.#environmentVariables(store, environmentId, reportVariables);
 
-      if (!ownVariablesById.has(environmentId)) {
-        ownVariablesById.set(environmentId, await this.#ownVariables(store, environmentId, reportVariables));
+      if (hasOwnVariables(reportVariables, environmentVariables)) {
+        withOwnVariables.push({ environmentId, environmentVariables, trs: environmentTrs });
+      } else {
+        base.push(...environmentTrs);
       }
-
-      const ownVariables = ownVariablesById.get(environmentId)!;
-
-      if (Object.keys(ownVariables).length === 0) {
-        base.push(tr);
-        continue;
-      }
-
-      const group = groups.get(environmentId) ?? { ownVariables, trs: [] };
-
-      group.trs.push(tr);
-      groups.set(environmentId, group);
     }
 
-    return {
-      base,
-      withOwnVariables: [...groups].map(([environmentId, group]) => ({ environmentId, ...group })),
-    };
+    return { base, withOwnVariables };
   }
 
-  async #ownVariables(store: AllureStore, environmentId: string, reportVariables: ReportVariables) {
+  /**
+   * Results restored from dumps of older Allure versions keep the environment name instead of its id.
+   */
+  #environmentIdOf(tr: TestOpsPluginTestResult, environments: EnvironmentIdentity[]) {
+    const environment = tr.environment ?? DEFAULT_ENVIRONMENT;
+
+    if (environments.some(({ id }) => id === environment)) {
+      return environment;
+    }
+
+    return environments.find(({ name }) => name === environment)?.id ?? environment;
+  }
+
+  async #environmentVariables(store: AllureStore, environmentId: string, reportVariables: Record<string, string>) {
     try {
-      return ownEnvironmentVariables(reportVariables, await store.envVariablesByEnvironmentId(environmentId));
+      return toSessionVariables(await store.envVariablesByEnvironmentId(environmentId));
     } catch (error) {
-      // an unknown environment id has no variables of its own
-      this.#logger.debug(`Failed to resolve variables of environment ${environmentId}: ${error}`);
-      return {};
+      // the store rejects environment ids it can't validate; such results are uploaded with the report variables
+      this.#logger.warn(`Failed to resolve variables of environment ${environmentId}: ${error}`);
+      return reportVariables;
     }
   }
 
@@ -747,12 +774,17 @@ export class TestOpsPlugin implements Plugin {
 
     await this.#upload(store, { context, stage: "done" });
 
+    const pendingBeforeFlush = this.#uploadQueue.pendingNames;
     const stillPending = await this.#uploadQueue.flush({
       onRetry: async (error, attempt) => {
         this.#logger.debug(`Retrying deferred TestOps upload at finalization (attempt ${attempt}): ${error}`);
         await this.#reopenLaunchIfClosed(error);
       },
     });
+
+    pendingBeforeFlush
+      .filter((name) => !stillPending.includes(name))
+      .forEach((name) => this.#failedTestResultUploads.delete(name));
 
     if (stillPending.length > 0) {
       this.#logger.error(
@@ -784,7 +816,7 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    if (stillPending.length > 0 || this.#skippedUploadCycle) {
+    if (stillPending.length > 0 || this.#failedTestResultUploads.size > 0 || this.#skippedUploadCycle) {
       this.#logger.warn(
         `Not closing launch ${launchId}: some uploads never made it to TestOps, closing now would report an incomplete launch as finished.`,
       );

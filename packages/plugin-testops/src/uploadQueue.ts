@@ -19,6 +19,9 @@ export class UploadQueue {
   ): Promise<UploadRunResult<T>> {
     const { onDeferred, ...retryOptions } = options;
 
+    // a newer task for the same name covers everything the older one had to upload
+    this.#pending.delete(name);
+
     if (this.#suspended) {
       this.#pending.set(name, task);
       onDeferred?.();

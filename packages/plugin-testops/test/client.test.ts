@@ -235,8 +235,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: Array.from(
           { length: 101 },
           (_, index) => ({ id: `result-${index}`, name: `Result ${index}` }) as TestResult,
@@ -281,8 +282,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [{ id: "result-0", name: "Result 0", environment: "chrome" } as TestResult],
         environments: [{ id: "chrome", name: "chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
@@ -1867,25 +1869,6 @@ describe("testops http client", () => {
       expect((uploadCall![1] as any).testSessionId).toBe(1);
     });
 
-    it("should throw an error when session hasn't been initialized before", async () => {
-      const client = new TestOpsClient({
-        accessToken: fixtures.accessToken,
-        projectId: fixtures.projectId,
-        baseUrl: fixtures.endpoint,
-      });
-
-      await expect(
-        async () =>
-          await client.uploadTestResults({
-            trs: [],
-            environments: [],
-            attachmentsResolver: () => Promise.resolve([]),
-            fixturesResolver: () => Promise.resolve([]),
-          }),
-      ).rejects.toThrow();
-      expect(AxiosMock.post).toHaveBeenCalledTimes(0);
-    });
-
     it("should resolve attachments and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/launch") {
@@ -1917,8 +1900,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: fixtures.testResults,
         environments: [],
         attachmentsResolver,
@@ -1964,7 +1948,7 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
 
       const pngBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0x10, 0x80]);
       const malformedPngString = pngBytes.toString("utf8");
@@ -1997,6 +1981,7 @@ describe("testops http client", () => {
       } as any as TestResult;
 
       await client.uploadTestResults({
+        session,
         trs: [tr],
         environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () =>
@@ -2091,8 +2076,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: fixtures.testResults,
         environments: [],
         attachmentsResolver: () =>
@@ -2151,9 +2137,10 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
 
       const uploaded = await client.uploadTestResults({
+        session,
         trs,
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2185,8 +2172,9 @@ describe("testops http client", () => {
       const fixturesResolver = vi.fn().mockResolvedValue([]);
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       const params = {
+        session,
         trs: [{ id: "valid", name: "Valid" } as TestResult],
         environments: [],
         attachmentsResolver,
@@ -2219,8 +2207,9 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [{ id: "valid", name: "Valid" } as TestResult],
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2252,8 +2241,9 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [{ id: "valid", name: "Valid" } as TestResult],
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2309,8 +2299,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [
           {
             id: "valid",
@@ -2350,8 +2341,9 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       const params = {
+        session,
         trs: [{ id: "valid", name: "Valid" } as TestResult],
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2406,8 +2398,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: trsWithEnv,
         environments: [
           { id: "chrome", name: "Chrome" },
@@ -2492,8 +2485,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [
           { ...fixtures.testResults[0], environment: "qa_a" } as TestResult,
           { ...fixtures.testResults[1], environment: "qa_b" } as TestResult,
@@ -2565,8 +2559,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: fixtures.testResults,
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2610,8 +2605,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: [{ ...fixtures.testResults[0], environment: "chrome" } as TestResult],
         environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2629,6 +2625,7 @@ describe("testops http client", () => {
       });
 
       await client.uploadTestResults({
+        session,
         trs: [{ ...fixtures.testResults[1], environment: "chrome" } as TestResult],
         environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
@@ -2671,8 +2668,9 @@ describe("testops http client", () => {
       });
 
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
-      await client.createSession();
+      const session = await client.createSession();
       await client.uploadTestResults({
+        session,
         trs: fixtures.testResults,
         environments: [],
         attachmentsResolver: () => Promise.resolve([]),

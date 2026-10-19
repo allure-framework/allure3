@@ -109,7 +109,7 @@ The plugin sends, from weakest to strongest:
 2. the report-level `variables` from the Allure configuration;
 3. the `variables` of the environment (from `environments`) the test result belongs to.
 
-A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent.
+A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent. Configuration variables without a value (for example, `process.env.STAND` when `STAND` is unset) are not sent, so they don't override the process environment.
 
 ```js
 import { defineConfig } from "allure";
@@ -136,6 +136,8 @@ export default defineConfig({
 });
 ```
 
-Test results of an environment that defines its own `variables` are uploaded in a separate upload session carrying those variables. Results of environments without own variables share one session.
+Test results of an environment that defines its own `variables` are uploaded in a separate upload session carrying those variables; the plugin creates it once per environment and reuses it for the whole run. Results of environments without own variables share one session.
+
+Report-level `variables` are the same for every test result. When a report is generated from several dumps (`allure generate --dump …`), they are merged and the last dump wins, so values that differ between dumps, such as the browser of a matrix job, belong in the `variables` of an environment rather than in report-level `variables`.
 
 Env vars are part of a test result's identity in Allure TestOps. If your project's env var schema contains keys that you now set in `variables`, the history of the affected tests starts anew once after upgrading the plugin.

@@ -70,7 +70,9 @@ export const mockRequests = () => {
     .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<void>>>()
     .mockResolvedValue({} as AxiosResponse);
 
-  const uploadTestResultsRequest = vi.fn<(...args: AxiosPostArgs) => void>();
+  // returns nothing by default, so the mock answers with ids for every uploaded result; may be overridden to fail
+  const uploadTestResultsRequest = vi.fn<(...args: AxiosPostArgs) => Promise<AxiosResponse | undefined> | undefined>();
+  const reopenLaunchRequest = vi.fn().mockResolvedValue({} as AxiosResponse);
 
   const axiosTestInstanse = axios.create({
     baseURL: "https://allurereport.org",
@@ -97,6 +99,10 @@ export const mockRequests = () => {
   vi.spyOn(axiosTestInstanse, "post").mockImplementation((...[url, data, config]: AxiosPostArgs) => {
     if (url.startsWith("/api/launch/") && url.endsWith("/close")) {
       return closeLaunchRequest(url, data, config);
+    }
+
+    if (url.startsWith("/api/launch/") && url.endsWith("/reopen")) {
+      return reopenLaunchRequest(url, data, config);
     }
 
     if (url === "/api/launch/category/bulk") {
@@ -136,16 +142,18 @@ export const mockRequests = () => {
     }
 
     if (url === "/api/upload/test-result") {
-      uploadTestResultsRequest(url, data, config);
-
-      return Promise.resolve({
-        data: {
-          results: (data?.results ?? []).map((result: { uuid: string }, idx: number) => ({
-            id: idx + 1,
-            uuid: result.uuid,
-          })),
-        },
-      } as AxiosResponse<{ results: { id: number; uuid: string }[] }>);
+      return Promise.resolve(uploadTestResultsRequest(url, data, config)).then(
+        (response) =>
+          response ??
+          ({
+            data: {
+              results: (data?.results ?? []).map((result: { uuid: string }, idx: number) => ({
+                id: idx + 1,
+                uuid: result.uuid,
+              })),
+            },
+          } as AxiosResponse<{ results: { id: number; uuid: string }[] }>),
+      );
     }
 
     if (url.startsWith("/api/upload/test-result/") && url.endsWith("/attachment")) {
@@ -160,6 +168,7 @@ export const mockRequests = () => {
   return {
     getLaunchRequest,
     closeLaunchRequest,
+    reopenLaunchRequest,
     createLaunchCategoriesBulkRequest,
     startUploadRequest,
     stopUploadRequest,
