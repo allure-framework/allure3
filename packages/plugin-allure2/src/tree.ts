@@ -1,5 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
-import { byStatistic, compareBy } from "@allurereport/core-api";
+import { alphabetically, andThen, byStatistic, compareBy } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 
 import type { Allure2Status, Allure2TestResult, Allure2Time } from "./model.js";
@@ -177,7 +177,12 @@ export const createWidget = (root: TreeGroup): WidgetData => {
     })
     .filter((value) => value)
     .map((value) => value!)
-    .sort(compareBy("statistic", byStatistic()))
+    .sort(
+      andThen<WidgetItem>([
+        compareBy<WidgetItem, "statistic">("statistic", byStatistic()),
+        compareBy<WidgetItem, "name">("name", alphabetically()),
+      ]),
+    )
     .slice(0, 10);
 
   return {
