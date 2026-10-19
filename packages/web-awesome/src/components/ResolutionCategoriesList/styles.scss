@@ -76,6 +76,14 @@
   outline-offset: 2px;
 }
 
+.resolution-categories-title-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .resolution-categories-name,
 .resolution-categories-comment {
   overflow-wrap: anywhere;
@@ -93,8 +101,7 @@
 }
 
 .resolution-categories-state {
-  align-self: flex-start;
-  margin-top: 4px;
+  flex: 0 0 auto;
 }
 
 .resolution-categories-state-description {

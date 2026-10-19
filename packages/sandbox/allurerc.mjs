@@ -140,40 +140,39 @@ export default defineConfig({
     rules: [
       {
         resolution: "muted",
-        messageRegexp: "foo",
-        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
-        // expiresAt: "2099-01-01T00:00:00Z",
-      },
-      {
-        resolution: "muted",
-        messageRegexp: "bar",
+        messageRegexp: "actual issue",
         comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      // {
-      //   resolution: "muted",
-      //   messageRegexp: "baz",
-      //   comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
-      //   expiresAt: "2020-01-01T00:00:00Z",
-      // },
+      {
+        resolution: "muted",
+        messageRegexp: "an issue with no expiration",
+        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+      },
+      {
+        resolution: "muted",
+        messageRegexp: "expired issue",
+        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+        expiresAt: "2020-01-01T00:00:00Z",
+      },
     ],
   },
-  // qualityGate: {
-  //   rules: [
-  //     {
-  //       maxFailures: 5,
-  //       fastFail: true,
-  //     },
-  //     {
-  //       // Fails: not all tests have env "foo" (some have "bar" or "default")
-  //       allTestsContainEnv: "foo",
-  //     },
-  //     {
-  //       // Fails: "staging" is not present in the run (only foo, bar, default exist)
-  //       environmentsTested: ["foo", "bar", "staging"],
-  //     },
-  //   ],
-  // },
+  qualityGate: {
+    rules: [
+      {
+        maxFailures: 5,
+        fastFail: true,
+      },
+      {
+        // Fails: not all tests have env "foo" (some have "bar" or "default")
+        allTestsContainEnv: "foo",
+      },
+      {
+        // Fails: "staging" is not present in the run (only foo, bar, default exist)
+        environmentsTested: ["foo", "bar", "staging"],
+      },
+    ],
+  },
   categories: {
     rules: comboRules,
   },

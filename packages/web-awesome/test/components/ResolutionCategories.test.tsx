@@ -273,7 +273,12 @@ describe("components > ResolutionCategories", () => {
 
     render(<TrResolutionCategoriesView testResult={testResult} />);
 
-    expect(screen.getByText("resolutions.state.outdated")).toBeInTheDocument();
+    const title = screen.getByText("resolutions.muted");
+    const state = screen.getByText("resolutions.state.outdated");
+    const comment = screen.getByText("Waiting for upstream fix");
+
+    expect(title.parentElement).toContainElement(state);
+    expect(title.parentElement).not.toContainElement(comment);
     expect(screen.getByText("resolutions.state.outdatedDescription")).toBeInTheDocument();
     expect(screen.getByTestId("resolution-state")).toHaveAttribute("data-skin", "failed-light");
   });

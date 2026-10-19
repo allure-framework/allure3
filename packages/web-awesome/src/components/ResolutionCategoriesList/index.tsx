@@ -94,32 +94,34 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const toggle = () => setIsOpened((value) => !value);
   const content = (
     <>
-      {safeIssueUrl ? (
-        <Text
-          className={clsx(styles["resolution-categories-name"], styles["resolution-categories-name-link"])}
-          tag="a"
-          href={safeIssueUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          size="m"
-          bold
-        >
-          {linkName}
-        </Text>
-      ) : (
-        <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
-          {title}
-        </Text>
-      )}
+      <span className={styles["resolution-categories-title-row"]}>
+        {safeIssueUrl ? (
+          <Text
+            className={clsx(styles["resolution-categories-name"], styles["resolution-categories-name-link"])}
+            tag="a"
+            href={safeIssueUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="m"
+            bold
+          >
+            {linkName}
+          </Text>
+        ) : (
+          <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
+            {title}
+          </Text>
+        )}
+        {resolutionStateLabel && (
+          <Tag className={styles["resolution-categories-state"]} skin={resolutionStateSkin}>
+            {resolutionStateLabel}
+          </Tag>
+        )}
+      </span>
       {group.issue?.type && (
         <Text tag="span" size="s" className={styles["resolution-categories-type"]}>
           {group.issue.type}
         </Text>
-      )}
-      {resolutionStateLabel && (
-        <Tag className={styles["resolution-categories-state"]} skin={resolutionStateSkin}>
-          {resolutionStateLabel}
-        </Tag>
       )}
       {subtitle && (
         <Text tag="span" size="s" className={styles["resolution-categories-comment"]}>
