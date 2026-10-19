@@ -1,5 +1,5 @@
 import { UsageError } from "clipanion";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import {
   buildGhWorkflowYaml,
