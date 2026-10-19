@@ -109,13 +109,20 @@ const valueOf = (environment: EnvItem[], key: string) => environment.filter((ite
 
 describe("named environment variables", () => {
   test("should create one session per cycle when there are no variables", async () => {
-    const { store, createSessionRequest, sessionIdOf } = setup({ trs: [tr("1", "chrome"), tr("2", "firefox")] });
+    const { store, createSessionRequest, closeLaunchRequest, sessionIdOf } = setup({
+      trs: [tr("1", "chrome"), tr("2", "firefox")],
+    });
+    const plugin = createPlugin();
 
-    await createPlugin().start(context, store);
+    await plugin.start(context, store);
 
     expect(createSessionRequest).toHaveBeenCalledTimes(1);
     expect(sessionIdOf("1")).toBe(1);
     expect(sessionIdOf("2")).toBe(1);
+
+    await plugin.done(context, store);
+
+    expect(closeLaunchRequest).toHaveBeenCalledTimes(1);
   });
 
   test("should send report variables with the base session", async () => {
@@ -203,6 +210,31 @@ describe("named environment variables", () => {
     createSessionRequest.mockImplementation(async (url, data, config) => {
       if (data.environment.some(({ key, value }: EnvItem) => key === "Browser" && value === "chrome")) {
         throw { isAxiosError: true, response: { status: 503, data: {} } };
+      }
+
+      return defaultImplementation(url, data, config);
+    });
+
+    const plugin = createPlugin();
+
+    await plugin.start(context, store);
+    await plugin.done(context, store);
+
+    expect(sessionIdOf("1")).toBeUndefined();
+    expect(sessionIdOf("2")).toBeDefined();
+    expect(closeLaunchRequest).not.toHaveBeenCalled();
+  });
+
+  test("should keep launch open when an environment session fails with a non-retryable error", async () => {
+    const { store, createSessionRequest, closeLaunchRequest, sessionIdOf } = setup({
+      trs: [tr("1", "chrome"), tr("2", "firefox")],
+      envVariables: { chrome: { Browser: "chrome" }, firefox: { Browser: "firefox" } },
+    });
+    const defaultImplementation = createSessionRequest.getMockImplementation()!;
+
+    createSessionRequest.mockImplementation(async (url, data, config) => {
+      if (data.environment.some(({ key, value }: EnvItem) => key === "Browser" && value === "chrome")) {
+        throw { isAxiosError: true, response: { status: 400, data: {} } };
       }
 
       return defaultImplementation(url, data, config);

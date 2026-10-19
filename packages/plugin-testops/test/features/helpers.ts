@@ -87,6 +87,10 @@ export const mockRequests = () => {
       return getLaunchRequest(url, undefined, config);
     }
 
+    if (/^\/api\/launch\/\d+\/progress$/.test(url)) {
+      return Promise.resolve({ data: { ready: true } } as AxiosResponse);
+    }
+
     return Promise.resolve({ data: {} } as AxiosResponse);
   });
 

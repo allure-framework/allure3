@@ -22,7 +22,7 @@ import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import { isClosedLaunchError } from "./errors.js";
+import { isClosedLaunchError, shouldRetryUpload } from "./errors.js";
 import { LaunchGitFlow, resolveGitFlowOptions } from "./gitFlow/index.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, TestOpsSession } from "./model.js";
@@ -419,9 +419,7 @@ export class TestOpsPlugin implements Plugin {
         async () =>
           this.#client.uploadTestResults({
             // an environment with own variables gets its own session; it's created inside the task so retries recreate it
-            session: sessionEnvironment
-              ? await this.#client.createSession(sessionEnvironment, this.#reopenClosedLaunch)
-              : options.session,
+            session: sessionEnvironment ? await this.#createEnvironmentSession(sessionEnvironment) : options.session,
             attachmentsResolver: attachmentsResolverFactory(store),
             fixturesResolver: fixturesResolverFactory(store),
             environments,
@@ -459,6 +457,19 @@ export class TestOpsPlugin implements Plugin {
       this.#logUploadFailure("test results", error);
     } finally {
       progressLogger.cancel?.();
+    }
+  }
+
+  async #createEnvironmentSession(sessionEnvironment: Record<string, unknown>) {
+    try {
+      return await this.#client.createSession(sessionEnvironment, this.#reopenClosedLaunch);
+    } catch (error) {
+      // retryable errors leave the task pending; any other one drops the whole group, so the launch is incomplete
+      if (!shouldRetryUpload(error)) {
+        this.#skippedUploadCycle = true;
+      }
+
+      throw error;
     }
   }
 
