@@ -141,6 +141,8 @@ describe("Quality Gate upload", () => {
       allGlobalAttachments: vi.fn().mockResolvedValue([]),
       allGlobalErrors: vi.fn().mockResolvedValue([]),
       allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
+      allVariables: vi.fn().mockResolvedValue({}),
+      envVariablesByEnvironmentId: vi.fn().mockResolvedValue({}),
       environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
       attachmentsByTrId: vi.fn().mockResolvedValue([]),
       fixturesByTrId: vi.fn().mockResolvedValue([]),

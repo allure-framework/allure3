@@ -17,6 +17,8 @@ export const mockAllureStore = () => {
     attachmentContentById = vi.fn().mockResolvedValue(undefined);
     fixturesByTrId = vi.fn().mockResolvedValue([]);
     qualityGateResults = vi.fn().mockResolvedValue([]);
+    allVariables = vi.fn().mockResolvedValue({});
+    envVariablesByEnvironmentId = vi.fn().mockResolvedValue({});
   }
 
   return vi.mocked<AllureStore>(new AllureStoreMock() as any);
@@ -67,6 +69,8 @@ export const mockRequests = () => {
   const uploadFixturesForResultRequest = vi
     .fn<(...args: AxiosPostArgs) => Promise<AxiosResponse<void>>>()
     .mockResolvedValue({} as AxiosResponse);
+
+  const uploadTestResultsRequest = vi.fn<(...args: AxiosPostArgs) => void>();
 
   const axiosTestInstanse = axios.create({
     baseURL: "https://allurereport.org",
@@ -128,11 +132,13 @@ export const mockRequests = () => {
     }
 
     if (url === "/api/upload/test-result") {
+      uploadTestResultsRequest(url, data, config);
+
       return Promise.resolve({
         data: {
-          results: (data?.results ?? []).map((result: { id: string }, idx: number) => ({
+          results: (data?.results ?? []).map((result: { uuid: string }, idx: number) => ({
             id: idx + 1,
-            uuid: result.id,
+            uuid: result.uuid,
           })),
         },
       } as AxiosResponse<{ results: { id: number; uuid: string }[] }>);
@@ -159,6 +165,7 @@ export const mockRequests = () => {
     uploadGlobalAttachmentsRequest,
     uploadGlobalErrorsRequest,
     uploadQualityGateResultsRequest,
+    uploadTestResultsRequest,
     uploadAttachmentsForResultRequest,
     uploadFixturesForResultRequest,
   };

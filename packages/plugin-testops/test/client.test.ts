@@ -1864,7 +1864,7 @@ describe("testops http client", () => {
 
       const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
 
-      expect((uploadCall?.[1] as any).testSessionId).toBe(1);
+      expect((uploadCall![1] as any).testSessionId).toBe(1);
     });
 
     it("should throw an error when session hasn't been initialized before", async () => {
