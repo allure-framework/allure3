@@ -48,7 +48,6 @@ export default defineConfig({
       "**/node_modules/**",
       "**/dist/**",
       "**/out/**",
-      "**/.pnp.*",
       "**/allure-report/**",
       "packages/*/src/assets/data/test-results/**",
     ],
