@@ -171,7 +171,7 @@
     "check:theme-apca:report": "node scripts/check-theme-apca.mjs --report-only --markdown=docs/theme-apca-report.md",
     "dev:ds": "storybook dev -p 6006",
     "lint": "vp lint --import-plugin src test features stories",
-    "test": "vp test run",
+    "test": "rimraf out && vp test run",
     "test:unit": "yarn test",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },

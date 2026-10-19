@@ -27,7 +27,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-dashboard/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
-    "test": "vp test run",
+    "test": "rimraf out && vp test run",
     "test:unit": "yarn test",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"

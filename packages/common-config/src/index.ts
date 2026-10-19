@@ -33,6 +33,8 @@ export const defaultTasksConfig = (
   options: {
     buildInput?: string[];
     buildOutput?: string[];
+    testInput?: string[];
+    testOutput?: string[];
   } = {},
 ): ViteUserConfig => {
   // custom command parsing exists for compatibility with running builds and tests with plain yarn while allowing
@@ -71,7 +73,11 @@ export const defaultTasksConfig = (
 
   const testScript = loadScript(packageJson, "test");
   if (testScript) {
+    let testCommands = testScript.split("&&");
     const cleanup = ["rimraf out .vitest"];
+    if (testCommands.length > 1 && ["rimraf", "clean"].some((str) => testCommands[0].includes(str))) {
+      testCommands = testCommands.slice(1);
+    }
     if (env.ENABLE_COVERAGE === "true") {
       // enabled coverage causes read of folders in package by vitest-allure/setup
       // recreate empty folders so they don't invalidate cache due to cleanup
@@ -84,7 +90,7 @@ export const defaultTasksConfig = (
       cache: false,
     };
     tasks["vp:test"] = {
-      command: testScript,
+      command: testCommands,
       dependsOn: ["vp:clean:test"],
       cache: {
         env: ["ENABLE_COVERAGE"],
@@ -95,8 +101,9 @@ export const defaultTasksConfig = (
           "!out/**",
           "!.vitest/**",
           "!test-results/**",
+          ...(options.testInput ?? []),
         ],
-        output: ["out/allure-results/**", ".vitest/blob/**", "test-results/**"],
+        output: ["out/allure-results/**", ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
       },
     };
   } else {

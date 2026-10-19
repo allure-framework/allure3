@@ -8,7 +8,7 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
+    "test": "rimraf out && playwright test",
     "test:e2e": "playwright test",
     "test:ui": "playwright test --ui",
     "lint": "vp lint --import-plugin src test features stories",

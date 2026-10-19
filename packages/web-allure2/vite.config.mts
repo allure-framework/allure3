@@ -224,7 +224,11 @@ export default defineConfig(({ mode }) => ({
       },
     ],
   },
-  ...defaultTasksConfig(import.meta.dirname, { buildInput: ["!build/**"], buildOutput: ["build/**"] }),
+  ...defaultTasksConfig(import.meta.dirname, {
+    buildInput: ["!build/**"],
+    testInput: ["!build/**"],
+    testOutput: ["build/**"],
+  }),
   root: projectRoot,
   base: "",
   define: {
