@@ -1,4 +1,4 @@
-import { SearchBox } from "@allurereport/web-components";
+import { SearchBox } from "@allurereport/web-components/core";
 
 import { useI18n } from "@/stores/locale";
 import { setTreeQueryFilter, treeFiltersResetNonce, treeQueryFilterValue } from "@/stores/treeFilters/store";

@@ -1,4 +1,4 @@
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import type { FunctionComponent } from "preact";
 
 import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";

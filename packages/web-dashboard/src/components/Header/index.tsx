@@ -1,5 +1,5 @@
 import { getReportOptions, themeStore, toggleUserTheme } from "@allurereport/web-commons";
-import { LanguagePicker, OverviewLink, ThemeButton } from "@allurereport/web-components";
+import { LanguagePicker, OverviewLink, ThemeButton } from "@allurereport/web-components/core";
 import { computed } from "@preact/signals";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";

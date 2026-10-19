@@ -1,7 +1,7 @@
 import { formatDuration, type TestStatus } from "@allurereport/core-api";
 import type { ExitCode, PluginGlobalError } from "@allurereport/plugin-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { Heading, Loadable, Text } from "@allurereport/web-components";
+import { Heading, Loadable, Text } from "@allurereport/web-components/core";
 import type { ReportOptions } from "types";
 
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";

@@ -1,4 +1,4 @@
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { useComputed } from "@preact/signals";
 import { type ComponentChildren } from "preact";
 import { useCallback } from "preact/hooks";

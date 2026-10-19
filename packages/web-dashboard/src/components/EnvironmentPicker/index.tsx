@@ -6,7 +6,7 @@ import {
   TooltipWrapper,
   allureIcons,
   useElementTruncation,
-} from "@allurereport/web-components";
+} from "@allurereport/web-components/core";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { currentEnvironment, environmentNameById, environmentsStore, setCurrentEnvironment } from "@/stores/env";

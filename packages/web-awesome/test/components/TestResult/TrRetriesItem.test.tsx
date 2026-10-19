@@ -5,7 +5,7 @@ import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesIt
 
 import type { ReportTestResult } from "../../../types";
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   ArrowButton: () => <button data-testid="test-result-retries-item-arrow-button" type="button" />,
   IconButton: (props: { "onClick": () => void; "data-testid"?: string }) => (
     <button data-testid={props["data-testid"]} type="button" onClick={props.onClick} />

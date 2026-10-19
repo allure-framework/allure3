@@ -1,5 +1,5 @@
 import { scrollFocusIntoView, scrollTreePaneToTop } from "@allurereport/web-commons";
-import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { useLayoutEffect, useMemo } from "preact/hooks";
 

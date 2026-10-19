@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
-import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Attachment } from "@allurereport/web-components/Attachment";
+import { ArrowButton, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";

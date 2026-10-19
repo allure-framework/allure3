@@ -1,6 +1,6 @@
 import { DEFAULT_ENVIRONMENT, type AttachmentTestStepResult } from "@allurereport/core-api";
 import type { PluginGlobalAttachment } from "@allurereport/plugin-api";
-import { Loadable } from "@allurereport/web-components";
+import { Loadable } from "@allurereport/web-components/core";
 import { useState } from "preact/hooks";
 
 import { MetadataButton } from "@/components/MetadataButton";

@@ -5,6 +5,7 @@ import {
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
+import { validateChartsOptions } from "@allurereport/web-commons";
 
 import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
@@ -13,7 +14,9 @@ import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashbo
 export class DashboardPlugin implements Plugin {
   #writer: DashboardDataWriter | undefined;
 
-  constructor(readonly options: DashboardPluginOptions = {}) {}
+  constructor(readonly options: DashboardPluginOptions = {}) {
+    validateChartsOptions(options.layout ?? []);
+  }
 
   #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
     if (!this.#writer) {

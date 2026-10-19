@@ -1,4 +1,5 @@
-import { Button, Code, CodeViewer } from "@allurereport/web-components";
+import { CodeViewer } from "@allurereport/web-components/CodeViewer";
+import { Button, Code } from "@allurereport/web-components/core";
 import type { Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";

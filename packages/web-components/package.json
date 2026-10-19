@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-components",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",
@@ -18,6 +18,64 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "core": [
+        "dist/core.d.ts"
+      ],
+      "Attachment": [
+        "dist/Attachment.d.ts"
+      ],
+      "CodeViewer": [
+        "dist/CodeViewer.d.ts"
+      ],
+      "Grid": [
+        "dist/Grid.d.ts"
+      ],
+      "Timeline": [
+        "dist/Timeline.d.ts"
+      ],
+      "SuccessRatePieChart": [
+        "dist/SuccessRatePieChart.d.ts"
+      ],
+      "TreeMapChartWidget": [
+        "dist/TreeMapChartWidget.d.ts"
+      ],
+      "HeatMapWidget": [
+        "dist/HeatMapWidget.d.ts"
+      ],
+      "StabilityDistributionWidget": [
+        "dist/StabilityDistributionWidget.d.ts"
+      ],
+      "TestBaseGrowthDynamicsChartWidget": [
+        "dist/TestBaseGrowthDynamicsChartWidget.d.ts"
+      ],
+      "StatusAgePyramidChartWidget": [
+        "dist/StatusAgePyramidChartWidget.d.ts"
+      ],
+      "TestingPyramidWidget": [
+        "dist/TestingPyramidWidget.d.ts"
+      ],
+      "CurrentStatusChartWidget": [
+        "dist/CurrentStatusChartWidget.d.ts"
+      ],
+      "StatusDynamicsChartWidget": [
+        "dist/StatusDynamicsChartWidget.d.ts"
+      ],
+      "StatusTransitionsChartWidget": [
+        "dist/StatusTransitionsChartWidget.d.ts"
+      ],
+      "DurationsChartWidget": [
+        "dist/DurationsChartWidget.d.ts"
+      ],
+      "TrSeveritiesChartWidget": [
+        "dist/TrSeveritiesChartWidget.d.ts"
+      ],
+      "DurationDynamicsChartWidget": [
+        "dist/DurationDynamicsChartWidget.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -29,7 +87,79 @@
       "import": "./dist/fonts/*",
       "default": "./dist/fonts/*"
     },
-    "./mixins.scss": "./dist/mixins.scss"
+    "./mixins.scss": "./dist/mixins.scss",
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./Attachment": {
+      "types": "./dist/Attachment.d.ts",
+      "import": "./dist/Attachment.js"
+    },
+    "./CodeViewer": {
+      "types": "./dist/CodeViewer.d.ts",
+      "import": "./dist/CodeViewer.js"
+    },
+    "./Grid": {
+      "types": "./dist/Grid.d.ts",
+      "import": "./dist/Grid.js"
+    },
+    "./Timeline": {
+      "types": "./dist/Timeline.d.ts",
+      "import": "./dist/Timeline.js"
+    },
+    "./SuccessRatePieChart": {
+      "types": "./dist/SuccessRatePieChart.d.ts",
+      "import": "./dist/SuccessRatePieChart.js"
+    },
+    "./TreeMapChartWidget": {
+      "types": "./dist/TreeMapChartWidget.d.ts",
+      "import": "./dist/TreeMapChartWidget.js"
+    },
+    "./HeatMapWidget": {
+      "types": "./dist/HeatMapWidget.d.ts",
+      "import": "./dist/HeatMapWidget.js"
+    },
+    "./StabilityDistributionWidget": {
+      "types": "./dist/StabilityDistributionWidget.d.ts",
+      "import": "./dist/StabilityDistributionWidget.js"
+    },
+    "./TestBaseGrowthDynamicsChartWidget": {
+      "types": "./dist/TestBaseGrowthDynamicsChartWidget.d.ts",
+      "import": "./dist/TestBaseGrowthDynamicsChartWidget.js"
+    },
+    "./StatusAgePyramidChartWidget": {
+      "types": "./dist/StatusAgePyramidChartWidget.d.ts",
+      "import": "./dist/StatusAgePyramidChartWidget.js"
+    },
+    "./TestingPyramidWidget": {
+      "types": "./dist/TestingPyramidWidget.d.ts",
+      "import": "./dist/TestingPyramidWidget.js"
+    },
+    "./CurrentStatusChartWidget": {
+      "types": "./dist/CurrentStatusChartWidget.d.ts",
+      "import": "./dist/CurrentStatusChartWidget.js"
+    },
+    "./StatusDynamicsChartWidget": {
+      "types": "./dist/StatusDynamicsChartWidget.d.ts",
+      "import": "./dist/StatusDynamicsChartWidget.js"
+    },
+    "./StatusTransitionsChartWidget": {
+      "types": "./dist/StatusTransitionsChartWidget.d.ts",
+      "import": "./dist/StatusTransitionsChartWidget.js"
+    },
+    "./DurationsChartWidget": {
+      "types": "./dist/DurationsChartWidget.d.ts",
+      "import": "./dist/DurationsChartWidget.js"
+    },
+    "./TrSeveritiesChartWidget": {
+      "types": "./dist/TrSeveritiesChartWidget.d.ts",
+      "import": "./dist/TrSeveritiesChartWidget.js"
+    },
+    "./DurationDynamicsChartWidget": {
+      "types": "./dist/DurationDynamicsChartWidget.d.ts",
+      "import": "./dist/DurationDynamicsChartWidget.js"
+    }
   },
   "scripts": {
     "build": "rimraf ./dist && rollup -c",

@@ -1,6 +1,6 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
-import { Button, Loadable } from "@allurereport/web-components";
+import { Button, Loadable } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { ReportExecutorInfo, ReportOptions } from "types";
