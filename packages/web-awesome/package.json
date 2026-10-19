@@ -27,7 +27,7 @@
     "build:prod:multi": "webpack --mode production",
     "build:dev:multi": "webpack --mode development",
     "lint": "vp lint --import-plugin src test features stories",
-    "test": "vp test run",
+    "test": "rimraf out && vp test run",
     "test:unit": "yarn test",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },

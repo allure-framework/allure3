@@ -24,7 +24,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "vp test run",
+    "test": "rimraf out && vp test run",
     "test:unit": "yarn test",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"

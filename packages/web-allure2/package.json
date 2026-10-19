@@ -25,7 +25,7 @@
     "build:dev": "run-s clean typecheck build:dev:bundle",
     "build:prod": "vp build --mode production",
     "build:dev:bundle": "vp build --mode development",
-    "test": "run typecheck:e2e && run test:e2e",
+    "test": "rimraf out && run typecheck:e2e && run test:e2e",
     "test:e2e": "playwright test --config playwright.config.mts",
     "test:e2e:accessibility": "playwright test --config playwright.config.mts tests/e2e/accessibility.spec.mts --workers=1",
     "test:e2e:headed": "playwright test --config playwright.config.mts --headed",

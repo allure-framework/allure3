@@ -25,7 +25,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "pretest": "rimraf ./out && playwright install chromium",
-    "test": "run test:unit && run test:e2e",
+    "test": "rimraf out && run test:unit && run test:e2e",
     "test:unit": "vp test run",
     "test:e2e": "playwright test",
     "lint": "vp lint --import-plugin src test features stories",
