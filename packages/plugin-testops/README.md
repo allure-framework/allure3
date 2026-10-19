@@ -98,3 +98,43 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_GIT_ANCESTOR_LIMIT` | `ancestorLimit` |
 
 `ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).
+## Environment variables
+
+Every upload session sends environment variables to Allure TestOps, which maps them to the project's env vars. A variable shows up on test results only if its key is configured in the project's env var schema in Allure TestOps; other keys are ignored.
+
+The plugin sends, from weakest to strongest:
+
+1. the environment variables of the process (for example, the ones set by your CI);
+2. the report-level `variables` from the Allure configuration;
+3. the `variables` of the environment (from `environments`) the test result belongs to.
+
+A stronger source overrides a weaker one even when the keys differ only in case (Allure TestOps matches env var keys case-insensitively), and the stronger key keeps its spelling.
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  variables: {
+    Stand: process.env.STAND ?? "staging",
+  },
+  environments: {
+    chrome: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "chrome"),
+      variables: { Browser: "chrome" },
+    },
+    firefox: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "firefox"),
+      variables: { Browser: "firefox" },
+    },
+  },
+  plugins: {
+    testops: {
+      options: {},
+    },
+  },
+});
+```
+
+Test results of an environment that defines its own `variables` are uploaded in a separate upload session carrying those variables. Results of environments without own variables share one session.
+
+Env vars are part of a test result's identity in Allure TestOps. If your project's env var schema contains keys that you now set in `variables`, the history of the affected tests starts anew once after upgrading the plugin.
