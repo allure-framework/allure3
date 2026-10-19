@@ -72,16 +72,11 @@ import {
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 import {
-  getPerfMetricsResults,
-  incrementPerfCounter,
   isPerfMetricsEnabled,
-  measurePerfAggregate,
   measurePerf,
   PERF_METRIC_NAMES,
   PERF_METRIC_PREFIXES,
-  perfMetricsFileName,
   startPerfSpan,
-  writePerfMetrics,
 } from "./utils/perf.js";
 import { RealtimeChannel } from "./utils/realtimeChannel.js";
 import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
@@ -102,15 +97,8 @@ const ROOT_INTEGRATION_FILENAMES = new Set([
   QUALITY_GATE_RESULTS_FILENAME,
   ARTIFACTS_MANIFEST_FILENAME,
 ]);
-const WORKLOAD_PERF_METRIC = {
-  group: "workload",
-  groupTitle: "Workload",
-  better: "neutral",
-} as const;
-
 type PluginPerformance = {
   measure<T>(name: string, fn: () => Promise<T>): Promise<T>;
-  count(name: string, value?: number, metadata?: typeof WORKLOAD_PERF_METRIC & { title: string; unit: string }): void;
 };
 
 type PerfAwarePluginContext = PluginContext & {
@@ -397,25 +385,6 @@ export class AllureReport {
     );
   };
 
-  #ingestSelfPerfMetrics = async (): Promise<void> => {
-    if (!isPerfMetricsEnabled()) {
-      return;
-    }
-
-    const results = getPerfMetricsResults();
-
-    if (results.length === 0) {
-      return;
-    }
-
-    const originalFileName = perfMetricsFileName(this.reportUuid);
-
-    await this.#store.visitMetrics(results, {
-      readerId: "api",
-      metadata: { originalFileName },
-    });
-  };
-
   #prepareReportFiles = async (): Promise<void> => {
     await this.#writeTestResultRegistry();
     if (this.#qualityGate) {
@@ -617,12 +586,6 @@ export class AllureReport {
         );
         const limit = pLimit(readConcurrency());
 
-        incrementPerfCounter(PERF_METRIC_NAMES.generateReadResultsFiles, entries.length, {
-          ...WORKLOAD_PERF_METRIC,
-          title: "Input files",
-          unit: "files",
-        });
-
         await Promise.all(
           entries.map((dirent) =>
             limit(async () => {
@@ -661,9 +624,7 @@ export class AllureReport {
           continue;
         }
 
-        const processed = await measurePerfAggregate(PERF_METRIC_NAMES.generateReadResultsReaderRead, () =>
-          reader.read(this.#store, data),
-        );
+        const processed = await reader.read(this.#store, data);
 
         if (processed) {
           return;
@@ -1348,8 +1309,6 @@ export class AllureReport {
       failedPlugins.forEach((id) => this.#failedGenerationPlugins.add(id));
       this.#finishGeneratePerfSpan();
 
-      await this.#ingestSelfPerfMetrics();
-
       const ciContext = createReportCiContext(this.#ci);
 
       await this.#eachPlugin(false, async (plugin, context) => {
@@ -1470,23 +1429,13 @@ export class AllureReport {
         });
       }
     } finally {
-      await this.#finishPerfMetrics();
+      this.#finishGeneratePerfSpan();
     }
   };
 
   #finishGeneratePerfSpan = () => {
     this.#endGeneratePerfSpan?.();
     this.#endGeneratePerfSpan = undefined;
-  };
-
-  #finishPerfMetrics = async () => {
-    this.#finishGeneratePerfSpan();
-
-    try {
-      await writePerfMetrics(this.#output, perfMetricsFileName(this.reportUuid));
-    } catch (err) {
-      console.error("Failed to write Allure performance metrics", err);
-    }
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
@@ -1515,12 +1464,6 @@ export class AllureReport {
       }
 
       const pluginFiles = new PluginFiles(this.#reportFiles, id, async (key, filepath) => {
-        incrementPerfCounter(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.generatedFiles`, 1, {
-          ...WORKLOAD_PERF_METRIC,
-          title: `Generated ${id} files`,
-          unit: "files",
-        });
-
         const currentPluginState = this.#getPluginState(false, id);
         const files: Record<string, string> | undefined = await currentPluginState?.get("files");
 
@@ -1544,11 +1487,6 @@ export class AllureReport {
               perf: {
                 measure: <T>(name: string, fn: () => Promise<T>) =>
                   measurePerf(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.${name}`, fn),
-                count: (
-                  name: string,
-                  value?: number,
-                  metadata?: typeof WORKLOAD_PERF_METRIC & { title: string; unit: string },
-                ) => incrementPerfCounter(`${PERF_METRIC_PREFIXES.generatePlugin}${id}.${name}`, value, metadata),
               },
             }
           : {}),
