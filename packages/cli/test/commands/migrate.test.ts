@@ -1,6 +1,6 @@
 import { epic, feature, label, story } from "allure-js-commons";
 import { run } from "clipanion";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { MigrateCommand } from "../../src/commands/migrate.js";
 

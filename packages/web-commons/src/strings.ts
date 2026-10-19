@@ -141,7 +141,7 @@ export const normalizeAnsiForegroundColors = (text: string) =>
       }
     };
 
-    for (let index = 0; index < codes.length; ) {
+    for (let index = 0; index < codes.length;) {
       const code = codes[index];
 
       if (code === 38 && codes[index + 1] === 5 && isValidColorPart(codes[index + 2])) {

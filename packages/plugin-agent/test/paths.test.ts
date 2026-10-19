@@ -1,7 +1,7 @@
 import { join } from "node:path";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
   formatAgentOutputLinks,

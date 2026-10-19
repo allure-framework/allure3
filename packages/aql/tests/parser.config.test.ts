@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { AqlErrorCode, isAqlParserError } from "../src/errors/index.js";
 import type { AqlParserConfig } from "../src/model.js";

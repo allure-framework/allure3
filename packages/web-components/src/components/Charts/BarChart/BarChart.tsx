@@ -193,7 +193,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               },
               format: isInverted
                 ? formatLeftTick
-                : (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!),
+                : (id) =>
+                    formatBottomTick(
+                      id,
+                      data.find((item) => item[indexBy] === id)!,
+                    ),
               tickValues:
                 data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
             }}
@@ -204,7 +208,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               truncateTickAt: 0,
               format: isInverted
                 ? formatBottomTick
-                  ? (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!)
+                  ? (id) =>
+                      formatBottomTick(
+                        id,
+                        data.find((item) => item[indexBy] === id)!,
+                      )
                   : undefined
                 : formatLeftTick,
               tickValues: leftAxisTickValues,

@@ -1,5 +1,5 @@
 import { attachment, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getSuccessRate, getSuccessRateTotal } from "../../src/utils/successRate.js";
 

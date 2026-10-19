@@ -1,5 +1,5 @@
 import { attachment, step } from "allure-js-commons";
-import { expect } from "vitest";
+import { expect } from "vite-plus/test";
 
 const formatJson = (value: unknown) => JSON.stringify(value, null, 2);
 

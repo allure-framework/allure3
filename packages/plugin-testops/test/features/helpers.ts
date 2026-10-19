@@ -1,6 +1,6 @@
 import { AllureStore } from "@allurereport/plugin-api";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 import { LaunchCategoryBulkResult, TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "../../src/model";
 

@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const AllureReportMock = vi.fn(function (this: Record<string, unknown>, config?: unknown) {

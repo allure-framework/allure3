@@ -1,4 +1,4 @@
-import { it } from "vitest";
+import { it } from "vite-plus/test";
 
 it("sample issue resolution", () => {
   throw new Error("test issue");

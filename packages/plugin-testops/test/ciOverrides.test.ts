@@ -1,7 +1,7 @@
 import type { CiDescriptor, GitFacts } from "@allurereport/core-api";
 import { GitProvider } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { applyCiOverrides, applyGitFactsOverrides } from "../src/utils/ciOverrides.js";
 

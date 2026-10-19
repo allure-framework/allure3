@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { cucumberjson } from "../src/index.js";
 import { readResourceAsResultFile, readResults } from "./utils.js";

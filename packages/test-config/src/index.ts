@@ -3,7 +3,7 @@ import { basename } from "node:path";
 import { cwd, env } from "node:process";
 
 import { Label } from "allure-js-commons";
-import { type TestUserConfig, defineConfig } from "vitest/config";
+import { type TestUserConfig, defineConfig } from "vite-plus";
 const { ENABLE_COVERAGE, GITHUB_ACTIONS } = env;
 const epicByPackagePrefix = new Map([
   ["core", "core"],

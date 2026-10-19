@@ -8,7 +8,7 @@ import { promisify } from "node:util";
 
 import { formatProcessLogAttachmentName } from "@allurereport/plugin-agent";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { stopProcessTree, terminationOf } from "../../src/utils/process.js";
 
@@ -142,9 +142,13 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
   return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
 };
 
-// every suite in this file drives the built CLI, and the build wipes `dist` first: it has to happen
-// once, before any of them starts, and never in parallel with a running CLI process
+// Reuse workspace outputs so other suites can run the built CLI without a concurrent clean.
+// Standalone runs can bootstrap the outputs when they are missing.
 beforeAll(async () => {
+  if ((await Promise.all(sharedBuildArtifacts.map(pathExists))).every(Boolean)) {
+    return;
+  }
+
   await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
   await runYarnCommand(["workspace", "allure", "build"]);
 }, 240_000);
