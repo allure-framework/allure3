@@ -19,6 +19,7 @@ import {
 import { KnownError } from "@allurereport/service";
 
 import { logError } from "../../logs.js";
+import { logSupervisorDiagnostic } from "../diagnostics.js";
 import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion, ProcessStartupInfo } from "../model.js";
 import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
 import { ProcessHostOperationError } from "./error.js";
@@ -138,6 +139,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
         return await this.#jobCompletion;
       },
       dispose: () => {
+        logSupervisorDiagnostic("disposing Windows supervisor control connection");
         this.#disposeControl();
 
         // Use the default Node.js SIGINT handler from now on.
@@ -219,6 +221,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       });
 
       socket.on("close", () => {
+        logSupervisorDiagnostic(`control connection closed: started=${this.#started} completed=${this.#completed}`);
         if (!this.#completed || !this.#started) {
           this.#fail(new Error("Control connection closed before startup or completion."));
         }
@@ -251,7 +254,11 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
         this.#wrapper = this.process;
         void this.completion.catch((error: unknown) => this.#fail(error));
         this.#wrapper.once("error", (error) => this.#fail(error));
+        this.#wrapper.once("exit", (code, signal) => {
+          logSupervisorDiagnostic(`process host exited: pid=${this.#wrapper?.pid} code=${code} signal=${signal}`);
+        });
         this.#wrapper.once("close", (code, signal) => {
+          logSupervisorDiagnostic(`process host stdio closed: code=${code} signal=${signal}`);
           // An established socket must drain: its completed frame may arrive
           // after the wrapper closes. Without a connection no frame can arrive.
           if (!this.#control) {
@@ -371,6 +378,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
   };
 
   #handleCompletedMessage(message: ShallowKnown<HostTargetCompletedEvent>) {
+    logSupervisorDiagnostic(`completed frame received: rootExitCode=${String(message.rootExitCode)}`);
     const exitCode = ensureInt(message.rootExitCode);
     if (exitCode === undefined) {
       this.#fail(new Error("Root exit code is undefined."));

@@ -58,6 +58,7 @@ namespace Allure.Run.Supervisor.Windows
         // Job objects and completion ports
         internal const uint KILL_ON_JOB_CLOSE = 0x2000;
         internal const int JobObjectBasicAccountingInformation = 1;
+        internal const int JobObjectBasicProcessIdList = 3;
         internal const int JobObjectAssociateCompletionPortInformation = 7;
         internal const int JobObjectExtendedLimitInformation = 9;
         internal const uint JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO = 4;
@@ -157,6 +158,23 @@ namespace Allure.Run.Supervisor.Windows
             IntPtr job,
             out bool member
         );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool QueryFullProcessImageNameW(IntPtr process, uint flags, StringBuilder name, ref uint size);
+
+        // Best-effort diagnostics only: ProcessCommandLineInformation is supported on modern Windows.
+        [DllImport("ntdll.dll")]
+        internal static extern int NtQueryInformationProcess(IntPtr process, int kind, IntPtr info, uint size, out uint returned);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct UNICODE_STRING
+        {
+            public ushort Length, MaximumLength;
+            public IntPtr Buffer;
+        }
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr CreateIoCompletionPort(
@@ -509,6 +527,8 @@ namespace Allure.Run.Supervisor.Windows
         private const int ConnectTimeoutMs = 10000;
         private const int WriteTimeoutMs = 5000;
         private const int CompletionCheckIntervalMs = 2000;
+        private const int DiagnosticIntervalMs = 30000;
+        private readonly bool diagnosticsEnabled = Environment.GetEnvironmentVariable("ALLURE_SUPERVISOR_DIAGNOSTICS") == "1";
 
         // Background threads and process resources
         private Thread reader, monitor, shutdown;
@@ -561,6 +581,119 @@ namespace Allure.Run.Supervisor.Windows
                 );
             }
             startupStageClock.Restart();
+        }
+
+        private void Diagnostic(string stage, object details)
+        {
+            if (!diagnosticsEnabled)
+                return;
+            try
+            {
+                Console.Error.WriteLine("[AllureSupervisorDiagnostic] {0:o} host pid={1} {2} {3}",
+                    DateTime.UtcNow, Native.GetCurrentProcessId(), stage, json.Serialize(details));
+            }
+            catch
+            {
+                // Diagnostics must never change process supervision or completion.
+            }
+        }
+
+        private object DescribeProcess(uint pid)
+        {
+            Dictionary<string, object> details = new Dictionary<string, object> { { "pid", pid } };
+            // PROCESS_QUERY_LIMITED_INFORMATION; do not request VM_READ or launch another process.
+            IntPtr process = Native.OpenProcess(0x1000, false, pid);
+            if (process == IntPtr.Zero)
+            {
+                details["inspectionError"] = Win32("OpenProcess(diagnostics)").Message;
+                return details;
+            }
+            try
+            {
+                StringBuilder image = new StringBuilder(32768);
+                uint size = (uint)image.Capacity;
+                if (Native.QueryFullProcessImageNameW(process, 0, image, ref size))
+                {
+                    details["executable"] = image.ToString();
+                    details["name"] = Path.GetFileName(image.ToString());
+                }
+                else
+                    details["imageError"] = Win32("QueryFullProcessImageNameW").Message;
+
+                uint required;
+                Native.NtQueryInformationProcess(process, 60, IntPtr.Zero, 0, out required);
+                if (required < Marshal.SizeOf(typeof(Native.UNICODE_STRING)) || required > 1024 * 1024)
+                    throw new InvalidOperationException("Command line size unavailable or too large.");
+                IntPtr buffer = Marshal.AllocHGlobal((int)required);
+                try
+                {
+                    int status = Native.NtQueryInformationProcess(process, 60, buffer, required, out required);
+                    if (status < 0)
+                        throw new InvalidOperationException("Command line query failed: NTSTATUS=0x" + status.ToString("X8"));
+                    Native.UNICODE_STRING commandLine = (Native.UNICODE_STRING)Marshal.PtrToStructure(buffer, typeof(Native.UNICODE_STRING));
+                    details["commandLine"] = Marshal.PtrToStringUni(commandLine.Buffer, commandLine.Length / 2);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buffer);
+                }
+            }
+            catch (Exception error)
+            {
+                // Processes can exit or deny access between enumeration and inspection.
+                details["inspectionError"] = error.Message;
+            }
+            finally
+            {
+                Native.CloseHandle(process);
+            }
+            return details;
+        }
+
+        private void DiagnoseRemainingProcesses()
+        {
+            try
+            {
+                // Read actual job membership, including nested jobs, rather than reconstructing
+                // a parent tree whose root may already be gone. Bound retries if the job grows.
+                int capacity = 64;
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    int size = 8 + capacity * IntPtr.Size;
+                    IntPtr buffer = Marshal.AllocHGlobal(size);
+                    try
+                    {
+                        uint returned;
+                        bool success = Native.QueryInformationJobObject(job, Native.JobObjectBasicProcessIdList,
+                            buffer, (uint)size, out returned);
+                        int error = Marshal.GetLastWin32Error();
+                        if (!success && error != 234) // ERROR_MORE_DATA
+                            throw new Failure("QueryInformationJobObject(diagnostics)", error);
+                        int assigned = Marshal.ReadInt32(buffer);
+                        int count = Math.Min(capacity, Marshal.ReadInt32(buffer, 4));
+                        if (!success && attempt < 2)
+                        {
+                            capacity = Math.Min(65536, Math.Max(capacity * 2, assigned));
+                            continue;
+                        }
+                        Diagnostic("waiting for job processes after root exit", new { rootPid, assigned, listed = count });
+                        for (int index = 0; index < count; index++)
+                        {
+                            uint pid = unchecked((uint)Marshal.ReadIntPtr(buffer, 8 + index * IntPtr.Size).ToInt64());
+                            Diagnostic("remaining job process", DescribeProcess(pid));
+                        }
+                        return;
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(buffer);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                Diagnostic("job process inspection failed", new { error = error.Message });
+            }
         }
 
         private static Failure Win32(string operation)
@@ -1644,6 +1777,8 @@ namespace Allure.Run.Supervisor.Windows
         private int Execute(string pipeName, string command, IEnumerable<string> arguments)
         {
             StartupTiming("process host entry");
+            // Diagnose this supervisor only; nested CLI tests should retain their normal output.
+            Environment.SetEnvironmentVariable("ALLURE_SUPERVISOR_DIAGNOSTICS", null);
             try
             {
                 if (!Native.SetConsoleCtrlHandler(ctrlHandler, true))
@@ -1682,10 +1817,13 @@ namespace Allure.Run.Supervisor.Windows
                 Dictionary<string, object> started = Message("started");
                 started["rootPid"] = pid;
                 Send(started);
+                Diagnostic("target started", new { rootPid });
                 StartupTiming("launch completion and started sent");
 
                 Stopwatch completionClock = Stopwatch.StartNew();
                 long nextCompletionCheck = CompletionCheckIntervalMs;
+                bool rootExitReported = false;
+                long nextDiagnostic = 0;
                 while (true)
                 {
                     int timeout = jobEmpty ? Timeout.Infinite : (int)Math.Max(
@@ -1725,6 +1863,22 @@ namespace Allure.Run.Supervisor.Windows
                         nextCompletionCheck = completionClock.ElapsedMilliseconds + CompletionCheckIntervalMs;
                     }
 
+                    if (diagnosticsEnabled && Native.WaitForSingleObject(root, 0) == Native.WAIT_OBJECT_0)
+                    {
+                        if (!rootExitReported)
+                        {
+                            uint rootExitCode;
+                            bool exitCodeAvailable = Native.GetExitCodeProcess(root, out rootExitCode);
+                            Diagnostic("root exited", new { rootPid, exitCodeAvailable, rootExitCode });
+                            rootExitReported = true;
+                        }
+                        if (!jobEmpty && completionClock.ElapsedMilliseconds >= nextDiagnostic)
+                        {
+                            DiagnoseRemainingProcesses();
+                            nextDiagnostic = completionClock.ElapsedMilliseconds + DiagnosticIntervalMs;
+                        }
+                    }
+
                     // Preserve result-before-completed ordering when shutdown itself empties the job.
                     if (jobEmpty && (!stopPending || terminationSucceeded))
                     {
@@ -1757,7 +1911,9 @@ namespace Allure.Run.Supervisor.Windows
                                 ? "stopped"
                                 : "normal";
 
+                        Diagnostic("sending completed frame", new { rootPid, rootExitCode = code, stopPending, terminationSucceeded });
                         Send(completed);
+                        Diagnostic("completed frame sent", new { rootPid });
 
                         return 0;
                     }
@@ -1787,6 +1943,7 @@ namespace Allure.Run.Supervisor.Windows
 
         public void Dispose()
         {
+            Diagnostic("disposing host resources", new { rootPid });
             try
             {
                 stopping.Cancel();
@@ -1842,6 +1999,7 @@ namespace Allure.Run.Supervisor.Windows
             finally
             {
                 UnregisterConsoleCtrlHandler();
+                Diagnostic("host resource disposal complete", new { rootPid });
             }
         }
     }
