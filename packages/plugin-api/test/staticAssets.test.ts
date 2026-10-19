@@ -64,6 +64,7 @@ describe("report static archives", () => {
     const assets = await readReportStaticAssets(firstArchive);
 
     expect(assets.manifest).toEqual({ "main.js": "app.js", "main.css": "styles.css" });
+    expect(assets.featureAssets).toBeUndefined();
     expect([...assets.files.keys()]).toEqual(["app.js", "app.js.LICENSE.txt", "styles.css"]);
     expect(assets.files.get("app.js")?.toString("utf8")).toBe("globalThis.allure = true;");
     expect(assets.files.get("styles.css")?.toString("utf8")).toBe("body { color: purple; }");
@@ -89,6 +90,75 @@ describe("report static archives", () => {
     const assets = await readReportStaticAssets(archivePath);
 
     expect(assets.files.get("123.app.js")?.toString("utf8")).toBe("chunk");
+  });
+
+  it("reads optional feature metadata while retaining every report asset and omitting build metadata", async () => {
+    const sourceDir = await createFixtureBuild();
+    await writeFile(join(sourceDir, "chart.js"), "chart");
+    const graph = {
+      version: 1,
+      initial: ["app.js"],
+      base: ["app.js", "styles.css", "app.js.LICENSE.txt"],
+      features: { "chart-pie": ["chart.js"] },
+    };
+    await writeFile(join(sourceDir, "feature-assets.json"), JSON.stringify(graph));
+    await writeFile(
+      join(sourceDir, "manifest.json"),
+      JSON.stringify({ "main.js": "app.js", "main.css": "styles.css", "feature-assets.json": "feature-assets.json" }),
+    );
+    const archive = join(fixtureRoot, "features.tar");
+    await createReportStaticArchive(sourceDir, archive, { singleFileCompatible: false });
+    const assets = await readReportStaticAssets(archive);
+    expect(assets.featureAssets).toEqual(graph);
+    expect([...assets.files.keys()]).toEqual(["app.js", "app.js.LICENSE.txt", "chart.js", "styles.css"]);
+    expect(assets.manifest).toEqual({ "main.js": "app.js", "main.css": "styles.css" });
+  });
+
+  it.each([
+    ["invalid JSON", "{"],
+    [
+      "unknown version",
+      { version: 2, initial: ["app.js"], base: ["app.js", "styles.css", "app.js.LICENSE.txt"], features: {} },
+    ],
+    [
+      "missing reference",
+      {
+        version: 1,
+        initial: ["app.js"],
+        base: ["app.js", "styles.css", "app.js.LICENSE.txt"],
+        features: { chart: ["missing.js"] },
+      },
+    ],
+    ["unclassified asset", { version: 1, initial: ["app.js"], base: ["app.js"], features: {} }],
+    [
+      "initial outside base",
+      { version: 1, initial: ["app.js"], base: ["styles.css", "app.js.LICENSE.txt"], features: { chart: ["app.js"] } },
+    ],
+    [
+      "missing initial main",
+      { version: 1, initial: [], base: ["app.js", "styles.css", "app.js.LICENSE.txt"], features: {} },
+    ],
+    [
+      "empty feature name",
+      { version: 1, initial: ["app.js"], base: ["app.js", "styles.css", "app.js.LICENSE.txt"], features: { "": [] } },
+    ],
+    [
+      "metadata self reference",
+      {
+        version: 1,
+        initial: ["app.js"],
+        base: ["app.js", "styles.css", "app.js.LICENSE.txt", "feature-assets.json"],
+        features: {},
+      },
+    ],
+  ])("rejects malformed feature metadata: %s", async (_name, graph) => {
+    const sourceDir = await createFixtureBuild();
+    await writeFile(join(sourceDir, "feature-assets.json"), typeof graph === "string" ? graph : JSON.stringify(graph));
+    const archive = join(fixtureRoot, "invalid-features.tar");
+    await createReportStaticArchive(sourceDir, archive, { singleFileCompatible: false });
+    await expect(readReportStaticAssets(archive)).rejects.toThrow(
+      /feature-assets.json|Unclassified report feature asset|Initial report assets/,
+    );
   });
 
   it("rejects unsafe archive paths before exposing their contents", async () => {
