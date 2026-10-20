@@ -164,6 +164,18 @@ export const azure: CiDescriptor = {
     return "";
   },
 
+  get commitSha() {
+    return getEnv("SYSTEM_PULLREQUEST_SOURCECOMMITID") || getEnv("BUILD_SOURCEVERSION") || undefined;
+  },
+
+  get commitUrl() {
+    const repositoryUrl = getRepositoryUrl();
+
+    return getEnv("BUILD_REPOSITORY_PROVIDER") === "TfsGit" && repositoryUrl && this.commitSha
+      ? `${getBrowserRepositoryUrl(repositoryUrl)}/commit/${encodeURIComponent(this.commitSha)}`
+      : undefined;
+  },
+
   get provider() {
     return getRepositoryFromUrl()?.provider ?? mapAzureRepositoryProvider(getEnv("BUILD_REPOSITORY_PROVIDER"));
   },

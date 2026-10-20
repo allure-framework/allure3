@@ -30,4 +30,6 @@ export interface CiDescriptor {
   sourceBranch?: string;
   targetBranch?: string;
   pullRequest?: GitPullRequestRef;
+  commitSha?: string;
+  commitUrl?: string;
 }

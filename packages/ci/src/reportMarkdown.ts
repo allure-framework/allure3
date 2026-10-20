@@ -1,5 +1,6 @@
-import type { TestStatus } from "@allurereport/core-api";
+import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
 
+import { reportCiContextLinks, type ContextLink } from "./helpers/reportCiContext.js";
 import type {
   ReportContext,
   ReportContextArtifact,
@@ -41,6 +42,7 @@ type ReportLink = {
 export type RenderReportSummaryMarkdownOptions = {
   title?: string;
   includeArtifacts?: boolean;
+  ci?: CiDescriptor;
   getReportFilterHref?: (filter: keyof ReportContextFlagStats, row: ReportSummaryMarkdownRow) => string | undefined;
 };
 
@@ -250,7 +252,7 @@ const toReportLink = (report: ReportContextTestReport): ReportLink | undefined =
 const sortLinks = (links: ReportLink[]): ReportLink[] =>
   links.toSorted((left, right) => left.kind.localeCompare(right.kind) || left.label.localeCompare(right.label));
 
-const renderLinks = (label: string, links: ReportLink[]): string | undefined => {
+const renderLinks = (label: string, links: ContextLink[]): string | undefined => {
   if (!links.length) {
     return undefined;
   }
@@ -258,14 +260,16 @@ const renderLinks = (label: string, links: ReportLink[]): string | undefined => 
   return `**${escapeHtml(label)}:** ${links.map((item) => link(item.label, item.href)).join(", ")}`;
 };
 
-const renderReportLinks = (reports: ReportContextTestReport[]): string[] => {
+const renderReportLinks = (reports: ReportContextTestReport[], ci?: CiDescriptor): string[] => {
   const links = sortLinks(reports.map(toReportLink).filter((item): item is ReportLink => item !== undefined));
   const reportLinks = links.filter(({ kind }) => kind === "report");
   const testOpsLinks = links.filter(({ kind }) => kind === "testops");
 
-  return [renderLinks("Reports", reportLinks), renderLinks("Allure TestOps", testOpsLinks)].filter(
-    (line): line is string => line !== undefined,
-  );
+  return [
+    renderLinks("Reports", reportLinks),
+    renderLinks("Context", reportCiContextLinks(ci)),
+    renderLinks("Allure TestOps", testOpsLinks),
+  ].filter((line): line is string => line !== undefined);
 };
 
 const pluginSummaryToStatusStats = (report: ReportContextTestReport): ReportContextStatusStats => ({
@@ -363,7 +367,7 @@ export const renderReportSummaryMarkdown = (
   const sections = [
     `# ${escapeHtml(title)}`,
     renderTable(aggregateRows, includeResolutions, renderOptions),
-    ...renderReportLinks(regularReports),
+    ...renderReportLinks(regularReports, options.ci),
     renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,
   ].filter((section): section is string => Boolean(section));

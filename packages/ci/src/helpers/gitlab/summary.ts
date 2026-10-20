@@ -1,3 +1,4 @@
+import { gitlab } from "../../detectors/gitlab.js";
 import type { ReportContext, ReportContextTestReport } from "../../reportContext.js";
 import { renderReportSummaryMarkdown } from "../../reportMarkdown.js";
 
@@ -23,5 +24,5 @@ export const renderGitlabReportSummary = (summary: ReportContext, reportUrl: URL
     reports: summary.reports.map((report) => ({ ...report, href: reportHref(report, reportUrl) })),
   };
 
-  return renderReportSummaryMarkdown(context, { includeArtifacts: false });
+  return renderReportSummaryMarkdown(context, { includeArtifacts: false, ci: gitlab });
 };

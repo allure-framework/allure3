@@ -98,6 +98,10 @@ export const circle: CiDescriptor = {
     return "";
   },
 
+  get commitSha() {
+    return getEnv("CIRCLE_SHA1") || undefined;
+  },
+
   get provider() {
     return getRepository()?.provider;
   },

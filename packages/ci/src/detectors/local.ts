@@ -84,6 +84,12 @@ export const local: CiDescriptor = {
     return "";
   },
 
+  get commitSha() {
+    const output = spawnSync("git", ["rev-parse", "HEAD"]);
+
+    return !output.error && output.status === 0 ? output.stdout.toString().trim() || undefined : undefined;
+  },
+
   get provider() {
     return getRepository()?.provider;
   },
