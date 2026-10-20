@@ -1,8 +1,6 @@
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { constants } from "node:fs";
-import { lstat, readFile } from "node:fs/promises";
-import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname } from "node:path";
 
 import type {
   RawTestAttachment,
@@ -14,6 +12,7 @@ import type {
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 
+import { readAttachmentFile } from "../file-attachments.js";
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
@@ -198,8 +197,7 @@ const parseAttachments = async (visitor: ResultsVisitor, reportDir: string, syst
 
   for (const [, path] of systemOut?.matchAll(/\[\[ATTACHMENT\|([^\r\n]*?)\]\]/g) ?? []) {
     try {
-      const attachmentPath = await resolveAttachmentPath(reportDir, path);
-      const content = await readFile(attachmentPath, { flag: constants.O_RDONLY | constants.O_NOFOLLOW });
+      const content = await readAttachmentFile(reportDir, path);
       const file = new BufferResultFile(content, `${randomUUID()}${extname(path)}`);
       await visitor.visitAttachmentFile(file, { readerId });
       attachments.push({
@@ -214,31 +212,6 @@ const parseAttachments = async (visitor: ResultsVisitor, reportDir: string, syst
   }
 
   return attachments;
-};
-
-const resolveAttachmentPath = async (reportDir: string, path: string): Promise<string> => {
-  const root = resolve(reportDir);
-  const attachmentPath = resolve(root, path);
-  const relativePath = relative(root, attachmentPath);
-
-  if (!relativePath || relativePath === ".." || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath)) {
-    throw new Error("Attachment path must be inside the report directory");
-  }
-
-  const parts = relativePath.split(sep);
-  let currentPath = root;
-  for (const [index, part] of parts.entries()) {
-    currentPath = join(currentPath, part);
-    const stats = await lstat(currentPath);
-    if (stats.isSymbolicLink()) {
-      throw new Error("Symbolic links are not allowed in attachment paths");
-    }
-    if (index === parts.length - 1 && !stats.isFile()) {
-      throw new Error("Attachment path must refer to a regular file");
-    }
-  }
-
-  return attachmentPath;
 };
 
 const visitPlainTextAttachment = async (
