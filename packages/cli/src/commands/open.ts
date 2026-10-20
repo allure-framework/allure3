@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { cwd as processCwd, exit } from "node:process";
+import { cwd as processCwd } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
@@ -56,6 +56,10 @@ export class OpenCommand extends Command {
       "The host (network interface) to serve the reports on, e.g. 127.0.0.1 or 0.0.0.0 (default: all interfaces)",
   });
 
+  no_browser = Option.Boolean("--no-browser", {
+    description: "Do not open the report in the default browser after serving",
+  });
+
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
@@ -75,48 +79,76 @@ export class OpenCommand extends Command {
     const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
     const resolvedPatterns = resolveResultsPatterns(this.resultsDir, config.resultsDir);
 
-    if (await this.reportExists(servePath)) {
-      await serve({
-        ...serverOptionsFromConfig(config),
-        servePath,
-        open: true,
-      });
-    } else if (resolvedPatterns.length) {
-      const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
-      const config = await readConfig(cwd, this.config, {
-        port: this.port,
-        host: this.host,
-        output: tmpDir,
-        hideLabels,
-      });
+    const notifier = notifySignals(["SIGINT", "SIGTERM"]);
+    const signalExitCode = () => {
+      const info = notifier.info();
+      return info?.signal === "SIGINT" ? 0 : (info?.code ?? 0);
+    };
 
-      await generate({
-        resultsDir: this.resultsDir,
-        cwd,
-        config,
-      });
+    let server: Awaited<ReturnType<typeof serve>> | undefined;
+    let tmpDir: string | undefined;
 
-      // clean up temp report directory on ctrl-c
-      const notifier = notifySignals(["SIGINT", "SIGTERM"]);
+    try {
+      if (await this.reportExists(servePath)) {
+        if (notifier.signal.aborted) {
+          return signalExitCode();
+        }
 
-      void waitForAbort(notifier.signal).then(async () => {
+        server = await serve({
+          ...serverOptionsFromConfig(config),
+          servePath,
+          open: !this.no_browser,
+        });
+      } else if (resolvedPatterns.length) {
+        tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
+        const config = await readConfig(cwd, this.config, {
+          port: this.port,
+          host: this.host,
+          output: tmpDir,
+          hideLabels,
+        });
+
+        if (notifier.signal.aborted) {
+          return signalExitCode();
+        }
+
+        await generate({
+          resultsDir: this.resultsDir,
+          cwd,
+          config,
+        });
+
+        if (notifier.signal.aborted) {
+          return signalExitCode();
+        }
+        server = await serve({
+          ...serverOptionsFromConfig(config),
+          servePath: config.output,
+          open: !this.no_browser,
+        });
+      } else {
+        notifier.dispose();
+        console.error(red(`A report doesn't exist in ${servePath} and no input was provided to generate.`));
+        return 1;
+      }
+
+      await waitForAbort(notifier.signal);
+      console.info(`Allure is stopping.`);
+    } finally {
+      try {
+        await server?.stop();
+      } catch {}
+
+      if (tmpDir) {
         try {
-          await rm(config.output, { recursive: true });
+          await rm(tmpDir, { recursive: true, force: true });
         } catch {}
+      }
 
-        process.exit(notifier.info()?.code ?? 0);
-      });
-
-      await serve({
-        ...serverOptionsFromConfig(config),
-        servePath: config.output,
-        open: true,
-      });
-    } else {
-      console.error(red(`A report doesn't exist in ${servePath} and no input was provided to generate.`));
-      exit(1);
-      return;
+      notifier.dispose();
     }
+
+    return signalExitCode();
   }
 
   private resolveReportPath(cwd: string, inputs: readonly string[], fallback: string = "allure-report") {

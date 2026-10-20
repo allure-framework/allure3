@@ -1,8 +1,7 @@
 import { existsSync } from "node:fs";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
@@ -13,6 +12,14 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { generate } from "../../src/commands/commons/generate.js";
 import { OpenCommand } from "../../src/commands/open.js";
+import { notifySignals } from "../../src/utils/signals.js";
+
+vi.mock("../../src/utils/signals.js", async (importOriginal) => ({
+  ...(await importOriginal()),
+  notifySignals: vi.fn(),
+}));
+
+let shutdown: AbortController;
 
 vi.mock("node:fs", async (importOriginal) => {
   return {
@@ -30,10 +37,6 @@ vi.mock("node:os", async (importOriginal) => {
     tmpdir: vi.fn(),
   };
 });
-vi.mock("node:process", async (importOriginal) => ({
-  ...(await importOriginal()),
-  exit: vi.fn(),
-}));
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
@@ -52,23 +55,70 @@ vi.mock("../../src/commands/commons/generate.js", () => ({
   generate: vi.fn(),
 }));
 
+const mockServe = () => {
+  const stop = vi.fn().mockResolvedValue(undefined);
+  return {
+    serve: (serve as Mock).mockImplementation(() => {
+      shutdown.abort();
+      return { stop };
+    }),
+    stop,
+  };
+};
+
 beforeEach(async () => {
   await epic("coverage");
   await feature("cli-commands");
   await story("open");
   await label("coverage", "cli-commands");
   vi.clearAllMocks();
+  shutdown = new AbortController();
+  vi.mocked(notifySignals).mockReturnValue({
+    signal: shutdown.signal,
+    info: () => ({ signal: "SIGINT", code: 130, receivedAt: 0, deadline: 0 }),
+    dispose: vi.fn(),
+  });
 });
 
 describe("open command", () => {
+  it("should stop the server on CTRL+C after report generation", async () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue([]);
+    vi.mocked(tmpdir).mockReturnValue("tmp");
+    vi.mocked(mkdtemp).mockResolvedValue("temporary-report");
+    (readConfig as Mock).mockResolvedValue({ output: "temporary-report" });
+    const { stop } = mockServe();
+
+    const exitCode = await run(OpenCommand, ["open", "results"]);
+
+    expect(exitCode).toBe(0);
+    expect(stop).toHaveBeenCalledOnce();
+    expect(rm).toHaveBeenCalledWith("temporary-report", { recursive: true, force: true });
+  });
+
+  it("should stop the server on CTRL+C after serving existing report", async () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue(["summary.json"]);
+    vi.mocked(tmpdir).mockReturnValue("tmp");
+    (readConfig as Mock).mockResolvedValue({ output: "existing-report" });
+    const { stop } = mockServe();
+
+    const exitCode = await run(OpenCommand, ["open", "results"]);
+
+    expect(exitCode).toBe(0);
+    expect(stop).toHaveBeenCalledOnce();
+    expect(rm).not.toHaveBeenCalled();
+  });
+
   it("should open existing default dir when no input and config output are provided", async () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValue({ port: undefined });
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "bar"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "bar"]);
 
+    expect(exitCode).toBe(0);
     expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
@@ -94,10 +144,11 @@ describe("open command", () => {
     (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValueOnce({ output: "bar" });
     (readConfig as Mock).mockResolvedValue({ port: undefined });
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "baz"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "baz"]);
 
+    expect(exitCode).toBe(0);
     expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
@@ -122,9 +173,10 @@ describe("open command", () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValue({ host: "0.0.0.0" });
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--host", "0.0.0.0"]);
+    const exitCode = await run(OpenCommand, ["open", "--host", "0.0.0.0"]);
+    expect(exitCode).toBe(0);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       port: undefined,
@@ -140,10 +192,11 @@ describe("open command", () => {
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (glob as unknown as Mock).mockResolvedValue([]);
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
+    expect(exitCode).toBe(0);
     expect(mkdtemp).toHaveBeenCalledWith(join("foo", "allure-report-"));
     expect(readConfig).toHaveBeenCalledWith("qux", undefined, {
       port: undefined,
@@ -170,32 +223,32 @@ describe("open command", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (existsSync as Mock).mockReturnValue(false);
     (readConfig as Mock).mockResolvedValueOnce({ output: "foo" });
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "bar"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "bar"]);
 
+    expect(exitCode).toBe(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
         `A report doesn't exist in ${resolve("bar", "foo")} and no input was provided to generate.`,
       ),
     );
-    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should fail when no input provided and default output not exists", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (existsSync as Mock).mockReturnValue(false);
     (readConfig as Mock).mockResolvedValueOnce({});
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "foo"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "foo"]);
 
+    expect(exitCode).toBe(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
         `A report doesn't exist in ${resolve("foo", "allure-report")} and no input was provided to generate.`,
       ),
     );
-    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should fail when no input provided and no report in configured output", async () => {
@@ -203,16 +256,16 @@ describe("open command", () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValueOnce({ output: "foo" });
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "bar"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "bar"]);
 
+    expect(exitCode).toBe(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
         `A report doesn't exist in ${resolve("bar", "foo")} and no input was provided to generate.`,
       ),
     );
-    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should fail when no input provided and no report in default output", async () => {
@@ -220,26 +273,27 @@ describe("open command", () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValueOnce({});
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "foo"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "foo"]);
 
+    expect(exitCode).toBe(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining(
         `A report doesn't exist in ${resolve("foo", "allure-report")} and no input was provided to generate.`,
       ),
     );
-    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should serve existing report when summary.json files are found", async () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValue({ port: undefined });
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "bar", "baz"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "bar", "baz"]);
 
+    expect(exitCode).toBe(0);
     expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
@@ -267,10 +321,11 @@ describe("open command", () => {
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (glob as unknown as Mock).mockResolvedValue([]);
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
+    expect(exitCode).toBe(0);
     expect(glob).not.toHaveBeenCalled();
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -293,10 +348,11 @@ describe("open command", () => {
     (existsSync as Mock).mockReturnValue(true);
     (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValue({ port: "10201" });
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "bar", "--port", "10202", "baz"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "bar", "--port", "10202", "baz"]);
 
+    expect(exitCode).toBe(0);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       port: "10202",
     });
@@ -316,10 +372,11 @@ describe("open command", () => {
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "qux", "--config", "qut", "quc"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "qux", "--config", "qut", "quc"]);
 
+    expect(exitCode).toBe(0);
     expect(readConfig).toHaveBeenCalledWith("qux", "qut", {
       port: undefined,
       output: "bar",
@@ -334,10 +391,11 @@ describe("open command", () => {
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "qux"]);
+    const exitCode = await run(OpenCommand, ["open", "qux"]);
 
+    expect(exitCode).toBe(0);
     expect(readConfig).toHaveBeenCalledWith(process.cwd(), undefined, expect.any(Object));
     expect(glob).toHaveBeenCalledWith(
       join("**", "summary.json"),
@@ -360,10 +418,11 @@ describe("open command", () => {
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
+    expect(exitCode).toBe(0);
     expect(glob).toHaveBeenCalledWith(join("**", "summary.json"), {
       nodir: true,
       absolute: true,
@@ -380,10 +439,11 @@ describe("open command", () => {
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
+    const exitCode = await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
+    expect(exitCode).toBe(0);
     expect(mkdtemp).toHaveBeenCalledWith(join("foo", "allure-report-"));
     expect(readConfig).toHaveBeenCalledWith("qux", undefined, {
       port: undefined,
@@ -402,10 +462,11 @@ describe("open command", () => {
       hideLabels: ["qut", "quc"],
     });
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    mockServe();
 
-    await run(OpenCommand, ["open", "--hide-labels", "quz", "--hide-labels", "qur", "qre"]);
+    const exitCode = await run(OpenCommand, ["open", "--hide-labels", "quz", "--hide-labels", "qur", "qre"]);
 
+    expect(exitCode).toBe(0);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       port: undefined,
       output: "bar",
@@ -427,10 +488,11 @@ describe("open command", () => {
     (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (glob as unknown as Mock).mockResolvedValue([]);
     (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
+    const { serve } = mockServe();
 
-    await run(OpenCommand, ["open", "foo", "bar"]);
+    const exitCode = await run(OpenCommand, ["open", "foo", "bar"]);
 
+    expect(exitCode).toBe(0);
     expect(existsSync).toHaveBeenCalledTimes(0);
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -438,5 +500,32 @@ describe("open command", () => {
       }),
     );
     expect(serve).toHaveBeenCalledOnce();
+  });
+
+  it("should respect --no-browser when serving a generated report", async () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue([]);
+    vi.mocked(tmpdir).mockReturnValue("tmp");
+    vi.mocked(mkdtemp).mockResolvedValue("temporary-report");
+    (readConfig as Mock).mockResolvedValue({ output: "temporary-report" });
+    const { serve } = mockServe();
+
+    const exitCode = await run(OpenCommand, ["open", "--no-browser", "results"]);
+
+    expect(exitCode).toBe(0);
+    expect(serve).toHaveBeenCalledWith(expect.objectContaining({ open: false }));
+  });
+
+  it("should respect --no-browser when serving an existing report", async () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue(["summary.json"]);
+    vi.mocked(tmpdir).mockReturnValue("tmp");
+    (readConfig as Mock).mockResolvedValue({ output: "existing-report" });
+    const { serve } = mockServe();
+
+    const exitCode = await run(OpenCommand, ["open", "--no-browser", "results"]);
+
+    expect(exitCode).toBe(0);
+    expect(serve).toHaveBeenCalledWith(expect.objectContaining({ open: false }));
   });
 });
