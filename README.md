@@ -212,6 +212,44 @@ The configuration file allows you to fine-tune report generation. Key options in
 - **`output`**: Defines the directory where the report will be saved.
 - **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
+- **`unifiedStorage`** *(boolean)*: When `true`, stores attachments and static assets once in a shared `shared/` directory instead of copying them into every plugin report. See [Unified Storage](#unified-storage).
+
+### Unified Storage
+
+When multiple plugins are configured, each one writes its own copy of attachments (screenshots, logs, videos) and static assets (JS, CSS, fonts). This can significantly increase disk usage and generation time.
+
+Setting `unifiedStorage: true` enables a shared storage mode where all attachments and assets are written once to a `shared/` directory and referenced by all plugins:
+
+```yaml
+name: Allure Report
+output: ./allure-report
+unifiedStorage: true
+plugins:
+  awesome:
+    options: {}
+  classic:
+    options: {}
+```
+
+**Output structure with unified storage:**
+
+```
+allure-report/
+  shared/
+    data/attachments/   # every attachment written once for all plugins
+    awesome/            # static assets of the Allure Awesome report
+    classic/            # static assets of the Allure Classic report
+  awesome/
+    data/test-results/  # plugin-specific data only
+    index.html
+  classic/
+    data/test-results/
+    index.html
+```
+
+Files with identical content are stored as a single file on disk even when different plugins refer to them under different names. This is especially useful when running multiple instances of the same plugin with different filters, for example per-environment reports.
+
+The option is fully backward-compatible: without `unifiedStorage: true`, behavior is identical to the default. Single-file reports are not affected, they keep embedding their attachments and assets.
 
 ### Awesome Plugin Options
 

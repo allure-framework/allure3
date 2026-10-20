@@ -46,6 +46,7 @@ export interface PluginContext {
   reportName: string;
   hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
+  sharedReportFiles?: ReportFiles;
   reportUrl?: string;
   /**
    * Relative link from the plugin report to the root overview page.

@@ -78,6 +78,7 @@ const storeMetrics = Object.fromEntries(
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
+  unifiedStorage: true,
   plugins: {
     awesome: {
       options: {
