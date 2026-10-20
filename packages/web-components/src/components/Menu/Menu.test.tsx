@@ -1,14 +1,19 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { Menu } from "@/components/Menu";
+
+// the copy goes through the helper of web-commons, which has the fallback for the pages without the clipboard API
+vi.mock("@allurereport/web-commons", () => ({ copyToClipboard: vi.fn() }));
 
 beforeEach(async () => {
   await story("Menu");
 });
 beforeEach(() => {
   cleanup();
+  vi.clearAllMocks();
 });
 
 const renderMenu = (items: preact.ComponentChildren, size?: "xs" | "m") =>
@@ -81,29 +86,47 @@ describe("Menu", () => {
   });
 
   describe("copyValue", () => {
-    afterEach(() => {
-      vi.unstubAllGlobals();
-    });
+    const VALUE = "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567";
+    const rightSlotOf = (item: HTMLElement) => item.querySelectorAll("svg, img")[0].outerHTML;
 
     it("copies the whole value by a click, shows the checkmark and keeps the menu opened", async () => {
-      const writeText = vi.fn().mockResolvedValue(undefined);
-
-      vi.stubGlobal("navigator", { clipboard: { writeText } });
+      (copyToClipboard as Mock).mockResolvedValue(true);
       renderMenu(
-        <Menu.Item copyValue="0a1b2c3d4e5f60718293a4b5c6d7e8f901234567" dataTestId="item">
+        <Menu.Item copyValue={VALUE} dataTestId="item">
           0a1b2c3d…234567
         </Menu.Item>,
       );
 
       const item = screen.getByTestId("item");
+      const iconBefore = rightSlotOf(item);
 
       expect(item.tagName).toBe("BUTTON");
       expect(item.querySelectorAll("svg, img")).toHaveLength(1);
 
       fireEvent.click(item);
 
-      await waitFor(() => expect(writeText).toHaveBeenCalledWith("0a1b2c3d4e5f60718293a4b5c6d7e8f901234567"));
+      await waitFor(() => expect(rightSlotOf(item)).not.toBe(iconBefore));
+      expect(copyToClipboard).toHaveBeenCalledWith(VALUE);
       expect(document.querySelector("aside")).not.toBeNull();
+    });
+
+    it("does not show the checkmark when the value is not copied", async () => {
+      (copyToClipboard as Mock).mockResolvedValue(false);
+      renderMenu(
+        <Menu.Item copyValue={VALUE} dataTestId="item">
+          Value
+        </Menu.Item>,
+      );
+
+      const item = screen.getByTestId("item");
+      const iconBefore = rightSlotOf(item);
+
+      fireEvent.click(item);
+
+      await waitFor(() => expect(copyToClipboard).toHaveBeenCalledWith(VALUE));
+      await Promise.resolve();
+
+      expect(rightSlotOf(item)).toBe(iconBefore);
     });
 
     it("is not copyable when the item is a link or has its own handler", () => {
@@ -121,20 +144,6 @@ describe("Menu", () => {
       expect(screen.getByTestId("link").tagName).toBe("A");
       expect(screen.getByTestId("link").querySelectorAll("svg, img")).toHaveLength(0);
       expect(screen.getByTestId("button").querySelectorAll("svg, img")).toHaveLength(0);
-    });
-
-    it("does nothing when there is no clipboard", async () => {
-      vi.stubGlobal("navigator", {});
-      renderMenu(
-        <Menu.Item copyValue="value" dataTestId="item">
-          Value
-        </Menu.Item>,
-      );
-
-      fireEvent.click(screen.getByTestId("item"));
-      await Promise.resolve();
-
-      expect(screen.getByTestId("item").querySelectorAll("svg, img")).toHaveLength(1);
     });
   });
 });

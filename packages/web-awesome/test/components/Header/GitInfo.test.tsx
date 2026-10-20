@@ -237,6 +237,30 @@ describe("components > Header > GitInfo", () => {
     }
   });
 
+  it("should treat HEAD of the local CI in the detached head as an unknown branch and keep only the commit", () => {
+    (getReportOptions as Mock).mockReturnValue({
+      ci: { type: "local", sourceBranch: "HEAD", jobRunBranch: "HEAD" },
+      git: { commit: COMMIT },
+    });
+
+    render(<GitInfo />);
+
+    expect(screen.getByTestId("git-info").textContent).toBe(COMMIT.slice(0, 7));
+    expect(screen.queryByTestId("git-info-branch")).not.toBeInTheDocument();
+    expect(screen.getByTestId("git-info-commit")).toBeInTheDocument();
+  });
+
+  it("should skip HEAD of one CI branch and use the next known branch", () => {
+    (getReportOptions as Mock).mockReturnValue({
+      ci: { sourceBranch: "HEAD", jobRunBranch: "feature/x" },
+      git: { commit: COMMIT, branch: "other" },
+    });
+
+    render(<GitInfo />);
+
+    expect(screen.getByTestId("git-info-branch").textContent).toContain("feature/x");
+  });
+
   it("should render nothing when there is no git and CI info", () => {
     (getReportOptions as Mock).mockReturnValue({});
 

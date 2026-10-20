@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@allurereport/web-commons";
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import { clsx } from "clsx";
 import { type ComponentChildren, type FunctionalComponent, type VNode, createContext } from "preact";
@@ -210,14 +211,12 @@ const MenuItem: FunctionalComponent<ItemProps> = (props) => {
   useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
 
   const copy = async () => {
-    // there is no clipboard in an insecure context, and it is better to show nothing than a checkmark of a failed copy
-    if (!isCopyable || !navigator.clipboard) {
+    if (!isCopyable) {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(copyValue);
-    } catch {
+    // the checkmark is shown only when the value is really copied
+    if (!(await copyToClipboard(copyValue))) {
       return;
     }
 
@@ -255,33 +254,53 @@ const MenuItem: FunctionalComponent<ItemProps> = (props) => {
     }
   };
 
+  const className = clsx(styles.menuItem, isInteractive && styles.interactive);
+  const body = (
+    <>
+      {hasLeadingIcon && (
+        <SvgIcon
+          id={leadingIcon}
+          className={clsx(styles.leadingIcon, leadingIconFilled && styles.leadingIconFilled)}
+          size="m"
+        />
+      )}
+      <div className={styles.content}>{children}</div>
+      {rightSlot && <div className={clsx(styles.right, showRightSlotOnHover && styles.rightOnHover)}>{rightSlot}</div>}
+    </>
+  );
+
   return (
     <li className={styles.menuListItem} {...rest}>
-      <Text
-        aria-label={ariaLabel}
-        type="paragraph"
-        size="m"
-        tag={isLink ? "a" : isInteractive ? "button" : "div"}
-        href={href}
-        target={isLink ? "_blank" : undefined}
-        rel={isLink ? "noopener noreferrer" : undefined}
-        className={clsx(styles.menuItem, isInteractive && styles.interactive)}
-        onClick={handleItemClick}
-        data-interactive-menu-item={isInteractive ? true : undefined}
-        data-testid={dataTestId}
-      >
-        {hasLeadingIcon && (
-          <SvgIcon
-            id={leadingIcon}
-            className={clsx(styles.leadingIcon, leadingIconFilled && styles.leadingIconFilled)}
-            size="m"
-          />
-        )}
-        <div className={styles.content}>{children}</div>
-        {rightSlot && (
-          <div className={clsx(styles.right, showRightSlotOnHover && styles.rightOnHover)}>{rightSlot}</div>
-        )}
-      </Text>
+      {isLink ? (
+        <Text
+          aria-label={ariaLabel}
+          type="paragraph"
+          size="m"
+          tag="a"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={className}
+          onClick={handleItemClick}
+          data-interactive-menu-item
+          data-testid={dataTestId}
+        >
+          {body}
+        </Text>
+      ) : (
+        <Text
+          aria-label={ariaLabel}
+          type="paragraph"
+          size="m"
+          tag={isInteractive ? "button" : "div"}
+          className={className}
+          onClick={handleItemClick}
+          data-interactive-menu-item={isInteractive ? true : undefined}
+          data-testid={dataTestId}
+        >
+          {body}
+        </Text>
+      )}
     </li>
   );
 };
