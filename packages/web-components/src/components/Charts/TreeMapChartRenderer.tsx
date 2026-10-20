@@ -1,9 +1,9 @@
 import { ChartType } from "@allurereport/charts-api";
 
-import type { ChartWidgetProps } from "../ChartWidget.types";
-import { TreeMapChartWidget } from "../TreeMapChartWidget";
+import type { ChartWidgetProps } from "./ChartWidget.types";
+import { TreeMapChartWidget } from "./TreeMapChartWidget";
 
-export const ChartFamily = ({ chartData, t, empty }: ChartWidgetProps) => {
+export const ChartRenderer = ({ chartData, t, empty }: ChartWidgetProps) => {
   switch (chartData.type) {
     case ChartType.CoverageDiff: {
       return (

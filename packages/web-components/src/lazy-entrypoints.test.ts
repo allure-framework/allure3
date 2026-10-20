@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 
 import { feature, story } from "allure-js-commons";
 import ts from "typescript";
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 
 // Validate the Rollup artifact consumed by Webpack, rather than only source imports.
 // Requires the package build, like entrypoints.test.ts.

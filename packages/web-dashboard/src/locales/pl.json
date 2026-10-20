@@ -232,7 +232,9 @@
       "slice": "{{count}} testów ({{percent}}% wszystkich testów)",
       "slice_few": "{{count}} testy ({{percent}}% wszystkich testów)",
       "slice_many": "{{count}} testów ({{percent}}% wszystkich testów)"
-    }
+    },
+    "retry": "Spróbuj ponownie",
+    "loadError": "Nie udało się załadować wykresu"
   },
   "transitions": {
     "description": {

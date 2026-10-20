@@ -224,7 +224,9 @@
       "layer": "계층: {{layer}}",
       "statusSlice": "{{count}} {{status}} (전체 테스트의 {{percent}}%)",
       "slice": "테스트 {{count}}개 (전체 테스트의 {{percent}}%)"
-    }
+    },
+    "retry": "다시 시도",
+    "loadError": "차트를 불러오지 못했습니다"
   },
   "transitions": {
     "description": {

@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Mostra i breadcrumb nascosti"
   },
   "controls": {
+    "retry": "Riprova",
+    "loadAttachmentViewerError": "Impossibile caricare il visualizzatore degli allegati",
+    "loadComparisonError": "Impossibile caricare il confronto",
     "newTabAttachment": "Apri in una nuova scheda",
     "nextTR": "Risultato del test successivo",
     "prevTR": "Risultato del test precedente",
@@ -465,7 +468,9 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% di tutti i test)",
       "slice": "{{count}} test ({{percent}}% di tutti i test)",
       "slice_many": "{{count}} test ({{percent}}% di tutti i test)"
-    }
+    },
+    "retry": "Riprova",
+    "loadError": "Impossibile caricare il grafico"
   },
   "transitions": {
     "description": {

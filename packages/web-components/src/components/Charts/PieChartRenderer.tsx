@@ -1,9 +1,9 @@
 import { ChartType } from "@allurereport/charts-api";
 
-import type { ChartWidgetProps } from "../ChartWidget.types";
-import { CurrentStatusChartWidget } from "../CurrentStatusChartWidget";
+import type { ChartWidgetProps } from "./ChartWidget.types";
+import { CurrentStatusChartWidget } from "./CurrentStatusChartWidget";
 
-export const ChartFamily = ({ chartData, t }: ChartWidgetProps) => {
+export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
   switch (chartData.type) {
     case ChartType.CurrentStatus: {
       const title = chartData.title ?? t("currentStatus.title");

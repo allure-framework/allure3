@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Показати приховані хлібні крихти"
   },
   "controls": {
+    "retry": "Повторити",
+    "loadAttachmentViewerError": "Не вдалося завантажити переглядач вкладень",
+    "loadComparisonError": "Не вдалося завантажити порівняння",
     "newTabAttachment": "Відкрити в новій вкладці",
     "nextTR": "Наступний тест",
     "prevTR": "Попередній тест",
@@ -417,7 +420,9 @@
       "slice": "{{count}} тестів ({{percent}}% усіх тестів)",
       "slice_few": "{{count}} тести ({{percent}}% усіх тестів)",
       "slice_many": "{{count}} тестів ({{percent}}% усіх тестів)"
-    }
+    },
+    "retry": "Повторити",
+    "loadError": "Не вдалося завантажити діаграму"
   },
   "transitions": {
     "description": {

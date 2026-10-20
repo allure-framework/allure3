@@ -9,7 +9,7 @@ import type { ChartWidgetProps } from "./ChartWidget.types";
 
 export type { ChartWidgetProps } from "./ChartWidget.types";
 
-const chartAssetFamilies: Record<ChartType, Family> = {
+const chartRenderers: Record<ChartType, Renderer> = {
   [ChartType.CurrentStatus]: "pie",
   [ChartType.StatusDynamics]: "bar",
   [ChartType.StatusTransitions]: "bar",
@@ -25,50 +25,52 @@ const chartAssetFamilies: Record<ChartType, Family> = {
   [ChartType.TestingPyramid]: "funnel",
 };
 
-const familyLoaders = {
-  pie: () => import(/* webpackChunkName: "chart-pie" */ "./families/pie"),
-  bar: () => import(/* webpackChunkName: "chart-bar" */ "./families/bar"),
-  treemap: () => import(/* webpackChunkName: "chart-treemap" */ "./families/treemap"),
-  heatmap: () => import(/* webpackChunkName: "chart-heatmap" */ "./families/heatmap"),
-  funnel: () => import(/* webpackChunkName: "chart-funnel" */ "./families/funnel"),
+const rendererLoaders = {
+  pie: () => import(/* webpackChunkName: "chart-pie" */ "./PieChartRenderer"),
+  bar: () => import(/* webpackChunkName: "chart-bar" */ "./BarChartRenderer"),
+  treemap: () => import(/* webpackChunkName: "chart-treemap" */ "./TreeMapChartRenderer"),
+  heatmap: () => import(/* webpackChunkName: "chart-heatmap" */ "./HeatMapChartRenderer"),
+  funnel: () => import(/* webpackChunkName: "chart-funnel" */ "./FunnelChartRenderer"),
 };
-type Family = keyof typeof familyLoaders;
-const familyCache = new Map<Family, ComponentType<ChartWidgetProps>>();
-type LoadedFamily = { family: Family; Component: ComponentType<ChartWidgetProps> };
+type Renderer = keyof typeof rendererLoaders;
+const rendererCache = new Map<Renderer, ComponentType<ChartWidgetProps>>();
+type LoadedRenderer = { renderer: Renderer; Component: ComponentType<ChartWidgetProps> };
 
 export const ChartWidget = (props: ChartWidgetProps) => {
-  const family = Object.prototype.hasOwnProperty.call(chartAssetFamilies, props.chartData.type)
-    ? chartAssetFamilies[props.chartData.type]
+  const renderer = Object.prototype.hasOwnProperty.call(chartRenderers, props.chartData.type)
+    ? chartRenderers[props.chartData.type]
     : undefined;
-  const cached = family ? familyCache.get(family) : undefined;
-  const [loaded, setLoaded] = useState<LoadedFamily | null>(family && cached ? { family, Component: cached } : null);
+  const cached = renderer ? rendererCache.get(renderer) : undefined;
+  const [loaded, setLoaded] = useState<LoadedRenderer | null>(
+    renderer && cached ? { renderer, Component: cached } : null,
+  );
   const [attempt, setAttempt] = useState(0);
-  const [failure, setFailure] = useState<Family | null>(null);
+  const [failure, setFailure] = useState<Renderer | null>(null);
 
   useEffect(() => {
-    if (!family) return;
+    if (!renderer) return;
     let mounted = true;
     setFailure(null);
-    const cachedComponent = familyCache.get(family);
+    const cachedComponent = rendererCache.get(renderer);
     if (cachedComponent) {
-      setLoaded({ family, Component: cachedComponent });
+      setLoaded({ renderer, Component: cachedComponent });
       return;
     }
-    familyLoaders[family]()
-      .then(({ ChartFamily }) => {
-        familyCache.set(family, ChartFamily);
-        if (mounted) setLoaded({ family, Component: ChartFamily });
+    rendererLoaders[renderer]()
+      .then(({ ChartRenderer }) => {
+        rendererCache.set(renderer, ChartRenderer);
+        if (mounted) setLoaded({ renderer, Component: ChartRenderer });
       })
       .catch(() => {
-        if (mounted) setFailure(family);
+        if (mounted) setFailure(renderer);
       });
     return () => {
       mounted = false;
     };
-  }, [family, attempt]);
+  }, [renderer, attempt]);
 
-  if (!family) return null;
-  if (failure === family)
+  if (!renderer) return null;
+  if (failure === renderer)
     return (
       <EmptyView description={props.t("loadError")} size="s">
         <Button
@@ -81,7 +83,7 @@ export const ChartWidget = (props: ChartWidgetProps) => {
         />
       </EmptyView>
     );
-  if (!loaded || loaded.family !== family) return <Spinner />;
+  if (!loaded || loaded.renderer !== renderer) return <Spinner />;
   const { Component } = loaded;
   return <Component {...props} />;
 };

@@ -1,16 +1,16 @@
 import { ChartType } from "@allurereport/charts-api";
 
-import type { ChartWidgetProps } from "../ChartWidget.types";
-import { DurationDynamicsChartWidget } from "../DurationDynamicsChartWidget";
-import { DurationsChartWidget } from "../DurationsChartWidget";
-import { StabilityDistributionWidget } from "../StabilityDistributionWidget";
-import { StatusAgePyramidChartWidget } from "../StatusAgePyramidChartWidget";
-import { StatusDynamicsChartWidget } from "../StatusDynamicsChartWidget";
-import { StatusTransitionsChartWidget } from "../StatusTransitionsChartWidget";
-import { TestBaseGrowthDynamicsChartWidget } from "../TestBaseGrowthDynamicsChartWidget";
-import { TrSeveritiesChartWidget } from "../TrSeveritiesChartWidget";
+import type { ChartWidgetProps } from "./ChartWidget.types";
+import { DurationDynamicsChartWidget } from "./DurationDynamicsChartWidget";
+import { DurationsChartWidget } from "./DurationsChartWidget";
+import { StabilityDistributionWidget } from "./StabilityDistributionWidget";
+import { StatusAgePyramidChartWidget } from "./StatusAgePyramidChartWidget";
+import { StatusDynamicsChartWidget } from "./StatusDynamicsChartWidget";
+import { StatusTransitionsChartWidget } from "./StatusTransitionsChartWidget";
+import { TestBaseGrowthDynamicsChartWidget } from "./TestBaseGrowthDynamicsChartWidget";
+import { TrSeveritiesChartWidget } from "./TrSeveritiesChartWidget";
 
-export const ChartFamily = ({ chartData, t }: ChartWidgetProps) => {
+export const ChartRenderer = ({ chartData, t }: ChartWidgetProps) => {
   switch (chartData.type) {
     case ChartType.StatusDynamics: {
       const title = chartData.title ?? t("statusDynamics.title");

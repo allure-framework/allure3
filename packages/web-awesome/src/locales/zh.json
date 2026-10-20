@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "显示隐藏的面包屑导航项"
   },
   "controls": {
+    "retry": "重试",
+    "loadAttachmentViewerError": "无法加载附件查看器",
+    "loadComparisonError": "无法加载对比",
     "newTabAttachment": "在新标签页中打开附件",
     "nextTR": "下一个测试结果",
     "prevTR": "上一个测试结果",
@@ -464,7 +467,9 @@
       "layer": "层级：{{layer}}",
       "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
       "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
-    }
+    },
+    "retry": "重试",
+    "loadError": "无法加载图表"
   },
   "transitions": {
     "description": {

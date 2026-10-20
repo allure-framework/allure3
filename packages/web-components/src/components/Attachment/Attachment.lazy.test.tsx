@@ -2,7 +2,7 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { fetchAttachment } from "@allurereport/web-commons";
 import { cleanup, render, waitFor } from "@testing-library/preact";
 import { feature, story } from "allure-js-commons";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 import type { AttachmentProps, I18nProp } from "./model";
 

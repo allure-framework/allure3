@@ -1,9 +1,9 @@
 import { ChartType } from "@allurereport/charts-api";
 
-import type { ChartWidgetProps } from "../ChartWidget.types";
-import { TestingPyramidWidget } from "../TestingPyramidWidget";
+import type { ChartWidgetProps } from "./ChartWidget.types";
+import { TestingPyramidWidget } from "./TestingPyramidWidget";
 
-export const ChartFamily = ({ chartData, t, empty }: ChartWidgetProps) => {
+export const ChartRenderer = ({ chartData, t, empty }: ChartWidgetProps) => {
   switch (chartData.type) {
     case ChartType.TestingPyramid: {
       const isDataEmpty = !chartData.data.some((item) => item.testCount > 0);
