@@ -45,8 +45,3 @@ export type UploadReportPayload = {
   issue: JiraIssue;
   report: ForgePluginReport;
 };
-
-export type UploadResultsPayload = {
-  results: ForgePluginTestResult[];
-  reportUrl: string;
-};

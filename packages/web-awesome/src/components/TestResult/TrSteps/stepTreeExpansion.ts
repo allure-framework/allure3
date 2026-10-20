@@ -76,8 +76,6 @@ export const collectExpandableStepNodes = (
   return nodes;
 };
 
-export { getNextSubtreeToggleState, getSubtreeToggleIcon, type SubtreeToggleState } from "@allurereport/web-commons";
-
 export const getStepTreeExpansionPolicy = (): StepTreeExpansion =>
   getReportOptions<ReportOptions>()?.stepTreeExpansion ?? DEFAULT_STEP_TREE_EXPANSION_POLICY;
 

@@ -323,33 +323,6 @@ export const AGENT_PARTIAL_RUNTIME_REVIEW_RULES = [
   "Console-only conclusions stay provisional when agent output is missing, incomplete, or partially modeled.",
 ] as const;
 
-export const AGENT_INSTRUCTIONS_TEMPLATE = `## Allure Agent Mode Instructions
-
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through \`allure agent\`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
-- Use \`allure agent\` for smoke checks too, even when the change is small or mechanical.
-- Only skip agent mode when it is impossible or when you are debugging agent mode itself.
-- After each agent-mode test run, print the \`index.md\` path from that run's output directory so users can open the run overview quickly.
-- Use \`allure agent latest\` to print the newest output directory and \`index.md\` path when \`--output\` was omitted.
-- When a user asks for the human-readable report from the last run, use \`allure agent latest\` first if the output directory is unknown, then check \`manifest/human-report.json\`; when its status is \`generated\`, use the path recorded there, usually \`awesome/index.html\`.
-- Use \`allure agent capabilities --json\` when you need structured supported-command, expectation, output, rerun, and unsupported-feature data without scraping help text.
-- Use \`allure agent state-dir\` to inspect the shared state directory that stores per-project run registries.
-- Use \`allure agent latest\`, \`state-dir\`, \`query\`, \`select\`, and \`--rerun-*\` according to their loop/task/problem mapping instead of treating them as interchangeable helper commands.
-- Use \`allure agent inspect <allure-results-dir-or-glob>\` or \`allure agent inspect --dump <archive-or-glob>\` when you need agent-readable markdown and manifests from existing Allure results without rerunning tests locally; repeat \`--dump\` for multiple CI jobs or environments.
-- Use \`--report auto|off|awesome|config\` to control human report output. The default \`auto\` mode writes \`awesome/index.html\` for 1000 or fewer stored visible logical results and records generated, skipped, disabled, or failed status in \`manifest/human-report.json\`.
-- Use \`allure agent query --latest summary|tests|findings|test\` or \`allure agent query --from <output-dir> ...\` to inspect prior output as focused JSON before manually opening raw manifests.
-- Use \`allure agent select --latest\` or \`allure agent select --from <output-dir>\` to inspect the review-targeted test plan before rerunning; add \`--output <file>\` when you want the CLI to write the plan and print a short selection summary.
-- Use \`allure agent --rerun-latest -- <command>\` or \`allure agent --rerun-from <output-dir> -- <command>\` to rerun only the selected tests.
-- When rerunning previous failures, use \`allure agent --rerun-latest --rerun-preset failed -- <command>\` or \`allure agent --rerun-from <output-dir> --rerun-preset failed -- <command>\` instead of manually rebuilding runner-specific test names.
-- Use \`--rerun-preset review|failed|unsuccessful|all\`, repeated \`--rerun-environment <id>\`, and repeated \`--rerun-label name=value\` when you need a narrower rerun selection from the previous output.
-- Use \`ALLURE_AGENT_STATE_DIR\` when you need to override the shared agent state directory for \`latest\`, \`state-dir\`, or \`--rerun-latest\`.
-- Prefer inline \`allure agent\` expectation flags such as \`--goal\`, \`--expect-tests\`, \`--expect-test\`, \`--expect-label\`, and \`--expect-step-containing\`; use \`--expectations <file>\` only when flags become awkward.
-- Run tests with \`allure agent\` and review \`manifest/run.json\`, \`manifest/test-events.jsonl\`, \`index.md\`, \`manifest/tests.jsonl\`, and \`manifest/findings.jsonl\`.
-- Enrich only the intended tests. Add real steps for real setup, actions, and assertions.
-- Attach only real runtime evidence such as payloads, responses, screenshots, DOM snapshots, diffs, logs, or traces.
-- Keep metadata minimal. Add labels or severity only when scope review, debugging, or quality policy uses them.
-- Instrument stable helpers when several call sites need the same evidence. For example, teach \`runCommand\` to emit a step instead of wrapping every caller.
-- Reject the rerun if scope drifts or evidence stays weak.`;
-
 const renderBullets = (items: readonly string[]) => items.map((item) => `- ${item}`).join("\n");
 
 const renderRemediationGuide = () =>

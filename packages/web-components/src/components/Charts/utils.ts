@@ -53,18 +53,6 @@ export const getTrendForDivergingChart = (props: {
   return 50;
 };
 
-export const getTrendForChart = (props: { value: number; total: number; noValuePercentage?: number }) => {
-  const { value, total, noValuePercentage = 0 } = props;
-
-  if (total === 0) {
-    return noValuePercentage;
-  }
-
-  const trendPercentage = getPercentage(Math.abs(value), total);
-
-  return trendPercentage;
-};
-
 export const getColorScale = (domain: [number, number], colors: string[]) => {
   const [min, max] = domain;
   // Generate evenly spaced domain values to match colors length

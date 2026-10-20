@@ -2,8 +2,6 @@ import path from "node:path";
 
 import { vi } from "vite-plus/test";
 
-export class AllureServiceMock {}
-
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const AllureServiceClientMock = vi.fn(function () {});
 

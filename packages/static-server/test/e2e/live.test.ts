@@ -33,7 +33,7 @@ test.beforeEach(async () => {
 
   try {
     await rm(sampleFilePath);
-  } catch (ignore) {}
+  } catch {}
 });
 
 test.afterEach(async () => {

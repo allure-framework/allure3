@@ -175,14 +175,6 @@ export type WidgetAttributes = Record<string, unknown> & {
   statistic?: Statistic;
 };
 
-export type GraphResultItem = {
-  uid: string;
-  name?: string;
-  time?: Time;
-  status: Status;
-  severity?: string;
-};
-
 export type ScreenDiffPayload = {
   diff: string;
   actual: string;

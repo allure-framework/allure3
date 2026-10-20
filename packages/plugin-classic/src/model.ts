@@ -15,8 +15,6 @@ export type ClassicOptions = {
   filter?: (tr: TestResult) => boolean;
 };
 
-export type TemplateManifest = Record<string, string>;
-
 export type ClassicPluginOptions = ClassicOptions;
 
 export interface ClassicCategory {
