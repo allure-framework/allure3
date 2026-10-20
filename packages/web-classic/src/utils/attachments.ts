@@ -1,4 +1,4 @@
-import { fetchFromUrl } from "@allurereport/web-commons";
+import { fetchFromUrl, normalizeAttachmentContentType } from "@allurereport/web-commons";
 
 export interface Attachments {
   id?: string;
@@ -40,7 +40,7 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
 };
 
 export const attachmentType = (type: string) => {
-  const normalizedType = type?.split(";")[0].trim().toLowerCase();
+  const normalizedType = normalizeAttachmentContentType(type);
 
   switch (normalizedType) {
     case "image/bmp":

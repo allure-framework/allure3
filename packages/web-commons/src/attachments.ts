@@ -1,3 +1,4 @@
+import { normalizeAttachmentContentType } from "./contentTypes.js";
 import { fetchReportAttachment } from "./data.js";
 
 type AttachmentImageData = {
@@ -40,7 +41,7 @@ const PLAYWRIGHT_TRACE_CONTENT_TYPE = "application/vnd.allure.playwright-trace";
 const PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE = "application/zip";
 
 const downloadContentType = (contentType: string) => {
-  return contentType.split(";")[0].trim().toLowerCase() === PLAYWRIGHT_TRACE_CONTENT_TYPE
+  return normalizeAttachmentContentType(contentType) === PLAYWRIGHT_TRACE_CONTENT_TYPE
     ? PLAYWRIGHT_TRACE_DOWNLOAD_CONTENT_TYPE
     : contentType;
 };
@@ -159,7 +160,7 @@ export const PREVIEWABLE_CONTENT_TYPES = [
 ] as const;
 
 export const isPreviewableContentType = (type?: string): boolean =>
-  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type.split(";")[0].trim().toLowerCase());
+  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(normalizeAttachmentContentType(type));
 
 const HIGHLIGHT_EXTS = new Set([
   "js",
@@ -280,7 +281,7 @@ export const isSyntaxHighlightSupported = (payload?: {
 };
 
 export const attachmentType = (type?: string): AttachmentType | null => {
-  const normalizedType = type?.split(";")[0].trim().toLowerCase();
+  const normalizedType = normalizeAttachmentContentType(type);
 
   switch (normalizedType) {
     case "image/bmp":

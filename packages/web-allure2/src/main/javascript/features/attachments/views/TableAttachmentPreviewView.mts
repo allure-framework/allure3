@@ -1,9 +1,9 @@
 import "./TableAttachmentPreviewView.scss";
+import { normalizeAttachmentContentType } from "@allurereport/web-commons";
 import { csvParseRows, tsvParseRows } from "d3-dsv";
 
 import b from "../../../shared/bem/index.mts";
 import { createElement } from "../../../shared/dom.mts";
-import { normalizeAttachmentContentType } from "../model/builtinAttachmentType.mts";
 import {
   createDiv,
   hasPreviewData,

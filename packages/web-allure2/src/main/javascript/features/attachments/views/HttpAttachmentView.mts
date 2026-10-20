@@ -1,4 +1,6 @@
 import "./HttpAttachmentView.scss";
+import { isJsonAttachmentContentType, normalizeAttachmentContentType } from "@allurereport/web-commons";
+
 import { fetchReportJson } from "../../../core/services/reportData.mts";
 import { createReportLoadErrorView, mountAsyncView } from "../../../core/view/asyncMount.mts";
 import { bindDelegatedEvents } from "../../../core/view/domEvents.mts";
@@ -9,7 +11,6 @@ import { createIconElement } from "../../../shared/icon/index.mts";
 import TooltipView from "../../../shared/ui/TooltipView.mts";
 import { AttachmentPreviewView } from "../model/attachmentPreviewView.mts";
 import attachmentType from "../model/attachmentType.mts";
-import { isJsonAttachmentContentType, normalizeAttachmentContentType } from "../model/builtinAttachmentType.mts";
 import { HTTP_EXCHANGE_REDACTED_VALUE } from "../model/httpAttachment.mts";
 import {
   createAttachmentSourceUrlPreview,
@@ -383,12 +384,10 @@ const getRequestTarget = (request: HttpRequest) => request.url || "";
 const normalizeContentType = (contentType: string) =>
   normalizeAttachmentContentType(contentType || DEFAULT_BODY_CONTENT_TYPE);
 
-const isJsonContentType = (contentType: string) => isJsonAttachmentContentType(normalizeContentType(contentType));
-
 const bodyCodeLanguage = (contentType: string) => {
   const normalized = normalizeContentType(contentType);
 
-  if (isJsonContentType(normalized)) {
+  if (isJsonAttachmentContentType(normalized)) {
     return "json";
   }
 
@@ -431,7 +430,7 @@ const bodyDownloadExtension = (body: HttpBody) => {
   const contentType = normalizeContentType(body.contentType);
   const attachmentInfo = getSafeBodyAttachmentType(body);
 
-  if (isJsonContentType(contentType)) {
+  if (isJsonAttachmentContentType(contentType)) {
     return "json";
   }
 

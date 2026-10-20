@@ -1,3 +1,5 @@
+import { isJsonAttachmentContentType, normalizeAttachmentContentType } from "@allurereport/web-commons";
+
 import { AttachmentPreviewView } from "./attachmentPreviewView.mts";
 import { PLAYWRIGHT_TRACE_MIME } from "./playwrightTrace.mts";
 
@@ -6,14 +8,6 @@ type IconName = import("../../../shared/icon/index.mts").IconName;
 export type AttachmentTypeInfo = {
   view: AttachmentPreviewView | null;
   icon: IconName;
-};
-
-export const normalizeAttachmentContentType = (type: string) => type.split(";")[0].trim().toLowerCase();
-
-export const isJsonAttachmentContentType = (type: string) => {
-  const normalized = normalizeAttachmentContentType(type);
-
-  return normalized === "application/json" || normalized === "text/json" || normalized.endsWith("+json");
 };
 
 export const getBuiltinAttachmentType = (type: string): AttachmentTypeInfo => {

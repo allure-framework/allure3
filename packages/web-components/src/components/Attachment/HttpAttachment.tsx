@@ -1,4 +1,9 @@
-import { copyToClipboard } from "@allurereport/web-commons";
+import {
+  copyToClipboard,
+  normalizeAttachmentContentType,
+  isJsonAttachmentContentType,
+  isHtmlAttachmentContentType,
+} from "@allurereport/web-commons";
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
@@ -108,18 +113,6 @@ const toOptionalString = (value: unknown): string =>
 const toFiniteNumber = (value: unknown): number | undefined => {
   const num = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
   return Number.isFinite(num) ? num : undefined;
-};
-
-const normalizeAttachmentContentType = (contentType: string) => contentType.split(";")[0].trim().toLowerCase();
-
-const isJsonContentType = (contentType: string) => {
-  const normalized = normalizeAttachmentContentType(contentType);
-  return normalized === "application/json" || normalized === "text/json" || normalized.endsWith("+json");
-};
-
-const isHtmlContentType = (contentType: string) => {
-  const normalized = normalizeAttachmentContentType(contentType);
-  return normalized === "text/html" || normalized === "application/xhtml+xml";
 };
 
 const headerValue = (headers: HttpPair[], name: string) => {
@@ -505,11 +498,11 @@ const bodyMeta = (body: HttpBody) =>
 const bodyCodeLanguage = (contentType: string) => {
   const normalized = normalizeAttachmentContentType(contentType || DEFAULT_BODY_CONTENT_TYPE);
 
-  if (isJsonContentType(normalized)) {
+  if (isJsonAttachmentContentType(normalized)) {
     return "json";
   }
 
-  if (isHtmlContentType(normalized)) {
+  if (isHtmlAttachmentContentType(normalized)) {
     return "html";
   }
 
@@ -591,7 +584,7 @@ const BodyValue = ({ body, beautify }: { body: HttpBody; beautify?: boolean }) =
 
   if (kind === "text") {
     const language = bodyCodeLanguage(body.contentType);
-    const value = beautify && isJsonContentType(body.contentType) ? tryBeautifyJson(body.value) : body.value;
+    const value = beautify && isJsonAttachmentContentType(body.contentType) ? tryBeautifyJson(body.value) : body.value;
 
     return (
       <pre data-testid="code-attachment-content" className={`language-${language} line-numbers`}>
@@ -728,7 +721,7 @@ const Body = ({ body }: { body: HttpBody | null }) => {
 
   const hasStructuredBody = Boolean(body.form.length || body.parts.length || body.stream);
   const hasTextBody = canRenderBodyValueAsText(body);
-  const canBeautify = hasTextBody && isJsonContentType(body.contentType);
+  const canBeautify = hasTextBody && isJsonAttachmentContentType(body.contentType);
   const canCopy = hasTextBody;
 
   return (
