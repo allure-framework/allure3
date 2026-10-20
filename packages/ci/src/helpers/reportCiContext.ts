@@ -27,6 +27,20 @@ const browserUrl = (value: string | undefined): string | undefined => {
   }
 };
 
+const trimTrailingSlashes = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  let end = value.length;
+
+  while (end > 0 && value[end - 1] === "/") {
+    end--;
+  }
+
+  return value.slice(0, end);
+};
+
 const commitUrl = (ci: CiDescriptor, sha: string): string | undefined => {
   const explicit = browserUrl(ci.commitUrl);
 
@@ -34,10 +48,8 @@ const commitUrl = (ci: CiDescriptor, sha: string): string | undefined => {
     return explicit;
   }
 
-  const repositoryUrl = browserUrl(ci.repository?.url)
-    ?.replace(/\/+$/, "")
-    .replace(/\.git$/i, "");
-  const pullRequestUrl = browserUrl(ci.pullRequest?.url)?.replace(/\/+$/, "");
+  const repositoryUrl = trimTrailingSlashes(browserUrl(ci.repository?.url))?.replace(/\.git$/i, "");
+  const pullRequestUrl = trimTrailingSlashes(browserUrl(ci.pullRequest?.url));
 
   switch (ci.provider) {
     case GitProvider.Github:

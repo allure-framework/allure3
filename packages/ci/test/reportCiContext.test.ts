@@ -52,7 +52,7 @@ describe("CI report context", () => {
       env: {
         CI_COMMIT_SHA: sha,
         CI_PROJECT_PATH: "org/sub/repo",
-        CI_PROJECT_URL: "https://gitlab.example.com/org/sub/repo",
+        CI_PROJECT_URL: "https://gitlab.example.com/org/sub/repo/",
         CI_PIPELINE_URL: "https://gitlab.example.com/org/sub/repo/-/pipelines/42",
         CI_PIPELINE_ID: "42",
       },
