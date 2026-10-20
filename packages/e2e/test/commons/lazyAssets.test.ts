@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { ChartType, type ChartOptions } from "@allurereport/charts-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import ClassicPlugin from "@allurereport/plugin-classic";
 import DashboardPlugin from "@allurereport/plugin-dashboard";
 import { expect, test, type Page } from "@playwright/test";
 import { feature, label, Stage, Status } from "allure-js-commons";
@@ -95,6 +96,49 @@ for (const frontend of ["awesome", "dashboard"] as const) {
     const widget = page.getByText("Selected pie", { exact: true }).locator("../..");
     await expect(widget.locator("svg path").first()).toBeVisible();
     expect(scripts).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const singleFile of [false, true]) {
+  test(`classic shared charts render in ${singleFile ? "offline single-file" : "directory"} output`, async ({
+    page,
+    context,
+  }) => {
+    report = await bootstrapReport({
+      reportConfig: {
+        appendHistory: false,
+        plugins: [{ id: "classic", enabled: true, options: {}, plugin: new ClassicPlugin({ singleFile }) }],
+      },
+      testResults: [
+        { name: "passed", fullName: "classic-shared-charts", status: Status.PASSED, start: 1000, stop: 1100 },
+      ],
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    if (singleFile) {
+      await removeExternalScripts(page);
+      await page.route(report.url, (route) =>
+        route.fulfill({ body: "<!doctype html><html></html>", contentType: "text/html" }),
+      );
+      await page.goto(report.url);
+      await context.setOffline(true);
+      await page.setContent(await readFile(join(report.reportDir, "index.html"), "utf8"));
+    } else {
+      await page.goto(report.url);
+    }
+    await page.goto(new URL("#overview", report.url).href);
+    for (const title of [
+      "Current status",
+      "Status dynamics",
+      "Success rate distribution",
+      "Problems distribution by environment",
+      "Testing pyramid",
+    ]) {
+      await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+    }
+    const widget = page.getByText("Current status", { exact: true }).first().locator("../..");
+    await expect(widget.locator("svg path").first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 }

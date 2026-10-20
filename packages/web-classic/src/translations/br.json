@@ -212,5 +212,9 @@
     "suites": "Conjuntos",
     "timeline": "Linha do tempo",
     "comingSoon": "Em breve"
+  },
+  "charts": {
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o gráfico"
   }
 }

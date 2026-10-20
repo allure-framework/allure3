@@ -218,6 +218,8 @@
     "comingSoon": "Skoro"
   },
   "charts": {
+    "retry": "Ponoviti",
+    "loadError": "Ne udalo sę zagruziti graf",
     "successRate": {
       "successRate": "Procent uspěha: {{rate}}",
       "successRateDescription": "Izračunano iz uspěšnyh, neuspěšnyh i slomanyh testov. Propustjene testy i testy s neznanym statusom sut izključene.",
