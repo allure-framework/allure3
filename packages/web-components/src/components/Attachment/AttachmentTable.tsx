@@ -1,3 +1,4 @@
+import { normalizeAttachmentContentType } from "@allurereport/web-commons";
 import { useMemo } from "preact/hooks";
 
 import { EmptyView } from "@/components/EmptyView";
@@ -75,7 +76,7 @@ const parseDelimitedText = (text: string, delimiter: string): string[][] => {
 };
 
 const parseDelimitedRows = (text: string, contentType?: string): string[][] => {
-  const normalizedType = contentType?.split(";")[0].trim().toLowerCase();
+  const normalizedType = normalizeAttachmentContentType(contentType);
 
   return parseDelimitedText(text, normalizedType === "text/tab-separated-values" ? "\t" : ",");
 };
