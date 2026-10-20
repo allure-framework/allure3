@@ -1,5 +1,5 @@
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import type { Allure2Status, Allure2TestResult } from "../src/model.js";
 import { byLabels, createTree, createWidget } from "../src/tree.js";
