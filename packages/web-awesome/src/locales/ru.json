@@ -183,6 +183,10 @@
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
     "resolutionCategories": "Resolutions",
     "breadcrumbs": "Хлебные крошки",
+    "gitBranch": "Ветка",
+    "gitCommit": "Коммит",
+    "openPullRequest": "Открыть PR",
+    "openJobRun": "Открыть запуск",
     "breadcrumbs-hidden": "Показать скрытые хлебные крошки"
   },
   "shortcuts": {

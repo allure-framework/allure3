@@ -178,3 +178,36 @@ export const IconColors: Story = {
 export const AsLink: StoryObj<typeof ButtonLink> = {
   render: () => <ButtonLink href="https://allurereport.org" text="Open documentation" style="outline" />,
 };
+
+const ciLogos = [
+  ["GitHub", allureIcons.github],
+  ["GitLab", allureIcons.gitlab],
+  ["Bitbucket", allureIcons.bitbucket],
+  ["CircleCI", allureIcons.circleci],
+  ["Jenkins", allureIcons.jenkins],
+  ["Azure", allureIcons.azure],
+  ["Amazon", allureIcons.amazon],
+  ["Drone", allureIcons.drone],
+  ["No icon", undefined],
+] as const;
+
+// the triggers of the pickers in the header of the report: the logos of the CI are 12px, the label is bold
+export const HeaderTriggers: StoryObj<typeof DropdownButton> = {
+  parameters: { layout: "padded" },
+  render: () => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+      {ciLogos.map(([name, icon]) => (
+        <DropdownButton key={name} style="ghost" size="m" text={`${name} #123`} icon={icon} iconSize="xs" />
+      ))}
+      <DropdownButton style="ghost" size="m" text="Expanded" icon={allureIcons.github} iconSize="xs" isExpanded />
+      <DropdownButton
+        style="ghost"
+        size="m"
+        text="A pull request with a very long name"
+        icon={allureIcons.github}
+        iconSize="xs"
+        isTextTruncated
+      />
+    </div>
+  ),
+};

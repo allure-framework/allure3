@@ -16,32 +16,23 @@ interface CiIconProps {
   type?: CiDescriptor["type"];
 }
 
-export const CiIcon = ({ type }: CiIconProps) => {
-  const iconCommonProps = {
-    width: 16,
-    height: 16,
-  };
+const ciIconIds: Partial<Record<CiType, string>> = {
+  [CiType.Amazon]: allureIcons.amazon,
+  [CiType.Azure]: allureIcons.azure,
+  [CiType.Bitbucket]: allureIcons.bitbucket,
+  [CiType.Circle]: allureIcons.circleci,
+  [CiType.Drone]: allureIcons.drone,
+  [CiType.Github]: allureIcons.github,
+  [CiType.Gitlab]: allureIcons.gitlab,
+  [CiType.Jenkins]: allureIcons.jenkins,
+};
 
-  switch (type) {
-    case CiType.Amazon:
-      return <SvgIcon id={allureIcons.amazon} {...iconCommonProps} />;
-    case CiType.Azure:
-      return <SvgIcon id={allureIcons.azure} {...iconCommonProps} />;
-    case CiType.Bitbucket:
-      return <SvgIcon id={allureIcons.bitbucket} {...iconCommonProps} />;
-    case CiType.Circle:
-      return <SvgIcon id={allureIcons.circleci} {...iconCommonProps} />;
-    case CiType.Drone:
-      return <SvgIcon id={allureIcons.drone} {...iconCommonProps} />;
-    case CiType.Github:
-      return <SvgIcon id={allureIcons.github} {...iconCommonProps} />;
-    case CiType.Gitlab:
-      return <SvgIcon id={allureIcons.gitlab} {...iconCommonProps} />;
-    case CiType.Jenkins:
-      return <SvgIcon id={allureIcons.jenkins} {...iconCommonProps} />;
-    default:
-      return null;
-  }
+export const getCiIconId = (type?: CiDescriptor["type"]) => (type ? ciIconIds[type] : undefined);
+
+export const CiIcon = ({ type }: CiIconProps) => {
+  const id = getCiIconId(type);
+
+  return id ? <SvgIcon id={id} width={16} height={16} /> : null;
 };
 
 export const CiInfo = ({ className }: CiInfoProps) => {
@@ -76,7 +67,7 @@ export const CiInfo = ({ className }: CiInfoProps) => {
   );
 };
 
-const getCiLabel = (ci?: CiDescriptor, link?: string) => {
+export const getCiLabel = (ci?: CiDescriptor, link?: string) => {
   if (!ci) {
     return undefined;
   }

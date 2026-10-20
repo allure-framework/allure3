@@ -37,6 +37,7 @@ import type {
   AllureStore,
   ReportCategory,
   ReportExecutorInfo,
+  ReportGitInfo,
   ReportFixtureResult,
   ReportOptions,
   ReportRunSummary,
@@ -795,6 +796,7 @@ export const generateStaticFiles = async (
     reportUuid: string;
     reportName: string;
     overviewHref?: string;
+    git?: ReportGitInfo;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -814,6 +816,7 @@ export const generateStaticFiles = async (
     layout = "base",
     defaultSection = "",
     ci,
+    git,
     executor,
     runSummary,
     runSummaryByEnv,
@@ -870,6 +873,7 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : [],
     cacheKey: now.toString(),
     ci,
+    git,
     executor,
     runSummary,
     runSummaryByEnv,

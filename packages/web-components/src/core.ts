@@ -4,6 +4,7 @@ export { allureIcons } from "./components/SvgIcon";
 
 export { DropdownButton, Button, IconButton, ButtonLink } from "./components/Button";
 export { OverviewLink } from "./components/OverviewLink";
+export { MiddleEllipsis } from "./components/MiddleEllipsis";
 export { Spinner } from "./components/Spinner";
 export { SvgIcon } from "./components/SvgIcon";
 export { Text, Code, Heading } from "./components/Typography";

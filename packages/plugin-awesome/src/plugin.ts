@@ -7,6 +7,7 @@ import {
   validateEnvironmentId,
   joinPosixPath,
 } from "@allurereport/core-api";
+import { collectGitHead } from "@allurereport/git";
 import {
   type AllureStore,
   type ReportExecutorInfo,
@@ -425,6 +426,7 @@ export class AwesomePlugin implements Plugin {
         reportName: context.reportName,
         overviewHref: context.overviewHref,
         ci: context.ci,
+        git: collectGitHead(),
         executor,
         runSummary,
         runSummaryByEnv,
