@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { cwd as processCwd } from "node:process";
+import { cwd as processCwd, exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
@@ -14,6 +14,8 @@ import { resolveResultsPatterns } from "./../utils/resultsPatterns.js";
 import { serverOptionsFromConfig } from "./../utils/serverOptions.js";
 import { notifySignals, waitForAbort } from "./../utils/signals.js";
 import { generate } from "./commons/generate.js";
+
+const ESCALATION_DELAY = 3_000; // 3 seconds delay before the next SIGINT terminates the server unconditionally.
 
 export abstract class BaseServeCommand extends Command {
   static paths = [["serve"]];
@@ -83,7 +85,18 @@ export abstract class BaseServeCommand extends Command {
     const servePath = this.resolveReportPath(cwd, this.resultsDir, config.output);
     const resolvedPatterns = resolveResultsPatterns(this.resultsDir, config.resultsDir);
 
-    const notifier = notifySignals(["SIGINT", "SIGTERM"]);
+    const onSignalRepeat = (signal: NodeJS.Signals) => {
+      const info = notifier.info();
+      if (
+        signal !== "SIGINT" ||
+        info?.signal !== "SIGINT" || // Do not apply escalation delay to SIGTERM
+        Date.now() >= (info?.receivedAt ?? 0) + ESCALATION_DELAY
+      ) {
+        exit(info?.code ?? 1);
+      }
+    };
+
+    const notifier = notifySignals(["SIGINT", "SIGTERM"], onSignalRepeat);
     const signalExitCode = () => {
       const info = notifier.info();
       return info?.signal === "SIGINT" ? 0 : (info?.code ?? 0);

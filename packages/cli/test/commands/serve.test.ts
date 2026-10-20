@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { exit } from "node:process";
 
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
@@ -35,6 +36,12 @@ vi.mock("node:os", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     tmpdir: vi.fn(),
+  };
+});
+vi.mock("node:process", async (importOriginal) => {
+  return {
+    ...(await importOriginal()),
+    exit: vi.fn(),
   };
 });
 vi.mock("glob", () => ({
@@ -81,33 +88,150 @@ beforeEach(async () => {
 });
 
 describe("serve command", () => {
-  it("should stop the server on CTRL+C after report generation", async () => {
-    vi.mocked(existsSync).mockReturnValue(true);
-    (glob as unknown as Mock).mockResolvedValue([]);
-    vi.mocked(tmpdir).mockReturnValue("tmp");
-    vi.mocked(mkdtemp).mockResolvedValue("temporary-report");
-    (readConfig as Mock).mockResolvedValue({ output: "temporary-report" });
-    const { stop } = mockServe();
+  describe("signal handling", () => {
+    it("should stop the server on CTRL+C after report generation", async () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      (glob as unknown as Mock).mockResolvedValue([]);
+      vi.mocked(tmpdir).mockReturnValue("tmp");
+      vi.mocked(mkdtemp).mockResolvedValue("temporary-report");
+      (readConfig as Mock).mockResolvedValue({ output: "temporary-report" });
+      const { stop } = mockServe();
 
-    const exitCode = await run(ServeCommand, ["serve", "results"]);
+      const exitCode = await run(ServeCommand, ["serve", "results"]);
 
-    expect(exitCode).toBe(0);
-    expect(stop).toHaveBeenCalledOnce();
-    expect(rm).toHaveBeenCalledWith("temporary-report", { recursive: true, force: true });
-  });
+      expect(exitCode).toBe(0);
+      expect(stop).toHaveBeenCalledOnce();
+      expect(rm).toHaveBeenCalledWith("temporary-report", { recursive: true, force: true });
+    });
 
-  it("should stop the server on CTRL+C after serving existing report", async () => {
-    vi.mocked(existsSync).mockReturnValue(true);
-    (glob as unknown as Mock).mockResolvedValue(["summary.json"]);
-    vi.mocked(tmpdir).mockReturnValue("tmp");
-    (readConfig as Mock).mockResolvedValue({ output: "existing-report" });
-    const { stop } = mockServe();
+    it("should stop the server on CTRL+C after serving existing report", async () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      (glob as unknown as Mock).mockResolvedValue(["summary.json"]);
+      vi.mocked(tmpdir).mockReturnValue("tmp");
+      (readConfig as Mock).mockResolvedValue({ output: "existing-report" });
+      const { stop } = mockServe();
 
-    const exitCode = await run(ServeCommand, ["serve", "results"]);
+      const exitCode = await run(ServeCommand, ["serve", "results"]);
 
-    expect(exitCode).toBe(0);
-    expect(stop).toHaveBeenCalledOnce();
-    expect(rm).not.toHaveBeenCalled();
+      expect(exitCode).toBe(0);
+      expect(stop).toHaveBeenCalledOnce();
+      expect(rm).not.toHaveBeenCalled();
+    });
+
+    const setupPendingShutdown = (first: "SIGINT" | "SIGTERM") => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      (glob as unknown as Mock).mockResolvedValue([]);
+      vi.mocked(tmpdir).mockReturnValue("tmp");
+      vi.mocked(mkdtemp).mockResolvedValue("temporary-report");
+      (readConfig as Mock).mockResolvedValue({ output: "temporary-report" });
+
+      const receivedAt = Date.now();
+      const info = {
+        signal: first,
+        code: first === "SIGINT" ? 130 : 143,
+        receivedAt,
+        deadline: receivedAt + 60_000,
+      };
+      let onRepeat: ((signal: NodeJS.Signals) => void) | undefined;
+      vi.mocked(notifySignals).mockImplementationOnce((_, callback) => {
+        onRepeat = callback;
+        return {
+          signal: shutdown.signal,
+          info: () => info,
+          dispose: vi.fn(),
+        };
+      });
+
+      let reportStarted!: () => void;
+      const started = new Promise<void>((resolve) => {
+        reportStarted = resolve;
+      });
+      let stopStarted!: () => void;
+      const stopping = new Promise<void>((resolve) => {
+        stopStarted = resolve;
+      });
+      let finishStop!: () => void;
+      const stopped = new Promise<void>((resolve) => {
+        finishStop = resolve;
+      });
+      const stop = vi.fn(() => {
+        stopStarted();
+        return stopped;
+      });
+      vi.mocked(serve).mockImplementationOnce(async () => {
+        reportStarted();
+        return { stop } as unknown as Awaited<ReturnType<typeof serve>>;
+      });
+      return {
+        receivedAt,
+        stop,
+        started,
+        stopping,
+        finishStop,
+        repeat: (signal: NodeJS.Signals) => {
+          if (!onRepeat) {
+            throw new Error("The repeated-signal handler has not been registered");
+          }
+          onRepeat(signal);
+        },
+      };
+    };
+
+    it.each<["SIGINT" | "SIGTERM", "SIGINT" | "SIGTERM", number]>([
+      ["SIGTERM", "SIGTERM", 143],
+      ["SIGTERM", "SIGINT", 143],
+      ["SIGINT", "SIGTERM", 130],
+    ])("should terminate on %s followed by %s with exit code %i", async (first, second, code) => {
+      const pending = setupPendingShutdown(first);
+      const execution = run(ServeCommand, ["serve", "results"]);
+      try {
+        await pending.started;
+        shutdown.abort();
+        await pending.stopping;
+
+        expect(pending.stop).toHaveBeenCalledOnce();
+        expect(exit).not.toHaveBeenCalled();
+        expect(rm).not.toHaveBeenCalled();
+
+        pending.repeat(second);
+
+        expect(exit).toHaveBeenCalledExactlyOnceWith(code);
+      } finally {
+        // The mocked exit returns, so release cleanup before awaiting the command.
+        pending.finishStop();
+        await execution;
+      }
+    });
+
+    it("should ignore repeated SIGINT before the escalation delay and terminate at the boundary", async () => {
+      const pending = setupPendingShutdown("SIGINT");
+      const now = vi.spyOn(Date, "now").mockReturnValue(pending.receivedAt);
+      const execution = run(ServeCommand, ["serve", "results"]);
+      try {
+        await pending.started;
+        shutdown.abort();
+        await pending.stopping;
+
+        expect(pending.stop).toHaveBeenCalledOnce();
+        expect(exit).not.toHaveBeenCalled();
+        expect(rm).not.toHaveBeenCalled();
+
+        now.mockReturnValue(pending.receivedAt + 2_999);
+        pending.repeat("SIGINT");
+        pending.repeat("SIGINT");
+        expect(exit).not.toHaveBeenCalled();
+
+        now.mockReturnValue(pending.receivedAt + 3_000);
+        pending.repeat("SIGINT");
+        expect(exit).toHaveBeenCalledExactlyOnceWith(130);
+      } finally {
+        now.mockRestore();
+        pending.finishStop();
+        await execution;
+      }
+
+      expect(rm).toHaveBeenCalledOnce();
+    });
   });
 
   it("should serve existing default dir when no input and config output are provided", async () => {
