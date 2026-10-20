@@ -1,6 +1,6 @@
 import type { TestStepResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolvePluginOptions } from "../src/utils/options.js";
 import { attachmentsResolverFactory, unwrapStepsAttachments } from "../src/utils/resolvers.js";

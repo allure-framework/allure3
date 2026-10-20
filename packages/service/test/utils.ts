@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 import { type HttpClient } from "../src/utils/http.js";
 

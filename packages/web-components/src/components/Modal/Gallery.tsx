@@ -2,7 +2,8 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 
-import { Attachment } from "@/components/Attachment";
+// Keep the renderer boundary: the Attachment barrel eagerly exports optional viewers.
+import { Attachment } from "@/components/Attachment/Attachment";
 import type { ModalGalleryProps } from "@/components/Modal/index";
 import ModalThumb from "@/components/Modal/Thumb";
 

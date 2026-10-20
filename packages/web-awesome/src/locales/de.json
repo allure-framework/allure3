@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Ausgeblendete Brotkrümel anzeigen"
   },
   "controls": {
+    "retry": "Erneut versuchen",
+    "loadAttachmentViewerError": "Anhangsanzeige konnte nicht geladen werden",
+    "loadComparisonError": "Vergleich konnte nicht geladen werden",
     "newTabAttachment": "Anhang in neuem Tab öffnen",
     "nextTR": "Nächstes Testergebnis",
     "prevTR": "Vorheriges Testergebnis",
@@ -464,7 +467,9 @@
       "layer": "Ebene: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% aller Tests)",
       "slice": "{{count}} Tests ({{percent}}% aller Tests)"
-    }
+    },
+    "retry": "Erneut versuchen",
+    "loadError": "Diagramm konnte nicht geladen werden"
   },
   "transitions": {
     "description": {

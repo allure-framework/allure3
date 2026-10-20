@@ -38,10 +38,6 @@ export const currentLocaleIso = computed(() => {
   return LANG_LOCALE[locale].iso;
 });
 
-export const currentLocaleIsRTL = computed(() => {
-  return ["ar", "he", "fa"].includes(currentLocale.value as string);
-});
-
 export const getLocale = () => {
   const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
   setLocale(locale as LangLocale);

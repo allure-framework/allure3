@@ -6,7 +6,7 @@ import type { AttachmentLink, DefaultTestStepResult, TestResult } from "@allurer
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import AgentPlugin, {
   type AgentFindingManifestLine,

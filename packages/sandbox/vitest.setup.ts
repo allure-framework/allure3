@@ -1,6 +1,6 @@
 import "allure-vitest/setup";
 import { attachment, step } from "allure-js-commons";
-import { afterEach, beforeEach, expect } from "vitest";
+import { afterEach, beforeEach, expect } from "vite-plus/test";
 
 const hashString = (value: string): number => {
   let hash = 0;

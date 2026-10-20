@@ -72,16 +72,6 @@ export const setCategoriesStatus = (status: ReportStatus) => {
   };
 };
 
-export const setCategoriesFilter = (filterKey: TreeFilters, value: boolean) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    filter: {
-      ...categoriesFiltersStore.value.filter,
-      [filterKey]: value,
-    },
-  };
-};
-
 export const fetchCategoriesData = async () => {
   categoriesStore.value = {
     ...categoriesStore.value,

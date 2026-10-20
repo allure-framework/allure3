@@ -8,7 +8,7 @@ import { renderReportSummaryMarkdown } from "@allurereport/ci";
 import { resolveConfig, type PluginInstance } from "@allurereport/core";
 import type { HistoryDataPoint, TestResult } from "@allurereport/core-api";
 import { createPluginSummary } from "@allurereport/plugin-api";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../../src/commands/commons/generate.js";
 
@@ -201,13 +201,9 @@ it("returns a successful CLI result and readable warning when remote publication
   const result = await generate({ cwd: tempDir, config, resultsDir: [resultsDir], collectSummary: true });
 
   expect(result?.exitCode).toBe(0);
-  expect(result?.summary?.publication).toEqual([
-    { pluginId: "awesome", status: "not-published", reason: "publisher-unavailable" },
-  ]);
+  expect(result?.summary?.reports[0].published).toBe(false);
   expect(result?.summary?.totals.stats).toMatchObject({ total: 1, passed: 1, failed: 0 });
   expect(result?.summary?.reports[0].status).toBe("passed");
   expect(warning).toHaveBeenCalledWith("Expected reports were not published:");
-  expect(renderReportSummaryMarkdown(result!.summary!)).toContain(
-    "<code>awesome</code>: Publication client is unavailable",
-  );
+  expect(renderReportSummaryMarkdown(result!.summary!)).toContain("Expected reports were not published");
 });

@@ -224,7 +224,9 @@
       "layer": "层级：{{layer}}",
       "statusSlice": "{{count}} {{status}} （占全部测试的 {{percent}}%）",
       "slice": "{{count}} 个测试（占全部测试的 {{percent}}%）"
-    }
+    },
+    "retry": "重试",
+    "loadError": "无法加载图表"
   },
   "transitions": {
     "description": {

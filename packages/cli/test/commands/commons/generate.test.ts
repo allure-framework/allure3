@@ -6,7 +6,7 @@ import { AllureReport, readConfig, stringifyQualityGateResults } from "@allurere
 import { KnownError } from "@allurereport/service";
 import { epic, feature, label, story } from "allure-js-commons";
 import { glob } from "glob";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generate } from "../../../src/commands/commons/generate.js";
 import { cleanOutputDirectory, isOutputDirectoryNotEmpty } from "../../../src/utils/cleanOutput.js";
@@ -607,25 +607,4 @@ describe("generate function", () => {
 
     consoleErrorSpy.mockRestore();
   });
-});
-
-it("keeps a publication-only summary and the successful exit code", async () => {
-  vi.mocked(glob).mockResolvedValueOnce(["./allure-results/"]);
-  const publicationOnly: ReportContext = {
-    ...summary,
-    testResults: undefined,
-    reports: [],
-    publication: [{ pluginId: "awesome", status: "not-published", reason: "publication-failed" }],
-  };
-  vi.mocked(createReportContext).mockResolvedValueOnce(publicationOnly);
-
-  const result = await generate({
-    cwd: ".",
-    config: { output: "out" } as FullConfig,
-    resultsDir: ["./allure-results"],
-    collectSummary: true,
-  });
-
-  expect(result).toEqual({ exitCode: 0, summary: publicationOnly });
-  expect(exit).not.toHaveBeenCalled();
 });

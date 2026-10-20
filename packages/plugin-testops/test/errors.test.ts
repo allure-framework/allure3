@@ -2,7 +2,7 @@ import { performance } from "node:perf_hooks";
 
 import { KnownError, UnknownError } from "@allurereport/service";
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   ErrorKind,

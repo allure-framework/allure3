@@ -1,5 +1,4 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { PUBLICATION_FAILURE_MESSAGES } from "@allurereport/plugin-api";
 
 import type {
   ReportContext,
@@ -332,14 +331,11 @@ const renderArtifacts = (artifacts: ReportContextArtifact[]): string | undefined
   );
 };
 
-const renderPublicationWarnings = (publication: ReportContext["publication"]): string | undefined => {
-  const missing = publication?.filter((result) => result.status === "not-published") ?? [];
+const renderPublicationWarnings = (reports: ReportContext["reports"]): string | undefined => {
+  const missing = reports.filter((report) => report.published === false);
 
   return missing.length
-    ? [
-        "**⚠ Expected reports were not published**",
-        ...missing.map(({ pluginId, reason }) => `- ${inlineCode(pluginId)}: ${PUBLICATION_FAILURE_MESSAGES[reason]}`),
-      ].join("\n\n")
+    ? ["**⚠ Expected reports were not published**", ...missing.map(({ name }) => `- ${inlineCode(name)}`)].join("\n\n")
     : undefined;
 };
 
@@ -375,7 +371,7 @@ export const renderReportSummaryMarkdown = (
   const sections = [
     `# ${escapeHtml(title)}`,
     renderTable(aggregateRows, includeResolutions, renderOptions),
-    renderPublicationWarnings(context.publication),
+    renderPublicationWarnings(context.reports),
     ...renderReportLinks(regularReports),
     renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,

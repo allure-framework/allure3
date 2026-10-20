@@ -1,6 +1,6 @@
 import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { CucumberMessage } from "../src/cucumbermessages/model.js";
 import { cucumberMessages } from "../src/index.js";

@@ -12,36 +12,17 @@
 
 ## Publication outcomes in report summaries
 
-`createReportContext(reportDir)` reads the optional root `publication.json` written by Allure 3.
-It describes enabled plugins with `options.publish: true` in the current CLI run, including
-plugins that could not generate a report. `createReportContextFromData` accepts the same array
-as `publication`. These outcomes are separate from test statistics and quality gates.
-
-```json
-[
-  { "pluginId": "awesome", "status": "published" },
-  { "pluginId": "dashboard", "status": "not-published", "reason": "generation-failed" }
-]
-```
-
-An unpublished entry has one of these reasons, in priority order:
-
-- `generation-failed`: the plugin failed during `start` or `done`.
-- `no-report-files`: no files other than the automatic root plugin summary were generated.
-- `publisher-unavailable`: no publication client was created; check the service access token.
-- `publication-failed`: the remote publication operation did not complete successfully.
+Plugin summaries have an optional `published` boolean. `true` means the requested publication
+completed; `false` means publication was requested but did not complete. The field is omitted
+when publication was not requested, including realtime runs. Dump-only runs generate no summaries.
+Plugins without a summary are outside this publication status contract.
 
 The remote batch is confirmed only after completion. If uploading or completing the batch fails,
 all reports in that batch are marked unpublished even if some files were already uploaded.
 A successful publication does not require a returned report link.
 
-`renderReportSummaryMarkdown(context)` includes an **Expected reports were not published**
-warning after the statistics table when needed, including when no plugin summary exists.
-Older reports without the file retain the existing Markdown output. Malformed files are ignored
-with a diagnostic through `onError`.
-
-The manifest is local only and is overwritten on every ordinary generation, including with an
-empty array when no reports request publication. Dump-only and realtime runs do not write it.
-Publication warnings do not change the run's exit code or test status. CI integrations that collect
-summary files themselves must also pass `publication.json` to display these warnings; support in
-external integrations such as `allure-action` requires a separate update.
+`createReportContext` reads the flag from `summary.json`; `createReportContextFromData` accepts it
+in `summaries`. `renderReportSummaryMarkdown` includes an **Expected reports were not published**
+warning after the statistics table for reports with `published: false`. Older summaries without
+the field retain the existing output. Details remain in the CLI logs; publication warnings do not
+change test statistics, quality gates, or the run's exit code.

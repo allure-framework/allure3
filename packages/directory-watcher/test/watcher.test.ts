@@ -1,12 +1,13 @@
 import console from "node:console";
 import { createHash, randomUUID } from "node:crypto";
+import { once } from "node:events";
 import { Dirent, createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   delayedFileProcessingWatcher,
@@ -37,13 +38,13 @@ beforeEach(async () => {
   vi.clearAllMocks();
   try {
     fixturesDir = await mkdtemp("watcher.test.ts-");
-  } catch (err) {}
+  } catch {}
 });
 
 afterEach(async () => {
   try {
     await rm(fixturesDir, { recursive: true });
-  } catch (err) {}
+  } catch {}
 });
 
 describe("newFilesInDirectoryWatcher", () => {
@@ -114,7 +115,7 @@ describe("newFilesInDirectoryWatcher", () => {
   it("should watch not existing nested directory", async () => {
     const handler = vi.fn();
     const target = join(fixturesDir, "not/existing/");
-    const { abort } = newFilesInDirectoryWatcher(target, handler, { indexDelay: 10, abortController });
+    newFilesInDirectoryWatcher(target, handler, { indexDelay: 10, abortController });
 
     await setTimeout(50);
 
@@ -132,7 +133,7 @@ describe("newFilesInDirectoryWatcher", () => {
     const target = join(fixturesDir, "will-be-deleted");
     await mkdir(target);
 
-    const { abort } = newFilesInDirectoryWatcher(target, handler, { indexDelay: 10, abortController });
+    newFilesInDirectoryWatcher(target, handler, { indexDelay: 10, abortController });
 
     await setTimeout(50);
 
@@ -366,13 +367,13 @@ describe("newFilesInDirectoryWatcher", () => {
 
 describe("findMatching", () => {
   it("it should find specified directories", async () => {
-    const file1 = await randomFile(fixturesDir);
-    const file2 = await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
     const dir1 = await randomDirectory(fixturesDir);
     const dir12 = await randomDirectory(dir1, "allure-results");
-    const file3 = await randomFile(dir12);
+    await randomFile(dir12);
     const dir2 = await randomDirectory(fixturesDir, "allure-results");
-    const file4 = await randomFile(dir2);
+    await randomFile(dir2);
 
     const result = new Set<string>();
     await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
@@ -383,19 +384,19 @@ describe("findMatching", () => {
   });
 
   it("it should not continue search on the matched directories", async () => {
-    const file1 = await randomFile(fixturesDir);
-    const file2 = await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
     const dir1 = await randomDirectory(fixturesDir);
     const dir12 = await randomDirectory(dir1, "allure-results");
-    const file3 = await randomFile(dir12);
+    await randomFile(dir12);
     const dir2 = await randomDirectory(fixturesDir, "allure-results");
-    const file4 = await randomFile(dir2);
+    await randomFile(dir2);
     const dir3 = await randomDirectory(fixturesDir, "allure-results");
     const dir31 = await randomDirectory(dir3, "allure-results");
     const dir32 = await randomDirectory(dir3);
-    const file5 = await randomFile(dir31);
-    const file6 = await randomFile(dir32);
-    const file7 = await randomFile(dir32);
+    await randomFile(dir31);
+    await randomFile(dir32);
+    await randomFile(dir32);
 
     const result = new Set<string>();
     await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
@@ -404,20 +405,20 @@ describe("findMatching", () => {
   });
 
   it("it should limit the search depth", async () => {
-    const file1 = await randomFile(fixturesDir);
-    const file2 = await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
+    await randomFile(fixturesDir);
     const dir1 = await randomDirectory(fixturesDir);
     const dir12 = await randomDirectory(dir1, "allure-results");
-    const file3 = await randomFile(dir12);
+    await randomFile(dir12);
     const dir2 = await randomDirectory(fixturesDir, "allure-results");
-    const file4 = await randomFile(dir2);
+    await randomFile(dir2);
     const dir3 = await randomDirectory(fixturesDir);
     const dir31 = await randomDirectory(dir3);
     const dir311 = await randomDirectory(dir31, "allure-results");
     const dir312 = await randomDirectory(dir31);
-    const file5 = await randomFile(dir311);
-    const file6 = await randomFile(dir312);
-    const file7 = await randomFile(dir312);
+    await randomFile(dir311);
+    await randomFile(dir312);
+    await randomFile(dir312);
 
     const result = new Set<string>();
     await findMatching(fixturesDir, result, (dirent) => dirent.isDirectory() && dirent.name === "allure-results", 1);
@@ -426,8 +427,8 @@ describe("findMatching", () => {
   });
 
   it("stops scanning once the signal is aborted", async () => {
-    const dir1 = await randomDirectory(fixturesDir, "allure-results");
-    const dir2 = await randomDirectory(fixturesDir, "allure-results-2");
+    await randomDirectory(fixturesDir, "allure-results");
+    await randomDirectory(fixturesDir, "allure-results-2");
 
     const controller = new AbortController();
     controller.abort();
@@ -500,6 +501,7 @@ describe("delayedFileProcessingWatcher", () => {
     });
     const file = join(fixturesDir, "changing-file.txt");
     const writeStream = createWriteStream(file, { flags: "a", encoding: "utf-8" });
+    await once(writeStream, "open");
     writeStream.write("first\n");
     await watcher.addFile(file);
     for (let i = 0; i < 10; i++) {
@@ -507,6 +509,7 @@ describe("delayedFileProcessingWatcher", () => {
       writeStream.write(`line${i}\n`);
     }
     writeStream.end();
+    await once(writeStream, "finish");
 
     expect(handler).toBeCalledTimes(0);
 
@@ -526,6 +529,7 @@ describe("delayedFileProcessingWatcher", () => {
     });
     const file = join(fixturesDir, "changing-file.txt");
     const writeStream = createWriteStream(file, { flags: "a", encoding: "utf-8" });
+    await once(writeStream, "open");
     writeStream.write("first\n");
     await watcher.addFile(file);
     for (let i = 0; i < 10; i++) {
@@ -533,6 +537,7 @@ describe("delayedFileProcessingWatcher", () => {
       writeStream.write(`line${i}\n`);
     }
     writeStream.end();
+    await once(writeStream, "finish");
     await watcher.abort();
 
     expect(handler).toBeCalledTimes(1);

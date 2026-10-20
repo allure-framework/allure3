@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import type { ReportContext } from "../src/reportContext.js";
 import { renderReportSummaryMarkdown } from "../src/reportMarkdown.js";
@@ -385,61 +385,44 @@ describe("report markdown", () => {
 });
 
 describe("publication warnings", () => {
-  it("keeps successful report links and statistics when another report is missing", () => {
+  const report = (name: string, published?: boolean) => ({
+    name,
+    published,
+    stats: { total: 1, passed: 1 },
+    status: "passed" as const,
+    duration: 1,
+  });
+
+  it("lists only unpublished reports after statistics and keeps successful links", () => {
     const markdown = renderReportSummaryMarkdown(
       context({
         reports: [
-          {
-            name: "Awesome",
-            plugin: "awesome",
-            remoteHref: "https://example.org/report",
-            stats: { total: 1, passed: 1 },
-            status: "passed",
-            duration: 1,
-          },
-        ],
-        publication: [
-          { pluginId: "awesome", status: "published" },
-          { pluginId: "dashboard", status: "not-published", reason: "generation-failed" },
+          { ...report("Awesome", true), remoteHref: "https://example.org/report" },
+          report("Dashboard", false),
+          report("Local"),
         ],
       }),
     );
-
     expect(markdown).toContain('href="https://example.org/report"');
-    expect(markdown).toContain("<code>dashboard</code>: Report generation failed");
-    expect(markdown).not.toContain("<code>awesome</code>");
-    expect(markdown).not.toContain('href="dashboard');
-    expect(markdown.match(/All tests/g)).toHaveLength(1);
-  });
-
-  it("lists unavailable reports after statistics while keeping published reports out of warnings", () => {
-    const markdown = renderReportSummaryMarkdown(
-      context({
-        publication: [
-          { pluginId: "awesome", status: "published" },
-          { pluginId: "dashboard", status: "not-published", reason: "generation-failed" },
-          { pluginId: "csv", status: "not-published", reason: "no-report-files" },
-          { pluginId: "classic", status: "not-published", reason: "publisher-unavailable" },
-          { pluginId: "allure2", status: "not-published", reason: "publication-failed" },
-        ],
-      }),
-    );
-
     expect(markdown).toContain("**⚠ Expected reports were not published**");
-    expect(markdown).toContain("<code>dashboard</code>: Report generation failed");
-    expect(markdown).toContain("<code>csv</code>: No report files were generated");
-    expect(markdown).toContain("<code>classic</code>: Publication client is unavailable");
-    expect(markdown).toContain("<code>allure2</code>: The remote publication operation failed");
-    expect(markdown).not.toContain("awesome");
-    expect(markdown).not.toContain("**Reports:**");
+    expect(markdown).toContain("- <code>Dashboard</code>");
+    expect(markdown).not.toContain("- <code>Awesome</code>");
+    expect(markdown).not.toContain("- <code>Local</code>");
+    expect(markdown).not.toContain('href="Dashboard');
     expect(markdown.indexOf("Expected reports")).toBeGreaterThan(markdown.indexOf("All tests"));
   });
 
-  it("does not change legacy markdown or show a warning when every report is published", () => {
-    const legacy = renderReportSummaryMarkdown(context());
-    expect(renderReportSummaryMarkdown(context({ publication: [] }))).toBe(legacy);
-    expect(renderReportSummaryMarkdown(context({ publication: [{ pluginId: "awesome", status: "published" }] }))).toBe(
-      legacy,
+  it("warns when all reports are unpublished, including filtered reports, and escapes their names", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({ reports: [report("<Dashboard>", false), { ...report("Filtered", false), filtered: true }] }),
     );
+    expect(markdown).toContain("- <code>&lt;Dashboard&gt;</code>");
+    expect(markdown).toContain("- <code>Filtered</code>");
+  });
+
+  it("does not change legacy output when publication succeeds or was not requested", () => {
+    const legacy = renderReportSummaryMarkdown(context({ reports: [report("Awesome")] }));
+    expect(renderReportSummaryMarkdown(context({ reports: [report("Awesome", true)] }))).toBe(legacy);
+    expect(renderReportSummaryMarkdown(context())).not.toContain("Expected reports");
   });
 });

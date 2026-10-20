@@ -2,7 +2,7 @@ import { ChartType } from "@allurereport/charts-api";
 import type { AllureChartsStoreData } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { generateStabilityDistributionChart } from "../../src/charts/generateStabilityDistributionChart.js";
 

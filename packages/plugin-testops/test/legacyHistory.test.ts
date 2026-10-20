@@ -1,6 +1,6 @@
 import type { TestParameter } from "@allurereport/core-api";
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { calculateLegacyHistoryId } from "../src/utils/legacyHistory.js";
 

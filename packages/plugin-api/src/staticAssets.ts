@@ -141,3 +141,5 @@ export const copyReportStaticAssets = async (assets: ReportStaticAssets, reportF
     await reportFiles.addFile(fileName, content);
   }
 };
+
+export { createSingleFileScripts } from "./singleFileAssets.js";

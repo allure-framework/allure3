@@ -73,6 +73,9 @@
       ],
       "DurationDynamicsChartWidget": [
         "dist/DurationDynamicsChartWidget.d.ts"
+      ],
+      "ChartWidget": [
+        "dist/ChartWidget.d.ts"
       ]
     }
   },
@@ -159,6 +162,10 @@
     "./DurationDynamicsChartWidget": {
       "types": "./dist/DurationDynamicsChartWidget.d.ts",
       "import": "./dist/DurationDynamicsChartWidget.js"
+    },
+    "./ChartWidget": {
+      "types": "./dist/ChartWidget.d.ts",
+      "import": "./dist/ChartWidget.js"
     }
   },
   "scripts": {
@@ -169,10 +176,10 @@
     "check:theme-apca:html": "node scripts/check-theme-apca.mjs --report-only --html=docs/theme-apca-report.html",
     "check:theme-apca:report": "node scripts/check-theme-apca.mjs --report-only --markdown=docs/theme-apca-report.md",
     "dev:ds": "storybook dev -p 6006",
-    "lint": "oxlint --import-plugin src test features stories",
-    "test": "vitest run",
+    "lint": "vp lint --import-plugin src test features stories",
+    "test": "vp test run",
     "test:unit": "yarn test",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
@@ -257,9 +264,9 @@
     "@types/node": "^20",
     "@types/prismjs": "^1.26.6",
     "@types/sortablejs": "^1.15.9",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2.1.9",
-    "@vitest/snapshot": "^5.0.1",
+    "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3.12.2",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
@@ -280,8 +287,9 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.7.0",
     "typescript": "^5",
-    "vite": "^8.0.9",
+    "vite": "catalog:",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.0"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

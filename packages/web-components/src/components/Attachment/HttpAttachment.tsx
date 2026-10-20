@@ -5,8 +5,6 @@ import { useState } from "preact/hooks";
 import type { AttachmentProps } from "./model";
 
 import styles from "./styles.scss";
-
-export const HTTP_EXCHANGE_ATTACHMENT_MIME = "application/vnd.allure.http+json";
 export const HTTP_EXCHANGE_REDACTED_VALUE = "__ALLURE_REDACTED__";
 
 type HttpPair = {

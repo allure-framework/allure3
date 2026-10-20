@@ -1,5 +1,5 @@
 import { cleanup, render } from "@testing-library/preact";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(

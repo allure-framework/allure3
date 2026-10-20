@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 
 import type { HistoryDataPoint } from "@allurereport/core-api";
-import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vitest";
+import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { AllureTestOpsClient } from "../src/testops.js";
 import { HttpClientMock, createHttpClientMock } from "./utils.js";

@@ -25,6 +25,4 @@ export type AwesomeOptions = {
   defaultSortBy?: string;
 };
 
-export type TemplateManifest = Record<string, string>;
-
 export type AwesomePluginOptions = AwesomeOptions;

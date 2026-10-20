@@ -1,7 +1,7 @@
 import { performance } from "node:perf_hooks";
 
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { DEFAULT_UPLOAD_RATE_LIMIT, UploadPacer } from "../src/uploadPacer.js";
 

@@ -1,0 +1,53 @@
+{
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib",
+        },
+        "vtsls": {
+          "autoUseWorkspaceTsdk": true,
+        },
+      },
+    },
+    "oxlint": {
+      "binary": {
+        "path": "yarn",
+        "arguments": ["run", "-T", "vp", "lint", "--lsp"],
+      },
+    },
+    "oxfmt": {
+      "binary": {
+        "path": "yarn",
+        "arguments": ["run", "-T", "vp", "fmt", "--lsp"],
+      },
+      "initialization_options": {
+        "settings": {
+          "fmt.configPath": "./vite.config.ts",
+          "run": "onSave",
+        },
+      },
+    },
+  },
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["vtsls", "oxlint", "oxfmt", "!eslint", "..."],
+      "prettier": { "allowed": false },
+      "formatter": { "language_server": { "name": "oxfmt" } },
+      "format_on_save": "on",
+    },
+    "TSX": {
+      "language_servers": ["vtsls", "oxlint", "oxfmt", "!eslint", "..."],
+      "prettier": { "allowed": false },
+      "formatter": { "language_server": { "name": "oxfmt" } },
+      "format_on_save": "on",
+    },
+    "JavaScript": {
+      "language_servers": ["vtsls", "oxlint", "oxfmt", "!eslint", "..."],
+      "prettier": { "allowed": false },
+      "formatter": { "language_server": { "name": "oxfmt" } },
+      "format_on_save": "on",
+    },
+  },
+}
+
