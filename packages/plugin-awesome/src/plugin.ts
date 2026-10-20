@@ -15,9 +15,9 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
-  generateHistoryDataPoints,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 import { validateChartsOptions } from "@allurereport/web-commons";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";

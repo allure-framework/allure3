@@ -59,20 +59,67 @@ describe("convertTestResult", () => {
     expect(result.descriptionHtml).toBe("<p>custom html</p>");
   });
 
-  it("redacts result parameters and delegates body step conversion", () => {
-    const token = { name: "token", value: "secret", hidden: false, masked: true, excluded: false };
-    const hidden = { ...token, name: "internal", value: "hidden", hidden: true };
+  it("redacts result and nested body parameters without leaking secrets to JSON", () => {
+    const token = { name: "token", value: "secret-token", hidden: false, masked: true, excluded: false };
+    const hidden = { ...token, name: "internal", value: "hidden-value", hidden: true };
     const visible = { ...token, name: "visible", value: "value", masked: false };
     const result = convertTestResult(
       createTestResult({
         parameters: [visible, token, hidden],
-        steps: [{ type: "step", name: "step", status: "passed", parameters: [token], steps: [] }],
+        steps: [
+          {
+            type: "step",
+            name: "step",
+            status: "passed",
+            parameters: [
+              { ...token, value: "step-secret" },
+              { ...hidden, value: "step-hidden" },
+            ],
+            steps: [
+              {
+                type: "step",
+                name: "nested step",
+                status: "passed",
+                parameters: [
+                  { ...token, value: "nested-secret" },
+                  { ...hidden, value: "nested-hidden" },
+                ],
+                steps: [],
+              },
+            ],
+          },
+        ],
       }),
     );
 
     expect(result.parameters).toEqual([visible, { ...token, value: "<masked>" }]);
     expect(result.steps).toEqual([
-      { type: "step", name: "step", status: "passed", parameters: [{ ...token, value: "<masked>" }], steps: [] },
+      {
+        type: "step",
+        name: "step",
+        status: "passed",
+        parameters: [{ ...token, value: "<masked>" }],
+        steps: [
+          {
+            type: "step",
+            name: "nested step",
+            status: "passed",
+            parameters: [{ ...token, value: "<masked>" }],
+            steps: [],
+          },
+        ],
+      },
     ]);
+    const serialized = JSON.stringify(result);
+    for (const value of [
+      "secret-token",
+      "hidden-value",
+      "step-secret",
+      "step-hidden",
+      "nested-secret",
+      "nested-hidden",
+    ]) {
+      expect(serialized).not.toContain(value);
+    }
   });
 });

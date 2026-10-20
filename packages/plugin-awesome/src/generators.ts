@@ -64,9 +64,8 @@ import {
   createTreeByTitlePath,
   preciseTreeLabels,
   processTree,
-  convertFixtureResult,
-  writeConcurrently,
 } from "@allurereport/plugin-api";
+import { convertFixtureResult, mapConcurrently, writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -150,14 +149,6 @@ const createBreadcrumbs = (convertedTr: ReportTestResult) => {
     });
     return acc;
   }, [] as string[][]);
-};
-
-const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
-  const results: R[] = [];
-  for (let i = 0; i < items.length; i += concurrency) {
-    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
-  }
-  return results;
 };
 
 export const generateTestResults = async (

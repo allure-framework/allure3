@@ -6,7 +6,12 @@ import type {
 } from "@allurereport/core-api";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { convertFixtureResult, generateHistoryDataPoints, writeConcurrently } from "../src/index.js";
+import {
+  convertFixtureResult,
+  generateHistoryDataPoints,
+  mapConcurrently,
+  writeConcurrently,
+} from "../src/utils/report.js";
 
 describe("report writing", () => {
   it("waits for the entire batch of 64 before starting the next batch", async () => {
@@ -26,6 +31,30 @@ describe("report writing", () => {
     expect(started).toHaveLength(64);
     releases[63]();
     await writing;
+    expect(started).toEqual(items);
+  });
+
+  it("maps batches of eight in input order even when items finish in reverse order", async () => {
+    const releases: (() => void)[] = [];
+    const started: number[] = [];
+    const items = Array.from({ length: 9 }, (_, i) => i);
+    const mapping = mapConcurrently(items, async (item) => {
+      started.push(item);
+      if (item < 8) {
+        await new Promise<void>((resolve) => releases.push(resolve));
+      }
+      return `value-${item}`;
+    });
+
+    expect(started).toEqual(items.slice(0, 8));
+    releases
+      .slice(1)
+      .reverse()
+      .forEach((release) => release());
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    expect(started).toHaveLength(8);
+    releases[0]();
+    expect(await mapping).toEqual(items.map((item) => `value-${item}`));
     expect(started).toEqual(items);
   });
 

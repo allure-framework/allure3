@@ -32,9 +32,8 @@ import {
   createTreeByCategories,
   createTreeByLabels,
   processTree,
-  convertFixtureResult,
-  writeConcurrently,
 } from "@allurereport/plugin-api";
+import { convertFixtureResult, writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,

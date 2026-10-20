@@ -1,5 +1,6 @@
 import { type TestLabel, type TestResult, redactParameters } from "@allurereport/core-api";
-import { type ReportTestResult, convertTestStepResult } from "@allurereport/plugin-api";
+import type { ReportTestResult } from "@allurereport/plugin-api";
+import { convertTestStepResult } from "@allurereport/plugin-api/internal/report";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();

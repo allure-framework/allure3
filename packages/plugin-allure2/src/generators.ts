@@ -5,7 +5,8 @@ import {
   createStylesLinkTag,
   stringifyForInlineScript,
 } from "@allurereport/core-api";
-import { type ExitCode, type ReportFiles, type ResultFile, writeConcurrently } from "@allurereport/plugin-api";
+import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import { writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,

@@ -1,3 +1,4 @@
+/** @internal Shared implementation details of Allure's bundled reports. */
 import {
   type HistoryDataPoint,
   type TestFixtureResult,
@@ -9,7 +10,7 @@ import {
 import type { ReportFixtureResult, ReportTestStepResult } from "../report.js";
 import type { AllureStore } from "../store.js";
 
-const HISTORY_DATA_POINT_LIMIT = 6;
+export const HISTORY_DATA_POINT_LIMIT = 6;
 
 export const writeConcurrently = async <T>(
   items: readonly T[],
@@ -19,6 +20,14 @@ export const writeConcurrently = async <T>(
   for (let i = 0; i < items.length; i += concurrency) {
     await Promise.all(items.slice(i, i + concurrency).map(write));
   }
+};
+
+export const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += concurrency) {
+    results.push(...(await Promise.all(items.slice(i, i + concurrency).map(map))));
+  }
+  return results;
 };
 
 export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
@@ -50,7 +59,7 @@ export const generateHistoryDataPoints = async (
 ): Promise<void> => {
   const allHistoryPoints = await store.allHistoryDataPoints();
 
-  // Preserve sequential writes: a failure must prevent later history files from starting.
+  // Preserve the original sequential writes and partial output on failure.
   for (const historyPoint of allHistoryPoints.slice(0, HISTORY_DATA_POINT_LIMIT)) {
     await writer.writeData(`history/${historyPoint.uuid}.json`, historyPoint);
   }

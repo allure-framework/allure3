@@ -5,9 +5,9 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
-  generateHistoryDataPoints,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import { generateHistoryDataPoints } from "@allurereport/plugin-api/internal/report";
 
 import {
   generateAllCharts,
