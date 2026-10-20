@@ -14,6 +14,7 @@ const epicByPackagePrefix = new Map([
   ["web", "web"],
   ["reader", "reader"],
 ]);
+const allureResultsDir = env.ALLURE_RESULTS_DIR ?? "out/allure-results";
 
 const loadScript = (
   packageJson: { workspaces?: unknown; scripts?: Record<string, string> },
@@ -74,7 +75,7 @@ export const defaultTasksConfig = (
   const testScript = loadScript(packageJson, "test");
   if (testScript) {
     let testCommands = testScript.split("&&");
-    const cleanup = ["rimraf out .vitest"];
+    const cleanup = [`rimraf ${allureResultsDir} .vitest`];
     if (testCommands.length > 1 && ["rimraf", "clean"].some((str) => testCommands[0].includes(str))) {
       testCommands = testCommands.slice(1);
     }
@@ -82,7 +83,7 @@ export const defaultTasksConfig = (
       // automated file tracking for cache picks up removal or addition of these folders and even explicit exclusion
       // still does not prevent cache invalidation so simply ensure empty folders exist before tests run
       cleanup.push(
-        `node -e "for (const dir of ['out','.vitest','node_modules']) require('node:fs').mkdirSync(dir,{recursive:true})"`,
+        `node -e "for (const dir of ['${allureResultsDir}','.vitest','node_modules']) require('node:fs').mkdirSync(dir,{recursive:true})"`,
       );
     }
     tasks["vp:clean:test"] = {
@@ -93,17 +94,17 @@ export const defaultTasksConfig = (
       command: testCommands,
       dependsOn: ["vp:clean:test"],
       cache: {
-        env: ["ENABLE_COVERAGE"],
+        env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
         input: [
           { auto: true },
           { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          "!out/**",
+          `!${allureResultsDir}/**`,
           "!.vitest/**",
           "!test-results/**",
           "!allure-report/**",
           ...(options.testInput ?? []),
         ],
-        output: ["out/allure-results/**", ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
+        output: [`${allureResultsDir}/**`, ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
       },
     };
   } else {
@@ -144,7 +145,7 @@ export const defaultVitestConfig = (
     [
       "allure-vitest/reporter",
       {
-        resultsDir: env.ALLURE_RESULTS_DIR ?? "./out/allure-results",
+        resultsDir: allureResultsDir,
         globalLabels: [{ name: "type", value: "vitest" }, ...labels],
         links: {
           issue: {
