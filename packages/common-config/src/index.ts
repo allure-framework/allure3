@@ -100,6 +100,7 @@ export const defaultTasksConfig = (
           "!out/**",
           "!.vitest/**",
           "!test-results/**",
+          "!allure-report/**",
           ...(options.testInput ?? []),
         ],
         output: ["out/allure-results/**", ".vitest/blob/**", "test-results/**", ...(options.testOutput ?? [])],
