@@ -225,7 +225,9 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% de tous les tests)",
       "slice": "{{count}} tests ({{percent}}% de tous les tests)",
       "slice_many": "{{count}} tests ({{percent}}% de tous les tests)"
-    }
+    },
+    "retry": "Réessayer",
+    "loadError": "Échec du chargement du graphique"
   },
   "transitions": {
     "description": {

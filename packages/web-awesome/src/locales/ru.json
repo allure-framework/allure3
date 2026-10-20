@@ -244,6 +244,9 @@
     }
   },
   "controls": {
+    "retry": "Повторить",
+    "loadAttachmentViewerError": "Не удалось загрузить просмотр вложения",
+    "loadComparisonError": "Не удалось загрузить сравнение",
     "newTabAttachment": "Открыть в новой вкладке",
     "nextTR": "Следующий тест",
     "prevTR": "Предыдущий тест",
@@ -533,7 +536,9 @@
       "slice": "{{count}} тестов ({{percent}}% всех тестов)",
       "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
-    }
+    },
+    "retry": "Повторить",
+    "loadError": "Не удалось загрузить график"
   },
   "transitions": {
     "description": {

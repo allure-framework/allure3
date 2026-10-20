@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "დამალული პურის ნამცეცების ჩვენება"
   },
   "controls": {
+    "retry": "ხელახლა ცდა",
+    "loadAttachmentViewerError": "დანართების სანახავი მოდულის ჩატვირთვა ვერ მოხერხდა",
+    "loadComparisonError": "შედარების ჩატვირთვა ვერ მოხერხდა",
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",
     "nextTR": "შემდეგი ტესტის შედეგი",
     "prevTR": "წინა ტესტის შედეგი",
@@ -464,7 +467,9 @@
       "layer": "დონე: {{layer}}",
       "statusSlice": "{{count}} {{status}} (ყველა ტესტის {{percent}}%)",
       "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
-    }
+    },
+    "retry": "ხელახლა ცდა",
+    "loadError": "დიაგრამის ჩატვირთვა ვერ მოხერხდა"
   },
   "transitions": {
     "description": {

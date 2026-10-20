@@ -232,7 +232,9 @@
       "slice": "{{count}} тестів ({{percent}}% усіх тестів)",
       "slice_few": "{{count}} тести ({{percent}}% усіх тестів)",
       "slice_many": "{{count}} тестів ({{percent}}% усіх тестів)"
-    }
+    },
+    "retry": "Повторити",
+    "loadError": "Не вдалося завантажити діаграму"
   },
   "transitions": {
     "description": {
