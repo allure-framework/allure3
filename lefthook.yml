@@ -1,9 +1,6 @@
 pre-commit:
   parallel: false
   jobs:
-    - name: Lint code
-      run: "yarn vp lint --fix --no-error-on-unmatched-pattern --quiet {staged_files}"
-      stage_fixed: true
-    - name: Format files
-      run: "yarn vp fmt --write --no-error-on-unmatched-pattern {staged_files}"
+    - name: Check code
+      run: "yarn check --no-error-on-unmatched-pattern --fix --quiet {staged_files}"
       stage_fixed: true

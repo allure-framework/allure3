@@ -35,11 +35,7 @@ jobs:
         with:
           save-cache: "true"
       - name: Lint Project
-        run: yarn lint
-      - name: Check formatting
-        run: yarn format:check
-      # - name: Type-aware lint
-      #   run: yarn lint:type
+        run: yarn check --quiet
 
   test:
     needs: lint
