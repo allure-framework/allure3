@@ -21,7 +21,9 @@ export const stringToNanoIdWithSalt = (input: string, salt: string): string => {
   let seed = Math.abs(hash);
   for (let i = 0; i < len; ++i) {
     seed = (seed * 1664525 + 1013904223) % 4294967296; // Linear congruential generator
-    idArr[i] = alphabet[seed % alphabet.length];
+    // Take the top 6 bits: the low bits of a power-of-two LCG only cycle through 64 states,
+    // so `seed % 64` would make the whole id depend on `hash % 64`
+    idArr[i] = alphabet[Math.floor(seed / 67108864)];
   }
 
   return idArr.join("");
