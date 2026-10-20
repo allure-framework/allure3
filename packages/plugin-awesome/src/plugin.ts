@@ -17,6 +17,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import { validateChartsOptions } from "@allurereport/web-commons";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -117,7 +118,9 @@ type PerfAwarePluginContext = PluginContext & {
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
-  constructor(readonly options: AwesomePluginOptions = {}) {}
+  constructor(readonly options: AwesomePluginOptions = {}) {
+    validateChartsOptions(options.charts ?? []);
+  }
 
   #generateAfterStart = async (context: PluginContext, store: AllureStore) => {
     if (!this.#writer) {
@@ -420,6 +423,7 @@ export class AwesomePlugin implements Plugin {
         reportFiles: context.reportFiles,
         reportUuid: context.reportUuid,
         reportName: context.reportName,
+        overviewHref: context.overviewHref,
         ci: context.ci,
         executor,
         runSummary,

@@ -1,7 +1,7 @@
 import { type AllureChartsStoreData, ChartType } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult } from "@allurereport/core-api";
 import { epic, feature, story } from "allure-js-commons";
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vite-plus/test";
 
 import { coverageDiffTreeMapAccessor } from "../../src/charts/accessors/coverageDiffTreeMapAccessor.js";
 import { generateStatusAgePyramid } from "../../src/charts/generateStatusAgePyramid.js";

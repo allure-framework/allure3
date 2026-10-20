@@ -7,7 +7,6 @@ import { useTheme } from "@/components/ThemeProvider/index.js";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config.js";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import { getColorScale } from "../utils.js";
-import { Cell } from "./Cell.js";
 import {
   DEFAULT_HEAT_MAP_EMPTY_ARIA_LABEL,
   DEFAULT_HEAT_MAP_EMPTY_LABEL,

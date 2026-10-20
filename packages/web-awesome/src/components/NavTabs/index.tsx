@@ -1,4 +1,4 @@
-import { Text } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components/core";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
 
@@ -44,7 +44,7 @@ export const NavTab = (props: {
   "isCurrentTab"?: boolean;
 }) => {
   const { currentTab, setCurrentTab } = useNavTabsContext();
-  const { id, children, onClick, "data-testid": dataTestId, isCurrentTab: overrideIsCurrentTab } = props;
+  const { id, children, onClick, "data-testid": dataTestId, "isCurrentTab": overrideIsCurrentTab } = props;
   const isCurrentTab = overrideIsCurrentTab !== undefined ? overrideIsCurrentTab : currentTab === id;
   const handleTabClick = () => {
     if (onClick) {

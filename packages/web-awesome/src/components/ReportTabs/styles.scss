@@ -18,12 +18,8 @@
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
-  transform: scale(1);
-  outline-offset: 1px;
-  outline: 1px solid transparent;
+  outline: none;
   transition:
-    transform var(--interaction-transition-duration) ease-out,
-    outline var(--interaction-transition-duration) ease-out,
     background-color var(--color-change-transition-duration),
     border-color var(--color-change-transition-duration);
 
@@ -39,18 +35,20 @@
 
   &:active:not([aria-current]) {
     background-color: var(--color-control-bg-ghost-active);
-    transform: scale(0.94);
   }
 
-  &:focus {
-    outline: 1px solid transparent;
-  }
-
+  // no outline around the tab, the focus from the keyboard is shown with the background,
+  // the current tab has a background of its own, so its border gets stronger
+  &:focus,
   &:focus-visible {
-    outline: 1px solid var(--color-focus-ring);
+    outline: none;
+  }
 
-    &:not([aria-current]) {
-      background-color: var(--color-control-bg-ghost-hover);
-    }
+  &:focus-visible:not([aria-current]) {
+    background-color: var(--color-control-bg-ghost-hover);
+  }
+
+  &[aria-current]:focus-visible {
+    border-color: var(--color-border-strong);
   }
 }

@@ -12,8 +12,8 @@ import MetricsPlugin from "@allurereport/plugin-metrics";
 import { BufferResultFile, PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Attachment, epic, feature, label, step, story } from "allure-js-commons";
-import type { Mock, Mocked } from "vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock, Mocked } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
@@ -186,6 +186,91 @@ describe("report", () => {
     expect(registryEntry).not.toHaveProperty("attachments");
     expect(registryEntry).not.toHaveProperty("error");
     await expect(readFile(join(output, "index.html"), "utf8")).resolves.toBe("index");
+  });
+
+  describe("overview link", () => {
+    const summary = {
+      name: "Summary",
+      stats: { total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 },
+      status: "passed",
+      duration: 0,
+    } as const;
+    const overviewHref = "../index.html";
+    type TestPlugin = ReturnType<typeof createPlugin>;
+
+    const collectOverviewHrefs = async (plugins: TestPlugin[], options: { realTime?: boolean } = {}) => {
+      const output = await mkdtemp(join(tmpdir(), "allure3-overview-href-"));
+      const config = await resolveConfig({ name: "Allure Report", output });
+      const hrefs: Record<string, string | undefined> = {};
+
+      config.plugins = plugins;
+      plugins.forEach(({ id, plugin }) => {
+        (plugin.done as Mock).mockImplementation(async (context) => {
+          hrefs[id] = context.overviewHref;
+          await context.reportFiles.addFile("index.html", Buffer.from(id));
+        });
+      });
+
+      const allureReport = new AllureReport({ ...config, ...options });
+
+      await allureReport.start();
+      await allureReport.done();
+
+      return hrefs;
+    };
+    const withSummary = (plugin: TestPlugin, override: Record<string, unknown> = {}) => {
+      (plugin.plugin.info as Mock).mockResolvedValue({ ...summary, ...override });
+
+      return plugin;
+    };
+
+    it("should pass the overview link to every plugin when at least two plugins generate a report", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), withSummary(createPlugin("p2"))]);
+
+      expect(hrefs).toStrictEqual({ p1: overviewHref, p2: overviewHref });
+    });
+
+    it("should not pass the overview link when only one plugin provides a summary", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), createPlugin("p2")]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
+
+    it("should not pass the overview link when plugins have no info method", async () => {
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+
+      delete (p1.plugin as Partial<typeof p1.plugin>).info;
+      delete (p2.plugin as Partial<typeof p2.plugin>).info;
+
+      const hrefs = await collectOverviewHrefs([p1, p2]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
+
+    it("should count the summaries that point to a remote report, they get a directory and the overview is written", async () => {
+      const hrefs = await collectOverviewHrefs([
+        withSummary(createPlugin("p1")),
+        withSummary(createPlugin("remote"), { remoteHref: "https://example.org/launch/1" }),
+      ]);
+
+      expect(hrefs).toStrictEqual({ p1: overviewHref, remote: overviewHref });
+    });
+
+    it("should not count the plugins that are disabled", async () => {
+      const disabled = withSummary(createPlugin("p2", false));
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), disabled]);
+
+      expect(hrefs).toStrictEqual({ p1: undefined });
+    });
+
+    it("should not pass the overview link in the real time mode, the overview is written when the report is done", async () => {
+      const hrefs = await collectOverviewHrefs([withSummary(createPlugin("p1")), withSummary(createPlugin("p2"))], {
+        realTime: true,
+      });
+
+      expect(hrefs).toStrictEqual({ p1: undefined, p2: undefined });
+    });
   });
 
   describe("flattening of the output directory", () => {

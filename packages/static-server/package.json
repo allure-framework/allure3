@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
@@ -26,10 +26,10 @@
     "clean": "rimraf ./dist",
     "pretest": "rimraf ./out && playwright install chromium",
     "test": "run-p 'test:*'",
-    "test:unit": "vitest run",
+    "test:unit": "vp test run",
     "test:e2e": "playwright test",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/directory-watcher": "workspace:*",
@@ -39,9 +39,9 @@
     "@allurereport/test-config": "workspace:*",
     "@playwright/test": "^1.62.1",
     "@types/node": "^20",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
-    "@vitest/snapshot": "^5.0.1",
+    "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3",
     "allure-playwright": "^3.10.2",
     "allure-vitest": "^3",
@@ -50,6 +50,8 @@
     "npm-run-all2": "^7.0.1",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -43,7 +43,7 @@ import Handlebars from "handlebars";
 
 import { matchCategories } from "./categories.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
+import type { ClassicCategory, ClassicOptions } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -91,12 +91,6 @@ const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Pro
   for (let i = 0; i < items.length; i += concurrency) {
     await Promise.all(items.slice(i, i + concurrency).map(write));
   }
-};
-
-export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
 };
 
 const createBreadcrumbs = (convertedTr: ReportTestResult) => {
@@ -287,6 +281,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
@@ -299,6 +294,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -348,6 +344,7 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     allureVersion,
     cacheKey: now.toString(),
+    overviewHref,
   };
 
   try {

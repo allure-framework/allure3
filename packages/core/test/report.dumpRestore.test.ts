@@ -12,7 +12,7 @@ import { AllureStoreDumpFiles, md5 } from "@allurereport/plugin-api";
 import { PathResultFile, type RawTestResult } from "@allurereport/reader-api";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
 import ZipReadStream from "node-stream-zip";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import ZipWriteStream from "zip-stream";
 
 import { resolveConfig } from "../src/index.js";

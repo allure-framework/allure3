@@ -99,6 +99,7 @@
     "at": "vid"
   },
   "controls": {
+    "backToOverview": "Tillbaka till översikten",
     "newTabAttachment": "Öppna bilaga i ny flik",
     "nextTR": "Nästa testresultat",
     "prevTR": "Föregående testresultat",

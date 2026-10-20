@@ -1,4 +1,4 @@
-import { allureIcons } from "@allurereport/web-components";
+import { allureIcons } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ReportTestResult } from "types";

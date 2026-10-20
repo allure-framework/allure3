@@ -2,7 +2,7 @@ import type { AllureChartsStoreData } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 import { attachment, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createSuccessRateDistributionTreeMap } from "../../src/charts/accessors/successRateDistributionTreeMapAccessor.js";
 import { getPieChartValues } from "../../src/charts/d3pie.js";

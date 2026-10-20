@@ -1,5 +1,5 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
-import { Button, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Button, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 
 import { MetadataButton } from "@/components/MetadataButton";

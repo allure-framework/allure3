@@ -20,7 +20,7 @@ import {
 import { generateCharts } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
-import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
+import type { DashboardOptions, DashboardPluginOptions } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -62,12 +62,6 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
-export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
-};
-
 export const generateAllCharts = async (
   writer: DashboardDataWriter,
   store: AllureStore,
@@ -97,6 +91,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
   },
 ) => {
   const {
@@ -108,6 +103,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    overviewHref,
   } = payload;
   const compile = Handlebars.compile(template);
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
@@ -155,6 +151,7 @@ export const generateStaticFiles = async (
     createdAt: Date.now(),
     reportUuid,
     allureVersion,
+    overviewHref,
   };
 
   try {

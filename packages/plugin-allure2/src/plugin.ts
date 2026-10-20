@@ -141,6 +141,7 @@ export class Allure2Plugin implements Plugin {
       reportFiles: context.reportFiles,
       reportDataFiles,
       reportUuid: context.reportUuid,
+      overviewHref: context.overviewHref,
     });
   };
 

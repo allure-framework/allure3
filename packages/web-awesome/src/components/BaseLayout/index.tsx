@@ -1,4 +1,5 @@
-import { Loadable, PageLoader } from "@allurereport/web-components";
+import { Loadable, PageLoader } from "@allurereport/web-components/core";
+import clsx from "clsx";
 
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
@@ -9,10 +10,6 @@ import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
-
-export type BaseLayoutProps = {
-  testResultId?: string;
-};
 
 export const BaseLayout = () => {
   const matches = testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId);
@@ -51,7 +48,7 @@ export const BaseLayout = () => {
 
   return (
     <div
-      className={styles.layout}
+      className={clsx(styles.layout, styles["layout-card"])}
       data-testid="base-layout"
       data-tree-scroll-container
       onMouseDown={() => focusTreePane()}

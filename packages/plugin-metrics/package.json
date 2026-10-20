@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-metrics",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Allure Prometheus and InfluxDB metrics export",
   "keywords": [
     "allure",
@@ -27,9 +27,9 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vitest run",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "test": "rimraf ./out && vp test run",
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
@@ -42,6 +42,8 @@
     "allure-vitest": "^3",
     "rimraf": "^6",
     "typescript": "^5",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

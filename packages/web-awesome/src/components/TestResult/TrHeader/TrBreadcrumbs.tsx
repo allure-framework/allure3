@@ -1,4 +1,13 @@
-import { Button, IconButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import {
+  Button,
+  IconButton,
+  Menu,
+  SvgIcon,
+  Text,
+  TooltipWrapper,
+  allureIcons,
+  useElementTruncation,
+} from "@allurereport/web-components/core";
 import clsx from "clsx";
 import { Fragment } from "preact";
 import { useEffect, useRef } from "preact/hooks";
@@ -20,6 +29,53 @@ interface TrBreadcrumbs {
 const MAX_VISIBLE_BREADCRUMBS = 4;
 const TRAILING_BREADCRUMBS = 2;
 const HOVER_CLOSE_DELAY = 300;
+
+// the wrappers of the tooltip stay in place for the labels that fit, so the layout doesn't change when a label starts to be truncated
+const BreadcrumbButton = ({ text, onClick }: { text: string; onClick: () => void }) => {
+  const { ref, isTruncated } = useElementTruncation<HTMLSpanElement>([text]);
+
+  return (
+    <TooltipWrapper
+      tooltipText={text}
+      placement={"bottom"}
+      isTriggerActive={isTruncated}
+      className={styles["test-result-breadcrumb-tooltip"]}
+      triggerClassName={styles["test-result-breadcrumb-tooltip"]}
+    >
+      <Button
+        type={"button"}
+        size={"s"}
+        style={"ghost"}
+        text={text}
+        textRef={ref}
+        isTextTruncated
+        className={styles["test-result-breadcrumb-button"]}
+        data-testid={"test-result-breadcrumb-button"}
+        onClick={onClick}
+      />
+    </TooltipWrapper>
+  );
+};
+
+const BreadcrumbTitle = ({ text }: { text: string }) => {
+  const { ref, isTruncated } = useElementTruncation<HTMLSpanElement>([text]);
+
+  return (
+    <TooltipWrapper
+      tooltipText={text}
+      placement={"bottom"}
+      isTriggerActive={isTruncated}
+      className={styles["test-result-breadcrumb-tooltip"]}
+      triggerClassName={styles["test-result-breadcrumb-tooltip"]}
+    >
+      <span ref={ref} className={styles["test-result-breadcrumb-title"]}>
+        <Text size={"s"} bold>
+          {text}
+        </Text>
+      </span>
+    </TooltipWrapper>
+  );
+};
 
 export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
   const { t } = useI18n("ui");
@@ -92,15 +148,7 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
         <Fragment key={nodeId}>
           <div className={styles["test-result-breadcrumb"]}>
             {breadcrumbArrow}
-            <Button
-              type={"button"}
-              size={"s"}
-              style={"ghost"}
-              text={groupName}
-              className={styles["test-result-breadcrumb-button"]}
-              data-testid={"test-result-breadcrumb-button"}
-              onClick={() => navigateToGroup(index)}
-            />
+            <BreadcrumbButton text={groupName} onClick={() => navigateToGroup(index)} />
           </div>
           {isCollapsed && position === 0 && (
             <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-breadcrumb-more"])}>
@@ -149,16 +197,12 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
       {fallbackBreadcrumbs.map((item, key) => (
         <div className={styles["test-result-breadcrumb"]} key={key}>
           {breadcrumbArrow}
-          <Text size={"s"} bold className={styles["test-result-breadcrumb-title"]}>
-            {item}
-          </Text>
+          <BreadcrumbTitle text={item} />
         </div>
       ))}
       <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-breadcrumb-name"])}>
         {name && breadcrumbArrow}
-        <Text size={"s"} bold className={styles["test-result-breadcrumb-title"]}>
-          {name}
-        </Text>
+        {name && <BreadcrumbTitle text={name} />}
       </div>
     </nav>
   );

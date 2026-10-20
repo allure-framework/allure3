@@ -19,6 +19,7 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GhWorkflowCommand,
   GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
@@ -36,6 +37,7 @@ import {
   isAgentTaskMapHelpRequest,
 } from "./commands/index.js";
 import { ALLURE2_MIGRATE_REMINDER, getAllure2Hint } from "./utils/allure2Hints.js";
+import { notifyAboutUpdate, parseUpdateNotifierArgs } from "./utils/updateNotifier.js";
 import { applyVerbosity, extractVerbosityFlags } from "./utils/verbosity.js";
 
 const [node, app, ...rawArgs] = argv;
@@ -64,6 +66,7 @@ cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);
 cli.register(GenerateCommand);
+cli.register(GhWorkflowCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
 cli.register(LogCommand);
@@ -93,9 +96,11 @@ const printAllure2Hint = (args: string[]) => {
 };
 
 const main = async () => {
-  const { args, verbosity } = extractVerbosityFlags(rawArgs);
+  const { args: notifierArgs, disabled } = parseUpdateNotifierArgs(rawArgs);
+  const { args, verbosity } = extractVerbosityFlags(notifierArgs);
 
   applyVerbosity(verbosity);
+  void notifyAboutUpdate(args, disabled || verbosity === "quiet");
 
   const exitCode = await cli.run(args);
 

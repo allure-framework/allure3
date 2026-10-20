@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -34,7 +34,7 @@ const setup = async (timelineData: TimelineTestResult[]) => {
   });
   const fetchTimelineData = vi.fn();
 
-  vi.doMock("@allurereport/web-components", () => ({
+  const mockComponents = () => ({
     Timeline: ({ data, dataId }: { data: TimelineTestResult[]; dataId: string }) => (
       <div data-testid={`timeline-${dataId}`}>{data.map(({ id }) => id).join(",")}</div>
     ),
@@ -43,7 +43,10 @@ const setup = async (timelineData: TimelineTestResult[]) => {
     Loadable: ({ renderData }: { renderData: () => any }) => renderData(),
     PageLoader: () => <div>loading</div>,
     Widget: ({ children }: { children: unknown }) => <div>{children as any}</div>,
-  }));
+  });
+  vi.doMock("@allurereport/web-components/core", mockComponents);
+  vi.doMock("@allurereport/web-components/Grid", mockComponents);
+  vi.doMock("@allurereport/web-components/Timeline", mockComponents);
   vi.doMock("@/stores", () => ({
     useI18n: () => ({
       t: (key: string, params?: Record<string, string>) => (key === "host" ? `host:${params?.host}` : key),

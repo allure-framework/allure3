@@ -1,6 +1,6 @@
 import { render } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -21,7 +21,7 @@ vi.mock("@/components/ReportFilters/BaseFilters", () => ({
   },
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   allureIcons: new Proxy({} as Record<string, string>, {
     get: (_target, key) => String(key),
   }),

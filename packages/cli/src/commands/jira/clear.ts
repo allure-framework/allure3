@@ -98,7 +98,7 @@ export class JiraClearCommand extends BaseJiraCommand {
         this.context.stdout.write(
           green("All reports and test results have been unlinked from the specified Jira issue"),
         );
-      } catch (error) {
+      } catch {
         this.context.stderr.write(red("Failed to unlink reports and test results from the specified Jira issue"));
         exit(1);
       }
@@ -108,7 +108,7 @@ export class JiraClearCommand extends BaseJiraCommand {
       try {
         await jiraPlugin.clearReports(this.issues);
         this.context.stdout.write(green("All reports have been unlinked from the specified Jira issue"));
-      } catch (error) {
+      } catch {
         this.context.stderr.write(red("Failed to unlink reports from the specified Jira issue"));
         exit(1);
       }
@@ -118,7 +118,7 @@ export class JiraClearCommand extends BaseJiraCommand {
       try {
         await jiraPlugin.clearResults(this.issues);
         this.context.stdout.write(green("All test results have been unlinked from the specified Jira issue"));
-      } catch (error) {
+      } catch {
         this.context.stderr.write(red("Failed to unlink test results from the specified Jira issue"));
         exit(1);
       }

@@ -1,5 +1,5 @@
 import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
-import { Loadable } from "@allurereport/web-components";
+import { Loadable } from "@allurereport/web-components/core";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { ReportTestResult } from "types";

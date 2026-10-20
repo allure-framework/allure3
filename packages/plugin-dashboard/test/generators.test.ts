@@ -1,6 +1,6 @@
 import type { AllureStore, ReportFiles } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generateEnvirontmentsList, generateStaticFiles } from "../src/generators.js";
 import type { DashboardDataWriter } from "../src/writer.js";
@@ -41,6 +41,35 @@ describe("generateStaticFiles", () => {
 
     expect(scriptFile).toBeDefined();
     expect(indexHtml).toContain(`src="${scriptFile}"`);
+  });
+
+  it("should pass the link to the root overview to the report options", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({
+      allureVersion: "1.0.0",
+      reportDataFiles: [],
+      reportFiles,
+      reportName: "Test report",
+      reportUuid: "report-uuid",
+      overviewHref: "../index.html",
+    });
+
+    expect(files.get("index.html")?.toString("utf8")).toContain('"overviewHref":"../index.html"');
+  });
+
+  it("should not add the overview link to the report options when there is no overview", async () => {
+    const { files, reportFiles } = createReportFiles();
+
+    await generateStaticFiles({
+      allureVersion: "1.0.0",
+      reportDataFiles: [],
+      reportFiles,
+      reportName: "Test report",
+      reportUuid: "report-uuid",
+    });
+
+    expect(files.get("index.html")?.toString("utf8")).not.toContain("overviewHref");
   });
 
   it("should embed the packaged bundle for single-file reports", async () => {

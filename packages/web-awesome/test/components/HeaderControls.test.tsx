@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/preact";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { HeaderControls } from "@/components/HeaderControls";
 
@@ -11,7 +11,7 @@ vi.mock("@/components/ToggleLayout", () => ({
   default: () => <div data-testid="toggle-layout" />,
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   ThemeButton: () => <button data-testid="theme-button" type="button" />,
   LanguagePicker: () => <button data-testid="language-picker" type="button" />,
 }));

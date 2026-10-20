@@ -1,5 +1,5 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { ReportLogo } from "@allurereport/web-components";
+import { ReportLogo } from "@allurereport/web-components/core";
 
 import type { ReportOptions } from "../../../types";
 

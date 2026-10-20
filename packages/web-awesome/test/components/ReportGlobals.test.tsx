@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -25,7 +25,7 @@ const setupGlobalsComponent = async (data: Record<string, unknown>, selectedEnvi
     data,
   });
 
-  vi.doMock("@allurereport/web-components", () => ({
+  vi.doMock("@allurereport/web-components/core", () => ({
     Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>
       renderData(source.value.data),
   }));

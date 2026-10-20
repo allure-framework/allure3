@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/preact";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { Footer } from "@/components/Footer";
 
@@ -7,7 +7,7 @@ vi.mock("@/components/Footer/FooterLogo", () => ({
   FooterLogo: () => <div data-testid="footer-logo" />,
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   LanguagePicker: () => <div data-testid="footer-language-picker" />,
 }));
 

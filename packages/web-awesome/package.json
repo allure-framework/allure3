@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "private": true,
   "description": "The static files for Allure Awesome Report",
   "keywords": [
@@ -26,10 +26,10 @@
     "build:dev": "run-s clean build:dev:multi",
     "build:prod:multi": "webpack --mode production",
     "build:dev:multi": "webpack --mode development",
-    "lint": "oxlint --import-plugin src test features stories",
-    "test": "vitest run",
+    "lint": "vp lint --import-plugin src test features stories",
+    "test": "vp test run",
     "test:unit": "yarn test",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
     "@allurereport/charts-api": "workspace:*",
@@ -54,9 +54,9 @@
     "@types/md5": "^2.3.6",
     "@types/node": "^20",
     "@types/prismjs": "^1.26.6",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^3.2.4",
-    "@vitest/snapshot": "^5.0.1",
+    "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "autoprefixer": "^10.4.20",
@@ -84,8 +84,9 @@
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.6.1",
     "typescript": "^5",
-    "vite": "^8.0.9",
-    "vitest": "^4.1.0",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:",
     "webpack": "^5",
     "webpack-cli": "^7",
     "webpack-dev-server": "^5",

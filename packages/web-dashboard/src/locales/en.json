@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Back to overview"
+  },
   "statuses": {
     "passed": "Passed",
     "failed": "Failed",

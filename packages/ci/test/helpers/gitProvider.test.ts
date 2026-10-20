@@ -1,5 +1,5 @@
 import { GitProvider } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import {
   inferGitProviderFromUrl,

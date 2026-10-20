@@ -4,8 +4,8 @@ import { join, resolve } from "node:path";
 import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
 import type { Config, PluginConstructorContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { MockInstance } from "vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { MockInstance } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { FullConfig } from "../src/api.js";
 import {
@@ -36,6 +36,40 @@ beforeEach(async () => {
   await story("config");
   await label("coverage", "report-config");
   (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
+});
+
+describe("flaky detection configuration", () => {
+  it.each([1, 5])("preserves stabilizationPeriod=%s", async (stabilizationPeriod) => {
+    const input = { flakyDetection: { stabilizationPeriod } };
+
+    const config = await resolveConfig(input, { plugins: {} });
+
+    expect(config.flakyDetection?.stabilizationPeriod).toBe(stabilizationPeriod);
+  });
+  it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects stabilizationPeriod=%s",
+    async (stabilizationPeriod) => {
+      const input = { flakyDetection: { stabilizationPeriod } };
+
+      const resolution = resolveConfig(input, { plugins: {} });
+
+      await expect(resolution).rejects.toThrow("flakyDetection.stabilizationPeriod");
+    },
+  );
+  it.each([-2, 1.5, Number.NaN, Number.POSITIVE_INFINITY])("rejects historyDepth=%s", async (historyDepth) => {
+    const input = { flakyDetection: { historyDepth } };
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.historyDepth");
+  });
+  it("rejects a non-boolean includePassedTests", async () => {
+    const input = { flakyDetection: { includePassedTests: "true" } } as unknown as Config;
+
+    const resolution = resolveConfig(input, { plugins: {} });
+
+    await expect(resolution).rejects.toThrow("flakyDetection.includePassedTests");
+  });
 });
 
 describe("findConfig", () => {

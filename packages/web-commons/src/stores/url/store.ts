@@ -64,7 +64,3 @@ export const currentUrl = computed(() => {
 export const getParamValue = (key: string) => urlSearchParams.value.get(key);
 export const getParamValues = (key: string) => urlSearchParams.value.getAll(key);
 export const hasParam = (key: string) => urlSearchParams.value.has(key);
-
-export const getParamValueComputed = (key: string) => computed(() => getParamValue(key));
-export const getParamValuesComputed = (key: string) => computed(() => getParamValues(key));
-export const hasParamComputed = (key: string) => computed(() => hasParam(key));

@@ -1,0 +1,51 @@
+{
+  "name": "@allurereport/plugin-xray",
+  "version": "3.21.0",
+  "description": "Allure Plugin to export test statuses to Xray (Jira Server/Data Center)",
+  "keywords": [
+    "allure",
+    "jira",
+    "plugin",
+    "report",
+    "testing",
+    "xray"
+  ],
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "files": [
+    "./dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "test": "rimraf ./out && vitest run",
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
+  },
+  "dependencies": {
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "axios": "^1.20.0"
+  },
+  "devDependencies": {
+    "@allurereport/test-config": "workspace:*",
+    "@types/node": "^20",
+    "@vitest/coverage-istanbul": "catalog:",
+    "@vitest/runner": "^2",
+    "allure-js-commons": "^3",
+    "allure-vitest": "^3",
+    "rimraf": "^6",
+    "typescript": "^5",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Повернутися до огляду"
+  },
   "statuses": {
     "passed": "Успішний",
     "failed": "Неуспішний",

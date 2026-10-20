@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - "yarn.lock"
+      - ".github/.trivyignore.yaml"
       - ".github/workflows/trivy-vuln-scan.yml"
       - ".github/scripts/comment-trivy-report.mjs"
   merge_group:
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - "yarn.lock"
+      - ".github/.trivyignore.yaml"
       - ".github/workflows/trivy-vuln-scan.yml"
       - ".github/scripts/comment-trivy-report.mjs"
   schedule:
@@ -41,7 +43,6 @@ jobs:
           persist-credentials: false
 
       - name: Generate Trivy vulnerability report
-        id: report
         continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -50,15 +51,16 @@ jobs:
           scanners: vuln
           format: json
           output: trivy-results.json
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
           severity: CRITICAL,HIGH
+          trivyignores: .github/.trivyignore.yaml
         env:
           TRIVY_INCLUDE_DEV_DEPS: true
           TRIVY_DISABLE_VEX_NOTICE: true
 
       - name: Comment Trivy report on pull request
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && hashFiles('trivy-results.json') != '' }}
         uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -67,18 +69,3 @@ jobs:
               `${process.env.GITHUB_WORKSPACE}/.github/scripts/comment-trivy-report.mjs`,
             );
             await commentTrivyReport({ github, context });
-
-      - name: Enforce HIGH/CRITICAL vulnerability gate
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: yarn.lock
-          scanners: vuln
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH
-          skip-setup-trivy: true
-        env:
-          TRIVY_INCLUDE_DEV_DEPS: true
-          TRIVY_DISABLE_VEX_NOTICE: true

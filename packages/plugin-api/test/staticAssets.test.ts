@@ -6,7 +6,7 @@ import { pipeline } from "node:stream/promises";
 
 import { epic, feature, label, story } from "allure-js-commons";
 import { pack } from "tar-stream";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createReportStaticArchive } from "../src/packStaticAssets.js";
 import { readReportStaticAssets } from "../src/staticAssets.js";
@@ -77,6 +77,18 @@ describe("report static archives", () => {
     await expect(createReportStaticArchive(sourceDir, join(fixtureRoot, "report.tar"))).rejects.toThrow(
       "unexpected asset: 123.app.js",
     );
+  });
+
+  it("packs additional runtime chunks for multi-file reports", async () => {
+    const sourceDir = await createFixtureBuild();
+    const archivePath = join(fixtureRoot, "report.tar");
+
+    await writeFile(join(sourceDir, "123.app.js"), "chunk");
+    await createReportStaticArchive(sourceDir, archivePath, { singleFileCompatible: false });
+
+    const assets = await readReportStaticAssets(archivePath);
+
+    expect(assets.files.get("123.app.js")?.toString("utf8")).toBe("chunk");
   });
 
   it("rejects unsafe archive paths before exposing their contents", async () => {

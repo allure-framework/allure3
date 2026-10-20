@@ -1,11 +1,9 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { copyToClipboard } from "@allurereport/web-commons";
-import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 
-import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
 import { getTagsFilterUrl } from "@/stores/treeFilters/utils";
@@ -43,18 +41,6 @@ export const TrMetadataList: FunctionalComponent<MetadataProps> = ({ groupedLabe
   );
 };
 
-export const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo }) => {
-  const { t } = useI18n("ui");
-  const [isOpened, setIsOpen] = useState(true);
-
-  return (
-    <div class={styles["report-metadata"]}>
-      <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={envInfo.length} title={t("metadata")} />
-      {isOpened && <MetadataList envInfo={envInfo} />}
-    </div>
-  );
-};
-
 const OpenFilterUrlButton: FunctionalComponent<{ url: string }> = ({ url }) => {
   const { t } = useI18n("filters");
 
@@ -65,6 +51,20 @@ const OpenFilterUrlButton: FunctionalComponent<{ url: string }> = ({ url }) => {
       style="ghost"
       icon={allureIcons.lineGeneralLinkExternal}
       text={t("goto_filter")}
+    />
+  );
+};
+
+const OpenLinkButton: FunctionalComponent<{ url: string }> = ({ url }) => {
+  const { t } = useI18n("ui");
+
+  return (
+    <ButtonLink
+      href={url}
+      target="_blank"
+      style="ghost"
+      icon={allureIcons.lineGeneralLinkExternal}
+      text={t("open-link")}
     />
   );
 };
@@ -112,8 +112,8 @@ const OwnerAction = (props: { ownerValue: string }) => {
   }
 };
 
-const MetadataTooltip = (props: { value: string; name: string }) => {
-  const { value, name } = props;
+const MetadataTooltip = (props: { value: string; name: string; url?: string }) => {
+  const { value, name, url } = props;
   const { t } = useI18n("ui");
 
   return (
@@ -123,6 +123,15 @@ const MetadataTooltip = (props: { value: string; name: string }) => {
       </div>
       {name === "tag" && <OpenFilterUrlButton url={getTagsFilterUrl([value])} />}
       {name === "owner" && <OwnerAction ownerValue={value} />}
+      {url && <OpenLinkButton url={url} />}
+      {url && (
+        <Button
+          style={"outline"}
+          icon={allureIcons.lineGeneralCopy3}
+          text={t("copy-link")}
+          onClick={() => copyToClipboard(url)}
+        />
+      )}
       <Button
         style={"outline"}
         icon={allureIcons.lineGeneralCopy3}
@@ -170,35 +179,38 @@ const MetaDataKeyLabel: FunctionalComponent<{
 
   const safeUrl = sanitizeExternalUrl(url);
 
-  if (safeUrl) {
-    return (
-      <a
-        className={clsx(styles["report-metadata-keyvalue-wrapper"], styles["report-metadata-keyvalue-link"])}
-        href={safeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Text type={"ui"} size={size} bold className={styles["report-metadata-keyvalue-value"]}>
-          {value}
-        </Text>
-        <SvgIcon id={allureIcons.lineGeneralLinkExternal} size="s" />
-      </a>
-    );
-  }
-
   return (
     <Menu
       size="xl"
-      menuTrigger={({ onClick }) => (
-        <div className={styles["report-metadata-keyvalue-wrapper"]}>
-          <Text type={"ui"} size={size} onClick={onClick} bold className={styles["report-metadata-keyvalue-value"]}>
-            {value}
-          </Text>
-        </div>
-      )}
+      menuTrigger={({ onClick }) =>
+        safeUrl ? (
+          // a link used to be here, so the value stays a focusable control and the whole pill, including the icon, is clickable
+          <button
+            type={"button"}
+            className={clsx(styles["report-metadata-keyvalue-wrapper"], styles["report-metadata-keyvalue-link"])}
+            onClick={onClick}
+            data-testid={"metadata-link-trigger"}
+          >
+            <Text type={"ui"} size={size} bold className={styles["report-metadata-keyvalue-value"]}>
+              {value}
+            </Text>
+            <SvgIcon
+              id={allureIcons.lineGeneralLinkExternal}
+              size="s"
+              className={styles["report-metadata-keyvalue-link-icon"]}
+            />
+          </button>
+        ) : (
+          <div className={styles["report-metadata-keyvalue-wrapper"]}>
+            <Text type={"ui"} size={size} onClick={onClick} bold className={styles["report-metadata-keyvalue-value"]}>
+              {value}
+            </Text>
+          </div>
+        )
+      }
     >
       <Menu.Section>
-        <MetadataTooltip value={value} name={name} />
+        <MetadataTooltip value={value} name={name} url={safeUrl} />
       </Menu.Section>
     </Menu>
   );

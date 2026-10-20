@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesItem";
 
 import type { ReportTestResult } from "../../../types";
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   ArrowButton: () => <button data-testid="test-result-retries-item-arrow-button" type="button" />,
   IconButton: (props: { "onClick": () => void; "data-testid"?: string }) => (
     <button data-testid={props["data-testid"]} type="button" onClick={props.onClick} />

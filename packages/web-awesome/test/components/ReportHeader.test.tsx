@@ -1,6 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { render, screen } from "@testing-library/preact";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportHeader } from "@/components/ReportHeader";
 
@@ -9,7 +9,7 @@ vi.mock("@allurereport/web-commons", async (importOriginal) => ({
   getReportOptions: vi.fn(),
 }));
 
-vi.mock("@allurereport/web-components", () => ({
+vi.mock("@allurereport/web-components/core", () => ({
   Heading: (props: { children: string }) => <h2>{props.children}</h2>,
   Loadable: (props: { renderData: (data: unknown) => unknown }) => props.renderData({}),
   Text: (props: { "children": unknown; "data-testid"?: string }) => (

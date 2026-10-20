@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { FileSystemReportFiles } from "../../src/plugin.js";
 import {

@@ -74,7 +74,8 @@ import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { AwesomeOptions, TemplateManifest } from "./model.js";
+import type { AwesomeOptions } from "./model.js";
+import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -119,12 +120,6 @@ const template = `<!DOCTYPE html>
 `;
 
 const compiledTemplate = Handlebars.compile(template);
-
-export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
-};
 
 const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
@@ -799,6 +794,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    overviewHref?: string;
     executor?: ReportExecutorInfo;
     runSummary?: ReportRunSummary;
     runSummaryByEnv?: Record<string, ReportRunSummary>;
@@ -823,6 +819,7 @@ export const generateStaticFiles = async (
     runSummaryByEnv,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
@@ -858,9 +855,7 @@ export const generateStaticFiles = async (
       headTags.push(createStylesLinkTag(`data:text/css;base64,${mainCssContent.toString("base64")}`));
     }
 
-    const mainJsContent = getReportStaticAsset(staticAssets, mainJs);
-
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
+    bodyTags.push(createSingleFileScripts(staticAssets.files, mainJs));
   }
 
   const now = Date.now();
@@ -884,6 +879,7 @@ export const generateStaticFiles = async (
     defaultSection,
     stepTreeExpansion,
     defaultSortBy,
+    overviewHref,
   };
 
   try {

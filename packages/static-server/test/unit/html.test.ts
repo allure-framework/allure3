@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { layer, story } from "allure-js-commons";
 import axios, { type AxiosError } from "axios";
 import getPort from "get-port";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { type AllureStaticServer, serve } from "../../src/index.js";
 
@@ -14,6 +14,10 @@ beforeEach(async () => {
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const servePath = join(baseDir, "fixtures");
+
+// the reload id contains the id of the server instance, which differs on every run
+const withoutReloadId = (html: string) =>
+  html.replace(/let lastReloadId = "[^"]*";/, 'let lastReloadId = "<reload-id>";');
 
 let server: AllureStaticServer;
 let port: number;
@@ -49,7 +53,7 @@ it("returns index.html file by the full path", async () => {
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns index.html when an url ends with /, when the file exists", async () => {
@@ -62,7 +66,7 @@ it("returns index.html when an url ends with /, when the file exists", async () 
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns page with available files when an url ends with / and index.html doesn't exist", async () => {
@@ -75,7 +79,7 @@ it("returns page with available files when an url ends with / and index.html doe
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns page with available files when an url ends with / asd", async () => {
@@ -88,7 +92,7 @@ it("returns page with available files when an url ends with / asd", async () => 
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns index.html when an url ends just with word without file extension", async () => {
@@ -101,7 +105,7 @@ it("returns index.html when an url ends just with word without file extension", 
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns nested/index.html file by the full path", async () => {
@@ -114,7 +118,7 @@ it("returns nested/index.html file by the full path", async () => {
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns nested/index.html when an url ends with /", async () => {
@@ -127,7 +131,7 @@ it("returns nested/index.html when an url ends with /", async () => {
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 it("returns nested/index.html when an url ends just with word without file extension", async () => {
@@ -140,7 +144,7 @@ it("returns nested/index.html when an url ends just with word without file exten
   });
 
   expect(res.status).toBe(200);
-  expect(res.data).toMatchSnapshot();
+  expect(withoutReloadId(res.data)).toMatchSnapshot();
 });
 
 describe("live", () => {
@@ -154,7 +158,24 @@ describe("live", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(res.data).toMatchSnapshot();
+    expect(withoutReloadId(res.data)).toMatchSnapshot();
+  });
+
+  it("gives the pages of different server instances different reload ids", async () => {
+    const getReloadId = async (instancePort: number) => {
+      const res = await axios.get(`http://localhost:${instancePort}/index.html`, { timeout: 500 });
+
+      return (res.data as string).match(/let lastReloadId = "([^"]*)";/)?.[1];
+    };
+    const secondPort = await getPort();
+    const first = await serve({ port, servePath, live: true });
+    const second = await serve({ port: secondPort, servePath, live: true });
+    const [firstId, secondId] = await Promise.all([getReloadId(port), getReloadId(secondPort)]);
+
+    await Promise.all([first.stop(), second.stop()]);
+
+    expect(firstId).toBeTruthy();
+    expect(firstId).not.toEqual(secondId);
   });
 
   it("doesn't inject live reload script to html with attachment query parameter", async () => {
@@ -167,6 +188,6 @@ describe("live", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(res.data).toMatchSnapshot();
+    expect(withoutReloadId(res.data)).toMatchSnapshot();
   });
 });

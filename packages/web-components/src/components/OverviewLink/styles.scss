@@ -1,0 +1,11 @@
+// the wrappers of the tooltip must be able to shrink together with the link, so its label can be truncated,
+// but never below the width of the icon with the paddings of the button
+.wrapper,
+.trigger {
+  min-width: 1.75rem;
+  max-width: 100%;
+}
+
+.link {
+  max-width: 100%;
+}

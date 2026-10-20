@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/directory-watcher",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "File system watcher for directories",
   "keywords": [
     "allure",
@@ -25,10 +25,10 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "pretest": "rimraf ./out",
-    "test": "rimraf ./out && vitest run",
+    "test": "rimraf ./out && vp test run",
     "test:unit": "yarn test",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "chokidar": "^5.0.0"
@@ -36,13 +36,15 @@
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",
     "@types/node": "^20",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "ts-node": "^10.9.2",
     "typescript": "^5",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

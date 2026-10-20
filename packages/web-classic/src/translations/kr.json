@@ -99,6 +99,7 @@
     "at": "에서"
   },
   "controls": {
+    "backToOverview": "개요로 돌아가기",
     "newTabAttachment": "첨부파일을 새 탭에서 열기",
     "nextTR": "다음 테스트 결과",
     "prevTR": "이전 테스트 결과",

@@ -1,6 +1,6 @@
 import { BufferResultFile } from "@allurereport/reader-api";
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { attachments } from "../src/attachments/index.js";
 import { mockVisitor } from "./utils.js";

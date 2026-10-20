@@ -1,14 +1,15 @@
 import console from "node:console";
 import tty from "node:tty";
 
-import type { DefaultTestStepResult, TestResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult, TestError, TestResult } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from "vite-plus/test";
 
 import {
   hasResultFailedSteps,
   isFailedResult,
+  printGlobalErrors,
   printQualityGateResults,
   printTest,
   stringifyQualityGateResultTitle,
@@ -310,6 +311,97 @@ describe("utils", () => {
       const consoleLog = mockConsoleLog();
 
       printQualityGateResults([]);
+
+      expect(consoleInfo).not.toHaveBeenCalled();
+      expect(consoleLog).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("printGlobalErrors", () => {
+    it("prints global error messages and summary under their own section", () => {
+      mockConsoleInfo();
+      mockConsoleLog();
+
+      const fixture = [
+        {
+          message: "Global setup failed",
+        },
+        {
+          message: "Global teardown failed",
+        },
+      ] as TestError[];
+
+      printGlobalErrors(fixture);
+
+      // eslint-disable-next-line no-console
+      const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+
+      expect(result).toContain("Global errors");
+      expect(result).toContain("⨯ Global setup failed");
+      expect(result).toContain("⨯ Global teardown failed");
+      expect(result).toContain("Global errors: 2 failed");
+    });
+
+    it("colors global error badges, messages, and summary red when color is supported", async () => {
+      mockConsoleInfo();
+      mockConsoleLog();
+
+      await withColorSupport(({ printGlobalErrors: printErrors }) => {
+        printErrors([{ message: "Global setup failed" }]);
+      });
+
+      // eslint-disable-next-line no-console
+      const infoCalls = (console.info as MockedFunction<any>).mock.calls.map(([message]) => message as string);
+
+      expect(infoCalls).toContain("  \u001B[31m⨯\u001B[39m \u001B[31mGlobal setup failed\u001B[39m");
+      expect(infoCalls).toContain("Global errors: \u001B[31m1 failed\u001B[39m");
+    });
+
+    it("prints traces only when withTrace is enabled", () => {
+      mockConsoleInfo();
+      mockConsoleLog();
+
+      const fixture = [
+        {
+          message: "Global setup failed",
+          trace: "Error: Global setup failed\n    at setup.ts:1:1",
+        },
+      ] as TestError[];
+
+      printGlobalErrors(fixture);
+
+      // eslint-disable-next-line no-console
+      const withoutTrace = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+
+      expect(withoutTrace).not.toContain("at setup.ts:1:1");
+
+      vi.mocked(console.info).mockClear();
+      printGlobalErrors(fixture, { withTrace: true });
+
+      // eslint-disable-next-line no-console
+      const withTrace = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+
+      expect(withTrace).toContain("Error: Global setup failed");
+      expect(withTrace).toContain("at setup.ts:1:1");
+    });
+
+    it("prints a fallback when a global error message is missing, empty, or whitespace-only", () => {
+      mockConsoleInfo();
+      mockConsoleLog();
+
+      printGlobalErrors([{}, { message: "" }, { message: " \n " }]);
+
+      // eslint-disable-next-line no-console
+      const resultLines = (console.info as MockedFunction<any>).mock.calls.map(([message]) => stripAnsi(message));
+
+      expect(resultLines.filter((line) => line === "  ⨯ No message provided")).toHaveLength(3);
+    });
+
+    it("doesn't print anything for empty global errors", () => {
+      const consoleInfo = mockConsoleInfo();
+      const consoleLog = mockConsoleLog();
+
+      printGlobalErrors([]);
 
       expect(consoleInfo).not.toHaveBeenCalled();
       expect(consoleLog).not.toHaveBeenCalled();

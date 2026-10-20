@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/charts-api",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "description": "Allure Charts API",
   "keywords": [
     "allure",
@@ -23,8 +23,8 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
@@ -36,13 +36,15 @@
     "@types/d3-shape": "^3.1.8",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^20",
-    "@vitest/coverage-istanbul": "^4.1.0",
+    "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",
     "rimraf": "^6",
     "tslib": "^2.7.0",
     "typescript": "^5",
-    "vitest": "^4.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

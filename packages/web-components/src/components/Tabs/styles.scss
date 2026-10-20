@@ -51,7 +51,6 @@
 
   &:active:not([aria-current]) {
     background-color: var(--color-control-bg-ghost-active);
-    transform: scale(0.94);
   }
 
   &:focus {

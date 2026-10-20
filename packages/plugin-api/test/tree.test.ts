@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
   byLabels,

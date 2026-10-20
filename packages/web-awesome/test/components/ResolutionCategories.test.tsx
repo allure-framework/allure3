@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import type { ComponentChildren } from "preact";
 import type { ReportResolutionCategories as ReportResolutionCategoriesData, ReportTestResult } from "types";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportResolutionCategories } from "@/components/ReportResolutionCategories";
 import { TrResolutionCategoriesView } from "@/components/TestResult/TrResolutionCategories";
@@ -22,7 +22,7 @@ const resolutionCategoriesStoreMock = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@allurereport/web-components", () => {
+vi.mock("@allurereport/web-components/core", () => {
   return {
     ArrowButton: ({ isOpened }: { isOpened: boolean }) => <span aria-label={isOpened ? "collapse" : "expand"} />,
     Loadable: ({ source, renderData }: { source: { value: { data: unknown } }; renderData: (data: any) => unknown }) =>

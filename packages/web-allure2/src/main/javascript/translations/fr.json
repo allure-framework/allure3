@@ -87,6 +87,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Retour à l'aperçu",
     "backto": "Retour vers",
     "clipboard": "Copier dans le presse-papier",
     "clipboardError": "Impossible de copier vers le presse-papier. Cette fonction ne semble pas être supportée par votre navigateur",

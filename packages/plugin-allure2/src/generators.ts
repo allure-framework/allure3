@@ -6,7 +6,6 @@ import {
   stringifyForInlineScript,
 } from "@allurereport/core-api";
 import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -32,8 +31,6 @@ import type { Classifier, TreeLayer } from "./tree.js";
 import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
 import { createStatistic, updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
-
-export type TemplateManifest = ReportStaticManifest;
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
@@ -72,6 +69,11 @@ const template = `<!DOCTYPE html>
       }
     </script>
     ${createBaseUrlScript()}
+    {{#if reportOptions}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
+    {{/if}}
     {{#if analyticsEnable}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
     <script>
@@ -136,12 +138,6 @@ const injectEmbeddedReportDataScript = (html: string, reportFiles: ReportFile[])
   return Buffer.concat(chunks);
 };
 
-export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
-};
-
 export const generateStaticFiles = async (payload: {
   allureVersion: string;
   reportName: string;
@@ -150,8 +146,18 @@ export const generateStaticFiles = async (payload: {
   reportFiles: ReportFiles;
   reportDataFiles: ReportFile[];
   reportUuid: string;
+  overviewHref?: string;
 }) => {
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+  const {
+    reportName,
+    reportLanguage,
+    singleFile,
+    reportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+    overviewHref,
+  } = payload;
   const staticAssets = await readReportStaticAssets(reportStaticArchive);
   const { manifest } = staticAssets;
   const mainJs = manifest["main.js"];
@@ -189,6 +195,7 @@ export const generateStaticFiles = async (payload: {
       reportUuid,
       reportName,
       singleFile,
+      reportOptions: overviewHref ? stringifyForInlineScript({ overviewHref }) : undefined,
     });
 
     await reportFiles.addFile(

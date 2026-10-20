@@ -48,8 +48,4 @@ export const navigateTo = (path: NavigateToString | NavigateToObject) => {
   handleHashChange();
 };
 
-export const openInNewTab = (path: string) => {
-  window.open(`#${path}`, "_blank");
-};
-
 export const activeTab = computed(() => route.value.tabName);

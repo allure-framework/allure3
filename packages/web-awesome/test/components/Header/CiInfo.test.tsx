@@ -3,7 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
 import { h } from "preact";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 beforeEach(async () => {
   await epic("coverage");
@@ -23,9 +23,7 @@ const fixtures = {
   jobRunName: "Run #456",
 };
 
-vi.mock("@allurereport/web-components", async () => {
-  const { CiType } = await import("@allurereport/core-api");
-
+vi.mock("@allurereport/web-components/core", async () => {
   return {
     Text: (props: { children: string }) => <span>{props.children}</span>,
     SvgIcon: (props: { id: string; size?: string }) => <span data-testid="icon">{props.id}</span>,

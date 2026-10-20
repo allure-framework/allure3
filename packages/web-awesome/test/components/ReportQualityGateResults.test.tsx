@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const navigateToTestResult = vi.fn();
 
@@ -66,7 +66,7 @@ const setupQualityGateComponent = async (
     },
   });
 
-  vi.doMock("@allurereport/web-components", () => {
+  vi.doMock("@allurereport/web-components/core", () => {
     const Tree = ({
       tree,
       name,

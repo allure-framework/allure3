@@ -1,4 +1,4 @@
-import { Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { Loadable, PageLoader, Text } from "@allurereport/web-components/core";
 import { computed } from "@preact/signals";
 import clsx from "clsx";
 import { useMemo, useRef } from "preact/hooks";

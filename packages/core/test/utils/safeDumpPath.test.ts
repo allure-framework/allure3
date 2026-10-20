@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "../../src/utils/safeDumpPath.js";
 import { isWindows } from "../../src/utils/windows.js";

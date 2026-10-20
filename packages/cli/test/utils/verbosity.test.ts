@@ -1,6 +1,6 @@
 import { getGlobalLogLevel } from "@allurereport/cli-commons";
 import { UsageError } from "clipanion";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { applyVerbosity, extractVerbosityFlags, isQuiet } from "../../src/utils/verbosity.js";
 

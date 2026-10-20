@@ -1,7 +1,7 @@
 import type { GlobalAttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { Allure2Plugin } from "../src/plugin.js";
 

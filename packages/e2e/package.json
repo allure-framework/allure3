@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.20.1",
+  "version": "3.21.0",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
@@ -11,8 +11,8 @@
     "test": "playwright install chromium firefox webkit && playwright test",
     "test:e2e": "playwright install chromium firefox webkit && playwright test",
     "test:ui": "playwright test --ui",
-    "lint": "oxlint --import-plugin src test features stories",
-    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+    "lint": "vp lint --import-plugin src test features stories",
+    "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
     "@allurereport/charts-api": "workspace:*",

@@ -1,5 +1,5 @@
 import { label } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { getDescendantNodes, getExpandableDescendants } from "../../src/treeNavigation/descendants.js";
 import type { FlatTreeNode } from "../../src/treeNavigation/types.js";

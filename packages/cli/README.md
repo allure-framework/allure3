@@ -139,6 +139,23 @@ npx allure agent query --latest tests --status failed
 npx allure agent query --from ./agent-output findings --severity high
 ```
 
+### Generating GitHub Actions Jobs
+
+Print GitHub Actions jobs that run your tests once per environment and build a single Allure report from all of them:
+
+```bash
+npx allure gh-workflow --env foo --env bar --env baz -- npm test
+```
+
+Paste the output under `jobs:` in a workflow file and fill in the `TODO` steps (runtime setup and dependencies). The output has two jobs:
+
+- `test` runs `allure run --environment=<id> --dump=allure-results-<id> -- <test command>` for every environment in a matrix and uploads `allure-results-<id>.zip` as an artifact;
+- `report` downloads all `allure-results-*` artifacts and runs `allure generate --dump="allure-results-*/*.zip"`.
+
+The environment id, the dump file, the artifact name and the download pattern have to agree with each other; the command keeps them consistent.
+
+Environments come from `--env` (repeatable, no config needed). Without `--env`, the ids declared under `environments` in your Allure config are used (integer-like ids come first, as JavaScript orders object keys). Pass the test command after `--` (default: `npm test`); `--config` is also added to the generated `allure` commands. The versions of the GitHub actions in the output are examples, pin the ones you use. Errors are written to stderr with a non-zero exit code, while command-line syntax errors are reported by the CLI parser on stdout.
+
 ### Generating Reports Manually
 
 If you already have test results and wish to generate a report manually, use the `generate` command:
@@ -191,6 +208,14 @@ To check your installed version of Allure 3, use:
 ```bash
 npx allure --version
 ```
+
+For direct interactive CLI invocations, Allure checks the npm registry for a newer version alongside the command.
+Each eligible invocation makes one request with a one-second timeout; no update state is stored on disk. Missing
+package metadata and network errors are silently ignored. The check is skipped for `allure agent`, help and version
+output, quiet mode, CI, non-interactive terminals, and invocations through npm or Yarn. Disable it with `--no-update-notifier`
+(for example, `allure --no-update-notifier generate ./allure-results`), or set `NO_UPDATE_NOTIFIER` for the environment.
+Numbered prerelease versions (such as `3.21.0-beta.2`) check their matching npm dist-tag instead of the stable `latest`
+tag. Unrecognized version formats are silently skipped.
 
 ## Configuration
 

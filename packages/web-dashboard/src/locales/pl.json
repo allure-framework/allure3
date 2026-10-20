@@ -1,4 +1,7 @@
 {
+  "controls": {
+    "backToOverview": "Wróć do przeglądu"
+  },
   "statuses": {
     "passed": "Zaliczone",
     "failed": "Niezaliczone",

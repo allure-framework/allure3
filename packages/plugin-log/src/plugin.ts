@@ -4,7 +4,7 @@ import type { AllureStore, Plugin, PluginContext, QualityGateValidationResult } 
 import { gray } from "yoctocolors";
 
 import type { LogPluginOptions } from "./model.js";
-import { printQualityGateResults, printSummary, printTest } from "./utils.js";
+import { printGlobalErrors, printQualityGateResults, printSummary, printTest } from "./utils.js";
 
 const defaultQualityGateFilter = ({ success }: QualityGateValidationResult) => !success;
 
@@ -20,6 +20,7 @@ export class LogPlugin implements Plugin {
     } = this.options ?? {};
     const allTestResults = await store.allTestResults();
     const filteredTestResults = allTestResults.filter(filter);
+    const globalErrors = await store.allGlobalErrors();
     const qualityGateResultsToPrint = qualityGateResults
       ? (await store.qualityGateResults()).filter(qualityGateFilter)
       : [];
@@ -62,5 +63,6 @@ export class LogPlugin implements Plugin {
     if (qualityGateResults) {
       printQualityGateResults(qualityGateResultsToPrint);
     }
+    printGlobalErrors(globalErrors, this.options);
   };
 }

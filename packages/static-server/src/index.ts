@@ -1,4 +1,5 @@
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { type Stats, createReadStream } from "node:fs";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { type ServerResponse, createServer } from "node:http";
@@ -101,6 +102,12 @@ export const serve = async (options?: {
   const host = normalizeHost(options?.host);
   const pathToServe = servePath ? resolve(cwd(), servePath) : cwd();
   const clients = new Set<ServerResponse>();
+  // Lets the pages that were not connected to the server for a while (hidden tabs, restarted server) detect the reloads
+  // they have missed: the page gets the current reload id with the html and compares it with the one the server reports
+  // on connect. The id contains an identifier of the server instance, because the counter restarts with the server
+  const instanceId = randomUUID();
+  let reloadsCount = 0;
+  const currentReloadId = () => `${instanceId}:${reloadsCount}`;
   const server = createServer(async (req, res) => {
     const hostHeaderIdx = req.rawHeaders.findIndex((header) => header === "Host") + 1;
     const host = req.rawHeaders[hostHeaderIdx];
@@ -120,6 +127,8 @@ export const serve = async (options?: {
       req.on("close", () => {
         clients.delete(res);
       });
+
+      res.write(`event: sync\ndata: ${currentReloadId()}\n\n`);
       return;
     }
 
@@ -165,7 +174,7 @@ export const serve = async (options?: {
           files.map((file) => resolve(fsPath, file)),
           pathname !== "/",
         );
-        const htmlContent = injectLiveReloadScript(html);
+        const htmlContent = injectLiveReloadScript(html, currentReloadId());
         const byteLength = Buffer.byteLength(htmlContent);
 
         res.writeHead(200, {
@@ -184,7 +193,7 @@ export const serve = async (options?: {
     // temp fix to prevent live reload script injection to html attachments
     if (contentType === "text/html" && !query.has("attachment")) {
       const html = await readFile(fsPath, "utf-8");
-      const htmlContent = injectLiveReloadScript(html);
+      const htmlContent = injectLiveReloadScript(html, currentReloadId());
       const byteLength = Buffer.byteLength(htmlContent);
 
       res.writeHead(200, {
@@ -206,8 +215,12 @@ export const serve = async (options?: {
       .on("close", () => res.end());
   });
   const triggerReload = () => {
+    reloadsCount += 1;
+
+    const message = `id: ${currentReloadId()}\ndata: reload\n\n`;
+
     clients.forEach((client) => {
-      client.write("data: reload\n\n");
+      client.write(message);
     });
   };
   const serverPort = await new Promise<number>((res, rej) => {

@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "Zurück zur Übersicht",
     "backto": "Zurück zu",
     "clipboard": "In Zwischenablage kopieren",
     "clipboardError": "Wert konnte nicht in Zwischenablage kopiert werden. Ihr Browser scheint dieses Feature nicht zu unterstützen",

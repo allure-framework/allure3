@@ -84,6 +84,7 @@
     }
   },
   "controls": {
+    "backToOverview": "返回概览",
     "backto": "返回",
     "clipboard": "复制到剪贴板",
     "clipboardError": "无法复制到剪贴板。看起来当前浏览器不支持此功能",

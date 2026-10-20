@@ -1,3 +1,4 @@
+import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Tag, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { h } from "preact";
@@ -7,6 +8,8 @@ import { LanguagePicker } from "@/components/LanguagePicker";
 import { useI18n } from "@/stores";
 import { activeTab } from "@/stores/router";
 import { navigateTo } from "@/utils/navigate";
+
+import type { ReportOptions } from "../../../types";
 
 import * as styles from "./styles.scss";
 
@@ -22,6 +25,7 @@ const tabs = [
 const SideNav = () => {
   const { t: controls } = useI18n("controls");
   const { t: nav } = useI18n("nav");
+  const { overviewHref } = getReportOptions<ReportOptions>() ?? {};
   const [isCollapsed, setCollapsed] = useState(localStorage.getItem("sidebarCollapsed") === "true");
 
   const toggleCollapsed = () => {
@@ -37,6 +41,21 @@ const SideNav = () => {
           Allure Report
         </Text>
       </a>
+      {overviewHref && (
+        <div className={styles.item} data-tooltip={controls("backToOverview")}>
+          <a
+            href={overviewHref}
+            className={styles.link}
+            aria-label={controls("backToOverview")}
+            data-testid="overview-link"
+          >
+            <span className={styles.icon}>
+              <SvgIcon id={allureIcons.lineGeneralHomeLine} />
+            </span>
+            <Text className={styles.text}>{controls("backToOverview")}</Text>
+          </a>
+        </div>
+      )}
       <ul className={styles.menu}>
         {tabs?.map((tab) => {
           const isDisabled = Boolean(tab.comingSoon);
