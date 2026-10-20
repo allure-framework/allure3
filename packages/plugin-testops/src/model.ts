@@ -258,8 +258,6 @@ export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
   type: "BEFORE" | "AFTER";
 }
 
-export type TemplateManifest = Record<string, string>;
-
 export type TestOpsPluginOptions = TestOpsUploaderOptions;
 
 export type TestOpsSession = {

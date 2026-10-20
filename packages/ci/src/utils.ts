@@ -7,7 +7,7 @@ export const parseURLPath = (urlString: string): string => {
     const { pathname } = new URL(urlString);
 
     return pathname.replace(/^\/+/, "");
-  } catch (error) {
+  } catch {
     return "";
   }
 };

@@ -1,12 +1,5 @@
 import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
-import type {
-  ArrayField,
-  BooleanField,
-  Field,
-  FieldFilter,
-  FieldFilterGroup,
-  StringField,
-} from "@allurereport/web-commons";
+import type { ArrayField, BooleanField, FieldFilter, FieldFilterGroup, StringField } from "@allurereport/web-commons";
 import type { ReportTreeLeaf } from "types";
 
 import type { ResolutionFilterValue } from "./constants";
@@ -34,8 +27,6 @@ export type AwesomeFilterGroupSimple = AwesomeFieldFilterGroup & {
 };
 
 export type AwesomeFilter = AwesomeFieldFilter | AwesomeFilterGroupSimple;
-
-export type AwesomeField = Field<keyof ReportTreeLeaf>;
 
 export type AwesomeBooleanField = BooleanField<keyof ReportTreeLeaf>;
 

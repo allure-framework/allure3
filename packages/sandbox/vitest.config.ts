@@ -1,6 +1,5 @@
 import * as os from "node:os";
 
-import { Status } from "allure-js-commons";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({

@@ -69,10 +69,6 @@ export type ZoomY =
   | readonly [null, null]
   | null;
 
-export const isZoomNull = (zoom: ZoomX | ZoomY) => {
-  return zoom == null || (zoom[0] == null && zoom[1] == null);
-};
-
 export const isZoomXEqual = (zoomA: ZoomX, zoomB: ZoomX) => {
   // If both are null
   if (!zoomA && !zoomB) {

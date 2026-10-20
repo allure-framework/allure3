@@ -6,7 +6,6 @@ import {
   stringifyForInlineScript,
 } from "@allurereport/core-api";
 import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -32,8 +31,6 @@ import type { Classifier, TreeLayer } from "./tree.js";
 import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
 import { createStatistic, updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
-
-export type TemplateManifest = ReportStaticManifest;
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
 
@@ -139,12 +136,6 @@ const injectEmbeddedReportDataScript = (html: string, reportFiles: ReportFile[])
   );
 
   return Buffer.concat(chunks);
-};
-
-export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
 };
 
 export const generateStaticFiles = async (payload: {

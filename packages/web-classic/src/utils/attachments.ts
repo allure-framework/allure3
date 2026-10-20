@@ -127,4 +127,3 @@ export const attachmentType = (type: string) => {
       };
   }
 };
-export const restrictedContentTypes = ["application/gzip"];

@@ -1,5 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
-import { byStatistic, compareBy } from "@allurereport/core-api";
+import { byStatistic, compareBy, nullsFirst, ordinal } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 
 import type { Allure2Status, Allure2TestResult, Allure2Time } from "./model.js";
@@ -86,7 +86,14 @@ export const createTree = (
   const root: TreeGroup = { uid: rootNodeUid, name: rootNodeUid, children: [] };
   groups.set(root.uid, root);
 
-  for (const test of tests) {
+  // Legacy Allure 2 inserts results chronologically; widget statistic ties retain
+  // that order. UID resolves equal or missing start times independently of ingestion.
+  const compareStart = nullsFirst<number>(ordinal());
+  const orderedTests = [...tests].sort(
+    (a, b) => compareStart(a.time.start, b.time.start) || (a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0),
+  );
+
+  for (const test of orderedTests) {
     const treeLayers = classifier(test);
     if (!treeLayers) {
       continue;
