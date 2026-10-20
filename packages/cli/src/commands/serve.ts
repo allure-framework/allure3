@@ -131,7 +131,6 @@ export abstract class BaseServeCommand extends Command {
           open: this.shouldOpen,
         });
       } else {
-        notifier.dispose();
         console.error(red(`A report doesn't exist in ${servePath} and no input was provided to generate.`));
         return 1;
       }
