@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Mostrar migalhas de pão ocultas"
   },
   "controls": {
+    "retry": "Tentar novamente",
+    "loadAttachmentViewerError": "Não foi possível carregar o visualizador de anexos",
+    "loadComparisonError": "Não foi possível carregar a comparação",
     "newTabAttachment": "Abrir anexo em nova aba",
     "nextTR": "Próximo resultado de teste",
     "prevTR": "Resultado de teste anterior",
@@ -465,7 +468,9 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% de todos os testes)",
       "slice": "{{count}} testes ({{percent}}% de todos os testes)",
       "slice_many": "{{count}} testes ({{percent}}% de todos os testes)"
-    }
+    },
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o gráfico"
   },
   "transitions": {
     "description": {

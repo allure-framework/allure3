@@ -224,7 +224,9 @@
       "layer": "Շերտ՝ {{layer}}",
       "statusSlice": "{{count}} {{status}} (բոլոր թեստերի {{percent}}%-ը)",
       "slice": "{{count}} թեստ (բոլոր թեստերի {{percent}}%-ը)"
-    }
+    },
+    "retry": "Կրկին փորձել",
+    "loadError": "Չհաջողվեց բեռնել գծապատկերը"
   },
   "transitions": {
     "description": {

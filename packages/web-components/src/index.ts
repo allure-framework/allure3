@@ -22,3 +22,6 @@ export * from "./components/Charts/DurationsChartWidget";
 export * from "./components/Charts/TrSeveritiesChartWidget";
 export * from "./components/Charts/DurationDynamicsChartWidget";
 export * from "./components/Timeline";
+
+export { ChartWidget } from "./components/Charts/ChartWidget";
+export type { ChartWidgetProps } from "./components/Charts/ChartWidget.types";

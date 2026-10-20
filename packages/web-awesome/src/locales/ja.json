@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "非表示のパンくず項目を表示"
   },
   "controls": {
+    "retry": "再試行",
+    "loadAttachmentViewerError": "添付ファイルビューアーを読み込めませんでした",
+    "loadComparisonError": "比較を読み込めませんでした",
     "newTabAttachment": "新しいタブで開く",
     "nextTR": "次のテスト結果",
     "prevTR": "前のテスト結果",
@@ -464,7 +467,9 @@
       "layer": "レイヤー: {{layer}}",
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
-    }
+    },
+    "retry": "再試行",
+    "loadError": "チャートを読み込めませんでした"
   },
   "transitions": {
     "description": {

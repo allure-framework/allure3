@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Visa dolda brödsmulor"
   },
   "controls": {
+    "retry": "Försök igen",
+    "loadAttachmentViewerError": "Det gick inte att ladda bilagevisaren",
+    "loadComparisonError": "Det gick inte att ladda jämförelsen",
     "newTabAttachment": "Öppna bilaga i ny flik",
     "nextTR": "Nästa testresultat",
     "prevTR": "Föregående testresultat",
@@ -464,7 +467,9 @@
       "layer": "Nivå: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
       "slice": "{{count}} tester ({{percent}}% av alla tester)"
-    }
+    },
+    "retry": "Försök igen",
+    "loadError": "Det gick inte att ladda diagrammet"
   },
   "transitions": {
     "description": {

@@ -7,6 +7,13 @@ afterEach(() => {
 });
 
 describe("testPlatform", () => {
+  it("returns false when window is not defined", () => {
+    vi.stubGlobal("window", undefined);
+    Reflect.deleteProperty(globalThis, "window");
+
+    expect(testPlatform(/^Mac/i)).toBe(false);
+  });
+
   it.each([
     ["macOS", "Win32", true],
     ["Windows", "MacIntel", false],

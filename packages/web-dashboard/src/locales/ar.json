@@ -228,7 +228,9 @@
       "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
       "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
-    }
+    },
+    "retry": "إعادة المحاولة",
+    "loadError": "تعذّر تحميل الرسم البياني"
   },
   "transitions": {
     "description": {

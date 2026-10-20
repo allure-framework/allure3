@@ -8,9 +8,9 @@ import { createSingleFileScripts } from "../src/singleFileAssets.js";
 
 beforeEach(async () => {
   await epic("coverage");
-  await feature("plugin-awesome");
+  await feature("plugin-api");
   await story("single-file-static-assets");
-  await label("coverage", "plugin-awesome");
+  await label("coverage", "plugin-api");
 });
 
 const extractAssets = (html: string): Record<string, string> => {
@@ -39,12 +39,12 @@ describe("createSingleFileScripts", () => {
     expect(html).toContain('new DecompressionStream("gzip")');
   });
 
-  it("decompresses the main script immediately and a runtime chunk only when requested", async () => {
+  it.each([true, false])("loads main and runtime chunks on demand with compression=%s", async (compress) => {
     const files = new Map([
       ["app.js", Buffer.from("globalThis.appLoaded = true;")],
       ["mermaid.js", Buffer.from("globalThis.mermaidLoaded = true;")],
     ]);
-    const html = createSingleFileScripts(files, "app.js");
+    const html = createSingleFileScripts(files, "app.js", { compress });
     const bootstrapMatch = html.match(/<script>\s*([\s\S]+)\s*<\/script>/i);
     const appendedScripts: FakeScript[] = [];
     const assetsElement = {
@@ -89,7 +89,7 @@ describe("createSingleFileScripts", () => {
 
     runInNewContext(bootstrapMatch?.[1] ?? "", {
       Blob,
-      DecompressionStream,
+      ...(compress ? { DecompressionStream } : {}),
       Event,
       Object,
       Response,
@@ -119,6 +119,23 @@ describe("createSingleFileScripts", () => {
     expect(mermaidScript.text).toBe(files.get("mermaid.js")?.toString());
 
     mermaidScript.dispatchEvent(new Event("load"));
+  });
+
+  it("keeps chunk license notices inline without allowing script termination", () => {
+    const notice = "Example license </script><script>alert(1)</script>";
+    const html = createSingleFileScripts(
+      new Map([
+        ["app.js", Buffer.from("app")],
+        ["chart.js.LICENSE.txt", Buffer.from(notice)],
+      ]),
+      "app.js",
+    );
+    const encoded = html.match(
+      /<script id="allure-single-file-licenses" type="application\/json">([^<]+)<\/script>/,
+    )?.[1];
+    expect(encoded).toBeDefined();
+    expect(JSON.parse(encoded!)).toEqual({ "chart.js.LICENSE.txt": notice });
+    expect(html).not.toContain(notice);
   });
 
   it("rejects a missing main script", () => {

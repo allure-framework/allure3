@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Gizli çörək qırıntılarını göstər"
   },
   "controls": {
+    "retry": "Yenidən cəhd et",
+    "loadAttachmentViewerError": "Qoşma görüntüləyicisini yükləmək mümkün olmadı",
+    "loadComparisonError": "Müqayisəni yükləmək mümkün olmadı",
     "newTabAttachment": "Qoşmanı yeni tabda aç",
     "nextTR": "Növbəti test nəticəsi",
     "prevTR": "Əvvəlki test nəticəsi",
@@ -464,7 +467,9 @@
       "layer": "Səviyyə: {{layer}}",
       "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
-    }
+    },
+    "retry": "Yenidən cəhd et",
+    "loadError": "Diaqramı yükləmək mümkün olmadı"
   },
   "transitions": {
     "description": {
