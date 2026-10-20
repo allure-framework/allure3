@@ -91,6 +91,10 @@ export const jenkins: CiDescriptor = {
     return getEnv("CHANGE_TITLE");
   },
 
+  get commitSha() {
+    return getEnv("GIT_COMMIT") || undefined;
+  },
+
   get provider() {
     return getRepository()?.provider;
   },

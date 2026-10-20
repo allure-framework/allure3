@@ -211,6 +211,12 @@ export const amazon: CiDescriptor = {
   },
 
   get jobRunUrl(): string {
+    const buildUrl = getEnv("CODEBUILD_BUILD_URL");
+
+    if (buildUrl) {
+      return buildUrl;
+    }
+
     const pipelineName = getPipelineName();
 
     if (pipelineName) {
@@ -263,6 +269,12 @@ export const amazon: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get commitSha() {
+    const version = getEnv("CODEBUILD_RESOLVED_SOURCE_VERSION") || getEnv("CODEBUILD_SOURCE_VERSION");
+
+    return GIT_SHA_REGEXP.test(version) ? version : undefined;
   },
 
   get provider() {

@@ -101,6 +101,10 @@ export const gitlab: GitlabCiDescriptor = {
     return getEnv("CI_MERGE_REQUEST_TITLE");
   },
 
+  get commitSha() {
+    return getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA") || getEnv("CI_COMMIT_SHA") || undefined;
+  },
+
   get provider() {
     return GitProvider.Gitlab;
   },

@@ -144,6 +144,10 @@ export const drone: CiDescriptor = {
     return getEnv("DRONE_PULL_REQUEST_TITLE");
   },
 
+  get commitSha() {
+    return getEnv("DRONE_COMMIT_SHA") || undefined;
+  },
+
   get provider() {
     return getRepository()?.provider;
   },

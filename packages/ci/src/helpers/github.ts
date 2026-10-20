@@ -8,6 +8,7 @@ const PULL_REQUEST_MERGE_REF_RE = /^refs\/pull\/(\d+)\/merge$/;
 type GithubPullRequestEventFields = {
   number?: number | string;
   head?: {
+    sha?: string;
     ref?: string;
   };
   base?: {
@@ -29,6 +30,7 @@ export type GithubPullRequestContext = {
   number: string;
   headRef?: string;
   baseRef?: string;
+  headSha?: string;
 };
 
 const normalizePullRequestNumber = (value: number | string | undefined): string => {
@@ -59,6 +61,7 @@ const contextFromPullRequestFields = (
     number,
     headRef: nonBlank(pullRequest?.head?.ref),
     baseRef: nonBlank(pullRequest?.base?.ref),
+    headSha: nonBlank(pullRequest?.head?.sha),
   };
 };
 
@@ -128,6 +131,9 @@ export const resolveGithubPullRequestContext = (): GithubPullRequestContext | un
 
   return readPullRequestContextFromEventPath();
 };
+
+export const resolveGithubCommitSha = (): string | undefined =>
+  readPullRequestContextFromEventPath()?.headSha || getEnv("GITHUB_SHA") || undefined;
 
 export const resolveGithubPullRequestNumber = (): string => {
   return resolveGithubPullRequestContext()?.number ?? "";

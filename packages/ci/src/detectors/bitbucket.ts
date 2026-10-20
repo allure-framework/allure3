@@ -91,6 +91,10 @@ export const bitbucket: CiDescriptor = {
     return "";
   },
 
+  get commitSha() {
+    return getEnv("BITBUCKET_COMMIT") || undefined;
+  },
+
   get provider() {
     return GitProvider.Bitbucket;
   },
