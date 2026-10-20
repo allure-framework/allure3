@@ -64,6 +64,8 @@ import {
   createTreeByTitlePath,
   preciseTreeLabels,
   processTree,
+  convertFixtureResult,
+  writeConcurrently,
 } from "@allurereport/plugin-api";
 import {
   copyReportStaticAssets,
@@ -73,7 +75,7 @@ import {
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
-import { convertFixtureResult, convertTestResult } from "./converters.js";
+import { convertTestResult } from "./converters.js";
 import type { AwesomeOptions } from "./model.js";
 import { createSingleFileScripts } from "./singleFileAssets.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -148,12 +150,6 @@ const createBreadcrumbs = (convertedTr: ReportTestResult) => {
     });
     return acc;
   }, [] as string[][]);
-};
-
-const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
-  for (let i = 0; i < items.length; i += concurrency) {
-    await Promise.all(items.slice(i, i + concurrency).map(write));
-  }
 };
 
 const mapConcurrently = async <T, R>(items: readonly T[], map: (item: T) => Promise<R>, concurrency = 8) => {
@@ -668,17 +664,6 @@ export const generateAttachmentsFiles = async (
     return [id, src] as const;
   });
   return new Map(writtenAttachments.filter((attachment) => attachment !== undefined));
-};
-
-export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const result = new Map<string, string>();
-  const allHistoryPoints = await store.allHistoryDataPoints();
-
-  for (const historyPoint of allHistoryPoints.slice(0, 6)) {
-    const src = `history/${historyPoint.uuid}.json`;
-    await writer.writeData(src, historyPoint);
-  }
-  return result;
 };
 
 export const generateGlobals = async (

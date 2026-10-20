@@ -15,6 +15,7 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateHistoryDataPoints,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { validateChartsOptions } from "@allurereport/web-commons";
@@ -27,7 +28,6 @@ import {
   generateEnvironmentJson,
   generateEnvirontmentsList,
   generateGlobals,
-  generateHistoryDataPoints,
   generateMetricsWidget,
   generateNav,
   generateQualityGateResults,

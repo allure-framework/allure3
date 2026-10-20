@@ -5,6 +5,7 @@ import {
   type PluginContext,
   type PluginSummary,
   createPluginSummary,
+  generateHistoryDataPoints,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 
@@ -12,7 +13,6 @@ import {
   generateAllCharts,
   generateAttachmentsFiles,
   generateEnvironmentJson,
-  generateHistoryDataPoints,
   generatePieChart,
   generateStaticFiles,
   generateStatistic,
