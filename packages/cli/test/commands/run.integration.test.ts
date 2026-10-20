@@ -1813,7 +1813,7 @@ describe("serve command integration", () => {
     // other suites in the same worker may have left it behind, and the CLI refuses nested commands
     delete env.ALLURE_CLI_ACTIVE_COMMAND;
 
-    const child = spawn(process.execPath, [cliPath, "serve", "--no-browser", "allure-results"], {
+    const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
       cwd: workspace,
       env,
       stdio: ["ignore", "pipe", "pipe"],

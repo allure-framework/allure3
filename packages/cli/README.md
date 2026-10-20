@@ -182,6 +182,22 @@ npx allure open allure-report/awesome
 
 If the provided directory doesn't contain previously generated report, it will be treated as a source of results, and a new report will be generated on the fly and opened in the browser.
 
+#### Serving a report without opening
+
+Use the `serve` command to start a local report server without opening a browser:
+
+```bash
+npx allure serve <reportDir>
+```
+
+Like `open`, this command uses the configured output directory when `<reportDir>` is omitted and generates a report on the fly when given test results. Open the URL printed in the console to view the report.
+
+Use `--host` and `--port` to control the interfaces and port to listen:
+
+```bash
+npx allure serve --port 8080 --host 127.0.0.1
+```
+
 ### Real-time Report Monitoring
 
 When you need to monitor test execution live, the `watch` command provides dynamic report updates. It continuously monitors the specified results directory for changes and refreshes the report automatically:
@@ -222,7 +238,7 @@ tag. Unrecognized version formats are silently skipped.
 Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > [!TIP]
-> We recommend using the **Awesome** plugin for the best experience.  
+> We recommend using the **Awesome** plugin for the best experience.
 > Support for Classic and Allure 2-style reports is currently experimental.
 
 ### Example Configuration File
@@ -289,7 +305,7 @@ For example, setting `"reportLanguage": "fr"` will render the report interface i
 
 You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a declarative way to configure Allure 3.
 
-> [!WARNING]  
+> [!WARNING]
 > Declarative formats don't support advanced features such as tests filtering or environments.
 > If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
 
