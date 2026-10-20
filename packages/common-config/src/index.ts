@@ -78,9 +78,9 @@ export const defaultTasksConfig = (
     if (testCommands.length > 1 && ["rimraf", "clean"].some((str) => testCommands[0].includes(str))) {
       testCommands = testCommands.slice(1);
     }
-    if (env.ENABLE_COVERAGE === "true") {
-      // enabled coverage causes read of folders in package by vitest-allure/setup
-      // recreate empty folders so they don't invalidate cache due to cleanup
+    if (env.CI === "true" || env.GITHUB_ACTIONS === "true") {
+      // automated file tracking for cache picks up removal or addition of these folders and even explicit exclusion
+      // still does not prevent cache invalidation so simply ensure empty folders exist before tests run
       cleanup.push(
         `node -e "for (const dir of ['out','.vitest','node_modules']) require('node:fs').mkdirSync(dir,{recursive:true})"`,
       );
@@ -97,7 +97,6 @@ export const defaultTasksConfig = (
         input: [
           { auto: true },
           { pattern: "!.yarn/install-state.gz", base: "workspace" },
-          "!node_modules",
           "!out/**",
           "!.vitest/**",
           "!test-results/**",
