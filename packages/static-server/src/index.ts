@@ -244,7 +244,7 @@ export const serve = async (options?: {
 
   const serverUrl = resolveServerUrl(host, serverPort);
 
-  console.info(`Allure is running on ${serverUrl}`);
+  console.info(`Allure is running on ${serverUrl}. Press CTRL+C to stop.`);
 
   if (open) {
     openUrl(serverUrl);

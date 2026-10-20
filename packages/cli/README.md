@@ -182,6 +182,8 @@ npx allure open allure-report/awesome
 
 If the provided directory doesn't contain previously generated report, it will be treated as a source of results, and a new report will be generated on the fly and opened in the browser.
 
+To stop serving the report, press CTRL+C.
+
 #### Serving a report without opening
 
 Use the `serve` command to start a local report server without opening a browser:
@@ -197,6 +199,8 @@ Use `--host` and `--port` to control the interfaces and port to listen:
 ```bash
 npx allure serve --port 8080 --host 127.0.0.1
 ```
+
+Press CTRL+C to stop serving.
 
 ### Real-time Report Monitoring
 
