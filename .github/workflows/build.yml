@@ -64,7 +64,6 @@ jobs:
       - name: Test Project
         env:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
-          ALLURE_SUPERVISOR_DIAGNOSTICS: ${{ runner.os == 'Windows' && '1' || '0' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Save Vite Task cache
         if: ${{ !cancelled() }}
