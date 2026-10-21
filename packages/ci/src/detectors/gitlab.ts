@@ -46,21 +46,21 @@ export const gitlab: GitlabCiDescriptor = {
   type: CiType.Gitlab,
 
   get commit() {
-    const sha = getEnv("CI_COMMIT_SHA");
+    const sha = getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA") || getEnv("CI_COMMIT_SHA");
 
     if (!sha) {
       return undefined;
     }
 
-    const eventType = getEnv("CI_MERGE_REQUEST_EVENT_TYPE");
-    // Merged-result and merge-train revisions are temporary, not branch commits.
-    const syntheticCommit = eventType === "merged_result" || eventType === "merge_train";
-    const repositoryUrl = !syntheticCommit ? getEnv("CI_PROJECT_URL").replace(/\/+$/, "") : undefined;
+    const mergeRequestUrl = this.pullRequestUrl;
+    const repositoryUrl = stripTrailingSlashes(getEnv("CI_PROJECT_URL"));
+    const url = mergeRequestUrl
+      ? `${mergeRequestUrl}/diffs?commit_id=${encodeURIComponent(sha)}`
+      : repositoryUrl
+        ? `${repositoryUrl}/-/commit/${encodeURIComponent(sha)}`
+        : undefined;
 
-    return {
-      sha,
-      ...(repositoryUrl ? { url: `${repositoryUrl}/-/commit/${encodeURIComponent(sha)}` } : {}),
-    };
+    return { sha, ...(url ? { url } : {}) };
   },
 
   get detected(): boolean {

@@ -34,17 +34,35 @@ describe("gitlab", () => {
     });
 
     it.each(["merged_result", "merge_train"])(
-      "keeps the tested synthetic SHA without a branch commit URL: %s",
+      "links the source revision inside the MR for %s pipelines",
       (eventType) => {
         mockEnv({
-          CI_COMMIT_SHA: "1234567890abcdef1234567890abcdef12345678",
-          CI_PROJECT_URL: "https://gitlab.example.org/group/sub/repo/",
+          CI_COMMIT_SHA: "temporary-merge-sha",
+          CI_PROJECT_URL: "https://gitlab.example.org/source/repo/",
+          CI_MERGE_REQUEST_PROJECT_URL: "https://gitlab.example.org/target/repo/",
+          CI_MERGE_REQUEST_IID: "42",
           CI_MERGE_REQUEST_EVENT_TYPE: eventType,
-          CI_MERGE_REQUEST_SOURCE_BRANCH_SHA: "other-sha",
+          CI_MERGE_REQUEST_SOURCE_BRANCH_SHA: "1234567890abcdef1234567890abcdef12345678",
         });
-        expect(gitlab.commit).toEqual({ sha: "1234567890abcdef1234567890abcdef12345678" });
+        expect(gitlab.commit).toEqual({
+          sha: "1234567890abcdef1234567890abcdef12345678",
+          url: "https://gitlab.example.org/target/repo/-/merge_requests/42/diffs?commit_id=1234567890abcdef1234567890abcdef12345678",
+        });
       },
     );
+
+    it("links a detached MR revision when no separate source SHA is provided", () => {
+      mockEnv({
+        CI_COMMIT_SHA: "detached-sha",
+        CI_PROJECT_URL: "https://gitlab.example.org/team/repo",
+        CI_MERGE_REQUEST_EVENT_TYPE: "detached",
+        CI_MERGE_REQUEST_IID: "42",
+      });
+      expect(gitlab.commit).toEqual({
+        sha: "detached-sha",
+        url: "https://gitlab.example.org/team/repo/-/merge_requests/42/diffs?commit_id=detached-sha",
+      });
+    });
 
     it("omits commit when the SHA is unavailable", () => {
       mockEnv({});
