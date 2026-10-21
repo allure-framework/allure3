@@ -239,5 +239,9 @@
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
     "malfunctioned": "Bozuk"
+  },
+  "ui": {
+    "at": "tarihinde",
+    "generatedAt": "Oluşturuldu {{timestamp, timestamp_long}}"
   }
 }

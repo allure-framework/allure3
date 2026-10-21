@@ -240,5 +240,9 @@
     "fixed": "מתוקן",
     "regressed": "נסוג",
     "malfunctioned": "פגום"
+  },
+  "ui": {
+    "at": "ב-",
+    "generatedAt": "נוצר {{timestamp, timestamp_long}}"
   }
 }

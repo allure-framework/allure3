@@ -49,3 +49,12 @@ describe("dashboard locales", () => {
     });
   });
 });
+
+it("defines the generated footer label and date separator in every dashboard locale", () => {
+  const localeFiles = readdirSync(localesDir).filter((file) => file.endsWith(".json"));
+  for (const file of localeFiles) {
+    const locale = JSON.parse(readFileSync(join(localesDir, file), "utf8"));
+    expect(locale.ui.at, file).toEqual(expect.any(String));
+    expect(locale.ui.generatedAt, file).toContain("{{timestamp, timestamp_long}}");
+  }
+});

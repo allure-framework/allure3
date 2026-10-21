@@ -240,5 +240,9 @@
     "fixed": "Corretti",
     "regressed": "Regrediti",
     "malfunctioned": "Danneggiati"
+  },
+  "ui": {
+    "at": "a",
+    "generatedAt": "Generato {{timestamp, timestamp_long}}"
   }
 }

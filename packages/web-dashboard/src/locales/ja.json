@@ -239,5 +239,9 @@
     "fixed": "修正済み",
     "regressed": "退行",
     "malfunctioned": "破損"
+  },
+  "ui": {
+    "at": "時",
+    "generatedAt": "生成日時 {{timestamp, timestamp_long}}"
   }
 }

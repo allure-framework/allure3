@@ -239,5 +239,9 @@
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
     "malfunctioned": "Felaktig"
+  },
+  "ui": {
+    "at": "vid",
+    "generatedAt": "Genererad {{timestamp, timestamp_long}}"
   }
 }

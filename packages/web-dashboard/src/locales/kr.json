@@ -239,5 +239,9 @@
     "fixed": "수정됨",
     "regressed": "퇴행",
     "malfunctioned": "고장"
+  },
+  "ui": {
+    "at": "에서",
+    "generatedAt": "생성됨 {{timestamp, timestamp_long}}"
   }
 }

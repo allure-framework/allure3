@@ -3,7 +3,7 @@ import { getLocaleDateTimeOverride } from "@allurereport/web-commons";
 import { currentLocale, currentLocaleIso, useI18n } from "@/stores/locale";
 import { ensureAtSeparator } from "@/utils/atSeparator";
 
-const defaultOptions: Intl.DateTimeFormatOptions = {
+export const defaultDateTimeOptions: Intl.DateTimeFormatOptions = {
   month: "numeric",
   day: "numeric",
   year: "numeric",
@@ -13,7 +13,7 @@ const defaultOptions: Intl.DateTimeFormatOptions = {
   hour12: false,
 };
 
-export const timestampToDate = (timestamp: number, options = defaultOptions) => {
+export const timestampToDate = (timestamp: number, options = defaultDateTimeOptions) => {
   const date = new Date(timestamp);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { t } = useI18n("ui");

@@ -247,5 +247,9 @@
     "fixed": "Исправленные",
     "regressed": "Регрессированные",
     "malfunctioned": "Сломанные"
+  },
+  "ui": {
+    "at": "в",
+    "generatedAt": "Сгенерировано {{timestamp, timestamp_long}}"
   }
 }
