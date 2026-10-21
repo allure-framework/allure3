@@ -4,14 +4,10 @@ import {
   filterUnsuccessful,
   getSuccessRate,
   type MetricSample,
+  type TestResult,
 } from "@allurereport/core-api";
 import { type QualityGateMetricHistoryPoint, type QualityGateRule } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
-
-type SuccessRateState = {
-  totalCount: number;
-  passedCount: number;
-};
 
 type MetricRuleConfig = {
   key: string;
@@ -20,23 +16,8 @@ type MetricRuleConfig = {
   unit?: string;
 };
 
-const numberStateValue = (value: unknown): number => (Number.isFinite(value) ? Number(value) : 0);
-
 const stringArrayStateValue = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-
-const successRateStateValue = (value: unknown): SuccessRateState => {
-  if (typeof value !== "object" || value === null) {
-    return { totalCount: 0, passedCount: 0 };
-  }
-
-  const state = value as Partial<SuccessRateState>;
-
-  return {
-    totalCount: numberStateValue(state.totalCount),
-    passedCount: numberStateValue(state.passedCount),
-  };
-};
 
 const metricValues = (metrics: MetricSample[], key: string): number[] =>
   metrics
@@ -124,19 +105,79 @@ const metricDeltaWithinThreshold = (delta: number, threshold: number, better?: M
   return Math.abs(delta) <= threshold;
 };
 
+type AttemptsState<T> = Record<string, { at: number; value: T; excluded?: true }>;
+
+const attemptKey = (tr: TestResult) => `${tr.environment ?? ""}:${tr.retryHash ?? tr.id}`;
+
+const attemptTime = (tr: TestResult) => tr.stop ?? tr.start ?? 0;
+
+/**
+ * Framework-level retries produce several results for the same test, so accumulated state is kept per test
+ * (retry hash within an environment) and the latest attempt wins. Attempts which arrive out of order are ignored
+ * when an older attempt is reported after a newer one.
+ *
+ * `excluded` are attempts which don't take part in the rule (filtered out or ignored failures). When such an attempt is
+ * the latest one, the test stops counting, so an earlier attempt can't leave it in the result.
+ */
+const recordAttempts = <T>(
+  previous: unknown,
+  trs: TestResult[],
+  toValue: (tr: TestResult) => T,
+  excluded: TestResult[] = [],
+): AttemptsState<T> => {
+  const attempts: AttemptsState<T> = {};
+
+  if (typeof previous === "object" && previous !== null && !Array.isArray(previous)) {
+    for (const [key, attempt] of Object.entries(previous)) {
+      if (typeof attempt === "object" && attempt !== null && "at" in attempt && "value" in attempt) {
+        attempts[key] = attempt as AttemptsState<T>[string];
+      }
+    }
+  }
+
+  for (const tr of trs) {
+    const key = attemptKey(tr);
+    const at = attemptTime(tr);
+
+    if (attempts[key] && attempts[key].at > at) {
+      continue;
+    }
+
+    attempts[key] = { at, value: toValue(tr) };
+  }
+
+  // an attempt which is counted wins a tie against an excluded one
+  for (const tr of excluded) {
+    const key = attemptKey(tr);
+    const at = attemptTime(tr);
+
+    if (attempts[key] && attempts[key].at >= at) {
+      continue;
+    }
+
+    attempts[key] = { at, value: undefined as T, excluded: true };
+  }
+
+  return attempts;
+};
+
+const attemptValues = <T>(attempts: AttemptsState<T>): T[] =>
+  Object.values(attempts)
+    .filter(({ excluded }) => !excluded)
+    .map(({ value }) => value);
+
 export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   successMessage: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} is within the allowed threshold value ${bold(String(expected))}`,
-  validate: async ({ trs, expected, state }) => {
-    const previous = numberStateValue(state.getResult());
-    const failedTrs = trs.filter(filterUnsuccessful);
-    const testResults = failedTrs.map((tr) => tr.id);
-    const actual = previous + failedTrs.length;
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(state.getResult(), trs, (tr) => filterUnsuccessful(tr), excluded);
+    const testResults = trs.filter(filterUnsuccessful).map((tr) => tr.id);
+    const actual = attemptValues(attempts).filter(Boolean).length;
 
-    state.setResult(actual, testResults);
+    state.setResult(attempts, testResults);
 
     return {
       success: actual <= expected,
@@ -152,10 +193,11 @@ export const minTestsCountRule: QualityGateRule<number> = {
     `The total number of tests ${bold(String(actual))} is less than the expected threshold value ${bold(String(expected))}`,
   successMessage: ({ actual, expected }) =>
     `The total number of tests ${bold(String(actual))} meets the expected threshold value ${bold(String(expected))}`,
-  validate: async ({ trs, expected, state }) => {
-    const actual = trs.length + numberStateValue(state.getResult());
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(state.getResult(), trs, () => true, excluded);
+    const actual = attemptValues(attempts).length;
 
-    state.setResult(actual, []);
+    state.setResult(attempts, []);
 
     return {
       success: actual >= expected,
@@ -172,13 +214,12 @@ export const newTestsRule: QualityGateRule<boolean, number> = {
       ? `No new tests were found; expected at least one new test`
       : `The number of new tests ${bold(String(actual))} does not match the expected policy`,
   successMessage: ({ actual }) => `New tests were found: ${bold(String(actual))}`,
-  validate: async ({ trs, expected, state }) => {
-    const previous = numberStateValue(state.getResult());
-    const newTrs = trs.filter((tr) => tr.transition === "new");
-    const testResults = newTrs.map((tr) => tr.id);
-    const actual = previous + newTrs.length;
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(state.getResult(), trs, (tr) => tr.transition === "new", excluded);
+    const testResults = trs.filter((tr) => tr.transition === "new").map((tr) => tr.id);
+    const actual = attemptValues(attempts).filter(Boolean).length;
 
-    state.setResult(actual, testResults);
+    state.setResult(attempts, testResults);
 
     return {
       success: !expected || actual > 0,
@@ -194,17 +235,26 @@ export const successRateRule: QualityGateRule<number> = {
     `Success rate ${bold(formatQualityGateNumber(actual))} is less, than expected ${bold(formatQualityGateNumber(expected))}`,
   successMessage: ({ actual, expected }) =>
     `Success rate ${bold(formatQualityGateNumber(actual))} is not less, than expected ${bold(formatQualityGateNumber(expected))}`,
-  validate: async ({ trs, expected, state }) => {
-    const previous = successRateStateValue(state.getResult());
-    const eligibleTrs = trs.filter(filterIncludedInSuccessRate);
-    const passedTrs = eligibleTrs.filter(filterSuccessful);
-    const notPassedTrs = eligibleTrs.filter(filterUnsuccessful);
-    const totalCount = previous.totalCount + eligibleTrs.length;
-    const passedCount = previous.passedCount + passedTrs.length;
-    const testResults = notPassedTrs.map((tr) => tr.id);
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(
+      state.getResult(),
+      trs,
+      (tr) => ({
+        eligible: filterIncludedInSuccessRate(tr),
+        passed: filterSuccessful(tr),
+      }),
+      excluded,
+    );
+    const eligible = attemptValues(attempts).filter(({ eligible }) => eligible);
+    const totalCount = eligible.length;
+    const passedCount = eligible.filter(({ passed }) => passed).length;
+    const testResults = trs
+      .filter(filterIncludedInSuccessRate)
+      .filter(filterUnsuccessful)
+      .map((tr) => tr.id);
     const rate = getSuccessRate({ passed: passedCount, failed: totalCount - passedCount });
 
-    state.setResult({ totalCount, passedCount }, testResults);
+    state.setResult(attempts, testResults);
 
     return {
       success: rate >= expected,
@@ -220,13 +270,13 @@ export const maxDurationRule: QualityGateRule<number> = {
     `Maximum duration of some tests exceed the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
   successMessage: ({ actual, expected }) =>
     `Maximum duration of the tests is within the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
-  validate: async ({ trs, expected, state }) => {
-    const previous = numberStateValue(state.getResult());
-    const actual = Math.max(previous, ...trs.map((tr) => tr.duration ?? 0));
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(state.getResult(), trs, (tr) => tr.duration ?? 0, excluded);
+    const actual = Math.max(0, ...attemptValues(attempts));
     const tooLongTrs = trs.filter((tr) => (tr.duration ?? 0) > expected);
     const testResults = tooLongTrs.map((tr) => tr.id);
 
-    state.setResult(actual, testResults);
+    state.setResult(attempts, testResults);
 
     return {
       success: actual <= expected,
@@ -245,13 +295,12 @@ export const allTestsContainEnvRule: QualityGateRule<string, number> = {
   message: ({ actual, expected }) =>
     `Not all tests contain the required "${bold(expected)}" environment, ${bold(String(actual))} tests have different or missing environment`,
   successMessage: ({ expected }) => `All tests contain the required "${bold(expected)}" environment`,
-  validate: async ({ trs, expected, state }) => {
-    const previous = numberStateValue(state.getResult());
-    const testsWithoutEnv = trs.filter((tr) => (tr.environment ?? "") !== expected);
-    const testResults = testsWithoutEnv.map((tr) => tr.id);
-    const actual = testsWithoutEnv.length + previous;
+  validate: async ({ trs, expected, state, excluded }) => {
+    const attempts = recordAttempts(state.getResult(), trs, (tr) => (tr.environment ?? "") !== expected, excluded);
+    const testResults = trs.filter((tr) => (tr.environment ?? "") !== expected).map((tr) => tr.id);
+    const actual = attemptValues(attempts).filter(Boolean).length;
 
-    state.setResult(actual, testResults);
+    state.setResult(attempts, testResults);
 
     return {
       success: actual === 0,
