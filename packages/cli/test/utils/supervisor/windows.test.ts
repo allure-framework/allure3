@@ -6,7 +6,7 @@ import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { attachment, epic, feature, label, step, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test";
 
 import type { SupervisedCommandOptions } from "../../../dist/utils/supervisor/model.js";
 import { ProcessSupervisorBase } from "../../../dist/utils/supervisor/ProcessSupervisorBase.js";
@@ -149,16 +149,19 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     it("cancels startup on SIGINT before the target reports startup", async ({ onTestFinished }) => {
       const supervisor = superviseNodeScript("setInterval(() => {}, 1000);");
       const listenersBefore = process.listeners("SIGINT");
+
+      // oxlint-disable-next-line typescript/unbound-method
       const originalStart = ProcessSupervisorBase.prototype.start;
+
       // Interrupt after spawning the host, before its asynchronous startup report.
-      const startMock = vi
-        .spyOn(ProcessSupervisorBase.prototype, "start")
-        .mockImplementation(async function (this: ProcessSupervisorBase) {
-          await originalStart.call(this);
-          const listeners = process.listeners("SIGINT").filter((listener) => !listenersBefore.includes(listener));
-          expect(listeners).toHaveLength(1);
-          listeners[0]!("SIGINT");
-        });
+      const startMock = vi.spyOn(ProcessSupervisorBase.prototype, "start").mockImplementation(async function (
+        this: ProcessSupervisorBase,
+      ) {
+        await originalStart.call(this);
+        const listeners = process.listeners("SIGINT").filter((listener) => !listenersBefore.includes(listener));
+        expect(listeners).toHaveLength(1);
+        listeners[0]!("SIGINT");
+      });
       onTestFinished(() => startMock.mockRestore());
 
       await step("Interrupt startup before the target reports its PID", async () => {

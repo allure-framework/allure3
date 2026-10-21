@@ -3,7 +3,7 @@ import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
 import { nodeScripts } from "./posix.scripts.js";
