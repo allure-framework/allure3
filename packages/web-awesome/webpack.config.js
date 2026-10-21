@@ -84,6 +84,8 @@ export default (_env, argv) => {
       watchFiles: ["./src"],
       client: {
         overlay: {
+          // the Sass deprecation warnings would cover the whole report, the errors are still shown
+          warnings: false,
           runtimeErrors: (error) => {
             if (!error?.message) {
               return true;

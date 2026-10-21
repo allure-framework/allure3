@@ -224,7 +224,9 @@
       "layer": "Nivå: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% av alla tester)",
       "slice": "{{count}} tester ({{percent}}% av alla tester)"
-    }
+    },
+    "retry": "Försök igen",
+    "loadError": "Det gick inte att ladda diagrammet"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
     "malfunctioned": "Felaktig"
+  },
+  "ui": {
+    "at": "vid",
+    "generatedAt": "Genererad {{timestamp, timestamp_long}}"
   }
 }

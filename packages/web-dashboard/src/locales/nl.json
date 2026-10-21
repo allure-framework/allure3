@@ -224,7 +224,9 @@
       "layer": "Laag: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
       "slice": "{{count}} tests ({{percent}}% van alle tests)"
-    }
+    },
+    "retry": "Opnieuw proberen",
+    "loadError": "Kan de grafiek niet laden"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect"
+  },
+  "ui": {
+    "at": "om",
+    "generatedAt": "Gegenereerd {{timestamp, timestamp_long}}"
   }
 }

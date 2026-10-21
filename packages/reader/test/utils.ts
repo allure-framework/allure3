@@ -1,5 +1,4 @@
 import { existsSync } from "fs";
-import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { Writable } from "node:stream";
 
@@ -10,13 +9,6 @@ import archiver from "archiver";
 import { type Mocked, expect, vi } from "vite-plus/test";
 
 export const buildResourcePath = (path: string) => resolve(__dirname, "./resources", path);
-
-export const readResourceAsJson = async <T>(path: string) => {
-  const resourcePath = buildResourcePath(path);
-  const resourceContent = await readFile(resourcePath, "utf-8");
-
-  return JSON.parse(resourceContent) as T;
-};
 export const readResourceAsResultFile = async (path: string, filename?: string) => {
   const resourcePath = buildResourcePath(path);
 

@@ -16,11 +16,11 @@ const execFileAsync = promisify(execFile);
 const commandsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(commandsDir, "../../../..");
 const yarnRcPath = join(repoRoot, ".yarnrc.yml");
+const requiredPackageEntryPoints = {
+  "@allurereport/plugin-log": join(repoRoot, "packages", "plugin-log", "dist", "index.js"),
+  "allure": join(repoRoot, "packages", "cli", "dist", "index.js"),
+};
 const cliPath = join(repoRoot, "packages", "cli", "cli.js");
-const sharedBuildArtifacts = [
-  join(repoRoot, "packages", "cli", "dist", "index.js"),
-  join(repoRoot, "packages", "plugin-log", "dist", "index.js"),
-];
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
 
@@ -142,20 +142,28 @@ const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) =
   return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
 };
 
-// Reuse workspace outputs so other suites can run the built CLI without a concurrent clean.
-// Standalone runs can bootstrap the outputs when they are missing.
+// Child processes load compiled workspace packages, so build outputs must be be up to date before tests start.
+// We can't easily check if the build outputs are up to date, so we just verify their existence.
 beforeAll(async () => {
-  if ((await Promise.all(sharedBuildArtifacts.map(pathExists))).every(Boolean)) {
-    return;
+  const packagesMissingBuildOutputs: string[] = [];
+
+  for (const [name, path] of Object.entries(requiredPackageEntryPoints)) {
+    if (!(await pathExists(path))) {
+      packagesMissingBuildOutputs.push(name);
+    }
   }
 
-  await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
-  await runYarnCommand(["workspace", "allure", "build"]);
-}, 240_000);
+  if (packagesMissingBuildOutputs.length > 0) {
+    throw new Error(
+      `These integration tests launch the compiled CLI in child processes, which load workspace packages from dist. ` +
+        `Required build outputs are missing for: ${packagesMissingBuildOutputs.join(", ")}. ` +
+        "Run `yarn build` from the repository root before running these tests.",
+    );
+  }
+});
 
 describe("run command integration", () => {
   let tempDir: string;
-  let sharedBuildModificationTimes: number[];
 
   beforeEach(async () => {
     await epic("coverage");
@@ -165,10 +173,6 @@ describe("run command integration", () => {
   });
 
   beforeAll(async () => {
-    // Workspace builds run before tests. Rebuilding here would clean shared dist files while other packages use them.
-    sharedBuildModificationTimes = await Promise.all(
-      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
-    );
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
   });
 
@@ -1626,14 +1630,6 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
       expect(result.stderr).not.toContain("Update available");
     });
   }, 60_000);
-
-  it("does not rebuild shared workspace artifacts", async () => {
-    const modificationTimes = await Promise.all(
-      sharedBuildArtifacts.map(async (artifactPath) => (await stat(artifactPath)).mtimeMs),
-    );
-
-    expect(modificationTimes).toEqual(sharedBuildModificationTimes);
-  });
 });
 
 // the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from

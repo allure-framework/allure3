@@ -225,7 +225,9 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% de todas las pruebas)",
       "slice": "{{count}} pruebas ({{percent}}% de todas las pruebas)",
       "slice_many": "{{count}} pruebas ({{percent}}% de todas las pruebas)"
-    }
+    },
+    "retry": "Reintentar",
+    "loadError": "No se pudo cargar el gráfico"
   },
   "transitions": {
     "description": {
@@ -238,5 +240,9 @@
     "fixed": "Corregido",
     "regressed": "Regresado",
     "malfunctioned": "Defectuoso"
+  },
+  "ui": {
+    "at": "a las",
+    "generatedAt": "Generado {{timestamp, timestamp_long}}"
   }
 }

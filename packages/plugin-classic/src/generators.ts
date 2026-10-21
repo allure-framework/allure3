@@ -33,6 +33,7 @@ import {
   createTreeByLabels,
   processTree,
 } from "@allurereport/plugin-api";
+import { convertFixtureResult, writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -42,8 +43,8 @@ import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { matchCategories } from "./categories.js";
-import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
+import { convertTestResult } from "./converters.js";
+import type { ClassicCategory, ClassicOptions } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -86,18 +87,6 @@ const template = `<!DOCTYPE html>
 `;
 
 const compiledTemplate = Handlebars.compile(template);
-
-const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
-  for (let i = 0; i < items.length; i += concurrency) {
-    await Promise.all(items.slice(i, i + concurrency).map(write));
-  }
-};
-
-export const readTemplateManifest = async (_singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
-};
 
 const createBreadcrumbs = (convertedTr: ReportTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
@@ -265,17 +254,6 @@ export const generateAttachmentsFiles = async (
     const src = `${id}${ext}`;
     await writer.writeAttachment(src, content);
     result.set(id, src);
-  }
-  return result;
-};
-
-export const generateHistoryDataPoints = async (writer: ClassicDataWriter, store: AllureStore) => {
-  const result = new Map<string, string>();
-  const allHistoryPoints = await store.allHistoryDataPoints();
-
-  for (const historyPoint of allHistoryPoints.slice(0, 6)) {
-    const src = `history/${historyPoint.uuid}.json`;
-    await writer.writeData(src, historyPoint);
   }
   return result;
 };

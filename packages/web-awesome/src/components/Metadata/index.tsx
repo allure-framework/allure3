@@ -3,9 +3,7 @@ import { copyToClipboard } from "@allurereport/web-commons";
 import { Button, ButtonLink, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 
-import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
 import { getTagsFilterUrl } from "@/stores/treeFilters/utils";
@@ -39,18 +37,6 @@ export const TrMetadataList: FunctionalComponent<MetadataProps> = ({ groupedLabe
         Object.entries(groupedLabels)?.map(([name, values]) => (
           <MetadataKeyValue key={name} size={size} title={name} values={values} />
         ))}
-    </div>
-  );
-};
-
-export const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo }) => {
-  const { t } = useI18n("ui");
-  const [isOpened, setIsOpen] = useState(true);
-
-  return (
-    <div class={styles["report-metadata"]}>
-      <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={envInfo.length} title={t("metadata")} />
-      {isOpened && <MetadataList envInfo={envInfo} />}
     </div>
   );
 };

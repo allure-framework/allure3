@@ -224,7 +224,9 @@
       "layer": "დონე: {{layer}}",
       "statusSlice": "{{count}} {{status}} (ყველა ტესტის {{percent}}%)",
       "slice": "{{count}} ტესტი (ყველა ტესტის {{percent}}%)"
-    }
+    },
+    "retry": "ხელახლა ცდა",
+    "loadError": "დიაგრამის ჩატვირთვა ვერ მოხერხდა"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "გასწორებული",
     "regressed": "რეგრესია",
     "malfunctioned": "დაზიანებული"
+  },
+  "ui": {
+    "at": "ზე",
+    "generatedAt": "გენერირებულია {{timestamp, timestamp_long}}"
   }
 }

@@ -232,7 +232,9 @@
       "slice": "{{count}} тестів ({{percent}}% усіх тестів)",
       "slice_few": "{{count}} тести ({{percent}}% усіх тестів)",
       "slice_many": "{{count}} тестів ({{percent}}% усіх тестів)"
-    }
+    },
+    "retry": "Повторити",
+    "loadError": "Не вдалося завантажити діаграму"
   },
   "transitions": {
     "description": {
@@ -245,5 +247,9 @@
     "fixed": "Виправлені",
     "regressed": "Регресовані",
     "malfunctioned": "Зламані"
+  },
+  "ui": {
+    "at": "в",
+    "generatedAt": "Згенеровано {{timestamp, timestamp_long}}"
   }
 }

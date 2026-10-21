@@ -1,6 +1,5 @@
 import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { splitTextWithUrls, textContainsUrl } from "@allurereport/web-commons";
-import type { FunctionalComponent } from "preact";
 
 import { Text, type TextProps } from "@/components/Typography";
 

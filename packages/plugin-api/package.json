@@ -17,9 +17,17 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "internal/report": [
+        "dist/utils/report.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": "./dist/index.js",
-    "./static-assets": "./dist/staticAssets.js"
+    "./static-assets": "./dist/staticAssets.js",
+    "./internal/report": "./dist/utils/report.js"
   },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",

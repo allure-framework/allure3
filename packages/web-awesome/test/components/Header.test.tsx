@@ -12,7 +12,7 @@ beforeEach(async () => {
 });
 
 import { Header } from "@/components/Header";
-import { CiInfo } from "@/components/Header/CiInfo";
+import { GitInfo } from "@/components/Header/GitInfo";
 import type * as routerModule from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
 
@@ -38,8 +38,8 @@ vi.mock("@/components/TestResult/TrHeader/TrBreadcrumbs", () => ({
   TrBreadcrumbs: () => <div data-testid="breadcrumbs" />,
 }));
 
-vi.mock("@/components/Header/CiInfo", () => ({
-  CiInfo: vi.fn().mockImplementation(() => <div data-testid="ci-info" />),
+vi.mock("@/components/Header/GitInfo", () => ({
+  GitInfo: vi.fn().mockImplementation(() => <div data-testid="git-info" />),
 }));
 
 // Mock router module with controllable testResultRoute
@@ -81,8 +81,8 @@ describe("components > Header", () => {
 
     render(<Header />);
 
-    expect(CiInfo).toHaveBeenCalled();
-    expect(screen.getByTestId("ci-info")).toBeInTheDocument();
+    expect(GitInfo).toHaveBeenCalled();
+    expect(screen.getByTestId("git-info")).toBeInTheDocument();
   });
 
   it("shouldn't render ci info when testResultId route parameter exists", () => {
@@ -95,8 +95,8 @@ describe("components > Header", () => {
 
     render(<Header />);
 
-    expect(CiInfo).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("ci-info")).not.toBeInTheDocument();
+    expect(GitInfo).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("git-info")).not.toBeInTheDocument();
   });
 
   it("should render breadcrumbs when testResultId route parameter exists", () => {

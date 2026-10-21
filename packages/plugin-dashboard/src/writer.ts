@@ -1,5 +1,3 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
 import type { ReportFiles } from "@allurereport/plugin-api";
@@ -11,16 +9,6 @@ export type ReportFile = {
 
 export interface DashboardDataWriter {
   writeWidget<T>(fileName: string, data: T): Promise<void>;
-}
-
-export class FileSystemReportDataWriter implements DashboardDataWriter {
-  constructor(private readonly output: string) {}
-
-  async writeWidget<T>(fileName: string, data: T): Promise<void> {
-    const distFolder = resolve(this.output, "widgets");
-    await mkdir(distFolder, { recursive: true });
-    await writeFile(resolve(distFolder, fileName), JSON.stringify(data), { encoding: "utf-8" });
-  }
 }
 
 export class InMemoryDashboardDataWriter implements DashboardDataWriter {

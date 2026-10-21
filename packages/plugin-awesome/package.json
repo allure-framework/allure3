@@ -33,11 +33,12 @@
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
+    "@allurereport/git": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "4.7.10",
-    "markdown-it": "^15.0.2"
+    "markdown-it": "^15.0.3"
   },
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",

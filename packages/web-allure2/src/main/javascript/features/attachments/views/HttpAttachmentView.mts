@@ -1,4 +1,22 @@
+import type {
+  HttpPair,
+  HttpCookie,
+  HttpStream,
+  HttpBodyPart,
+  HttpBody,
+  HttpRequest,
+  HttpInformationalResponse,
+  HttpResponse,
+  HttpError,
+} from "@allurereport/web-commons";
+import {
+  normalizeHttpExchangePayload,
+  isJsonAttachmentContentType,
+  normalizeAttachmentContentType,
+} from "@allurereport/web-commons";
+
 import "./HttpAttachmentView.scss";
+
 import { fetchReportJson } from "../../../core/services/reportData.mts";
 import { createReportLoadErrorView, mountAsyncView } from "../../../core/view/asyncMount.mts";
 import { bindDelegatedEvents } from "../../../core/view/domEvents.mts";
@@ -9,7 +27,6 @@ import { createIconElement } from "../../../shared/icon/index.mts";
 import TooltipView from "../../../shared/ui/TooltipView.mts";
 import { AttachmentPreviewView } from "../model/attachmentPreviewView.mts";
 import attachmentType from "../model/attachmentType.mts";
-import { isJsonAttachmentContentType, normalizeAttachmentContentType } from "../model/builtinAttachmentType.mts";
 import { HTTP_EXCHANGE_REDACTED_VALUE } from "../model/httpAttachment.mts";
 import {
   createAttachmentSourceUrlPreview,
@@ -28,126 +45,10 @@ type HttpAttachmentContentOptions = {
   sourceUrl: string;
 };
 
-type HttpPair = {
-  name: string;
-  value: string;
-  masked: boolean;
-};
-
-type HttpCookie = HttpPair & {
-  domain: string;
-  expires: string;
-  httpOnly: boolean;
-  maxAge?: number;
-  path: string;
-  sameSite: string;
-  secure: boolean;
-};
-
-type HttpBody = {
-  contentType: string;
-  encoding: string;
-  value: string;
-  hasValue: boolean;
-  size?: number;
-  truncated: boolean;
-  form: HttpPair[];
-  parts: HttpBodyPart[];
-  stream: HttpStream | null;
-};
-
-type HttpBodyPart = {
-  name: string;
-  fileName: string;
-  headers: HttpPair[];
-  contentType: string;
-  encoding: string;
-  value: string;
-  hasValue: boolean;
-  size?: number;
-  truncated: boolean;
-};
-
-type HttpStream = {
-  type: string;
-  complete: string;
-  chunkCount?: number;
-};
-
-type HttpRequest = {
-  method: string;
-  url: string;
-  httpVersion: string;
-  headers: HttpPair[];
-  cookies: HttpCookie[];
-  query: HttpPair[];
-  body: HttpBody | null;
-  trailers: HttpPair[];
-};
-
-type HttpInformationalResponse = {
-  status: string;
-  reason: string;
-  headers: HttpPair[];
-};
-
-type HttpResponse = {
-  status: string;
-  reason: string;
-  httpVersion: string;
-  headers: HttpPair[];
-  cookies: HttpCookie[];
-  body: HttpBody | null;
-  trailers: HttpPair[];
-  informationalResponses: HttpInformationalResponse[];
-};
-
-type HttpError = {
-  name: string;
-  message: string;
-  stack: string;
-};
-
-type HttpDuration = {
-  durationMs: string;
-};
-
-type NormalizedHttpPayload = {
-  request: HttpRequest | null;
-  response: HttpResponse | null;
-  error: HttpError | null;
-  duration: HttpDuration | null;
-};
-
 const DEFAULT_BODY_CONTENT_TYPE = "text/plain";
 const DEFAULT_BINARY_CONTENT_TYPE = "application/octet-stream";
 const MASKED_VALUE_PLACEHOLDER = "*****";
 const MASKED_VALUE_TOOLTIP = "Value is masked";
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const toOptionalString = (value: unknown): string =>
-  value === null || typeof value === "undefined" ? "" : String(value);
-
-const toFiniteNumber = (value: unknown): number | undefined => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
-
-  return undefined;
-};
-
-const isHttpPair = (value: HttpPair | null): value is HttpPair => value !== null;
-
-const isHttpCookie = (value: HttpCookie | null): value is HttpCookie => value !== null;
-
-const isHttpBodyPart = (value: HttpBodyPart | null): value is HttpBodyPart => value !== null;
 
 const maskRedactedText = (value: string) => value.replaceAll(HTTP_EXCHANGE_REDACTED_VALUE, MASKED_VALUE_PLACEHOLDER);
 
@@ -165,230 +66,15 @@ const renderMaskedValue = () =>
 const renderPairValue = ({ masked, value }: HttpPair): DomChild =>
   masked ? renderMaskedValue() : maskRedactedText(value);
 
-const normalizePair = (value: unknown): HttpPair | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const name = toOptionalString(value.name).trim();
-  const pairValue = toOptionalString(value.value);
-  const masked = pairValue === HTTP_EXCHANGE_REDACTED_VALUE;
-
-  if (!name && !pairValue) {
-    return null;
-  }
-
-  return {
-    name,
-    value: pairValue,
-    masked,
-  };
-};
-
-const normalizePairs = (value: unknown): HttpPair[] =>
-  Array.isArray(value) ? value.map(normalizePair).filter(isHttpPair) : [];
-
-const normalizeCookie = (value: unknown): HttpCookie | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const pair = normalizePair(value);
-  if (!pair) {
-    return null;
-  }
-
-  return {
-    ...pair,
-    domain: toOptionalString(value.domain).trim(),
-    expires: toOptionalString(value.expires).trim(),
-    httpOnly: value.httpOnly === true,
-    maxAge: toFiniteNumber(value.maxAge),
-    path: toOptionalString(value.path).trim(),
-    sameSite: toOptionalString(value.sameSite).trim(),
-    secure: value.secure === true,
-  };
-};
-
-const normalizeCookies = (value: unknown): HttpCookie[] =>
-  Array.isArray(value) ? value.map(normalizeCookie).filter(isHttpCookie) : [];
-
-const headerValue = (headers: HttpPair[], name: string) => {
-  const normalizedName = name.toLowerCase();
-
-  return headers.find((header) => header.name.toLowerCase() === normalizedName)?.value || "";
-};
-
-const normalizeStream = (value: unknown): HttpStream | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    type: toOptionalString(value.type).trim(),
-    complete: typeof value.complete === "boolean" ? String(value.complete) : "",
-    chunkCount: toFiniteNumber(value.chunkCount),
-  };
-};
-
-const normalizeBodyPart = (value: unknown): HttpBodyPart | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const headers = normalizePairs(value.headers);
-  const hasValue = typeof value.value !== "undefined" && value.value !== null;
-  const encoding = toOptionalString(value.encoding).trim().toLowerCase() || "utf8";
-
-  return {
-    name: toOptionalString(value.name).trim(),
-    fileName: toOptionalString(value.fileName).trim(),
-    headers,
-    contentType: toOptionalString(value.contentType).trim() || headerValue(headers, "content-type"),
-    encoding,
-    value: hasValue ? String(value.value) : "",
-    hasValue,
-    size: toFiniteNumber(value.size),
-    truncated: value.truncated === true,
-  };
-};
-
-const normalizeBodyParts = (value: unknown): HttpBodyPart[] =>
-  Array.isArray(value) ? value.map(normalizeBodyPart).filter(isHttpBodyPart) : [];
-
-const normalizeBody = (value: unknown, fallbackContentType = ""): HttpBody | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const hasValue = typeof value.value !== "undefined" && value.value !== null;
-  const encoding = toOptionalString(value.encoding).trim().toLowerCase() || "utf8";
-
-  return {
-    contentType: toOptionalString(value.contentType).trim() || fallbackContentType,
-    encoding,
-    value: hasValue ? String(value.value) : "",
-    hasValue,
-    size: toFiniteNumber(value.size),
-    truncated: value.truncated === true,
-    form: normalizePairs(value.form),
-    parts: normalizeBodyParts(value.parts),
-    stream: normalizeStream(value.stream),
-  };
-};
-
-const normalizeRequest = (value: unknown): HttpRequest | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const method = toOptionalString(value.method).trim().toUpperCase() || "GET";
-  const headers = normalizePairs(value.headers);
-
-  return {
-    method,
-    url: toOptionalString(value.url).trim(),
-    httpVersion: toOptionalString(value.httpVersion).trim(),
-    headers,
-    cookies: normalizeCookies(value.cookies),
-    query: normalizePairs(value.query),
-    body: normalizeBody(value.body, headerValue(headers, "content-type")),
-    trailers: normalizePairs(value.trailers),
-  };
-};
-
-const normalizeInformationalResponse = (value: unknown): HttpInformationalResponse | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    status: toOptionalString(value.status).trim(),
-    reason: toOptionalString(value.statusText).trim(),
-    headers: normalizePairs(value.headers),
-  };
-};
-
-const normalizeInformationalResponses = (value: unknown): HttpInformationalResponse[] =>
-  Array.isArray(value)
-    ? value
-        .map(normalizeInformationalResponse)
-        .filter((response): response is HttpInformationalResponse => response !== null)
-    : [];
-
-const normalizeResponse = (value: unknown): HttpResponse | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const headers = normalizePairs(value.headers);
-
-  return {
-    status: toOptionalString(value.status).trim(),
-    reason: toOptionalString(value.statusText).trim(),
-    httpVersion: toOptionalString(value.httpVersion).trim(),
-    headers,
-    cookies: normalizeCookies(value.cookies),
-    body: normalizeBody(value.body, headerValue(headers, "content-type")),
-    trailers: normalizePairs(value.trailers),
-    informationalResponses: normalizeInformationalResponses(value.informationalResponses),
-  };
-};
-
-const normalizeError = (value: unknown): HttpError | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const name = toOptionalString(value.name).trim();
-  const message = toOptionalString(value.message).trim();
-  const stack = toOptionalString(value.stack).trim();
-
-  if (!name && !message && !stack) {
-    return null;
-  }
-
-  return {
-    name,
-    message,
-    stack,
-  };
-};
-
-const normalizeDuration = (value: unknown): HttpDuration | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const start = toFiniteNumber(value.start);
-  const stop = toFiniteNumber(value.stop);
-  if (typeof start === "undefined" || typeof stop === "undefined" || stop < start) {
-    return null;
-  }
-
-  return {
-    durationMs: `${stop - start} ms`,
-  };
-};
-
-const normalizePayload = (payload: HttpExchangePayload): NormalizedHttpPayload => ({
-  request: normalizeRequest(payload.request),
-  response: normalizeResponse(payload.response),
-  error: normalizeError(payload.error),
-  duration: normalizeDuration(payload),
-});
-
 const getRequestTarget = (request: HttpRequest) => request.url || "";
 
 const normalizeContentType = (contentType: string) =>
   normalizeAttachmentContentType(contentType || DEFAULT_BODY_CONTENT_TYPE);
 
-const isJsonContentType = (contentType: string) => isJsonAttachmentContentType(normalizeContentType(contentType));
-
 const bodyCodeLanguage = (contentType: string) => {
   const normalized = normalizeContentType(contentType);
 
-  if (isJsonContentType(normalized)) {
+  if (isJsonAttachmentContentType(normalized)) {
     return "json";
   }
 
@@ -431,7 +117,7 @@ const bodyDownloadExtension = (body: HttpBody) => {
   const contentType = normalizeContentType(body.contentType);
   const attachmentInfo = getSafeBodyAttachmentType(body);
 
-  if (isJsonContentType(contentType)) {
+  if (isJsonAttachmentContentType(contentType)) {
     return "json";
   }
 
@@ -624,7 +310,7 @@ const renderStreamTable = (stream: HttpStream | null) => {
             masked: false,
           }
         : null,
-    ].filter(isHttpPair),
+    ].filter((pair): pair is HttpPair => pair !== null),
   );
 };
 
@@ -921,7 +607,7 @@ const renderErrorSection = (error: HttpError | null) => {
   });
 };
 
-const renderSummary = (request: HttpRequest, response: HttpResponse | null, duration: HttpDuration | null) => {
+const renderSummary = (request: HttpRequest, response: HttpResponse | null, durationMs: string) => {
   const statusLine = response ? [response.status, response.reason].filter(Boolean).join(" ") : "";
 
   return createElement("div", {
@@ -941,18 +627,19 @@ const renderSummary = (request: HttpRequest, response: HttpResponse | null, dura
             text: statusLine,
           })
         : null,
-      duration?.durationMs
+      durationMs
         ? createElement("span", {
             className: "http-attachment__duration",
-            text: duration.durationMs,
+            text: durationMs,
           })
         : null,
     ],
   });
 };
 
-const createHttpAttachmentContent = (payload: HttpExchangePayload) => {
-  const normalized = normalizePayload(payload);
+// Keep null payloads on Allure2's existing load-error path.
+const createHttpAttachmentContent = ({ request, response, error, start, stop }: HttpExchangePayload) => {
+  const normalized = normalizeHttpExchangePayload({ request, response, error, start, stop });
   const el = defineMountableElement(document.createElement("div"), {
     onMaskedValueHover(event: Event) {
       tooltip.show(MASKED_VALUE_TOOLTIP, event.currentTarget as HTMLElement);
@@ -981,7 +668,7 @@ const createHttpAttachmentContent = (payload: HttpExchangePayload) => {
 
       el.replaceChildren(
         ...[
-          renderSummary(normalized.request, normalized.response, normalized.duration),
+          renderSummary(normalized.request, normalized.response, normalized.durationMs),
           renderRequestSection(normalized.request),
           renderResponseSection(normalized.response),
           renderErrorSection(normalized.error),

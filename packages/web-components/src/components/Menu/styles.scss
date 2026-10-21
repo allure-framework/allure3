@@ -8,6 +8,46 @@
   max-height: 360px;
   overflow: auto;
 
+  // the compact menu: the width follows the content, the paddings, the gap and the icons are smaller.
+  // The icons are 16px boxes with 12px glyphs inside, the negative margins cut the paddings of the boxes off,
+  // so the glyphs and the labels of all the items are on the same vertical lines
+  &.size-xs {
+    width: max-content;
+    min-width: 160px;
+    max-width: 280px;
+
+    .menuListItem {
+      padding: 1px 3px;
+    }
+
+    .menuItem {
+      padding: 4px;
+      gap: 6px;
+      align-items: center;
+      // buttons and links of the items have the same color as the text of the other ones
+      color: inherit;
+
+      .leadingIcon {
+        width: 16px;
+        height: 16px;
+        margin: 0 -2px;
+      }
+
+      .content {
+        min-width: 0;
+      }
+
+      .right {
+        margin-right: -2px;
+        color: var(--color-icon-secondary);
+      }
+
+      .checkmarkIcon {
+        margin-top: 0;
+      }
+    }
+  }
+
   &.size-s {
     width: 180px;
   }
@@ -72,6 +112,23 @@
     }
   }
 
+  &:is(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  // some line icons of the set have the stroke of 70% opacity and some don't, the menu makes all of them look the same
+  & .leadingIcon path,
+  & .right svg:not(.checkmarkIcon) path {
+    stroke-opacity: 0.7;
+  }
+
+  // the glyph of a line icon takes 75% of its box (18 of 24), and a logo takes all of it,
+  // so the logo is scaled down in every size of the menu, the box and the place of the icon stay the same
+  & .leadingIconFilled {
+    transform: scale(0.75);
+  }
+
   & .leadingIcon {
     color: var(--color-icon-secondary);
     flex-shrink: 0;
@@ -91,6 +148,16 @@
   & .right {
     flex-shrink: 0;
     flex-grow: 0;
+  }
+
+  & .rightOnHover {
+    opacity: 0;
+    transition: opacity var(--color-change-transition-duration);
+  }
+
+  &:hover .rightOnHover,
+  &:focus-visible .rightOnHover {
+    opacity: 1;
   }
 
   & .checkmarkIcon {

@@ -224,7 +224,9 @@
       "layer": "レイヤー: {{layer}}",
       "statusSlice": "{{count}} {{status}} （全テストの {{percent}}%）",
       "slice": "{{count}} 件のテスト（全テストの {{percent}}%）"
-    }
+    },
+    "retry": "再試行",
+    "loadError": "チャートを読み込めませんでした"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "修正済み",
     "regressed": "退行",
     "malfunctioned": "破損"
+  },
+  "ui": {
+    "at": "時",
+    "generatedAt": "生成日時 {{timestamp, timestamp_long}}"
   }
 }

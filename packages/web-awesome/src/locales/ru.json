@@ -183,6 +183,10 @@
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})",
     "resolutionCategories": "Resolutions",
     "breadcrumbs": "Хлебные крошки",
+    "gitBranch": "Ветка",
+    "gitCommit": "Коммит",
+    "openPullRequest": "Открыть PR",
+    "openJobRun": "Открыть запуск",
     "breadcrumbs-hidden": "Показать скрытые хлебные крошки"
   },
   "shortcuts": {
@@ -244,6 +248,9 @@
     }
   },
   "controls": {
+    "retry": "Повторить",
+    "loadAttachmentViewerError": "Не удалось загрузить просмотр вложения",
+    "loadComparisonError": "Не удалось загрузить сравнение",
     "newTabAttachment": "Открыть в новой вкладке",
     "nextTR": "Следующий тест",
     "prevTR": "Предыдущий тест",
@@ -533,7 +540,9 @@
       "slice": "{{count}} тестов ({{percent}}% всех тестов)",
       "slice_few": "{{count}} теста ({{percent}}% всех тестов)",
       "slice_many": "{{count}} тестов ({{percent}}% всех тестов)"
-    }
+    },
+    "retry": "Повторить",
+    "loadError": "Не удалось загрузить график"
   },
   "transitions": {
     "description": {

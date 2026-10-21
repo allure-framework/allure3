@@ -6,7 +6,7 @@ import {
   stringifyForInlineScript,
 } from "@allurereport/core-api";
 import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { ReportStaticManifest } from "@allurereport/plugin-api/static-assets";
+import { writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -33,15 +33,7 @@ import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
 import { createStatistic, updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
 
-export type TemplateManifest = ReportStaticManifest;
-
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
-
-const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
-  for (let i = 0; i < items.length; i += concurrency) {
-    await Promise.all(items.slice(i, i + concurrency).map(write));
-  }
-};
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="{{reportLanguage}}">
@@ -139,12 +131,6 @@ const injectEmbeddedReportDataScript = (html: string, reportFiles: ReportFile[])
   );
 
   return Buffer.concat(chunks);
-};
-
-export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const { manifest } = await readReportStaticAssets(reportStaticArchive);
-
-  return manifest;
 };
 
 export const generateStaticFiles = async (payload: {

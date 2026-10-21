@@ -225,7 +225,9 @@
       "layer": "Layer: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
       "slice": "{{count}} tests ({{percent}}% of all tests)"
-    }
+    },
+    "retry": "Retry",
+    "loadError": "Failed to load chart"
   },
   "transitions": {
     "description": {
@@ -238,5 +240,9 @@
     "fixed": "fixed",
     "regressed": "regressed",
     "malfunctioned": "malfunctioned"
+  },
+  "ui": {
+    "at": "at",
+    "generatedAt": "Generated {{timestamp, timestamp_long}}"
   }
 }

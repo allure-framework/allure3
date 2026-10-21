@@ -1,4 +1,4 @@
-import { ensureReportDataReady } from "@allurereport/web-commons";
+import { ensureReportDataReady, testPlatform } from "@allurereport/web-commons";
 
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
@@ -6,9 +6,10 @@ import { render } from "preact";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { getLocale, waitForI18next } from "@/stores/locale";
-import { isMac } from "@/utils/isMac";
 
 import * as styles from "./styles.scss";
+
+const isMac = testPlatform(/^Mac/i);
 
 const App = () => (
   <div className={styles.main}>

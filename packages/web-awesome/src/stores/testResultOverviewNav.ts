@@ -5,7 +5,7 @@ import { fixtureResultToTrStepItem, getBodyItems } from "@/components/TestResult
 import { isTestResultHotkeysContext } from "@/stores/keyboard";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
-import { collapsedTrees, isTreeOpened, setTreeOpened, toggleTree } from "@/stores/tree";
+import { collapsedTrees, isTreeOpened, setTreeOpened } from "@/stores/tree";
 import { flattenTestResultOverview } from "@/utils/flattenTestResultOverview";
 export const testResultFocusId = signal<string | undefined>(undefined);
 
@@ -111,14 +111,4 @@ export const applyTestResultFocusMove = (result: MoveFocusResult) => {
   if (result.nextId) {
     setTestResultFocusId(result.nextId);
   }
-};
-
-export const toggleTestResultFocusNode = () => {
-  const node = getFlatTestResultNode(testResultFocusId.value);
-
-  if (!node?.nodeId) {
-    return;
-  }
-
-  toggleTree(node.nodeId, resolveOpenedByDefault(node));
 };

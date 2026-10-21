@@ -1,0 +1,9 @@
+// the shortened text is not wrapped, and if even it doesn't fit, it is cut at the end
+.root {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

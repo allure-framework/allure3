@@ -1,4 +1,4 @@
-export const HTTP_EXCHANGE_REDACTED_VALUE = "__ALLURE_REDACTED__";
+export { HTTP_EXCHANGE_REDACTED_VALUE } from "@allurereport/web-commons";
 
 export type HttpExchangeSchemaVersion = 1;
 export type HttpExchangeBodyEncoding = "utf8" | "base64" | (string & {});

@@ -12,7 +12,7 @@ beforeEach(async () => {
   await label("coverage", "ui-components");
 });
 
-import { CiInfo } from "@/components/Header/CiInfo";
+import { CiInfo, getCiIconId, getCiLabel } from "@/components/Header/CiInfo";
 
 const fixtures = {
   pullRequestUrl: "https://github.com/repo/pull/123",
@@ -24,8 +24,6 @@ const fixtures = {
 };
 
 vi.mock("@allurereport/web-components/core", async () => {
-  const { CiType } = await import("@allurereport/core-api");
-
   return {
     Text: (props: { children: string }) => <span>{props.children}</span>,
     SvgIcon: (props: { id: string; size?: string }) => <span data-testid="icon">{props.id}</span>,
@@ -244,5 +242,36 @@ describe("components > Header > CiInfo", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByText("Nightly Build")).toBeInTheDocument();
     expect(screen.queryByText("TeamCity · Wrike #123")).not.toBeInTheDocument();
+  });
+});
+
+describe("components > Header > CiInfo helpers", () => {
+  it("should return the id of the icon for every well-known CI", () => {
+    expect(getCiIconId(CiType.Amazon)).toBe("amazon");
+    expect(getCiIconId(CiType.Azure)).toBe("azure");
+    expect(getCiIconId(CiType.Bitbucket)).toBe("bitbucket");
+    expect(getCiIconId(CiType.Circle)).toBe("circle");
+    expect(getCiIconId(CiType.Drone)).toBe("drone");
+    expect(getCiIconId(CiType.Github)).toBe("github");
+    expect(getCiIconId(CiType.Gitlab)).toBe("gitlab");
+    expect(getCiIconId(CiType.Jenkins)).toBe("jenkins");
+  });
+
+  it("should not return an icon for the local run and for the unknown type", () => {
+    expect(getCiIconId(CiType.Local)).toBeUndefined();
+    expect(getCiIconId(undefined)).toBeUndefined();
+  });
+
+  it("should prefer the pull request, then the job run, then the job, then the link for the label", () => {
+    const ci = { pullRequestName: "PR #1", jobRunName: "Run #2", jobName: "Job" } as Parameters<typeof getCiLabel>[0];
+
+    expect(getCiLabel(ci, "https://example.com")).toBe("PR #1");
+    expect(getCiLabel({ ...ci, pullRequestName: "" } as typeof ci, "https://example.com")).toBe("Run #2");
+    expect(getCiLabel({ ...ci, pullRequestName: "", jobRunName: "" } as typeof ci, "https://example.com")).toBe("Job");
+    expect(getCiLabel({ jobName: "" } as typeof ci, "https://example.com")).toBe("https://example.com");
+  });
+
+  it("should not have a label without CI", () => {
+    expect(getCiLabel(undefined, "https://example.com")).toBeUndefined();
   });
 });

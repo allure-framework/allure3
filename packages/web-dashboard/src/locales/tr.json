@@ -224,7 +224,9 @@
       "layer": "Katman: {{layer}}",
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
-    }
+    },
+    "retry": "Yeniden dene",
+    "loadError": "Grafik yüklenemedi"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
     "malfunctioned": "Bozuk"
+  },
+  "ui": {
+    "at": "tarihinde",
+    "generatedAt": "Oluşturuldu {{timestamp, timestamp_long}}"
   }
 }

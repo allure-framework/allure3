@@ -224,7 +224,9 @@
       "layer": "Səviyyə: {{layer}}",
       "statusSlice": "{{count}} {{status}} (bütün testlərin {{percent}}%-i)",
       "slice": "{{count}} test (bütün testlərin {{percent}}%-i)"
-    }
+    },
+    "retry": "Yenidən cəhd et",
+    "loadError": "Diaqramı yükləmək mümkün olmadı"
   },
   "transitions": {
     "description": {
@@ -237,5 +239,9 @@
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq"
+  },
+  "ui": {
+    "at": "tarixində",
+    "generatedAt": "Yaradıldı {{timestamp, timestamp_long}}"
   }
 }
