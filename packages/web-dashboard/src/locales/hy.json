@@ -239,5 +239,9 @@
     "fixed": "Ուղղված",
     "regressed": "Ռեգրեսիա",
     "malfunctioned": "Կոտրված"
+  },
+  "ui": {
+    "at": "է",
+    "generatedAt": "Ստեղծվել է {{timestamp, timestamp_long}}"
   }
 }

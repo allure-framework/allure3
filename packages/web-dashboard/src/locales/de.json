@@ -239,5 +239,9 @@
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt"
+  },
+  "ui": {
+    "at": "bei",
+    "generatedAt": "Generiert {{timestamp, timestamp_long}}"
   }
 }

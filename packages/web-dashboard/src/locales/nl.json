@@ -239,5 +239,9 @@
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect"
+  },
+  "ui": {
+    "at": "om",
+    "generatedAt": "Gegenereerd {{timestamp, timestamp_long}}"
   }
 }

@@ -4,20 +4,13 @@ import { useState } from "preact/hooks";
 import type { ReportOptions } from "types";
 
 import { useI18n } from "@/stores";
-import { timestampToDate } from "@/utils/time";
+import { defaultDateTimeOptions, timestampToDate } from "@/utils/time";
 
 import * as styles from "./styles.scss";
 
 export const FooterVersion = () => {
   const { t } = useI18n("ui");
-  const [createdAt] = useState(() => {
-    const reportOptions = getReportOptions<ReportOptions>();
-    if (reportOptions?.createdAt) {
-      return Number(reportOptions.createdAt);
-    }
-
-    return undefined;
-  });
+  const [createdAt] = useState(() => getReportOptions<ReportOptions>()?.createdAt);
 
   const [currentVersion] = useState<string>(() => {
     const reportOptions = getReportOptions<ReportOptions>();
@@ -29,11 +22,18 @@ export const FooterVersion = () => {
     return undefined;
   });
 
-  const formattedCreatedAt = timestampToDate(createdAt as number);
+  const formattedCreatedAt =
+    typeof createdAt === "number" && Number.isFinite(new Date(createdAt).getTime())
+      ? timestampToDate(createdAt, { ...defaultDateTimeOptions, timeZoneName: "longOffset" })
+      : undefined;
 
   return (
     <Text type="paragraph" size="m" className={styles.version}>
-      {t("generated")} {formattedCreatedAt}
+      {formattedCreatedAt && (
+        <span>
+          {t("generated")} <bdi>{formattedCreatedAt}</bdi>
+        </span>
+      )}
       {currentVersion && <span> Ver: {currentVersion}</span>}
     </Text>
   );

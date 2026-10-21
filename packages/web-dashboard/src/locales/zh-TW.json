@@ -239,5 +239,9 @@
     "fixed": "已修復",
     "regressed": "已回歸",
     "malfunctioned": "已損壞"
+  },
+  "ui": {
+    "at": "於",
+    "generatedAt": "已產生 {{timestamp, timestamp_long}}"
   }
 }

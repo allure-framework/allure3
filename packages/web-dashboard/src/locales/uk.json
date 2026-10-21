@@ -247,5 +247,9 @@
     "fixed": "Виправлені",
     "regressed": "Регресовані",
     "malfunctioned": "Зламані"
+  },
+  "ui": {
+    "at": "в",
+    "generatedAt": "Згенеровано {{timestamp, timestamp_long}}"
   }
 }

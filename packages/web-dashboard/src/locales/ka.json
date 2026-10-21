@@ -239,5 +239,9 @@
     "fixed": "გასწორებული",
     "regressed": "რეგრესია",
     "malfunctioned": "დაზიანებული"
+  },
+  "ui": {
+    "at": "ზე",
+    "generatedAt": "გენერირებულია {{timestamp, timestamp_long}}"
   }
 }
