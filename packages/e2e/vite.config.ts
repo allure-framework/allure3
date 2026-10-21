@@ -10,6 +10,7 @@ export default defineConfig({
       "vp:test": {
         command: "playwright test",
         cache: {
+          env: ["ENABLE_COVERAGE", "ALLURE_TESTPLAN_PATH", "ALLURE_RERUN", "ALLURE_RESULTS_DIR"],
           input: [
             "**/*.{ts,json}",
             "test/fixtures/**/*",
@@ -23,6 +24,7 @@ export default defineConfig({
             { pattern: "packages/*/vite.config.*", base: "workspace" },
             { pattern: "packages/*/webpack.config.*", base: "workspace" },
             { pattern: "packages/*/postcss.config.*", base: "workspace" },
+            { pattern: "packages/web-components/svgr.config.js", base: "workspace" },
             { pattern: "package.json", base: "workspace" },
             { pattern: "yarn.lock", base: "workspace" },
             { pattern: ".yarnrc.yml", base: "workspace" },
