@@ -73,7 +73,7 @@ const compileWithDotnet = async (source, target, silent) => {
     const stdout = await new Promise((resolve, reject) => {
       execFile(
         "dotnet",
-        ["build", "--no-logo", "--interactive", "false", csprojPath],
+        ["build", "--nologo", "--interactive", "false", csprojPath],
         { cwd: tempDir },
         (error, stdout, stderr) => {
           if (error) {
