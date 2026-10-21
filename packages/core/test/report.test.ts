@@ -1586,6 +1586,25 @@ describe("report", () => {
     expect(AllureServiceClientMock.prototype.uploadReport).toBeCalledTimes(0);
   });
 
+  it("persists the generation CI commit in every plugin summary", async () => {
+    const output = await mkdtemp(join(tmpdir(), "allure3-commit-summary-"));
+    const commit = { sha: "1234567890abcdef", url: "https://github.com/team/repo/commit/1234567890abcdef" };
+    (detect as Mock).mockReturnValue({ repoName: "allure3", jobRunBranch: "main", commit });
+    const config = await resolveConfig({ name: "Allure Report", output });
+    const plugins = [createPlugin("p1"), createPlugin("p2")];
+    for (const { plugin } of plugins) {
+      plugin.info.mockResolvedValue({ name: "Report", stats: { total: 0 }, status: "passed", duration: 0 });
+    }
+    config.plugins = plugins;
+    const report = new AllureReport(config);
+    await report.start();
+    await report.done();
+    for (const { id } of plugins) {
+      const summary = JSON.parse(await readFile(join(output, id, "summary.json"), "utf8"));
+      expect(summary.commit).toEqual(commit);
+    }
+  });
+
   it("should still write summary files in realtime mode", async () => {
     const output = await mkdtemp(join(tmpdir(), "allure3-realtime-summary-"));
     const p1 = createPlugin("p1", true, { publish: true });

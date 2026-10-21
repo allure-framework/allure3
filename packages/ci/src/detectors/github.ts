@@ -59,6 +59,23 @@ const getTargetBranch = (): string => {
 export const github: CiDescriptor = {
   type: CiType.Github,
 
+  get commit() {
+    const sha = getEnv("GITHUB_SHA");
+
+    if (!sha) {
+      return undefined;
+    }
+
+    const serverUrl = getBaseURL();
+    const repository = getRepo();
+    const repositoryUrl = serverUrl && repository ? `${serverUrl.replace(/\/+$/, "")}/${repository}` : undefined;
+
+    return {
+      sha,
+      ...(repositoryUrl ? { url: `${repositoryUrl}/commit/${encodeURIComponent(sha)}` } : {}),
+    };
+  },
+
   get detected(): boolean {
     return getEnv("GITHUB_ACTIONS") !== "";
   },

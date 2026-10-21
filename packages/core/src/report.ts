@@ -1366,6 +1366,7 @@ export class AllureReport {
         summary.pluginId = context.id;
         summary.pullRequestHref = this.#ci?.pullRequestUrl;
         summary.jobHref = this.#ci?.jobRunUrl;
+        summary.commit = this.#ci?.commit;
 
         summaries.push({
           ...summary,

@@ -12,7 +12,14 @@ export enum CiType {
   Local = "local",
 }
 
+/** CI revision associated with report generation, including synthetic merge commits. */
+export interface ReportCommit {
+  sha: string;
+  url?: string;
+}
+
 export interface CiDescriptor {
+  commit?: ReportCommit;
   type: CiType;
   detected: boolean;
   repoName: string;

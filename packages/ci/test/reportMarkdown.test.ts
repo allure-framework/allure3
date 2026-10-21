@@ -1,3 +1,4 @@
+import type { ReportCommit } from "@allurereport/core-api";
 import { describe, expect, it } from "vite-plus/test";
 
 import type { ReportContext } from "../src/reportContext.js";
@@ -381,5 +382,77 @@ describe("report markdown", () => {
     expect(markdown).toContain("**Reports:** A | &lt;script&gt;");
     expect(markdown).not.toContain("javascript:alert");
     expect(markdown).toContain("- <code>a | b</code> &mdash; <code>&lt;path&gt;</code>");
+  });
+});
+
+describe("report commit metadata", () => {
+  const sha = "1234567890abcdef1234567890abcdef12345678";
+  const commit = { sha, url: `https://github.example.org/team/repo/commit/${sha}` };
+  const report = (name: string, revision?: ReportCommit) => ({
+    name,
+    stats: { total: 0 },
+    status: "passed" as const,
+    duration: 0,
+    ...(revision ? { commit: revision } : {}),
+  });
+
+  it("renders a common linked commit once between the title and table", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({ reports: [report("Awesome", commit), report("Classic", commit)] }),
+    );
+    expect(markdown).toContain(
+      `# Allure Report Summary\n\n**Commit:** <a href="${commit.url}" title="${sha}">1234567</a>\n\n|`,
+    );
+    expect(markdown.match(/\*\*Commit/g)).toHaveLength(1);
+  });
+
+  it("includes filtered report revisions and preserves their separate report links", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [
+          report("Awesome", commit),
+          { ...report("Quality subset", { sha: "abcdef123" }), filtered: true, href: "subset/" },
+        ],
+      }),
+    );
+    expect(markdown).toContain("**Commit (Awesome):**");
+    expect(markdown).toContain('**Commit (Quality subset):** <span title="abcdef123">abcdef1</span>');
+    expect(markdown).toContain("**Filtered Reports**");
+    expect(markdown).toContain('<a href="subset/">Quality subset</a>');
+  });
+
+  it("identifies reports when commits differ or metadata is missing", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({ reports: [report("Awesome", commit), report("Classic", { sha: "abcdef123" }), report("Old")] }),
+    );
+    expect(markdown).toContain("**Commit (Awesome):**");
+    expect(markdown).toContain('**Commit (Classic):** <span title="abcdef123">abcdef1</span>');
+    expect(markdown).not.toContain("Commit (Old)");
+    expect(markdown).not.toContain("**Commit:**");
+  });
+
+  it.each([undefined, "javascript:alert(1)", "mailto:test@example.org", "/relative", "//example.org/commit"])(
+    "renders text for an absent or unsafe commit URL: %s",
+    (url) => {
+      const markdown = renderReportSummaryMarkdown(context({ reports: [report("Awesome", { sha, url })] }));
+      expect(markdown).toContain(`**Commit:** <span title="${sha}">1234567</span>`);
+      expect(markdown).not.toContain("<a href=");
+    },
+  );
+
+  it("escapes report names, commit titles and URLs", () => {
+    const markdown = renderReportSummaryMarkdown(
+      context({
+        reports: [report('<script>"', { sha: 'abcdefg"<>', url: "https://example.org/?a=1&b=2" }), report("Old")],
+      }),
+    );
+    expect(markdown).toContain("**Commit (&lt;script&gt;&quot;):**");
+    expect(markdown).toContain('href="https://example.org/?a=1&amp;b=2" title="abcdefg&quot;&lt;&gt;"');
+    expect(markdown).not.toContain("<script>");
+  });
+
+  it("preserves the existing widget when commits are absent or empty", () => {
+    const markdown = renderReportSummaryMarkdown(context({ reports: [report("Old"), report("Empty", { sha: "" })] }));
+    expect(markdown).not.toContain("**Commit");
   });
 });

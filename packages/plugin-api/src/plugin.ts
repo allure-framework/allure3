@@ -3,6 +3,7 @@ import type {
   AllureCheckResult,
   CategoryDefinition,
   CiDescriptor,
+  ReportCommit,
   GlobalAttachmentLink,
   HistoryDataPoint,
   Statistic,
@@ -77,6 +78,7 @@ export type SummaryCheckResult = Pick<AllureCheckResult, "id" | "name" | "status
 export type { GlobalAttachmentLink } from "@allurereport/core-api";
 
 export interface PluginSummary {
+  commit?: ReportCommit;
   href?: string;
   remoteHref?: string;
   jobHref?: string;

@@ -27,6 +27,32 @@ const mockEnv = (env: Record<string, string>) => {
 };
 
 describe("github", () => {
+  describe("commit", () => {
+    it("uses the CI revision, including merge commits, and the configured server", () => {
+      mockEnv({
+        GITHUB_SHA: "1234567890abcdef1234567890abcdef12345678",
+        GITHUB_SERVER_URL: "https://github.example.org",
+        GITHUB_REPOSITORY: "team/repo",
+        GITHUB_REF: "refs/pull/42/merge",
+        GITHUB_HEAD_REF: "feature",
+      });
+      expect(github.commit).toEqual({
+        sha: "1234567890abcdef1234567890abcdef12345678",
+        url: "https://github.example.org/team/repo/commit/1234567890abcdef1234567890abcdef12345678",
+      });
+    });
+
+    it("omits commit when the SHA is unavailable", () => {
+      mockEnv({});
+      expect(github.commit).toBeUndefined();
+    });
+
+    it("keeps the SHA without inventing a repository URL", () => {
+      mockEnv({ GITHUB_SHA: "1234567890abcdef1234567890abcdef12345678" });
+      expect(github.commit).toEqual({ sha: "1234567890abcdef1234567890abcdef12345678" });
+    });
+  });
+
   describe("detected", () => {
     it("should be true when GITHUB_ACTIONS is set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

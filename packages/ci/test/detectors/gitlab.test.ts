@@ -20,6 +20,43 @@ beforeEach(() => {
 });
 
 describe("gitlab", () => {
+  describe("commit", () => {
+    it.each(["", "detached"])("links the CI revision for branch and detached MR pipelines: %s", (eventType) => {
+      mockEnv({
+        CI_COMMIT_SHA: "1234567890abcdef1234567890abcdef12345678",
+        CI_PROJECT_URL: "https://gitlab.example.org/group/sub/repo/",
+        CI_MERGE_REQUEST_EVENT_TYPE: eventType,
+      });
+      expect(gitlab.commit).toEqual({
+        sha: "1234567890abcdef1234567890abcdef12345678",
+        url: "https://gitlab.example.org/group/sub/repo/-/commit/1234567890abcdef1234567890abcdef12345678",
+      });
+    });
+
+    it.each(["merged_result", "merge_train"])(
+      "keeps the tested synthetic SHA without a branch commit URL: %s",
+      (eventType) => {
+        mockEnv({
+          CI_COMMIT_SHA: "1234567890abcdef1234567890abcdef12345678",
+          CI_PROJECT_URL: "https://gitlab.example.org/group/sub/repo/",
+          CI_MERGE_REQUEST_EVENT_TYPE: eventType,
+          CI_MERGE_REQUEST_SOURCE_BRANCH_SHA: "other-sha",
+        });
+        expect(gitlab.commit).toEqual({ sha: "1234567890abcdef1234567890abcdef12345678" });
+      },
+    );
+
+    it("omits commit when the SHA is unavailable", () => {
+      mockEnv({});
+      expect(gitlab.commit).toBeUndefined();
+    });
+
+    it("keeps the SHA without inventing a repository URL", () => {
+      mockEnv({ CI_COMMIT_SHA: "1234567890abcdef1234567890abcdef12345678" });
+      expect(gitlab.commit).toEqual({ sha: "1234567890abcdef1234567890abcdef12345678" });
+    });
+  });
+
   describe("detected", () => {
     it("should be true when GITLAB_CI is set", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

@@ -1,4 +1,4 @@
-import type { TestStatus } from "@allurereport/core-api";
+import { sanitizeExternalUrl, type ReportCommit, type TestStatus } from "@allurereport/core-api";
 
 import type {
   ReportContext,
@@ -258,6 +258,38 @@ const renderLinks = (label: string, links: ReportLink[]): string | undefined => 
   return `**${escapeHtml(label)}:** ${links.map((item) => link(item.label, item.href)).join(", ")}`;
 };
 
+const renderCommit = (commit: ReportCommit): string => {
+  const label = escapeHtml(commit.sha.slice(0, 7));
+  const title = escapeHtml(commit.sha);
+  const url = sanitizeExternalUrl(commit.url);
+
+  return url && /^https?:/.test(url)
+    ? `<a href="${escapeHtml(url)}" title="${title}">${label}</a>`
+    : `<span title="${title}">${label}</span>`;
+};
+
+const renderReportCommits = (reports: ReportContextTestReport[]): string | undefined => {
+  const reportsWithCommit = reports.filter(
+    (report): report is ReportContextTestReport & { commit: ReportCommit } =>
+      typeof report.commit?.sha === "string" && report.commit.sha.length > 0,
+  );
+
+  if (!reportsWithCommit.length) {
+    return undefined;
+  }
+
+  const firstCommit = reportsWithCommit[0].commit;
+  const isCommonCommit =
+    reportsWithCommit.length === reports.length &&
+    reportsWithCommit.every(({ commit }) => commit.sha === firstCommit.sha && commit.url === firstCommit.url);
+
+  return isCommonCommit
+    ? `**Commit:** ${renderCommit(firstCommit)}`
+    : reportsWithCommit
+        .map(({ name, commit }) => `**Commit (${escapeHtml(name)}):** ${renderCommit(commit)}`)
+        .join("\n\n");
+};
+
 const renderReportLinks = (reports: ReportContextTestReport[]): string[] => {
   const links = sortLinks(reports.map(toReportLink).filter((item): item is ReportLink => item !== undefined));
   const reportLinks = links.filter(({ kind }) => kind === "report");
@@ -362,6 +394,7 @@ export const renderReportSummaryMarkdown = (
   const includeResolutions = hasResolutions(context.totals.resolutions);
   const sections = [
     `# ${escapeHtml(title)}`,
+    renderReportCommits(context.reports),
     renderTable(aggregateRows, includeResolutions, renderOptions),
     ...renderReportLinks(regularReports),
     renderFilteredReports(filteredReports, renderOptions),

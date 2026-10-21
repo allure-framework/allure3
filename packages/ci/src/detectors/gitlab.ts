@@ -45,6 +45,24 @@ export type GitlabCiDescriptor = CiDescriptor & {
 export const gitlab: GitlabCiDescriptor = {
   type: CiType.Gitlab,
 
+  get commit() {
+    const sha = getEnv("CI_COMMIT_SHA");
+
+    if (!sha) {
+      return undefined;
+    }
+
+    const eventType = getEnv("CI_MERGE_REQUEST_EVENT_TYPE");
+    // Merged-result and merge-train revisions are temporary, not branch commits.
+    const syntheticCommit = eventType === "merged_result" || eventType === "merge_train";
+    const repositoryUrl = !syntheticCommit ? getEnv("CI_PROJECT_URL").replace(/\/+$/, "") : undefined;
+
+    return {
+      sha,
+      ...(repositoryUrl ? { url: `${repositoryUrl}/-/commit/${encodeURIComponent(sha)}` } : {}),
+    };
+  },
+
   get detected(): boolean {
     return getEnv("GITLAB_CI") !== "";
   },

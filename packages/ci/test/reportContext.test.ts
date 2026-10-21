@@ -3,9 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { PluginSummary, TestResultRegistry } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createReportContext, createReportContextFromData } from "../src/reportContext.js";
+import { renderReportSummaryMarkdown } from "../src/reportMarkdown.js";
 
 const writeJson = async (filePath: string, value: unknown): Promise<void> => {
   await writeFile(filePath, JSON.stringify(value), "utf8");
@@ -396,4 +397,21 @@ describe("report context", () => {
       windows: [{ success: true, expected: 1, actual: 1, rule: "minTestsCount", message: "ok", testResults: [] }],
     });
   });
+});
+
+it("uses the saved report commit even when the action runs at a newer SHA", async () => {
+  const output = await mkdtemp(join(tmpdir(), "allure-report-commit-"));
+  const sha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const commit = { sha, url: `https://github.com/team/repo/commit/${sha}` };
+  await writeJson(join(output, "summary.json"), createSummary({ commit }));
+  vi.stubEnv("GITHUB_SHA", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+  try {
+    const savedContext = await createReportContext(output);
+    expect(savedContext.reports[0].commit).toEqual(commit);
+    const markdown = renderReportSummaryMarkdown(savedContext);
+    expect(markdown).toContain(`href="${commit.url}" title="${sha}">aaaaaaa</a>`);
+    expect(markdown).not.toContain("bbbbbbb");
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });
