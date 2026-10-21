@@ -1073,7 +1073,7 @@ __metadata:
     mermaid: "npm:^11.17.2"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
-    postcss-import: "npm:^17.0.0"
+    postcss-import: "npm:^17.0.1"
     preact: "npm:^10.29.8"
     prismjs: "npm:^1.30.0"
     react: "npm:@preact/compat@*"
@@ -15741,16 +15741,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-import@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "postcss-import@npm:17.0.0"
+"postcss-import@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "postcss-import@npm:17.0.1"
   dependencies:
     postcss-value-parser: "npm:^4.0.0"
     read-cache: "npm:^1.0.0"
     resolve: "npm:^1.1.7"
   peerDependencies:
     postcss: ^8.0.0
-  checksum: 10/03f1b09a1de0a2c837f79e791fbf4b7d193f752e55ec1d5f977c46cea5f5744519132eb978ce32f589a6b06672ae6b7c5f6e2e313fb42427cd4bfb5cb13cc364
+  checksum: 10/7ecb1f8955a60f0bd63d3e816cf50164c5da0698321aeb8baf7c9dfe1052ca304688c3083991eb75f375ba7336ad173602a31129cd357ce22121951610749ab0
   languageName: node
   linkType: hard
 
