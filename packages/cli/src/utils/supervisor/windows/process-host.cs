@@ -571,21 +571,6 @@ namespace Allure.Run.Supervisor.Windows
             internal string Text;
         }
 
-        private readonly Stopwatch startupClock = Stopwatch.StartNew();
-        private readonly Stopwatch startupStageClock = Stopwatch.StartNew();
-
-        private void StartupTiming(string stage)
-        {
-            if (Environment.GetEnvironmentVariable("ALLURE_SUPERVISOR_TIMINGS") == "1")
-            {
-                Diagnostic("startup timing: " + stage, new {
-                    stageMs = startupStageClock.ElapsedMilliseconds,
-                    elapsedMs = startupClock.ElapsedMilliseconds
-                });
-            }
-            startupStageClock.Restart();
-        }
-
         private void Diagnostic(string stage, object details)
         {
             if (!diagnosticsEnabled)
@@ -1288,9 +1273,7 @@ namespace Allure.Run.Supervisor.Windows
                 );
             }
 
-            StartupTiming("command preparation");
             CreateJob();
-            StartupTiming("job creation");
 
             IntPtr attributes = IntPtr.Zero, handlesMemory = IntPtr.Zero, jobsMemory = IntPtr.Zero;
             IntPtr[] handles = new IntPtr[3];
@@ -1369,7 +1352,6 @@ namespace Allure.Run.Supervisor.Windows
                 }
                 startup.lpAttributeList = attributes;
 
-                StartupTiming("process attributes and handles");
                 success = Native.CreateProcessW(
                     application,
                     new StringBuilder(commandLine, commandLine.Length + 1),
@@ -1385,7 +1367,6 @@ namespace Allure.Run.Supervisor.Windows
                     out process
                 );
 
-                StartupTiming("CreateProcessW");
                 if (!success)
                 {
                     throw Win32("CreateProcessW");
@@ -1827,8 +1808,6 @@ namespace Allure.Run.Supervisor.Windows
 
         private int Execute(string pipeName, string command, IEnumerable<string> arguments)
         {
-            StartupTiming("process host entry");
-
             // Disable diagnostics for nested process hosts.
             // The outer host will report all job processes anyway.
             Environment.SetEnvironmentVariable("__ALLURE_PROCESS_HOST_DIAGNOSTICS__", null);
@@ -1849,16 +1828,13 @@ namespace Allure.Run.Supervisor.Windows
                     PipeOptions.Asynchronous
                 );
 
-                StartupTiming("console handler and pipe setup");
                 pipe.Connect(ConnectTimeoutMs);
-                StartupTiming("pipe connection");
 
                 Dictionary<string, object> ready = Message("ready");
                 ready["version"] = 2;
                 ready["hostPid"] = Native.GetCurrentProcessId();
 
                 Send(ready);
-                StartupTiming("ready sent");
 
                 reader = new Thread(ReadLoop);
                 reader.IsBackground = true;
@@ -1873,7 +1849,6 @@ namespace Allure.Run.Supervisor.Windows
                 Send(started);
 
                 Diagnostic("target started", new { rootPid });
-                StartupTiming("launch completion and started sent");
 
                 Stopwatch completionClock = Stopwatch.StartNew();
                 long nextCompletionCheck = CompletionCheckIntervalMs;
