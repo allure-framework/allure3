@@ -155,6 +155,8 @@
     "parameters": "参数",
     "category": "分类",
     "description": "描述",
+    "precondition": "前置条件",
+    "expectedResult": "预期结果",
     "links": "链接",
     "relatedTestResults": "相关测试结果（{{count}}）",
     "overview": "概览",

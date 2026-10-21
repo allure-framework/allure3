@@ -155,6 +155,8 @@
     "parameters": "Parameter",
     "category": "Kategorie",
     "description": "Beschreibung",
+    "precondition": "Vorbedingung",
+    "expectedResult": "Erwartetes Ergebnis",
     "links": "Links",
     "relatedTestResults": "Zugehörige Testergebnisse ({{count}})",
     "overview": "Übersicht",

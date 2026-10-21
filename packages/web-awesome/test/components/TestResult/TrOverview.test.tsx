@@ -24,8 +24,8 @@ vi.mock("@/components/TestResult/TrError", () => ({
   TrError: () => <div data-testid="test-result-error" />,
 }));
 
-vi.mock("@/components/TestResult/TrDescription", () => ({
-  TrDescription: () => null as any,
+vi.mock("@/components/TestResult/TrRichTextSection", () => ({
+  TrRichTextSection: ({ section }: { section: string }) => <div data-testid={`section-${section}`} />,
 }));
 
 vi.mock("@/components/TestResult/TrLinks", () => ({
@@ -45,11 +45,11 @@ vi.mock("@/components/TestResult/TrPwTraces", () => ({
 }));
 
 vi.mock("@/components/TestResult/TrSetup", () => ({
-  TrSetup: () => null as any,
+  TrSetup: () => <div data-testid="tr-setup" />,
 }));
 
 vi.mock("@/components/TestResult/TrTeardown", () => ({
-  TrTeardown: () => null as any,
+  TrTeardown: () => <div data-testid="tr-teardown" />,
 }));
 
 vi.mock("@/stores/locale", () => ({
@@ -94,6 +94,52 @@ const makeTestResult = (overrides: Partial<ReportTestResult> = {}): ReportTestRe
   }) as ReportTestResult;
 
 describe("components > TestResult > TrOverview", () => {
+  it("renders expected result after setup, test body and teardown", () => {
+    const { container } = render(
+      <TrOverview
+        testResult={makeTestResult({
+          descriptionHtml: "<p>Description</p>",
+          preconditionHtml: "<p>Precondition</p>",
+          expectedResultHtml: "<p>Expected</p>",
+          setup: [{ id: "setup", type: "before", name: "Setup", status: "passed", steps: [] }],
+          steps: [{ type: "step", name: "Body", status: "passed", parameters: [], steps: [] }],
+          teardown: [{ id: "teardown", type: "after", name: "Teardown", status: "passed", steps: [] }],
+        })}
+      />,
+    );
+
+    expect([...container.querySelectorAll("[data-testid]")].map((node) => node.getAttribute("data-testid"))).toEqual([
+      "section-description",
+      "section-precondition",
+      "tr-setup",
+      "tr-steps",
+      "tr-teardown",
+      "section-expectedResult",
+    ]);
+  });
+
+  it("renders expected result after the empty test body", () => {
+    const { container } = render(
+      <TrOverview
+        testResult={makeTestResult({
+          expectedResultHtml: "<p>Expected</p>",
+        })}
+      />,
+    );
+    expect([...container.querySelectorAll("[data-testid]")].map((node) => node.getAttribute("data-testid"))).toEqual([
+      "test-steps-empty",
+      "section-expectedResult",
+    ]);
+  });
+
+  it("omits empty sections", () => {
+    render(<TrOverview testResult={makeTestResult({ preconditionHtml: "", expectedResultHtml: "" })} />);
+
+    expect(screen.queryByTestId("section-description")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("section-precondition")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("section-expectedResult")).not.toBeInTheDocument();
+  });
+
   beforeEach(() => {
     cleanup();
   });

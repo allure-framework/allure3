@@ -3,12 +3,12 @@ import type { ReportTestResult } from "types";
 
 import { getBodyItems, hasDisplayableTestStatusDetails } from "@/components/TestResult/bodyItems";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
-import { TrDescription } from "@/components/TestResult/TrDescription";
 import { TrError } from "@/components/TestResult/TrError";
 import { TrLinks } from "@/components/TestResult/TrLinks";
 import { TrMetadata } from "@/components/TestResult/TrMetadata";
 import { TrParameters } from "@/components/TestResult/TrParameters";
 import { TrPwTraces } from "@/components/TestResult/TrPwTraces";
+import { TrRichTextSection } from "@/components/TestResult/TrRichTextSection";
 import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
@@ -24,7 +24,19 @@ export type TrOverviewProps = {
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
   useTestResultOverviewFocusScroll();
-  const { parameters, groupedLabels, links, descriptionHtml, setup, teardown, id, error, status } = testResult || {};
+  const {
+    parameters,
+    groupedLabels,
+    links,
+    descriptionHtml,
+    preconditionHtml,
+    expectedResultHtml,
+    setup,
+    teardown,
+    id,
+    error,
+    status,
+  } = testResult || {};
   const testResultId = id ?? currentTrId.value;
   const { t } = useI18n("ui");
   const bodyItems = getBodyItems(testResult, t("error"));
@@ -47,12 +59,18 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
         <TrMetadata id={testResultId} testResult={testResult} />
       )}
       {Boolean(links?.length) && <TrLinks id={testResultId} links={links} />}
-      {Boolean(descriptionHtml) && <TrDescription id={testResultId} descriptionHtml={descriptionHtml} />}
+      {Boolean(descriptionHtml) && <TrRichTextSection id={testResultId} section="description" html={descriptionHtml} />}
+      {Boolean(preconditionHtml) && (
+        <TrRichTextSection id={testResultId} section="precondition" html={preconditionHtml} />
+      )}
       <div className={styles["test-results"]}>
         {isNoSteps && <TestStepsEmpty />}
         {Boolean(setup?.length) && <TrSetup id={testResultId} setup={setup} />}
         {Boolean(bodyItems.length) && <TrSteps id={testResultId} bodyItems={bodyItems} />}
         {Boolean(teardown?.length) && <TrTeardown id={testResultId} teardown={teardown} />}
+        {Boolean(expectedResultHtml) && (
+          <TrRichTextSection id={testResultId} section="expectedResult" html={expectedResultHtml} />
+        )}
       </div>
     </>
   );

@@ -155,6 +155,8 @@
     "parameters": "المعاملات",
     "category": "الفئة",
     "description": "الوصف",
+    "precondition": "الشرط المسبق",
+    "expectedResult": "النتيجة المتوقعة",
     "links": "الروابط",
     "relatedTestResults": "نتائج الاختبارات ذات الصلة ({{count}})",
     "overview": "نظرة عامة",

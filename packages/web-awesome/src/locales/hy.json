@@ -155,6 +155,8 @@
     "parameters": "Պարամետրեր",
     "category": "Կատեգորիա",
     "description": "Նկարագրություն",
+    "precondition": "Նախապայման",
+    "expectedResult": "Ակնկալվող արդյունք",
     "links": "Հղումներ",
     "relatedTestResults": "Առնչվող թեստի արդյունքներ ({{count}})",
     "overview": "Ակնարկ",

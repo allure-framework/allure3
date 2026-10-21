@@ -61,6 +61,8 @@ export const convertTestResult = (
     errors: tr.errors,
     testCase: tr.testCase,
     descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
+    preconditionHtml: tr.preconditionHtml ?? markdownToHtml(tr.precondition),
+    expectedResultHtml: tr.expectedResultHtml ?? markdownToHtml(tr.expectedResult),
     environment: tr.environment,
     setup: [],
     teardown: [],
