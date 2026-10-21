@@ -564,8 +564,6 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    await this.#uploadQualityGateResults(store);
-
     const categoriesError = await syncLaunchCategories(this.#client, trsEnrichedWithCategories, contextCategories);
 
     if (categoriesError) {
@@ -590,6 +588,9 @@ export class TestOpsPlugin implements Plugin {
         environmentName: environments.find(({ id }) => id === environmentId)?.name ?? environmentId,
       });
     }
+
+    // named environments are created while uploading test results, and quality gate items reference them
+    await this.#uploadQualityGateResults(store);
   }
 
   /**

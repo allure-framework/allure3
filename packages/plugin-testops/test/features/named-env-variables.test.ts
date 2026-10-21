@@ -361,6 +361,24 @@ describe("named environment variables", () => {
     expect(result.category.grouping).toEqual([expect.objectContaining({ key: "environment", value: "chrome" })]);
   });
 
+  test("should attach named environments to quality gate results on the first upload", async () => {
+    const { store, storeMock, uploadQualityGateResultsRequest } = setup({
+      trs: [tr("1", "chrome")],
+      envVariables: { chrome: { Browser: "chrome" } },
+    });
+
+    // core reports quality gate results by environment name
+    storeMock.qualityGateResults.mockResolvedValue([
+      { rule: "maxFailures", message: "too many failures", success: false, environment: "Chrome" },
+    ] as any);
+
+    await createPlugin().start(context, store);
+
+    expect(uploadQualityGateResultsRequest.mock.calls[0][1].items).toEqual([
+      { name: "maxFailures", message: "too many failures", namedEnvId: 1 },
+    ]);
+  });
+
   test("should upload results into the base session when environment variables can't be resolved", async () => {
     const { store, storeMock, createSessionRequest, sessionIdOf } = setup({
       trs: [tr("1", "chrome")],
