@@ -16,6 +16,10 @@
 
 The interfaces in the package describe the entities used for building Allure Plugins.
 
+## Internal report utilities
+
+The `@allurereport/plugin-api/internal/report` subpath is reserved for Allure's bundled report generators and frontends. It is not part of the supported plugin API and may change without a major version bump. Third-party plugins should use the documented API entry points.
+
 ## Install
 
 Use your favorite package manager to install the package:

@@ -6,6 +6,7 @@ import {
   stringifyForInlineScript,
 } from "@allurereport/core-api";
 import type { ExitCode, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import { writeConcurrently } from "@allurereport/plugin-api/internal/report";
 import {
   copyReportStaticAssets,
   getReportStaticAsset,
@@ -33,12 +34,6 @@ import { createStatistic, updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
-
-const writeConcurrently = async <T>(items: readonly T[], write: (item: T) => Promise<void>, concurrency = 64) => {
-  for (let i = 0; i < items.length; i += concurrency) {
-    await Promise.all(items.slice(i, i + concurrency).map(write));
-  }
-};
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="{{reportLanguage}}">
