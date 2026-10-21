@@ -192,6 +192,48 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   });
 
+  it.each([
+    {
+      extension: "cmd",
+      script: "@echo off\r\necho(%~1\r\necho(%~2\r\n>&2 echo script stderr\r\nexit /b 23\r\n",
+    },
+    {
+      extension: "bat",
+      script: "@echo off\r\necho(%~1\r\necho(%~2\r\n>&2 echo script stderr\r\nexit /b 23\r\n",
+    },
+    {
+      extension: "ps1",
+      script:
+        '$args | ForEach-Object { [Console]::Out.WriteLine($_) }; [Console]::Error.WriteLine("script stderr"); exit 23',
+    },
+  ])("launches a .$extension script and forwards arguments, output, and exit code", async ({ extension, script }) => {
+    const fixture = await SupervisorFixture.create();
+    const scriptName = `target script.${extension}`;
+    const args = ["hello world", "second argument"];
+    const supervisor = new WindowsProcessSupervisor(fixture.resolvePath(scriptName), {
+      arguments: args,
+      silent: true,
+    });
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) await supervisor.terminate();
+        },
+      }),
+    );
+    await fixture.writeScript(scriptName, script);
+
+    await start(supervisor);
+    const { code, signal, stdout, stderr } = await wait(supervisor);
+
+    await step("Verify script arguments, captured output, and non-zero exit code", async () => {
+      expect(code).toBe(23);
+      expect(signal).toBeNull();
+      expect(stdout.trim().split(/\r?\n/)).toEqual(args);
+      expect(stderr.trim()).toBe("script stderr");
+    });
+  });
+
   it("reports a zero exit code of a single process", async () => {
     const supervisor = superviseNodeScript("process.exitCode = 0;");
 
