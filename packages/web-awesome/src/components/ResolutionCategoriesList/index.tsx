@@ -1,5 +1,5 @@
-import { sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
-import { ArrowButton, SvgIcon, Text, TreeItem, allureIcons } from "@allurereport/web-components/core";
+import { parseResolutionExpiresAt, sanitizeExternalUrl, type ResolutionCategory } from "@allurereport/core-api";
+import { ArrowButton, SvgIcon, Tag, Text, TreeItem, allureIcons } from "@allurereport/web-components/core";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -71,27 +71,53 @@ const ResolutionCategoriesItem: FunctionalComponent<{
   const linkName = group.issue?.link?.name ?? title;
   const accessibleName = safeIssueUrl ? linkName : title;
   const subtitle = group.comment ?? group.issue?.comment;
+  const expirationTimestamp = group.expiresAt === undefined ? undefined : parseResolutionExpiresAt(group.expiresAt);
+  const resolutionStateLabel =
+    group.resolutionState === "active" && expirationTimestamp !== undefined
+      ? t("resolutions.state.active", { timestamp: expirationTimestamp })
+      : group.resolutionState
+        ? t(`resolutions.state.${group.resolutionState}`)
+        : undefined;
+  const resolutionStateDescription =
+    group.resolutionState === "permanent"
+      ? t("resolutions.state.permanentDescription")
+      : group.resolutionState === "outdated" && expirationTimestamp !== undefined
+        ? t("resolutions.state.outdatedDescription", { timestamp: expirationTimestamp })
+        : undefined;
+  const resolutionStateSkin =
+    group.resolutionState === "outdated"
+      ? "failed-light"
+      : group.resolutionState === "permanent"
+        ? "warning-light"
+        : "neutral-light";
   const testsId = `resolution-category-tests-${group.id}`;
   const toggle = () => setIsOpened((value) => !value);
   const content = (
     <>
-      {safeIssueUrl ? (
-        <Text
-          className={clsx(styles["resolution-categories-name"], styles["resolution-categories-name-link"])}
-          tag="a"
-          href={safeIssueUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          size="m"
-          bold
-        >
-          {linkName}
-        </Text>
-      ) : (
-        <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
-          {title}
-        </Text>
-      )}
+      <span className={styles["resolution-categories-title-row"]}>
+        {safeIssueUrl ? (
+          <Text
+            className={clsx(styles["resolution-categories-name"], styles["resolution-categories-name-link"])}
+            tag="a"
+            href={safeIssueUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="m"
+            bold
+          >
+            {linkName}
+          </Text>
+        ) : (
+          <Text className={styles["resolution-categories-name"]} tag="span" size="m" bold>
+            {title}
+          </Text>
+        )}
+        {resolutionStateLabel && (
+          <Tag className={styles["resolution-categories-state"]} skin={resolutionStateSkin}>
+            {resolutionStateLabel}
+          </Tag>
+        )}
+      </span>
       {group.issue?.type && (
         <Text tag="span" size="s" className={styles["resolution-categories-type"]}>
           {group.issue.type}
@@ -102,27 +128,25 @@ const ResolutionCategoriesItem: FunctionalComponent<{
           {subtitle}
         </Text>
       )}
+      {resolutionStateDescription && (
+        <Text tag="span" size="s" className={styles["resolution-categories-state-description"]}>
+          {resolutionStateDescription}
+        </Text>
+      )}
     </>
   );
   const headerContent = (
     <>
       <div className={styles["resolution-categories-header-icons"]}>
         {hasTests ? (
-          <button
-            className={styles["resolution-categories-arrow-button"]}
+          <ArrowButton
+            aria-controls={testsId}
+            aria-expanded={isOpened}
+            aria-label={accessibleName}
+            isOpened={isOpened}
             onClick={toggle}
             type="button"
-            aria-label={accessibleName}
-            aria-expanded={isOpened}
-            aria-controls={testsId}
-          >
-            <ArrowButton
-              tag="span"
-              buttonSize="s"
-              className={styles["resolution-categories-arrow"]}
-              isOpened={isOpened}
-            />
-          </button>
+          />
         ) : (
           <span className={styles["resolution-categories-arrow-spacer"]} />
         )}

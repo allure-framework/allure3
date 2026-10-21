@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "გადაწყვეტის გარეშე"
+      "none": "გადაწყვეტის გარეშე",
+      "state": {
+        "active": "დადუმებულია {{timestamp, timestamp_long_no_seconds}}-მდე",
+        "outdated": "ვადაგასული",
+        "permanent": "სამუდამოდ დადუმებულია",
+        "outdatedDescription": "დადუმების ვადა გავიდა {{timestamp, timestamp_long_no_seconds}}-ზე. ეს წარუმატებლობა აღარ იქნება იგნორირებული.",
+        "permanentDescription": "ვადა მითითებული არ არის. ეს წარუმატებლობა განუსაზღვრელი დროით იქნება იგნორირებული და შესაძლოა მომავალი პრობლემა დამალოს."
+      }
     }
   },
   "sort-by": {

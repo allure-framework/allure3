@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Geen resolutie"
+      "none": "Geen resolutie",
+      "state": {
+        "active": "Gedempt tot {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Verlopen",
+        "permanent": "Permanent gedempt",
+        "outdatedDescription": "De dempingsdeadline is verstreken op {{timestamp, timestamp_long_no_seconds}}. Deze fout wordt niet langer genegeerd.",
+        "permanentDescription": "Er is geen vervaldatum ingesteld. Deze fout wordt voor onbepaalde tijd genegeerd en kan een toekomstig probleem verbergen."
+      }
     }
   },
   "sort-by": {

@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Без решения"
+      "none": "Без решения",
+      "state": {
+        "active": "Игнорируется до {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Просрочено",
+        "permanent": "Игнорируется бессрочно",
+        "outdatedDescription": "Срок игнорирования истёк {{timestamp, timestamp_long_no_seconds}}. Эта ошибка больше не игнорируется.",
+        "permanentDescription": "Срок не задан. Эта ошибка будет игнорироваться бессрочно и может скрыть будущую проблему."
+      }
     }
   },
   "sort-by": {

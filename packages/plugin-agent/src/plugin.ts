@@ -13,6 +13,7 @@ import {
   type TestStatus,
   type TestStepResult,
   formatDuration,
+  getMutedResolutionState,
   isAttachment,
   isStep,
 } from "@allurereport/core-api";
@@ -1882,6 +1883,7 @@ const renderRerunGuidance = (findings: AgentFinding[]) => {
 const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
   const { entry, outputDir } = params;
   const { tr, environmentId, attempts, allArtifacts } = entry;
+  const resolutionState = getMutedResolutionState(tr);
   const lines: string[] = [
     "# Test Result",
     "",
@@ -1896,6 +1898,8 @@ const renderTestFile = (params: { entry: TestEntry; outputDir: string }) => {
     `- Stopped: ${formatTimestamp(tr.stop)}`,
     `- Flaky: ${String(tr.flaky)}`,
     `- Resolution: ${tr.resolution ?? "none"}`,
+    `- Resolution Expires At: ${tr.resolutionExpiresAt ?? "none"}`,
+    `- Resolution State: ${resolutionState ?? "n/a"}`,
     `- Muted: ${String(tr.muted)}`,
     `- Retries in This Run: ${Math.max(attempts.length - 1, 0)}`,
   ];

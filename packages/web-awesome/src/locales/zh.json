@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "无解决方案"
+      "none": "无解决方案",
+      "state": {
+        "active": "静音至 {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "已过期",
+        "permanent": "永久静音",
+        "outdatedDescription": "静音期限已于 {{timestamp, timestamp_long_no_seconds}} 到期。此失败将不再被忽略。",
+        "permanentDescription": "未设置到期日。此失败将被无限期忽略，可能会掩盖未来的问题。"
+      }
     }
   },
   "sort-by": {

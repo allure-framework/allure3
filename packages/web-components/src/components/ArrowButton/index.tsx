@@ -6,13 +6,17 @@ import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import styles from "./styles.scss";
 
 export interface ArrowButtonProps {
-  isOpened?: boolean;
-  iconSize?: "m" | "xs" | "s";
-  buttonSize?: "m" | "xs" | "s";
-  className?: string;
-  icon?: string;
-  onClick?: VoidFunction;
-  tag?: keyof JSX.IntrinsicElements;
+  "aria-controls"?: string;
+  "aria-expanded"?: boolean;
+  "aria-label"?: string;
+  "isOpened"?: boolean;
+  "iconSize"?: "m" | "xs" | "s";
+  "buttonSize"?: "m" | "xs" | "s";
+  "className"?: string;
+  "icon"?: string;
+  "onClick"?: VoidFunction;
+  "tag"?: keyof JSX.IntrinsicElements;
+  "type"?: "button" | "reset" | "submit";
 }
 
 export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({

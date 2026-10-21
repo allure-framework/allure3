@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Çözüm yok"
+      "none": "Çözüm yok",
+      "state": {
+        "active": "{{timestamp, timestamp_long_no_seconds}} tarihine kadar sessize alındı",
+        "outdated": "Süresi doldu",
+        "permanent": "Süresiz sessize alındı",
+        "outdatedDescription": "Sessize alma süresi {{timestamp, timestamp_long_no_seconds}} tarihinde doldu. Bu hata artık yok sayılmıyor.",
+        "permanentDescription": "Son tarih ayarlanmadı. Bu hata süresiz olarak yok sayılacak ve gelecekteki bir sorunu gizleyebilir."
+      }
     }
   },
   "sort-by": {
