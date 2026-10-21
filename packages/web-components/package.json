@@ -266,7 +266,7 @@
     "@types/prismjs": "^1.26.6",
     "@types/sortablejs": "^1.15.9",
     "@vitest/coverage-istanbul": "catalog:",
-    "@vitest/runner": "^2.1.9",
+    "@vitest/runner": "^2",
     "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3.12.2",
     "allure-vitest": "^3",

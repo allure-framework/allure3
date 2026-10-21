@@ -65,7 +65,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
-    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -725,7 +725,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@types/node": "npm:^20"
     "@vitest/coverage-istanbul": "catalog:"
-    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
     allure-js-commons: "npm:^3"
     allure-vitest: "npm:^3"
@@ -1057,7 +1057,7 @@ __metadata:
     "@types/prismjs": "npm:^1.26.6"
     "@types/sortablejs": "npm:^1.15.9"
     "@vitest/coverage-istanbul": "catalog:"
-    "@vitest/runner": "npm:^2.1.9"
+    "@vitest/runner": "npm:^2"
     "@vitest/snapshot": "catalog:"
     allure-js-commons: "npm:^3.12.2"
     allure-vitest: "npm:^3"
@@ -7963,7 +7963,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/runner@npm:^2, @vitest/runner@npm:^2.1.8, @vitest/runner@npm:^2.1.9":
+"@vitest/runner@npm:^2":
   version: 2.1.9
   resolution: "@vitest/runner@npm:2.1.9"
   dependencies:

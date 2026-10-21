@@ -40,7 +40,7 @@
     "@allurereport/common-config": "workspace:*",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
-    "@vitest/runner": "^2.1.8",
+    "@vitest/runner": "^2",
     "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3",
     "allure-vitest": "^3",

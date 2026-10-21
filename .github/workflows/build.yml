@@ -66,6 +66,7 @@ jobs:
           ENABLE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
         run: yarn allure run --config=./allurerc.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Save Vite Task cache
+        if: ${{ !cancelled() }}
         uses: actions/cache/save@v6
         with:
           path: node_modules/.vite/task-cache

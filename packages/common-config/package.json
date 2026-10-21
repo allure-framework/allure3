@@ -11,7 +11,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "report:merge": "node src/scripts/merge-blob-reports.ts",
-    "report:coverage": "yarn report:merge && vp test run --merge-reports .vitest/merged-blob"
+    "report:coverage": "yarn report:merge && (vp test run --merge-reports .vitest/merged-blob || true)"
   },
   "dependencies": {
     "@vitest/coverage-istanbul": "catalog:",

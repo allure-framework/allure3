@@ -8,6 +8,7 @@ export default defineConfig({
     passWithNoTests: true,
     coverage: {
       enabled: true,
+      reportOnFailure: true,
       provider: "istanbul",
       reporter: ["text-summary", env.GITHUB_ACTIONS === "true" ? "cobertura" : "html"],
       reportsDirectory: ".vitest/coverage",
