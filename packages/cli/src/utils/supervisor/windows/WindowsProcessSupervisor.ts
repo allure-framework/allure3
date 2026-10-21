@@ -1,7 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createServer, type Socket, type Server } from "node:net";
-import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -170,23 +169,11 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     void this.#jobCompletion.catch(() => {});
   }
 
-  #startupClock = 0;
-
-  #logStartupTiming(stage: string) {
-    if (process.env.ALLURE_SUPERVISOR_TIMINGS === "1") {
-      this.diagnostic("startup timing: " + stage, {
-        elapsedMs: Number((performance.now() - this.#startupClock).toFixed(1)),
-      });
-    }
-  }
-
   override async start() {
     if (this.#server) {
       throw new Error("The controller has already been started.");
     }
 
-    this.#startupClock = performance.now();
-    this.#logStartupTiming("start");
     process.on("SIGINT", this.#onSigint);
 
     this.#server = createServer((socket) => {
@@ -195,7 +182,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
         return;
       }
 
-      this.#logStartupTiming("pipe connected");
       this.#control = socket;
 
       socket.on("error", (error) => {
@@ -204,9 +190,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
       decode(socket, (message) => {
         const { type } = message;
-        if (type === "ready" || type === "started") {
-          this.#logStartupTiming(`${type} received`);
-        }
         switch (type) {
           case "diagnostics": {
             const stage = ensureString(message.stage);
@@ -255,8 +238,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
         this.#server!.listen(this.#pipePath, resolve);
       });
 
-      this.#logStartupTiming("pipe listening");
-
       // Cancellation while the pipe was being opened must not launch a wrapper.
       if (this.#failed) {
         this.#disposeControl();
@@ -264,9 +245,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       }
 
       // Base startup creates the child and completion promise synchronously.
-      this.#logStartupTiming("spawning process-host.exe");
       const startup = super.start();
-      this.#logStartupTiming("spawn returned");
       if (this.started) {
         this.#wrapper = this.process;
         void this.completion.catch((error: unknown) => this.#fail(error));
@@ -282,9 +261,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
       await startup;
       await this.#waitForStartReport();
-      this.#logStartupTiming("startup complete");
     } catch (error) {
-      this.#logStartupTiming("startup failed");
       this.#fail(error);
       throw error;
     }
