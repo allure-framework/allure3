@@ -200,6 +200,14 @@ export const amazon: CiDescriptor = {
     }
   },
 
+  get pipelineRunName() {
+    return getPipelineName();
+  },
+
+  get pipelineRunUrl() {
+    return getPipelineName() ? this.jobUrl : undefined;
+  },
+
   get jobRunUid(): string {
     const pipelineName = getPipelineName();
 

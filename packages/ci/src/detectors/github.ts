@@ -87,6 +87,14 @@ export const github: CiDescriptor = {
     return `${getRepo()} - ${getWorkflow()}`;
   },
 
+  get pipelineRunName() {
+    return getWorkflow() || getRunID();
+  },
+
+  get pipelineRunUrl() {
+    return getRunID() ? this.jobRunUrl : undefined;
+  },
+
   get jobRunUid(): string {
     return getRunID();
   },

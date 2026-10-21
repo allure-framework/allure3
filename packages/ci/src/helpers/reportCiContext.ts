@@ -1,4 +1,5 @@
 import { type CiDescriptor, GitProvider } from "@allurereport/core-api";
+import type { PluginSummary } from "@allurereport/plugin-api";
 
 export type ContextLink = { label: string; href: string };
 
@@ -75,22 +76,41 @@ const commitUrl = (ci: CiDescriptor, sha: string): string | undefined => {
   }
 };
 
-export const reportCiContextLinks = (ci: CiDescriptor | undefined): ContextLink[] => {
+type ReportCiContext = Pick<PluginSummary, "commitSha" | "commitHref" | "ciRunName" | "ciRunHref">;
+
+export const createReportCiContext = (ci: CiDescriptor | undefined): ReportCiContext => {
   if (!ci) {
-    return [];
+    return { commitSha: undefined, commitHref: undefined, ciRunName: undefined, ciRunHref: undefined };
   }
 
-  const links: ContextLink[] = [];
   const sha = ci.commitSha;
-  const shaUrl = sha ? commitUrl(ci, sha) : undefined;
-  const runUrl = browserUrl(ci.jobRunUrl);
+  const pipelineHref = browserUrl(ci.pipelineRunUrl);
+  const runHref = pipelineHref || browserUrl(ci.jobRunUrl);
+
+  return {
+    commitSha: sha,
+    commitHref: sha ? commitUrl(ci, sha) : undefined,
+    ciRunHref: runHref,
+    ciRunName: runHref
+      ? pipelineHref
+        ? ci.pipelineRunName || "Pipeline"
+        : ci.jobRunName || ci.jobRunUid || ci.type
+      : undefined,
+  };
+};
+
+export const reportCiContextLinks = (report: ReportCiContext): ContextLink[] => {
+  const links: ContextLink[] = [];
+  const sha = report.commitSha;
+  const shaUrl = browserUrl(report.commitHref);
+  const runUrl = browserUrl(report.ciRunHref);
 
   if (sha && shaUrl) {
     links.push({ label: sha.slice(0, 8), href: shaUrl });
   }
 
   if (runUrl) {
-    links.push({ label: ci.jobRunName || ci.jobRunUid || ci.type, href: runUrl });
+    links.push({ label: report.ciRunName || "CI run", href: runUrl });
   }
 
   return links;

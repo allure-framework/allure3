@@ -22,6 +22,7 @@ type GithubEvent = {
   workflow_run?: {
     event?: string;
     head_branch?: string;
+    head_sha?: string;
     pull_requests?: GithubPullRequestEventFields[];
   };
 };
@@ -65,9 +66,8 @@ const contextFromPullRequestFields = (
   };
 };
 
-export const parsePullRequestContextFromEventJson = (content: string): GithubPullRequestContext | undefined => {
+const pullRequestContextFromEvent = (event: GithubEvent): GithubPullRequestContext | undefined => {
   try {
-    const event = JSON.parse(content) as GithubEvent;
     const fromPullRequest = contextFromPullRequestFields(event.pull_request, event.number);
 
     if (fromPullRequest) {
@@ -86,11 +86,19 @@ export const parsePullRequestContextFromEventJson = (content: string): GithubPul
   }
 };
 
+export const parsePullRequestContextFromEventJson = (content: string): GithubPullRequestContext | undefined => {
+  try {
+    return pullRequestContextFromEvent(JSON.parse(content) as GithubEvent);
+  } catch {
+    return undefined;
+  }
+};
+
 export const parsePullRequestNumberFromEventJson = (content: string): string => {
   return parsePullRequestContextFromEventJson(content)?.number ?? "";
 };
 
-const readPullRequestContextFromEventPath = (): GithubPullRequestContext | undefined => {
+const readGithubEventFromPath = (): GithubEvent | undefined => {
   const eventPath = getEnv("GITHUB_EVENT_PATH");
 
   if (!eventPath) {
@@ -100,7 +108,7 @@ const readPullRequestContextFromEventPath = (): GithubPullRequestContext | undef
   try {
     const content = readFileSync(eventPath, "utf-8");
 
-    return parsePullRequestContextFromEventJson(content);
+    return JSON.parse(content) as GithubEvent;
   } catch {
     return undefined;
   }
@@ -129,11 +137,21 @@ export const resolveGithubPullRequestContext = (): GithubPullRequestContext | un
     };
   }
 
-  return readPullRequestContextFromEventPath();
+  const event = readGithubEventFromPath();
+
+  return event ? pullRequestContextFromEvent(event) : undefined;
 };
 
-export const resolveGithubCommitSha = (): string | undefined =>
-  readPullRequestContextFromEventPath()?.headSha || getEnv("GITHUB_SHA") || undefined;
+export const resolveGithubCommitSha = (): string | undefined => {
+  const event = readGithubEventFromPath();
+
+  return (
+    nonBlank(event?.workflow_run?.head_sha) ||
+    (event ? pullRequestContextFromEvent(event)?.headSha : undefined) ||
+    getEnv("GITHUB_SHA") ||
+    undefined
+  );
+};
 
 export const resolveGithubPullRequestNumber = (): string => {
   return resolveGithubPullRequestContext()?.number ?? "";

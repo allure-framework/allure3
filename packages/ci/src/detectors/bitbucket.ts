@@ -55,6 +55,14 @@ export const bitbucket: CiDescriptor = {
     return getEnv("BITBUCKET_REPO_FULL_NAME");
   },
 
+  get pipelineRunName() {
+    return getEnv("BITBUCKET_BUILD_NUMBER") || this.jobRunUid;
+  },
+
+  get pipelineRunUrl() {
+    return this.jobRunUid ? this.jobRunUrl : undefined;
+  },
+
   get jobRunUid(): string {
     return getEnv("BITBUCKET_PIPELINE_UUID");
   },

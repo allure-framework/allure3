@@ -1,4 +1,4 @@
-import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
+import type { TestStatus } from "@allurereport/core-api";
 
 import { reportCiContextLinks, type ContextLink } from "./helpers/reportCiContext.js";
 import type {
@@ -37,12 +37,12 @@ type ReportLink = {
   label: string;
   href: string;
   kind: "report" | "testops";
+  context: ContextLink[];
 };
 
 export type RenderReportSummaryMarkdownOptions = {
   title?: string;
   includeArtifacts?: boolean;
-  ci?: CiDescriptor;
   getReportFilterHref?: (filter: keyof ReportContextFlagStats, row: ReportSummaryMarkdownRow) => string | undefined;
 };
 
@@ -245,6 +245,7 @@ const toReportLink = (report: ReportContextTestReport): ReportLink | undefined =
         label: reportLabel(report),
         href,
         kind: reportLinkKind(report),
+        context: reportCiContextLinks(report),
       }
     : undefined;
 };
@@ -260,16 +261,34 @@ const renderLinks = (label: string, links: ContextLink[]): string | undefined =>
   return `**${escapeHtml(label)}:** ${links.map((item) => link(item.label, item.href)).join(", ")}`;
 };
 
-const renderReportLinks = (reports: ReportContextTestReport[], ci?: CiDescriptor): string[] => {
+const renderReportLinks = (reports: ReportContextTestReport[]): string[] => {
   const links = sortLinks(reports.map(toReportLink).filter((item): item is ReportLink => item !== undefined));
   const reportLinks = links.filter(({ kind }) => kind === "report");
   const testOpsLinks = links.filter(({ kind }) => kind === "testops");
+  const context = reportLinks[0]?.context ?? [];
+  const hasSharedContext = reportLinks.every(
+    ({ context: current }) =>
+      current.length === context.length &&
+      current.every((item, index) => item.label === context[index].label && item.href === context[index].href),
+  );
 
-  return [
-    renderLinks("Reports", reportLinks),
-    renderLinks("Context", reportCiContextLinks(ci)),
-    renderLinks("Allure TestOps", testOpsLinks),
-  ].filter((line): line is string => line !== undefined);
+  if (hasSharedContext) {
+    return [
+      renderLinks("Reports", reportLinks),
+      renderLinks("Context", context),
+      renderLinks("Allure TestOps", testOpsLinks),
+    ].filter((line): line is string => line !== undefined);
+  }
+
+  const reportItems = reportLinks.map(({ label, href, context }) => {
+    const links = [{ label: "Report", href }, ...context];
+
+    return `* ${escapeHtml(label)} - ${links.map((item) => link(item.label, item.href)).join(", ")}`;
+  });
+
+  return [["**Reports:**", ...reportItems].join("\n"), renderLinks("Allure TestOps", testOpsLinks)].filter(
+    (line): line is string => line !== undefined,
+  );
 };
 
 const pluginSummaryToStatusStats = (report: ReportContextTestReport): ReportContextStatusStats => ({
@@ -367,7 +386,7 @@ export const renderReportSummaryMarkdown = (
   const sections = [
     `# ${escapeHtml(title)}`,
     renderTable(aggregateRows, includeResolutions, renderOptions),
-    ...renderReportLinks(regularReports, options.ci),
+    ...renderReportLinks(regularReports),
     renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,
   ].filter((section): section is string => Boolean(section));

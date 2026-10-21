@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 
-import { detect } from "@allurereport/ci";
+import { createReportCiContext, detect } from "@allurereport/ci";
 /* eslint max-lines: 0 */
 import { createProgressLogger } from "@allurereport/cli-commons";
 import type {
@@ -1356,6 +1356,8 @@ export class AllureReport {
 
       await this.#ingestSelfPerfMetrics();
 
+      const ciContext = createReportCiContext(this.#ci);
+
       await this.#eachPlugin(false, async (plugin, context) => {
         const summary = await plugin?.info?.(context, this.#store);
 
@@ -1366,6 +1368,7 @@ export class AllureReport {
         summary.pluginId = context.id;
         summary.pullRequestHref = this.#ci?.pullRequestUrl;
         summary.jobHref = this.#ci?.jobRunUrl;
+        Object.assign(summary, ciContext);
 
         summaries.push({
           ...summary,

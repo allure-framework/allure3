@@ -112,6 +112,14 @@ export const azure: CiDescriptor = {
     return getEnv("BUILD_DEFINITIONNAME");
   },
 
+  get pipelineRunName() {
+    return this.jobName || this.jobRunName || this.jobRunUid;
+  },
+
+  get pipelineRunUrl() {
+    return this.jobRunUid ? this.jobRunUrl : undefined;
+  },
+
   get jobRunUid(): string {
     if (isClassicRelease()) {
       return getEnv("RELEASE_RELEASEID");

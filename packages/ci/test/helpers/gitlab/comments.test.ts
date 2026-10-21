@@ -15,6 +15,11 @@ const report: ReportContextTestReport = {
   plugin: "Awesome",
   href: "awesome/",
   reportPath: "",
+  commitSha: "1234567890abcdef1234567890abcdef12345678",
+  commitHref:
+    "https://gitlab.example.com/group/project/-/merge_requests/7/diffs?commit_id=1234567890abcdef1234567890abcdef12345678",
+  ciRunHref: "https://gitlab.example.com/group/project/-/pipelines/99",
+  ciRunName: "Tests #99",
   status: "failed",
   duration: 1000,
   stats: { total: 9, passed: 4, failed: 1, broken: 2, skipped: 1, unknown: 1 },
@@ -104,7 +109,7 @@ describe("upsertGitlabJobNote", () => {
     expect(body).not.toContain("Artifacts used");
     expect(body).not.toContain("/tmp/private");
     expect(body).toContain(
-      '**Reports:** <a href="https://reports.example/run/index.html">Awesome</a>\n\n**Context:** <a href="https://gitlab.example.com/group/project/-/merge_requests/7/diffs?commit_id=1234567890abcdef1234567890abcdef12345678">12345678</a>, <a href="https://gitlab.example.com/group/project/-/pipelines/100">100</a>',
+      '**Reports:** <a href="https://reports.example/run/index.html">Awesome</a>\n\n**Context:** <a href="https://gitlab.example.com/group/project/-/merge_requests/7/diffs?commit_id=1234567890abcdef1234567890abcdef12345678">12345678</a>, <a href="https://gitlab.example.com/group/project/-/pipelines/99">Tests #99</a>',
     );
   });
 

@@ -69,6 +69,14 @@ export const gitlab: GitlabCiDescriptor = {
     return getEnv("CI_JOB_NAME");
   },
 
+  get pipelineRunName() {
+    return getEnv("CI_PIPELINE_NAME") || getEnv("CI_PIPELINE_ID");
+  },
+
+  get pipelineRunUrl() {
+    return getEnv("CI_PIPELINE_URL") || undefined;
+  },
+
   get jobRunUid(): string {
     return getEnv("CI_PIPELINE_ID");
   },

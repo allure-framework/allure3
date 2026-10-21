@@ -52,7 +52,8 @@ vi.mock("@allurereport/service", async (importOriginal) => {
     AllureTestOpsClient: utils.AllureTestOpsClientMock,
   };
 });
-vi.mock("@allurereport/ci", () => ({
+vi.mock("@allurereport/ci", async (importOriginal) => ({
+  ...(await importOriginal()),
   detect: vi.fn().mockReturnValue({
     repoName: "allure3",
     jobRunBranch: "main",
@@ -1886,6 +1887,17 @@ describe("report", () => {
       duration: 0,
     };
 
+    const ci = {
+      repoName: "allure3",
+      jobRunBranch: "main",
+      commitSha: "1234567890abcdef",
+      commitUrl: "https://github.com/org/repo/commit/1234567890abcdef",
+      jobRunUrl: "https://ci.example.com/run/42",
+      jobRunName: "Publish report #42",
+      pipelineRunName: "All tests",
+      pipelineRunUrl: "https://ci.example.com/pipelines/42",
+    };
+    (detect as Mock).mockReturnValue(ci);
     config.plugins = [p1, p2];
     (p1.plugin.done as Mock).mockImplementation(async (context) => {
       await context.reportFiles.addFile("index.html", Buffer.from("index"));
@@ -1909,7 +1921,18 @@ describe("report", () => {
 
     const p1Summary = JSON.parse(await readFile(join(output, "p1", "summary.json"), "utf8"));
 
+    const p2Summary = JSON.parse(await readFile(join(output, "p2", "summary.json"), "utf8"));
+    const savedContext = {
+      commitSha: ci.commitSha,
+      commitHref: ci.commitUrl,
+      jobHref: ci.jobRunUrl,
+      ciRunName: ci.pipelineRunName,
+      ciRunHref: ci.pipelineRunUrl,
+    };
+
     expect(p1Summary.remoteHref).toEqual("https://example.org/p1/index.html");
+    expect(p1Summary).toMatchObject(savedContext);
+    expect(p2Summary).toMatchObject(savedContext);
     expect(AllureServiceClientMock.prototype.uploadReport).toHaveBeenCalledWith(
       expect.objectContaining({ pluginId: "p1", files: { "summary.json": expect.any(String) } }),
     );
