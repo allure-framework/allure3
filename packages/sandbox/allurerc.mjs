@@ -139,22 +139,21 @@ export default defineConfig({
     },
     rules: [
       {
-        resolution: "issue",
-        messageRegexp: "test issue",
-        issue: {
-          id: "TEST-1",
-          type: "sample",
-        },
+        resolution: "muted",
+        messageRegexp: "actual issue",
+        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+        expiresAt: "2099-01-01T00:00:00Z",
       },
       {
         resolution: "muted",
-        messageRegexp: "test muted",
+        messageRegexp: "an issue with no expiration",
         comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
       },
       {
-        resolution: "accepted",
-        messageRegexp: "test accepted",
-        comment: "We accept the possible risks",
+        resolution: "muted",
+        messageRegexp: "expired issue",
+        comment: "The risk is zero, so we can mute the problem to prevent the report pollution",
+        expiresAt: "2020-01-01T00:00:00Z",
       },
     ],
   },

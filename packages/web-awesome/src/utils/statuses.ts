@@ -27,7 +27,7 @@ export const getUnresolvedStatusCounts = (
 
   for (const envId of envIds) {
     for (const leaf of Object.values(trees[envId]?.leavesById ?? {})) {
-      if (failureStatuses.has(leaf.status) && leaf.resolutionStatus !== "none") {
+      if (failureStatuses.has(leaf.status) && leaf.resolutionStatus !== "none" && leaf.resolutionState !== "outdated") {
         continue;
       }
 

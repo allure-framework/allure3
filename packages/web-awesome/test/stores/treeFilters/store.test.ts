@@ -232,6 +232,21 @@ describe("stores > treeFilters > store", () => {
     setParams({ key: "status", value: "failed" });
 
     expect(matchesActiveFilters(leaf({ status: "failed", resolutionStatus: "none" }))).toBe(true);
+    expect(
+      matchesActiveFilters(
+        leaf({
+          status: "failed",
+          resolution: "muted",
+          resolutionStatus: "muted",
+          resolutionState: "outdated",
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      matchesActiveFilters(
+        leaf({ status: "failed", resolution: "muted", resolutionStatus: "muted", resolutionState: "active" }),
+      ),
+    ).toBe(false);
     expect(matchesActiveFilters(leaf({ status: "failed", resolution: "issue", resolutionStatus: "issue" }))).toBe(
       false,
     );

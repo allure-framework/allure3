@@ -89,6 +89,10 @@ export interface TestResult {
   known: boolean;
   resolution?: ResolutionCategory;
   resolutionComment?: string;
+  /**
+   * JavaScript-compatible ISO 8601 expiration timestamp copied from a matching muted resolution rule.
+   */
+  resolutionExpiresAt?: string;
 
   transition?: TestStatusTransition;
 

@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "解決なし"
+      "none": "解決なし",
+      "state": {
+        "active": "{{timestamp, timestamp_long_no_seconds}} までミュート",
+        "outdated": "期限切れ",
+        "permanent": "無期限にミュート",
+        "outdatedDescription": "ミュート期限は {{timestamp, timestamp_long_no_seconds}} に切れました。この失敗は無視されなくなりました。",
+        "permanentDescription": "期限が設定されていません。この失敗は無期限に無視され、将来の問題を見逃す可能性があります。"
+      }
     }
   },
   "sort-by": {

@@ -343,7 +343,7 @@ describe("plugin", () => {
   });
 
   describe("generated widget files", () => {
-    it("should write pie chart statistics without muted and accepted failures", async () => {
+    it("should include outdated muted failures in pie chart statistics", async () => {
       const testResults: TestResult[] = [
         {
           id: "tr-passed",
@@ -363,6 +363,14 @@ describe("plugin", () => {
           name: "muted test",
           status: "failed",
           resolution: "muted",
+          labels: [],
+        },
+        {
+          id: "tr-outdated-muted",
+          name: "outdated muted test",
+          status: "failed",
+          resolution: "muted",
+          resolutionExpiresAt: "2000-01-01T00:00:00Z",
           labels: [],
         },
         {
@@ -438,20 +446,19 @@ describe("plugin", () => {
       await plugin.update(context, store);
 
       expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
-        total: 4,
+        total: 5,
         passed: 1,
-        failed: 2,
+        failed: 3,
         broken: 1,
         resolutions: {
           issues: 1,
-          muted: 1,
+          muted: 2,
           accepted: 1,
         },
       });
       expect(JSON.parse(addedFiles.get("widgets/pie_chart.json")!.toString("utf-8"))).toMatchObject({
-        percentage: 50,
         slices: [
-          expect.objectContaining({ status: "failed", count: 1 }),
+          expect.objectContaining({ status: "failed", count: 2 }),
           expect.objectContaining({ status: "passed", count: 1 }),
         ],
       });

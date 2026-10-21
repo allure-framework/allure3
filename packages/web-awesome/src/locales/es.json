@@ -71,7 +71,14 @@
       "issue": "Issue",
       "muted": "Muted",
       "accepted": "Accepted",
-      "none": "Sin resolución"
+      "none": "Sin resolución",
+      "state": {
+        "active": "Silenciado hasta {{timestamp, timestamp_long_no_seconds}}",
+        "outdated": "Caducado",
+        "permanent": "Silenciado para siempre",
+        "outdatedDescription": "El plazo de silenciamiento venció el {{timestamp, timestamp_long_no_seconds}}. Este fallo ya no se ignora.",
+        "permanentDescription": "No se ha establecido una fecha límite. Este fallo se ignorará indefinidamente y puede ocultar un problema futuro."
+      }
     }
   },
   "sort-by": {

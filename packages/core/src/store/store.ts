@@ -512,6 +512,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.resolution = rule.resolution;
     testResult.resolutionComment = rule.comment;
+    delete testResult.resolutionExpiresAt;
+
+    if (rule.resolution === "muted" && rule.expiresAt !== undefined) {
+      testResult.resolutionExpiresAt = rule.expiresAt;
+    }
 
     if (rule.resolution === "issue") {
       this.#associateResolutionIssue(createResolutionIssue(rule, this.#resolutionsConfig), testResult.id);
@@ -1486,8 +1491,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async blockingFailedTestResults() {
     const failedTestResults = await this.failedTestResults();
+    const resolutionEvaluatedAt = Date.now();
 
-    return failedTestResults.filter((tr) => !isIgnoredFailure(tr));
+    return failedTestResults.filter((tr) => !isIgnoredFailure(tr, resolutionEvaluatedAt));
   }
 
   async unknownFailedTestResults() {
@@ -1794,6 +1800,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     for (const testResult of this.#testResults.values()) {
       delete testResult.resolution;
       delete testResult.resolutionComment;
+      delete testResult.resolutionExpiresAt;
     }
 
     const normalizedEnvironments = environments
@@ -1861,6 +1868,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#removeResolutionIssueAssociation(testResult.id);
       delete testResult.resolution;
       delete testResult.resolutionComment;
+      delete testResult.resolutionExpiresAt;
       this.#testResults.set(testResult.id, testResult);
       const envId = this.#environmentIdByTestResult(testResult);
 
