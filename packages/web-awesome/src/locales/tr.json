@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Gizli içerik haritası öğelerini göster"
   },
   "controls": {
+    "retry": "Yeniden dene",
+    "loadAttachmentViewerError": "Ek görüntüleyicisi yüklenemedi",
+    "loadComparisonError": "Karşılaştırma yüklenemedi",
     "newTabAttachment": "Eki yeni sekmede aç",
     "nextTR": "Sonraki test sonucu",
     "prevTR": "Önceki test sonucu",
@@ -464,7 +467,9 @@
       "layer": "Katman: {{layer}}",
       "statusSlice": "{{count}} {{status}} (tüm testlerin %{{percent}} kadarı)",
       "slice": "{{count}} test (tüm testlerin %{{percent}} kadarı)"
-    }
+    },
+    "retry": "Yeniden dene",
+    "loadError": "Grafik yüklenemedi"
   },
   "transitions": {
     "description": {

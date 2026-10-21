@@ -1,13 +1,17 @@
 import { gunzipSync } from "node:zlib";
 
 import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
+import { collectGitHead } from "@allurereport/git";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AllureCheckResult } from "../../core-api/src/model.js";
 import AwesomePlugin from "../src/index.js";
+
+// the report must not depend on the git repository the tests are run in
+vi.mock("@allurereport/git", () => ({ collectGitHead: vi.fn() }));
 
 beforeEach(async () => {
   await epic("coverage");
@@ -1222,6 +1226,46 @@ describe("plugin", () => {
         duration: 2000,
       });
       expect(reportOptions.executor).toEqual(executor);
+    });
+
+    it("should include the branch and the commit of the git repository in the report options", async () => {
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+
+      vi.mocked(collectGitHead).mockReturnValue({ commit: "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567", branch: "main" });
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore([]));
+
+      const reportOptions = extractReportOptions(addedFiles.get("index.html")?.toString("utf-8") ?? "");
+
+      expect(reportOptions.git).toEqual({ commit: "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567", branch: "main" });
+    });
+
+    it("should not include git info in the report options when the report is not generated in a git repository", async () => {
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+      const plugin = new AwesomePlugin({ singleFile: true });
+
+      vi.mocked(collectGitHead).mockReturnValue(undefined);
+
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore([]));
+
+      const reportOptions = extractReportOptions(addedFiles.get("index.html")?.toString("utf-8") ?? "");
+
+      expect(reportOptions).not.toHaveProperty("git");
     });
 
     it("should include a separate launch interval for every environment", async () => {

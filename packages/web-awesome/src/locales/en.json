@@ -186,6 +186,10 @@
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
     "resolutionCategories": "Resolutions",
     "breadcrumbs": "Breadcrumbs",
+    "gitBranch": "Branch",
+    "gitCommit": "Commit",
+    "openPullRequest": "Open PR",
+    "openJobRun": "Open job run",
     "breadcrumbs-hidden": "Show hidden breadcrumbs"
   },
   "shortcuts": {
@@ -247,6 +251,9 @@
     }
   },
   "controls": {
+    "retry": "Retry",
+    "loadAttachmentViewerError": "Failed to load attachment viewer",
+    "loadComparisonError": "Failed to load comparison",
     "newTabAttachment": "Open attachment in new tab",
     "nextTR": "Next Test result",
     "prevTR": "Previous Test result",
@@ -527,7 +534,9 @@
       "layer": "Layer: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% of all tests)",
       "slice": "{{count}} tests ({{percent}}% of all tests)"
-    }
+    },
+    "retry": "Retry",
+    "loadError": "Failed to load chart"
   },
   "transitions": {
     "description": {

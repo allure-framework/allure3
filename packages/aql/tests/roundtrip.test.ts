@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vite-plus/test";
 
 import { parseAql } from "../src/parser/index.js";
 import { expressionToString } from "../src/utils/index.js";

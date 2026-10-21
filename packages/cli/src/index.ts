@@ -19,6 +19,7 @@ import {
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
+  GhWorkflowCommand,
   GitlabGenerateCommand,
   HistoryCommand,
   JiraClearCommand,
@@ -29,6 +30,7 @@ import {
   ResultsPackCommand,
   ResultsUnpackCommand,
   RunCommand,
+  ServeCommand,
   SlackCommand,
   TestOpsPlanCommand,
   TestPlanCommand,
@@ -65,6 +67,7 @@ cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);
 cli.register(GenerateCommand);
+cli.register(GhWorkflowCommand);
 cli.register(HistoryCommand);
 cli.register(JiraClearCommand);
 cli.register(LogCommand);
@@ -72,6 +75,7 @@ cli.register(MigrateCommand);
 cli.register(OpenCommand);
 cli.register(QualityGateCommand);
 cli.register(RunCommand);
+cli.register(ServeCommand);
 cli.register(SlackCommand);
 cli.register(TestOpsPlanCommand);
 cli.register(TestPlanCommand);

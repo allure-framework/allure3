@@ -1,9 +1,7 @@
-import { DropdownButton, Menu, SvgIcon, allureIcons } from "@allurereport/web-components/core";
+import { DropdownButton, Menu, allureIcons } from "@allurereport/web-components/core";
 
 import { useI18n } from "@/stores";
 import { availableSections, currentSection, setSection } from "@/stores/sections";
-
-import * as styles from "./styles.scss";
 
 export type SectionItem = {
   name: string;
@@ -25,7 +23,7 @@ export const SectionPicker = () => {
 
   return (
     <Menu
-      size="m"
+      size="xs"
       placement={"bottom-start"}
       menuTrigger={({ isOpened, onClick }) => (
         <DropdownButton
@@ -45,11 +43,10 @@ export const SectionPicker = () => {
             onClick={() => setSection(value)}
             key={value}
             isChecked={currentSection.value === value}
+            leadingIcon={sectionMap[value]?.logo}
+            leadingIconFilled={sectionMap[value]?.logo === allureIcons.reportLogo}
           >
-            <div className={styles["menu-item"]}>
-              <SvgIcon id={sectionMap[value]?.logo} size={"s"} />
-              {t(sectionMap[value]?.name) || value}
-            </div>
+            {t(sectionMap[value]?.name) || value}
           </Menu.ItemWithCheckmark>
         ))}
       </Menu.Section>

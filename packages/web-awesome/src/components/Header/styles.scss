@@ -8,6 +8,12 @@
   padding: 8px 24px 12px;
 }
 
+@media (max-width: 768px) {
+  .above {
+    gap: 8px;
+  }
+}
+
 .logoWrapper {
   margin-right: auto;
   color: var(--color-text-secondary);

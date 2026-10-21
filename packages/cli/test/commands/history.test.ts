@@ -1,6 +1,6 @@
 import { AllureReport, readRawConfig, resolveConfig } from "@allurereport/core";
 import { run } from "clipanion";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { HistoryCommand } from "../../src/commands/history.js";
 import { resolveAndFindResultsDirs } from "../../src/utils/resultsPatterns.js";

@@ -1,5 +1,5 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/preact";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 const renderMermaid = vi.hoisted(() => vi.fn());
 

@@ -6,8 +6,8 @@ import { setGlobalLogLevel } from "@allurereport/cli-commons";
 import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import type { Mock } from "vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock } from "vite-plus/test";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { Logger } from "../src/logger.js";
 import type { TestOpsPluginOptions } from "../src/model.js";

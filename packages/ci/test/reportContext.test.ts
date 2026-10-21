@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import type { PluginSummary, TestResultRegistry } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createReportContext, createReportContextFromData } from "../src/reportContext.js";
 

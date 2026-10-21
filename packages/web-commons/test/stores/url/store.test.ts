@@ -1,5 +1,5 @@
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test";
 
 import * as helpers from "../../../src/stores/url/helpers.js";
 import { currentUrlSignal, getParamValue, getParamValues, hasParam } from "../../../src/stores/url/store.js";

@@ -6,7 +6,7 @@ import SlackPlugin from "@allurereport/plugin-slack";
 import { epic, feature, label, story } from "allure-js-commons";
 import { run, UsageError } from "clipanion";
 import { glob } from "glob";
-import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { SlackCommand } from "../../src/commands/slack.js";
 

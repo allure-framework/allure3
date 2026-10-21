@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/preact";
 import type { ComponentChildren } from "preact";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { TrInfo } from "@/components/TestResult/TrInfo";
 

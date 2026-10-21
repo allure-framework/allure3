@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { cleanup, fireEvent, render, screen } from "@testing-library/preact";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 vi.hoisted(() => {
   vi.stubGlobal(
@@ -196,6 +196,96 @@ describe("components > TrBreadcrumbs", () => {
     fireEvent.click(hidden[1]);
 
     expect(revealTreeNode).toHaveBeenCalledWith("g2");
+  });
+
+  describe("when the width is limited", () => {
+    const originalClientWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth");
+
+    const mockNavWidth = (width: number) => {
+      vi.stubGlobal(
+        "ResizeObserver",
+        class {
+          observe() {}
+          disconnect() {}
+        },
+      );
+      Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => width });
+    };
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+
+      if (originalClientWidth) {
+        Object.defineProperty(HTMLElement.prototype, "clientWidth", originalClientWidth);
+      }
+    });
+
+    it("keeps the root and the two levels above the test when the width is enough for them", () => {
+      treeStore.value = { loading: false, error: undefined, data: { default: deepTree } as any };
+      mockNavWidth(1000);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+
+      expect(breadcrumbTexts()).toEqual(["l0", "l4", "l5"]);
+    });
+
+    it("drops the root and keeps the two closest levels when the root doesn't fit", () => {
+      treeStore.value = { loading: false, error: undefined, data: { default: deepTree } as any };
+      mockNavWidth(500);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+
+      expect(breadcrumbTexts()).toEqual(["l4", "l5"]);
+    });
+
+    it("moves the levels which don't fit to the menu, the closest ones stay in the path", () => {
+      treeStore.value = { loading: false, error: undefined, data: { default: deepTree } as any };
+      mockNavWidth(500);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+      fireEvent.click(screen.getByTestId("test-result-breadcrumb-more"));
+
+      expect(screen.getAllByTestId("test-result-breadcrumb-hidden-item").map((item) => item.textContent)).toEqual([
+        "l0",
+        "l1",
+        "l2",
+        "l3",
+      ]);
+    });
+
+    it("keeps only the closest level above the test when two levels don't fit", () => {
+      treeStore.value = { loading: false, error: undefined, data: { default: deepTree } as any };
+      mockNavWidth(400);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+
+      expect(breadcrumbTexts()).toEqual(["l5"]);
+      expect(screen.getByTestId("test-result-breadcrumb-more")).toBeTruthy();
+    });
+
+    it("moves every level to the menu when there is no room for them", () => {
+      mockNavWidth(200);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+
+      expect(screen.queryAllByTestId("test-result-breadcrumb-button")).toHaveLength(0);
+
+      fireEvent.click(screen.getByTestId("test-result-breadcrumb-more"));
+
+      expect(screen.getAllByTestId("test-result-breadcrumb-hidden-item").map((item) => item.textContent)).toEqual([
+        "com.example",
+        "LoginTest",
+      ]);
+    });
+
+    it("keeps every level of a short path when it fits", () => {
+      mockNavWidth(800);
+
+      render(<TrBreadcrumbs testResult={testResult} />);
+
+      expect(breadcrumbTexts()).toEqual(["com.example", "LoginTest"]);
+      expect(screen.queryByTestId("test-result-breadcrumb-more")).toBeNull();
+    });
   });
 
   it("keeps every level when the path is short enough", () => {

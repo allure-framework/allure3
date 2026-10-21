@@ -1,5 +1,5 @@
 import { attachment, label } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 const HTTP_EXCHANGE_ATTACHMENT_MIME = "application/vnd.allure.http+json";
 const REDACTED = "__ALLURE_REDACTED__";

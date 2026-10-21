@@ -1,0 +1,11 @@
+.git-info-trigger {
+  max-width: 24ch;
+}
+
+.git-info-value {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

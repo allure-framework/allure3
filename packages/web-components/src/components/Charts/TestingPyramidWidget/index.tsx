@@ -65,7 +65,7 @@ type Props = {
     eligibleCount?: number;
     percentage: number;
   }[];
-  title: string;
+  title?: string;
   translations: Record<string, string>;
   i18n?: SuccessRateI18n;
   width?: JSX.CSSProperties["width"];
@@ -106,6 +106,7 @@ const Part = (part: FunnelPartWithHandlers<TPFunnelDatum>) => {
   const { triggerProps, tooltip } = useChartTooltip(`${lines.join("\n")}\n${description}`);
 
   return (
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- SVG labels require a <g>; an HTML <img> cannot contain SVG text.
     <animated.g {...triggerProps} role="img" aria-label={lines.join("; ")} transform={animatedProps.transform}>
       {tooltip}
       <title>{lines.join("; ")}</title>
@@ -173,6 +174,7 @@ export const TestingPyramidWidget = (props: Props) => {
 
   return (
     <Widget title={title}>
+      {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- This groups chart graphics, not form controls; there is no equivalent native HTML element. */}
       <div role="group" aria-label={title} style={{ width, height }}>
         <ResponsiveFunnel
           data={funnelData}

@@ -14,7 +14,7 @@ import type {
 } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { attachment, step, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { AgentExpectationsInput, AgentHumanReportStatus } from "../src/index.js";
 import { AgentPlugin } from "../src/plugin.js";

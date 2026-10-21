@@ -224,7 +224,9 @@
       "layer": "Ebene: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% aller Tests)",
       "slice": "{{count}} Tests ({{percent}}% aller Tests)"
-    }
+    },
+    "retry": "Erneut versuchen",
+    "loadError": "Diagramm konnte nicht geladen werden"
   },
   "transitions": {
     "description": {

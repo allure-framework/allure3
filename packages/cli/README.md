@@ -139,6 +139,23 @@ npx allure agent query --latest tests --status failed
 npx allure agent query --from ./agent-output findings --severity high
 ```
 
+### Generating GitHub Actions Jobs
+
+Print GitHub Actions jobs that run your tests once per environment and build a single Allure report from all of them:
+
+```bash
+npx allure gh-workflow --env foo --env bar --env baz -- npm test
+```
+
+Paste the output under `jobs:` in a workflow file and fill in the `TODO` steps (runtime setup and dependencies). The output has two jobs:
+
+- `test` runs `allure run --environment=<id> --dump=allure-results-<id> -- <test command>` for every environment in a matrix and uploads `allure-results-<id>.zip` as an artifact;
+- `report` downloads all `allure-results-*` artifacts and runs `allure generate --dump="allure-results-*/*.zip"`.
+
+The environment id, the dump file, the artifact name and the download pattern have to agree with each other; the command keeps them consistent.
+
+Environments come from `--env` (repeatable, no config needed). Without `--env`, the ids declared under `environments` in your Allure config are used (integer-like ids come first, as JavaScript orders object keys). Pass the test command after `--` (default: `npm test`); `--config` is also added to the generated `allure` commands. The versions of the GitHub actions in the output are examples, pin the ones you use. Errors are written to stderr with a non-zero exit code, while command-line syntax errors are reported by the CLI parser on stdout.
+
 ### Generating Reports Manually
 
 If you already have test results and wish to generate a report manually, use the `generate` command:
@@ -164,6 +181,26 @@ npx allure open allure-report/awesome
 ```
 
 If the provided directory doesn't contain previously generated report, it will be treated as a source of results, and a new report will be generated on the fly and opened in the browser.
+
+To stop serving the report, press CTRL+C.
+
+#### Serving a report without opening
+
+Use the `serve` command to start a local report server without opening a browser:
+
+```bash
+npx allure serve <reportDir>
+```
+
+Like `open`, this command uses the configured output directory when `<reportDir>` is omitted and generates a report on the fly when given test results. Open the URL printed in the console to view the report.
+
+Use `--host` and `--port` to control the interfaces and port to listen:
+
+```bash
+npx allure serve --port 8080 --host 127.0.0.1
+```
+
+Press CTRL+C to stop serving.
 
 ### Real-time Report Monitoring
 
@@ -205,7 +242,7 @@ tag. Unrecognized version formats are silently skipped.
 Allure 3 uses an `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > [!TIP]
-> We recommend using the **Awesome** plugin for the best experience.  
+> We recommend using the **Awesome** plugin for the best experience.
 > Support for Classic and Allure 2-style reports is currently experimental.
 
 ### Example Configuration File
@@ -272,7 +309,7 @@ For example, setting `"reportLanguage": "fr"` will render the report interface i
 
 You can also use `allurerc.json`, `allurerc.yaml`, or `allurerc.yml` files as a declarative way to configure Allure 3.
 
-> [!WARNING]  
+> [!WARNING]
 > Declarative formats don't support advanced features such as tests filtering or environments.
 > If you need these features, please consider using the `allurerc.ts`, `allurerc.mts`, `allurerc.cts`, `allurerc.mjs`, or `allurerc.js` files.
 

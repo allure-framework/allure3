@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { upsertGitlabJobNote } from "../../../src/helpers/gitlab/comments.js";
 import type { ReportContext, ReportContextTestReport } from "../../../src/reportContext.js";

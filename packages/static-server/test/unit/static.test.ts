@@ -1,10 +1,11 @@
+import { Agent } from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { layer, story } from "allure-js-commons";
 import axios from "axios";
 import getPort from "get-port";
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vite-plus/test";
 
 import { type AllureStaticServer, serve } from "../../src/index.js";
 
@@ -22,7 +23,7 @@ beforeEach(async () => {
   await layer("unit");
 
   port = await getPort();
-  server?.stop();
+  await server?.stop();
 });
 
 it("binds to the provided host and reports it in the url", async () => {
@@ -101,4 +102,28 @@ it("returns 404 for path traversal outside the serve root", async () => {
   });
 
   expect(res.status).toBe(404);
+});
+
+it("stop closes the listening port", async () => {
+  await layer("unit");
+  const server = await serve({ port: 0, host: "127.0.0.1", servePath, open: false });
+  const agent = new Agent({ keepAlive: false });
+  const request = () =>
+    axios.get(`${server.url}/sample`, {
+      httpAgent: agent,
+      proxy: false,
+      timeout: 1_000,
+    });
+
+  try {
+    const response = await request();
+    expect(response.status).toBe(200);
+
+    await server.stop();
+
+    await expect(request()).rejects.toMatchObject({ code: "ECONNREFUSED" });
+  } finally {
+    agent.destroy();
+    await server.stop();
+  }
 });

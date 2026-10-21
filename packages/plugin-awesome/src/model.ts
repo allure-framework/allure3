@@ -39,6 +39,4 @@ export type AwesomeOptions = {
   ideaLinks?: boolean | IdeaLinksOptions;
 };
 
-export type TemplateManifest = Record<string, string>;
-
 export type AwesomePluginOptions = AwesomeOptions;

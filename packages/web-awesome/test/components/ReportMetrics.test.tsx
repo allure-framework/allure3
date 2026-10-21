@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/preact";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ReportMetrics } from "@/components/ReportMetrics";
 import { metricsStore, type MetricsWidgetData } from "@/stores/metrics";

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { attachmentType, blobAttachment, isPreviewableContentType } from "../src/attachments.js";
 
@@ -48,21 +48,24 @@ describe("blobAttachment", () => {
     vi.restoreAllMocks();
   });
 
-  it("downloads Playwright traces with zip content type without changing bytes", async () => {
-    const content = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0xff]);
-    const blob = { type: "application/zip" } as Blob;
-    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue({
-      blob: vi.fn().mockResolvedValue(blob),
-    } as unknown as Response);
+  it.each(["application/vnd.allure.playwright-trace", " Application/Vnd.Allure.Playwright-Trace ; version=1"])(
+    "downloads %s with zip content type without changing bytes",
+    async (contentType) => {
+      const content = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0xff]);
+      const blob = { type: "application/zip" } as Blob;
+      const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        blob: vi.fn().mockResolvedValue(blob),
+      } as unknown as Response);
 
-    (globalThis as any).allureReportDataReady = true;
-    (globalThis as any).allureReportData = {
-      "data/attachments/trace-id.zip": content.toString("base64"),
-    };
+      (globalThis as any).allureReportDataReady = true;
+      (globalThis as any).allureReportData = {
+        "data/attachments/trace-id.zip": content.toString("base64"),
+      };
 
-    const result = await blobAttachment("trace-id", ".zip", "application/vnd.allure.playwright-trace");
+      const result = await blobAttachment("trace-id", ".zip", contentType);
 
-    expect(result).toBe(blob);
-    expect(fetch).toHaveBeenCalledWith(`data:application/zip;base64,${content.toString("base64")}`);
-  });
+      expect(result).toBe(blob);
+      expect(fetch).toHaveBeenCalledWith(`data:application/zip;base64,${content.toString("base64")}`);
+    },
+  );
 });

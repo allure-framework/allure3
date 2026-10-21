@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import axios, { AxiosHeaders, type AxiosResponse } from "axios";
-import { type Mock, vi } from "vitest";
+import { type Mock, vi } from "vite-plus/test";
 
 import { getEnv } from "../../../src/utils.js";
 

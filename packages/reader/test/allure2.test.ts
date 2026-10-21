@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";

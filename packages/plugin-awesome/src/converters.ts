@@ -1,15 +1,13 @@
 import {
-  type TestFixtureResult,
   type TestLabel,
   type TestLink,
   type TestResult,
-  type TestStepResult,
   createDictionary,
-  isStep,
   redactParameters,
   shouldHideLabel,
 } from "@allurereport/core-api";
-import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
+import type { ReportTestResult } from "@allurereport/plugin-api";
+import { convertTestStepResult } from "@allurereport/plugin-api/internal/report";
 import MarkdownIt from "markdown-it";
 
 import type { IdeaLinksOptions } from "./model.js";
@@ -95,28 +93,5 @@ export const convertTestResult = (
     retry: false,
     transition: tr.transition,
     titlePath: tr.titlePath || [],
-  };
-};
-
-export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
-  if (isStep(tsr)) {
-    return {
-      ...tsr,
-      parameters: redactParameters(tsr.parameters),
-      steps: (tsr.steps ?? []).map(convertTestStepResult),
-    };
-  }
-
-  return tsr;
-};
-
-export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
-  return {
-    id: fr.id,
-    type: fr.type,
-    name: fr.name,
-    status: fr.status,
-    steps: fr.steps.map(convertTestStepResult),
-    duration: fr.duration,
   };
 };

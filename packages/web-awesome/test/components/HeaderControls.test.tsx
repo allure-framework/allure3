@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/preact";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { HeaderControls } from "@/components/HeaderControls";
 

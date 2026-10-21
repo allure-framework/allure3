@@ -12,7 +12,7 @@ import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawFixtureResult, RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";

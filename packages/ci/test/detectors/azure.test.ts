@@ -1,5 +1,5 @@
 import { story } from "allure-js-commons";
-import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vite-plus/test";
 
 import {
   azure,

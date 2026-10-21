@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import type { ResolutionCategory, ResolutionRule, TestResult } from "@allurereport/core-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
   createResolutionIssue,
