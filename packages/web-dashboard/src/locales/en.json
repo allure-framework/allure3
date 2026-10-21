@@ -240,5 +240,9 @@
     "fixed": "fixed",
     "regressed": "regressed",
     "malfunctioned": "malfunctioned"
+  },
+  "ui": {
+    "at": "at",
+    "generatedAt": "Generated {{timestamp, timestamp_long}}"
   }
 }

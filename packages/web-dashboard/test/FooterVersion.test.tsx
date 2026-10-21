@@ -35,7 +35,19 @@ describe("Dashboard footer generation date", () => {
         .formatToParts(new Date(createdAt))
         .find(({ type }) => type === "timeZoneName")?.value;
       expect(container.querySelector("bdi")?.textContent).toContain(timezone);
-      expect(container.textContent).toContain("Ver: 3.21.0");
+      const expectedDate = new Intl.DateTimeFormat("en-US", {
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: false,
+        timeZoneName: "longOffset",
+      })
+        .format(createdAt)
+        .replace(",", " at");
+      expect(container.textContent).toBe(`Generated ${expectedDate} Ver: 3.21.0`);
     },
   );
 

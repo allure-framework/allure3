@@ -243,5 +243,9 @@
     "fixed": "تم الإصلاح",
     "regressed": "تراجع",
     "malfunctioned": "خلل وظيفي"
+  },
+  "ui": {
+    "at": "في",
+    "generatedAt": "تم الإنشاء {{timestamp, timestamp_long}}"
   }
 }

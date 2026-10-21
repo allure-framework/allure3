@@ -247,5 +247,9 @@
     "fixed": "Naprawione",
     "regressed": "Zaregresowane",
     "malfunctioned": "Uszkodzone"
+  },
+  "ui": {
+    "at": "w",
+    "generatedAt": "Wygenerowano {{timestamp, timestamp_long}}"
   }
 }
