@@ -170,10 +170,9 @@ export const azure: CiDescriptor = {
 
   get commitUrl() {
     const repositoryUrl = getRepositoryUrl();
+    if (getEnv("BUILD_REPOSITORY_PROVIDER") !== "TfsGit" || !repositoryUrl || !this.commitSha) return undefined;
 
-    return getEnv("BUILD_REPOSITORY_PROVIDER") === "TfsGit" && repositoryUrl && this.commitSha
-      ? `${getBrowserRepositoryUrl(repositoryUrl)}/commit/${encodeURIComponent(this.commitSha)}`
-      : undefined;
+    return `${getBrowserRepositoryUrl(repositoryUrl)}/commit/${encodeURIComponent(this.commitSha)}`;
   },
 
   get provider() {

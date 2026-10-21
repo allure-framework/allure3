@@ -53,17 +53,21 @@ const commitUrl = (ci: CiDescriptor, sha: string): string | undefined => {
 
   switch (ci.provider) {
     case GitProvider.Github:
-      return pullRequestUrl
-        ? `${pullRequestUrl}/commits/${encodeURIComponent(sha)}`
-        : repositoryUrl
-          ? `${repositoryUrl}/commit/${encodeURIComponent(sha)}`
-          : undefined;
+      if (!pullRequestUrl && !repositoryUrl) return undefined;
+
+      if (pullRequestUrl) {
+        return `${pullRequestUrl}/commits/${encodeURIComponent(sha)}`;
+      } else {
+        return `${repositoryUrl}/commit/${encodeURIComponent(sha)}`;
+      }
     case GitProvider.Gitlab:
-      return pullRequestUrl
-        ? `${pullRequestUrl}/diffs?commit_id=${encodeURIComponent(sha)}`
-        : repositoryUrl
-          ? `${repositoryUrl}/-/commit/${encodeURIComponent(sha)}`
-          : undefined;
+      if (!pullRequestUrl && !repositoryUrl) return undefined;
+
+      if (pullRequestUrl) {
+        return `${pullRequestUrl}/diffs?commit_id=${encodeURIComponent(sha)}`;
+      } else {
+        return `${repositoryUrl}/-/commit/${encodeURIComponent(sha)}`;
+      }
     case GitProvider.Bitbucket:
       return repositoryUrl ? `${repositoryUrl}/commits/${encodeURIComponent(sha)}` : undefined;
     default:
