@@ -15,3 +15,11 @@ vulnerabilities:
   - id: CVE-2026-53571
     paths: [yarn.lock]
     statement: Vite+ core alias
+
+  - id: CVE-2026-112942
+    paths: [yarn.lock]
+    purls: ["pkg:npm/vite@1.2.0"]
+    statement: >-
+      vite aliases @voidzero-dev/vite-plus-core@1.2.0, which bundles Vite 8.3.4.
+      Fixed in Vite 8.3.3 and Vite+ 1.1.0; Trivy compares the alias version against Vite.
+      https://github.com/vitejs/launch-editor/security/advisories/GHSA-587h-7wmj-h5pm

@@ -34,7 +34,7 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "mjml": "^4"
+    "mjml": "^5.4.1"
   },
   "devDependencies": {
     "@allurereport/test-config": "workspace:*",
