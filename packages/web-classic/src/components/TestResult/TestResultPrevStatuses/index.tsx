@@ -1,4 +1,5 @@
 import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
+import { HISTORY_DATA_POINT_LIMIT } from "@allurereport/plugin-api/internal/report";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { ReportTestResult } from "types";
@@ -39,7 +40,7 @@ export type TestResultPrevStatusesProps = {
 export const TestResultPrevStatuses: FunctionalComponent<TestResultPrevStatusesProps> = ({ history }) => {
   return (
     <div className={styles["test-result-prev-statuses"]}>
-      {history?.slice(0, 6).map((item, key) => (
+      {history?.slice(0, HISTORY_DATA_POINT_LIMIT).map((item, key) => (
         <div key={key} className={styles["test-result-prev-status"]}>
           <TooltipWrapper key={key} tooltipComponent={<TestResultPrevStatusTooltip item={item} />}>
             <TestResultPrevStatus item={item} />

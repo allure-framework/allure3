@@ -1,4 +1,4 @@
-import { ensureReportDataReady } from "@allurereport/web-commons";
+import { ensureReportDataReady, testPlatform } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components/core";
 
 import "@allurereport/web-components/index.css";
@@ -24,7 +24,6 @@ import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchMetricsData } from "@/stores/metrics";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
-import { isMac } from "@/utils/isMac";
 
 import { fetchQualityGateResults } from "./stores/qualityGate";
 import { fetchResolutionCategoriesData } from "./stores/resolutionCategories";
@@ -35,6 +34,8 @@ import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
 import { migrateFilterParam } from "./stores/treeFilters/utils";
 
 import * as styles from "./styles.scss";
+
+const isMac = testPlatform(/^Mac/i);
 
 const Loader = () => {
   return (

@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Verborgen kruimelpaditems tonen"
   },
   "controls": {
+    "retry": "Opnieuw proberen",
+    "loadAttachmentViewerError": "Kan de bijlageviewer niet laden",
+    "loadComparisonError": "Kan de vergelijking niet laden",
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
     "nextTR": "Volgende testresultaat",
     "prevTR": "Vorige testresultaat",
@@ -464,7 +467,9 @@
       "layer": "Laag: {{layer}}",
       "statusSlice": "{{count}} {{status}} ({{percent}}% van alle tests)",
       "slice": "{{count}} tests ({{percent}}% van alle tests)"
-    }
+    },
+    "retry": "Opnieuw proberen",
+    "loadError": "Kan de grafiek niet laden"
   },
   "transitions": {
     "description": {

@@ -34,3 +34,5 @@ export * from "./components/ReportSummaryCard";
 export * from "./components/ThemeProvider";
 export * from "./components/EmptyView";
 export * from "./components/ImageDiff";
+
+export { LazyComponent } from "./components/LazyComponent";
