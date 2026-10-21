@@ -38,7 +38,7 @@ export const OverviewLink = ({ href, text }: OverviewLinkProps) => {
         isTextTruncated
         style="ghost"
         action="accent"
-        size="s"
+        size="m"
         icon={allureIcons.lineArrowsArrowLeft}
         className={styles.link}
         data-testid="overview-link"

@@ -9,8 +9,7 @@ import {
   useElementTruncation,
 } from "@allurereport/web-components/core";
 import clsx from "clsx";
-import { Fragment } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { ReportTestResult } from "types";
 
 import { getCategoriesBreadcrumbs, revealCategoryNode } from "@/stores/categories";
@@ -29,6 +28,33 @@ interface TrBreadcrumbs {
 const MAX_VISIBLE_BREADCRUMBS = 4;
 const TRAILING_BREADCRUMBS = 2;
 const HOVER_CLOSE_DELAY = 300;
+// the widths the layout is calculated with: the home button, the shortest readable name of the test and a group with its arrow
+const HOME_WIDTH = 32;
+const MIN_NAME_WIDTH = 160;
+const MIN_GROUP_WIDTH = 96;
+
+// the width of the element, 0 until it's measured
+const useElementWidth = <T extends HTMLElement>() => {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element || typeof ResizeObserver === "undefined") {
+      return undefined;
+    }
+
+    const observer = new ResizeObserver(() => setWidth(element.clientWidth));
+
+    observer.observe(element);
+    setWidth(element.clientWidth);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, width };
+};
 
 // the wrappers of the tooltip stay in place for the labels that fit, so the layout doesn't change when a label starts to be truncated
 const BreadcrumbButton = ({ text, onClick }: { text: string; onClick: () => void }) => {
@@ -79,6 +105,7 @@ const BreadcrumbTitle = ({ text }: { text: string }) => {
 
 export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
   const { t } = useI18n("ui");
+  const { ref: navRef, width: navWidth } = useElementWidth<HTMLElement>();
   const closeTimer = useRef<number>();
   const setIsMenuOpenedRef = useRef<(isOpened: boolean) => void>();
 
@@ -111,11 +138,19 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
   const navigateToTreeRoot = inCategories ? navigateToCategoriesRoot : navigateToRoot;
 
   const indexedBreadcrumbs = treeBreadcrumbs.map((breadcrumb, index) => ({ ...breadcrumb, index }));
-  const isCollapsed = indexedBreadcrumbs.length > MAX_VISIBLE_BREADCRUMBS;
-  const visibleBreadcrumbs = isCollapsed
-    ? [indexedBreadcrumbs[0], ...indexedBreadcrumbs.slice(-TRAILING_BREADCRUMBS)]
-    : indexedBreadcrumbs;
-  const hiddenBreadcrumbs = isCollapsed ? indexedBreadcrumbs.slice(1, -TRAILING_BREADCRUMBS) : [];
+  const groupsCount = indexedBreadcrumbs.length;
+  // how many groups fit next to the name of the test, unlimited until the width is measured
+  const fittingGroups = navWidth ? Math.floor((navWidth - HOME_WIDTH - MIN_NAME_WIDTH) / MIN_GROUP_WIDTH) : Infinity;
+  const isCountCollapsed = groupsCount > MAX_VISIBLE_BREADCRUMBS;
+  // the root and the levels above the test stay while they fit, otherwise only the closest levels are left
+  const keepsRoot = fittingGroups >= 1 + TRAILING_BREADCRUMBS + 1;
+  const isCollapsed = isCountCollapsed ? true : groupsCount > fittingGroups;
+  const trailingCount = keepsRoot ? TRAILING_BREADCRUMBS : Math.max(fittingGroups - 1, 0);
+  const leadingBreadcrumbs = isCollapsed && keepsRoot ? indexedBreadcrumbs.slice(0, 1) : [];
+  const trailingBreadcrumbs = isCollapsed ? indexedBreadcrumbs.slice(groupsCount - trailingCount) : indexedBreadcrumbs;
+  const hiddenBreadcrumbs = isCollapsed
+    ? indexedBreadcrumbs.slice(leadingBreadcrumbs.length, groupsCount - trailingCount)
+    : [];
 
   const navigateToGroup = (index: number) => {
     if (inCategories) {
@@ -133,8 +168,64 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
     <SvgIcon id={allureIcons.lineArrowsChevronDown} className={styles["test-result-breadcrumb-arrow"]} />
   );
 
+  const moreMenu = (
+    <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-breadcrumb-more"])}>
+      {breadcrumbArrow}
+      <Menu
+        size={"l"}
+        placement={"bottom-start"}
+        menuTriggerWrapper={"span"}
+        menuTrigger={({ onClick, isOpened, setIsOpened }) => {
+          setIsMenuOpenedRef.current = setIsOpened;
+
+          return (
+            <span onMouseEnter={openMenu} onMouseLeave={scheduleMenuClose}>
+              <Button
+                type={"button"}
+                size={"s"}
+                style={"ghost"}
+                text={"…"}
+                aria-label={t("breadcrumbs-hidden")}
+                className={styles["test-result-breadcrumb-button"]}
+                data-testid={"test-result-breadcrumb-more"}
+                isActive={isOpened}
+                onClick={onClick}
+              />
+            </span>
+          );
+        }}
+      >
+        <div onMouseEnter={clearCloseTimer} onMouseLeave={scheduleMenuClose}>
+          <Menu.Section>
+            {hiddenBreadcrumbs.map((breadcrumb) => (
+              <Menu.Item
+                key={breadcrumb.nodeId}
+                dataTestId={"test-result-breadcrumb-hidden-item"}
+                onClick={() => navigateToGroup(breadcrumb.index)}
+              >
+                <span className={styles["test-result-breadcrumb-hidden-item"]} title={breadcrumb.name}>
+                  {breadcrumb.name}
+                </span>
+              </Menu.Item>
+            ))}
+          </Menu.Section>
+        </div>
+      </Menu>
+    </div>
+  );
+
+  const renderGroup = ({ nodeId, name: groupName, index }: (typeof indexedBreadcrumbs)[number], isRoot = false) => (
+    <div
+      className={clsx(styles["test-result-breadcrumb"], isRoot && styles["test-result-breadcrumb-root"])}
+      key={nodeId}
+    >
+      {breadcrumbArrow}
+      <BreadcrumbButton text={groupName} onClick={() => navigateToGroup(index)} />
+    </div>
+  );
+
   return (
-    <nav className={styles["test-result-breadcrumbs"]} aria-label={t("breadcrumbs")}>
+    <nav ref={navRef} className={styles["test-result-breadcrumbs"]} aria-label={t("breadcrumbs")}>
       <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-home"])}>
         <IconButton
           icon={allureIcons.lineGeneralHomeLine}
@@ -144,56 +235,9 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
           onClick={() => navigateToTreeRoot()}
         />
       </div>
-      {visibleBreadcrumbs.map(({ nodeId, name: groupName, index }, position) => (
-        <Fragment key={nodeId}>
-          <div className={styles["test-result-breadcrumb"]}>
-            {breadcrumbArrow}
-            <BreadcrumbButton text={groupName} onClick={() => navigateToGroup(index)} />
-          </div>
-          {isCollapsed && position === 0 && (
-            <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-breadcrumb-more"])}>
-              {breadcrumbArrow}
-              <Menu
-                placement={"bottom-start"}
-                menuTriggerWrapper={"span"}
-                menuTrigger={({ onClick, isOpened, setIsOpened }) => {
-                  setIsMenuOpenedRef.current = setIsOpened;
-
-                  return (
-                    <span onMouseEnter={openMenu} onMouseLeave={scheduleMenuClose}>
-                      <Button
-                        type={"button"}
-                        size={"s"}
-                        style={"ghost"}
-                        text={"…"}
-                        aria-label={t("breadcrumbs-hidden")}
-                        className={styles["test-result-breadcrumb-button"]}
-                        data-testid={"test-result-breadcrumb-more"}
-                        isActive={isOpened}
-                        onClick={onClick}
-                      />
-                    </span>
-                  );
-                }}
-              >
-                <div onMouseEnter={clearCloseTimer} onMouseLeave={scheduleMenuClose}>
-                  <Menu.Section>
-                    {hiddenBreadcrumbs.map((breadcrumb) => (
-                      <Menu.Item
-                        key={breadcrumb.nodeId}
-                        dataTestId={"test-result-breadcrumb-hidden-item"}
-                        onClick={() => navigateToGroup(breadcrumb.index)}
-                      >
-                        {breadcrumb.name}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Section>
-                </div>
-              </Menu>
-            </div>
-          )}
-        </Fragment>
-      ))}
+      {leadingBreadcrumbs.map((breadcrumb) => renderGroup(breadcrumb, true))}
+      {hiddenBreadcrumbs.length > 0 && moreMenu}
+      {trailingBreadcrumbs.map((breadcrumb) => renderGroup(breadcrumb))}
       {fallbackBreadcrumbs.map((item, key) => (
         <div className={styles["test-result-breadcrumb"]} key={key}>
           {breadcrumbArrow}

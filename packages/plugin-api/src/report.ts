@@ -36,6 +36,11 @@ export type ReportExecutorInfo = {
   reportUrl?: string;
 };
 
+export type ReportGitInfo = {
+  commit: string;
+  branch?: string;
+};
+
 export type ReportOptions = {
   id?: string;
   allureVersion: string;
@@ -51,6 +56,7 @@ export type ReportOptions = {
   sections?: string[];
   cacheKey?: string;
   ci?: CiDescriptor;
+  git?: ReportGitInfo;
   executor?: ReportExecutorInfo;
   runSummary?: ReportRunSummary;
   runSummaryByEnv?: Record<string, ReportRunSummary>;

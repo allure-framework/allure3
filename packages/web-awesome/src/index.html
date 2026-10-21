@@ -23,6 +23,8 @@
         layout: "split",
         allureVersion: "3.0.1-develop",
         sections: ["charts", "timeline", "metrics"],
+        overviewHref: "#",
+        git: { commit: "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567", branch: "feature/sample-branch" },
         ci: {
           type: "github",
           detected: true,
@@ -34,7 +36,9 @@
           jobRunName: "Sample job run name",
           jobRunBranch: "master",
           pullRequestName: "Pull request #123",
-          pullRequestUrl: "#",
+          pullRequestUrl: "https://example.com/pull/123",
+          provider: "github",
+          repository: { slug: "allure-framework/allure3", url: "https://example.com/allure-framework/allure3" },
         },
       };
     </script>

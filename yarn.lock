@@ -324,6 +324,7 @@ __metadata:
   dependencies:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/git": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/test-config": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"

@@ -1,7 +1,8 @@
 .test-result-breadcrumbs {
   margin-right: auto;
   display: flex;
-  flex: 1 1 auto;
+  // zero basis, so long crumbs take only the free space and don't squeeze the "Back to overview" link and the section picker
+  flex: 1 1 0;
   min-width: 0;
   gap: 4px;
   overflow: hidden;
@@ -38,14 +39,29 @@
   flex: none;
 }
 
+// the root level is the anchor of the path, it is not squeezed by the levels next to the test
+.test-result-breadcrumb.test-result-breadcrumb-root {
+  flex-shrink: 0;
+}
+
 .test-result-breadcrumb-more {
   flex: none;
   max-width: none;
 }
 
+// the basis of the name is limited, so the levels above it don't get squeezed to a couple of letters by a long name
 .test-result-breadcrumb-name {
-  flex: 1 1 auto;
+  flex: 1 1 10rem;
   max-width: none;
+}
+
+// the menu has a fixed width, so a long label of a hidden level is truncated to fit it (the menu paddings are taken off)
+.test-result-breadcrumb-hidden-item {
+  display: block;
+  max-width: 15rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .test-result-breadcrumb-button {

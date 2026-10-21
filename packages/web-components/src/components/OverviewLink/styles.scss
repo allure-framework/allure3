@@ -2,10 +2,31 @@
 // but never below the width of the icon with the paddings of the button
 .wrapper,
 .trigger {
-  min-width: 1.75rem;
+  min-width: 2.25rem;
   max-width: 100%;
 }
 
-.link {
+// the button limits itself to the width of its content, which must not win here, otherwise the link doesn't shrink
+.trigger .link {
   max-width: 100%;
+}
+
+// on small screens only the icon is left, the full label is shown in the tooltip, as when the label is truncated
+@media (max-width: 768px) {
+  .wrapper,
+  .trigger {
+    min-width: 2rem;
+  }
+
+  // the button turns into a square of the icon, as the icon buttons of the report: no label means no gap and no margin of the icon
+  // the size classes of the button declare the same variables, so the selector has to be more specific
+  .trigger .link.link {
+    --allure-btn-padding-horizontal: 6px;
+    --allure-btn-gap: 0px;
+    --allure-btn-leading-icon-margin-right: 0px;
+  }
+
+  .trigger .link svg:first-child + span {
+    max-width: 0;
+  }
 }

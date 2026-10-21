@@ -186,6 +186,10 @@
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})",
     "resolutionCategories": "Resolutions",
     "breadcrumbs": "Breadcrumbs",
+    "gitBranch": "Branch",
+    "gitCommit": "Commit",
+    "openPullRequest": "Open PR",
+    "openJobRun": "Open job run",
     "breadcrumbs-hidden": "Show hidden breadcrumbs"
   },
   "shortcuts": {
