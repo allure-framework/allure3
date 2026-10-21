@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { env } from "node:process";
 
@@ -139,11 +140,13 @@ export const defaultVitestConfig = (
     ].filter(({ name }) => !customLabels.some((label) => label.name === name)),
     ...customLabels,
   ];
+  const requireFromPackage = createRequire(join(packageRoot, "package.json"));
   const reporters: TestUserConfig["reporters"] = [
     ci ? "minimal" : "default",
     ["blob", { outputFile: `.vitest/blob/report-${randomUUID()}.json` }],
     [
-      "allure-vitest/reporter",
+      // ensure the correct package specific version of allure is loaded
+      requireFromPackage.resolve("allure-vitest/reporter"),
       {
         resultsDir: allureResultsDir,
         globalLabels: [{ name: "type", value: "vitest" }, ...labels],
