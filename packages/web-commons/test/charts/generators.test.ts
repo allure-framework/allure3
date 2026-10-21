@@ -16,11 +16,7 @@ import {
 import * as coreApi from "@allurereport/core-api";
 import { type AllureStore, md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-<<<<<<< HEAD
-import { beforeEach, describe, expect, it } from "vite-plus/test";
-=======
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
->>>>>>> 59b2e028 (Add flaky detection algorithm based on failures in retry statuses)
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { generateCharts } from "../../src/charts/generators.js";
 
