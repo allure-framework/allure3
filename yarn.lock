@@ -337,7 +337,7 @@ __metadata:
     allure-vitest: "npm:^3"
     d3-shape: "npm:^3.2.0"
     handlebars: "npm:4.7.10"
-    markdown-it: "npm:^15.0.2"
+    markdown-it: "npm:^15.0.3"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -365,7 +365,7 @@ __metadata:
     allure-vitest: "npm:^3"
     d3-shape: "npm:^3.2.0"
     handlebars: "npm:4.7.10"
-    markdown-it: "npm:^15.0.2"
+    markdown-it: "npm:^15.0.3"
     rimraf: "npm:^6"
     typescript: "npm:^5"
     vite: "catalog:"
@@ -929,6 +929,7 @@ __metadata:
     globals: "npm:^15.9.0"
     html-webpack-plugin: "npm:^5.6.3"
     i18next: "npm:^24.0.2"
+    jsdom: "npm:^26.0.0"
     md5: "npm:^2.3.0"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
@@ -1068,7 +1069,7 @@ __metadata:
     globals: "npm:^15.9.0"
     jsdom: "npm:^26.0.0"
     lodash: "npm:^4.18.1"
-    markdown-it: "npm:^15.0.2"
+    markdown-it: "npm:^15.0.3"
     mermaid: "npm:^11.17.2"
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.10"
@@ -8720,10 +8721,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^3.0.0":
-  version: 3.0.2
-  resolution: "argparse@npm:3.0.2"
-  checksum: 10/83731af2299db686e8fc9b161cd73e89ff692b7582f2496da9729afe91b5fe7b9cf40611a713de737cd08f8f3897d3e30c2d0458ab3932ddf43cb76766ab8d16
+"argparse@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "argparse@npm:3.0.3"
+  checksum: 10/6834e247fe8a8d21a0061dc2b7134ae79625d9ab795eca043d8ba9434be3bc1e7d049c9a4aa01bd3d6bfc145b29addfb290d17b8b3f7b11710cc52ab13629f31
   languageName: node
   linkType: hard
 
@@ -10880,7 +10881,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"entities@npm:^8.0.0":
+"entities@npm:^8.1.0":
   version: 8.1.0
   resolution: "entities@npm:8.1.0"
   checksum: 10/bd2fadbcabcf2cbd5de6b8155289acec9394d004fc095b9c7b3fdb4135468d8823a6de12275b07085e5dc077a142ede24e71098ffeb064000312d2a6960330a2
@@ -11403,12 +11404,12 @@ __metadata:
   linkType: hard
 
 "follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.16.0":
-  version: 1.16.0
-  resolution: "follow-redirects@npm:1.16.0"
+  version: 1.16.1
+  resolution: "follow-redirects@npm:1.16.1"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 10/3fbe3d80b3b544c22705d837aa5d4a0d07a740d913534a2620b0a004c610af4148e3b58723536dd099aaa1c9d3a155964bde9665d6e5cb331460809a1fc572fd
+  checksum: 10/269c9f38e4bb413d7ab224fb5aa733118288a18e84d4d0a22821a850574624a55d45f2c6735fc09fc1cceedb6343a5539daf6d2dd70bce8980c8336d230a2f50
   languageName: node
   linkType: hard
 
@@ -12957,13 +12958,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"launch-editor@npm:2.14.1":
-  version: 2.14.1
-  resolution: "launch-editor@npm:2.14.1"
+"launch-editor@npm:^2.14.1":
+  version: 2.14.2
+  resolution: "launch-editor@npm:2.14.2"
   dependencies:
     picocolors: "npm:^1.1.1"
-    shell-quote: "npm:^1.8.4"
-  checksum: 10/335d12ca437280e77070657531c251b6c91c62bc653f70ab66ddd2a6e50131b1b043480411c5b93d54955a0a6eb8ec01e9a5b5cfe2d887341d878d19394a126b
+    shell-quote: "npm:^1.10.0"
+  checksum: 10/8a3a82314ed6705d8f6795c409ea31ed2a106d0f0bc0528a60f8b53ec972cce1db9088bb4647987b2ef4bb16b804fcc85e54529acaa26aae22f39eaba704401b
   languageName: node
   linkType: hard
 
@@ -13235,7 +13236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"linkify-it@npm:^6.0.0":
+"linkify-it@npm:^6.1.0":
   version: 6.1.0
   resolution: "linkify-it@npm:6.1.0"
   dependencies:
@@ -13442,19 +13443,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:^15.0.2":
-  version: 15.0.2
-  resolution: "markdown-it@npm:15.0.2"
+"markdown-it@npm:^15.0.3":
+  version: 15.0.3
+  resolution: "markdown-it@npm:15.0.3"
   dependencies:
-    argparse: "npm:^3.0.0"
-    entities: "npm:^8.0.0"
-    linkify-it: "npm:^6.0.0"
+    argparse: "npm:^3.0.3"
+    entities: "npm:^8.1.0"
+    linkify-it: "npm:^6.1.0"
     mdurl: "npm:^2.1.0"
     punycode.js: "npm:^2.3.1"
     uc.micro: "npm:^3.0.0"
   bin:
     markdown-it: bin/markdown-it.mjs
-  checksum: 10/55dd86dbcdab89b910e21773c363e492a41f45e5edb095d05029e43125c5250a891c73becf6504a412cf6fdcdd93ac9629949d3932968347ef36dc1d444d776a
+  checksum: 10/a8a9d3305dfced367cffce7cdce25ab44cfe292a7496d7956681f91648e3affe736c36f52008c93cfa9bea9597cf2ffaddee37815390998d0b6b9262639cb0b3
   languageName: node
   linkType: hard
 
@@ -16917,7 +16918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:1.12.0":
+"shell-quote@npm:1.12.0, shell-quote@npm:^1.10.0":
   version: 1.12.0
   resolution: "shell-quote@npm:1.12.0"
   checksum: 10/18b3e382272804e79fd3187c18877cfd4e736b5afb576bf1ab66a561b0a0e26eada4b7c8eb45473d1f17268ffcf12d0aaa90b9235132123eb673df5d0a5df943

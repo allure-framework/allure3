@@ -11,6 +11,9 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
     return;
   }
   const response = await fetchFromUrl({ id, ext, contentType });
+  if (!response.ok) {
+    throw new Error("Failed to fetch");
+  }
   const fileType = attachmentType(contentType);
 
   switch (fileType.type) {

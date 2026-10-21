@@ -1,8 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { AttachmentData, AttachmentType } from "@allurereport/web-commons";
 import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
-import { batch, useSignal } from "@preact/signals";
-import { useCallback, useEffect } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 
 import { Spinner } from "@/components/Spinner";
 
@@ -80,42 +79,57 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
   const {
     link: { contentType, id, ext },
   } = item;
-  const attachment = useSignal<AttachmentData | null>(null);
-  const isLoading = useSignal<boolean>(true);
-  const isError = useSignal<boolean>(false);
+  const [attachment, setAttachment] = useState<AttachmentData | null>(null);
+  const [isLoading, setLoading] = useState(true);
+  const [isError, setError] = useState(false);
   const componentType = attachmentType(contentType);
   const viewerKey = `${id}:${ext}:${contentType}`;
 
-  const fetchData = useCallback(async () => {
-    isLoading.value = true;
-    isError.value = false;
-    try {
-      const result = await fetchAttachment(id, ext, contentType);
-      batch(() => {
-        isLoading.value = false;
-        attachment.value = result;
-      });
-    } catch {
-      batch(() => {
-        isLoading.value = false;
-        isError.value = true;
-      });
-    }
-  }, [id, ext, contentType, isLoading, attachment, isError]);
+  const [retry, setRetry] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!componentType) {
       return;
     }
 
-    fetchData();
-  }, [componentType, fetchData]);
+    let active = true;
+    let objectUrl: string | undefined;
+    const dispose = () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const result = await fetchAttachment(id, ext, contentType);
+        objectUrl = result ? ("img" in result ? result.img : "src" in result ? result.src : undefined) : undefined;
+        if (!active) {
+          dispose();
+          return;
+        }
+        setAttachment(result);
+        setLoading(false);
+      } catch {
+        if (active) {
+          setError(true);
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchData();
+    return dispose;
+  }, [id, ext, contentType, componentType, retry]);
 
   if (!componentType) {
     return null;
   }
 
-  if (isLoading.value) {
+  if (isLoading) {
     return (
       <div className={styles["test-result-spinner"]}>
         <Spinner />
@@ -123,22 +137,26 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     );
   }
 
-  if (isError.value) {
+  if (isError) {
     return (
       <EmptyView description="Failed to load attachment" size="xs">
-        <IconButton style="flat" icon={allureIcons.lineArrowsRefreshCcw1} onClick={fetchData} />
+        <IconButton
+          style="flat"
+          icon={allureIcons.lineArrowsRefreshCcw1}
+          onClick={() => setRetry((value) => value + 1)}
+        />
       </EmptyView>
     );
   }
 
   const loader = loadersByAttachmentType[componentType];
   const previewLoader = previewLoaders[componentType];
-  const previewAttachment = attachment.value && "text" in attachment.value ? attachment.value : undefined;
+  const previewAttachment = attachment && "text" in attachment ? attachment : undefined;
   // @ts-expect-error TODO: add all translations for attachment types
   const typeI18n = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
   const isCode = loader === loadCode;
   const componentProps = {
-    attachment: attachment.value,
+    attachment: attachment,
     item,
     i18n: isCode ? i18n?.controls : typeI18n,
     ...(isCode ? { highlight: highlightCode } : {}),
