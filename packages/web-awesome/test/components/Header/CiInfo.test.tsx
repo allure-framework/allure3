@@ -24,8 +24,6 @@ const fixtures = {
 };
 
 vi.mock("@allurereport/web-components/core", async () => {
-  const { CiType } = await import("@allurereport/core-api");
-
   return {
     Text: (props: { children: string }) => <span>{props.children}</span>,
     SvgIcon: (props: { id: string; size?: string }) => <span data-testid="icon">{props.id}</span>,

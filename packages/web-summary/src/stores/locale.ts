@@ -2,13 +2,11 @@ import { getLocaleDateTimeOverride } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 
-import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
+import { DEFAULT_LOCALE, type LangLocale } from "@/i18n/constants";
 
 const namespaces = ["empty", "summary", "ui"];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
-export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
-export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value as string));
 
 export const getLocale = async () => {
   const locale = localStorage.getItem("currentLocale") || DEFAULT_LOCALE;

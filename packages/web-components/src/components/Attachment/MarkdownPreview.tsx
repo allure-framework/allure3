@@ -1,7 +1,7 @@
 import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore } from "@allurereport/web-commons";
 import MarkdownIt from "markdown-it";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 
 import { getIframeContentHeight } from "./iframe";
 
@@ -14,7 +14,6 @@ export type MarkdownAttachmentPreviewProps = {
 };
 
 export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps> = ({ attachment }) => {
-  const [blobUrl, setBlobUrl] = useState("");
   const [height, setHeight] = useState(0);
   const currentTheme = themeStore.value.current;
 
@@ -26,14 +25,11 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
     return sanitizeIframeHtml(md.render(rawText));
   }, [rawText]);
 
-  useEffect(() => {
-    if (!sanitized) {
-      setBlobUrl("");
-      return;
-    }
+  const srcDoc = useMemo(() => {
+    if (!sanitized) return "";
 
     const iframeThemeVars = resolveCssVarDeclarations(proseStyles);
-    const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html data-theme="${currentTheme}">
   <head>
     <meta charset="utf-8">
@@ -43,12 +39,6 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
   </head>
   <body>${sanitized}</body>
 </html>`;
-
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    setBlobUrl(url);
-
-    return () => URL.revokeObjectURL(url);
   }, [currentTheme, sanitized]);
 
   const handleLoad = (e: Event) => {
@@ -62,10 +52,10 @@ export const MarkdownPreview: FunctionalComponent<MarkdownAttachmentPreviewProps
 
   return (
     <div className={styles["markdown-attachment-preview"]} data-testid="markdown-attachment-preview">
-      {blobUrl && (
+      {srcDoc && (
         <iframe
           title="Markdown attachment"
-          src={blobUrl}
+          srcDoc={srcDoc}
           width="100%"
           height={height || undefined}
           frameBorder={0}

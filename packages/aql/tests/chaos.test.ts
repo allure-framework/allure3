@@ -474,7 +474,7 @@ describe("Chaos Monkey / Fuzzing Tests", () => {
       for (let i = 0; i < iterations; i++) {
         try {
           parseAql(`status = "test${i}"`);
-        } catch (error) {
+        } catch {
           // Ignore errors
         }
       }

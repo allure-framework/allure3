@@ -73,6 +73,9 @@
       ],
       "DurationDynamicsChartWidget": [
         "dist/DurationDynamicsChartWidget.d.ts"
+      ],
+      "ChartWidget": [
+        "dist/ChartWidget.d.ts"
       ]
     }
   },
@@ -159,6 +162,10 @@
     "./DurationDynamicsChartWidget": {
       "types": "./dist/DurationDynamicsChartWidget.d.ts",
       "import": "./dist/DurationDynamicsChartWidget.js"
+    },
+    "./ChartWidget": {
+      "types": "./dist/ChartWidget.d.ts",
+      "import": "./dist/ChartWidget.js"
     }
   },
   "scripts": {
@@ -205,7 +212,7 @@
     "d3-tip": "^0.9.1",
     "d3-transition": "^3.0.1",
     "lodash": "^4.18.1",
-    "markdown-it": "^15.0.2",
+    "markdown-it": "^15.0.3",
     "mermaid": "^11.17.2",
     "preact": "^10.29.8",
     "prismjs": "^1.30.0",

@@ -184,6 +184,9 @@
     "breadcrumbs-hidden": "إظهار عناصر مسار التصفح المخفية"
   },
   "controls": {
+    "retry": "إعادة المحاولة",
+    "loadAttachmentViewerError": "تعذّر تحميل عارض المرفقات",
+    "loadComparisonError": "تعذّر تحميل المقارنة",
     "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",
     "nextTR": "نتيجة الاختبار التالية",
     "prevTR": "نتيجة الاختبار السابقة",
@@ -463,7 +466,9 @@
       "slice_two": "{{count}} اختباران ({{percent}}% من جميع الاختبارات)",
       "slice_few": "{{count}} اختبارات ({{percent}}% من جميع الاختبارات)",
       "slice_many": "{{count}} اختبارًا ({{percent}}% من جميع الاختبارات)"
-    }
+    },
+    "retry": "إعادة المحاولة",
+    "loadError": "تعذّر تحميل الرسم البياني"
   },
   "transitions": {
     "description": {

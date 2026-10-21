@@ -11,10 +11,6 @@ import { treeStore } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
-export type BaseLayoutProps = {
-  testResultId?: string;
-};
-
 export const BaseLayout = () => {
   const matches = testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId);
   const testResultId = testResultRoute.value.matches

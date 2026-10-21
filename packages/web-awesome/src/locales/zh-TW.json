@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "顯示隱藏的麵包屑導覽項目"
   },
   "controls": {
+    "retry": "重試",
+    "loadAttachmentViewerError": "無法載入附件檢視器",
+    "loadComparisonError": "無法載入比較",
     "newTabAttachment": "在新分頁中開啟附件",
     "nextTR": "下一個測試結果",
     "prevTR": "上一個測試結果",
@@ -464,7 +467,9 @@
       "layer": "層級：{{layer}}",
       "statusSlice": "{{count}} {{status}} （占全部測試的 {{percent}}%）",
       "slice": "{{count}} 個測試（占全部測試的 {{percent}}%）"
-    }
+    },
+    "retry": "重試",
+    "loadError": "無法載入圖表"
   },
   "transitions": {
     "description": {

@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "숨겨진 브레드크럼 항목 표시"
   },
   "controls": {
+    "retry": "다시 시도",
+    "loadAttachmentViewerError": "첨부 파일 뷰어를 불러오지 못했습니다",
+    "loadComparisonError": "비교를 불러오지 못했습니다",
     "newTabAttachment": "첨부파일을 새 탭에서 열기",
     "nextTR": "다음 테스트 결과",
     "prevTR": "이전 테스트 결과",
@@ -464,7 +467,9 @@
       "layer": "계층: {{layer}}",
       "statusSlice": "{{count}} {{status}} (전체 테스트의 {{percent}}%)",
       "slice": "테스트 {{count}}개 (전체 테스트의 {{percent}}%)"
-    }
+    },
+    "retry": "다시 시도",
+    "loadError": "차트를 불러오지 못했습니다"
   },
   "transitions": {
     "description": {

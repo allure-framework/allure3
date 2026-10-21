@@ -186,6 +186,9 @@
     "breadcrumbs-hidden": "Ցուցադրել թաքնված հացի փշրանքները"
   },
   "controls": {
+    "retry": "Կրկին փորձել",
+    "loadAttachmentViewerError": "Չհաջողվեց բեռնել կցորդների դիտարկիչը",
+    "loadComparisonError": "Չհաջողվեց բեռնել համեմատությունը",
     "newTabAttachment": "Բացել նոր ներդիրում",
     "nextTR": "Հաջորդ թեստի արդյունքը",
     "prevTR": "Նախորդ թեստի արդյունքը",
@@ -464,7 +467,9 @@
       "layer": "Շերտ՝ {{layer}}",
       "statusSlice": "{{count}} {{status}} (բոլոր թեստերի {{percent}}%-ը)",
       "slice": "{{count}} թեստ (բոլոր թեստերի {{percent}}%-ը)"
-    }
+    },
+    "retry": "Կրկին փորձել",
+    "loadError": "Չհաջողվեց բեռնել գծապատկերը"
   },
   "transitions": {
     "description": {

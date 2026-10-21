@@ -1,7 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { AttachmentTable, MarkdownPreview, Spinner } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 
 import { modalData } from "@/components/Modal";
 import { AttachmentCode } from "@/components/TestResult/TestResultSteps/attachmentCode";
@@ -44,17 +44,42 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
   } = item;
   const [attachment, setAttachment] = useState<Attachments>(null);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
   const attachmentComponent = attachmentType(contentType);
   const CurrentComponent = componentsByAttachmentType[attachmentComponent.type];
   const CurrentPreviewComponent = previewComponentsByAttachmentType[attachmentComponent.type];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const result: Attachments = await fetchAttachment(id, ext, contentType);
-      setLoaded(true);
-      setAttachment(result);
+  useLayoutEffect(() => {
+    let active = true;
+    let objectUrl: string | undefined;
+    const dispose = () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
     };
-    fetchData();
+
+    const fetchData = async () => {
+      setLoaded(false);
+      setError(false);
+      try {
+        const result = await fetchAttachment(id, ext, contentType);
+        objectUrl = result?.img ?? result?.src;
+        if (!active) {
+          dispose();
+          return;
+        }
+        setAttachment(result);
+        setLoaded(true);
+      } catch {
+        if (active) {
+          setError(true);
+          setLoaded(true);
+        }
+      }
+    };
+    void fetchData();
+    return dispose;
   }, [contentType, id, ext]);
 
   if (!loaded) {
@@ -63,6 +88,10 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
         <Spinner />
       </div>
     );
+  }
+
+  if (error) {
+    return <EmptyComponent />;
   }
 
   const defaultRenderedPreview = attachmentComponent.type === "markdown" || attachmentComponent.type === "html";

@@ -1,12 +1,6 @@
-import {
-  type TestFixtureResult,
-  type TestLabel,
-  type TestResult,
-  type TestStepResult,
-  isStep,
-  redactParameters,
-} from "@allurereport/core-api";
-import type { ReportFixtureResult, ReportTestResult, ReportTestStepResult } from "@allurereport/plugin-api";
+import { type TestLabel, type TestResult, redactParameters } from "@allurereport/core-api";
+import type { ReportTestResult } from "@allurereport/plugin-api";
+import { convertTestStepResult } from "@allurereport/plugin-api/internal/report";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();
@@ -57,28 +51,5 @@ export const convertTestResult = (tr: TestResult): ReportTestResult => {
     breadcrumbs: [],
     retry: false,
     transition: tr.transition,
-  };
-};
-
-export const convertTestStepResult = (tsr: TestStepResult): ReportTestStepResult => {
-  if (isStep(tsr)) {
-    return {
-      ...tsr,
-      parameters: redactParameters(tsr.parameters),
-      steps: (tsr.steps ?? []).map(convertTestStepResult),
-    };
-  }
-
-  return tsr;
-};
-
-export const convertFixtureResult = (fr: TestFixtureResult): ReportFixtureResult => {
-  return {
-    id: fr.id,
-    type: fr.type,
-    name: fr.name,
-    status: fr.status,
-    steps: fr.steps.map(convertTestStepResult),
-    duration: fr.duration,
   };
 };

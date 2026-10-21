@@ -11,7 +11,6 @@ import { getUnresolvedStatusCounts } from "@/utils/statuses";
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
 import { CollapseAll } from "./CollapseAll";
-import { ReportContentProvider } from "./context";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
 
@@ -80,11 +79,9 @@ const Body = () => {
 
 export const ReportBody = () => {
   return (
-    <ReportContentProvider>
-      <section>
-        <Header />
-        <Body />
-      </section>
-    </ReportContentProvider>
+    <section>
+      <Header />
+      <Body />
+    </section>
   );
 };

@@ -37,6 +37,7 @@ import {
   cucumberjson,
   cucumberMessages,
   junitXml,
+  openTestReporting,
   readXcResultBundle,
 } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -223,7 +224,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, cucumberjson, cucumberMessages, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, cucumberMessages, openTestReporting, junitXml, attachments],
       plugins = [],
       resolutions,
       reportFiles,

@@ -34,13 +34,6 @@ export const generateUniqueName = (prefix: string) => `${prefix}: ${generateWord
 export const generateDate = () => faker.date.recent().getTime();
 
 /**
- * Generates a random integer between min and max
- * @param min - Minimum value (inclusive)
- * @param max - Maximum value (inclusive)
- */
-export const generateNumber = (min: number, max: number) => faker.number.int({ min, max });
-
-/**
  * Picks a random element from the provided array
  * @param arr - Array to pick from
  */

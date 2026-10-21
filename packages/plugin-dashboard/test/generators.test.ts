@@ -1,4 +1,5 @@
 import type { AllureStore, ReportFiles } from "@allurereport/plugin-api";
+import { readReportStaticAssets } from "@allurereport/plugin-api/static-assets";
 import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -36,7 +37,9 @@ describe("generateStaticFiles", () => {
       reportUuid: "report-uuid",
     });
 
-    const scriptFile = [...files.keys()].find((path) => path.endsWith(".js"));
+    const assets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
+    const scriptFile = assets.manifest["main.js"];
+    expect([...files.keys()].sort()).toEqual([...assets.files.keys(), "index.html"].sort());
     const indexHtml = files.get("index.html")?.toString("utf8") ?? "";
 
     expect(scriptFile).toBeDefined();
@@ -85,7 +88,15 @@ describe("generateStaticFiles", () => {
     });
 
     expect([...files.keys()]).toEqual(["index.html"]);
-    expect(files.get("index.html")?.toString("utf8")).toContain("data:text/javascript;base64,");
+    const html = files.get("index.html")!.toString("utf8");
+    const embedded = html.match(
+      /<script id="allure-single-file-assets" type="application\/json">([^<]+)<\/script>/,
+    )?.[1];
+    expect(embedded).toBeDefined();
+    const assets = await readReportStaticAssets(new URL("../dist/static/report.tar", import.meta.url));
+    expect(Object.keys(JSON.parse(embedded!)).sort()).toEqual(
+      [...assets.files.keys()].filter((name) => name.endsWith(".js")).sort(),
+    );
   });
 });
 

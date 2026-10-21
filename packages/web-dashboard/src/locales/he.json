@@ -225,7 +225,9 @@
       "statusSlice": "{{count}} {{status}} ({{percent}}% מכל הבדיקות)",
       "slice": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)",
       "slice_two": "{{count}} בדיקות ({{percent}}% מכל הבדיקות)"
-    }
+    },
+    "retry": "ניסיון חוזר",
+    "loadError": "טעינת התרשים נכשלה"
   },
   "transitions": {
     "description": {

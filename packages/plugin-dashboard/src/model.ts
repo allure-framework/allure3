@@ -12,5 +12,3 @@ export type DashboardOptions = {
 };
 
 export type DashboardPluginOptions = DashboardOptions;
-
-export type TemplateManifest = Record<string, string>;

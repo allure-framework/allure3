@@ -123,5 +123,4 @@ const trimStrMax = (str: string, maxLength: number = 255): string => {
 };
 
 export const trimName = (name: string) => trimStrMax(name, 255);
-export const trimParameters = (p: string) => trimStrMax(p, 120);
 export const trimCiInfoLabel = (label: string) => trimStrMax(label, 120);

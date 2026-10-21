@@ -244,11 +244,13 @@ export const serve = async (options?: {
 
   const serverUrl = resolveServerUrl(host, serverPort);
 
-  console.info(`Allure is running on ${serverUrl}`);
+  console.info(`Allure is running on ${serverUrl}. Press CTRL+C to stop.`);
 
   if (open) {
     openUrl(serverUrl);
   }
+
+  let stopPromise: Promise<void> | undefined;
 
   return {
     url: serverUrl,
@@ -265,10 +267,22 @@ export const serve = async (options?: {
 
       await openUrl(url);
     },
-    stop: async () => {
-      server.closeAllConnections();
-      server.unref();
-      await unwatch();
+    stop: () => {
+      // Cache the promise to tolerate multiple calls to stop()
+      stopPromise ??= (async () => {
+        const closed = new Promise<void>((resolve, reject) => {
+          server.close((err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        server.closeAllConnections();
+        await Promise.all([closed, unwatch()]);
+      })();
+      return stopPromise;
     },
   };
 };
