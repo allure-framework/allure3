@@ -5,7 +5,7 @@ import { join } from "node:path";
 import type { FlakyDetectionConfig, HistoryDataPoint, TestStatus } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import { epic, feature, label, story } from "allure-js-commons";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { resolveConfig } from "../src/config.js";
 import { AllureReport } from "../src/report.js";
