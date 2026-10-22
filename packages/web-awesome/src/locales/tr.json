@@ -162,6 +162,8 @@
     "parameters": "Parametreler",
     "category": "Kategori",
     "description": "Açıklama",
+    "precondition": "Ön koşul",
+    "expectedResult": "Beklenen sonuç",
     "links": "Bağlantılar",
     "relatedTestResults": "İlgili test sonuçları ({{count}})",
     "overview": "Genel Bakış",

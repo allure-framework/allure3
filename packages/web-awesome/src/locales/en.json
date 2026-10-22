@@ -162,6 +162,8 @@
     "parameters": "Parameters",
     "category": "Category",
     "description": "Description",
+    "precondition": "Precondition",
+    "expectedResult": "Expected result",
     "links": "Links",
     "relatedTestResults": "Related test results ({{count}})",
     "overview": "Overview",

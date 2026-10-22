@@ -162,6 +162,8 @@
     "parameters": "參數",
     "category": "分類",
     "description": "描述",
+    "precondition": "前置條件",
+    "expectedResult": "預期結果",
     "links": "連結",
     "relatedTestResults": "相關測試結果（{{count}}）",
     "overview": "概覽",

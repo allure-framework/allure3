@@ -162,6 +162,8 @@
     "parameters": "Параметри",
     "category": "Категорія",
     "description": "Опис",
+    "precondition": "Передумова",
+    "expectedResult": "Очікуваний результат",
     "links": "Посилання",
     "relatedTestResults": "Пов’язані результати тестів ({{count}})",
     "overview": "Огляд",

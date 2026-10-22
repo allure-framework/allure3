@@ -162,6 +162,8 @@
     "parameters": "Parameters",
     "category": "Categorie",
     "description": "Beschrijving",
+    "precondition": "Voorwaarde",
+    "expectedResult": "Verwacht resultaat",
     "links": "Links",
     "relatedTestResults": "Gerelateerde testresultaten ({{count}})",
     "overview": "Overzicht",

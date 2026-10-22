@@ -162,6 +162,8 @@
     "parameters": "Параметры",
     "category": "Категория",
     "description": "Описание",
+    "precondition": "Предусловие",
+    "expectedResult": "Ожидаемый результат",
     "links": "Ссылки",
     "relatedTestResults": "Связанные результаты тестов ({{count}})",
     "overview": "Обзор",

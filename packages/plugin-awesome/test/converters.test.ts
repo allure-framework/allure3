@@ -36,6 +36,35 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {
 };
 
 describe("convertTestResult", () => {
+  describe.each(["precondition", "expectedResult"] as const)("%s", (field) => {
+    const htmlField = `${field}Html` as const;
+
+    it("renders markdown and omits the source text from the report", () => {
+      const result = convertTestResult(createTestResult({ [field]: "**bold** text" }));
+
+      expect(result[htmlField]).toBe("<p><strong>bold</strong> text</p>\n");
+      expect(result).not.toHaveProperty(field);
+    });
+
+    it("prefers supplied HTML to markdown", () => {
+      const result = convertTestResult(createTestResult({ [field]: "**markdown**", [htmlField]: "<p>HTML</p>" }));
+
+      expect(result[htmlField]).toBe("<p>HTML</p>");
+    });
+
+    it("preserves explicitly empty HTML instead of falling back to markdown", () => {
+      const result = convertTestResult(createTestResult({ [field]: "markdown", [htmlField]: "" }));
+
+      expect(result[htmlField]).toBe("");
+    });
+
+    it.each([undefined, ""])("does not render absent or empty text (%s)", (value) => {
+      const result = convertTestResult(createTestResult({ [field]: value }));
+
+      expect(result[htmlField]).toBeUndefined();
+    });
+  });
+
   it("keeps identifiers used by test result copy actions", () => {
     const result = convertTestResult(
       createTestResult({

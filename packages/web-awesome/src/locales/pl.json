@@ -162,6 +162,8 @@
     "parameters": "Parametry",
     "category": "Kategoria",
     "description": "Opis",
+    "precondition": "Warunek wstępny",
+    "expectedResult": "Oczekiwany wynik",
     "links": "Linki",
     "relatedTestResults": "Powiązane wyniki testów ({{count}})",
     "overview": "Przegląd",

@@ -162,6 +162,8 @@
     "parameters": "პარამეტრები",
     "category": "კატეგორია",
     "description": "აღწერა",
+    "precondition": "წინაპირობა",
+    "expectedResult": "მოსალოდნელი შედეგი",
     "links": "ბმულები",
     "relatedTestResults": "დაკავშირებული ტესტის შედეგები ({{count}})",
     "overview": "მიმოხილვა",
