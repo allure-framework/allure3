@@ -120,7 +120,7 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
 
   #pendingRequests = new Map<string, PendingRequest>();
 
-  #manualStopController: AbortController | undefined;
+  #sigintSeen: boolean = false;
 
   constructor(command: string, options: SupervisedCommandOptions = {}) {
     const pipeName = `win-supervisor-${randomUUID()}`;
@@ -342,10 +342,9 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       return;
     }
 
-    if (!this.#manualStopController) {
-      this.#manualStopController = new AbortController();
-      const signal = this.#manualStopController.signal;
-      this.requestRootStop(signal).catch((error) => {
+    if (!this.#sigintSeen) {
+      this.#sigintSeen = true;
+      this.stop({ escalate: false }).catch((error) => {
         this.#reportHostError("Unable to gracefully stop the process. Press CTRL+C again to force termination.", error);
       });
       this.reportInterruption();
@@ -355,8 +354,6 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
     // Removing the handler so the third SIGINT will use the default Node.js handler,
     // which terminates Allure.
     process.off("SIGINT", this.#onSigint);
-
-    this.#manualStopController.abort("Termination forced.");
 
     // The second SIGINT terminates the entire job.
     // Allure has a chance to complete the report generation.

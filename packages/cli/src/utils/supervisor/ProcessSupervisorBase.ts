@@ -13,10 +13,11 @@ import type {
   ProcessGroupCompletion,
   ProcessStartupInfo,
   RootCompletion,
+  StopOptions,
   SupervisedCommandOptions,
 } from "./model.js";
 
-const DEFAULT_STOP_TIMEOUT = 30_000;
+const DEFAULT_STOP_ESCALATION_TIMEOUT = 30_000;
 
 export abstract class ProcessSupervisorBase {
   #logger?: Logger;
@@ -27,7 +28,6 @@ export abstract class ProcessSupervisorBase {
   #stdio: "ignore" | "inherit" | "pipe";
   #silent: boolean;
   #outputEncoding: BufferEncoding;
-  #stopTimeout: number;
 
   #process?: ChildProcess = undefined;
   #stdout: string = "";
@@ -36,6 +36,8 @@ export abstract class ProcessSupervisorBase {
   #completionPromise: Promise<ProcessGroupCompletion> | undefined;
   #stopPromise: Promise<void> | undefined;
   #terminationPromise: Promise<void> | undefined;
+
+  #gracefulStopAbortController?: AbortController;
 
   #started: boolean = false;
   #completed: boolean = false;
@@ -54,13 +56,8 @@ export abstract class ProcessSupervisorBase {
       stdio = "pipe",
       outputEncoding = "utf-8",
       silent = false,
-      stopTimeout = DEFAULT_STOP_TIMEOUT,
     }: SupervisedCommandOptions = {},
   ) {
-    if (!Number.isFinite(stopTimeout) || stopTimeout <= 0 || stopTimeout > 2_147_483_647) {
-      throw new KnownError(`Invalid stop timeout ${stopTimeout}.`);
-    }
-
     this.#logger = logger;
     this.#command = command;
     this.#arguments = args;
@@ -69,7 +66,6 @@ export abstract class ProcessSupervisorBase {
     this.#stdio = stdio;
     this.#outputEncoding = outputEncoding;
     this.#silent = silent;
-    this.#stopTimeout = stopTimeout;
     this.diagnosticsEnabled = Boolean(logger?.debugEnabled) && supervisorDiagnosticsEnabled();
   }
 
@@ -217,12 +213,16 @@ export abstract class ProcessSupervisorBase {
     void this.#completionPromise.then(stopDiagnostics, stopDiagnostics);
   }
 
-  stop() {
+  stop({ escalate, escalationTimeout = DEFAULT_STOP_ESCALATION_TIMEOUT }: StopOptions = {}) {
+    if (!Number.isFinite(escalationTimeout) || escalationTimeout <= 0 || escalationTimeout > 2_147_483_647) {
+      throw new KnownError(`Invalid escalation timeout ${escalationTimeout}.`);
+    }
+
     if (this.#process === undefined) {
       throw new Error("The process has not been started.");
     }
 
-    return (this.#stopPromise ??= this.stopOnce());
+    return (this.#stopPromise ??= this.stopOnce(Boolean(escalate), escalationTimeout));
   }
 
   terminate() {
@@ -378,15 +378,52 @@ export abstract class ProcessSupervisorBase {
     });
   }
 
-  private async stopOnce() {
-    this.diagnostic("requesting graceful stop", { timeout: this.#stopTimeout });
+  private async stopOnce(escalate: boolean, escalationTimeout: number) {
+    this.diagnostic("requesting graceful stop", { escalate, escalationTimeout });
     const controller = new AbortController();
+    this.#gracefulStopAbortController = controller;
+
     const { signal } = controller;
+
+    try {
+      if (escalate) {
+        await this.stopOnceOrEscalate(signal, escalationTimeout);
+      } else {
+        await this.stopOnceDontEscalate(signal);
+      }
+    } catch (error) {
+      if (!signal.aborted) {
+        throw error;
+      }
+
+      this.diagnostic("graceful stop aborted", { reason: signal.reason });
+
+      // terminate() was called.
+      // Join the memoized termination promise to ensure the process is fully
+      // terminated before returning.
+      await this.terminate();
+    } finally {
+      // Abort the controller to clean up any pending operations, like timeouts.
+      // Otherwise, such operations may keep Node.js from exiting.
+      controller.abort();
+      this.#gracefulStopAbortController = undefined;
+    }
+  }
+
+  private async stopOnceDontEscalate(signal: AbortSignal) {
+    await this.requestRootStop(signal);
+    await this.completion;
+  }
+
+  private async stopOnceOrEscalate(signal: AbortSignal, escalationTimeout: number) {
+    this.diagnostic("requesting graceful stop", { escalationTimeout });
 
     const requestStopAndWait = async () => {
       try {
         await this.requestRootStop(signal);
       } catch (stopError) {
+        signal.throwIfAborted();
+
         const normalizedStopError = stopError instanceof Error ? stopError : new Error(String(stopError));
         this.error(
           `Failed to request graceful stop: ${normalizedStopError.message} The process will be terminated by force`,
@@ -406,27 +443,23 @@ export abstract class ProcessSupervisorBase {
       return "completed" as const;
     };
 
-    try {
-      // Request graceful stop.
-      // If no completion is reported within the timeout, terminate by force
-      // (SIGKILL in POSIX, TerminateProcess).
-      const result = await Promise.race([
-        requestStopAndWait(),
-        delay(this.#stopTimeout, "timeout" as const, {
-          signal: controller.signal,
-        }),
-      ]);
+    // Request graceful stop.
+    // If no completion is reported within the timeout, terminate by force
+    // (SIGKILL in POSIX, TerminateProcess).
+    const result = await Promise.race([requestStopAndWait(), delay(escalationTimeout, "timeout" as const, { signal })]);
 
-      if (result === "timeout") {
-        this.diagnostic("graceful stop timed out");
-        await this.terminate();
-      }
-    } finally {
-      controller.abort();
+    if (result === "timeout") {
+      this.diagnostic("graceful stop timed out");
+      await this.terminate();
     }
   }
 
   private async terminateOnce() {
+    if (this.#gracefulStopAbortController && !this.#gracefulStopAbortController.signal.aborted) {
+      this.diagnostic("aborting graceful shutdown");
+      this.#gracefulStopAbortController.abort("Termination requested.");
+    }
+
     this.diagnostic("requesting forced termination");
     await this.requestTermination();
     await this.completion;
