@@ -43,7 +43,7 @@
     "@vitest/runner": "^2",
     "@vitest/snapshot": "catalog:",
     "allure-js-commons": "^3",
-    "allure-playwright": "^3.10.2",
+    "allure-playwright": "^3.14.0",
     "allure-vitest": "^3",
     "axios": "^1.20.0",
     "get-port": "^7.1.0",
