@@ -36,6 +36,8 @@ runs:
       id: build-cache
       uses: actions/cache/restore@v6
       with:
+        # do not download cache on default branch to prevent indefinite cache bloat
+        lookup-only: ${{ github.head_ref || github.ref_name == github.event.repository.default_branch }}
         path: node_modules/.vite/task-cache
         key: vite-${{ inputs.cache-type }}-${{ github.head_ref || github.ref_name }}-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
         restore-keys: |
