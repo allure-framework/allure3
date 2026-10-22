@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@allurereport/common-config": "workspace:*",
-    "@faker-js/faker": "^10.5.0",
+    "@faker-js/faker": "^10.6.0",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",
