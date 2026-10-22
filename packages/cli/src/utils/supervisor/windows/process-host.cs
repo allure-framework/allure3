@@ -927,15 +927,26 @@ namespace Allure.Run.Supervisor.Windows
         {
             job = Native.CreateJobObjectW(IntPtr.Zero, null);
             if (job == IntPtr.Zero)
+            {
                 throw Win32("CreateJobObjectW");
+            }
+
             Native.EXTENDED_LIMIT limits = new Native.EXTENDED_LIMIT();
             limits.BasicLimitInformation.LimitFlags = Native.KILL_ON_JOB_CLOSE;
+
             SetJobInformation(Native.JobObjectExtendedLimitInformation, limits);
+
             port = Native.CreateIoCompletionPort(Native.InvalidHandle, IntPtr.Zero, UIntPtr.Zero, 1);
             if (port == IntPtr.Zero)
+            {
                 throw Win32("CreateIoCompletionPort");
-            SetJobInformation(Native.JobObjectAssociateCompletionPortInformation,
-                new Native.COMPLETION_PORT { CompletionKey = new IntPtr(1), CompletionPort = port });
+            }
+
+            SetJobInformation(
+                Native.JobObjectAssociateCompletionPortInformation,
+                new Native.COMPLETION_PORT { CompletionKey = new IntPtr(1), CompletionPort = port }
+            );
+
             monitor = new Thread(delegate ()
             {
                 try
@@ -945,19 +956,37 @@ namespace Allure.Run.Supervisor.Windows
                         uint message;
                         UIntPtr key;
                         IntPtr overlapped;
-                        if (!Native.GetQueuedCompletionStatus(port, out message, out key, out overlapped,
-                            Native.INFINITE))
+
+                        // Blocks the thread until an I/O completion packet is dequeued or an error occurs.
+                        if (!Native.GetQueuedCompletionStatus(
+                            port,
+                            out message,
+                            out key,
+                            out overlapped,
+                            Native.INFINITE
+                        ))
+                        {
                             throw Win32("GetQueuedCompletionStatus");
+                        }
+
                         if (key == Native.StopKey)
+                        {
                             return;
+                        }
+
+                        // Receiving this message indicates that there are no active processes in the job.
                         if (key == Native.JobKey && message == Native.JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO)
+                        {
                             Enqueue(new EmptyJob());
+                        }
                     }
                 }
                 catch (Exception e)
                 {
                     if (!stopping.IsCancellationRequested)
+                    {
                         Enqueue(e);
+                    }
                 }
             });
             monitor.IsBackground = true;
@@ -978,13 +1007,20 @@ namespace Allure.Run.Supervisor.Windows
                 }
 
                 if (ch == '"')
+                {
                     result.Append('\\', slashes * 2 + 1).Append('"');
+                }
                 else
+                {
                     result.Append('\\', slashes).Append(ch);
+                }
+
                 slashes = 0;
             }
 
-            return result.Append('\\', slashes * 2).Append('"').ToString();
+            return result.Append('\\', slashes * 2)
+                .Append('"')
+                .ToString();
         }
 
         // Adapted from Rust's std::sys::windows::args source code.
@@ -1209,7 +1245,7 @@ namespace Allure.Run.Supervisor.Windows
 
             string extension = Path.GetExtension(command);
 
-            switch (Path.GetExtension(command).ToLowerInvariant())
+            switch (extension.ToLowerInvariant())
             {
                 case ".exe":
                 case ".com":
@@ -1249,7 +1285,8 @@ namespace Allure.Run.Supervisor.Windows
 
                 foreach (string argument in arguments)
                 {
-                    script.Append(' ').Append(QuoteNative(argument));
+                    script.Append(' ')
+                        .Append(QuoteNative(argument));
                 }
 
                 commandLine = script.ToString();
@@ -1379,18 +1416,37 @@ namespace Allure.Run.Supervisor.Windows
             finally
             {
                 if (process.hThread != IntPtr.Zero)
+                {
                     Native.CloseHandle(process.hThread);
+                }
+
                 foreach (IntPtr handle in handles)
+                {
                     if (handle != IntPtr.Zero)
+                    {
                         Native.CloseHandle(handle);
+                    }
+                }
+
                 if (initialized)
+                {
                     Native.DeleteProcThreadAttributeList(attributes);
+                }
+
                 if (attributes != IntPtr.Zero)
+                {
                     Marshal.FreeHGlobal(attributes);
+                }
+
                 if (handlesMemory != IntPtr.Zero)
+                {
                     Marshal.FreeHGlobal(handlesMemory);
+                }
+
                 if (jobsMemory != IntPtr.Zero)
+                {
                     Marshal.FreeHGlobal(jobsMemory);
+                }
             }
         }
 
@@ -1888,7 +1944,9 @@ namespace Allure.Run.Supervisor.Windows
                         jobEmpty = true;
                     }
 
-                    // Job notifications are not guaranteed.
+                    // Windows does not guarantee JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO to be delivered:
+                    //   https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_associate_completion_port#remarks
+                    // Although, in most cases it will be delivered, we cannot fully rely on it.
                     // Hence, we periodically check if all the job processes have exited.
                     if (!jobEmpty && completionClock.ElapsedMilliseconds >= nextCompletionCheck)
                     {
