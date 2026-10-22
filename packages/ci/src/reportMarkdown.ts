@@ -354,6 +354,14 @@ const renderArtifacts = (artifacts: ReportContextArtifact[]): string | undefined
   );
 };
 
+const renderPublicationWarnings = (reports: ReportContext["reports"]): string | undefined => {
+  const missing = reports.filter((report) => report.published === false);
+
+  return missing.length
+    ? ["**⚠ Expected reports were not published**", ...missing.map(({ name }) => `- ${inlineCode(name)}`)].join("\n\n")
+    : undefined;
+};
+
 export const renderReportSummaryMarkdown = (
   context: ReportContext,
   options: RenderReportSummaryMarkdownOptions = {},
@@ -386,6 +394,7 @@ export const renderReportSummaryMarkdown = (
   const sections = [
     `# ${escapeHtml(title)}`,
     renderTable(aggregateRows, includeResolutions, renderOptions),
+    renderPublicationWarnings(context.reports),
     ...renderReportLinks(regularReports),
     renderFilteredReports(filteredReports, renderOptions),
     includeArtifacts ? renderArtifacts(context.artifacts) : undefined,
