@@ -21,6 +21,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
   protected readonly monitor: JobMonitor;
 
   #sigintReceived: boolean = false;
+  #forceTerminated: boolean = false;
 
   constructor(command: string, options: SupervisedCommandOptions = {}) {
     super(command, options);
@@ -42,7 +43,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
         }
 
         // Returning `undefined` makes the base class use the root process's exit code and signal.
-        return undefined;
+        return this.#forceTerminated ? { code: null, signal: "SIGKILL" } : undefined;
       },
 
       dispose: () => {
@@ -118,6 +119,7 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
     try {
       // Unconditionally terminate the process group.
       process.kill(-pid, "SIGKILL");
+      this.#forceTerminated = true;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
         throw error;
