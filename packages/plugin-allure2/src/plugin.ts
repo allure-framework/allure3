@@ -7,10 +7,10 @@ import {
   createPluginSummary,
   preciseTreeLabels,
 } from "@allurereport/plugin-api";
+import { generateAttachmentsFiles } from "@allurereport/plugin-api/internal/report";
 
 import { convertTestResult } from "./converters.js";
 import {
-  generateAttachmentsData,
   generateCategoriesData,
   generateCategoriesTrendData,
   generateDefaultWidgetData,
@@ -47,7 +47,7 @@ export class Allure2Plugin implements Plugin {
     const { reportName = "Allure Report", singleFile = false, reportLanguage = "en" } = this.options ?? {};
     const writer = singleFile ? new InMemoryReportDataWriter() : new ReportFileDataWriter(context.reportFiles);
     const attachmentLinks = await store.allAttachments();
-    const attachmentMap = await generateAttachmentsData(writer, attachmentLinks, (id) =>
+    const attachmentMap = await generateAttachmentsFiles(writer, attachmentLinks, (id) =>
       store.attachmentContentById(id),
     );
     const [globalErrors, globalAttachments, globalExitCode] = await Promise.all([

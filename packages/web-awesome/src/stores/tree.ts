@@ -3,6 +3,7 @@ import {
   collectExpandableSubtreeNodes,
   errorMessageFromUnknown,
   fetchReportJsonData,
+  loadFromLocalStorage,
   type SubtreeNodeState,
 } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
@@ -10,7 +11,6 @@ import { batch, computed, effect, signal } from "@preact/signals";
 import type { ReportTree, ReportTreeGroup } from "types";
 
 import type { StoreSignalState } from "@/stores/types";
-import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "./env";

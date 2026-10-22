@@ -36,3 +36,5 @@ export * from "./components/EmptyView";
 export * from "./components/ImageDiff";
 
 export { LazyComponent } from "./components/LazyComponent";
+
+export * from "./components/EnvironmentPicker";

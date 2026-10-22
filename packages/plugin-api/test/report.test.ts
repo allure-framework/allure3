@@ -1,13 +1,17 @@
 import type {
   AttachmentTestStepResult,
+  AttachmentLink,
   DefaultTestStepResult,
   HistoryDataPoint,
   TestFixtureResult,
 } from "@allurereport/core-api";
 import { describe, expect, it, vi } from "vite-plus/test";
 
+import type { ResultFile } from "../src/resultFile.js";
 import {
   convertFixtureResult,
+  generateAttachmentsFiles,
+  categoryMatch,
   generateHistoryDataPoints,
   mapConcurrently,
   writeConcurrently,
@@ -170,4 +174,89 @@ describe("report history writing", () => {
     await expect(generateHistoryDataPoints({ writeData }, { allHistoryDataPoints })).rejects.toBe(error);
     expect(writeData.mock.calls.map(([name]) => name)).toEqual(["history/point-0.json", "history/point-1.json"]);
   });
+});
+
+describe("attachment writing", () => {
+  const links: AttachmentLink[] = [
+    { id: "missed", ext: ".txt", missed: true, used: true, name: "missed", originalFileName: "missed.txt" },
+    ...["missing", "one", "two"].map((id) => ({
+      id,
+      ext: ".txt",
+      missed: false,
+      used: true,
+      name: id,
+      originalFileName: `${id}.txt`,
+    })),
+  ];
+
+  it("skips missed/missing content and waits for each write before loading the next", async () => {
+    const content = {} as ResultFile;
+    const events: string[] = [];
+    let release!: () => void;
+    const writer = {
+      writeAttachment: vi.fn(async (name: string, received: ResultFile) => {
+        expect(received).toBe(content);
+        events.push(`write:${name}`);
+        if (name === "one.txt")
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+      }),
+    };
+    const writing = generateAttachmentsFiles(writer, links, async (id) => {
+      events.push(`load:${id}`);
+      return id === "missing" ? undefined : content;
+    });
+    await vi.waitFor(() => expect(events).toContain("write:one.txt"));
+    expect(events).toEqual(["load:missing", "load:one", "write:one.txt"]);
+    release();
+    expect(await writing).toEqual(
+      new Map([
+        ["one", "one.txt"],
+        ["two", "two.txt"],
+      ]),
+    );
+    expect(events).toEqual(["load:missing", "load:one", "write:one.txt", "load:two", "write:two.txt"]);
+  });
+
+  it.each(["read", "write"])(
+    "preserves earlier writes and propagates %s failure without loading later content",
+    async (failure) => {
+      const content = {} as ResultFile;
+      const error = new Error("write failed");
+      const written: string[] = [];
+      const load = vi.fn(async (id: string) => {
+        if (failure === "read" && id === "two") throw error;
+        return content;
+      });
+      const writer = {
+        writeAttachment: async (name: string) => {
+          if (failure === "write" && name === "two.txt") throw error;
+          written.push(name);
+        },
+      };
+      await expect(generateAttachmentsFiles(writer, [links[2], links[3], links[2]], load)).rejects.toBe(error);
+      expect(written).toEqual(["one.txt"]);
+      expect(load).toHaveBeenCalledTimes(2);
+    },
+  );
+});
+
+it("matches legacy category fields without changing regex or flaky semantics", () => {
+  const result = { status: "failed" as const, flaky: false, statusMessage: "first\nlast", statusTrace: "trace" };
+  expect(categoryMatch({}, result)).toBe(true);
+  expect(
+    categoryMatch({ matchedStatuses: [], messageRegex: "first.last", traceRegex: "trace", flaky: false }, result),
+  ).toBe(true);
+  for (const category of [
+    { matchedStatuses: ["passed"] as const },
+    { flaky: true },
+    { messageRegex: "[" },
+    { messageRegex: "absent" },
+  ]) {
+    expect(categoryMatch(category, result)).toBe(false);
+  }
+  expect(categoryMatch({ messageRegex: ".*" }, { status: "failed", flaky: false })).toBe(false);
+  expect(categoryMatch({ traceRegex: ".*" }, { ...result, statusTrace: "" })).toBe(false);
+  expect(categoryMatch({ messageRegex: "" }, result)).toBe(true);
 });

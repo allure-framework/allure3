@@ -22,3 +22,5 @@ export * from "./treeNavigation/index.js";
 export * from "./platform.js";
 export * from "./contentTypes.js";
 export * from "./httpAttachments.js";
+
+export { loadFromLocalStorage } from "./storage.js";
