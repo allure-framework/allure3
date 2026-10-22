@@ -326,7 +326,10 @@ export class TestOpsClient {
     return data.ready;
   }
 
-  async createSession(environment: Record<string, unknown> = {}, reopenClosedLaunch = false) {
+  /**
+   * Makes sure the launch accepts uploads: reopens a closed launch when allowed, otherwise throws.
+   */
+  async ensureLaunchOpen(reopenClosedLaunch = false) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
@@ -339,6 +342,21 @@ export class TestOpsClient {
       }
 
       await this.reopenLaunch(this.#launch.id);
+    }
+  }
+
+  async createSession(environment: Record<string, unknown> = {}, reopenClosedLaunch = false): Promise<TestOpsSession> {
+    await this.ensureLaunchOpen(reopenClosedLaunch);
+
+    return this.createSessionInOpenLaunch(environment);
+  }
+
+  /**
+   * Creates a session without checking the launch first, for callers that already did it in the same upload cycle.
+   */
+  async createSessionInOpenLaunch(environment: Record<string, unknown> = {}): Promise<TestOpsSession> {
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
     }
 
     const sessionEnvironment = Object.entries(environment).map(([key, value]) => ({
@@ -356,10 +374,19 @@ export class TestOpsClient {
         });
 
     this.#session = data;
+
+    return data;
   }
 
   getNamedEnvFor(id: string) {
     return this.#namedEnvsIdsByEnv.get(id);
+  }
+
+  #namedEnvByIdOrName(environment: string) {
+    return (
+      this.#namedEnvsIdsByEnv.get(environment) ??
+      [...this.#namedEnvsIdsByEnv.values()].find(({ name }) => name === environment)
+    );
   }
 
   async createNamedEnvs(environments: EnvironmentIdentity[], onProgress?: (percent: number, total: number) => void) {
@@ -491,12 +518,10 @@ export class TestOpsClient {
     onProgress?: () => void;
     onRetry?: RetryOptions["onRetry"];
     onChunkUploaded?: (uploadedChunkTrs: TestResult[]) => void;
+    session: TestOpsSession;
   }) {
-    if (!this.#session) {
-      throw new Error("Session isn't created! Call createSession first");
-    }
-
-    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } = params;
+    const { session, trs, environments, attachmentsResolver, fixturesResolver, onProgress, onRetry, onChunkUploaded } =
+      params;
     const projectedTrs = trs.map((tr) => ({
       ...tr,
       ...(tr.steps ? { steps: normalizeTestStepsResults(tr.steps) } : {}),
@@ -532,7 +557,7 @@ export class TestOpsClient {
 
           await this.#uploadPacer.wait({ requests: 1, files: trsChunk.length });
 
-          return this.#postTestResultsChunk(trsChunk);
+          return this.#postTestResultsChunk(trsChunk, session);
         },
         { onRetry },
       );
@@ -557,7 +582,10 @@ export class TestOpsClient {
     return uploadedTrs;
   }
 
-  async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[]): Promise<Record<string, number>> {
+  async #postTestResultsChunk(
+    trsChunk: TestOpsPluginTestResult[],
+    session: TestOpsSession,
+  ): Promise<Record<string, number>> {
     const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
       const extendedTestResult: TestOpsPluginTestResult = {
         ...testResult,
@@ -583,7 +611,7 @@ export class TestOpsClient {
       return extendedTestResult;
     });
 
-    const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
+    const body: UploadResultsDto = toUploadResultsDto(session.id, extendedChunk);
     const data = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", {
       body,
       headers: { "Content-Type": "application/json" },
@@ -700,10 +728,6 @@ export class TestOpsClient {
     results: QualityGateValidationResult[],
     onProgress?: (percent: number, total: number) => void,
   ) {
-    if (!this.#session) {
-      throw new Error("Session isn't created! Call createSession first");
-    }
-
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
@@ -715,7 +739,8 @@ export class TestOpsClient {
         message: result.message,
       };
 
-      const namedEnvId = !!result.environment && this.getNamedEnvFor(result.environment!)?.id;
+      // core reports quality gate results by environment name, named envs are keyed by environment id
+      const namedEnvId = !!result.environment && this.#namedEnvByIdOrName(result.environment)?.id;
 
       if (typeof namedEnvId === "number") {
         item.namedEnvId = namedEnvId;

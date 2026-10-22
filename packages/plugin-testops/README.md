@@ -77,7 +77,7 @@ The plugin accepts the following options:
 | `accessToken`      | Access token for Allure TestOps API                                        | `string`  | `undefined`     |
 | `endpoint`         | Allure TestOps API endpoint                                                | `string`  | `undefined`     |
 | `projectId`        | Allure TestOps project ID                                                  | `string`  | `undefined`     |
-| `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
+| `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes, unless some uploads failed; set to `false` to keep the launch open | `boolean` | `true`          |
 | `gitFlow`          | When `true`, collect Git metadata for Allure TestOps Git Flow on CI uploads (opt-in) | `boolean` | `false`         |
 | `ancestorLimit`    | How many ancestor commits to attach to the launch for history linking in Allure TestOps | `number`  | `100`           |
 | `uploadRateLimit`  | Caps how fast uploads are sent to Allure TestOps within a rolling time window (requests/files/bytes per window); pass `false` to disable pacing entirely | `{ windowMs: number; maxRequestsPerWindow?: number; maxFilesPerWindow?: number; maxBytesPerWindow?: number } \| false` | `20` req/s, `1000` files/s, `1 GiB`/s |
@@ -98,3 +98,46 @@ The plugin automatically reads the following environment variables and uses them
 | `ALLURE_GIT_ANCESTOR_LIMIT` | `ancestorLimit` |
 
 `ALLURE_TESTOPS_ENABLED` and `CI` are not configuration options: they only control whether upload runs when no CI is detected. See [CI and local runs](#ci-and-local-runs).
+
+## Environment variables
+
+Every upload session sends environment variables to Allure TestOps, which maps them to the project's env vars. A variable shows up on test results only if its key matches a key of the project's env var schema in Allure TestOps exactly, including case: a schema key `browser` does not match a variable named `Browser`. Other keys are ignored.
+
+The plugin sends, from weakest to strongest:
+
+1. the environment variables of the process (for example, the ones set by your CI);
+2. the report-level `variables` from the Allure configuration;
+3. the `variables` of the environment (from `environments`) the test result belongs to.
+
+A stronger source overrides a weaker one when the keys are the same. Keys that differ only in case are different variables and are all sent. Configuration variables without a value (for example, `process.env.STAND` when `STAND` is unset, or an empty string) and values that aren't strings, numbers or booleans are not sent, so they don't override anything: an environment variable without a value keeps the report-level value.
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  variables: {
+    Stand: process.env.STAND ?? "staging",
+  },
+  environments: {
+    chrome: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "chrome"),
+      variables: { browser: "chrome" },
+    },
+    firefox: {
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "browser" && value === "firefox"),
+      variables: { browser: "firefox" },
+    },
+  },
+  plugins: {
+    testops: {
+      options: {},
+    },
+  },
+});
+```
+
+Test results of an environment that defines its own `variables` are uploaded in a separate upload session carrying those variables; the plugin creates it once per environment and reuses it for the whole run. Other test results go into the upload session the plugin creates for each upload, together with global attachments and errors.
+
+Report-level `variables` are the same for every test result. When a report is generated from several dumps (`allure generate --dump …`), they are merged and the last dump wins. Environment `variables` come from the configuration used to generate the report, so values that differ between dumps, such as the browser of a matrix job, belong in the `variables` of environments defined in that configuration rather than in report-level `variables`.
+
+Env vars are part of a test result's identity in Allure TestOps. If your project's env var schema contains keys that you now set in `variables`, the history of the affected tests starts anew once after upgrading the plugin.

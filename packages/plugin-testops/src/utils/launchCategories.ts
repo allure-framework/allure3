@@ -13,10 +13,11 @@ export const enrichWithCategories = async (
   store: AllureStore,
   trs: TestOpsPluginTestResult[],
   contextCategories: CategoryDefinition[],
+  resolveEnvironmentId: (environment: string | undefined) => string | undefined = (environment) => environment,
 ): Promise<TestOpsPluginTestResult[]> => {
   return Promise.all(
     trs.map(async (tr) => {
-      const environmentId = await store.environmentIdByTrId(tr.id);
+      const environmentId = resolveEnvironmentId((await store.environmentIdByTrId(tr.id)) ?? tr.environment);
       const base = {
         ...tr,
         ...(environmentId ? { environment: environmentId } : {}),
