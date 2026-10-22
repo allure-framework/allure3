@@ -78,7 +78,7 @@ import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 
 import { convertTestResult } from "./converters.js";
-import type { AwesomeOptions } from "./model.js";
+import type { AwesomeOptions, IdeaLinksOptions } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 
 const reportStaticArchive = new URL("../dist/static/report.tar", import.meta.url);
@@ -160,6 +160,7 @@ export const generateTestResults = async (
   options: {
     pluginId: string;
     hideLabels?: readonly (string | RegExp)[];
+    ideaLinks?: boolean | IdeaLinksOptions;
     related?: TestResultRelatedData;
     resolveHistoryUrl?: HistoryTestResultUrlResolver;
     resolutionEvaluatedAt?: number;
@@ -176,6 +177,7 @@ export const generateTestResults = async (
       .map(convertFixtureResult);
     const convertedTr: ReportTestResult = convertTestResult(tr, {
       hideLabels: options.hideLabels,
+      ideaLinks: options.ideaLinks,
       resolutionEvaluatedAt: options.resolutionEvaluatedAt,
     });
 
