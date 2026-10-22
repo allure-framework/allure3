@@ -6,7 +6,6 @@ import { setTimeout as delay } from "node:timers/promises";
 import { Logger } from "@allurereport/cli-commons";
 import { KnownError } from "@allurereport/service";
 
-import { logError } from "../logs.js";
 import { supervisorDiagnosticsEnabled } from "./diagnostics.js";
 import type {
   InterruptionLevel,
@@ -389,10 +388,10 @@ export abstract class ProcessSupervisorBase {
         await this.requestRootStop(signal);
       } catch (stopError) {
         const normalizedStopError = stopError instanceof Error ? stopError : new Error(String(stopError));
-        void logError(
+        this.error(
           `Failed to request graceful stop: ${normalizedStopError.message} The process will be terminated by force`,
           normalizedStopError,
-        ).catch(() => {});
+        );
 
         try {
           await this.terminate();
