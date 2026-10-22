@@ -5,12 +5,11 @@ import { promisify } from "node:util";
 
 import { isDefined } from "@allurereport/reader-api";
 
-import type { JobMonitor, SupervisedCommandOptions } from "./model.js";
-import { ProcessSupervisorBase } from "./ProcessSupervisorBase.js";
+import type { JobMonitor, SupervisedCommandOptions } from "../model.js";
+import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
+import { createProcessGroupCompletionPoller, scanProcessGroup } from "./processGroup.js";
 
 const MONITOR_INTERVAL_MS = 100;
-const PROCESS_GROUP_SCAN_INTERVAL_MS = 500;
-const PROCESS_GROUP_SCAN_CONFIRMATIONS = 3;
 const inspectProcesses = promisify(execFile);
 
 export class PosixProcessSupervisor extends ProcessSupervisorBase {
@@ -35,9 +34,13 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
         // scans observe no live members and no newly observed exited PIDs.
         // This prevents unreaped zombies from keeping the supervisor
         // waiting indefinitely even though all group members have exited.
-        const pollForCompletion = this.createProcessGroupCompletionPoller(pid);
+        const pollForCompletion = createProcessGroupCompletionPoller({
+          processGroupId: pid,
+          scanProcessGroup,
+          reportError: (error) => this.error("Error occurred during process group probe", error),
+        });
 
-        while (this.processGroupExists(pid) && !(await pollForCompletion())) {
+        while (this.processGroupExists(pid) && (await pollForCompletion()) === "pending") {
           await delay(MONITOR_INTERVAL_MS);
         }
 
@@ -178,103 +181,6 @@ export class PosixProcessSupervisor extends ProcessSupervisorBase {
 
     // The group is running or kept alive by zombie processes.
     return true;
-  }
-
-  private createProcessGroupCompletionPoller(pgid: number) {
-    let remainingConfirmations: number = PROCESS_GROUP_SCAN_CONFIRMATIONS;
-    let previousExitedPids: Set<number> | undefined;
-    let nextScanAt: number = Date.now();
-    let inFlight: Promise<boolean> | undefined;
-
-    const probeOnce = async () => {
-      const now = Date.now();
-      if (now >= nextScanAt) {
-        const exitedPids = await this.scanProcessGroupForLiveMembers(pgid);
-        nextScanAt = Date.now() + PROCESS_GROUP_SCAN_INTERVAL_MS;
-
-        if (exitedPids === undefined) {
-          remainingConfirmations = PROCESS_GROUP_SCAN_CONFIRMATIONS;
-          // Definitely not complete
-          return false;
-        }
-
-        if (previousExitedPids && exitedPids.isSubsetOf(previousExitedPids)) {
-          // No new zombies.
-          remainingConfirmations--;
-          if (remainingConfirmations <= 0) {
-            // The process group is considered complete after sufficient confidence.
-            return true;
-          }
-        } else {
-          // New zombies have appeared. Something might still be running.
-          remainingConfirmations = PROCESS_GROUP_SCAN_CONFIRMATIONS;
-        }
-
-        previousExitedPids = exitedPids;
-      }
-
-      // A live member was observed, not enough confidence was reached, or the next scan is not due.
-      return false;
-    };
-
-    return () => {
-      if (inFlight === undefined) {
-        inFlight = probeOnce()
-          .catch((e) => {
-            remainingConfirmations = PROCESS_GROUP_SCAN_CONFIRMATIONS;
-            nextScanAt = Date.now() + PROCESS_GROUP_SCAN_INTERVAL_MS;
-            this.error("Error occurred during process group probe", e);
-            return false;
-          })
-          .finally(() => {
-            inFlight = undefined;
-          });
-      }
-
-      return inFlight;
-    };
-  }
-
-  private async scanProcessGroupForLiveMembers(pgrpToCheck: number) {
-    const { stdout: psOutput } = await inspectProcesses("ps", ["-A", "-o", "pid=", "-o", "pgid=", "-o", "stat="], {
-      encoding: "utf-8",
-      timeout: 2_000,
-      maxBuffer: 4 * 1024 * 1024,
-      env: { ...process.env, LC_ALL: "C" },
-    });
-
-    const exitedPids: Set<number> = new Set();
-
-    for (const line of psOutput.split("\n")) {
-      if (line.trim() === "") {
-        continue;
-      }
-
-      const match = /^\s*(\d+)\s+(\d+)\s+(\S+)\s*$/.exec(line);
-      if (!match) {
-        throw new Error(`Unexpected format of ps output: ${line}`);
-      }
-
-      const [, pidText, pgidText, stat] = match;
-      if (Number(pgidText) !== pgrpToCheck) {
-        continue;
-      }
-
-      // Omit modifiers, such as in "Z+" or "Ss"
-      const state = stat[0];
-
-      if (state !== "Z" && state !== "X" && state !== "x") {
-        // A reliable indicator that the process group is still running.
-        return undefined;
-      }
-
-      exitedPids.add(Number(pidText));
-    }
-
-    // Getting here is an unreliable indicator of process group completeness.
-    // Subject to race conditions, as processes may spawn and exit during the check.
-    // Returning the list of current group processes.
-    return exitedPids;
   }
 
   private sendSigintToGroup() {
