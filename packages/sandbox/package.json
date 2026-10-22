@@ -12,7 +12,7 @@
     "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
     "t": "yarn allure run -- vitest run",
-    "test": "vp test run",
+    "test": "rimraf out && vp test run",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },

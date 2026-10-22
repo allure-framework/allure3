@@ -8,7 +8,6 @@ allure-report
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
-!.yarn/sdks
 !.yarn/versions
 
 #IDEA Files
@@ -45,6 +44,7 @@ dist-tests
 .gradle
 schema
 build
+!.github/actions/build
 **/allure-results
 !packages/sandbox/allure-results/
 **/.nyc_output

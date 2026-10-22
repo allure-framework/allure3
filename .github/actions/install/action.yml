@@ -1,0 +1,29 @@
+name: Set up Node.js and dependencies
+description: Set up Node.js, install deps
+
+inputs:
+  node-version:
+    description: Node.js version
+    default: "24.14.x"
+  registry-url:
+    description: Optional npm registry URL
+    default: ""
+  yarn-hardened-mode:
+    description: Enable or disable yarn hardened mode
+    default: "1"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: ${{ inputs.registry-url }}
+        # disable cache, .yarn/cache is already checked in git
+        cache: ""
+        package-manager-cache: false
+    - name: Install dependencies
+      shell: bash
+      env:
+        YARN_ENABLE_HARDENED_MODE: ${{ inputs.yarn-hardened-mode }}
+      run: yarn install --immutable --immutable-cache ${{ inputs.yarn-hardened-mode == '1' && '--check-cache' || '' }}

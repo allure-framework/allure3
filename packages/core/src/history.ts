@@ -148,20 +148,6 @@ const closeStream = async (stream: Readable | Writable): Promise<void> => {
   });
 };
 
-/**
- * Depending on the runtime, destroying a stream may also close the descriptor it was opened on,
- * so the handle can already be gone by the time we close it ourselves.
- */
-const closeFileHandle = async (file: FileHandle): Promise<void> => {
-  try {
-    await file.close();
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException)?.code !== "EBADF") {
-      throw err;
-    }
-  }
-};
-
 export class AllureLocalHistory implements AllureHistory {
   #cachedHistory: HistoryDataPoint[] = [];
 
@@ -228,7 +214,7 @@ export class AllureLocalHistory implements AllureHistory {
       return this.#cachedHistory;
     } finally {
       await this.#closeStreams(openedStreams);
-      await closeFileHandle(historyFile);
+      await historyFile.close();
     }
   }
 
@@ -275,7 +261,7 @@ export class AllureLocalHistory implements AllureHistory {
       }
     } finally {
       await this.#closeStreams(openedStreams);
-      await closeFileHandle(historyFile);
+      await historyFile.close();
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {

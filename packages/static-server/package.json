@@ -25,7 +25,7 @@
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "pretest": "rimraf ./out && playwright install chromium",
-    "test": "run-p 'test:*'",
+    "test": "rimraf out && run test:unit && run test:e2e",
     "test:unit": "vp test run",
     "test:e2e": "playwright test",
     "lint": "vp lint --import-plugin src test features stories",
@@ -36,8 +36,8 @@
     "open": "^11.0.0"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
-    "@playwright/test": "^1.62.1",
+    "@allurereport/common-config": "workspace:*",
+    "@playwright/test": "catalog:",
     "@types/node": "^20",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/runner": "^2",

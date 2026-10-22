@@ -1,18 +1,7 @@
+import { defaultPlaywrightConfig } from "@allurereport/common-config/playwright";
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
+  ...defaultPlaywrightConfig({}),
   testDir: "./test/e2e",
-  reporter: [
-    ["line"],
-    [
-      "allure-playwright",
-      {
-        resultsDir: "./out/allure-results",
-        globalLabels: [
-          { name: "module", value: "static-server" },
-          { name: "type", value: "playwright" },
-        ],
-      },
-    ],
-  ],
 });

@@ -1,69 +1,20 @@
 import { spawn } from "node:child_process";
-import { cp, mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
 import { attachment, epic, feature, label, story } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
-const testDir = dirname(fileURLToPath(import.meta.url));
-const corePackageDir = resolve(testDir, "..");
-const coreApiPackageDir = resolve(corePackageDir, "../core-api");
-
+const historyModuleUrl = new URL("../dist/history.js", import.meta.url).href;
 const workspaces = new Set<string>();
 
-/**
- * Yarn's PnP runtime replaces `fs` (including `fs/promises.open`) with its own ZipFS-aware
- * implementation, whose `FileHandle.close()` doesn't wait for stream references. That hides
- * handle lifecycle bugs from every in-process test and from anything started via `yarn node`.
- * To exercise the real Node implementation, the history code has to run in a plain `node`
- * process without the PnP preload — which in turn needs a real `node_modules` tree.
- */
-const createStandaloneWorkspace = async () => {
-  const workspace = await mkdtemp(join(tmpdir(), "allure-history-standalone-"));
-
-  workspaces.add(workspace);
-
-  const modulesDir = join(workspace, "node_modules", "@allurereport");
-
-  await mkdir(modulesDir, { recursive: true });
-
-  for (const [name, packageDir] of [
-    ["core", corePackageDir],
-    ["core-api", coreApiPackageDir],
-  ] as const) {
-    const distDir = join(packageDir, "dist");
-
-    try {
-      await stat(join(distDir, "index.js"));
-    } catch {
-      throw new Error(
-        `${distDir} is missing, run \`yarn workspaces foreach -Rpt --from @allurereport/core run build\``,
-      );
-    }
-
-    await cp(distDir, join(modulesDir, name, "dist"), { recursive: true });
-    await writeFile(
-      join(modulesDir, name, "package.json"),
-      `${JSON.stringify({ name: `@allurereport/${name}`, version: "0.0.0", type: "module", main: "./dist/index.js" })}\n`,
-      "utf-8",
-    );
-  }
-
-  return workspace;
-};
-
-const runWithoutPnp = (scriptPath: string, cwd: string, timeoutMs = 30_000) =>
+// Use a separate Node process to exercise native FileHandle behavior outside Vitest's module mocks.
+const runNodeScript = (scriptPath: string, cwd: string, timeoutMs = 30_000) =>
   new Promise<{ code: number | null; signal: NodeJS.Signals | null; output: string; timedOut: boolean }>(
     (resolvePromise) => {
-      const env = { ...process.env, NODE_NO_WARNINGS: "" };
-
-      // the whole point is to run without `--require .pnp.cjs`
-      delete env.NODE_OPTIONS;
-
-      const child = spawn(process.execPath, [scriptPath], { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
+      const child = spawn(process.execPath, [scriptPath], { cwd, stdio: ["ignore", "pipe", "pipe"] });
       let output = "";
 
       child.stdout.on("data", (chunk) => (output += chunk.toString()));
@@ -98,16 +49,19 @@ afterEach(async () => {
 });
 
 describe("AllureLocalHistory", () => {
-  describe("outside of Yarn PnP", () => {
+  describe("in a standalone Node process", () => {
     it("should settle append and read operations in a plain node process", async () => {
-      const workspace = await createStandaloneWorkspace();
+      const workspace = await mkdtemp(join(tmpdir(), "allure-history-standalone-"));
+
+      workspaces.add(workspace);
+
       const scriptPath = join(workspace, "history.mjs");
 
       await writeFile(
         scriptPath,
         `import { fileURLToPath } from "node:url";
 
-import { AllureLocalHistory } from "@allurereport/core/dist/history.js";
+import { AllureLocalHistory } from ${JSON.stringify(historyModuleUrl)};
 
 const dataPoint = (uuid) => ({
   uuid,
@@ -133,7 +87,7 @@ console.log(\`history-complete:\${entries.length}\`);
         "utf-8",
       );
 
-      const result = await runWithoutPnp(scriptPath, workspace);
+      const result = await runNodeScript(scriptPath, workspace);
 
       await attachment("standalone history output", result.output || "<empty>", "text/plain");
 

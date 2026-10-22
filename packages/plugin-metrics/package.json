@@ -27,7 +27,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vp test run",
+    "test": "rimraf out && vp test run",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
@@ -36,6 +36,7 @@
     "@allurereport/plugin-api": "workspace:*"
   },
   "devDependencies": {
+    "@allurereport/common-config": "workspace:*",
     "@types/node": "^20",
     "@vitest/runner": "^2",
     "allure-js-commons": "^3",

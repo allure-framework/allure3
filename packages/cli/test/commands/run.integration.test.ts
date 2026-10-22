@@ -2,7 +2,7 @@ import { execFile, spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import process from "node:process";
+import process, { platform } from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
@@ -1632,29 +1632,6 @@ console.log(\`selected selectors: \${Array.from(selectors).join(",")}\`);
   }, 60_000);
 });
 
-// the CLI is started outside of the repository, so it can't rely on Yarn resolving the project from
-// the current directory; the PnP hooks are passed explicitly instead
-const resolveNodeOptions = async () => {
-  if (process.env.NODE_OPTIONS) {
-    return process.env.NODE_OPTIONS;
-  }
-
-  const pnpPath = join(repoRoot, ".pnp.cjs");
-  const pnpLoaderPath = join(repoRoot, ".pnp.loader.mjs");
-
-  if (!(await pathExists(pnpPath))) {
-    return "";
-  }
-
-  const options = [`--require ${pnpPath}`];
-
-  if (await pathExists(pnpLoaderPath)) {
-    options.push(`--experimental-loader ${pathToFileURL(pnpLoaderPath).href}`);
-  }
-
-  return options.join(" ");
-};
-
 const waitForOutput = (pattern: RegExp, streams: (NodeJS.ReadableStream | null)[], timeoutMs = 120_000) =>
   new Promise<string>((resolvePromise, rejectPromise) => {
     let output = "";
@@ -1753,9 +1730,7 @@ const terminate = async (child: ReturnType<typeof spawn>) => {
 /**
  * Regression test for https://github.com/allure-framework/allure3/issues/827: `allure serve` used to
  * generate the report and then exit without ever starting the server when `historyPath` was
- * configured. This only covers the symptom under Yarn PnP, whose patched `fs` hides the underlying
- * FileHandle lifecycle bug; `packages/core/test/history.integration.test.ts` exercises the history
- * code against the real Node implementation.
+ * configured.
  */
 describe("serve command integration", () => {
   let workspace: string;
@@ -1773,78 +1748,80 @@ describe("serve command integration", () => {
     await rm(workspace, { recursive: true, force: true });
   });
 
-  it("keeps the HTTP server running when historyPath is configured", async () => {
-    const historyPath = join(workspace, "allure-history.jsonl");
+  // re-enable once issues with vite+ caching and hanging powershell are resolved
+  it(
+    "keeps the HTTP server running when historyPath is configured",
+    { skip: platform === "win32" },
+    async () => {
+      const historyPath = join(workspace, "allure-history.jsonl");
 
-    await mkdir(join(workspace, "allure-results"), { recursive: true });
-    await writeJson(join(workspace, "allure-results", "x-result.json"), {
-      uuid: "11111111-1111-1111-1111-111111111111",
-      historyId: "abc",
-      name: "dummy test",
-      status: "passed",
-      stage: "finished",
-      start: 1_784_900_000_000,
-      stop: 1_784_900_001_000,
-      labels: [],
-      steps: [],
-      parameters: [],
-      links: [],
-    });
-    await writeFile(
-      join(workspace, "allurerc.mjs"),
-      `export default {
+      await mkdir(join(workspace, "allure-results"), { recursive: true });
+      await writeJson(join(workspace, "allure-results", "x-result.json"), {
+        uuid: "11111111-1111-1111-1111-111111111111",
+        historyId: "abc",
+        name: "dummy test",
+        status: "passed",
+        stage: "finished",
+        start: 1_784_900_000_000,
+        stop: 1_784_900_001_000,
+        labels: [],
+        steps: [],
+        parameters: [],
+        links: [],
+      });
+      await writeFile(
+        join(workspace, "allurerc.mjs"),
+        `export default {
   name: "repro",
   historyPath: ${JSON.stringify(historyPath)},
 };
 `,
-      "utf-8",
-    );
+        "utf-8",
+      );
 
-    const env = {
-      ...process.env,
-      NODE_OPTIONS: await resolveNodeOptions(),
-      NODE_NO_WARNINGS: "1",
-    };
+      const env = { ...process.env };
 
-    // other suites in the same worker may have left it behind, and the CLI refuses nested commands
-    delete env.ALLURE_CLI_ACTIVE_COMMAND;
+      // other suites in the same worker may have left it behind, and the CLI refuses nested commands
+      delete env.ALLURE_CLI_ACTIVE_COMMAND;
 
-    const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
-      cwd: workspace,
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-
-    try {
-      const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
-      let earlyOutput = "";
-
-      child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
-      child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
-
-      const exited = new Promise<never>((_, rejectPromise) => {
-        child.once("exit", (code, signal) => {
-          rejectPromise(
-            new Error(
-              `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
-            ),
-          );
-        });
+      const child = spawn(process.execPath, [cliPath, "serve", "allure-results"], {
+        cwd: workspace,
+        env,
+        stdio: ["ignore", "pipe", "pipe"],
       });
-      const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
 
-      await attachment("serve output", output, "text/plain");
+      try {
+        const serverPattern = /Allure is running on http:\/\/localhost:\d+/;
+        let earlyOutput = "";
 
-      expect(output).toMatch(serverPattern);
-      expect(child.exitCode).toBeNull();
+        child.stdout?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
+        child.stderr?.on("data", (chunk: Buffer) => (earlyOutput += chunk.toString()));
 
-      const history = await readHistoryEntries(historyPath);
+        const exited = new Promise<never>((_, rejectPromise) => {
+          child.once("exit", (code, signal) => {
+            rejectPromise(
+              new Error(
+                `allure serve exited before starting the server (code: ${code}, signal: ${signal}):\n${earlyOutput || "<no output>"}`,
+              ),
+            );
+          });
+        });
+        const output = await Promise.race([waitForOutput(serverPattern, [child.stdout, child.stderr]), exited]);
 
-      await attachment("history file", JSON.stringify(history, null, 2), "application/json");
+        await attachment("serve output", output, "text/plain");
 
-      expect(history).toHaveLength(1);
-    } finally {
-      await terminate(child);
-    }
-  }, 240_000);
+        expect(output).toMatch(serverPattern);
+        expect(child.exitCode).toBeNull();
+
+        const history = await readHistoryEntries(historyPath);
+
+        await attachment("history file", JSON.stringify(history, null, 2), "application/json");
+
+        expect(history).toHaveLength(1);
+      } finally {
+        await terminate(child);
+      }
+    },
+    240_000,
+  );
 });

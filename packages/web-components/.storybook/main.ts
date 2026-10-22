@@ -16,7 +16,7 @@ import { svgrOptions } from "../svgr.config.js";
 const require = createRequire(import.meta.url);
 
 /**
- * Resolves the absolute path of a package, required under Yarn PnP and in monorepos.
+ * Resolves packages from this workspace's installation for Storybook's monorepo setup.
  */
 const getAbsolutePath = (value: string): any => dirname(require.resolve(join(value, "package.json")));
 

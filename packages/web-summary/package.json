@@ -19,13 +19,14 @@
   "scripts": {
     "clean": "rimraf dist",
     "dev": "webpack serve --mode development",
-    "build": "run-s clean 'build:prod'",
+    "build": "run clean && run build:prod",
     "build:prod": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
   },
   "devDependencies": {
+    "@allurereport/common-config": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",

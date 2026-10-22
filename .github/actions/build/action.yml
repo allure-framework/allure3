@@ -1,0 +1,52 @@
+name: Setup project
+description: Set up Node.js, install deps and build project
+
+inputs:
+  node-version:
+    description: Node.js version
+    default: "24.14.x"
+  registry-url:
+    description: Optional npm registry URL
+    default: ""
+  yarn-hardened-mode:
+    description: Enable or disable yarn hardened mode
+    default: "1"
+  save-cache:
+    description: Save vite task cache
+    default: "false"
+  cache-type:
+    description: Vite task cache type
+    default: build
+
+outputs:
+  cache-key:
+    description: Primary key of vite task cache
+    value: ${{ steps.build-cache.outputs.cache-primary-key }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup node and install dependencies
+      uses: ./.github/actions/install
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: ${{ inputs.registry-url }}
+        yarn-hardened-mode: ${{ inputs.yarn-hardened-mode }}
+    - name: Restore Vite Task cache
+      id: build-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: node_modules/.vite/task-cache
+        key: vite-${{ inputs.cache-type }}-${{ github.head_ref || github.ref_name }}-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: |
+          vite-${{ inputs.cache-type }}-${{ github.head_ref || github.ref_name }}-${{ runner.os }}-${{ runner.arch }}-
+          vite-${{ inputs.cache-type }}-${{ github.event.repository.default_branch }}-${{ runner.os }}-${{ runner.arch }}-
+    - name: Build the project
+      shell: bash
+      run: yarn build
+    - name: Save Vite Task cache
+      uses: actions/cache/save@v6
+      if: ${{ success() && inputs.save-cache == 'true' }}
+      with:
+        path: node_modules/.vite/task-cache
+        key: ${{ steps.build-cache.outputs.cache-primary-key }}

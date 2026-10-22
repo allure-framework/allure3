@@ -25,7 +25,7 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json && node ../../scripts/pack-report-static.mjs ../web-classic/dist/multi ./dist/static/report.tar",
     "clean": "rimraf ./dist",
-    "test": "rimraf ./out && vp test run",
+    "test": "rimraf out && vp test run",
     "test:unit": "yarn test",
     "lint": "vp lint --import-plugin src test features stories",
     "lint:fix": "vp lint --import-plugin --fix src test features stories"
@@ -40,7 +40,7 @@
     "markdown-it": "^15.0.3"
   },
   "devDependencies": {
-    "@allurereport/test-config": "workspace:*",
+    "@allurereport/common-config": "workspace:*",
     "@allurereport/web-classic": "workspace:*",
     "@types/d3-shape": "^3.1.8",
     "@types/markdown-it": "^14.1.2",
