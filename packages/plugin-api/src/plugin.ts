@@ -80,6 +80,12 @@ export interface PluginSummary {
   href?: string;
   remoteHref?: string;
   jobHref?: string;
+  /** Pipeline/workflow context, or the generating job when no parent context is available. */
+  ciRunName?: string;
+  ciRunHref?: string;
+  /** Commit captured when the report was generated, not when it was published. */
+  commitSha?: string;
+  commitHref?: string;
   pullRequestHref?: string;
   name: string;
   stats: Statistic;

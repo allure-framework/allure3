@@ -2,7 +2,11 @@ import { join } from "node:path/posix";
 
 import { type CiDescriptor, CiType, GitProvider } from "@allurereport/core-api";
 
-import { resolveGithubPullRequestContext, resolveGithubPullRequestNumber } from "../helpers/github.js";
+import {
+  resolveGithubCommitSha,
+  resolveGithubPullRequestContext,
+  resolveGithubPullRequestNumber,
+} from "../helpers/github.js";
 import { stripRefsHeads } from "../helpers/gitProvider.js";
 import { getEnv } from "../utils.js";
 
@@ -83,6 +87,14 @@ export const github: CiDescriptor = {
     return `${getRepo()} - ${getWorkflow()}`;
   },
 
+  get pipelineRunName() {
+    return getWorkflow() || getRunID();
+  },
+
+  get pipelineRunUrl() {
+    return getRunID() ? this.jobRunUrl : undefined;
+  },
+
   get jobRunUid(): string {
     return getRunID();
   },
@@ -124,6 +136,10 @@ export const github: CiDescriptor = {
     }
 
     return `Pull request #${pullRequestNumber}`;
+  },
+
+  get commitSha() {
+    return resolveGithubCommitSha();
   },
 
   get provider() {

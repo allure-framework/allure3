@@ -96,6 +96,14 @@ export const drone: CiDescriptor = {
     return getEnv("DRONE_REPO");
   },
 
+  get pipelineRunName() {
+    return getEnv("DRONE_REPO") || getJobRunUID();
+  },
+
+  get pipelineRunUrl() {
+    return getJobRunURL() || undefined;
+  },
+
   get jobRunUid(): string {
     return getJobRunUID();
   },
@@ -142,6 +150,10 @@ export const drone: CiDescriptor = {
 
   get pullRequestName(): string {
     return getEnv("DRONE_PULL_REQUEST_TITLE");
+  },
+
+  get commitSha() {
+    return getEnv("DRONE_COMMIT_SHA") || undefined;
   },
 
   get provider() {

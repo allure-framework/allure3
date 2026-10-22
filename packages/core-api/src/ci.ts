@@ -23,6 +23,9 @@ export interface CiDescriptor {
   jobRunUrl: string;
   jobRunName: string;
   jobRunBranch: string;
+  /** Pipeline or workflow containing the CI jobs, preferred over individual job links. */
+  pipelineRunName?: string;
+  pipelineRunUrl?: string;
   pullRequestName: string;
   pullRequestUrl: string;
   provider?: GitProvider;
@@ -30,4 +33,6 @@ export interface CiDescriptor {
   sourceBranch?: string;
   targetBranch?: string;
   pullRequest?: GitPullRequestRef;
+  commitSha?: string;
+  commitUrl?: string;
 }

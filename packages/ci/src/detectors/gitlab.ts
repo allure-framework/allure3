@@ -69,6 +69,14 @@ export const gitlab: GitlabCiDescriptor = {
     return getEnv("CI_JOB_NAME");
   },
 
+  get pipelineRunName() {
+    return getEnv("CI_PIPELINE_NAME") || getEnv("CI_PIPELINE_ID");
+  },
+
+  get pipelineRunUrl() {
+    return getEnv("CI_PIPELINE_URL") || undefined;
+  },
+
   get jobRunUid(): string {
     return getEnv("CI_PIPELINE_ID");
   },
@@ -99,6 +107,10 @@ export const gitlab: GitlabCiDescriptor = {
 
   get pullRequestName(): string {
     return getEnv("CI_MERGE_REQUEST_TITLE");
+  },
+
+  get commitSha() {
+    return getEnv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA") || getEnv("CI_COMMIT_SHA") || undefined;
   },
 
   get provider() {

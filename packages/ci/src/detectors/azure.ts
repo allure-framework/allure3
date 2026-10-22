@@ -112,6 +112,14 @@ export const azure: CiDescriptor = {
     return getEnv("BUILD_DEFINITIONNAME");
   },
 
+  get pipelineRunName() {
+    return this.jobName || this.jobRunName || this.jobRunUid;
+  },
+
+  get pipelineRunUrl() {
+    return this.jobRunUid ? this.jobRunUrl : undefined;
+  },
+
   get jobRunUid(): string {
     if (isClassicRelease()) {
       return getEnv("RELEASE_RELEASEID");
@@ -162,6 +170,17 @@ export const azure: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get commitSha() {
+    return getEnv("SYSTEM_PULLREQUEST_SOURCECOMMITID") || getEnv("BUILD_SOURCEVERSION") || undefined;
+  },
+
+  get commitUrl() {
+    const repositoryUrl = getRepositoryUrl();
+    if (getEnv("BUILD_REPOSITORY_PROVIDER") !== "TfsGit" || !repositoryUrl || !this.commitSha) return undefined;
+
+    return `${getBrowserRepositoryUrl(repositoryUrl)}/commit/${encodeURIComponent(this.commitSha)}`;
   },
 
   get provider() {

@@ -74,6 +74,16 @@ export const circle: CiDescriptor = {
     return `${username}/${reponame}`;
   },
 
+  get pipelineRunName() {
+    return getEnv("CIRCLE_WORKFLOW_ID");
+  },
+
+  get pipelineRunUrl() {
+    const id = getEnv("CIRCLE_WORKFLOW_ID");
+
+    return id ? `https://app.circleci.com/pipelines/workflows/${encodeURIComponent(id)}` : undefined;
+  },
+
   get jobRunUid(): string {
     return getEnv("CIRCLE_WORKFLOW_JOB_ID");
   },
@@ -96,6 +106,10 @@ export const circle: CiDescriptor = {
 
   get pullRequestName(): string {
     return "";
+  },
+
+  get commitSha() {
+    return getEnv("CIRCLE_SHA1") || undefined;
   },
 
   get provider() {

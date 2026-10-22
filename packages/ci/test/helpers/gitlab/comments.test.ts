@@ -15,6 +15,11 @@ const report: ReportContextTestReport = {
   plugin: "Awesome",
   href: "awesome/",
   reportPath: "",
+  commitSha: "1234567890abcdef1234567890abcdef12345678",
+  commitHref:
+    "https://gitlab.example.com/group/project/-/merge_requests/7/diffs?commit_id=1234567890abcdef1234567890abcdef12345678",
+  ciRunHref: "https://gitlab.example.com/group/project/-/pipelines/99",
+  ciRunName: "Tests #99",
   status: "failed",
   duration: 1000,
   stats: { total: 9, passed: 4, failed: 1, broken: 2, skipped: 1, unknown: 1 },
@@ -68,7 +73,13 @@ afterEach(() => {
 
 describe("upsertGitlabJobNote", () => {
   it("creates an owned MR note containing the shared summary and report links", async () => {
-    mockEnv(mergeRequestEnv());
+    mockEnv(
+      mergeRequestEnv({
+        CI_COMMIT_SHA: "1234567890abcdef1234567890abcdef12345678",
+        CI_PROJECT_URL: "https://gitlab.example.com/group/project",
+        CI_PIPELINE_URL: "https://gitlab.example.com/group/project/-/pipelines/100",
+      }),
+    );
     const { calls } = stubRequest((call) => {
       if (call.method === "GET" && call.url === notesPath(1)) {
         return notesResponse([]);
@@ -97,6 +108,9 @@ describe("upsertGitlabJobNote", () => {
     expect(body).toContain('<a href="https://reports.example/run/index.html">Awesome</a>');
     expect(body).not.toContain("Artifacts used");
     expect(body).not.toContain("/tmp/private");
+    expect(body).toContain(
+      '**Reports:** <a href="https://reports.example/run/index.html">Awesome</a>\n\n**Context:** <a href="https://gitlab.example.com/group/project/-/merge_requests/7/diffs?commit_id=1234567890abcdef1234567890abcdef12345678">12345678</a>, <a href="https://gitlab.example.com/group/project/-/pipelines/99">Tests #99</a>',
+    );
   });
 
   it.each([
