@@ -1,6 +1,6 @@
 import process from "node:process";
 
-import { PosixProcessSupervisor } from "./PosixProcessSupervisor.js";
+import { PosixProcessSupervisor } from "./posix/PosixProcessSupervisor.js";
 import { WindowsProcessSupervisor } from "./windows/WindowsProcessSupervisor.js";
 
 const ProcessSupervisor = process.platform === "win32" ? WindowsProcessSupervisor : PosixProcessSupervisor;
