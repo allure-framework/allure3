@@ -313,6 +313,49 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
   });
 
   describe("stop", () => {
+    const expectTerminateInterruptsPendingStop = async (
+      stopOptions: Parameters<PosixProcessSupervisor["stop"]>[0],
+      registerCleanup: (cleanup: () => void | Promise<void>) => void,
+    ) => {
+      const fixture = await SupervisorFixture.create();
+      const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
+      const supervisor = new PosixProcessSupervisor(process.execPath, {
+        arguments: [treeScriptPath, "0", fixture.workingDirectory, "ignore"],
+        silent: true,
+      });
+
+      registerCleanup(() => fixture.cleanup({ supervisor }));
+
+      await fixture.writeScript("three-level-tree.mjs", nodeScripts.threeLevelTree);
+
+      await supervisor.start();
+
+      const rootPid = supervisor.process.pid!;
+      const processIds = await Promise.all([0, 1, 2].map((level) => fixture.readProcessId(`level-${level}.pid`)));
+
+      expectProcesses(processIds).toBeAlive();
+
+      const stopping = supervisor.stop(stopOptions);
+
+      await expect(fixture.readProcessId("level-0.sigint")).resolves.toBe(rootPid);
+      await expect(
+        Promise.race([stopping.then(() => "completed" as const), delay(50, "pending" as const)]),
+      ).resolves.toBe("pending");
+      expect(supervisor.completed).toBe(false);
+      expectProcesses(processIds).toBeAlive();
+
+      const terminating = supervisor.terminate();
+      const operations = Promise.all([stopping, terminating]).then(() => "completed" as const);
+
+      await expect(Promise.race([operations, delay(2_000, "timeout" as const, { ref: false })])).resolves.toBe(
+        "completed",
+      );
+      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      expect(supervisor.completed).toBe(true);
+      expectProcesses(processIds).toBeDead();
+      expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+    };
+
     it("stops gracefully after signalling only the root process", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
@@ -375,6 +418,14 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
       expect(supervisor.completed).toBe(true);
       expectProcesses(processIds).toBeDead();
       expect(() => process.kill(-rootPid, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+    });
+
+    it("allows terminate to interrupt an escalating stop", async ({ onTestFinished }) => {
+      await expectTerminateInterruptsPendingStop({ escalate: true, escalationTimeout: 30_000 }, onTestFinished);
+    });
+
+    it("allows terminate to interrupt a non-escalating stop", async ({ onTestFinished }) => {
+      await expectTerminateInterruptsPendingStop({ escalate: false }, onTestFinished);
     });
 
     it("reuses one graceful stop operation for repeated calls", async ({ onTestFinished }) => {
