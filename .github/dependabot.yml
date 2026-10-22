@@ -1,8 +1,134 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
+      interval: weekly
     labels:
-      - "pr:dependencies"
+      - pr:internal
+  - package-ecosystem: npm
+    directory: /
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+    labels:
+      - pr:dependencies
+    groups:
+      vite-stack:
+        patterns:
+          - "vite"
+          - "vite-*"
+          - "@vitejs/*"
+          - "@voidzero-dev/vite-plus*"
+          - "vitest"
+          - "@vitest/*"
+      zip-stream-and-types:
+        patterns:
+          - "zip-stream"
+          - "@types/zip-stream"
+      tar-stream-and-types:
+        patterns:
+          - "tar-stream"
+          - "@types/tar-stream"
+      sortablejs-and-types:
+        patterns:
+          - "sortablejs"
+          - "@types/sortablejs"
+      prompts-and-types:
+        patterns:
+          - "prompts"
+          - "@types/prompts"
+      prismjs-and-types:
+        patterns:
+          - "prismjs"
+          - "@types/prismjs"
+      mjml-and-types:
+        patterns:
+          - "mjml"
+          - "@types/mjml"
+      mime-types-and-types:
+        patterns:
+          - "mime-types"
+          - "@types/mime-types"
+      md5-and-types:
+        patterns:
+          - "md5"
+          - "@types/md5"
+      markdown-it-and-types:
+        patterns:
+          - "markdown-it"
+          - "@types/markdown-it"
+      diff-and-types:
+        patterns:
+          - "diff"
+          - "@types/diff"
+      archiver-and-types:
+        patterns:
+          - "archiver"
+          - "@types/archiver"
+      adm-zip-and-types:
+        patterns:
+          - "adm-zip"
+          - "@types/adm-zip"
+      lodash:
+        patterns:
+          - "lodash"
+          - "lodash-*"
+          - "lodash.*"
+          - "@types/lodash"
+          - "@types/lodash-*"
+          - "@types/lodash.*"
+      css-tooling:
+        patterns:
+          - "autoprefixer"
+          - "postcss"
+          - "postcss-*"
+          - "sass"
+          - "sass-loader"
+          - "css-loader"
+          - "style-loader"
+      svgr:
+        patterns:
+          - "@svgr/*"
+      d3:
+        patterns:
+          - "d3"
+          - "d3-*"
+          - "@types/d3"
+          - "@types/d3-*"
+      nivo:
+        patterns:
+          - "@nivo/*"
+      preact:
+        patterns:
+          - "preact"
+          - "@preact/*"
+          - "@prefresh/*"
+          - "react"
+          - "react-dom"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
+      webpack:
+        patterns:
+          - "webpack"
+          - "webpack-*"
+          - "*-webpack-plugin"
+      rollup:
+        patterns:
+          - "rollup"
+          - "@rollup/*"
+          - "rollup-plugin-*"
+      babel:
+        patterns:
+          - "@babel/*"
+          - "@types/babel__*"
+          - "babel-*"
+      storybook:
+        patterns:
+          - "storybook"
+          - "@storybook/*"
+      allure-stack:
+        patterns:
+          - "allure-*"
