@@ -359,3 +359,22 @@ export const attachmentType = (type?: string): AttachmentType | null => {
   }
 };
 export const restrictedContentTypes = ["application/gzip"];
+
+// Source/preview toggles can reach both code and preview renderers.
+export const attachmentAssetFeatures: Record<AttachmentType, readonly string[]> = {
+  "image": [],
+  "svg": [],
+  "video": [],
+  "archive": [],
+  "json": ["attachment-code"],
+  "code": ["attachment-code"],
+  "uri": ["attachment-code"],
+  "css": ["attachment-code"],
+  "text": ["attachment-code"],
+  "html": ["attachment-code", "attachment-html"],
+  "markdown": ["attachment-code", "attachment-markdown"],
+  "mermaid": ["attachment-code", "attachment-mermaid"],
+  "table": ["attachment-table"],
+  "image-diff": ["attachment-image-diff"],
+  "http": ["attachment-http"],
+};

@@ -203,3 +203,15 @@ export const copyReportStaticAssets = async (assets: ReportStaticAssets, reportF
 };
 
 export { createSingleFileScripts } from "./singleFileAssets.js";
+
+export const selectReportStaticFiles = (
+  assets: ReportStaticAssets,
+  requiredFeatures?: readonly string[],
+): ReadonlyMap<string, Buffer> => {
+  const graph = assets.featureAssets;
+  if (!graph || !requiredFeatures || requiredFeatures.some((key) => !Object.hasOwn(graph.features, key))) {
+    return assets.files;
+  }
+  const selected = new Set([...graph.base, ...requiredFeatures.flatMap((key) => graph.features[key])]);
+  return new Map([...assets.files].filter(([file]) => selected.has(file)));
+};

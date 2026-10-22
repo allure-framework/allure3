@@ -1,4 +1,5 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult, TestError, TestStatus } from "@allurereport/core-api";
+import { hasErrorDiff } from "@allurereport/web-commons";
 import type { ReportFixtureResult, ReportTestResult } from "types";
 
 export type TestLevelErrorItem = {
@@ -52,8 +53,7 @@ const getTestLevelErrorTitle = (message?: string) => {
   );
 };
 
-export const hasErrorDiff = (error?: TestErrorLike) =>
-  Boolean(error?.actual) && error.actual !== "undefined" && Boolean(error?.expected) && error.expected !== "undefined";
+export { hasErrorDiff } from "@allurereport/web-commons";
 
 export const hasTestLevelErrorContent = (error?: TestErrorLike) =>
   Boolean(normalizeErrorText(error?.trace).length) || hasErrorDiff(error);
