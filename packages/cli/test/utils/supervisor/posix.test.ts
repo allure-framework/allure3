@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { once } from "node:events";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
@@ -6,8 +7,37 @@ import { epic, feature, label, story } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { PosixProcessSupervisor } from "../../../src/utils/supervisor/index.js";
-import { nodeScripts } from "./posix.scripts.js";
+import { nodeScripts, perlScripts } from "./posix.scripts.js";
 import { SupervisorFixture, expectProcesses } from "./supervisor.helpers.js";
+
+const perlProbe =
+  process.platform === "win32"
+    ? undefined
+    : spawnSync("perl", ["-MPOSIX=_exit,setsid", "-e", "exit 0"], { encoding: "utf-8" });
+const perlAvailable = perlProbe?.status === 0;
+const runningInGitHubActions = Boolean(process.env.GITHUB_ACTIONS);
+
+const requirePerl = (skip: (note?: string | undefined) => void) => {
+  if (perlAvailable) {
+    return;
+  }
+
+  const probeFailure = perlProbe?.error?.message || perlProbe?.stderr?.trim() || "Perl was not found";
+
+  if (runningInGitHubActions) {
+    throw new Error(`Perl with POSIX::setsid is required in GitHub Actions: ${probeFailure}`);
+  } else {
+    skip(`Perl with POSIX::_exit and POSIX::setsid is unavailable: ${probeFailure}`);
+  }
+};
+
+const expectProcessGroupToBeAddressable = (processGroupId: number) => {
+  try {
+    process.kill(-processGroupId, 0);
+  } catch (error) {
+    expect(error).toEqual(expect.objectContaining({ code: "EPERM" }));
+  }
+};
 
 describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout: 45_000 }, () => {
   beforeEach(async () => {
@@ -108,6 +138,64 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
 
       // The process group does should not exist anymore.
       expect(() => process.kill(-supervisor.process.pid!, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+    });
+
+    it("completes for a process group containing zombies only", async ({ onTestFinished, skip }) => {
+      requirePerl(skip);
+
+      const fixture = await SupervisorFixture.create();
+      const scriptPath = fixture.resolvePath("zombie-only-process-group.pl");
+      const keeperPidPath = "keeper.pid";
+      const zombiePidPath = "zombie.pid";
+      const releasePath = "keeper-release";
+      const supervisor = new PosixProcessSupervisor("perl", {
+        arguments: [
+          scriptPath,
+          fixture.resolvePath(keeperPidPath),
+          fixture.resolvePath(zombiePidPath),
+          fixture.resolvePath("zombie-ready"),
+          fixture.resolvePath(releasePath),
+        ],
+        stdio: "ignore",
+      });
+      let keeperPid: number | undefined;
+
+      onTestFinished(() =>
+        fixture.cleanup({
+          beforeTerminate: async () => {
+            await fixture.touchFile(releasePath);
+
+            if (keeperPid !== undefined) {
+              await vi.waitFor(
+                () => {
+                  expect(() => process.kill(keeperPid!, 0)).toThrow(expect.objectContaining({ code: "ESRCH" }));
+                },
+                { timeout: 5_000, interval: 25 },
+              );
+            }
+          },
+          supervisor,
+        }),
+      );
+
+      await fixture.writeScript("zombie-only-process-group.pl", perlScripts.zombieOnlyProcessGroup);
+      await supervisor.start();
+
+      const rootPid = supervisor.process.pid!;
+      const [rootExitCode, rootSignal] = await once(supervisor.process, "close");
+      keeperPid = await fixture.readProcessId(keeperPidPath);
+      const zombiePid = await fixture.readProcessId(zombiePidPath);
+
+      expect(rootExitCode).toBe(0);
+      expect(rootSignal).toBeNull();
+      expectProcesses([zombiePid]).toBeAlive();
+      expectProcessGroupToBeAddressable(rootPid);
+      expect(supervisor.completed).toBe(false);
+
+      await expect(supervisor.completion).resolves.toEqual({ code: 0, signal: null });
+      expect(supervisor.completed).toBe(true);
+      expectProcesses([zombiePid]).toBeAlive();
+      expectProcessGroupToBeAddressable(rootPid);
     });
   });
 
