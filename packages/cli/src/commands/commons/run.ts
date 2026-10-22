@@ -184,7 +184,6 @@ export const runTests = async (params: {
       stdio: logs,
       silent,
       outputEncoding: "utf-8",
-      stopTimeout: 30_000,
     });
 
     testProcessStarted = true;
@@ -241,7 +240,7 @@ export const runTests = async (params: {
 
         qualityGateLogger.info(`Fast-fail triggered${failedRulesMessage}; stopping ${stopTarget}`);
 
-        await supervisor.stop();
+        await supervisor.stop({ escalate: true });
       });
     }
 

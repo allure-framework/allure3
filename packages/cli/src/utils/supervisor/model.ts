@@ -8,11 +8,15 @@ export type SupervisedCommandOptions = {
   stdio?: "ignore" | "inherit" | "pipe";
   outputEncoding?: BufferEncoding;
   silent?: boolean;
-  stopTimeout?: number;
 };
 
 export type ProcessStartupInfo = {
   pid: number;
+};
+
+export type StopOptions = {
+  escalate?: boolean;
+  escalationTimeout?: number;
 };
 
 export type InterruptionLevel = "stopped" | "terminated";
