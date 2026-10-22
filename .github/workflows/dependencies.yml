@@ -1,0 +1,25 @@
+name: Dependency check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - yarn.lock
+      - packages/*/package.json
+
+permissions:
+  contents: read
+
+jobs:
+  sherif:
+    name: Sherif check
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup node and install dependencies
+        uses: ./.github/actions/install
+      - name: Run version consistency check
+        run: yarn check:dependencies
