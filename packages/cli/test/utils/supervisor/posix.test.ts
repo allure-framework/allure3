@@ -112,6 +112,49 @@ describe("PosixProcessSupervisor", { skip: process.platform === "win32", timeout
   });
 
   describe("terminate", () => {
+    it("reports forced termination when the root exited successfully but a descendant remains", async ({
+      onTestFinished,
+    }) => {
+      const fixture = await SupervisorFixture.create();
+      const descendantScriptPath = fixture.resolvePath("descendant.mjs");
+      const rootScriptPath = fixture.resolvePath("root.mjs");
+      const supervisor = new PosixProcessSupervisor(process.execPath, {
+        arguments: [
+          rootScriptPath,
+          descendantScriptPath,
+          fixture.resolvePath("descendant-ready"),
+          fixture.resolvePath("descendant-release"),
+        ],
+        silent: true,
+      });
+
+      onTestFinished(() =>
+        fixture.cleanup({
+          beforeTerminate: () => fixture.touchFile("descendant-release"),
+          supervisor,
+        }),
+      );
+
+      await fixture.writeScript("descendant.mjs", nodeScripts.descendant);
+      await fixture.writeScript("root.mjs", nodeScripts.rootWithDescendant);
+
+      await supervisor.start();
+
+      const [rootExitCode, rootSignal] = await once(supervisor.process, "close");
+      const descendantPid = await fixture.readProcessId("descendant-ready");
+
+      expect(rootExitCode).toBe(0);
+      expect(rootSignal).toBeNull();
+      expect(supervisor.completed).toBe(false);
+      expectProcesses([descendantPid]).toBeAlive();
+
+      await supervisor.terminate();
+
+      await expect(supervisor.completion).resolves.toEqual({ code: null, signal: "SIGKILL" });
+      expect(supervisor.completed).toBe(true);
+      expectProcesses([descendantPid]).toBeDead();
+    });
+
     it("kills a three-level process tree", async ({ onTestFinished }) => {
       const fixture = await SupervisorFixture.create();
       const treeScriptPath = fixture.resolvePath("three-level-tree.mjs");
