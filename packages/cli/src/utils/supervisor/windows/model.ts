@@ -37,10 +37,14 @@ export type HostTargetStartedEvent = {
   rootPid: number;
 };
 
+export const completionReasons = ["normal", "stopped", "terminated"] as const;
+
+export type CompletionReason = (typeof completionReasons)[number];
+
 export type HostTargetCompletedEvent = {
   type: "completed";
   rootExitCode: number;
-  reason: "normal" | "stopped" | "terminated";
+  reason: CompletionReason;
 };
 
 export type HostDiagnosticsEvent = {

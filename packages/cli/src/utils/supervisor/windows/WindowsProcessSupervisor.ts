@@ -11,6 +11,7 @@ import {
   isObject,
   ensureBoolean,
   ensureInt,
+  ensureLiteral,
   isBoolean,
   isString,
   ensureString,
@@ -21,6 +22,7 @@ import { supervisorDiagnosticsEnabled } from "../diagnostics.js";
 import type { JobMonitor, SupervisedCommandOptions, ProcessCompletion, ProcessStartupInfo } from "../model.js";
 import { ProcessSupervisorBase } from "../ProcessSupervisorBase.js";
 import { ProcessHostOperationError } from "./error.js";
+import { completionReasons } from "./model.js";
 import type {
   HostResultType,
   HostRequestResult,
@@ -364,8 +366,10 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
   };
 
   #handleCompletedMessage(message: ShallowKnown<HostTargetCompletedEvent>) {
-    this.diagnostic("completed frame received", { rootExitCode: String(message.rootExitCode) });
+    this.diagnostic("completed frame received", { rootExitCode: String(message.rootExitCode), reason: message.reason });
+
     const exitCode = ensureInt(message.rootExitCode);
+
     if (exitCode === undefined) {
       this.#fail(new Error("Root exit code is undefined."));
     } else {
@@ -373,7 +377,8 @@ export class WindowsProcessSupervisor extends ProcessSupervisorBase {
       for (const pendingRequest of this.#pendingRequests.values()) {
         pendingRequest.resolve();
       }
-      this.#resolveJobCompletion({ code: exitCode, signal: null });
+      const reason = ensureLiteral(message.reason, completionReasons);
+      this.#resolveJobCompletion({ code: reason === "terminated" ? 1 : exitCode, signal: null });
     }
   }
 

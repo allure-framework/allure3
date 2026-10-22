@@ -431,6 +431,58 @@ describe("WindowsProcessSupervisor", { skip: process.platform !== "win32", timeo
     });
   }, 10_000);
 
+  it("reports forced termination after the root exits successfully with a surviving descendant", async ({
+    onTestFinished,
+  }) => {
+    const fixture = await SupervisorFixture.create();
+    const supervisor = new WindowsProcessSupervisor(process.execPath, {
+      arguments: [
+        fixture.resolvePath("root.mjs"),
+        fixture.resolvePath("child.mjs"),
+        fixture.resolvePath("child-ready"),
+        fixture.resolvePath("child-release"),
+        "detached",
+      ],
+      silent: true,
+    });
+    onTestFinished(() =>
+      fixture.cleanup({
+        beforeTerminate: async () => {
+          if (supervisor.started && !supervisor.completed) await supervisor.terminate();
+        },
+      }),
+    );
+
+    await fixture.writeScript("child.mjs", nodeScripts.descendant);
+    await fixture.writeScript(
+      "root.mjs",
+      `${nodeScripts.rootWithDescendant}\nprocess.once("exit", (code) => console.log("Root exit code: " + code));`,
+    );
+
+    await start(supervisor);
+    const rootPid = supervisor.startupInfo.pid;
+    const childPid = await fixture.readProcessId("child-ready");
+    const hostPid = supervisor.process.pid!;
+
+    await step("Verify the root has exited while its descendant keeps the job alive", async () => {
+      await waitProcessGone(rootPid);
+      expectProcesses([rootPid]).toBeDead();
+      expectProcesses([childPid, hostPid]).toBeAlive();
+      await expect(Promise.race([supervisor.completion.then(() => "completed"), delay(50, "pending")])).resolves.toBe(
+        "pending",
+      );
+    });
+
+    await step("Force termination and verify the successful root exit does not mask it", async () => {
+      await supervisor.terminate();
+      const completion = await wait(supervisor);
+      expect(completion.stdout).toBe("Root exit code: 0\n");
+      expect(completion).toMatchObject({ code: 1, signal: null });
+      await Promise.all([childPid, hostPid].map(waitProcessGone));
+      expectProcesses([rootPid, childPid, hostPid]).toBeDead();
+    });
+  }, 10_000);
+
   it("reuses one termination promise for repeated calls", async ({ onTestFinished }) => {
     const fixture = await SupervisorFixture.create();
     const supervisor = new WindowsProcessSupervisor(process.execPath, {
