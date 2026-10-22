@@ -18,7 +18,7 @@
   --color-text-on-accent: var(--palette-gray-neutral-75);
   --color-icon-primary: var(--palette-gray-neutral-alpha-day-650);
   --color-icon-secondary: var(--palette-gray-neutral-alpha-day-450);
-  --color-icon-muted: var(--palette-gray-neutral-alpha-day-400);
+  --color-icon-muted: var(--palette-gray-neutral-alpha-day-450);
   --color-icon-inverse-primary: var(--palette-gray-neutral-alpha-night-50);
 
   /* Borders and focus */
@@ -106,7 +106,7 @@
   --color-status-failed-bg-subtle: var(--palette-red-day-darken-1-8);
   --color-status-failed-text: var(--palette-red-day-darken-4);
   --color-status-failed-border: var(--palette-red-day-darken-1);
-  --color-status-failed-on-bg: var(--palette-gray-neutral-0);
+  --color-status-failed-on-bg: var(--palette-gray-950);
   --color-status-failed-chart: var(--palette-red-day-darken-4);
   --color-status-failed-chart-fill: var(--palette-red-day-darken-2);
 
@@ -115,7 +115,7 @@
   --color-status-broken-text: var(--palette-orange-day-darken-5);
   --color-status-broken-border: var(--palette-amber-day-darken-2);
   --color-status-broken-on-bg: var(--palette-gray-950);
-  --color-status-broken-chart: var(--palette-amber-day-darken-3);
+  --color-status-broken-chart: var(--palette-amber-day-darken-5);
   --color-status-broken-chart-fill: var(--palette-amber-day-darken-2);
 
   --color-status-passed-bg: var(--palette-green-day-darken-2);
@@ -297,7 +297,7 @@
   --color-status-failed-bg-subtle: var(--palette-red-night-darken-4-20);
   --color-status-failed-text: var(--palette-red-night-base);
   --color-status-failed-border: var(--palette-red-night-darken-2);
-  --color-status-failed-on-bg: var(--palette-gray-neutral-0);
+  --color-status-failed-on-bg: var(--palette-gray-950);
   --color-status-failed-chart: var(--palette-red-night-darken-3);
   --color-status-failed-chart-fill: var(--palette-red-night-darken-3);
 

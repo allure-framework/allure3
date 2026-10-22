@@ -3,7 +3,10 @@
 }
 
 .test-result-description-wrapper {
-  padding: 16px 0;
+  border: var(--section-frame, 0 none);
+  border-radius: var(--section-radius, 0);
+  padding-inline: var(--section-padding-inline, 0);
+  padding-block: var(--section-padding-block, 16px);
   border-bottom: 1px solid var(--color-border-default);
 }
 

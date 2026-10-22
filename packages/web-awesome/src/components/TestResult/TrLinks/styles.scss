@@ -6,9 +6,12 @@
 }
 
 .test-result-links-wrapper {
+  border: var(--section-frame, 0 none);
+  border-radius: var(--section-radius, 0);
+  padding-inline: var(--section-padding-inline, 0);
   width: 100%;
   border-bottom: 1px solid var(--color-border-default);
-  padding-bottom: 12px;
+  padding-block: var(--section-padding-block, 0 12px);
 }
 
 .test-result-link {

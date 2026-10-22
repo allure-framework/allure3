@@ -28,17 +28,17 @@ export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, param
 
   return (
     <div className={styles["test-result-metadata"]}>
-      <MetadataButton
-        isOpened={isOpened}
-        setIsOpen={() => {
-          if (parametersId !== null) {
-            toggleTree(parametersId);
-          }
-        }}
-        counter={parameters?.length}
-        title={t("parameters")}
-      />
       <div className={styles["test-result-metadata-wrapper"]}>
+        <MetadataButton
+          isOpened={isOpened}
+          setIsOpen={() => {
+            if (parametersId !== null) {
+              toggleTree(parametersId);
+            }
+          }}
+          counter={parameters?.length}
+          title={t("parameters")}
+        />
         {isOpened && (
           <>
             {/* FIXME: use proper type in the MetadataList component */}
