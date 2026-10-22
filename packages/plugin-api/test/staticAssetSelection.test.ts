@@ -40,5 +40,6 @@ it("preserves all files for live/unknown requirements and legacy archives", () =
   const assets = archive();
   expect(selectReportStaticFiles(assets)).toBe(assets.files);
   expect(selectReportStaticFiles(assets, ["future-viewer"])).toBe(assets.files);
+  expect(selectReportStaticFiles(assets, ["chart-pie", "constructor"])).toBe(assets.files);
   expect(selectReportStaticFiles({ ...assets, featureAssets: undefined }, [])).toBe(assets.files);
 });

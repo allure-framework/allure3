@@ -13,7 +13,8 @@ import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
 export class DashboardPlugin implements Plugin {
-  #live = false;
+  // Updating runs retain all assets through done; only start resets this policy.
+  #retainAllAssets = false;
 
   #writer: DashboardDataWriter | undefined;
 
@@ -41,7 +42,7 @@ export class DashboardPlugin implements Plugin {
       reportFiles: context.reportFiles,
       reportDataFiles,
       requiredAssetFeatures:
-        this.options.singleFile && !this.#live
+        this.options.singleFile && !this.#retainAllAssets
           ? collectChartAssetFeatures(this.options.layout ?? defaultChartsConfig)
           : undefined,
       reportUuid: context.reportUuid,
@@ -51,7 +52,7 @@ export class DashboardPlugin implements Plugin {
   };
 
   start = async (context: PluginContext): Promise<void> => {
-    this.#live = context.realTime === true;
+    this.#retainAllAssets = context.realTime === true;
     if (this.options.singleFile) {
       this.#writer = new InMemoryDashboardDataWriter();
     } else {
@@ -60,7 +61,7 @@ export class DashboardPlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    this.#live = true;
+    this.#retainAllAssets = true;
     await this.#generateAfterStart(context, store);
   };
 

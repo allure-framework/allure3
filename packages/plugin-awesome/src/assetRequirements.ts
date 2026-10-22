@@ -8,42 +8,44 @@ export const collectViewerAssetFeatures = (
   globals: PluginGlobals,
 ): string[] => {
   const features = new Set<string>();
-  const attachment = (link: { contentType?: string }) => {
+  const collectAttachment = (link: { contentType?: string }) => {
     const type = attachmentType(link.contentType);
     if (type) for (const feature of attachmentAssetFeatures[type]) features.add(feature);
   };
-  const error = (value?: TestError) => {
+  const collectError = (value?: TestError) => {
     if (hasErrorDiff(value)) features.add("error-diff");
   };
-  const body = (value: { error?: TestError; errors?: TestError[]; steps?: TestStepResult[] }) => {
-    error(value.error);
-    value.errors?.forEach(error);
+  const collectBody = (value: { error?: TestError; errors?: TestError[]; steps?: TestStepResult[] }) => {
+    collectError(value.error);
+    value.errors?.forEach(collectError);
     const steps = [...(value.steps ?? [])];
     while (steps.length) {
       const step = steps.pop()!;
-      if (step.type === "attachment") attachment(step.link);
+      if (step.type === "attachment") collectAttachment(step.link);
       else {
-        error(step.error);
+        collectError(step.error);
         steps.push(...step.steps);
       }
     }
   };
+  // Inspect emitted results, including fixtures, retries and embedded historical errors.
   for (const test of tests) {
-    body(test);
-    test.attachments?.forEach((item) => attachment(item.link));
-    test.setup.forEach(body);
-    test.teardown.forEach(body);
-    test.retries?.forEach(body);
-    test.history.forEach((item) => error(item.error));
+    collectBody(test);
+    test.attachments?.forEach((item) => collectAttachment(item.link));
+    test.setup.forEach(collectBody);
+    test.teardown.forEach(collectBody);
+    test.retries?.forEach(collectBody);
+    test.history.forEach((item) => collectError(item.error));
   }
-  attachments.forEach(attachment);
-  globals.attachments.forEach(attachment);
+  // The complete attachment inventory conservatively covers links outside the filtered test tree.
+  attachments.forEach(collectAttachment);
+  globals.attachments.forEach(collectAttachment);
   Object.values(globals.attachmentsByEnv ?? {})
     .flat()
-    .forEach(attachment);
-  globals.errors.forEach(error);
+    .forEach(collectAttachment);
+  globals.errors.forEach(collectError);
   Object.values(globals.errorsByEnv ?? {})
     .flat()
-    .forEach(error);
+    .forEach(collectError);
   return [...features].sort();
 };

@@ -117,7 +117,8 @@ type PerfAwarePluginContext = PluginContext & {
 };
 
 export class AwesomePlugin implements Plugin {
-  #live = false;
+  // Updating runs retain all assets through done; only start resets this policy.
+  #retainAllAssets = false;
 
   #writer: AwesomeDataWriter | undefined;
 
@@ -427,7 +428,9 @@ export class AwesomePlugin implements Plugin {
       : configuredSections.filter((section) => section !== "metrics");
 
     const chartFeatures =
-      singleFile && !this.#live ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig) : undefined;
+      singleFile && !this.#retainAllAssets
+        ? collectChartAssetFeatures(this.options.charts ?? defaultChartsConfig)
+        : undefined;
 
     await measure("staticFiles", () =>
       generateStaticFiles({
@@ -453,7 +456,7 @@ export class AwesomePlugin implements Plugin {
   };
 
   start = async (context: PluginContext) => {
-    this.#live = context.realTime === true;
+    this.#retainAllAssets = context.realTime === true;
     const { singleFile } = this.options;
 
     if (singleFile) {
@@ -467,7 +470,7 @@ export class AwesomePlugin implements Plugin {
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
-    this.#live = true;
+    this.#retainAllAssets = true;
     await this.#generateAfterStart(context, store);
   };
 

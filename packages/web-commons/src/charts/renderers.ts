@@ -20,6 +20,7 @@ export const chartRenderers: Record<ChartType, ChartRenderer> = {
 
 export const collectChartAssetFeatures = (charts: readonly { type: string }[]): string[] | undefined => {
   const features = new Set<string>();
+  // Select by configuration: history-dependent charts may have no current data.
   for (const chart of charts) {
     if (!Object.prototype.hasOwnProperty.call(chartRenderers, chart.type)) return undefined;
     features.add(`chart-${chartRenderers[chart.type as ChartType]}`);

@@ -209,6 +209,8 @@ export const selectReportStaticFiles = (
   requiredFeatures?: readonly string[],
 ): ReadonlyMap<string, Buffer> => {
   const graph = assets.featureAssets;
+  // Undefined means requirements are unknown (including live runs); [] selects only base assets.
+  // Unknown feature IDs retain the full archive rather than risk omitting a dependency.
   if (!graph || !requiredFeatures || requiredFeatures.some((key) => !Object.hasOwn(graph.features, key))) {
     return assets.files;
   }

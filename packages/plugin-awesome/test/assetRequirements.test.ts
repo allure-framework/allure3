@@ -23,30 +23,21 @@ const attachment = (contentType: string): TestStepResult => ({
 });
 const empty = { setup: [], teardown: [], steps: [], history: [], attachments: [] } as unknown as ReportTestResult;
 const globals: PluginGlobals = { errors: [], attachments: [] };
-it("retains source viewers, nested/fixture/retry attachments, and historical/global comparisons", () => {
+it("retains source viewers and nested/fixture/retry attachments", () => {
   const test = {
     ...empty,
     steps: [{ type: "step", name: "nested", status: "passed", parameters: [], steps: [attachment("text/markdown")] }],
     setup: [{ steps: [attachment("text/html")] }],
     teardown: [{ steps: [attachment("text/csv")] }],
-    retries: [
-      { steps: [attachment("application/vnd.allure.diagrams.mermaid")], error: { expected: "old", actual: "new" } },
-    ],
-    history: [{ error: { expected: "historical", actual: "current" } }],
+    retries: [{ steps: [attachment("application/vnd.allure.diagrams.mermaid")] }],
   } as ReportTestResult;
-  expect(
-    collectViewerAssetFeatures([test], [{ contentType: "application/vnd.allure.http+json" }], {
-      ...globals,
-      errorsByEnv: { prod: [{ actual: "a", expected: "b", message: "global assertion" }] },
-    }),
-  ).toEqual([
+  expect(collectViewerAssetFeatures([test], [{ contentType: "application/vnd.allure.http+json" }], globals)).toEqual([
     "attachment-code",
     "attachment-html",
     "attachment-http",
     "attachment-markdown",
     "attachment-mermaid",
     "attachment-table",
-    "error-diff",
   ]);
 });
 it("preserves image-diff previews from environment globals and omits download-only/ordinary images", () => {
@@ -66,4 +57,35 @@ it("preserves image-diff previews from environment globals and omits download-on
     }),
   ).toEqual(["attachment-image-diff"]);
   expect(collectViewerAssetFeatures([empty], [], globals)).toEqual([]);
+});
+
+const comparison = { expected: "old value", actual: "new value" };
+it.each([
+  ["test error", { error: comparison }],
+  ["additional error", { errors: [comparison] }],
+  [
+    "nested step error",
+    {
+      steps: [
+        {
+          type: "step",
+          steps: [{ type: "step", steps: [], error: comparison }],
+        },
+      ],
+    },
+  ],
+  ["setup error", { setup: [{ steps: [], error: comparison }] }],
+  ["teardown error", { teardown: [{ steps: [], error: comparison }] }],
+  ["retry error", { retries: [{ steps: [], error: comparison }] }],
+  ["historical error", { history: [{ error: comparison }] }],
+])("retains comparison assets when only %s requires them", (_name, result) => {
+  const test = { ...empty, ...result } as ReportTestResult;
+  expect(collectViewerAssetFeatures([test], [], globals)).toEqual(["error-diff"]);
+});
+
+it.each([
+  ["global error", { errors: [comparison], attachments: [] }],
+  ["environment error", { errors: [], attachments: [], errorsByEnv: { prod: [comparison] } }],
+])("retains comparison assets when only %s requires them", (_name, globals) => {
+  expect(collectViewerAssetFeatures([empty], [], globals)).toEqual(["error-diff"]);
 });
