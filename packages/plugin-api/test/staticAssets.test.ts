@@ -116,6 +116,7 @@ describe("report static archives", () => {
 
   it.each([
     ["invalid JSON", "{"],
+    ["non-object metadata", null],
     [
       "unknown version",
       { version: 2, initial: ["app.js"], base: ["app.js", "styles.css", "app.js.LICENSE.txt"], features: {} },
@@ -151,13 +152,15 @@ describe("report static archives", () => {
         features: {},
       },
     ],
-  ])("rejects malformed feature metadata: %s", async (_name, graph) => {
+  ])("rejects malformed feature metadata: %s", async (name, graph) => {
     const sourceDir = await createFixtureBuild();
     await writeFile(join(sourceDir, "feature-assets.json"), typeof graph === "string" ? graph : JSON.stringify(graph));
     const archive = join(fixtureRoot, "invalid-features.tar");
     await createReportStaticArchive(sourceDir, archive, { singleFileCompatible: false });
     await expect(readReportStaticAssets(archive)).rejects.toThrow(
-      /feature-assets.json|Unclassified report feature asset|Initial report assets/,
+      name === "unknown version"
+        ? "Unsupported report feature-assets.json version: 2; expected 1"
+        : /feature-assets.json|Unclassified report feature asset|Initial report assets/,
     );
   });
 

@@ -63,12 +63,19 @@ it.each(["valid", "missing-related", "no-features"])(
                   { name: "FixtureAssets", stage: webpack.Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE },
                   () => {
                     compilation.emitAsset("favicon.txt", new webpack.sources.RawSource("always retained"));
-                    compilation.emitAsset("pie.LICENSE.txt", new webpack.sources.RawSource("license"));
+                    compilation.emitAsset("pie.LICENSE.txt", new webpack.sources.RawSource("license"), {
+                      related: {
+                        license: scenario === "missing-related" ? "missing.LICENSE.txt" : "shared.LICENSE.txt",
+                      },
+                    });
+                    compilation.emitAsset("shared.LICENSE.txt", new webpack.sources.RawSource("shared license"), {
+                      related: { license: "pie.LICENSE.txt" },
+                    });
                     const group = compilation.namedChunkGroups.get("chart-pie");
                     if (!group) return;
                     const file = group.getFiles().find((name) => name.startsWith("chart-pie"));
                     compilation.updateAsset(file, (source) => source, {
-                      related: { license: scenario === "missing-related" ? "missing.LICENSE.txt" : "pie.LICENSE.txt" },
+                      related: { license: "pie.LICENSE.txt" },
                     });
                   },
                 );
@@ -112,7 +119,10 @@ it.each(["valid", "missing-related", "no-features"])(
       expect(pie.some((file) => file.startsWith("nested-"))).toBe(true);
       expect(pie.some((file) => file.endsWith(".png"))).toBe(true);
       expect(pie).toContain("pie.LICENSE.txt");
+      expect(pie).toContain("shared.LICENSE.txt");
+      expect(new Set(pie).size).toBe(pie.length);
       expect(graph.base).not.toContain("pie.LICENSE.txt");
+      expect(graph.base).not.toContain("shared.LICENSE.txt");
       expect(Object.keys(graph.features)).toEqual(["chart-bar", "chart-pie"]);
       const classified = new Set([...graph.base, ...Object.values(graph.features).flat()]);
       expect([...classified].sort()).toEqual(

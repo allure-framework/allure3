@@ -15,6 +15,7 @@ export type ReportStaticAssets = {
 };
 
 export type ReportFeatureAssets = {
+  // Schema version shared by the build plugin and archive reader.
   version: 1;
   initial: string[];
   base: string[];
@@ -34,15 +35,19 @@ const parseFeatureAssets = (
   }
   const isRecord = (candidate: unknown): candidate is Record<string, unknown> =>
     !!candidate && typeof candidate === "object" && !Array.isArray(candidate);
-  const isFiles = (candidate: unknown): candidate is string[] =>
+  const isExistingFileList = (candidate: unknown): candidate is string[] =>
     Array.isArray(candidate) && candidate.every((file) => typeof file === "string" && files.has(file));
+  if (!isRecord(value)) {
+    throw new Error("Invalid report feature-assets.json: expected an object");
+  }
+  if (value.version !== 1) {
+    throw new Error(`Unsupported report feature-assets.json version: ${JSON.stringify(value.version)}; expected 1`);
+  }
   if (
-    !isRecord(value) ||
-    value.version !== 1 ||
-    !isFiles(value.initial) ||
-    !isFiles(value.base) ||
+    !isExistingFileList(value.initial) ||
+    !isExistingFileList(value.base) ||
     !isRecord(value.features) ||
-    !Object.entries(value.features).every(([key, refs]) => key.length > 0 && isFiles(refs))
+    !Object.entries(value.features).every(([key, refs]) => key.length > 0 && isExistingFileList(refs))
   ) {
     throw new Error("Invalid report feature-assets.json or missing referenced asset");
   }
@@ -168,6 +173,8 @@ export const readReportStaticAssets = async (archive: string | URL): Promise<Rep
   }
 
   const featureContent = files.get("feature-assets.json");
+  // Archives without feature metadata retain the full asset set.
+  // Present metadata must be valid before assets can be selected.
   if (!featureContent) return { manifest, files };
 
   // Build metadata is retained in the package archive, not published as a report asset.

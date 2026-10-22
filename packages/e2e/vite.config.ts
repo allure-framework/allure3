@@ -31,6 +31,7 @@ export default defineConfig({
             { pattern: "vite.config.*", base: "workspace" },
             { pattern: "tsconfig*.json", base: "workspace" },
             { pattern: "scripts/pack-report-static.mjs", base: "workspace" },
+            { pattern: "scripts/report-feature-assets.mjs", base: "workspace" },
           ],
           output: ["out/allure-results/**", "test-results/**"],
         },
